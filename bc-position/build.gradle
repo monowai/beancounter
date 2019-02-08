@@ -1,0 +1,88 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+        springCloudVersion = 'Greenwich.RELEASE'
+        resilience4jVersion = "0.13.2"
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.beancounter'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(
+            project(":bc-common"),
+            "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.cloud:spring-cloud-starter-openfeign",
+            "org.springframework.boot:spring-boot-starter-actuator",
+            "io.github.resilience4j:resilience4j-spring-boot2:${resilience4jVersion}",
+            "io.github.resilience4j:resilience4j-reactor:${resilience4jVersion}"
+
+
+    )
+
+    compileOnly (
+            "org.projectlombok:lombok",
+            "org.springframework.boot:spring-boot-configuration-processor"
+    )
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor "org.projectlombok:lombok"
+
+
+    testImplementation(
+            "org.assertj:assertj-core",
+            "io.rest-assured:rest-assured",
+            "io.rest-assured:spring-mock-mvc",
+            "io.rest-assured:json-schema-validator",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.junit.jupiter:junit-jupiter-engine",
+            "org.junit.vintage:junit-vintage-engine",
+            "org.junit.platform:junit-platform-launcher",
+            "org.junit.platform:junit-platform-runner",
+            "org.junit.platform:junit-platform-surefire-provider",
+            "org.projectlombok:lombok"
+    )
+}
+
+dependencyManagement {
+    imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "failed"
+    }
+}
+
+bootRun {
+    systemProperties System.getProperties()
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        downloadSources = true
+        outputDir = file("$buildDir/classes/main/")
+    }
+}

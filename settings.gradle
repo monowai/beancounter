@@ -1,0 +1,5 @@
+rootProject.name = 'beancounter'
+include 'bc-common'
+include 'bc-md'
+include 'bc-position'
+

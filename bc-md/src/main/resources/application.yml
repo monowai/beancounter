@@ -1,0 +1,14 @@
+server:
+  port: 9510
+
+
+logging:
+  level:
+    com:
+      netfix: ERROR
+    org:
+      springframework:
+        test: trace
+spring:
+  application:
+    name: bc-marketData

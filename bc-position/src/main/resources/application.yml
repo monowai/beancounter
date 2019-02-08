@@ -1,0 +1,46 @@
+server:
+  port: 9500
+
+org.beancounter:
+  md:
+    name: marketdata
+    url: http://localhost:9510
+
+spring:
+  application:
+    name: bc-positionKeeper
+
+
+management:
+  endpoints:
+    web.exposure.include: '*'
+    health.mapping.DOWN: OK
+    health.mapping.OUT_OF_SERVICE: OK
+
+  endpoint.health.show-details: always
+
+endpoints:
+  default.web.enabled: true
+
+feign:
+  client:
+    config:
+      default:
+        errorDecoder: com.beancounter.common.helper.SpringFeignDecoder
+
+# http://localhost:9500/actuator/circuitbreaker-events/marketdata
+    
+resilience4j.circuitbreaker:
+  backends:
+    marketdata:
+      ringBufferSizeInClosedState: 5
+      ringBufferSizeInHalfOpenState: 3
+      waitInterval: 3000
+      failureRateThreshold: 2
+      eventConsumerBufferSize: 10
+      registerHealthIndicator: true
+      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+#      recordExceptions:
+#        - org.springframework.web.client.HttpServerErrorException
+#      ignoreExceptions:
+#        - org.springframework.web.client.HttpClientErrorException

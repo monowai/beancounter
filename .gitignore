@@ -1,0 +1,109 @@
+# General
+*.log
+*.keystore
+.history/
+*.tgz
+
+# git-secret rules
+.secrets/*.*
+!.secrets/*.secret
+!.secrets/public-keys/
+.gitsecret/keys/random_seed
+.gitsecret/keys/pubring.kbx~
+
+
+.ci/gradle*
+
+# You can put a script which call `yarn prettier-eslint --write` that prettify the file in-place.
+# Keep in mind the hook files are executed by alphabet sequence: so `in_place_prettier_eslint` will be executed before `prettier_eslint`
+buildtools/hooks/pre-commit.d/in_place_prettier_eslint
+
+# Archives / Binaries
+*.jar
+*.zip
+*.tar.gz
+*.so
+*.xcarchive
+
+# MacOS
+.DS_Store
+
+# Build Output
+build/
+out/
+bin/
+
+# JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+.mvn/
+.project
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Eclipse
+.settings/
+.classpath
+
+# Java
+*.hprof
+.gradle/
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+
+# Node or NPM or Yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+.eslintcache
+
+# Jest/Bamboo test results output
+jest.json
+coverage/
+
+# Vagrant
+.vagrant/
+
+# Xcode
+#
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace
+**/*.framework/
+
+
+
+# Fastlane report
+**/fastlane/report.xml
+
+# VIM
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+version.yml
+
+#Andorid
+local.properties
+
+
+

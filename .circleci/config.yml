@@ -29,7 +29,7 @@ jobs:
           command: 'rm -rf ~/.m2/repository/com/beancounter'
 
       - run:
-          command: './gradle build -x test'
+          command: './gradlew build -x test'
 
       - save_cache:
           paths:
@@ -58,7 +58,7 @@ jobs:
 
 
       - run:
-          command: './gradle build -x test'
+          command: './gradlew build -x test'
 
       - save_cache:
           paths:
@@ -85,7 +85,7 @@ jobs:
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - run:
-          command: './gradle build -x test'
+          command: './gradlew build -x test'
 
       - save_cache:
           paths:
@@ -112,7 +112,7 @@ jobs:
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - run:
-          command: './gradle build -x test'
+          command: './gradlew build -x test'
 
       - save_cache:
           paths:

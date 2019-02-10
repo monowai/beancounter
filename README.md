@@ -4,12 +4,12 @@ Being that it's always useful to have a functional goal, it has a chain of servi
     
     Read a Google Docs sheet
         Create a .json file of Transaction objects
-    Passes the .json file to bc-position
+    Passes the .json file to svc-position
         Computes the portfolio positions
-        Values positions against bc-md
+        Values positions against svc-md
         
 there's a bunch of functionality that will be added to over time.  
 
-bc-md is the Market Data pricing service.  
+svc-md is the Market Data pricing service.  
 
 Currently no persistence is in place          

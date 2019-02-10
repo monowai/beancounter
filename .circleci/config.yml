@@ -17,7 +17,7 @@ jobs:
       enabled: true
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/bc-common'
+    working_directory: '~/beancounter/jar-common'
     # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
@@ -41,7 +41,7 @@ jobs:
           path: ./build/test-results/test
 
       - store_artifacts:
-          path: bc-common/build/*.jar
+          path: jar-common/build/*.jar
 
 
   build-google-docs:
@@ -49,7 +49,7 @@ jobs:
       enabled: true
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/bc-google-docs'
+    working_directory: '~/beancounter/svc-google-docs'
     # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
@@ -71,14 +71,14 @@ jobs:
           path: ./build/test-results/test
 
       - store_artifacts:
-          path: bc-google-docs/build/*.jar
+          path: svc-google-docs/build/*.jar
 
   build-md:
     machine:
       enabled: true
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/bc-md'
+    working_directory: '~/beancounter/svc-md'
     # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
@@ -99,14 +99,14 @@ jobs:
           path: ./build/test-results/test
 
       - store_artifacts:
-          path: bc-md/build/*.jar
+          path: svc-md/build/*.jar
 
   build-position:
     machine:
       enabled: true
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/bc-md'
+    working_directory: '~/beancounter/svc-md'
     # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
@@ -127,7 +127,7 @@ jobs:
           path: ./build/test-results/test
 
       - store_artifacts:
-          path: bc-md/build/*.jar
+          path: svc-md/build/*.jar
 
 
 

@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     implementation(
-            project (":bc-common"),
+            project (":jar-common"),
             "org.springframework.boot:spring-boot-starter",
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",

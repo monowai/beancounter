@@ -9,14 +9,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
+ * Obtains market data objects from the Market Data service. 
  * @author mikeh
  * @since 2019-02-01
  */
 @Configuration
-@FeignClient( name="${org.beancounter.md.name}", url = "${org.beancounter.md.url}")
+@FeignClient(name = "${org.beancounter.md.name}", url = "${org.beancounter.md.url}")
 public interface MdIntegration {
 
-    @CircuitBreaker(name = "marketdata")
-    @RequestMapping(method = RequestMethod.GET, value = "/{assetId}")
-    MarketData getMarketData(@PathVariable ("assetId") String assetId);
+  @CircuitBreaker(name = "marketdata")
+  @RequestMapping(method = RequestMethod.GET, value = "/{assetId}")
+  MarketData getMarketData(@PathVariable("assetId") String assetId);
 }

@@ -1,0 +1,64 @@
+buildscript {
+    ext {
+        springBootVersion = "2.1.2.RELEASE"
+        googleClientVersion = "1.23.0"
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation(
+            project (":bc-common"),
+            "org.springframework.boot:spring-boot-starter",
+            "org.projectlombok:lombok",
+            "com.google.api-client:google-api-client:${googleClientVersion}",
+            "com.google.oauth-client:google-oauth-client-jetty:${googleClientVersion}",
+            "com.google.apis:google-api-services-sheets:v4-rev516-${googleClientVersion}"
+    )
+
+    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor "org.projectlombok:lombok"
+    testCompile "org.projectlombok:lombok"
+
+
+    testImplementation(
+            "org.assertj:assertj-core",
+            "io.rest-assured:rest-assured",
+            "io.rest-assured:json-schema-validator",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.junit.jupiter:junit-jupiter-engine",
+            "org.junit.platform:junit-platform-launcher",
+            "org.junit.platform:junit-platform-runner",
+            "org.junit.platform:junit-platform-surefire-provider"
+    )
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "failed"
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        downloadSources = true
+        outputDir = file("$buildDir/classes/main/")
+    }
+}

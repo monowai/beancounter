@@ -6,17 +6,18 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * A stock exchange.
  * @author mikeh
  * @since 2019-01-27
  */
 @Data
 @Builder
-@JsonDeserialize(builder = Market.ExchangeBuilder.class)
+@JsonDeserialize(builder = Market.MarketBuilder.class)
 public class Market {
-    String id;
+  String id;
 
-    @JsonPOJOBuilder(withPrefix = "")
-    public static final class ExchangeBuilder {
-    }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class MarketBuilder {
+  }
 
 }

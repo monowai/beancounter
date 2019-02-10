@@ -1,36 +1,29 @@
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
     }
     ext {
         set("junitVersion", "5.3.2")
         set("junitPlatformVersion", "1.3.2")
         set("lombokVersion", "1.18.4")
-//        springBootVersion = '2.1.2.RELEASE'
     }
 
-//    dependencies {
-//        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-//    }
 }
 
-plugins {
-    id 'java'
-    id 'idea'
-}
-
-group = 'com.beancounter'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'checkstyle'
 
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies() {
-    compileOnly(
+
+    compileOnly (
             "org.projectlombok:lombok:${lombokVersion}",
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
             "io.github.openfeign:feign-core:10.1.0",
@@ -46,7 +39,6 @@ dependencies() {
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
             "org.assertj:assertj-core:3.11.1",
             "org.junit.jupiter:junit-jupiter-engine:${junitVersion}",
-            "org.junit.vintage:junit-vintage-engine:${junitVersion}",
             "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}",
             "org.junit.platform:junit-platform-runner:${junitPlatformVersion}",
             "org.junit.platform:junit-platform-surefire-provider:${junitPlatformVersion}"
@@ -55,7 +47,11 @@ dependencies() {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        events "passed", "failed"
+    }
 }
+
 
 
 idea {

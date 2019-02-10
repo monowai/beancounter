@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * A representation of an instrument traded on a market.
+ * 
  * @author mikeh
  * @since 2019-01-27
  */
@@ -13,12 +15,12 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Asset.AssetBuilder.class)
 public class Asset {
-    String id;
-    String name;
-    String category;
-    Market market;
-    
-    @JsonPOJOBuilder(withPrefix = "")
-    public static class AssetBuilder {
-    }
+  String id;
+  String name;
+  String category;
+  Market market;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class AssetBuilder {
+  }
 }

@@ -12,15 +12,15 @@ buildscript {
     }
 }
 
-plugins {
-    id 'java'
-    id 'idea'
-}
+//plugins {
+//    id 'java'
+//    id 'idea'
+//}
 
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
-group = 'com.beancounter'
+group = "com.beancounter"
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -41,7 +41,7 @@ dependencies {
 
     )
 
-    compileOnly (
+    compileOnly(
             "org.projectlombok:lombok",
             "org.springframework.boot:spring-boot-configuration-processor"
     )
@@ -73,10 +73,6 @@ test {
     testLogging {
         events "passed", "failed"
     }
-}
-
-bootRun {
-    systemProperties System.getProperties()
 }
 
 idea {

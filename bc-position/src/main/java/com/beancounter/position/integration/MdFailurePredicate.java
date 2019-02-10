@@ -9,8 +9,8 @@ import java.util.function.Predicate;
  * @since 2019-02-03
  */
 public class MdFailurePredicate implements Predicate<Throwable> {
-    @Override
-    public boolean test(Throwable throwable) {
-        return true;
-    }
+  @Override
+  public boolean test(Throwable throwable) {
+    return true;
+  }
 }

@@ -1,0 +1,36 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: "checkstyle"
+
+group = 'com.beancounter'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+subprojects {
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: "checkstyle"
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group = rootProject.group
+    version = rootProject.version
+
+    checkstyle {
+        toolVersion = '8.16'
+        configFile = rootProject.file('./buildtools/checkstyle/checkstyle.xml')
+        configProperties = [
+                'checkstyle.cache.file': "${buildDir}/checkstyle.cache",
+        ]
+        ignoreFailures = true
+        showViolations = true
+    }
+
+
+}
+
+
+

@@ -1,5 +1,6 @@
 rootProject.name = 'beancounter'
 include 'bc-common'
+include 'bc-google-docs'
 include 'bc-md'
 include 'bc-position'
 

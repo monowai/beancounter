@@ -6,21 +6,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Returns collections of positions for a Portfolio.
  * @author mikeh
  * @since 2019-02-01
  */
 @Service
 public class PositionService implements Position {
 
-    private MdIntegration mdIntegration;
+  private MdIntegration mdIntegration;
 
-    @Autowired
-    PositionService(MdIntegration mdIntegration){
-        this.mdIntegration = mdIntegration;
-    }
-    
-    @Override
-    public MarketData getPrice(String assetId) {
-        return mdIntegration.getMarketData(assetId);
-    }
+  @Autowired
+  PositionService(MdIntegration mdIntegration) {
+    this.mdIntegration = mdIntegration;
+  }
+
+  @Override
+  public MarketData getPrice(String assetId) {
+    return mdIntegration.getMarketData(assetId);
+  }
 }

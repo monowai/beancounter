@@ -1,35 +1,46 @@
 package com.beancounter.common.model;
 
+import com.beancounter.common.identity.TransactionId;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import java.math.BigDecimal;
+import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
-import java.util.Date;
 
 /**
+ * Representation of a Financial Transaction.
  * @author mikeh
  * @since 2019-02-07
  */
 @Data
 @Builder
+@JsonDeserialize(builder = Transaction.TransactionBuilder.class)
 public class Transaction {
-    Portfolio portfolio;
-    Asset asset;
-    Market market;
-    
-    TrnType trnType;
+  TransactionId id;
+  Portfolio portfolio;
+  Asset asset;
+  Market market;
 
-    Date tradeDate;
-    Date settleDate;
+  TrnType trnType;
 
-    BigDecimal quantity;
-    BigDecimal price;
-    BigDecimal fees;
-    BigDecimal tradeAmount;
-    BigDecimal cashAmount;
-    BigDecimal tradeRate; 
+  Date tradeDate;
+  Date settleDate;
 
-    String tradeCurrency;
-    String comments;
+  BigDecimal quantity;
+  BigDecimal price;
+  BigDecimal fees;
+  BigDecimal tradeAmount;
+  BigDecimal cashAmount;
+  BigDecimal tradeRate;
 
+  String tradeCurrency;
+  String comments;
+
+  @SuppressWarnings("WeakerAccess")
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class TransactionBuilder {
+
+  }
 }

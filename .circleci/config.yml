@@ -141,6 +141,6 @@ workflows:
       - build-position:
           requires:
             - build-md
-      - build-gd:
+      - build-google-docs:
           requires:
             - build-position

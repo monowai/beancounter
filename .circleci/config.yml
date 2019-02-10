@@ -66,7 +66,7 @@ jobs:
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:
-          path: ./build/test-results
+          path: ./build/test-results/test
 
       - store_artifacts:
           path: bc-google-docs/build/*.jar
@@ -93,7 +93,7 @@ jobs:
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:
-          path: ./build/test-results
+          path: ./build/test-results/test
 
       - store_artifacts:
           path: bc-md/build/*.jar
@@ -120,7 +120,7 @@ jobs:
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:
-          path: ./build/test-results
+          path: ./build/test-results/test
 
       - store_artifacts:
           path: bc-md/build/*.jar

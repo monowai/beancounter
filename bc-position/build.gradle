@@ -12,11 +12,6 @@ buildscript {
     }
 }
 
-//plugins {
-//    id 'java'
-//    id 'idea'
-//}
-
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
@@ -66,13 +61,6 @@ dependencies {
 
 dependencyManagement {
     imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
-}
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "failed"
-    }
 }
 
 idea {

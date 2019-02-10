@@ -55,13 +55,6 @@ dependencyManagement {
     imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
 }
 
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "failed"
-    }
-}
-
 idea {
     module {
         inheritOutputDirs = false

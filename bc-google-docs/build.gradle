@@ -48,13 +48,6 @@ dependencies {
     )
 }
 
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "failed"
-    }
-}
-
 idea {
     module {
         inheritOutputDirs = false

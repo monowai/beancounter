@@ -29,6 +29,14 @@ subprojects {
         showViolations = true
     }
 
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "failed"
+        }
+    }
+
+
 
 }
 

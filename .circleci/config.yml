@@ -34,6 +34,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
+            - ../.gradle
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:
@@ -63,6 +64,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
+            - ../.gradle
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:
@@ -90,6 +92,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
+            - ../.gradle
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:
@@ -116,7 +119,8 @@ jobs:
 
       - save_cache:
           paths:
-            - ~/.m2
+            - ~/
+            - ../.gradle
           key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
 
       - store_test_results:

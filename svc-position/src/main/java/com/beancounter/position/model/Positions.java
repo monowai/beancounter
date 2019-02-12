@@ -3,16 +3,19 @@ package com.beancounter.position.model;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 /**
  * A container for Position objects.
  * @author mikeh
  * @since 2019-02-07
  */
+@Data
 public class Positions {
 
   @NotNull
@@ -33,6 +36,7 @@ public class Positions {
    * @param asset qualified asset
    * @return value if found.
    */
+  @JsonIgnore
   public Position get(Asset asset) {
     Position result = positions.get(parseKey(asset));
     if (result == null) {
@@ -43,9 +47,10 @@ public class Positions {
     return result;
   }
 
+  @JsonIgnore
   private String parseKey(@NotNull Asset asset) {
     assert asset.getMarket() != null;
-    return asset.getMarket().getId() + ":" + asset.getId();
+    return asset.getCode() + ":" + asset.getMarket().getCode();
   }
 
 }

@@ -14,7 +14,7 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Market.MarketBuilder.class)
 public class Market {
-  String id;
+  String code;
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class MarketBuilder {

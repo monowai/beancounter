@@ -34,19 +34,19 @@ class MarketDataBootTests {
   @Test
   @Tag("slow")
   void getMarketData() {
-    Asset asset = Asset.builder().id("dummy").build();
+    Asset asset = Asset.builder().code("dummy").build();
     MarketData mdResponse = given()
         .webAppContextSetup(context)
         .log().all()
         .when()
-        .get("/{assetId}", asset.getId())
+        .get("/{assetId}", asset.getCode())
         .then()
         .log().all(true)
         .statusCode(200)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         .extract().response().as(MarketData.class);
 
-    assertThat(mdResponse.getAssetId()).isEqualTo(asset.getId());
+    assertThat(mdResponse.getAssetId()).isEqualTo(asset.getCode());
     assertThat(mdResponse.getOpen()).isEqualTo(BigDecimal.valueOf(999.99));
 
 

@@ -17,10 +17,10 @@ class TestTransaction {
     TrnType trnType = TrnType.BUY;
     ObjectMapper mapper = new ObjectMapper();
 
-    Asset asset = Asset.builder().id(
+    Asset asset = Asset.builder().code(
         "Test")
         .name("name")
-        .market(Market.builder().id("NYSE").build())
+        .market(Market.builder().code("NYSE").build())
         .build();
     Transaction transaction = Transaction.builder()
         .asset(asset)

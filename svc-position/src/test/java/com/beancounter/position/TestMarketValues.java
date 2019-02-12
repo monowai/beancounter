@@ -22,11 +22,11 @@ class TestMarketValues {
   @Test
   void marketValues() {
     Asset microsoft = Asset.builder()
-        .id("MSFT")
-        .market(Market.builder().id("NYSE").build())
+        .code("MSFT")
+        .market(Market.builder().code("NYSE").build())
         .build();
 
-    Positions positions = new Positions(Portfolio.builder().id("TEST").build());
+    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     Position position = positions.get(microsoft);
 

@@ -15,7 +15,7 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Asset.AssetBuilder.class)
 public class Asset {
-  String id;
+  String code;
   String name;
   String category;
   Market market;

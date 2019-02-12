@@ -14,7 +14,7 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Portfolio.PortfolioBuilder.class)
 public class Portfolio {
-  String id;
+  String code;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

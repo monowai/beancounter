@@ -26,6 +26,7 @@ dependencies {
     implementation(
             project(":jar-common"),
             "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "org.springframework.boot:spring-boot-starter-actuator",
             "org.projectlombok:lombok"

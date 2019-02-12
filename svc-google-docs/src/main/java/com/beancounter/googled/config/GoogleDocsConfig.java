@@ -1,4 +1,4 @@
-package com.beancounter.googled.reader;
+package com.beancounter.googled.config;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -43,7 +43,13 @@ public class GoogleDocsConfig {
   @Value("${http:8888}")
   private int port;
 
-  Credential getCredentials(final NetHttpTransport netHttpTransport) throws IOException {
+  /**
+   * Authenticate against the Google Docs service. This could ask you to download a token.
+   * @param netHttpTransport transport
+   * @return credentials
+   * @throws IOException file error
+   */
+  public Credential getCredentials(final NetHttpTransport netHttpTransport) throws IOException {
     // Load client secrets.
     try (InputStream in = new FileInputStream(api)) {
       GoogleClientSecrets clientSecrets =

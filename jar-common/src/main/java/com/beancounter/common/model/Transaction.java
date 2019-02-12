@@ -31,6 +31,7 @@ public class Transaction {
   BigDecimal quantity;
   BigDecimal price;
   BigDecimal fees;
+  BigDecimal tax;
   BigDecimal tradeAmount;
   BigDecimal cashAmount;
   BigDecimal tradeRate;

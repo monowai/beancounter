@@ -1,0 +1,10 @@
+logging:
+  level:
+    org.springframework: error
+
+com:
+  beancounter:
+    exchanges:
+      aliases:
+        ASX: AX
+        NYS: NYSE

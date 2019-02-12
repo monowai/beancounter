@@ -15,13 +15,13 @@ import org.springframework.stereotype.Service;
 public class MarketDataService implements MarketDataProvider {
   @Override
   public MarketData getCurrent(Asset asset) {
-    if (asset.getId().equalsIgnoreCase("123")) {
+    if (asset.getCode().equalsIgnoreCase("123")) {
       throw new BusinessException(
-          String.format("Invalid asset code [%s]", asset.getId()));
+          String.format("Invalid asset code [%s]", asset.getCode()));
     }
 
     return MarketData.builder()
-        .assetId(asset.getId())
+        .assetId(asset.getCode())
         .close(BigDecimal.valueOf(999.99))
         .open(BigDecimal.valueOf(999.99))
         .build();

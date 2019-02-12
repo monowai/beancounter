@@ -13,8 +13,8 @@ class TestAsset {
   void jsonSerialization() throws Exception {
 
     Asset asset = Asset.builder()
-        .id("SomeId")
-        .market(Market.builder().id("NYSE").build())
+        .code("SomeId")
+        .market(Market.builder().code("NYSE").build())
         .build();
 
     assertThat(asset).isNotNull();

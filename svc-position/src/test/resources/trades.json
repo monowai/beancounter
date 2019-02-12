@@ -1,0 +1,241 @@
+[ {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 1
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "HAS",
+    "name" : "Hasbro Inc",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1338307200000,
+  "settleDate" : null,
+  "quantity" : 42,
+  "price" : 35.28,
+  "fees" : 3.17,
+  "tax" : null,
+  "tradeAmount" : 1897.43,
+  "cashAmount" : null,
+  "tradeRate" : 0.7826,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 2
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "INTC",
+    "name" : "Intel Corp",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1338307200000,
+  "settleDate" : null,
+  "quantity" : 80,
+  "price" : 25.83,
+  "fees" : 4.42,
+  "tax" : null,
+  "tradeAmount" : 2646.08,
+  "cashAmount" : null,
+  "tradeRate" : 0.7826,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 3
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "EBAY",
+    "name" : "eBay Inc",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1339516800000,
+  "settleDate" : null,
+  "quantity" : 30,
+  "price" : 40.46,
+  "fees" : 4.04,
+  "tax" : null,
+  "tradeAmount" : 1564.34,
+  "cashAmount" : null,
+  "tradeRate" : 0.7785,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 4
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "CSCO",
+    "name" : "Cisco Systems Inc",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1347379200000,
+  "settleDate" : null,
+  "quantity" : 75,
+  "price" : 19.11,
+  "fees" : 3.58,
+  "tax" : null,
+  "tradeAmount" : 1769.28,
+  "cashAmount" : null,
+  "tradeRate" : 0.8121,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 5
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "INTC",
+    "name" : "Intel Corp",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "SELL",
+  "tradeDate" : 1348156800000,
+  "settleDate" : null,
+  "quantity" : -80,
+  "price" : 23.24,
+  "fees" : 4.15,
+  "tax" : null,
+  "tradeAmount" : -2273.9,
+  "cashAmount" : null,
+  "tradeRate" : 0.8158,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 6
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "INTC",
+    "name" : "Intel Corp",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1349884800000,
+  "settleDate" : null,
+  "quantity" : 60,
+  "price" : 21.7,
+  "fees" : 3.26,
+  "tax" : null,
+  "tradeAmount" : 1603.32,
+  "cashAmount" : null,
+  "tradeRate" : 0.8141,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 7
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1360598400000,
+  "settleDate" : null,
+  "quantity" : 2,
+  "price" : 475,
+  "fees" : 2.50,
+  "tax" : null,
+  "tradeAmount" : 1180.74,
+  "cashAmount" : null,
+  "tradeRate" : 0.8067,
+  "tradeCurrency" : "USD",
+  "comments" : null
+}, {
+  "id" : {
+    "provider" : "1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE",
+    "batch" : 0,
+    "id" : 8
+  },
+  "portfolio" : {
+    "code" : "mike"
+  },
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "category" : null,
+    "market" : {
+      "code" : "NASDAQ"
+    }
+  },
+  "market" : null,
+  "trnType" : "BUY",
+  "tradeDate" : 1360857600000,
+  "settleDate" : null,
+  "quantity" : 1,
+  "price" : 460.04,
+  "fees" : 1.15,
+  "tax" : null,
+  "tradeAmount" : 570.71,
+  "cashAmount" : null,
+  "tradeRate" : 0.8081,
+  "tradeCurrency" : "USD",
+  "comments" : null
+} ]

@@ -38,7 +38,7 @@ public class MdController {
   @GetMapping(value = "/{assetId}", produces = "application/json")
   MarketData getPrice(@PathVariable("assetId") String assetId) {
     Asset testAsset = Asset.builder()
-        .id(assetId)
+        .code(assetId)
         .build();
     try {
       return marketDataService.getCurrent(testAsset);

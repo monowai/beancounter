@@ -26,7 +26,7 @@ class TestPositions {
             .purchased(new BigDecimal(200))
             .build())
         .portfolio(Portfolio.builder()
-            .id("Mike")
+            .code("Mike")
             .build())
         .build();
 

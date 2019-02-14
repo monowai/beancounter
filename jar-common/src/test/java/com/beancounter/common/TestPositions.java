@@ -25,9 +25,6 @@ class TestPositions {
         .quantity(Quantity.builder()
             .purchased(new BigDecimal(200))
             .build())
-        .portfolio(Portfolio.builder()
-            .code("Mike")
-            .build())
         .build();
 
     String json = mapper.writeValueAsString(position);

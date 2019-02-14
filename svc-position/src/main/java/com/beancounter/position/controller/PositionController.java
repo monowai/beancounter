@@ -2,11 +2,16 @@ package com.beancounter.position.controller;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.Transaction;
+import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.PositionService;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,6 +31,16 @@ public class PositionController {
   PositionController(PositionService positionService) {
     this.positionService = positionService;
   }
+
+  @PostMapping()
+  Positions getPositions(@RequestBody Collection<Transaction> transactions) {
+    try {
+      return positionService.getPositions(transactions);
+    } catch (BusinessException be) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, be.getMessage(), be);
+    }
+  }
+
 
   @GetMapping(value = "/{assetId}", produces = "application/json")
   MarketData getPrice(@PathVariable("assetId") String assetId) {

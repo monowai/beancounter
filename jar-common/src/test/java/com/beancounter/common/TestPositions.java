@@ -3,9 +3,8 @@ package com.beancounter.common;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.MoneyValues;
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Quantity;
+import com.beancounter.common.model.QuantityValues;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,7 @@ class TestPositions {
         .moneyValues(MoneyValues.builder()
             .dividends(new BigDecimal(100d))
             .build())
-        .quantity(Quantity.builder()
+        .quantityValues(QuantityValues.builder()
             .purchased(new BigDecimal(200))
             .build())
         .build();

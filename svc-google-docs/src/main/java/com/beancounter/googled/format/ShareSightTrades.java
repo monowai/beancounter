@@ -68,7 +68,7 @@ public class ShareSightTrades implements Transformer {
         .quantity(helper.parseDouble(row.get(quantity).toString()))
         .price(helper.parseDouble(row.get(price).toString()))
         .fees(new BigDecimal(row.get(brokerage).toString()))
-        .tradeAmount(helper.parseDouble(row.get(value)))
+        .tradeAmount(helper.parseDouble(row.get(value)).abs())
         .tradeDate(helper.parseDate(row.get(date).toString()))
         .tradeCurrency(row.get(currency).toString())
         .tradeRate(new BigDecimal(row.get(fxrate).toString()))

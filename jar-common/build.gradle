@@ -27,10 +27,18 @@ dependencies() {
             "com.google.guava:guava:27.0.1-jre"
 
     )
+    testCompile (
+            "org.projectlombok:lombok:${lombokVersion}"
+    )
 
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompile "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor (
+            "org.projectlombok:lombok:${lombokVersion}"
+    )
+
+    testAnnotationProcessor (
+            "org.projectlombok:lombok:${lombokVersion}"
+    )
+
 
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",

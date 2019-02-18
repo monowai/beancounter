@@ -21,7 +21,7 @@ public class MarketValue {
 
   // Local Market Value in market currency
   public BigDecimal getMarketValue() {
-    return price.getPrice().multiply(position.getQuantity().getTotal());
+    return price.getPrice().multiply(position.getQuantityValues().getTotal());
   }
 
   public BigDecimal getMarketCost() {

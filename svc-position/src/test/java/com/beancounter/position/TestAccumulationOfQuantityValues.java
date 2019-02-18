@@ -6,10 +6,11 @@ import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.counter.Accumulator;
+import com.beancounter.position.counter.TransactionConfiguration;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
-class TestQuantityAccumulation {
+class TestAccumulationOfQuantityValues {
 
   @Test
   void quantitiesTotalCorrectly() {
@@ -18,22 +19,22 @@ class TestQuantityAccumulation {
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator();
+    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
 
     Position position = Position.builder().build();
 
-    assertThat(position.getQuantity())
-        .hasFieldOrPropertyWithValue("total", new BigDecimal(0));
+    assertThat(position.getQuantityValues())
+        .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO);
 
     position = accumulator.accumulate(buy, position);
-    assertThat(position.getQuantity())
+    assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(100))
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100));
 
     position = accumulator.accumulate(buy, position);
-    assertThat(position.getQuantity())
+    assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(200))
-        .hasFieldOrPropertyWithValue("sold", new BigDecimal(0))
+        .hasFieldOrPropertyWithValue("sold", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("total", new BigDecimal(200));
 
 
@@ -42,13 +43,13 @@ class TestQuantityAccumulation {
         .quantity(new BigDecimal(100)).build();
 
     position = accumulator.accumulate(sell, position);
-    assertThat(position.getQuantity())
+    assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("sold", new BigDecimal(-100))
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(200))
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100));
 
     position = accumulator.accumulate(sell, position);
-    assertThat(position.getQuantity())
+    assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("sold", new BigDecimal(-200))
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(200))
         .hasFieldOrPropertyWithValue("total", new BigDecimal(0));

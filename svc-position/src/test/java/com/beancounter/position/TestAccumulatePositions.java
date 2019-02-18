@@ -1,11 +1,12 @@
 package com.beancounter.position;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Transaction;
+import com.beancounter.position.model.Positions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
-import io.restassured.http.ContentType;
 import java.io.File;
 import java.util.Collection;
 import lombok.extern.log4j.Log4j2;
@@ -42,7 +43,7 @@ class TestAccumulatePositions {
 
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
 
-    given()
+    Positions positions = given()
         .webAppContextSetup(context)
         .body(mapper.writeValueAsString(results))
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -52,9 +53,11 @@ class TestAccumulatePositions {
         .log().all(true)
         .statusCode(200)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .extract().response();
+        .extract()
+        .response()
+        .as(Positions.class);
 
-
+    assertThat(positions).isNotNull();
   }
 
 }

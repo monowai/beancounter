@@ -11,6 +11,7 @@ import lombok.Data;
 
 /**
  * Representation of a Financial Transaction.
+ *
  * @author mikeh
  * @since 2019-02-07
  */
@@ -30,9 +31,12 @@ public class Transaction {
 
   BigDecimal quantity;
   BigDecimal price;
-  BigDecimal fees;
-  BigDecimal tax;
-  BigDecimal tradeAmount;
+  @Builder.Default
+  BigDecimal fees = BigDecimal.ZERO;
+  @Builder.Default
+  BigDecimal tax = BigDecimal.ZERO;
+  @Builder.Default
+  BigDecimal tradeAmount = BigDecimal.ZERO;
   BigDecimal cashAmount;
   BigDecimal tradeRate;
 

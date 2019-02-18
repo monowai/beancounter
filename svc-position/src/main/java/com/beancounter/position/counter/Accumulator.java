@@ -1,53 +1,90 @@
 package com.beancounter.position.counter;
 
+import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Quantity;
+import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.common.model.TrnType;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 /**
  * Adds transactions into Positions.
+ *
  * @author mikeh
  * @since 2019-02-07
  */
 @Service
 public class Accumulator {
 
+  private TransactionConfiguration transactionConfiguration;
+
+  @Autowired
+  public Accumulator(TransactionConfiguration transactionConfiguration) {
+    this.transactionConfiguration = transactionConfiguration;
+  }
+
   /**
    * Main calculation routine.
+   *
    * @param transaction Transaction to add
-   * @param position    Position to accumulate the transaction into
+   * @param position Position to accumulate the transaction into
    * @return result object
    */
   public Position accumulate(Transaction transaction, Position position) {
-    if (transaction.getTrnType().equals(TrnType.BUY)) {
-      return buySide(transaction, position);
-    } else if (transaction.getTrnType().equals(TrnType.SELL)) {
-      return sellSide(transaction, position);
+    if (transactionConfiguration.isPurchase(transaction)) {
+      return accumulateBuy(transaction, position);
+    } else if (transactionConfiguration.isSale(transaction)) {
+      return accumulateSell(transaction, position);
     }
     return position;
   }
 
-  private Position buySide(Transaction transaction, Position position) {
-    Quantity quantity = position.getQuantity();
-    quantity.setPurchased(quantity.getPurchased().add(transaction.getQuantity()));
-    position.getMoneyValues().setMarketCost(
-        position.getMoneyValues().getMarketCost().add(transaction.getTradeAmount()));
+  private MathContext mathContext = new MathContext(6);
+
+  private Position accumulateBuy(Transaction transaction, Position position) {
+    QuantityValues quantityValues = position.getQuantityValues();
+    quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
+    MoneyValues moneyValues = position.getMoneyValues();
+    moneyValues.setMarketCost(
+        moneyValues.getMarketCost().add(transaction.getTradeAmount()));
+
+    moneyValues.setPurchases(
+        moneyValues.getPurchases().add(transaction.getTradeAmount()));
+
+    moneyValues.setCostBasis(moneyValues.getCostBasis().add(transaction.getTradeAmount()));
+    moneyValues.setAverageCost(moneyValues.getCostBasis().divide(quantityValues.getTotal(), mathContext));
+
     return position;
   }
 
-  private Position sellSide(Transaction transaction, Position position) {
-    BigDecimal quantitySold = transaction.getQuantity();
-    if (quantitySold.doubleValue() > 0) {
-      // Sign the quantity
-      quantitySold = new BigDecimal(0 - transaction.getQuantity().doubleValue());
+  private Position accumulateSell(Transaction transaction, Position position) {
+    BigDecimal soldQuantity = transaction.getQuantity();
+    if (soldQuantity.doubleValue() > 0) {
+      // Sign the quantities
+      soldQuantity = new BigDecimal(0 - transaction.getQuantity().doubleValue());
     }
 
-    Quantity quantity = position.getQuantity();
-    quantity.setSold(quantity.getSold().add(quantitySold));
+    QuantityValues quantityValues = position.getQuantityValues();
+    quantityValues.setSold(quantityValues.getSold().add(soldQuantity));
+    MoneyValues moneyValues = position.getMoneyValues();
+
+    moneyValues.setSales(
+        moneyValues.getSales().add(transaction.getTradeAmount()));
+
+    BigDecimal tradeCost = transaction.getTradeAmount()
+        .divide(transaction.getQuantity(), mathContext);
+    BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
+    BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity());
+
+    moneyValues.setRealisedGain(moneyValues.getRealisedGain().add(realisedGain));
+
+    if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {
+      moneyValues.setCostBasis(BigDecimal.ZERO);
+      moneyValues.setAverageCost(BigDecimal.ZERO);
+    } 
 
     return position;
   }

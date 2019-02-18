@@ -15,13 +15,14 @@ import lombok.Getter;
 @Builder
 @JsonDeserialize(builder = Position.PositionBuilder.class)
 public class Position {
-  Asset asset;
+  private Asset asset;
   @Builder.Default
   @Getter
   MoneyValues moneyValues = MoneyValues.builder().build();
+
   @Builder.Default
   @Getter
-  Quantity quantity = Quantity.builder().build();
+  QuantityValues quantityValues = QuantityValues.builder().build();
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

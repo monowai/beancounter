@@ -54,7 +54,7 @@ class ShareSightTradeTest {
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
-        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
+        .hasFieldOrPropertyWithValue("quantities", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")
@@ -83,7 +83,7 @@ class ShareSightTradeTest {
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
-        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
+        .hasFieldOrPropertyWithValue("quantities", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("comments", null)
         .hasFieldOrProperty("tradeDate")

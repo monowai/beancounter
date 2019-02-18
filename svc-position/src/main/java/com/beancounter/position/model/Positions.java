@@ -6,12 +6,12 @@ import com.beancounter.common.model.Position;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
  * A container for Position objects.
+ *
  * @author mikeh
  * @since 2019-02-07
  */
@@ -22,7 +22,12 @@ public class Positions {
   private Portfolio portfolio;
   private Map<String, Position> positions = new HashMap<>();
 
+  Positions() {
+    super();
+  }
+
   public Positions(Portfolio portfolio) {
+    this();
     this.portfolio = portfolio;
   }
 
@@ -33,6 +38,7 @@ public class Positions {
 
   /**
    * Locate a position for an asset. Creates if missing.
+   *
    * @param asset qualified asset
    * @return value if found.
    */

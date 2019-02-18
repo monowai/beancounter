@@ -10,13 +10,14 @@ import lombok.Data;
 
 /**
  * Accumulation of quantities.
+ *
  * @author mikeh
  * @since 2019-01-28
  */
 @Data
 @Builder
-@JsonDeserialize(builder = Quantity.QuantityBuilder.class)
-public class Quantity {
+@JsonDeserialize(builder = QuantityValues.QuantityValuesBuilder.class)
+public class QuantityValues {
   @Builder.Default
   BigDecimal sold = new BigDecimal(0d);
   @Builder.Default
@@ -31,7 +32,7 @@ public class Quantity {
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")
-  public static class QuantityBuilder {
+  public static class QuantityValuesBuilder {
 
   }
 }

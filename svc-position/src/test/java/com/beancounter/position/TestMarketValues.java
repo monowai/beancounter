@@ -104,7 +104,7 @@ class TestMarketValues {
 
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal(50));
 
-    assertThat(position.getMoneyValues().getRealisedGain()).isEqualTo(new BigDecimal(1000d));
+    assertThat(position.getMoneyValues().getRealisedGain()).isEqualTo(new BigDecimal("1000.00"));
 
   }
 
@@ -163,7 +163,7 @@ class TestMarketValues {
     assertThat(position.getMoneyValues())
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.560"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
     ;
 
     sell = Transaction.builder()
@@ -178,7 +178,7 @@ class TestMarketValues {
     assertThat(position.getMoneyValues())
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("0"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("0"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.408"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
     ;
 
 
@@ -224,7 +224,7 @@ class TestMarketValues {
     assertThat(position.getMoneyValues())
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18000"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
     ;
 
     // Re-enter the position
@@ -244,7 +244,7 @@ class TestMarketValues {
     assertThat(position.getMoneyValues())
         .hasFieldOrPropertyWithValue("costBasis", buy.getTradeAmount())
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("26.722"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18000"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
     ;
 
     // Second sell taking us back to zero. Verify that the accumulated gains.

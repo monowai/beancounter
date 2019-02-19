@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class Accumulator {
 
   private TransactionConfiguration transactionConfiguration;
-  private MathContext mathContext = new MathContext( 10);
+  private MathContext mathContext = new MathContext(10);
 
   @Autowired
   public Accumulator(TransactionConfiguration transactionConfiguration) {
@@ -48,6 +48,7 @@ public class Accumulator {
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
     MoneyValues moneyValues = position.getMoneyValues();
+    
     moneyValues.setMarketCost(
         moneyValues.getMarketCost().add(transaction.getTradeAmount()));
 
@@ -55,15 +56,21 @@ public class Accumulator {
         moneyValues.getPurchases().add(transaction.getTradeAmount()));
 
     moneyValues.setCostBasis(moneyValues.getCostBasis().add(transaction.getTradeAmount()));
+
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
 
       moneyValues.setAverageCost(
-          moneyValues.getCostBasis()
-            .divide(quantityValues.getTotal(), mathContext));
+          getAverageCost(moneyValues.getCostBasis(), quantityValues.getTotal())
+      );
 
     }
 
     return position;
+  }
+
+  private BigDecimal getAverageCost(BigDecimal costBasis, BigDecimal total) {
+    return costBasis
+        .divide(total, mathContext);
   }
 
   private Position accumulateSell(Transaction transaction, Position position) {
@@ -86,7 +93,10 @@ public class Accumulator {
       BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
       BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity());
 
-      moneyValues.setRealisedGain(moneyValues.getRealisedGain().add(realisedGain));
+      moneyValues.setRealisedGain(
+          moneyValues.getRealisedGain()
+              .add(realisedGain).setScale(2, RoundingMode.HALF_UP)
+      );
     }
 
     if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {

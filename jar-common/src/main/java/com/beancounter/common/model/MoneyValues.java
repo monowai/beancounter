@@ -35,6 +35,9 @@ public class MoneyValues {
   @Builder.Default
   BigDecimal averageCost = BigDecimal.ZERO;
 
+  /**
+   * How much gain has been realised for the position - this is scaled to 2 decimal places.
+   */
   @Builder.Default
   BigDecimal realisedGain = BigDecimal.ZERO;
 

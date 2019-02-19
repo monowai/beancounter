@@ -9,6 +9,7 @@ import java.util.function.Predicate;
  * @author mikeh
  * @since 2019-02-03
  */
+@SuppressWarnings("unused")
 public class RecordFailurePredicate implements Predicate<Throwable> {
 
   @Override

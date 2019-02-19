@@ -155,7 +155,7 @@ class TestMarketValues {
         .trnType(TrnType.SELL)
         .asset(microsoft)
         .tradeAmount(new BigDecimal("841.63"))
-        .quantity(new BigDecimal("3")).build();
+        .quantity(new BigDecimal("3.0")).build();
 
     accumulator.accumulate(sell, position);
 
@@ -224,10 +224,8 @@ class TestMarketValues {
     assertThat(position.getMoneyValues())
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.1760"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18000"))
     ;
-
-    BigDecimal previousGain = position.getMoneyValues().getRealisedGain();
 
     // Re-enter the position
     buy = Transaction.builder()
@@ -246,7 +244,7 @@ class TestMarketValues {
     assertThat(position.getMoneyValues())
         .hasFieldOrPropertyWithValue("costBasis", buy.getTradeAmount())
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("26.722"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.1760"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18000"))
     ;
 
     // Second sell taking us back to zero. Verify that the accumulated gains.
@@ -257,6 +255,9 @@ class TestMarketValues {
         .tradeAmount(new BigDecimal("1664.31"))
         .quantity(new BigDecimal("60")).build();
 
+    BigDecimal previousGain = position.getMoneyValues()
+        .getRealisedGain(); // Track the previous gain
+    
     accumulator.accumulate(sell, position);
 
     assertThat(position.getMoneyValues())

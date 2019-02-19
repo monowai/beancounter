@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class GoogleDocsConfig {
 
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-  @Value("${api:credentials.json}")
+  @Value("${api:../secrets/google-api/credentials.json}")
   private String api;
   @Value("${http:8888}")
   private int port;
@@ -51,10 +51,11 @@ public class GoogleDocsConfig {
    */
   public Credential getCredentials(final NetHttpTransport netHttpTransport) throws IOException {
     // Load client secrets.
+    log.debug("Looking for credentials at {}", api);
     try (InputStream in = new FileInputStream(api)) {
       GoogleClientSecrets clientSecrets =
           GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-      log.info("Using Temp Dir {}", System.getProperty("java.io.tmpdir"));
+      log.debug("Using Temp Dir {}", System.getProperty("java.io.tmpdir"));
       // Build flow and trigger user authorization request.
 
       GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(

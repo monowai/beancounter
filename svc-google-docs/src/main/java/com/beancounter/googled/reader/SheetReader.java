@@ -21,11 +21,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 
 
 /**
@@ -42,7 +40,7 @@ public class SheetReader {
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
   private GoogleDocsConfig googleDocsConfig;
 
-  @Value("${com.beancounter.source.sheet.id}")
+  @Value("${sheet}")
   private String spreadsheetId;
 
   @Value("${com.beanconter.source.sheet.range:A4:L14}")
@@ -67,8 +65,8 @@ public class SheetReader {
 
   /**
    * Reads the sheet and writes the output file.
-   * 
-   * @throws IOException error
+   *
+   * @throws IOException              error
    * @throws GeneralSecurityException error
    */
   public void doIt() throws IOException, GeneralSecurityException {
@@ -88,11 +86,9 @@ public class SheetReader {
       log.error("No data found.");
     } else {
       int trnId = 1;
-      FileOutputStream outputStream = null;
+
       Collection<Transaction> transactions = new ArrayList<>();
-      
-      try {
-        outputStream = prepareFile();
+      try (FileOutputStream outputStream = prepareFile()) {
 
         for (List row : values) {
           // Print columns in range, which correspond to indices 0 and 4.
@@ -118,22 +114,28 @@ public class SheetReader {
 
         }
         if (!transactions.isEmpty()) {
-          outputStream.write(
-              objectMapper.writerWithDefaultPrettyPrinter()
-                  .writeValueAsBytes(transactions));
-          
-          log.info("Wrote file to {}", transformer.getFileName());
+          if (outputStream != null) {
+            outputStream.write(
+                objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsBytes(transactions));
+            log.info("Wrote file to {}", transformer.getFileName());
+          } else {
+            log.info(objectMapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(transactions));
+          }
+
+
         }
 
-      } finally {
-        if (outputStream != null) {
-          outputStream.close();
-        }
       }
     }
   }
 
   private FileOutputStream prepareFile() throws FileNotFoundException {
+    if (transformer.getFileName() == null) {
+      return null;
+    }
     return new FileOutputStream(transformer.getFileName());
   }
 

@@ -39,7 +39,7 @@ public class ShareSightTrades implements Transformer {
   public static final int comments = 11;
   private final ShareSightHelper helper;
 
-  @Value("${out.file:#{systemProperties['user.dir']}/trades.json}")
+  @Value("${out.file:#{null}}")
   private String outFile;
 
   @Autowired

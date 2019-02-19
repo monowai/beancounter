@@ -6,6 +6,7 @@ import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 public class Accumulator {
 
   private TransactionConfiguration transactionConfiguration;
+  private MathContext mathContext = new MathContext( 10);
 
   @Autowired
   public Accumulator(TransactionConfiguration transactionConfiguration) {
@@ -42,8 +44,6 @@ public class Accumulator {
     return position;
   }
 
-  private MathContext mathContext = new MathContext(6);
-
   private Position accumulateBuy(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
@@ -55,7 +55,13 @@ public class Accumulator {
         moneyValues.getPurchases().add(transaction.getTradeAmount()));
 
     moneyValues.setCostBasis(moneyValues.getCostBasis().add(transaction.getTradeAmount()));
-    moneyValues.setAverageCost(moneyValues.getCostBasis().divide(quantityValues.getTotal(), mathContext));
+    if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
+
+      moneyValues.setAverageCost(
+          moneyValues.getCostBasis()
+            .divide(quantityValues.getTotal(), mathContext));
+
+    }
 
     return position;
   }
@@ -74,17 +80,19 @@ public class Accumulator {
     moneyValues.setSales(
         moneyValues.getSales().add(transaction.getTradeAmount()));
 
-    BigDecimal tradeCost = transaction.getTradeAmount()
-        .divide(transaction.getQuantity(), mathContext);
-    BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
-    BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity());
+    if (!transaction.getTradeAmount().equals(BigDecimal.ZERO)) {
+      BigDecimal tradeCost = transaction.getTradeAmount()
+          .divide(transaction.getQuantity(), mathContext);
+      BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
+      BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity());
 
-    moneyValues.setRealisedGain(moneyValues.getRealisedGain().add(realisedGain));
+      moneyValues.setRealisedGain(moneyValues.getRealisedGain().add(realisedGain));
+    }
 
     if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {
       moneyValues.setCostBasis(BigDecimal.ZERO);
       moneyValues.setAverageCost(BigDecimal.ZERO);
-    } 
+    }
 
     return position;
   }

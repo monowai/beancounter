@@ -3,7 +3,7 @@ logging:
     org.springframework: error
     org.spring: error
     com.google: error
-    com.beancounter: error
+    com.beancounter: debug
 
 com:
   beancounter:

@@ -6,19 +6,30 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.googled.config.GoogleDocsConfig;
 import com.beancounter.googled.format.Transformer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +84,7 @@ public class SheetReader {
     // Build a new authorized API client service.
     final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
     Sheets service = new Sheets.Builder(httpTransport, JSON_FACTORY,
-        googleDocsConfig.getCredentials(httpTransport))
+        getCredentials(httpTransport))
         .setApplicationName(APPLICATION_NAME)
         .build();
 
@@ -129,6 +140,43 @@ public class SheetReader {
         }
 
       }
+    }
+  }
+
+  /**
+   * Authenticate against the Google Docs service. This could ask you to download a token.
+   *
+   * @param netHttpTransport transport
+   * @return credentials
+   * @throws IOException file error
+   */
+  private Credential getCredentials(final NetHttpTransport netHttpTransport) throws IOException {
+    // Load client secrets.
+    log.debug("Looking for credentials at {}", googleDocsConfig.getApi());
+    try (InputStream in = new FileInputStream(googleDocsConfig.getApi())) {
+      GoogleClientSecrets clientSecrets =
+          GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+      log.debug("Using Temp Dir {}", System.getProperty("java.io.tmpdir"));
+      // Build flow and trigger user authorization request.
+
+      GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+          netHttpTransport,
+          JSON_FACTORY,
+          clientSecrets,
+          Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY)
+      )
+          .setDataStoreFactory(new FileDataStoreFactory(
+              new java.io.File(System.getProperty("java"
+                  + ".io.tmpdir"))))
+          .setAccessType("offline")
+          .build();
+
+      LocalServerReceiver receiver = new LocalServerReceiver.Builder()
+          .setPort(googleDocsConfig.getPort())
+          .build();
+
+      return new AuthorizationCodeInstalledApp(flow, receiver)
+          .authorize("user");
     }
   }
 

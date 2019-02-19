@@ -69,7 +69,7 @@ class TestMarketValues {
   }
 
   @Test
-  void realisedGain() {
+  void simpleRealisedGain() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
         .market(Market.builder().code("NYSE").build())
@@ -105,6 +105,74 @@ class TestMarketValues {
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal(50));
 
     assertThat(position.getMoneyValues().getRealisedGain()).isEqualTo(new BigDecimal("1000.00"));
+
+  }
+
+  @Test
+  void realisedGainWithSignedQuantities() {
+    Asset bidu = Asset.builder()
+        .code("BIDU")
+        .market(Market.builder().code("NYSE").build())
+        .build();
+
+    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+
+    Position position = positions.get(bidu);
+
+    assertThat(position)
+        .isNotNull();
+
+    Transaction buy = Transaction.builder()
+        .trnType(TrnType.BUY)
+        .asset(bidu)
+        .tradeAmount(new BigDecimal("1695.02"))
+        .quantity(new BigDecimal("8"))
+        .build();
+
+    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+    position = accumulator.accumulate(buy, position);
+    positions.add(position);
+
+    position = positions.get(bidu);
+
+    buy = Transaction.builder()
+        .trnType(TrnType.BUY)
+        .asset(bidu)
+        .tradeAmount(new BigDecimal("405.21"))
+        .quantity(new BigDecimal("2"))
+        .build();
+
+    position = accumulator.accumulate(buy, position);
+
+    Transaction sell = Transaction.builder()
+        .trnType(TrnType.SELL)
+        .asset(bidu)
+        .tradeAmount(new BigDecimal("841.63"))
+        .quantity(new BigDecimal("-3")).build();
+
+    position = accumulator.accumulate(sell, position);
+
+    assertThat(position.getMoneyValues())
+        .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
+        .hasFieldOrPropertyWithValue("sales", new BigDecimal("841.63"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
+    ;
+
+    sell = Transaction.builder()
+        .trnType(TrnType.SELL)
+        .asset(bidu)
+        .tradeAmount(new BigDecimal("1871.01"))
+        .quantity(new BigDecimal("-7")).build();
+
+    position = accumulator.accumulate(sell, position);
+
+    assertThat(position.getMoneyValues())
+        .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
+        .hasFieldOrPropertyWithValue("sales", new BigDecimal("2712.64"))
+        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
+    ;
+
+    assertThat(position.getQuantityValues().getTotal()).isEqualTo(BigDecimal.ZERO);
 
   }
 
@@ -257,7 +325,7 @@ class TestMarketValues {
 
     BigDecimal previousGain = position.getMoneyValues()
         .getRealisedGain(); // Track the previous gain
-    
+
     accumulator.accumulate(sell, position);
 
     assertThat(position.getMoneyValues())

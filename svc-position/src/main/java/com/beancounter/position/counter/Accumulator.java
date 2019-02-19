@@ -89,9 +89,9 @@ public class Accumulator {
 
     if (!transaction.getTradeAmount().equals(BigDecimal.ZERO)) {
       BigDecimal tradeCost = transaction.getTradeAmount()
-          .divide(transaction.getQuantity(), mathContext);
+          .divide(transaction.getQuantity().abs(), mathContext);
       BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
-      BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity());
+      BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity().abs());
 
       moneyValues.setRealisedGain(
           moneyValues.getRealisedGain()

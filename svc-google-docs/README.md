@@ -24,6 +24,3 @@ Default is to look for `../secrets/credentials.json` which is assuming the root 
 java -jar -Dspring.profiles.active=trade svc-google-docs-0.0.1-SNAPSHOT.jar  --sheet=1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE --com.beancounter.google.api=../../../../secrets/google-api/credentials.json 
 
 ```
-
-
-[![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)

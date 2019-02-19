@@ -1,15 +1,12 @@
-A hackabout project to evaluate various technologies in the area of micro services and resilience 
-
-Being that it's always useful to have a functional goal, it has a chain of services that:
+Services to chain together capability capable of valuing a series of transactions from a Google Sheet
     
     Read a Google Docs sheet
-        Create a .json file of Transaction objects
-    Passes the .json file to svc-position
-        Computes the portfolio positions
-        Values positions against svc-md
+    Pass normalised transactions to the svc-position
+    Computes various portfolio valuation attributes
+    
+    ToDo: Plug in price proviers to the Market Data service 
+       
         
-there's a bunch of functionality that will be added to over time.  
+Currently no persistence is in place    
 
-svc-md is the Market Data pricing service.  
-
-Currently no persistence is in place          
+[![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)        

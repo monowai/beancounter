@@ -2,6 +2,7 @@ package com.beancounter.common.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -18,11 +19,13 @@ public class Position {
   private Asset asset;
   @Builder.Default
   @Getter
-  MoneyValues moneyValues = MoneyValues.builder().build();
+  private MoneyValues moneyValues = MoneyValues.builder().build();
 
   @Builder.Default
   @Getter
-  QuantityValues quantityValues = QuantityValues.builder().build();
+  private QuantityValues quantityValues = QuantityValues.builder().build();
+
+  private Date lastDate;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

@@ -1,5 +1,6 @@
 package com.beancounter.position.counter;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.QuantityValues;
@@ -7,6 +8,8 @@ import com.beancounter.common.model.Transaction;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.Date;
+import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,19 +39,41 @@ public class Accumulator {
    * @return result object
    */
   public Position accumulate(Transaction transaction, Position position) {
+
+    isTransactionValid(transaction, position);
+
     if (transactionConfiguration.isPurchase(transaction)) {
-      return accumulateBuy(transaction, position);
+      accumulateBuy(transaction, position);
     } else if (transactionConfiguration.isSale(transaction)) {
-      return accumulateSell(transaction, position);
+      accumulateSell(transaction, position);
     }
+    position.setLastDate(transaction.getTradeDate());
     return position;
+  }
+
+  private void isTransactionValid(Transaction transaction, Position position) {
+    boolean validDate = false;
+
+    Date tradeDate = transaction.getTradeDate();
+    Date positionDate = position.getLastDate();
+
+    if (positionDate == null) {
+      validDate = true;
+    } else if (positionDate.compareTo(tradeDate) <= 0) {
+      validDate = true;
+    }
+
+    if (!validDate) {
+      throw new BusinessException(String.format("Date sequence problem %s",
+          transaction.toString()));
+    }
   }
 
   private Position accumulateBuy(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
     MoneyValues moneyValues = position.getMoneyValues();
-    
+
     moneyValues.setMarketCost(
         moneyValues.getMarketCost().add(transaction.getTradeAmount()));
 

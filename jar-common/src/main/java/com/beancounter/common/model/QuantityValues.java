@@ -3,7 +3,6 @@ package com.beancounter.common.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
-import jdk.nashorn.internal.objects.annotations.Getter;
 import lombok.Builder;
 import lombok.Data;
 
@@ -19,15 +18,17 @@ import lombok.Data;
 @JsonDeserialize(builder = QuantityValues.QuantityValuesBuilder.class)
 public class QuantityValues {
   @Builder.Default
-  BigDecimal sold = new BigDecimal(0d);
+  private BigDecimal sold = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal purchased = new BigDecimal(0d);
+  private BigDecimal purchased = BigDecimal.ZERO;
+
+  @Builder.Default
+  private BigDecimal adjustment = BigDecimal.ZERO;
 
   BigDecimal total;
 
-  @Getter
   public BigDecimal getTotal() {
-    return purchased.add(sold);
+    return (purchased.add(sold)).add(adjustment);
   }
 
   @SuppressWarnings("WeakerAccess")

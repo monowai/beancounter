@@ -7,5 +7,5 @@ package com.beancounter.common.model;
  * @since 2019-02-07
  */
 public enum TrnType {
-  SELL, BUY, DEPOSIT, WITHDRAWAL, DIVI
+  SELL, BUY, SPLIT, DEPOSIT, WITHDRAWAL, DIVI
 }

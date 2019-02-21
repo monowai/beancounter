@@ -22,4 +22,7 @@ public class TransactionConfiguration {
     return transaction.getTrnType().equals(TrnType.SELL);
   }
 
+  public boolean isSplit(Transaction transaction) {
+    return transaction.getTrnType().equals(TrnType.SPLIT);
+  }
 }

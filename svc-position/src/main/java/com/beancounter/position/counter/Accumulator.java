@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Date;
-import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +45,8 @@ public class Accumulator {
       accumulateBuy(transaction, position);
     } else if (transactionConfiguration.isSale(transaction)) {
       accumulateSell(transaction, position);
+    } else if (transactionConfiguration.isSplit(transaction)) {
+      handleSplit(transaction, position);
     }
     position.setLastDate(transaction.getTradeDate());
     return position;
@@ -67,6 +68,11 @@ public class Accumulator {
       throw new BusinessException(String.format("Date sequence problem %s",
           transaction.toString()));
     }
+  }
+
+  private BigDecimal getAverageCost(BigDecimal costBasis, BigDecimal total) {
+    return costBasis
+        .divide(total, mathContext);
   }
 
   private Position accumulateBuy(Transaction transaction, Position position) {
@@ -91,11 +97,6 @@ public class Accumulator {
     }
 
     return position;
-  }
-
-  private BigDecimal getAverageCost(BigDecimal costBasis, BigDecimal total) {
-    return costBasis
-        .divide(total, mathContext);
   }
 
   private Position accumulateSell(Transaction transaction, Position position) {
@@ -132,4 +133,11 @@ public class Accumulator {
     return position;
   }
 
+
+  private void handleSplit(Transaction transaction, Position position) {
+    BigDecimal total = position.getQuantityValues().getTotal();
+    position.getQuantityValues().setAdjustment(
+        (transaction.getQuantity().multiply(total)).subtract(total)
+    );
+  }
 }

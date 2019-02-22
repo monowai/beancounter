@@ -49,32 +49,39 @@ public class ShareSightTrades implements Transformer {
 
   @Override
   public Transaction of(List row) throws ParseException {
-    TrnType trnType = helper.resovleType(row.get(type).toString());
-    if (trnType == null) {
-      throw new BusinessException(String.format("Unsupported type %s", row.get(type).toString()));
+    try {
+      TrnType trnType = helper.resovleType(row.get(type).toString());
+      if (trnType == null) {
+        throw new BusinessException(String.format("Unsupported type %s", row.get(type).toString()));
+      }
+
+      Asset asset = Asset.builder().code(
+          row.get(code).toString())
+          .name(row.get(name).toString())
+          .market(Market.builder().code(row.get(market).toString()).build())
+          .build();
+
+      String comment = (row.size() == 12 ? row.get(comments).toString() : null);
+      BigDecimal tradeRate = new BigDecimal(row.get(fxrate).toString());
+      BigDecimal tradeAmount = helper.parseDouble(row.get(value));
+
+      return Transaction.builder()
+          .asset(asset)
+          .trnType(trnType)
+          .quantity(helper.parseDouble(row.get(quantity).toString()))
+          .price(helper.parseDouble(row.get(price).toString()))
+          .fees(new BigDecimal(row.get(brokerage).toString()))
+          .tradeAmount(tradeAmount.multiply(tradeRate).abs())
+          .tradeDate(helper.parseDate(row.get(date).toString()))
+          .tradeCurrency(row.get(currency).toString())
+          .tradeRate(tradeRate) // Trade to Portfolio Reference rate
+          .comments(comment)
+          .build()
+          ;
+    } catch (RuntimeException re) {
+      log.error(row);
+      throw re;
     }
-
-    Asset asset = Asset.builder().code(
-        row.get(code).toString())
-        .name(row.get(name).toString())
-        .market(Market.builder().code(row.get(market).toString()).build())
-        .build();
-
-    String comment = (row.size() == 12 ? row.get(comments).toString() : null);
-
-    return Transaction.builder()
-        .asset(asset)
-        .trnType(trnType)
-        .quantity(helper.parseDouble(row.get(quantity).toString()))
-        .price(helper.parseDouble(row.get(price).toString()))
-        .fees(new BigDecimal(row.get(brokerage).toString()))
-        .tradeAmount(helper.parseDouble(row.get(value)).abs())
-        .tradeDate(helper.parseDate(row.get(date).toString()))
-        .tradeCurrency(row.get(currency).toString())
-        .tradeRate(new BigDecimal(row.get(fxrate).toString()))
-        .comments(comment)
-        .build()
-        ;
 
   }
 

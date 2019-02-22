@@ -36,7 +36,7 @@ public class Transaction {
   @Builder.Default
   BigDecimal tax = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal tradeAmount = BigDecimal.ZERO;
+  BigDecimal tradeAmount = BigDecimal.ZERO; // Amount spent in trade currency
   BigDecimal cashAmount;
   BigDecimal tradeRate;
 

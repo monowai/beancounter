@@ -49,15 +49,16 @@ public class ShareSightDivis implements Transformer {
 
 
     Asset asset = helper.resolveAsset(row.get(code).toString());
+    BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
     return Transaction.builder()
         .asset(asset)
         .tax(new BigDecimal(row.get(tax).toString()))
-        .tradeAmount(helper.parseDouble(row.get(net)))
+        .tradeAmount(helper.parseDouble(row.get(net)).multiply(tradeRate))
         .tradeDate(helper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
         .tradeCurrency(row.get(currency).toString())
-        .tradeRate(new BigDecimal(row.get(fxRate).toString()))
+        .tradeRate(tradeRate)
         .build()
         ;
 

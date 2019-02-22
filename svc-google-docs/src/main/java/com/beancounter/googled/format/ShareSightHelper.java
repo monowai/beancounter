@@ -45,12 +45,7 @@ public class ShareSightHelper {
   }
 
   TrnType resovleType(String type) {
-    if (type.equalsIgnoreCase("buy")) {
-      return TrnType.BUY;
-    } else if (type.equalsIgnoreCase("sell")) {
-      return TrnType.SELL;
-    }
-    return null;
+    return TrnType.valueOf(type.toUpperCase());
   }
 
   /**

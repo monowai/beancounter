@@ -21,6 +21,6 @@ Default is to look for `../secrets/credentials.json` which is assuming the root 
 
 ```bash
 # Assumes you are running from the build/libs folder
-java -jar -Dspring.profiles.active=trade svc-google-docs-0.0.1-SNAPSHOT.jar  --sheet=1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE --com.beancounter.google.api=../../../../secrets/google-api/credentials.json 
+java -jar -Dspring.profiles.active=trade svc-google-docs/build/libs/svc-google-docs-0.0.1-SNAPSHOT.jar  --sheet=1FmWWSw956mD31Nz4cRkGv1UrCJ-tuSM8BnEuAUSXRsE --com.beancounter.google.api=../secrets/google-api/credentials.json --out.file=./trades.json 
 
 ```

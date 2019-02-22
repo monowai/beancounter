@@ -121,7 +121,9 @@ public class SheetReader {
                 .provider(spreadsheetId)
                 .build());
           }
-          transactions.add(transaction);
+          if (addTransaction(transaction)) {
+            transactions.add(transaction);
+          }
 
         }
         if (!transactions.isEmpty()) {
@@ -141,6 +143,10 @@ public class SheetReader {
 
       }
     }
+  }
+
+  private boolean addTransaction(Transaction transaction) {
+    return transaction.getAsset().getCode().equalsIgnoreCase("AAPL");
   }
 
   /**

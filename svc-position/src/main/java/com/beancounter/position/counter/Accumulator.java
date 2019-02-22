@@ -75,7 +75,7 @@ public class Accumulator {
         .divide(total, mathContext);
   }
 
-  private Position accumulateBuy(Transaction transaction, Position position) {
+  private void accumulateBuy(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
     MoneyValues moneyValues = position.getMoneyValues();
@@ -96,10 +96,9 @@ public class Accumulator {
 
     }
 
-    return position;
   }
 
-  private Position accumulateSell(Transaction transaction, Position position) {
+  private void accumulateSell(Transaction transaction, Position position) {
     BigDecimal soldQuantity = transaction.getQuantity();
     if (soldQuantity.doubleValue() > 0) {
       // Sign the quantities
@@ -130,7 +129,6 @@ public class Accumulator {
       moneyValues.setAverageCost(BigDecimal.ZERO);
     }
 
-    return position;
   }
 
 
@@ -139,5 +137,9 @@ public class Accumulator {
     position.getQuantityValues().setAdjustment(
         (transaction.getQuantity().multiply(total)).subtract(total)
     );
+    position.getMoneyValues()
+        .setAverageCost(getAverageCost(
+            position.getMoneyValues().getCostBasis(),
+            position.getQuantityValues().getTotal()));
   }
 }

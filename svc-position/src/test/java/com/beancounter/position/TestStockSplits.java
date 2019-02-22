@@ -62,7 +62,6 @@ class TestStockSplits {
     ;
 
     BigDecimal costBasis = position.getMoneyValues().getCostBasis();
-    BigDecimal averageCost = position.getMoneyValues().getAverageCost();
 
     accumulator.accumulate(stockSplit, position);
 
@@ -72,7 +71,6 @@ class TestStockSplits {
     ;
 
     assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("averageCost", averageCost)
         .hasFieldOrPropertyWithValue("costBasis", costBasis)
     ;
 

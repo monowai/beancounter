@@ -144,7 +144,7 @@ workflows:
             - build-common
       - build-position:
           requires:
-            - build-md
+            - build-common
       - build-google-docs:
           requires:
-            - build-position
+            - build-common

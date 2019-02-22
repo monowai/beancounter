@@ -42,6 +42,9 @@ public class ShareSightTrades implements Transformer {
   @Value("${out.file:#{null}}")
   private String outFile;
 
+  @Value("${range:All Trades Report}")
+  private String range;
+
   @Autowired
   public ShareSightTrades(ShareSightHelper helper) {
     this.helper = helper;
@@ -88,6 +91,19 @@ public class ShareSightTrades implements Transformer {
   @Override
   public String getFileName() {
     return outFile;
+  }
+
+  @Override
+  public boolean isValid(List row) {
+    if (row.size() > 10) {
+      return !row.get(0).toString().equalsIgnoreCase("market");
+    }
+    return false;
+  }
+
+  @Override
+  public String getRange() {
+    return range;
   }
 
 

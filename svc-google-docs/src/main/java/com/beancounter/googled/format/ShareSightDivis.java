@@ -38,6 +38,8 @@ public class ShareSightDivis implements Transformer {
   @Value("${out.file:#{systemProperties['user.dir']}/divis.json}")
   private String outFile;
 
+  @Value("${range:Taxable Income Report}")
+  private String range;
 
   @Autowired
   public ShareSightDivis(ShareSightHelper helper) {
@@ -67,6 +69,20 @@ public class ShareSightDivis implements Transformer {
   @Override
   public String getFileName() {
     return outFile;
+  }
+
+  @Override
+  public boolean isValid(List row) {
+    if (row.size() > 5) {
+      return !row.get(0).toString().equalsIgnoreCase("code")
+          && !row.get(0).toString().equalsIgnoreCase("total");
+    }
+    return false;
+  }
+
+  @Override
+  public String getRange() {
+    return range;
   }
 
 

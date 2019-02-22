@@ -15,5 +15,8 @@ public interface Transformer {
   Transaction of(List row) throws ParseException;
 
   String getFileName();
-  
+
+  boolean isValid(List row);
+
+  String getRange();
 }

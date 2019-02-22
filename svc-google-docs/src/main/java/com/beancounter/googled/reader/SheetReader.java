@@ -54,8 +54,8 @@ public class SheetReader {
   @Value("${sheet}")
   private String spreadsheetId;
 
-  @Value("${com.beanconter.source.sheet.range:A4:L14}")
-  private String range;
+  @Value("${filter:#{null}}")
+  private String filter;
 
   @Value(("${com.beancounter.portfolio.code:mike}"))
   private String portfolio;
@@ -90,13 +90,17 @@ public class SheetReader {
 
     ValueRange response = service.spreadsheets()
         .values()
-        .get(spreadsheetId, range)
+        .get(spreadsheetId, transformer.getRange())
         .execute();
     List<List<Object>> values = response.getValues();
     if (values == null || values.isEmpty()) {
       log.error("No data found.");
     } else {
       int trnId = 1;
+
+      if (filter != null) {
+        log.info("Filtering for asset code {}", filter);
+      }
 
       Collection<Transaction> transactions = new ArrayList<>();
       try (FileOutputStream outputStream = prepareFile()) {
@@ -105,24 +109,26 @@ public class SheetReader {
           // Print columns in range, which correspond to indices 0 and 4.
           Transaction transaction;
           try {
-            transaction = transformer.of(row);
+            if (transformer.isValid(row)) {
+              transaction = transformer.of(row);
+              if (transaction.getPortfolio() == null) {
+                transaction.setPortfolio(Portfolio.builder().code(portfolio).build());
+              }
+
+              if (transaction.getId() == null) {
+                transaction.setId(TransactionId.builder()
+                    .id(trnId++)
+                    .batch(0)
+                    .provider(spreadsheetId)
+                    .build());
+              }
+              if (addTransaction(transaction)) {
+                transactions.add(transaction);
+              }
+            }
           } catch (ParseException e) {
             log.error("Parsing row {}", trnId);
             throw new RuntimeException(e);
-          }
-          if (transaction.getPortfolio() == null) {
-            transaction.setPortfolio(Portfolio.builder().code(portfolio).build());
-          }
-
-          if (transaction.getId() == null) {
-            transaction.setId(TransactionId.builder()
-                .id(trnId++)
-                .batch(0)
-                .provider(spreadsheetId)
-                .build());
-          }
-          if (addTransaction(transaction)) {
-            transactions.add(transaction);
           }
 
         }
@@ -131,14 +137,15 @@ public class SheetReader {
             outputStream.write(
                 objectMapper.writerWithDefaultPrettyPrinter()
                     .writeValueAsBytes(transactions));
-            log.info("Wrote file to {}", transformer.getFileName());
+            log.info("Wrote {} transactions into file {}", transactions.size(),
+                transformer.getFileName());
           } else {
             log.info(objectMapper
                 .writerWithDefaultPrettyPrinter()
                 .writeValueAsString(transactions));
           }
-
-
+        } else {
+          log.info("No transactions were processed");
         }
 
       }
@@ -146,7 +153,10 @@ public class SheetReader {
   }
 
   private boolean addTransaction(Transaction transaction) {
-    return transaction.getAsset().getCode().equalsIgnoreCase("AAPL");
+    if (filter != null) {
+      return transaction.getAsset().getCode().equalsIgnoreCase(filter);
+    }
+    return true;
   }
 
   /**

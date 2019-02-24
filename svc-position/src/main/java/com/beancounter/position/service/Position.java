@@ -1,6 +1,5 @@
 package com.beancounter.position.service;
 
-import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.model.Positions;
 import java.util.Collection;
@@ -14,8 +13,6 @@ import java.util.Collection;
 
 
 public interface Position {
-
-  MarketData getPrice(String assetId);
 
   /**
    * Return the position collection from a collection of transactions.

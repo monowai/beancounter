@@ -19,20 +19,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class PositionService implements Position {
 
-  private MdIntegration mdIntegration;
   private Accumulator accumulator;
 
   @Autowired
-  PositionService(MdIntegration mdIntegration, Accumulator accumulator) {
-    this.mdIntegration = mdIntegration;
+  PositionService(Accumulator accumulator) {
     this.accumulator = accumulator;
   }
-
-  @Override
-  public MarketData getPrice(String assetId) {
-    return mdIntegration.getMarketData(assetId);
-  }
-
 
   /**
    * {@inheritDoc}

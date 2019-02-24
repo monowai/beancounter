@@ -5,6 +5,7 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.PositionService;
+import com.beancounter.position.service.Valuation;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,10 +27,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class PositionController {
 
   private PositionService positionService;
+  private Valuation valuationService;
 
   @Autowired
-  PositionController(PositionService positionService) {
+  PositionController(PositionService positionService, Valuation valuationService) {
     this.positionService = positionService;
+    this.valuationService = valuationService;
   }
 
   @PostMapping()
@@ -45,7 +48,7 @@ public class PositionController {
   @GetMapping(value = "/{assetId}", produces = "application/json")
   MarketData getPrice(@PathVariable("assetId") String assetId) {
     try {
-      return positionService.getPrice(assetId);
+      return valuationService.getPrice(assetId);
     } catch (BusinessException be) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, be.getMessage(), be);
     }

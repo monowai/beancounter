@@ -1,10 +1,10 @@
 package com.beancounter.position;
 
+import static com.beancounter.common.helper.AssetHelper.getAsset;
 import static com.beancounter.position.TestUtils.convert;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
@@ -14,11 +14,11 @@ import com.beancounter.position.counter.TransactionConfiguration;
 import com.beancounter.position.model.Positions;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 
 /**
  * Corporate Actions - Stock Splits.  These do not affect Cost.
+ *
  * @author mikeh
  * @since 2019-02-20
  */
@@ -26,10 +26,8 @@ class TestStockSplits {
 
   @Test
   void splitOccurs() {
-    Asset apple = Asset.builder()
-        .code("AAPL")
-        .market(Market.builder().code("NASDAQ").build())
-        .build();
+
+    Asset apple = getAsset("AAPL", "NASDAQ");
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -47,12 +45,6 @@ class TestStockSplits {
         .tradeDate(convert(today))
         .quantity(new BigDecimal("100")).build();
 
-    Transaction stockSplit = Transaction.builder()
-        .trnType(TrnType.SPLIT)
-        .asset(apple)
-        .tradeDate(convert(today))
-        .quantity(new BigDecimal("7")).build();
-
     Accumulator accumulator = new Accumulator(new TransactionConfiguration());
     positions.add(position);
     position = accumulator.accumulate(buy, position);
@@ -62,6 +54,12 @@ class TestStockSplits {
     ;
 
     BigDecimal costBasis = position.getMoneyValues().getCostBasis();
+
+    Transaction stockSplit = Transaction.builder()
+        .trnType(TrnType.SPLIT)
+        .asset(apple)
+        .tradeDate(convert(today))
+        .quantity(new BigDecimal("7")).build();
 
     accumulator.accumulate(stockSplit, position);
 

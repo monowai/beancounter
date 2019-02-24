@@ -10,5 +10,7 @@ Services to chain together capability capable of valuing a series of transaction
                
 Currently no persistence is in place
 
+```bash
 curl -H "Content-Type: application/json" -X POST -d @trades.json http://localhost:9500/    
+```
 

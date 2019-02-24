@@ -2,6 +2,7 @@ package com.beancounter.marketdata.service;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import java.util.Collection;
 
 /**
  * Standard interface to retrieve MarketData information from an implementor.
@@ -11,4 +12,6 @@ import com.beancounter.common.model.MarketData;
  */
 public interface MarketDataProvider {
   MarketData getCurrent(Asset asset);
+
+  Collection<MarketData> getCurrent(Collection<Asset> assets);
 }

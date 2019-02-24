@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @JsonDeserialize(builder = MarketData.MarketDataBuilder.class)
 public class MarketData {
-  String assetId;
+  Asset asset;
   Date date;
   BigDecimal open;
   BigDecimal close;

@@ -4,10 +4,13 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.service.MarketDataService;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,6 +45,16 @@ public class MdController {
         .build();
     try {
       return marketDataService.getCurrent(testAsset);
+    } catch (BusinessException be) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, be.getMessage(), be);
+    }
+
+  }
+
+  @PostMapping
+  Collection<MarketData> getPrices(@RequestBody Collection<Asset> assets) {
+    try {
+      return marketDataService.getCurrent(assets);
     } catch (BusinessException be) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, be.getMessage(), be);
     }

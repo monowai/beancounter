@@ -1,7 +1,10 @@
 package com.beancounter.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +17,8 @@ class TestAsset {
 
     Asset asset = Asset.builder()
         .code("SomeId")
+        .name("Some Name")
+        .category("Equity")
         .market(Market.builder().code("NYSE").build())
         .build();
 
@@ -26,4 +31,22 @@ class TestAsset {
 
     assertThat(fromJson).isEqualTo(asset);
   }
+
+  @Test
+  void parseKeyInAndOut() {
+    Asset asset = AssetHelper.getAsset("ACODE", "MCODE");
+
+    String keyIn = AssetHelper.parseKey(asset);
+
+    assertThat(AssetHelper.getAsset(keyIn)).isEqualTo(asset);
+
+  }
+
+  @Test
+  void invalidKey() {
+    assertThrows(BusinessException.class, () -> AssetHelper.parseKey(null));
+    assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket", null));
+    assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket"));
+  }
+
 }

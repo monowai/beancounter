@@ -1,5 +1,6 @@
 package com.beancounter.position.model;
 
+import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
@@ -32,7 +33,7 @@ public class Positions {
   }
 
   public void add(Position position) {
-    positions.put(parseKey(position.getAsset()), position);
+    positions.put(AssetHelper.parseKey(position.getAsset()), position);
 
   }
 
@@ -44,19 +45,13 @@ public class Positions {
    */
   @JsonIgnore
   public Position get(Asset asset) {
-    Position result = positions.get(parseKey(asset));
+    Position result = positions.get(AssetHelper.parseKey(asset));
     if (result == null) {
       return Position.builder()
           .asset(asset)
           .build();
     }
     return result;
-  }
-
-  @JsonIgnore
-  private String parseKey(@NotNull Asset asset) {
-    assert asset.getMarket() != null;
-    return asset.getCode() + ":" + asset.getMarket().getCode();
   }
 
 }

@@ -1,5 +1,9 @@
-package com.beancounter.common.model;
+package com.beancounter.position.model;
 
+import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.MoneyValues;
+import com.beancounter.common.model.QuantityValues;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Date;
@@ -25,6 +29,8 @@ public class Position {
   @Getter
   private QuantityValues quantityValues = QuantityValues.builder().build();
 
+  private MarketValue marketValue;
+  
   private Date lastDate;
 
   @SuppressWarnings("WeakerAccess")

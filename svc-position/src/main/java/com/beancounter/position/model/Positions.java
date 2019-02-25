@@ -3,7 +3,6 @@ package com.beancounter.position.model;
 import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Position;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Map;

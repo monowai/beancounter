@@ -29,6 +29,7 @@ public class MarketData {
   BigDecimal high;
   BigDecimal volume;
 
+  @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")
   public static class MarketDataBuilder {
 

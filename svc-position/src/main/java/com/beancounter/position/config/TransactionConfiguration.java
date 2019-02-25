@@ -1,4 +1,4 @@
-package com.beancounter.position.counter;
+package com.beancounter.position.config;
 
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;

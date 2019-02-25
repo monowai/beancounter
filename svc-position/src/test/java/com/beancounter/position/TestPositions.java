@@ -1,10 +1,10 @@
-package com.beancounter.common;
+package com.beancounter.position;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.MoneyValues;
-import com.beancounter.common.model.Position;
 import com.beancounter.common.model.QuantityValues;
+import com.beancounter.position.model.Position;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;

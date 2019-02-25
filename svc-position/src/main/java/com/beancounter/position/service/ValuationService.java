@@ -2,8 +2,9 @@ package com.beancounter.position.service;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.common.model.Position;
 import com.beancounter.position.integration.MdIntegration;
+import com.beancounter.position.model.MarketValue;
+import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -37,11 +38,27 @@ public class ValuationService implements Valuation {
   public Positions value(Positions positions) {
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
-      if (position.getQuantityValues().getTotal() != BigDecimal.ZERO) {
+      if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
         assets.add(position.getAsset());
       }
     }
-    return null;
+
+    // Anything to value?
+    if (assets.isEmpty()) {
+      return positions;
+    }
+
+    Collection<MarketData> results = mdIntegration.getMarketData(assets);
+    for (MarketData result : results) {
+      Position position = positions.get(result.getAsset());
+      MarketValue marketValue = MarketValue.builder()
+          .price(result.getClose())
+          .marketValue(result.getClose().multiply(position.getQuantityValues().getTotal()))
+          .build();
+
+      position.setMarketValue(marketValue);
+    }
+    return positions;
   }
 
 

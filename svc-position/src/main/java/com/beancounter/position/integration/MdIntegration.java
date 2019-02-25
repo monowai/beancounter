@@ -1,7 +1,7 @@
 package com.beancounter.position.integration;
 
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import feign.Body;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.Collection;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -25,6 +25,6 @@ public interface MdIntegration {
 
   @CircuitBreaker(name = "marketdata")
   @RequestMapping(method = RequestMethod.POST)
-  Collection<MarketData> getMarketData(Collection<String> assetId);
+  Collection<MarketData> getMarketData(Collection<Asset> assetId);
 
 }

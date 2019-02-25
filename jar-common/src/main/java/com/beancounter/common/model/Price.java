@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class Price {
-  private Asset asset;
   private Date date;
   private BigDecimal price;
 

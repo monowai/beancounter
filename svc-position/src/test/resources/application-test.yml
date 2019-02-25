@@ -1,2 +1,6 @@
 server:
   port: 0
+
+org.beancounter:
+  md:
+    url: http://localhost:9999

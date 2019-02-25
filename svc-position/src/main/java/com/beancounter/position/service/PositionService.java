@@ -1,10 +1,7 @@
 package com.beancounter.position.service;
 
-import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.position.counter.Accumulator;
-import com.beancounter.position.integration.MdIntegration;
 import com.beancounter.position.model.Positions;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;

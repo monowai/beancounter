@@ -1,338 +1,114 @@
 package com.beancounter.position;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
+import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
+import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Price;
+import com.beancounter.position.model.MarketValue;
+import com.beancounter.position.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.counter.Accumulator;
-import com.beancounter.position.counter.TransactionConfiguration;
-import com.beancounter.position.model.MarketValue;
+import com.beancounter.position.config.TransactionConfiguration;
+import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.model.Positions;
+import com.beancounter.position.service.Valuation;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.io.File;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.context.WebApplicationContext;
 
-
+/**
+ * Market Valuation testing.
+ *
+ * @author mikeh
+ * @since 2019-02-25
+ */
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
 class TestMarketValues {
 
+  @Autowired
+  private WebApplicationContext context;
+
+  @Autowired
+  private Valuation valuation;
+
+  private static WireMockRule mockMarketData;
+
+  @Autowired
+  void mockServices() {
+    // ToDo: Figure out RandomPort + Feign.  Config issues :(
+    mockMarketData = new WireMockRule(options().port(9999));
+    mockMarketData.start();
+  }
+
   @Test
-  void marketValues() {
-    Asset microsoft = Asset.builder()
-        .code("MSFT")
-        .market(Market.builder().code("NYSE").build())
-        .build();
+  @Tag("slow")
+  void marketDataReturns() throws Exception {
+    Asset asset = AssetHelper.getAsset("ABC", "marketCode");
+    Collection<Asset> assets = new ArrayList<>();
+    assets.add(asset);
+
+    ObjectMapper mapper = new ObjectMapper();
+    File mdResponse = new ClassPathResource("mdResponse.json").getFile();
+
+    CollectionType javaType = mapper.getTypeFactory()
+        .constructCollectionType(Collection.class, MarketData.class);
+
+    Collection<MarketData> results;
+
+    mockMarketData
+        .stubFor(
+            post(urlPathEqualTo("/"))
+                .withRequestBody(equalToJson(mapper.writeValueAsString(assets)))
+                .willReturn(aResponse()
+                    .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(mapper.writeValueAsString(mapper.readValue(mdResponse, javaType)))
+                    .withStatus(200)));
+
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
-    Position position = positions.get(microsoft);
-
-    assertThat(position)
-        .isNotNull();
-
+    // We need to have a Quantity in order to get the price, so create a position
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
-        .asset(microsoft)
+        .asset(asset)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
     Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    position = accumulator.accumulate(buy, position);
+    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);
 
-    position = positions.get(microsoft);
+    positions = valuation.value(positions);
 
-    assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("purchased", new BigDecimal(100))
-        .hasFieldOrPropertyWithValue("total", new BigDecimal(100));
-
-    MarketValue marketValue = MarketValue.builder()
-        .position(position)
-        .price(Price.builder().asset(microsoft).price(new BigDecimal(100d)).build())
-        .build();
-
-    assertThat(marketValue)
-        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal(100 * 100d))
-        .hasFieldOrPropertyWithValue("marketCost", new BigDecimal(2000d))
-    ;
-
-    // Add second buy
-    accumulator.accumulate(buy, position);
-    assertThat(marketValue)
-        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal(200 * 100d))
-        .hasFieldOrPropertyWithValue("marketCost", new BigDecimal(4000d))
-    ;
-
+    MarketValue result = positions.get(asset).getMarketValue();
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
+        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"));
   }
 
-  @Test
-  void simpleRealisedGain() {
-    Asset microsoft = Asset.builder()
-        .code("MSFT")
-        .market(Market.builder().code("NYSE").build())
-        .build();
 
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-
-    Position position = positions.get(microsoft);
-
-    assertThat(position)
-        .isNotNull();
-
-    Transaction buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(100)).build();
-
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    position = accumulator.accumulate(buy, position);
-    positions.add(position);
-
-    position = positions.get(microsoft);
-
-    Transaction sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(50)).build();
-
-    position = accumulator.accumulate(sell, position);
-
-    assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal(50));
-
-    assertThat(position.getMoneyValues().getRealisedGain()).isEqualTo(new BigDecimal("1000.00"));
-
-  }
-
-  @Test
-  void realisedGainWithSignedQuantities() {
-    Asset bidu = Asset.builder()
-        .code("BIDU")
-        .market(Market.builder().code("NYSE").build())
-        .build();
-
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-
-    Position position = positions.get(bidu);
-
-    assertThat(position)
-        .isNotNull();
-
-    Transaction buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("1695.02"))
-        .quantity(new BigDecimal("8"))
-        .build();
-
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    position = accumulator.accumulate(buy, position);
-    positions.add(position);
-
-    position = positions.get(bidu);
-
-    buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("405.21"))
-        .quantity(new BigDecimal("2"))
-        .build();
-
-    position = accumulator.accumulate(buy, position);
-
-    Transaction sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("841.63"))
-        .quantity(new BigDecimal("-3")).build();
-
-    position = accumulator.accumulate(sell, position);
-
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
-        .hasFieldOrPropertyWithValue("sales", new BigDecimal("841.63"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
-    ;
-
-    sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("1871.01"))
-        .quantity(new BigDecimal("-7")).build();
-
-    position = accumulator.accumulate(sell, position);
-
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("sales", new BigDecimal("2712.64"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
-    ;
-
-    assertThat(position.getQuantityValues().getTotal()).isEqualTo(BigDecimal.ZERO);
-
-  }
-
-  @Test
-  void realisedGainAfterSellingToZero() {
-    Asset microsoft = Asset.builder()
-        .code("MSFT")
-        .market(Market.builder().code("NYSE").build())
-        .build();
-
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-
-    Position position = positions.get(microsoft);
-
-    assertThat(position)
-        .isNotNull();
-
-    Transaction buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("1695.02"))
-        .quantity(new BigDecimal("8")).build();
-
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    position = accumulator.accumulate(buy, position);
-    positions.add(position);
-
-    buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("405.21"))
-        .quantity(new BigDecimal("2")).build();
-
-    accumulator.accumulate(buy, position);
-
-    position = positions.get(microsoft);
-
-    assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", BigDecimal.TEN);
-
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
-        .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
-        .hasFieldOrPropertyWithValue("realisedGain", BigDecimal.ZERO)
-    ;
-
-    Transaction sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("841.63"))
-        .quantity(new BigDecimal("3.0")).build();
-
-    accumulator.accumulate(sell, position);
-
-    // Sell does not affect the cost basis or average cost, but it will create a signed gain
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
-        .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
-    ;
-
-    sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("1871.01"))
-        .quantity(new BigDecimal("7")).build();
-
-    accumulator.accumulate(sell, position);
-
-    // Sell down to 0; reset cost basis
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("0"))
-        .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("0"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
-    ;
-
-
-  }
-
-  @Test
-  void realisedGainAfterReenteringAPosition() {
-    Asset intel = Asset.builder()
-        .code("INTC")
-        .market(Market.builder().code("NYSE").build())
-        .build();
-
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-
-    Position position = positions.get(intel);
-
-    assertThat(position)
-        .isNotNull();
-
-    Transaction buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("2646.08"))
-        .quantity(new BigDecimal("80")).build();
-
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    position = accumulator.accumulate(buy, position);
-    positions.add(position);
-
-    Transaction sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("2273.9"))
-        .quantity(new BigDecimal("80")).build();
-
-    accumulator.accumulate(sell, position);
-
-    position = positions.get(intel);
-
-    assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO);
-
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
-    ;
-
-    // Re-enter the position
-    buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("1603.32"))
-        .quantity(new BigDecimal("60")).build();
-
-    accumulator.accumulate(buy, position);
-
-    position = positions.get(intel);
-
-    assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", buy.getQuantity());
-
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", buy.getTradeAmount())
-        .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("26.722"))
-        .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
-    ;
-
-    // Second sell taking us back to zero. Verify that the accumulated gains.
-
-    sell = Transaction.builder()
-        .trnType(TrnType.SELL)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("1664.31"))
-        .quantity(new BigDecimal("60")).build();
-
-    BigDecimal previousGain = position.getMoneyValues()
-        .getRealisedGain(); // Track the previous gain
-
-    accumulator.accumulate(sell, position);
-
-    assertThat(position.getMoneyValues())
-        .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-        .hasFieldOrPropertyWithValue("realisedGain", previousGain.add(new BigDecimal("60.99")))
-    ;
-
-  }
 }

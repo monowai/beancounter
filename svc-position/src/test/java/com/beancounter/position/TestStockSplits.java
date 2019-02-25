@@ -6,11 +6,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Position;
+import com.beancounter.position.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.counter.Accumulator;
-import com.beancounter.position.counter.TransactionConfiguration;
+import com.beancounter.position.config.TransactionConfiguration;
+import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.model.Positions;
 import java.math.BigDecimal;
 import java.time.LocalDate;

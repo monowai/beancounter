@@ -1,0 +1,16 @@
+[
+    {
+    "asset":{
+      "code":"ABC",
+      "market":{
+        "code":"marketCode"
+      }
+    },
+    "date":null,
+    "open":100.00,
+    "close":100.00,
+    "low":null,
+    "high":null,
+    "volume":null
+    }
+]

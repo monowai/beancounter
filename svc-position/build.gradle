@@ -30,6 +30,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
+//            "org.springframework.cloud:spring-cloud-starter-netflix-ribbon",
             "org.springframework.boot:spring-boot-starter-actuator",
             "io.github.resilience4j:resilience4j-spring-boot2:${resilience4jVersion}",
             "io.github.resilience4j:resilience4j-reactor:${resilience4jVersion}"
@@ -54,6 +55,7 @@ dependencies {
             "org.junit.platform:junit-platform-launcher",
             "org.junit.platform:junit-platform-runner",
             "org.junit.platform:junit-platform-surefire-provider",
+            "com.github.tomakehurst:wiremock-jre8:2.21.0",
             "org.projectlombok:lombok"
     )
 }

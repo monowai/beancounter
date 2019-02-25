@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 class TestMoneyValues {
 
   @Test
-  void moneyValues() {
+  void quantityValues() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
         .market(Market.builder().code("NYSE").build())
@@ -48,21 +48,6 @@ class TestMoneyValues {
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(100))
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100));
 
-    MarketValue marketValue = MarketValue.builder()
-        .price(new BigDecimal("100.00"))
-        .build();
-
-    assertThat(marketValue)
-        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal(100 * 100d))
-        .hasFieldOrPropertyWithValue("marketCost", new BigDecimal(2000d))
-    ;
-
-    // Add second buy
-    accumulator.accumulate(buy, position);
-    assertThat(marketValue)
-        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal(200 * 100d))
-        .hasFieldOrPropertyWithValue("marketCost", new BigDecimal(4000d))
-    ;
 
   }
 

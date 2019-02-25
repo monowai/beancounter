@@ -2,10 +2,10 @@ package com.beancounter.position.service;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.MoneyValues;
-import com.beancounter.position.model.Position;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.config.TransactionConfiguration;
+import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;

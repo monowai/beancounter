@@ -2,10 +2,10 @@ package com.beancounter.position;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.position.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.config.TransactionConfiguration;
+import com.beancounter.position.model.Position;
 import com.beancounter.position.service.Accumulator;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;

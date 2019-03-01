@@ -1,12 +1,8 @@
 package com.beancounter.position;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.beancounter.position.TestUtils.mapper;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
@@ -20,7 +16,6 @@ import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -33,10 +28,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Market Valuation testing.
@@ -48,9 +41,6 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @ActiveProfiles("test")
 class TestMarketValues {
-
-  @Autowired
-  private WebApplicationContext context;
 
   @Autowired
   private Valuation valuation;
@@ -66,28 +56,19 @@ class TestMarketValues {
 
   @Test
   @Tag("slow")
-  void marketDataReturns() throws Exception {
+  void marketValuationFromMarketData() throws Exception {
     Asset asset = AssetHelper.getAsset("ABC", "marketCode");
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
 
-    ObjectMapper mapper = new ObjectMapper();
-    File mdResponse = new ClassPathResource("mdResponse.json").getFile();
-
     CollectionType javaType = mapper.getTypeFactory()
         .constructCollectionType(Collection.class, MarketData.class);
 
-    Collection<MarketData> results;
+    File jsonFile = new ClassPathResource("md-ABC.json").getFile();
+    Object response = mapper.readValue(jsonFile, javaType);
 
-    mockMarketData
-        .stubFor(
-            post(urlPathEqualTo("/"))
-                .withRequestBody(equalToJson(mapper.writeValueAsString(assets)))
-                .willReturn(aResponse()
-                    .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withBody(mapper.writeValueAsString(mapper.readValue(mdResponse, javaType)))
-                    .withStatus(200)));
-
+    TestUtils.mockMarketData(mockMarketData, mapper.writeValueAsString(assets),
+        mapper.writeValueAsString(response));
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

@@ -6,6 +6,7 @@ import com.beancounter.common.model.MarketData;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,22 +16,24 @@ import org.springframework.stereotype.Service;
  * @since 2019-01-28
  */
 @Service
-public class MarketDataService implements MarketDataProvider {
-  @Override
-  public MarketData getCurrent(Asset asset) {
-    if (asset.getCode().equalsIgnoreCase("123")) {
-      throw new BusinessException(
-          String.format("Invalid asset code [%s]", asset.getCode()));
-    }
+public class MarketDataService {
 
-    return MarketData.builder()
-        .asset(asset)
-        .close(BigDecimal.valueOf(999.99))
-        .open(BigDecimal.valueOf(999.99))
-        .build();
+  private MdFactory mdFactory;
+
+  @Autowired
+  MarketDataService(MdFactory mdFactory) {
+    this.mdFactory = mdFactory;
   }
 
-  @Override
+  public MarketData getCurrent(Asset asset) {
+    return mdFactory.getMarketDataProvider(asset).getCurrent(asset);
+  }
+
+  /**
+   * MarketData for a Collection of assets.
+   * @param assets to query
+   * @return results
+   */
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
     Collection<MarketData> results = new ArrayList<>(assets.size());
     for (Asset asset : assets) {

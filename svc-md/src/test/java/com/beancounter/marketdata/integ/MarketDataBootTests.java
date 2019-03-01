@@ -1,11 +1,13 @@
-package com.beancounter.marketdata;
+package com.beancounter.marketdata.integ;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.MarketDataBoot;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +24,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = MarketDataBoot.class)
 @WebAppConfiguration
 @ActiveProfiles("test")
 class MarketDataBootTests {
@@ -38,12 +40,13 @@ class MarketDataBootTests {
   @Test
   @Tag("slow")
   void getMarketData() {
-    Asset asset = Asset.builder().code("dummy").build();
+    Asset asset = AssetHelper.getAsset("dummy", "mock");
+    
     MarketData mdResponse = given()
         .webAppContextSetup(context)
         .log().all()
         .when()
-        .get("/{assetId}", asset.getCode())
+        .get("/{marketId}/{assetId}", asset.getMarket().getCode(),asset.getCode())
         .then()
         .log().all(true)
         .statusCode(200)

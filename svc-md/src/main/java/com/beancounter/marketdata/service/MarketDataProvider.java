@@ -14,4 +14,6 @@ public interface MarketDataProvider {
   MarketData getCurrent(Asset asset);
 
   Collection<MarketData> getCurrent(Collection<Asset> assets);
+
+  String getId();
 }

@@ -2,6 +2,7 @@ package com.beancounter.marketdata.controller;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.service.MarketDataService;
 import java.util.Collection;
@@ -38,10 +39,12 @@ public class MdController {
    * @param assetId Exchange:Code
    * @return Market Dat information for the supplied asset
    */
-  @GetMapping(value = "/{assetId}", produces = "application/json")
-  MarketData getPrice(@PathVariable("assetId") String assetId) {
+  @GetMapping(value = "/{marketId}/{assetId}", produces = "application/json")
+  MarketData getPrice(@PathVariable("marketId") String marketId,
+                      @PathVariable("assetId") String assetId) {
     Asset testAsset = Asset.builder()
         .code(assetId)
+        .market(Market.builder().code(marketId).build())
         .build();
     try {
       return marketDataService.getCurrent(testAsset);

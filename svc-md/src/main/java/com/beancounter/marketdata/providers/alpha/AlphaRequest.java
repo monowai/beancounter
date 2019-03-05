@@ -18,9 +18,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
     url = "${com.beancounter.marketdata.provider.alpha.url:https://www.alphavantage.co/}")
 public interface AlphaRequest {
 
-  @RequestMapping(method = RequestMethod.GET, value = "query?function=TIME_SERIES_DAILY"
-      + "&symbol={assetId}&apikey={apiKey}")
-  AlphaResponse getMarketData(@PathVariable("assetId") String assetId,
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = "query?function=TIME_SERIES_DAILY"
+      + "&symbol={assetId}&apikey={apiKey}"
+
+  )
+  String getMarketData(@PathVariable("assetId") String assetId,
                               @PathVariable("apiKey") String apiKey);
 
 }

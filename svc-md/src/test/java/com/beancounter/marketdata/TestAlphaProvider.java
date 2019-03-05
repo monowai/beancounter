@@ -34,6 +34,5 @@ class TestAlphaProvider {
         .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
         .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"));
 
-
   }
 }

@@ -64,7 +64,7 @@ class MarketDataBootTests {
   void getCollectionOfMarketData() {
     Collection<Asset> assets = new ArrayList<>();
     Asset asset = Asset.builder().code("assetCode")
-        .market(Market.builder().code("marketCode").build()).build();
+        .market(Market.builder().code("MOCK").build()).build();
     
     assets.add(asset);
 

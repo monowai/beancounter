@@ -42,12 +42,10 @@ public class MdFactory {
   }
 
   private MarketDataProvider resolveProvider(Market market) {
-    if (market.getCode().equalsIgnoreCase("NYSE")) {
-      return providers.get("ALPHA");
-    } else if (market.getCode().equalsIgnoreCase("NASDAQ")) {
-      return providers.get("ALPHA");
-    } else {
+    if (market.getCode().equalsIgnoreCase("MOCK")) {
       return providers.get("MOCK");
+    } else {
+      return providers.get("ALPHA");
     }
   }
 }

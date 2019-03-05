@@ -12,4 +12,5 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize(using = AlphaDeserializer.class)
 public class AlphaResponse extends MarketData {
 
+
 }

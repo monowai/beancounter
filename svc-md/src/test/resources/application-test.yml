@@ -1,3 +1,9 @@
 server:
   port: 0
 
+com:
+  beancounter:
+    marketdata:
+      provider:
+        alpha:
+          url: http://localhost:8888

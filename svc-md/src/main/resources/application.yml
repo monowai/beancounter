@@ -4,8 +4,10 @@ server:
 
 logging:
   level:
+
     com:
       netfix: ERROR
+      beancounter: DEBUG
     org:
       springframework:
         test: trace

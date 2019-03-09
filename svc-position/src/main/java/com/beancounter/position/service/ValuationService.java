@@ -48,15 +48,16 @@ public class ValuationService implements Valuation {
       return positions;
     }
 
-    Collection<MarketData> results = mdIntegration.getMarketData(assets);
-    for (MarketData result : results) {
-      Position position = positions.get(result.getAsset());
-      MarketValue marketValue = MarketValue.builder()
-          .price(result.getClose())
-          .marketValue(result.getClose().multiply(position.getQuantityValues().getTotal()))
-          .build();
-
-      position.setMarketValue(marketValue);
+    Collection<MarketData> marketDataResults = mdIntegration.getMarketData(assets);
+    for (MarketData marketData : marketDataResults) {
+      Position position = positions.get(marketData.getAsset());
+      if (!marketData.getClose().equals(BigDecimal.ZERO)) {
+        MarketValue marketValue = MarketValue.builder()
+            .price(marketData.getClose())
+            .marketValue(marketData.getClose().multiply(position.getQuantityValues().getTotal()))
+            .build();
+        position.setMarketValue(marketValue);
+      }
     }
     return positions;
   }

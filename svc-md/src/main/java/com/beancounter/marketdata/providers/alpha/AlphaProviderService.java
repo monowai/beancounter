@@ -68,16 +68,21 @@ public class AlphaProviderService implements MarketDataProvider {
     try {
       String result = response.get();
 
-      if (!isMdResponse(result)) {
+      if (!isMdResponse(asset, result)) {
         return getDefault(asset);
       }
-      return objectMapper.readValue(response.get(), AlphaResponse.class);
+      MarketData alphaResponse = objectMapper.readValue(response.get(), AlphaResponse.class);
+      String assetName = alphaResponse.getAsset().getName();
+      asset.setName(assetName); // Keep the name
+      alphaResponse.setAsset(asset); // Return BC view of the asset, not MarketProviders
+      log.debug("Valued {} ", alphaResponse.getAsset());
+      return alphaResponse;
     } catch (IOException | InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private boolean isMdResponse(String result) throws IOException {
+  private boolean isMdResponse(Asset asset, String result) throws IOException {
     String field = null;
     if (result.contains("Error Message")) {
       field = "Error Message";
@@ -87,7 +92,7 @@ public class AlphaProviderService implements MarketDataProvider {
 
     if (field != null) {
       JsonNode resultMessage = objectMapper.readTree(result);
-      log.error("API returned [{}]", resultMessage.get(field));
+      log.error("{} - API returned [{}]", asset, resultMessage.get(field));
       return false;
     }
     return true;

@@ -9,9 +9,15 @@ logging:
     org:
       springframework:
         test: trace
+
 spring:
   application:
     name: bc-marketData
 
-com.beancounter.marketdata.provider.alpha:
-  url: https://www.alphavantage.co/
+beancounter:
+  marketdata:
+    provider:
+      alpha:
+        url: https://www.alphavantage.co
+    
+

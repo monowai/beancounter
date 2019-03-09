@@ -9,6 +9,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.alpha.AlphaProviderService;
 import com.beancounter.marketdata.providers.alpha.AlphaRequest;
+import com.beancounter.marketdata.providers.alpha.AlphaRequestor;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MarketDataService;
@@ -34,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     MdFactory.class,
     CloudConfig.class,
     AlphaProviderService.class,
+    AlphaRequestor.class,
     AlphaRequest.class,
     MarketDataService.class,
     MockProviderService.class})

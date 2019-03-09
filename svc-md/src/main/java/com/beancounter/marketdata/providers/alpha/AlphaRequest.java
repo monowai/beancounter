@@ -15,16 +15,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Configuration
 @FeignClient(
     name = "alphavantage",
-    url = "${com.beancounter.marketdata.provider.alpha.url:https://www.alphavantage.co/}")
+    url = "${beancounter.marketdata.provider.alpha.url:https://www.alphavantage.co}")
+
 public interface AlphaRequest {
 
   @RequestMapping(
       method = RequestMethod.GET,
-      value = "query?function=TIME_SERIES_DAILY"
-      + "&symbol={assetId}&apikey={apiKey}"
-
+      headers = {"Content-Type: text/plain"},
+      value = "/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}"
   )
   String getMarketData(@PathVariable("assetId") String assetId,
-                              @PathVariable("apiKey") String apiKey);
+                       @PathVariable("apiKey") String apiKey);
 
 }

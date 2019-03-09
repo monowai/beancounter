@@ -3,9 +3,17 @@ package com.beancounter.marketdata.providers.alpha;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,19 +25,81 @@ import org.springframework.stereotype.Service;
  * @since 2019-03-03
  */
 @Service
+@Slf4j
 public class AlphaProviderService implements MarketDataProvider {
-  @Value("${com.beancounter.marketdata.provider.alpha.key:not-defined}")
+  @Value("${com.beancounter.marketdata.provider.alpha.key:123}")
   private String apiKey;
-  private AlphaRequest alphaRequest;
-  ObjectMapper objectMapper = new ObjectMapper();
+  private AlphaRequestor alphaRequestor;
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  AlphaProviderService(AlphaRequest alphaRequest) {
-    this.alphaRequest = alphaRequest;
+  AlphaProviderService(AlphaRequestor alphaRequestor) {
+    this.alphaRequestor = alphaRequestor;
   }
 
   @Override
   public MarketData getCurrent(Asset asset) {
+    String assetCode = getAsset(asset);
+
+    Future<String> response = alphaRequestor.getMarketData(assetCode, apiKey);
+
+    return getMarketData(asset, response);
+  }
+
+  @Override
+  public Collection<MarketData> getCurrent(Collection<Asset> assets) {
+    Collection<MarketData> results = new ArrayList<>();
+    Map<Asset, Future<String>> requestResults = new HashMap<>();
+    for (Asset asset : assets) {
+      requestResults.put(asset, alphaRequestor.getMarketData(getAsset(asset), apiKey));
+    }
+    for (Asset asset : requestResults.keySet()) {
+      Future<String> result = requestResults.get(asset);
+      if (result.isDone()) {
+        results.add(getMarketData(asset, result));
+        requestResults.remove(result);
+      }
+
+    }
+    return results;
+  }
+
+  private MarketData getMarketData(Asset asset, Future<String> response) {
+    try {
+      String result = response.get();
+
+      if (!isMdResponse(result)) {
+        return getDefault(asset);
+      }
+      return objectMapper.readValue(response.get(), AlphaResponse.class);
+    } catch (IOException | InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private boolean isMdResponse(String result) throws IOException {
+    String field = null;
+    if (result.contains("Error Message")) {
+      field = "Error Message";
+    } else if (result.contains("\"Note\":")) {
+      field = "Note";
+    }
+
+    if (field != null) {
+      JsonNode resultMessage = objectMapper.readTree(result);
+      log.error("API returned [{}]", resultMessage.get(field));
+      return false;
+    }
+    return true;
+
+  }
+
+
+  private MarketData getDefault(Asset asset) {
+    return MarketData.builder().asset(asset).close(BigDecimal.ZERO).build();
+  }
+
+  private String getAsset(Asset asset) {
     String marketCode = asset.getMarket().getCode();
     if (marketCode.equalsIgnoreCase("NASDAQ") || marketCode.equalsIgnoreCase("NYSE")) {
       marketCode = null;
@@ -39,18 +109,7 @@ public class AlphaProviderService implements MarketDataProvider {
     if (marketCode != null) {
       assetCode = assetCode + "." + marketCode;
     }
-
-    String response = alphaRequest.getMarketData(assetCode, apiKey);
-    try {
-      return objectMapper.readValue(response, AlphaResponse.class);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    return null;
+    return assetCode;
   }
 
   @Override

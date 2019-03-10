@@ -5,9 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.googled.config.ExchangeConfig;
-import com.beancounter.googled.format.ShareSightHelper;
-import com.beancounter.googled.format.ShareSightTrades;
-import com.beancounter.googled.format.Transformer;
+import com.beancounter.googled.sharesight.ShareSightDivis;
+import com.beancounter.googled.sharesight.ShareSightHelper;
+import com.beancounter.googled.sharesight.ShareSightTrades;
+import com.beancounter.googled.sharesight.ShareSightTransformers;
+import com.beancounter.googled.sharesight.Transformer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
@@ -25,12 +26,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-12
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {ExchangeConfig.class, ShareSightTrades.class, ShareSightHelper.class})
-@ActiveProfiles("trade")
+@SpringBootTest(classes = {ExchangeConfig.class,
+    ShareSightTrades.class,
+    ShareSightTransformers.class,
+    ShareSightDivis.class,
+    ShareSightHelper.class})
 class ShareSightTradeTest {
 
   @Autowired
-  private Transformer trades;
+  private ShareSightTransformers shareSightTransformers;
+
 
   @Test
   void convertRowToTransaction() throws Exception {
@@ -50,6 +55,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.value, "2097.85");
     row.add(ShareSightTrades.comments, "Test Comment");
 
+    Transformer trades = shareSightTransformers.getTransformer(row);
     Transaction transaction = trades.of(row);
 
     assertThat(transaction)
@@ -81,6 +87,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.fxrate, "0.8988");
     row.add(ShareSightTrades.value, "2097.85");
 
+    Transformer trades = shareSightTransformers.getTransformer(row);
     Transaction transaction = trades.of(row);
 
     assertThat(transaction)
@@ -106,9 +113,10 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
 
-    assertThat(trades.isValid(row)).isTrue();
+    Transformer transformer = shareSightTransformers.getTransformer("TRADE");
+    assertThat(transformer.isValid(row)).isTrue();
 
-    Transaction transaction = trades.of(row);
+    Transaction transaction = transformer.of(row);
     
     assertThat(transaction).isNotNull();
   }
@@ -131,6 +139,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.value, null);
     row.add(ShareSightTrades.comments, "Test Comment");
 
+    Transformer trades = shareSightTransformers.getTransformer("TRADE");
     Transaction transaction = trades.of(row);
 
     assertThat(transaction)

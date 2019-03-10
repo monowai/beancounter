@@ -1,4 +1,4 @@
-package com.beancounter.googled.format;
+package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,10 +32,17 @@ public class ShareSightHelper {
   private final ExchangeConfig exchangeConfig;
   private DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
+  @Value("${out.file:#{null}}")
+  private String outFile;
+
+  @Value("${range:All Trades Report}")
+  private String range;
+
   @Autowired
-  public ShareSightHelper(ExchangeConfig exchangeConfig) {
+  ShareSightHelper(ExchangeConfig exchangeConfig) {
     this.exchangeConfig = exchangeConfig;
   }
+
 
   Date parseDate(String date) throws ParseException {
     return formatter.parse(date);
@@ -78,5 +86,13 @@ public class ShareSightHelper {
   private Market resolveMarket(String market) {
     return Market.builder()
         .code(exchangeConfig.resolveAlias(market)).build();
+  }
+
+  public String getOutFile() {
+    return outFile;
+  }
+
+  public String getRange() {
+    return range;
   }
 }

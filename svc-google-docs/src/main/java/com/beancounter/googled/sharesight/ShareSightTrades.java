@@ -1,4 +1,4 @@
-package com.beancounter.googled.format;
+package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
@@ -11,7 +11,6 @@ import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Profile("trade")
 @Log4j2
 public class ShareSightTrades implements Transformer {
 
@@ -38,12 +36,6 @@ public class ShareSightTrades implements Transformer {
   public static final int value = 10;
   public static final int comments = 11;
   private final ShareSightHelper helper;
-
-  @Value("${out.file:#{null}}")
-  private String outFile;
-
-  @Value("${range:All Trades Report}")
-  private String range;
 
   @Autowired
   public ShareSightTrades(ShareSightHelper helper) {
@@ -95,21 +87,11 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public String getFileName() {
-    return outFile;
-  }
-
-  @Override
   public boolean isValid(List row) {
     if (row.size() > 6) {
       return !row.get(0).toString().equalsIgnoreCase("market");
     } 
     return false;
-  }
-
-  @Override
-  public String getRange() {
-    return range;
   }
 
 

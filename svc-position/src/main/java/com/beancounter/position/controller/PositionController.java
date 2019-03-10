@@ -36,9 +36,9 @@ public class PositionController {
   }
 
   @PostMapping()
-  Positions getPositions(@RequestBody Collection<Transaction> transactions) {
+  Positions computePositions(@RequestBody Collection<Transaction> transactions) {
     try {
-      return positionService.getPositions(transactions);
+      return positionService.computePositions(transactions);
     } catch (BusinessException be) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, be.getMessage(), be);
     }

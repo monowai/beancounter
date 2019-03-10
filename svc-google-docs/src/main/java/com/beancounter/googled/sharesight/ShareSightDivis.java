@@ -1,4 +1,4 @@
-package com.beancounter.googled.format;
+package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Transaction;
@@ -8,7 +8,6 @@ import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Profile("divi")
 @Log4j2
 public class ShareSightDivis implements Transformer {
 
@@ -34,12 +32,6 @@ public class ShareSightDivis implements Transformer {
   public static final int comments = 8;
 
   private ShareSightHelper helper;
-
-  @Value("${out.file:#{systemProperties['user.dir']}/divis.json}")
-  private String outFile;
-
-  @Value("${range:Taxable Income Report}")
-  private String range;
 
   @Autowired
   public ShareSightDivis(ShareSightHelper helper) {
@@ -67,23 +59,11 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public String getFileName() {
-    return outFile;
-  }
-
-  @Override
   public boolean isValid(List row) {
-    if (row.size() > 5) {
+    if (row.size() == 8) {
       return !row.get(0).toString().equalsIgnoreCase("code")
           && !row.get(0).toString().equalsIgnoreCase("total");
     }
     return false;
   }
-
-  @Override
-  public String getRange() {
-    return range;
-  }
-
-
 }

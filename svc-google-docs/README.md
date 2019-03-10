@@ -4,6 +4,8 @@ Simple google sheet reader adapted from [Google Java Quickstart](https://develop
 Converts rows in a Google Sheet and writes a JSON file with BeanCounter trades that can be passed to other services.  
 These formats are going to evolve, but at the moment, then work for Trades and Dividends using the following structures:
 
+You can put all trades in a single sheet.  The `range` is defined as "All Trades Report"
+
 ```csv
 # ToDo: tidy up the formatting ;-)
 # Trade Format
@@ -15,14 +17,14 @@ Code	    Name	    Date Paid	Exchange Rate	Currency	Net Amount	Foreign Tax Deduct
 ABBV.NYS    AbbVie Inc      15/02/2013	0.8074  USD	        15.85	    0.00	             15.85	        Dividend of 40.0 cents per share
 ```
     
-Note that you should _never_ commit unencrypted credentials to a repo.  Hence, these are kept in a separate project.  You need
+Note that you should _never_ commit unencrypted credentials to a repo.  Hence, it is expected these are managed in a separate project.  You need
 to pass your own Google credentials in the application property:
 
 It is assumed that you are running all commands from the root of the `BeanCounter` project
 Default is to look for google credentials `../secrets/credentials.json`  
 
 ```bash
-java -jar -Dspring.profiles.active=trade svc-google-docs/build/libs/svc-google-docs-0.0.1-SNAPSHOT.jar \
+java -jar svc-google-docs/build/libs/svc-google-docs-0.0.1-SNAPSHOT.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

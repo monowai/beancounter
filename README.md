@@ -8,11 +8,11 @@ Services to chain together capability capable of valuing a series of transaction
     
     ToDo: Plug in price providers to the Market Data service 
                
-Currently no persistence is in place
+Currently no persistence is in place.  
 
 ```bash
 # Read the transactions and create a trades.json file
-java -jar -Dspring.profiles.active=trade svc-google-docs/build/libs/svc-google-docs-0.0.1-SNAPSHOT.jar \
+java -jar svc-google-docs/build/libs/svc-google-docs-0.0.1-SNAPSHOT.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

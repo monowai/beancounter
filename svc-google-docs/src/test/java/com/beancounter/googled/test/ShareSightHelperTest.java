@@ -7,7 +7,10 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.googled.config.ExchangeConfig;
-import com.beancounter.googled.format.ShareSightHelper;
+import com.beancounter.googled.sharesight.ShareSightDivis;
+import com.beancounter.googled.sharesight.ShareSightHelper;
+import com.beancounter.googled.sharesight.ShareSightTrades;
+import com.beancounter.googled.sharesight.ShareSightTransformers;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import org.junit.jupiter.api.Test;
@@ -17,7 +20,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {ExchangeConfig.class, ShareSightHelper.class})
+@SpringBootTest(classes = {
+    ExchangeConfig.class,
+    ShareSightTransformers.class,
+    ShareSightTrades.class,
+    ShareSightDivis.class,
+    ShareSightHelper.class})
 class ShareSightHelperTest {
 
   @Autowired

@@ -4,7 +4,9 @@ import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.googled.config.GoogleDocsConfig;
-import com.beancounter.googled.format.Transformer;
+import com.beancounter.googled.sharesight.ShareSightHelper;
+import com.beancounter.googled.sharesight.ShareSightTransformers;
+import com.beancounter.googled.sharesight.Transformer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -64,7 +66,9 @@ public class SheetReader {
   @Value(("${beancounter.portfolio.code:mike}"))
   private String portfolio;
 
-  private Transformer transformer;
+  private ShareSightHelper shareSightHelper;
+
+  private ShareSightTransformers shareSightTransformers;
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -74,8 +78,13 @@ public class SheetReader {
   }
 
   @Autowired
-  void setTransformer(Transformer transformer) {
-    this.transformer = transformer;
+  void setShareSightHelper(ShareSightHelper shareSightHelper) {
+    this.shareSightHelper = shareSightHelper;
+  }
+
+  @Autowired
+  void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
+    this.shareSightTransformers = shareSightTransformers;
   }
 
   /**
@@ -99,7 +108,7 @@ public class SheetReader {
 
     ValueRange response = service.spreadsheets()
         .values()
-        .get(sheetId, transformer.getRange())
+        .get(sheetId, shareSightHelper.getRange())
         .execute();
 
     List<List<Object>> values = response.getValues();
@@ -118,6 +127,7 @@ public class SheetReader {
         for (List row : values) {
           // Print columns in range, which correspond to indices 0 and 4.
           Transaction transaction;
+          Transformer transformer = shareSightTransformers.getTransformer(row);
           try {
             if (transformer.isValid(row)) {
               transaction = transformer.of(row);
@@ -147,8 +157,9 @@ public class SheetReader {
             outputStream.write(
                 objectMapper.writerWithDefaultPrettyPrinter()
                     .writeValueAsBytes(transactions));
+
             log.info("Wrote {} transactions into file {}", transactions.size(),
-                transformer.getFileName());
+                shareSightHelper.getOutFile());
           } else {
             log.info(objectMapper
                 .writerWithDefaultPrettyPrinter()
@@ -207,10 +218,10 @@ public class SheetReader {
   }
 
   private FileOutputStream prepareFile() throws FileNotFoundException {
-    if (transformer.getFileName() == null) {
+    if (shareSightHelper.getOutFile() == null) {
       return null;
     }
-    return new FileOutputStream(transformer.getFileName());
+    return new FileOutputStream(shareSightHelper.getOutFile());
   }
 
 

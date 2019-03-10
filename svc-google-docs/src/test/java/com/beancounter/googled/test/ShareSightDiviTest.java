@@ -6,9 +6,11 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.googled.config.ExchangeConfig;
-import com.beancounter.googled.format.ShareSightDivis;
-import com.beancounter.googled.format.ShareSightHelper;
-import com.beancounter.googled.format.Transformer;
+import com.beancounter.googled.sharesight.ShareSightDivis;
+import com.beancounter.googled.sharesight.ShareSightHelper;
+import com.beancounter.googled.sharesight.ShareSightTrades;
+import com.beancounter.googled.sharesight.ShareSightTransformers;
+import com.beancounter.googled.sharesight.Transformer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 
@@ -27,12 +28,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-12
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {ExchangeConfig.class, ShareSightDivis.class, ShareSightHelper.class})
-@ActiveProfiles("divi")
+@SpringBootTest(classes = {
+    ExchangeConfig.class,
+    ShareSightTransformers.class,
+    ShareSightDivis.class,
+    ShareSightTrades.class,
+    ShareSightHelper.class})
 class ShareSightDiviTest {
 
   @Autowired
-  private Transformer dividends;
+  private ShareSightHelper shareSightHelper;
+
+  @Autowired
+  private ShareSightTransformers shareSightTransformers;
+
 
   @Test
   void convertRowToTransaction() throws Exception {
@@ -49,7 +58,8 @@ class ShareSightDiviTest {
     row.add(ShareSightDivis.gross, "12.99");
     row.add(ShareSightDivis.comments, "Test Comment");
 
-
+    Transformer dividends = shareSightTransformers.getTransformer(row);
+    
     Transaction transaction = dividends.of(row);
 
     Asset expectedAsset = Asset.builder()

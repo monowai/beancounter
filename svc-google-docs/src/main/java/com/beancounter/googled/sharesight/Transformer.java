@@ -1,4 +1,4 @@
-package com.beancounter.googled.format;
+package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.model.Transaction;
 
@@ -14,9 +14,6 @@ public interface Transformer {
 
   Transaction of(List row) throws ParseException;
 
-  String getFileName();
-
   boolean isValid(List row);
 
-  String getRange();
 }

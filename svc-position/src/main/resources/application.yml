@@ -1,7 +1,7 @@
 server:
   port: 9500
 
-org.beancounter:
+beancounter:
   md:
     name: marketdata
     url: http://localhost:9510

@@ -65,8 +65,14 @@ public class ShareSightTrades implements Transformer {
           .build();
 
       String comment = (row.size() == 12 ? row.get(comments).toString() : null);
-      BigDecimal tradeRate = new BigDecimal(row.get(fxrate).toString());
-      BigDecimal tradeAmount = helper.parseDouble(row.get(value));
+
+
+      BigDecimal tradeRate = BigDecimal.ZERO;
+      BigDecimal tradeAmount = BigDecimal.ZERO;
+      if (trnType != TrnType.SPLIT) {
+        tradeRate = new BigDecimal(row.get(fxrate).toString());
+        tradeAmount = helper.parseDouble(row.get(value));
+      }
 
       return Transaction.builder()
           .asset(asset)
@@ -95,9 +101,9 @@ public class ShareSightTrades implements Transformer {
 
   @Override
   public boolean isValid(List row) {
-    if (row.size() > 10) {
+    if (row.size() > 6) {
       return !row.get(0).toString().equalsIgnoreCase("market");
-    }
+    } 
     return false;
   }
 

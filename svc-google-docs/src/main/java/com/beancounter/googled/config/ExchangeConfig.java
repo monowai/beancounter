@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @since 2019-02-13
  */
 @EnableConfigurationProperties
-@ConfigurationProperties(prefix = "com.beancounter.exchanges")
+@ConfigurationProperties(prefix = "beancounter.exchanges")
 @Component
 public class ExchangeConfig {
 

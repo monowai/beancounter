@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
  * @author mikeh
  * @since 2019-02-17
  */
-//@ConfigurationProperties(prefix = "com.beancounter.transaction")
 @Component
 public class TransactionConfiguration {
 

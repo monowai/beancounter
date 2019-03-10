@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 
 /**
@@ -17,14 +18,15 @@ import lombok.Data;
  */
 @Data
 @Builder
+@ToString(of = {"asset","trnType","id"})
 @JsonDeserialize(builder = Transaction.TransactionBuilder.class)
 public class Transaction {
+  TrnType trnType;
+  Asset asset;
   TransactionId id;
   Portfolio portfolio;
-  Asset asset;
   Market market;
 
-  TrnType trnType;
 
   Date tradeDate;
   Date settleDate;

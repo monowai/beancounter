@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @since 2019-02-01
  */
 @Configuration
-@FeignClient(name = "${org.beancounter.md.name}", url = "${org.beancounter.md.url}")
+@FeignClient(name = "${beancounter.md.name}", url = "${beancounter.md.url}")
 public interface MdIntegration {
 
   @CircuitBreaker(name = "marketdata")

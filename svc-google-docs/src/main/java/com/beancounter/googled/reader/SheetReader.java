@@ -15,6 +15,8 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.repackaged.com.google.common.base.Splitter;
+import com.google.api.client.util.Lists;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
@@ -52,12 +54,14 @@ public class SheetReader {
   private GoogleDocsConfig googleDocsConfig;
 
   @Value("${sheet}")
-  private String spreadsheetId;
+  private String sheetId;
 
   @Value("${filter:#{null}}")
   private String filter;
 
-  @Value(("${com.beancounter.portfolio.code:mike}"))
+  private Collection<String> filteredAssets = new ArrayList<>();
+
+  @Value(("${beancounter.portfolio.code:mike}"))
   private String portfolio;
 
   private Transformer transformer;
@@ -82,6 +86,11 @@ public class SheetReader {
    */
   public void doIt() throws IOException, GeneralSecurityException {
     // Build a new authorized API client service.
+
+    if (filter != null) {
+      filteredAssets = Lists.newArrayList(Splitter.on(",").split(filter));
+    }
+
     final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
     Sheets service = new Sheets.Builder(httpTransport, JSON_FACTORY,
         getCredentials(httpTransport))
@@ -90,8 +99,9 @@ public class SheetReader {
 
     ValueRange response = service.spreadsheets()
         .values()
-        .get(spreadsheetId, transformer.getRange())
+        .get(sheetId, transformer.getRange())
         .execute();
+
     List<List<Object>> values = response.getValues();
     if (values == null || values.isEmpty()) {
       log.error("No data found.");
@@ -99,7 +109,7 @@ public class SheetReader {
       int trnId = 1;
 
       if (filter != null) {
-        log.info("Filtering for asset code {}", filter);
+        log.info("Filtering for assets matching {}", filter);
       }
 
       Collection<Transaction> transactions = new ArrayList<>();
@@ -119,7 +129,7 @@ public class SheetReader {
                 transaction.setId(TransactionId.builder()
                     .id(trnId++)
                     .batch(0)
-                    .provider(spreadsheetId)
+                    .provider(sheetId)
                     .build());
               }
               if (addTransaction(transaction)) {
@@ -154,7 +164,7 @@ public class SheetReader {
 
   private boolean addTransaction(Transaction transaction) {
     if (filter != null) {
-      return transaction.getAsset().getCode().equalsIgnoreCase(filter);
+      return filteredAssets.contains(transaction.getAsset().getCode());
     }
     return true;
   }

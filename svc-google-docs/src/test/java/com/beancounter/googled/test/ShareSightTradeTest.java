@@ -94,6 +94,26 @@ class ShareSightTradeTest {
   }
 
   @Test
+  void splitTransaction() throws Exception {
+    List<String> row = new ArrayList<>();
+    row.add(ShareSightTrades.market, "AMEX");
+    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.name, "Test Asset");
+    row.add(ShareSightTrades.type, "split");
+    row.add(ShareSightTrades.date, "21/01/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "AUD");
+
+    assertThat(trades.isValid(row)).isTrue();
+
+    Transaction transaction = trades.of(row);
+    
+    assertThat(transaction).isNotNull();
+  }
+
+  @Test
   void convertToSplit() throws Exception {
 
     List<String> row = new ArrayList<>();
@@ -107,8 +127,8 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.price, "12.23");
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxrate, "0.8988");
-    row.add(ShareSightTrades.value, "2097.85");
+    row.add(ShareSightTrades.fxrate, null);
+    row.add(ShareSightTrades.value, null);
     row.add(ShareSightTrades.comments, "Test Comment");
 
     Transaction transaction = trades.of(row);
@@ -118,7 +138,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount",
-            new BigDecimal("2097.85").multiply(new BigDecimal("0.8988")))
+            BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")
     ;

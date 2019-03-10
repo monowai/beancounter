@@ -5,9 +5,8 @@ logging:
     com.google: error
     com.beancounter: debug
 
-com:
-  beancounter:
-    exchanges:
-      aliases:
-        ASX: AX
-        NYS: NYSE
+beancounter:
+  exchanges:
+    aliases:
+      ASX: AX
+      NYS: NYSE

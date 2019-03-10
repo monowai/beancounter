@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * @author mikeh
  * @since 2019-02-08
  */
-@ConfigurationProperties(prefix = "com.beancounter.google")
+@ConfigurationProperties(prefix = "beancounter.google")
 @Component
 @Data
 @Log4j2

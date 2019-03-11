@@ -2,12 +2,13 @@ package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.TrnType;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
@@ -47,8 +48,10 @@ public class ShareSightDivis implements Transformer {
 
     return Transaction.builder()
         .asset(asset)
+        .trnType(TrnType.DIVI)
         .tax(new BigDecimal(row.get(tax).toString()))
-        .tradeAmount(helper.parseDouble(row.get(net)).multiply(tradeRate))
+        .tradeAmount(helper.parseDouble(row.get(net)).multiply(tradeRate)
+            .setScale(2, RoundingMode.HALF_UP))
         .tradeDate(helper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
         .tradeCurrency(row.get(currency).toString())
@@ -60,7 +63,10 @@ public class ShareSightDivis implements Transformer {
 
   @Override
   public boolean isValid(List row) {
-    if (row.size() == 8) {
+    if (row.size() == 9) {
+      if (row.get(0).toString().contains(".")) {
+        return true;
+      }
       return !row.get(0).toString().equalsIgnoreCase("code")
           && !row.get(0).toString().equalsIgnoreCase("total");
     }

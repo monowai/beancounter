@@ -31,6 +31,9 @@ public class ShareSightTransformers {
    */
   public Transformer getTransformer(List row) {
     if (row.size() == 9) {
+      if (row.get(ShareSightTrades.type).toString().equalsIgnoreCase("split")) {
+        return shareSightTrades;
+      }
       return shareSightDivis;
     }
     return shareSightTrades;

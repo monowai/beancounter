@@ -63,7 +63,8 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount",
-            new BigDecimal("2097.85").multiply(new BigDecimal("0.8988")))
+            new BigDecimal("2097.85").multiply(new BigDecimal("0.8988"))
+                .setScale(2, BigDecimal.ROUND_HALF_UP))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")
     ;
@@ -147,7 +148,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount",
-            BigDecimal.ZERO)
+            new BigDecimal("0.00"))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")
     ;

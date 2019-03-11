@@ -10,3 +10,4 @@ beancounter:
     aliases:
       ASX: AX
       NYS: NYSE
+      NAS: NASDAQ

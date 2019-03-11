@@ -40,6 +40,8 @@ class TestTransactionLogic {
     LocalDate today = LocalDate.now();
     LocalDate yesterday = today.minus(-1, ChronoUnit.DAYS);
 
+    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+
     Transaction buyYesterday = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
@@ -54,14 +56,11 @@ class TestTransactionLogic {
         .tradeDate(convert(today))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
     positions.add(position);
     position = accumulator.accumulate(buyYesterday, position);
 
     Position finalPosition = position;
-    assertThrows(BusinessException.class, () -> {
-      accumulator.accumulate(buyToday, finalPosition);
-    });
+    assertThrows(BusinessException.class, () -> accumulator.accumulate(buyToday, finalPosition));
 
 
   }

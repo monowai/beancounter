@@ -24,4 +24,13 @@ public class TransactionConfiguration {
   public boolean isSplit(Transaction transaction) {
     return transaction.getTrnType().equals(TrnType.SPLIT);
   }
+
+  /**
+   * Determine if the supplied transaction is a dividend.
+   * @param transaction analyze
+   * @return true if yes
+   */
+  public boolean isDividend(Transaction transaction) {
+    return transaction.getTrnType() == TrnType.DIVI;
+  }
 }

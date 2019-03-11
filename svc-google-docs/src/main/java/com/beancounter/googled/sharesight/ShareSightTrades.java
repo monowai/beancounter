@@ -6,11 +6,12 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,6 +45,7 @@ public class ShareSightTrades implements Transformer {
 
   @Override
   public Transaction of(List row) throws ParseException {
+    MathContext mathContext = new MathContext(2);
     try {
       TrnType trnType = helper.resovleType(row.get(type).toString());
       if (trnType == null) {
@@ -72,7 +74,7 @@ public class ShareSightTrades implements Transformer {
           .quantity(helper.parseDouble(row.get(quantity).toString()))
           .price(helper.parseDouble(row.get(price).toString()))
           .fees(new BigDecimal(row.get(brokerage).toString()))
-          .tradeAmount(tradeAmount.multiply(tradeRate).abs())
+          .tradeAmount(tradeAmount.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP))
           .tradeDate(helper.parseDate(row.get(date).toString()))
           .tradeCurrency(row.get(currency).toString())
           .tradeRate(tradeRate) // Trade to Portfolio Reference rate

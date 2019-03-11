@@ -11,6 +11,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
@@ -22,6 +23,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class Accumulator {
+
+  @Value("${beancounter.positions.ordered:false}")
+  boolean orderedTransactions = false;
 
   private TransactionConfiguration transactionConfiguration;
   private MathContext mathContext = new MathContext(10);
@@ -39,21 +43,34 @@ public class Accumulator {
    * @return result object
    */
   public Position accumulate(Transaction transaction, Position position) {
+    boolean dateSensitive = !transactionConfiguration.isDividend(transaction);
+    if (dateSensitive) {
+      isDateSequenceValid(transaction, position);
+    }
 
-    isTransactionValid(transaction, position);
-
-    if (transactionConfiguration.isPurchase(transaction)) {
+    if (transactionConfiguration.isDividend(transaction)) {
+      accumulateDividend(transaction, position);
+    } else if (transactionConfiguration.isPurchase(transaction)) {
       accumulateBuy(transaction, position);
     } else if (transactionConfiguration.isSale(transaction)) {
       accumulateSell(transaction, position);
     } else if (transactionConfiguration.isSplit(transaction)) {
       handleSplit(transaction, position);
     }
-    position.setLastDate(transaction.getTradeDate());
+    if (dateSensitive) {
+      position.setLastDate(transaction.getTradeDate());
+    }
     return position;
   }
 
-  private void isTransactionValid(Transaction transaction, Position position) {
+  private void accumulateDividend(Transaction transaction, Position position) {
+    position.getMoneyValues()
+        .setDividends(position.getMoneyValues()
+            .getDividends().add(
+                transaction.getTradeAmount()));
+  }
+
+  private void isDateSequenceValid(Transaction transaction, Position position) {
     boolean validDate = false;
 
     Date tradeDate = transaction.getTradeDate();

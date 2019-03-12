@@ -22,6 +22,14 @@ public interface AlphaRequest {
   @RequestMapping(
       method = RequestMethod.GET,
       headers = {"Content-Type: text/plain"},
+      value = "/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"
+  )
+  String getMarketDataQuote(@PathVariable("assetId") String assetId,
+                                 @PathVariable("apiKey") String apiKey);
+
+  @RequestMapping(
+      method = RequestMethod.GET,
+      headers = {"Content-Type: text/plain"},
       value = "/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}"
   )
   String getMarketData(@PathVariable("assetId") String assetId,

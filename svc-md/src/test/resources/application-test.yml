@@ -8,3 +8,6 @@ beancounter:
         url: http://localhost:9999
       worldTradingData:
         url: http://localhost:8888
+      mock:
+        markets:
+          - MOCK

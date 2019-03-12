@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.service;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import java.util.Collection;
 
@@ -15,5 +16,27 @@ public interface MarketDataProvider {
 
   Collection<MarketData> getCurrent(Collection<Asset> assets);
 
+  /**
+   * Convenience function to return the ID.
+   * @return Unique Id of the MarketDataProvider
+   */
   String getId();
+
+  /**
+   * MarketDataProviders have difference API restrictions. Number of assets in a single call is
+   * one of them.
+   * 
+   * @return Number of Assets to request in a single call.
+   */
+  Integer getBatchSize();
+
+  Boolean isMarketSupported(Market market);
+
+  /**
+   * MarketDataProviders often have difference ways of handling Market Codes.
+   * 
+   * @param bcMarketCode BeanCounter view of the Market Code
+   * @return DataProvider view of the same MarketCode
+   */
+  String getMarketProviderCode(String bcMarketCode);
 }

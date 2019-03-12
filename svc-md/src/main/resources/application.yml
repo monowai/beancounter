@@ -19,9 +19,17 @@ spring:
 beancounter:
   marketdata:
     provider:
+      mock:
+        markets: MOCK
+        
       alpha:
         url: https://www.alphavantage.co
+        batchSize: 1
+        markets: ASX
     
       worldTradingData:
         url: https://www.worldtradingdata.com
+        batchSize: 2
+        markets: NASDAQ,AMEX,NYSE
+
 

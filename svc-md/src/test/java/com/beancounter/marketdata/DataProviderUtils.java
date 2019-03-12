@@ -35,7 +35,7 @@ public class DataProviderUtils {
       throws IOException {
     mockAlphaVantage
         .stubFor(
-            get(urlEqualTo("/query?function=TIME_SERIES_DAILY&symbol=ABC&apikey=demo"))
+            get(urlEqualTo("/query?function=TIME_SERIES_DAILY&symbol=ABC.AX&apikey=demo"))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(mapper.writeValueAsString(mapper.readValue(jsonFile, HashMap.class)))

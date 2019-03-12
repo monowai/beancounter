@@ -1,11 +1,12 @@
 package com.beancounter.marketdata.providers.wtd;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
-import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,8 +29,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class WtdProviderService implements MarketDataProvider {
   public static final String ID = "WTD";
-  @Value("${com.beancounter.marketdata.provider.worldTradingData.key:demo}")
+  @Value("${beancounter.marketdata.provider.worldTradingData.key:demo}")
   private String apiKey;
+  @Value("${beancounter.marketdata.provider.worldTradingData.batchSize:2}")
+  private Integer batchSize;
+
+  @Value("${beancounter.marketdata.provider.worldTradingData.markets}")
+  private String markets;
+
   private WtdRequestor wtdRequestor;
 
   @Autowired
@@ -49,7 +56,7 @@ public class WtdProviderService implements MarketDataProvider {
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
     String date = "2019-03-11";
-    ProviderArguments providerArguments = getKeyTracker(assets, date);
+    ProviderArguments providerArguments = ProviderArguments.getInstance(assets, date, this);
 
     Map<Integer, Future<WtdResponse>> batchedRequests = new ConcurrentHashMap<>();
 
@@ -95,6 +102,9 @@ public class WtdProviderService implements MarketDataProvider {
         if (wtdResponse.getMessage() != null) {
           // Entire call failed
           log.error("{} - {}", wtdResponse.getMessage(), providerArguments.getAssets(batchId));
+          if (wtdResponse.getData() == null) {
+            throw new BusinessException(wtdResponse.getMessage());
+          }
         }
 
         MarketData marketData = null;
@@ -125,34 +135,38 @@ public class WtdProviderService implements MarketDataProvider {
         .close(BigDecimal.ZERO).build();
   }
 
-  private ProviderArguments getKeyTracker(Collection<Asset> assets, String date) {
-    ProviderArguments providerArguments = new ProviderArguments(2);
-    providerArguments.setDate(Dates.getDate(date, null));
-
-    for (Asset asset : assets) {
-
-      String marketCode = asset.getMarket().getCode();
-      if (marketCode.equalsIgnoreCase("NASDAQ")
-          || marketCode.equalsIgnoreCase("NYSE")
-          || marketCode.equalsIgnoreCase("AMEX")
-      ) {
-        marketCode = null;
-      }
-
-      String assetCode = asset.getCode();
-
-      if (marketCode != null) {
-        assetCode = assetCode + "." + marketCode;
-      }
-      providerArguments.addAsset(asset, assetCode);
-
-
-    }
-    return providerArguments;
-  }
-
   @Override
   public String getId() {
     return ID;
   }
+
+  @Override
+  public Integer getBatchSize() {
+    return batchSize;
+  }
+
+  @Override
+  public Boolean isMarketSupported(Market market) {
+    if (markets == null) {
+      return false;
+    }
+    return markets.contains(market.getCode());
+
+  }
+
+  @Override
+  public String getMarketProviderCode(String bcMarketCode) {
+
+    if (bcMarketCode.equalsIgnoreCase("NASDAQ")
+        || bcMarketCode.equalsIgnoreCase("NYSE")
+        || bcMarketCode.equalsIgnoreCase("AMEX")
+
+    ) {
+      return null;
+    }
+    return bcMarketCode;
+
+  }
+
+
 }

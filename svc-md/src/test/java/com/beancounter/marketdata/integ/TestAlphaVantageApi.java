@@ -55,7 +55,24 @@ class TestAlphaVantageApi {
 
     DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =
-        Asset.builder().code("ABC").market(Market.builder().code("NASDAQ").build()).build();
+        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
+
+    MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaProviderService.ID);
+    MarketData mdResult = alphaProvider.getCurrent(asset);
+    assertThat(mdResult)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+  }
+
+  @Test
+  void apiInvalidKey() throws Exception {
+
+    File jsonFile = new ClassPathResource("alphavantageInfo.json").getFile();
+
+    DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
+    Asset asset =
+        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaProviderService.ID);
     MarketData mdResult = alphaProvider.getCurrent(asset);
@@ -72,7 +89,7 @@ class TestAlphaVantageApi {
 
     DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =
-        Asset.builder().code("ABC").market(Market.builder().code("NASDAQ").build()).build();
+        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketData mdResult = mdFactory.getMarketDataProvider(AlphaProviderService.ID)
         .getCurrent(asset);

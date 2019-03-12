@@ -2,11 +2,13 @@ package com.beancounter.marketdata.providers.mock;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,6 +21,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
+
+  @Value("${beancounter.marketdata.provider.mock.markets}")
+  private String markets;
+
 
   @Override
   public MarketData getCurrent(Asset asset) {
@@ -47,6 +53,26 @@ public class MockProviderService implements MarketDataProvider {
   public String getId() {
     return ID;
   }
+
+  @Override
+  public Integer getBatchSize() {
+    return 1;
+  }
+
+  @Override
+  public Boolean isMarketSupported(Market market) {
+    if (markets == null) {
+      return false;
+    }
+    return markets.contains(market.getCode());
+
+  }
+
+  @Override
+  public String getMarketProviderCode(String bcMarketCode) {
+    return bcMarketCode;
+  }
+
 
 
 }

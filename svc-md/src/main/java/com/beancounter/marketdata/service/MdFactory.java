@@ -5,8 +5,11 @@ import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.alpha.AlphaProviderService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdProviderService;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
  * @since 2019-03-01
  */
 @Service
+@Slf4j
 public class MdFactory {
 
   private Map<String, MarketDataProvider> providers = new HashMap<>();
@@ -29,6 +33,22 @@ public class MdFactory {
     providers.put(alphaProviderService.getId().toUpperCase(), alphaProviderService);
     providers.put(wtdProviderService.getId().toUpperCase(), wtdProviderService);
   }
+
+  Map<String, Collection<Asset>> splitProviders(Collection<Asset> assets) {
+    Map<String, Collection<Asset>> results = new HashMap<>();
+
+    for (Asset asset : assets) {
+      MarketDataProvider marketDataProvider = getMarketDataProvider(asset);
+      Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
+      if (mdpAssets == null) {
+        mdpAssets = new ArrayList<>();
+      }
+      mdpAssets.add(asset);
+      results.put(marketDataProvider.getId(), mdpAssets);
+    }
+    return results;
+  }
+
 
   /**
    * Figures out how to locate a Market Data provider for the requested asset.
@@ -51,11 +71,18 @@ public class MdFactory {
 
   private MarketDataProvider resolveProvider(Market market) {
     // ToDo: Map Market to Provider
-    if (market.getCode().equalsIgnoreCase("MOCK")) {
+    if (providers.get(MockProviderService.ID).isMarketSupported(market)) {
       return providers.get(MockProviderService.ID);
-    } else {
+    }
+    if (providers.get(AlphaProviderService.ID).isMarketSupported(market)) {
+      return providers.get(AlphaProviderService.ID);
+    }
+    if (providers.get(WtdProviderService.ID).isMarketSupported(market)) {
       return providers.get(WtdProviderService.ID);
     }
+    log.error("Unable to identify a provider for {}", market);
+    return null;
   }
+
 
 }

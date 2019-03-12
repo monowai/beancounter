@@ -2,9 +2,9 @@ package com.beancounter.marketdata.service;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.providers.mock.MockProviderService;
-import com.beancounter.marketdata.providers.wtd.WtdProviderService;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,10 +31,7 @@ public class MarketDataService {
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
   public MarketData getCurrent(Asset asset) {
-    if (asset.getMarket().getCode().equalsIgnoreCase("MOCK")) {
-      return mdFactory.getMarketDataProvider(MockProviderService.ID).getCurrent(asset);
-    }
-    return mdFactory.getMarketDataProvider(WtdProviderService.ID).getCurrent(asset);
+    return mdFactory.getMarketDataProvider(asset).getCurrent(asset);
   }
 
   /**
@@ -44,14 +41,12 @@ public class MarketDataService {
    * @return results
    */
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    // ToDo: Read a config that determines:
-    //  * which provider to request prices from based on Market
-    //  * Split incoming assets into MarketDataProvider buckets before requesting data
-    for (Asset asset : assets) {
-      if (asset.getMarket().getCode().equalsIgnoreCase(MockProviderService.ID)) {
-        return mdFactory.getMarketDataProvider(MockProviderService.ID).getCurrent(assets);
-      }
+    Map<String, Collection<Asset>> factories = mdFactory.splitProviders(assets);
+    Collection<MarketData> results = new ArrayList<>();
+
+    for (String dpId : factories.keySet()) {
+      results.addAll(mdFactory.getMarketDataProvider(dpId).getCurrent(factories.get(dpId)));
     }
-    return mdFactory.getMarketDataProvider(WtdProviderService.ID).getCurrent(assets);
+    return results;
   }
 }

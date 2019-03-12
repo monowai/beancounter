@@ -11,12 +11,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * For testing purposes.
+ *
  * @author mikeh
  * @since 2019-03-01
  */
 
 @Service
 public class MockProviderService implements MarketDataProvider {
+  public static final String ID = "MOCK";
+
   @Override
   public MarketData getCurrent(Asset asset) {
     if (asset.getCode().equalsIgnoreCase("123")) {
@@ -42,7 +45,7 @@ public class MockProviderService implements MarketDataProvider {
 
   @Override
   public String getId() {
-    return "MOCK";
+    return ID;
   }
 
 

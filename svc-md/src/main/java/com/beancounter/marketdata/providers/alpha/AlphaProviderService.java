@@ -27,7 +27,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class AlphaProviderService implements MarketDataProvider {
-  @Value("${com.beancounter.marketdata.provider.alpha.key:123}")
+  public static final String ID = "ALPHA";
+  @Value("${com.beancounter.marketdata.provider.alpha.key:demo}")
   private String apiKey;
   private AlphaRequestor alphaRequestor;
   private ObjectMapper objectMapper = new ObjectMapper();
@@ -119,6 +120,6 @@ public class AlphaProviderService implements MarketDataProvider {
 
   @Override
   public String getId() {
-    return "ALPHA";
+    return ID;
   }
 }

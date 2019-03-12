@@ -22,4 +22,6 @@ beancounter:
       alpha:
         url: https://www.alphavantage.co
     
+      worldTradingData:
+        url: https://www.worldtradingdata.com
 

@@ -14,6 +14,10 @@ import lombok.EqualsAndHashCode;
 public class SystemException extends RuntimeException {
   private int status;
 
+  public SystemException(String reason) {
+    super(reason);
+  }
+
   /**
    * Typically HTTPStatus 500-599. Unexpected failures
    *

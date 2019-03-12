@@ -4,6 +4,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.alpha.AlphaProviderService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
+import com.beancounter.marketdata.providers.wtd.WtdProviderService;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,12 @@ public class MdFactory {
   private Map<String, MarketDataProvider> providers = new HashMap<>();
 
   @Autowired
-  MdFactory(MockProviderService mockProviderService, AlphaProviderService alphaProviderService) {
+  MdFactory(MockProviderService mockProviderService,
+            AlphaProviderService alphaProviderService,
+            WtdProviderService wtdProviderService) {
     providers.put(mockProviderService.getId().toUpperCase(), mockProviderService);
     providers.put(alphaProviderService.getId().toUpperCase(), alphaProviderService);
+    providers.put(wtdProviderService.getId().toUpperCase(), wtdProviderService);
   }
 
   /**
@@ -33,19 +37,25 @@ public class MdFactory {
    * @param asset who wants to know?
    * @return the provider that supports the asset
    */
-  public MarketDataProvider getMarketDataProvider(Asset asset) {
+  MarketDataProvider getMarketDataProvider(Asset asset) {
     MarketDataProvider provider = resolveProvider(asset.getMarket());
     if (provider == null) {
-      return providers.get("MOCK");
+      return providers.get(MockProviderService.ID);
     }
     return provider;
   }
 
+  public MarketDataProvider getMarketDataProvider(String provider) {
+    return providers.get(provider.toUpperCase());
+  }
+
   private MarketDataProvider resolveProvider(Market market) {
+    // ToDo: Map Market to Provider
     if (market.getCode().equalsIgnoreCase("MOCK")) {
-      return providers.get("MOCK");
+      return providers.get(MockProviderService.ID);
     } else {
-      return providers.get("ALPHA");
+      return providers.get(WtdProviderService.ID);
     }
   }
+
 }

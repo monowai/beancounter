@@ -4,7 +4,7 @@ Micro services that offer the capability of transforming transactions from a Goo
     
 * [Create trades](svc-google-docs/README.md) from a Google Docs sheet
 * [Create positions](svc-position/README.md) from the trades
-* [Value positions](svc-md/README.md) using various price providers 
+* Value positions using [Asset Prices](svc-md/README.md) obtained from the Market Data service  
     
 Currently no persistence is in place so you need a connection to the Internet to read the trade file and value positions over the Internet    
 

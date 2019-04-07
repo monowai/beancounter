@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Log4j2
+@Slf4j
 public class SheetReader {
 
   private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";

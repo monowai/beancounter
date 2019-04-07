@@ -1,7 +1,7 @@
 package com.beancounter.marketdata;
 
 import javax.annotation.PostConstruct;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableFeignClients
-@Log4j2
+@Slf4j
 public class CloudConfig {
   @PostConstruct
   void loaded() {

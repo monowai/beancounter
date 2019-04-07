@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Deserializes a BC MarketData object from a AlphaVantage result.
@@ -26,7 +26,7 @@ import lombok.extern.log4j.Log4j2;
  * @author mikeh
  * @since 2019-03-03
  */
-@Log4j2
+@Slf4j
 public class AlphaDeserializer extends JsonDeserializer {
   private static final ObjectMapper mapper = new ObjectMapper();
 

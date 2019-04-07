@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Log4j2
+@Slf4j
 public class ShareSightDivis implements Transformer {
 
   public static final int code = 0;

@@ -3,7 +3,7 @@ package com.beancounter.googled.config;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "beancounter.google")
 @Component
 @Data
-@Log4j2
+@Slf4j
 public class GoogleDocsConfig {
 
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();

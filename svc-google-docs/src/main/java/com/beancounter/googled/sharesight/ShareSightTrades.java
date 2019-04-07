@@ -6,11 +6,10 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Log4j2
+@Slf4j
 public class ShareSightTrades implements Transformer {
 
   public static final int market = 0;
@@ -45,7 +44,6 @@ public class ShareSightTrades implements Transformer {
 
   @Override
   public Transaction of(List row) throws ParseException {
-    MathContext mathContext = new MathContext(2);
     try {
       TrnType trnType = helper.resovleType(row.get(type).toString());
       if (trnType == null) {
@@ -82,7 +80,7 @@ public class ShareSightTrades implements Transformer {
           .build()
           ;
     } catch (RuntimeException re) {
-      log.error(row);
+      log.error(String.valueOf(row));
       throw re;
     }
 

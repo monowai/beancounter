@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
 import java.util.Collection;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @SpringBootTest
 @ActiveProfiles("test")
-@Log4j2
+@Slf4j
 class TestAccumulatePositions {
 
   @Autowired

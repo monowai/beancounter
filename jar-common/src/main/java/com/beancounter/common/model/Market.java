@@ -2,10 +2,9 @@ package com.beancounter.common.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import java.util.TimeZone;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.TimeZone;
 
 /**
  * A stock exchange.

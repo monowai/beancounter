@@ -17,19 +17,42 @@ spring:
     name: bc-marketData
 
 beancounter:
+  markets:
+    MOCK:
+      timezone: UTC
+
+    NASDAQ:
+      timezone: US/Eastern
+
+    NYSE:
+      timezone: US/Eastern
+
+    AMEX:
+      timezone: US/Eastern
+
+    ASX:
+      timezone: Australia/Sydney
+
+    NZX:
+      timezone: Pacific/Auckland
+
+    SGX:
+      timezone: Asia/Singaporek
+
+
   marketdata:
     provider:
       mock:
         markets: MOCK
-        
+
       alpha:
         url: https://www.alphavantage.co
         batchSize: 1
         markets: ASX
-    
+
       worldTradingData:
         url: https://www.worldtradingdata.com
         batchSize: 2
-        markets: NASDAQ,AMEX,NYSE
+        markets: NASDAQ,AMEX,NYSE,NZX
 
 

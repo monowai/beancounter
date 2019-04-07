@@ -2,9 +2,7 @@ package com.beancounter.marketdata.providers;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.marketdata.service.MarketDataProvider;
-import com.beancounter.marketdata.util.Dates;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
@@ -30,15 +28,16 @@ public class ProviderArguments {
 
   /**
    * Helper to build an instance of this class based on the supplied arguments.
-   * @param assets  Assets being requested
-   * @param date    Price Date
+   *
+   * @param assets             Assets being requested
    * @param marketDataProvider Who our provider is
    * @return This class with various keys cross indexed for convenience
    */
-  public static ProviderArguments getInstance(Collection<Asset> assets, String date,
+  public static ProviderArguments getInstance(Collection<Asset> assets,
                                               MarketDataProvider marketDataProvider) {
     ProviderArguments providerArguments = new ProviderArguments(marketDataProvider.getBatchSize());
-    providerArguments.setDate(Dates.getDate(date, null));
+
+    providerArguments.setDate(marketDataProvider.getDate());
 
     for (Asset asset : assets) {
 
@@ -79,7 +78,7 @@ public class ProviderArguments {
 
   private Map<String, Asset> dpToBc = new HashMap<>();
   private Map<Asset, String> bcToDp = new HashMap<>();
-  private Date date;
+  private String date;
 
   /**
    * How the MarketDataProvider wants the search key for all assets to be passed.

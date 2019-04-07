@@ -5,9 +5,11 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +24,15 @@ import org.springframework.stereotype.Service;
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
 
+  private Dates dates;
+
   @Value("${beancounter.marketdata.provider.mock.markets}")
   private String markets;
 
+  @Autowired
+  public MockProviderService(Dates dates) {
+    this.dates = dates;
+  }
 
   @Override
   public MarketData getCurrent(Asset asset) {
@@ -73,6 +81,10 @@ public class MockProviderService implements MarketDataProvider {
     return bcMarketCode;
   }
 
+  @Override
+  public String getDate() {
+    return "2019-04-05";
+  }
 
 
 }

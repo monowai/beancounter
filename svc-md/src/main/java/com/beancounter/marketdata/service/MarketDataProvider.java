@@ -39,4 +39,11 @@ public interface MarketDataProvider {
    * @return DataProvider view of the same MarketCode
    */
   String getMarketProviderCode(String bcMarketCode);
+
+  /**
+   * Last price date on the Market.
+   * @return date to use for retrieval ops
+   */
+  String getDate();
+
 }

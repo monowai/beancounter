@@ -7,6 +7,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketConfig;
 import com.beancounter.marketdata.service.MarketService;
+import com.beancounter.marketdata.util.Dates;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,27 +51,31 @@ class TestMarkets {
     //  But, if you print the Date object directly, it is always printed with the default
     //  system time zone.
 
-    String dateFormat = "dd-M-yyyy hh:mm:ss a";
-    String dateInString = "14-4-2019 10:30:00 AM";
+    String dateFormat = "yyyy-M-dd hh:mm:ss a";
+    String dateInString = "2019-4-14 10:30:00 AM";
     // Users requested date "today in timezone"
 
-    Market sgMarket = marketService.getMarket("SGX");
-    Market nzMarket = marketService.getMarket("NZX");
     LocalDateTime sunday = LocalDateTime
         .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat));
 
-    LocalDate resolvedDate = marketService.getLastMarketDate(sunday
+    Dates dates = new Dates();
+
+
+    Market sgMarket = marketService.getMarket("SGX");
+    Market nzMarket = marketService.getMarket("NZX");
+    LocalDate resolvedDate = dates.getLastMarketDate(
+        sunday
             .atZone(sgMarket.getTimezone().toZoneId()),
-        marketService.getMarket("NYSE"));
+        marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)
         .hasFieldOrPropertyWithValue("dayOfWeek", DayOfWeek.FRIDAY)
         .hasFieldOrPropertyWithValue("dayOfMonth", 12)
     ;
 
-    resolvedDate = marketService.getLastMarketDate(sunday
+    resolvedDate = dates.getLastMarketDate(sunday
             .atZone(nzMarket.getTimezone().toZoneId()),
-        marketService.getMarket("NYSE"));
+        marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)
         .hasFieldOrPropertyWithValue("dayOfWeek", DayOfWeek.FRIDAY)

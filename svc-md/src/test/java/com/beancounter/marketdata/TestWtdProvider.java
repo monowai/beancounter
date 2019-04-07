@@ -15,10 +15,11 @@ import org.springframework.core.io.ClassPathResource;
  * @since 2019-03-03
  */
 class TestWtdProvider {
+  private ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void jsonGoodResponse() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
+
 
     File jsonFile = new ClassPathResource("wtdMultiAsset.json").getFile();
     WtdResponse response = mapper.readValue(jsonFile, WtdResponse.class);
@@ -31,7 +32,6 @@ class TestWtdProvider {
 
   @Test
   void jsonMessageResponse() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();
     WtdResponse response = mapper.readValue(jsonFile, WtdResponse.class);

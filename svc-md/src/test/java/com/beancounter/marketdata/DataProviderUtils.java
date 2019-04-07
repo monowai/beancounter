@@ -6,12 +6,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.TimeZone;
 import org.springframework.http.MediaType;
 
 /**
@@ -28,7 +30,7 @@ public class DataProviderUtils {
    * Convenience function to stub a response for ABC symbol.
    *
    * @param mockAlphaVantage wiremock
-   * @param jsonFile response file to return
+   * @param jsonFile         response file to return
    * @throws IOException anything
    */
   public static void mockAlphaResponse(WireMockRule mockAlphaVantage, File jsonFile)
@@ -42,17 +44,23 @@ public class DataProviderUtils {
                     .withStatus(200)));
   }
 
+  public static void mockWtdResponse(WireMockRule wtdMock, Collection<Asset> assets, File jsonFile)
+      throws IOException {
+    mockWtdResponse(wtdMock, assets, null, jsonFile);
+  }
+
   /**
    * Convenience function to stub a response for ABC symbol.
    *
-   * @param wtdMock wiremock
-   * @param assets asset codes required in the GET
+   * @param wtdMock  wiremock
+   * @param assets   asset codes required in the GET
    * @param jsonFile response file to return
    * @throws IOException anything
    */
-  public static void mockWtdResponse(WireMockRule wtdMock, Collection<Asset> assets, File jsonFile)
+  public static void mockWtdResponse(
+      WireMockRule wtdMock, Collection<Asset> assets, String asAt, File jsonFile)
       throws IOException {
-    
+
     String assetArg = null;
     for (Asset asset : assets) {
       if (assetArg != null) {
@@ -61,14 +69,33 @@ public class DataProviderUtils {
         assetArg = asset.getCode();
       }
     }
+
+    HashMap<String, Object> response = mapper.readValue(jsonFile, HashMap.class);
+    if (asAt != null) {
+      response.put("date", asAt);
+    }
     wtdMock
         .stubFor(
             get(urlEqualTo(
-                "/api/v1/history_multi_single_day?symbol=" + assetArg + "&date=2019-03-11"
+                "/api/v1/history_multi_single_day?symbol=" + assetArg + "&date=" + asAt
                     + "&api_token=demo"))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withBody(mapper.writeValueAsString(mapper.readValue(jsonFile, HashMap.class)))
+                    .withBody(mapper.writeValueAsString(response))
                     .withStatus(200)));
   }
+
+  /**
+   * Nasdaq.
+   *
+   * @return Proper representation of Nasdaq
+   */
+  public static Market getNasdaq() {
+    return Market.builder()
+        .code("NASDAQ")
+        .timezone(TimeZone.getTimeZone("US/Eastern"))
+        .build();
+  }
+
+
 }

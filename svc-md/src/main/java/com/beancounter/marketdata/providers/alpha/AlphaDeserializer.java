@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AlphaDeserializer extends JsonDeserializer {
   private static final ObjectMapper mapper = new ObjectMapper();
+  private static Dates dates = new Dates();
 
   @Override
   public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -56,14 +59,18 @@ public class AlphaDeserializer extends JsonDeserializer {
         firstKey = allValues.entrySet().stream().findFirst();
 
     if (firstKey.isPresent()) {
-      Date priceDate = Dates.getDate(firstKey.get().getKey().toString(), timeZone);
+      LocalDate localDateTime = dates.getDate(
+          firstKey.get().getKey().toString(), "yyyy-M-dd");
+      Date priceDate = Date.from(
+          localDateTime.atStartOfDay(ZoneId.of(timeZone)).toInstant());
+
       marketData = getMarketData(asset, priceDate, firstKey.get().getValue());
     }
     return marketData;
   }
 
   private String getTimeZone(JsonNode nodeValue) {
-    return  nodeValue.get("5. Time Zone").asText();
+    return nodeValue.get("5. Time Zone").asText();
   }
 
   private MarketData getMarketData(Asset asset, Date priceDate, Map<String, Object> data) {

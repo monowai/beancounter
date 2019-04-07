@@ -31,10 +31,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-//    (classes = {WtdProviderService.class,
-//    WtdRequestor.class,
-//    WtdRequest.class})
-//@ImportAutoConfiguration({FeignAutoConfiguration.class})
 @ActiveProfiles("test")
 class TestWorldTradingDataApi {
 
@@ -56,16 +52,16 @@ class TestWorldTradingDataApi {
   void apiGetMarketData() throws Exception {
 
     Asset aapl =
-        Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
+        Asset.builder().code("AAPL").market(DataProviderUtils.getNasdaq()).build();
     Asset msft =
-        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
+        Asset.builder().code("MSFT").market(DataProviderUtils.getNasdaq()).build();
 
     Collection<Asset> assets = new ArrayList<>();
     assets.add(aapl);
     assets.add(msft);
 
     File jsonFile = new ClassPathResource("wtdMultiAsset.json").getFile();
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdProviderService.getDate(), jsonFile);
 
     Collection<MarketData> mdResult = wtdProviderService.getCurrent(assets);
     assertThat(mdResult)
@@ -105,7 +101,7 @@ class TestWorldTradingDataApi {
     assets.add(msft);
 
     File jsonFile = new ClassPathResource("wtdWithInvalidAsset.json").getFile();
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdProviderService.getDate(), jsonFile);
 
 
     Collection<MarketData> mdResult = wtdProviderService.getCurrent(assets);
@@ -138,7 +134,8 @@ class TestWorldTradingDataApi {
 
     Collection<Asset> assets = new ArrayList<>();
     assets.add(msft);
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, jsonFile);
+
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdProviderService.getDate(), jsonFile);
 
     assertThrows(BusinessException.class, () -> wtdProviderService.getCurrent(assets));
   }

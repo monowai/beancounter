@@ -7,6 +7,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.beancounter.marketdata.util.Dates;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -44,9 +45,12 @@ public class AlphaProviderService implements MarketDataProvider {
   private AlphaRequestor alphaRequestor;
   private ObjectMapper objectMapper = new ObjectMapper();
 
+  private Dates dates;
+
   @Autowired
-  AlphaProviderService(AlphaRequestor alphaRequestor) {
+  AlphaProviderService(AlphaRequestor alphaRequestor, Dates dates) {
     this.alphaRequestor = alphaRequestor;
+    this.dates = dates;
   }
 
   @PostConstruct
@@ -69,7 +73,7 @@ public class AlphaProviderService implements MarketDataProvider {
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
 
-    ProviderArguments providerArguments = getInstance(assets, null, this);
+    ProviderArguments providerArguments = getInstance(assets, this);
 
     Map<Integer, Future<String>> requests = new ConcurrentHashMap<>();
 
@@ -187,6 +191,11 @@ public class AlphaProviderService implements MarketDataProvider {
     }
     return bcMarketCode;
 
+  }
+
+  @Override
+  public String getDate() {
+    return "2019-04-04";
   }
 
 

@@ -7,10 +7,15 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -37,11 +42,16 @@ public class WtdProviderService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.worldTradingData.markets}")
   private String markets;
 
+  private Dates dates;
+
   private WtdRequestor wtdRequestor;
 
+  private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
+
   @Autowired
-  WtdProviderService(WtdRequestor wtdRequestor) {
+  WtdProviderService(WtdRequestor wtdRequestor, Dates dates) {
     this.wtdRequestor = wtdRequestor;
+    this.dates = dates;
   }
 
   @Override
@@ -55,8 +65,11 @@ public class WtdProviderService implements MarketDataProvider {
 
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    String date = "2019-03-11";
-    ProviderArguments providerArguments = ProviderArguments.getInstance(assets, date, this);
+    //String date = "2019-03-11";
+
+    String date = getDate();
+
+    ProviderArguments providerArguments = ProviderArguments.getInstance(assets, this);
 
     Map<Integer, Future<WtdResponse>> batchedRequests = new ConcurrentHashMap<>();
 
@@ -118,7 +131,7 @@ public class WtdProviderService implements MarketDataProvider {
         } else {
           marketData.setAsset(bcAsset);
         }
-        marketData.setDate(providerArguments.getDate());
+        marketData.setDate(null);
         results.add(marketData);
       }
       return results;
@@ -166,6 +179,15 @@ public class WtdProviderService implements MarketDataProvider {
     }
     return bcMarketCode;
 
+  }
+
+  @Override
+  public String getDate() {
+    LocalDate result = dates.getLastMarketDate(
+        Instant.now().atZone(ZoneId.systemDefault()),
+        timeZone.toZoneId());
+
+    return result.toString();
   }
 
 

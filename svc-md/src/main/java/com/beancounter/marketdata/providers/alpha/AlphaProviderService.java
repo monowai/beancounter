@@ -34,12 +34,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AlphaProviderService implements MarketDataProvider {
   public static final String ID = "ALPHA";
-  @Value("${beancounter.marketdata.provider.alpha.key:demo}")
+  @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
-  @Value("${beancounter.marketdata.provider.alpha.batchSize:2}")
+  @Value("${beancounter.marketdata.provider.ALPHA.batchSize:2}")
   private Integer batchSize;
 
-  @Value("${beancounter.marketdata.provider.alpha.markets}")
+  @Value("${beancounter.marketdata.provider.ALPHA.markets}")
   private String markets;
 
   private AlphaRequestor alphaRequestor;
@@ -177,19 +177,19 @@ public class AlphaProviderService implements MarketDataProvider {
   }
 
   @Override
-  public String getMarketProviderCode(String bcMarketCode) {
+  public String getMarketProviderCode(Market market) {
 
-    if (bcMarketCode.equalsIgnoreCase("NASDAQ")
-        || bcMarketCode.equalsIgnoreCase("NYSE")
-        || bcMarketCode.equalsIgnoreCase("AMEX")
+    if (market.getCode().equalsIgnoreCase("NASDAQ")
+        || market.getCode().equalsIgnoreCase("NYSE")
+        || market.getCode().equalsIgnoreCase("AMEX")
 
     ) {
       return null;
     }
-    if (bcMarketCode.equalsIgnoreCase("ASX")) {
+    if (market.getCode().equalsIgnoreCase("ASX")) {
       return "AX";
     }
-    return bcMarketCode;
+    return market.getCode();
 
   }
 

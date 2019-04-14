@@ -35,10 +35,10 @@ public interface MarketDataProvider {
   /**
    * MarketDataProviders often have difference ways of handling Market Codes.
    * 
-   * @param bcMarketCode BeanCounter view of the Market Code
+   * @param market BeanCounter view of the Market Code
    * @return DataProvider view of the same MarketCode
    */
-  String getMarketProviderCode(String bcMarketCode);
+  String getMarketProviderCode(Market market);
 
   /**
    * Last price date on the Market.

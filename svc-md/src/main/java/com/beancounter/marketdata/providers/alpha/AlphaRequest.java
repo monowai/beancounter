@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Configuration
 @FeignClient(
     name = "alphaRequest",
-    url = "${beancounter.marketdata.provider.alpha.url:https://www.alphavantage.co}")
+    url = "${beancounter.marketdata.provider.ALPHA.url:https://www.alphavantage.co}")
 
 public interface AlphaRequest {
 

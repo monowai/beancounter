@@ -4,10 +4,10 @@ server:
 beancounter:
   marketdata:
     provider:
-      alpha:
+      ALPHA:
         url: http://localhost:9999
-      worldTradingData:
+      WTD:
         url: http://localhost:8888
-      mock:
+      MOCK:
         markets:
           - MOCK

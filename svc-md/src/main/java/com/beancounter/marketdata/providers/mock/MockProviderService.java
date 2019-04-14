@@ -12,7 +12,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +27,9 @@ import org.springframework.stereotype.Service;
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
 
-  private Date systemDate;
-
-  @Value("${beancounter.marketdata.provider.mock.markets}")
+  @Value("${beancounter.marketdata.provider.MOCK.markets}")
   private String markets;
 
-  @Autowired
-  public MockProviderService() {
-    this.systemDate = new Date();
-
-  }
 
   @Override
   public MarketData getCurrent(Asset asset) {
@@ -83,8 +75,8 @@ public class MockProviderService implements MarketDataProvider {
   }
 
   @Override
-  public String getMarketProviderCode(String bcMarketCode) {
-    return bcMarketCode;
+  public String getMarketProviderCode(Market market) {
+    return market.getCode();
   }
 
   public Date getPriceDate() {

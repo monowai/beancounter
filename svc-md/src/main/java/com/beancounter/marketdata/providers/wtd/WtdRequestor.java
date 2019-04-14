@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 /**
- * Async requestor to obtain MarketData.
+ * Async request to obtain MarketData.
  *
  * @author mikeh
  * @since 2019-03-06

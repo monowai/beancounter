@@ -23,18 +23,32 @@ beancounter:
 
     NASDAQ:
       timezone: US/Eastern
+      aliases:
+        WTD:
+        ALPHA:
 
     NYSE:
       timezone: US/Eastern
+      aliases:
+        WTD:
+        ALPHA:
 
     AMEX:
       timezone: US/Eastern
+      aliases:
+        WTD:
+        ALPHA:
 
     ASX:
       timezone: Australia/Sydney
+      aliases:
+        WTD: AX
 
     NZX:
       timezone: Pacific/Auckland
+      aliases:
+        WTD: NZ
+
 
     SGX:
       timezone: Asia/Singapore
@@ -42,17 +56,18 @@ beancounter:
 
   marketdata:
     provider:
-      mock:
+      MOCK:
         markets: MOCK
 
-      alpha:
+      ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: ASX
+        markets:
 
-      worldTradingData:
+      WTD:
         url: https://www.worldtradingdata.com
         batchSize: 2
-        markets: NASDAQ,AMEX,NYSE,NZX
+        markets: NASDAQ,AMEX,NYSE,NZX,ASX
+
 
 

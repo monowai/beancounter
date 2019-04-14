@@ -5,6 +5,7 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
+import com.beancounter.marketdata.providers.wtd.WtdProviderService;
 import com.beancounter.marketdata.service.MarketConfig;
 import com.beancounter.marketdata.service.MarketService;
 import com.beancounter.marketdata.util.Dates;
@@ -26,11 +27,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = {MarketService.class, MarketConfig.class})
 class TestMarkets {
 
-  @Autowired
   private MarketConfig marketConfig;
 
-  @Autowired
   private MarketService marketService;
+
+  @Autowired
+  TestMarkets(MarketConfig marketConfig,
+              MarketService marketService) {
+    this.marketService = marketService;
+    this.marketConfig = marketConfig;
+  }
 
   @Test
   void marketConfiguration_MockExists() {
@@ -82,6 +88,31 @@ class TestMarkets {
         .hasFieldOrPropertyWithValue("dayOfMonth", 12)
     ;
 
+  }
+
+  @Test
+  void marketDataAlias_WtdAndNzx() {
+    Market market = marketService.getMarket("NZX");
+    assertThat(market)
+        .isNotNull()
+        .hasFieldOrProperty("aliases");
+
+    assertThat(market.getAliases()
+        .get(WtdProviderService.ID))
+        .isEqualTo("NZ")
+        .isNotNull();
+  }
+
+  @Test
+  void marketDataAlias_NasdaqResolvesToNull() {
+    Market market = marketService.getMarket("NASDAQ");
+    assertThat(market)
+        .isNotNull()
+        .hasFieldOrProperty("aliases");
+
+    assertThat(market.getAliases()
+        .get(WtdProviderService.ID))
+        .isNull();
   }
 
 

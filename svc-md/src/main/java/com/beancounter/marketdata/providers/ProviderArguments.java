@@ -41,7 +41,7 @@ public class ProviderArguments {
 
     for (Asset asset : assets) {
 
-      String marketCode = marketDataProvider.getMarketProviderCode(asset.getMarket().getCode());
+      String marketCode = marketDataProvider.getMarketProviderCode(asset.getMarket());
       String assetCode = asset.getCode();
 
       if (marketCode != null) {

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Access to the configured market objects managed by this service.
+ *
  * @author mikeh
  * @since 2019-03-19
  */
@@ -30,12 +31,25 @@ public class MarketConfig {
    * @param markets Keyed by Code, each Market will be built from the properties
    */
   public void setMarkets(Map<String, Map<String, Object>> markets) {
+    // ToDo: This looks cumbersome. Kust be a better way to deserialize
     for (String code : markets.keySet()) {
       Map<String, Object> marketValues = markets.get(code);
+      Map<String, String> aliases = null;
+      if (marketValues.containsKey("aliases")) {
+        aliases = (Map<String, String>) marketValues.get("aliases");
+        for (String key : aliases.keySet()) {
+          if (aliases.get(key).isEmpty()) {
+            aliases.put(key, null);
+          }
+        }
+      }
+
       Market market = Market
           .builder()
           .code(code)
-          .timezone(getTimeZone(marketValues)).build();
+          .aliases(aliases)
+          .timezone(getTimeZone(marketValues)
+          ).build();
       marketMap.put(code, market);
     }
     log.info(markets.toString());

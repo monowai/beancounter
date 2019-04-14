@@ -6,6 +6,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
+import com.beancounter.marketdata.service.MarketConfig;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
@@ -34,24 +35,27 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class WtdProviderService implements MarketDataProvider {
   public static final String ID = "WTD";
-  @Value("${beancounter.marketdata.provider.worldTradingData.key:demo}")
+  @Value("${beancounter.marketdata.provider.WTD.key:demo}")
   private String apiKey;
-  @Value("${beancounter.marketdata.provider.worldTradingData.batchSize:2}")
+  @Value("${beancounter.marketdata.provider.WTD.batchSize:2}")
   private Integer batchSize;
 
-  @Value("${beancounter.marketdata.provider.worldTradingData.markets}")
+  @Value("${beancounter.marketdata.provider.WTD.markets}")
   private String markets;
 
   private Dates dates;
 
   private WtdRequestor wtdRequestor;
 
+  private MarketConfig marketConfig;
+
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
 
   @Autowired
-  WtdProviderService(WtdRequestor wtdRequestor, Dates dates) {
+  WtdProviderService(WtdRequestor wtdRequestor, MarketConfig marketConfig, Dates dates) {
     this.wtdRequestor = wtdRequestor;
     this.dates = dates;
+    this.marketConfig = marketConfig;
   }
 
   @Override
@@ -90,7 +94,7 @@ public class WtdProviderService implements MarketDataProvider {
     while (!empty) {
       for (Integer batch : requests.keySet()) {
         if (requests.get(batch).isDone()) {
-          results.addAll(getFromResponse(providerArguments, batch, requests.get(batch)));
+          results.addAll(extract(providerArguments, batch, requests.get(batch)));
           requests.remove(batch);
         }
         empty = requests.isEmpty();
@@ -101,8 +105,8 @@ public class WtdProviderService implements MarketDataProvider {
 
   }
 
-  private Collection<MarketData> getFromResponse(ProviderArguments providerArguments,
-                                                 Integer batchId, Future<WtdResponse> response) {
+  private Collection<MarketData> extract(ProviderArguments providerArguments,
+                                         Integer batchId, Future<WtdResponse> response) {
     Collection<MarketData> results = new ArrayList<>();
     try {
       WtdResponse wtdResponse = response.get();
@@ -168,16 +172,9 @@ public class WtdProviderService implements MarketDataProvider {
   }
 
   @Override
-  public String getMarketProviderCode(String bcMarketCode) {
-
-    if (bcMarketCode.equalsIgnoreCase("NASDAQ")
-        || bcMarketCode.equalsIgnoreCase("NYSE")
-        || bcMarketCode.equalsIgnoreCase("AMEX")
-
-    ) {
-      return null;
-    }
-    return bcMarketCode;
+  public String getMarketProviderCode(Market market) {
+    // Don't trust the caller
+    return marketConfig.getMarketMap().get(market.getCode()).getAliases().get(ID);
 
   }
 

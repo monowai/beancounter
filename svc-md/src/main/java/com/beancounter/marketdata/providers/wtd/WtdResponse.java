@@ -9,12 +9,13 @@ import lombok.Data;
 
 /**
  * Encapsulates the responses from the MarketDataProvider.
- * 
+ *
  * @author mikeh
  * @since 2019-03-12
  */
 @Data
 public class WtdResponse {
+
   Date date;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)

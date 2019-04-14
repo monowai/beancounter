@@ -24,8 +24,8 @@ public class WtdRequestor {
   }
 
   @Async
-  Future<WtdResponse> getMarketData(String assets, String date, String apiKey) {
-    WtdResponse result = wtdRequest.getMarketDataForAssets(assets, date, apiKey);
+  Future<WtdResponse> getMarketData(String assets, String marketOpenDate, String apiKey) {
+    WtdResponse result = wtdRequest.getMarketDataForAssets(assets, marketOpenDate, apiKey);
     return new AsyncResult<>(result);
   }
 }

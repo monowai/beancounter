@@ -131,7 +131,7 @@ public class WtdProviderService implements MarketDataProvider {
         } else {
           marketData.setAsset(bcAsset);
         }
-        marketData.setDate(null);
+        marketData.setDate(wtdResponse.getDate());
         results.add(marketData);
       }
       return results;

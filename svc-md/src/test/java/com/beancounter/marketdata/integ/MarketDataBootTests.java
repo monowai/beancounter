@@ -8,6 +8,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.MarketDataBoot;
+import com.beancounter.marketdata.providers.mock.MockProviderService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,8 +30,15 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 class MarketDataBootTests {
 
-  @Autowired
   private WebApplicationContext context;
+  private MockProviderService mockProviderService;
+
+  @Autowired
+  MarketDataBootTests(WebApplicationContext webApplicationContext,
+                      MockProviderService mockProviderService) {
+    this.context = webApplicationContext;
+    this.mockProviderService = mockProviderService;
+  }
 
 
   @Test
@@ -41,20 +49,23 @@ class MarketDataBootTests {
   @Tag("slow")
   void getMarketData() {
     Asset asset = AssetHelper.getAsset("dummy", "mock");
-    
+
     MarketData mdResponse = given()
         .webAppContextSetup(context)
         .log().all()
         .when()
-        .get("/{marketId}/{assetId}", asset.getMarket().getCode(),asset.getCode())
+        .get("/{marketId}/{assetId}", asset.getMarket().getCode(), asset.getCode())
         .then()
         .log().all(true)
         .statusCode(200)
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         .extract().response().as(MarketData.class);
 
-    assertThat(mdResponse.getAsset()).isEqualTo(asset);
-    assertThat(mdResponse.getOpen()).isEqualTo(BigDecimal.valueOf(999.99));
+    assertThat(mdResponse)
+        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
+        .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate())
+    ;
 
 
   }
@@ -65,7 +76,7 @@ class MarketDataBootTests {
     Collection<Asset> assets = new ArrayList<>();
     Asset asset = Asset.builder().code("assetCode")
         .market(Market.builder().code("MOCK").build()).build();
-    
+
     assets.add(asset);
 
     List<MarketData> mdResponse = given()

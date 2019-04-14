@@ -1,7 +1,6 @@
 package com.beancounter.position.model;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -13,6 +12,7 @@ import lombok.Getter;
 
 /**
  * Represents an Asset held in a Portfolio.
+ *
  * @author mikeh
  * @since 2019-01-28
  */
@@ -22,16 +22,18 @@ import lombok.Getter;
 public class Position {
   private Asset asset;
   @Builder.Default
+  @SuppressWarnings("UnusedAssignment")
   @Getter
   private MoneyValues moneyValues = MoneyValues.builder().build();
 
   @Builder.Default
+  @SuppressWarnings("UnusedAssignment")
   @Getter
   private QuantityValues quantityValues = QuantityValues.builder().build();
 
   private MarketValue marketValue;
-  
-  private Date lastDate;
+
+  private Date lastTradeDate;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

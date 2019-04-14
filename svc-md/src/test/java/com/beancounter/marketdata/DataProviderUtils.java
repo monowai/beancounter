@@ -8,11 +8,13 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.TimeZone;
 import org.springframework.http.MediaType;
 
@@ -44,34 +46,42 @@ public class DataProviderUtils {
                     .withStatus(200)));
   }
 
-  public static void mockWtdResponse(WireMockRule wtdMock, Collection<Asset> assets, File jsonFile)
-      throws IOException {
-    mockWtdResponse(wtdMock, assets, null, jsonFile);
-  }
-
-  /**
-   * Convenience function to stub a response for ABC symbol.
-   *
-   * @param wtdMock  wiremock
-   * @param assets   asset codes required in the GET
-   * @param jsonFile response file to return
-   * @throws IOException anything
-   */
   public static void mockWtdResponse(
       WireMockRule wtdMock, Collection<Asset> assets, String asAt, File jsonFile)
       throws IOException {
+    mockWtdResponse(assets, wtdMock, asAt, true, jsonFile);
+  }
 
-    String assetArg = null;
+  /**
+   * Mock the WTD response.
+   *
+   * @param wtdMock      Bind to this
+   * @param assets       Assets for which an argument will be created from
+   * @param asAt         Date that will be requested in the response
+   * @param overrideAsAt if true, then asAt will override the mocked priceDate
+   * @param jsonFile     Read response from this file.
+   * @throws IOException error
+   */
+  public static void mockWtdResponse(
+      Collection<Asset> assets,
+      WireMockRule wtdMock, String asAt, boolean overrideAsAt, File jsonFile)
+      throws IOException {
+
+    StringBuilder assetArg = null;
     for (Asset asset : assets) {
       if (assetArg != null) {
-        assetArg = assetArg + "%2C" + asset.getCode();
+        assetArg.append("%2C").append(asset.getCode());
       } else {
-        assetArg = asset.getCode();
+        assetArg = new StringBuilder(asset.getCode());
       }
     }
 
-    HashMap<String, Object> response = mapper.readValue(jsonFile, HashMap.class);
-    if (asAt != null) {
+    MapType mapType = mapper.getTypeFactory()
+        .constructMapType(LinkedHashMap.class, String.class, Object.class);
+
+    HashMap<String, Object> response = mapper.readValue(jsonFile, mapType);
+
+    if (asAt != null && overrideAsAt) {
       response.put("date", asAt);
     }
     wtdMock
@@ -90,7 +100,7 @@ public class DataProviderUtils {
    *
    * @return Proper representation of Nasdaq
    */
-  public static Market getNasdaq() {
+  public static Market nasdaq() {
     return Market.builder()
         .code("NASDAQ")
         .timezone(TimeZone.getTimeZone("US/Eastern"))

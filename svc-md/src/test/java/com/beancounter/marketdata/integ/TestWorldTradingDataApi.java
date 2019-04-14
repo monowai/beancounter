@@ -13,8 +13,12 @@ import com.beancounter.marketdata.providers.wtd.WtdProviderService;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,35 +53,43 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  void apiGetMarketData() throws Exception {
+  void marketDataReturnsPricesWithMarketDateEvenIfRequestDateIsLater() throws Exception {
 
     Asset aapl =
-        Asset.builder().code("AAPL").market(DataProviderUtils.getNasdaq()).build();
+        Asset.builder().code("AAPL").market(DataProviderUtils.nasdaq()).build();
     Asset msft =
-        Asset.builder().code("MSFT").market(DataProviderUtils.getNasdaq()).build();
+        Asset.builder().code("MSFT").market(DataProviderUtils.nasdaq()).build();
 
     Collection<Asset> assets = new ArrayList<>();
     assets.add(aapl);
     assets.add(msft);
 
-    File jsonFile = new ClassPathResource("wtdMultiAsset.json").getFile();
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdProviderService.getDate(), jsonFile);
+    File jsonFile = new ClassPathResource("/wtdMultiAsset.json").getFile();
+    // While the request date is relative to "Today", we are testing that we get back
+    //  the date as set in the response from the provider.
+
+    DataProviderUtils.mockWtdResponse(assets, mockInternet, wtdProviderService.getDate(),
+        false, jsonFile);
 
     Collection<MarketData> mdResult = wtdProviderService.getCurrent(assets);
     assertThat(mdResult)
         .isNotNull()
         .hasSize(2);
 
+    // Compare with the date in the mocked response
+    ZonedDateTime compareTo = ZonedDateTime.of(
+        LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC"));
+
     for (MarketData marketData : mdResult) {
       if (marketData.getAsset().equals(msft)) {
         assertThat(marketData)
-            .hasFieldOrProperty("date")
+            .hasFieldOrPropertyWithValue("date", Date.from(compareTo.toInstant()))
             .hasFieldOrPropertyWithValue("asset", msft)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("109.16"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("110.51"));
       } else if (marketData.getAsset().equals(aapl)) {
         assertThat(marketData)
-            .hasFieldOrProperty("date")
+            .hasFieldOrPropertyWithValue("date", Date.from(compareTo.toInstant()))
             .hasFieldOrPropertyWithValue("asset", aapl)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("170.32"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("172.91"));

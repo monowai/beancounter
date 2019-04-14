@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 
 /**
- * Adds transactions into Positions.
+ * Accumulate transactions into Positions.
  *
  * @author mikeh
  * @since 2019-02-07
@@ -45,36 +45,36 @@ public class Accumulator {
   public Position accumulate(Transaction transaction, Position position) {
     boolean dateSensitive = !transactionConfiguration.isDividend(transaction);
     if (dateSensitive) {
-      isDateSequenceValid(transaction, position);
+      isDateSequential(transaction, position);
     }
 
     if (transactionConfiguration.isDividend(transaction)) {
-      accumulateDividend(transaction, position);
+      dividend(transaction, position);
     } else if (transactionConfiguration.isPurchase(transaction)) {
-      accumulateBuy(transaction, position);
+      buy(transaction, position);
     } else if (transactionConfiguration.isSale(transaction)) {
-      accumulateSell(transaction, position);
+      sell(transaction, position);
     } else if (transactionConfiguration.isSplit(transaction)) {
-      handleSplit(transaction, position);
+      split(transaction, position);
     }
     if (dateSensitive) {
-      position.setLastDate(transaction.getTradeDate());
+      position.setLastTradeDate(transaction.getTradeDate());
     }
     return position;
   }
 
-  private void accumulateDividend(Transaction transaction, Position position) {
+  private void dividend(Transaction transaction, Position position) {
     position.getMoneyValues()
         .setDividends(position.getMoneyValues()
             .getDividends().add(
                 transaction.getTradeAmount()));
   }
 
-  private void isDateSequenceValid(Transaction transaction, Position position) {
+  private void isDateSequential(Transaction transaction, Position position) {
     boolean validDate = false;
 
     Date tradeDate = transaction.getTradeDate();
-    Date positionDate = position.getLastDate();
+    Date positionDate = position.getLastTradeDate();
 
     if (positionDate == null) {
       validDate = true;
@@ -88,12 +88,12 @@ public class Accumulator {
     }
   }
 
-  private BigDecimal getAverageCost(BigDecimal costBasis, BigDecimal total) {
+  private BigDecimal cost(BigDecimal costBasis, BigDecimal total) {
     return costBasis
         .divide(total, mathContext);
   }
 
-  private void accumulateBuy(Transaction transaction, Position position) {
+  private void buy(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
     MoneyValues moneyValues = position.getMoneyValues();
@@ -109,14 +109,14 @@ public class Accumulator {
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
 
       moneyValues.setAverageCost(
-          getAverageCost(moneyValues.getCostBasis(), quantityValues.getTotal())
+          cost(moneyValues.getCostBasis(), quantityValues.getTotal())
       );
 
     }
 
   }
 
-  private void accumulateSell(Transaction transaction, Position position) {
+  private void sell(Transaction transaction, Position position) {
     BigDecimal soldQuantity = transaction.getQuantity();
     if (soldQuantity.doubleValue() > 0) {
       // Sign the quantities
@@ -150,13 +150,13 @@ public class Accumulator {
   }
 
 
-  private void handleSplit(Transaction transaction, Position position) {
+  private void split(Transaction transaction, Position position) {
     BigDecimal total = position.getQuantityValues().getTotal();
     position.getQuantityValues().setAdjustment(
         (transaction.getQuantity().multiply(total)).subtract(total)
     );
     position.getMoneyValues()
-        .setAverageCost(getAverageCost(
+        .setAverageCost(cost(
             position.getMoneyValues().getCostBasis(),
             position.getQuantityValues().getTotal()));
   }

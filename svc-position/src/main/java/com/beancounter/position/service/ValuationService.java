@@ -54,6 +54,7 @@ public class ValuationService implements Valuation {
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
         MarketValue marketValue = MarketValue.builder()
             .price(marketData.getClose())
+            .asAt(marketData.getDate())
             .marketValue(marketData.getClose().multiply(position.getQuantityValues().getTotal()))
             .build();
         position.setMarketValue(marketValue);

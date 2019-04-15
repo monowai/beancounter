@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.service;
 
 import com.beancounter.common.model.Market;
-import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -31,17 +30,12 @@ public class MarketConfig {
    * @param markets Keyed by Code, each Market will be built from the properties
    */
   public void setMarkets(Map<String, Map<String, Object>> markets) {
-    // ToDo: This looks cumbersome. Kust be a better way to deserialize
+    // ToDo: This looks cumbersome. Must be a better way to deserialize
     for (String code : markets.keySet()) {
       Map<String, Object> marketValues = markets.get(code);
       Map<String, String> aliases = null;
       if (marketValues.containsKey("aliases")) {
         aliases = (Map<String, String>) marketValues.get("aliases");
-        for (String key : aliases.keySet()) {
-          if (aliases.get(key).isEmpty()) {
-            aliases.put(key, null);
-          }
-        }
       }
 
       Market market = Market
@@ -63,7 +57,4 @@ public class MarketConfig {
     return TimeZone.getTimeZone(result.toString());
   }
 
-  boolean isWorkDay(ZonedDateTime evaluate) {
-    return true;
-  }
 }

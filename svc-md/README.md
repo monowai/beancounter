@@ -47,12 +47,18 @@ Currently offers support for:
 
 ```  
  
- In the use case of this service you woiuld ask svc-position to value the assets, in your position collection, which in turn will obtain the prices from this service - which basically makes the call above
+ In the use case of this service you ask svc-position to value the assets, in your position collection, which in turn will obtain the prices from this service - which basically makes the call above
  
  ```bash
  curl -H "Content-Type: application/json" -X POST -d @positions.json http://localhost:9500/value \
     > valuedPositions.json
 
 ```
+Normally the service will compute the dataproviders date for which to retrieve "current" prices, usually close of business previous day. For testing purposes you can force the date to use by starting the service with the following
+```$xslt
+# Setting request date for the WTD provider
+beancounter.marketdata.provider.WTD.date=yyyy-MM-dd
+``` 
+
 
 ToDo: DB for the prices and history to improve performance

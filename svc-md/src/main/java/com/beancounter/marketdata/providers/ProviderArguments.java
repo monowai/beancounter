@@ -44,7 +44,7 @@ public class ProviderArguments {
       String marketCode = marketDataProvider.getMarketProviderCode(asset.getMarket());
       String assetCode = asset.getCode();
 
-      if (marketCode != null) {
+      if (marketCode != null && !marketCode.isEmpty()) {
         assetCode = assetCode + "." + marketCode;
       }
       providerArguments.addAsset(asset, assetCode);

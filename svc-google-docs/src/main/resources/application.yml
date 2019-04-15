@@ -8,6 +8,7 @@ logging:
 beancounter:
   exchanges:
     aliases:
-      ASX: AX
       NYS: NYSE
       NAS: NASDAQ
+      AX: ASX
+      NZ: NZX

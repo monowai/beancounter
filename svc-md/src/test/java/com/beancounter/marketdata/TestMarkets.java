@@ -112,7 +112,7 @@ class TestMarkets {
 
     assertThat(market.getAliases()
         .get(WtdProviderService.ID))
-        .isNull();
+        .isBlank();
   }
 
 

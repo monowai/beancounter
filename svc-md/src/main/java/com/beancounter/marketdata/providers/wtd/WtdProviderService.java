@@ -20,6 +20,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,9 @@ public class WtdProviderService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.WTD.batchSize:2}")
   private Integer batchSize;
 
+  @Value("${beancounter.marketdata.provider.WTD.date:#{null}}")
+  private String date;
+
   @Value("${beancounter.marketdata.provider.WTD.markets}")
   private String markets;
 
@@ -58,6 +62,11 @@ public class WtdProviderService implements MarketDataProvider {
     this.marketConfig = marketConfig;
   }
 
+  @PostConstruct
+  void logStatus() {
+    log.info("Market Date is [{}]", (date == null ? "calculated" : date));
+  }
+
   @Override
   public MarketData getCurrent(Asset asset) {
     Collection<Asset> assets = new ArrayList<>();
@@ -69,19 +78,18 @@ public class WtdProviderService implements MarketDataProvider {
 
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    //String date = "2019-03-11";
-
     String date = getDate();
-
-    ProviderArguments providerArguments = ProviderArguments.getInstance(assets, this);
+    log.info("Asset Prices as at [{}]", date);
+    ProviderArguments providerArguments =
+        ProviderArguments.getInstance(assets, this);
 
     Map<Integer, Future<WtdResponse>> batchedRequests = new ConcurrentHashMap<>();
 
     for (Integer integer : providerArguments.getBatch().keySet()) {
-      batchedRequests.put(integer, wtdRequestor.getMarketData(
-          providerArguments.getBatch().get(integer), date, apiKey));
+      batchedRequests.put(integer,
+          wtdRequestor.getMarketData(providerArguments.getBatch().get(integer), date, apiKey));
     }
-
+    log.info("Assets price retrieval completed.");
     return getMarketData(providerArguments, batchedRequests);
   }
 
@@ -146,7 +154,9 @@ public class WtdProviderService implements MarketDataProvider {
 
 
   private MarketData getDefault(Asset asset, String dpAsset) {
-    log.warn("Unable to locate a price for {} using code {}. Returning a default", asset, dpAsset);
+    log.warn("Unable to locate a price on {} for {} using code {}. Returning a default",
+        getDate(), asset, dpAsset);
+
     return MarketData.builder()
         .asset(asset)
         .close(BigDecimal.ZERO).build();
@@ -180,6 +190,9 @@ public class WtdProviderService implements MarketDataProvider {
 
   @Override
   public String getDate() {
+    if (date != null) {
+      return date;
+    }
     LocalDate result = dates.getLastMarketDate(
         Instant.now().atZone(ZoneId.systemDefault()),
         timeZone.toZoneId());

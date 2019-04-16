@@ -50,13 +50,13 @@ class ShareSightHelperTest {
         .market(Market.builder().code("NYSE").build())
         .build();
 
-    verifyAsset("ABBV.NYS", expectedAsset);
-    verifyAsset("ABBV:NYS", expectedAsset);
-    verifyAsset("ABBV-NYS", expectedAsset);
+    verifyAsset("ABBV.NYSE", expectedAsset);
+    verifyAsset("ABBV:NYSE", expectedAsset);
+    verifyAsset("ABBV-NYSE", expectedAsset);
 
     expectedAsset = Asset.builder()
         .code("AMP")
-        .market(Market.builder().code("AX").build())
+        .market(Market.builder().code("ASX").build())
         .build();
 
     verifyAsset("AMP.AX", expectedAsset);

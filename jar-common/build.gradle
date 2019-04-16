@@ -9,7 +9,7 @@ buildscript {
         mavenCentral()
     }
 }
-
+apply from: '../buildtools/javaCommon.gradle'
 apply plugin: 'java'
 apply plugin: 'idea'
 

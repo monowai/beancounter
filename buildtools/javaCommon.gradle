@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: "checkstyle"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+checkstyle {
+    toolVersion = '8.16'
+    configFile = project.file('../buildtools/checkstyle/checkstyle.xml')
+    configProperties = [
+            'javaCommon.cache.file': "${buildDir}/javaCommon.cache",
+    ]
+    ignoreFailures = true
+    showViolations = true
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "failed"
+    }
+}
+

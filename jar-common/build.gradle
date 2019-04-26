@@ -9,14 +9,9 @@ buildscript {
         mavenCentral()
     }
 }
-apply from: '../buildtools/javaCommon.gradle'
-apply plugin: 'java'
-apply plugin: 'idea'
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
+
+apply from: '../buildtools/javaCommon.gradle'
 
 dependencies() {
 
@@ -25,8 +20,8 @@ dependencies() {
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
             "io.github.openfeign:feign-core:10.1.0",
             "com.google.guava:guava:27.0.1-jre"
-
     )
+
     testCompile (
             "org.projectlombok:lombok:${lombokVersion}"
     )
@@ -38,7 +33,6 @@ dependencies() {
     testAnnotationProcessor (
             "org.projectlombok:lombok:${lombokVersion}"
     )
-
 
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",

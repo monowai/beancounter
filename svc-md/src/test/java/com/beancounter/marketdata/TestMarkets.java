@@ -45,7 +45,9 @@ class TestMarkets {
     Market market = marketService.getMarket(MockProviderService.ID);
     assertThat(market)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(UTC));
+        .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(UTC))
+        .hasFieldOrPropertyWithValue("currency", "USD")
+    ;
 
   }
 

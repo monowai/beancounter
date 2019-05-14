@@ -18,10 +18,13 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Market.MarketBuilder.class)
 public class Market {
-  String code;
-  TimeZone timezone;
+  private String code;
+  private String currency;
+  private TimeZone timezone;
+
+  @SuppressWarnings("UnusedAssignment")
   @Builder.Default
-  Map<String,String> aliases = new HashMap<>();
+  private Map<String,String> aliases = new HashMap<>();
 
 
   @JsonPOJOBuilder(withPrefix = "")

@@ -42,6 +42,7 @@ public class MarketConfig {
           .builder()
           .code(code)
           .aliases(aliases)
+          .currency(markets.get(code).get("currency").toString())
           .timezone(getTimeZone(marketValues)
           ).build();
       marketMap.put(code, market);

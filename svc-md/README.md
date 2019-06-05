@@ -50,7 +50,8 @@ Currently offers support for:
  In the use case of this service you ask svc-position to value the assets, in your position collection, which in turn will obtain the prices from this service - which basically makes the call above
  
  ```bash
- curl -H "Content-Type: application/json" -X POST -d @positions.json http://localhost:9500/value \
+ curl -H "Content-Type: application/json" -X POST 
+    -d @positions.json http://localhost:9500/value \
     > valuedPositions.json
 
 ```

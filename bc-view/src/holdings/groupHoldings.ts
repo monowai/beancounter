@@ -1,25 +1,20 @@
-import {
-  HoldingContract,
-  HoldingGroup,
-  Holdings,
-  Position
-} from "../types/beancounter";
+import { HoldingContract, Holdings, Position } from "../types/beancounter";
 
 // Transform the holdingContract into Holdings suitable for display
 export function groupHoldings(
-  holdings: HoldingContract,
+  contract: HoldingContract,
   hideEmpty: boolean,
   groupBy: string
 ): Holdings {
-  const groupedHoldings = Object.keys(holdings.positions)
+  return Object.keys(contract.positions)
     .filter(positionKey =>
       hideEmpty
-        ? holdings.positions[positionKey].quantityValues.total !== 0
+        ? contract.positions[positionKey].quantityValues.total !== 0
         : true
     )
     .reduce(
       (results: Holdings, group) => {
-        const position = holdings.positions[group] as Position;
+        const position = contract.positions[group] as Position;
         const groupKey = getPath(groupBy, position);
 
         results.holdingGroups[groupKey] = results.holdingGroups[groupKey] || {
@@ -35,10 +30,8 @@ export function groupHoldings(
 
         return results;
       },
-      { portfolio: holdings.portfolio, holdingGroups: [] }
+      { portfolio: contract.portfolio, holdingGroups: [] }
     );
-
-  return groupedHoldings;
 }
 
 function getPath(path: string, position: Position): string {

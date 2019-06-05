@@ -1,7 +1,7 @@
 import Home from "./Home";
 import React from "react";
 import { Route, Switch } from "react-router-dom";
-import LayoutHoldings from "./components/LayoutHoldings";
+import LayoutHoldings from "./holdings/LayoutHoldings";
 import "./App.css";
 
 const App = () => (

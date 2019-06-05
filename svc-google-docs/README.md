@@ -24,7 +24,7 @@ It is assumed that you are running all commands from the root of the `BeanCounte
 Default is to look for google credentials `../secrets/credentials.json`  
 
 ```bash
-java -jar svc-google-docs/build/libs/svc-google-docs-0.0.1-SNAPSHOT.jar \
+java -jar svc-google-docs/build/libs/svc-google-docs.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

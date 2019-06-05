@@ -1,7 +1,7 @@
 import Axios from "axios";
 import GroupedHoldings from "./GroupedHoldings";
 import { HoldingContract } from "../types/beancounter";
-import PortfolioSummary from "./PortfolioSummary";
+import PortfolioSummary from "../portfolio/PortfolioSummary";
 import React from "react";
 import "../App.css";
 

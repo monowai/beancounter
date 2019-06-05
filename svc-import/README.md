@@ -31,3 +31,6 @@ java -jar svc-google-docs/build/libs/svc-google-docs.jar \
 ```
 
 You can pass an optional case sensitive filter with `--filter={CODE,CODE}` which will only include the transactions where the Asset codes match those in the filter
+
+# ToDo
+Sort out 

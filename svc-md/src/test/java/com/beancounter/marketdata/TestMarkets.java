@@ -6,6 +6,7 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdProviderService;
+import com.beancounter.marketdata.service.CurrencyConfig;
 import com.beancounter.marketdata.service.MarketConfig;
 import com.beancounter.marketdata.service.MarketService;
 import com.beancounter.marketdata.util.Dates;
@@ -24,7 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = {MarketService.class, MarketConfig.class})
+@SpringBootTest(classes = {MarketService.class, CurrencyConfig.class, MarketConfig.class})
 class TestMarkets {
 
   private MarketConfig marketConfig;
@@ -46,7 +47,7 @@ class TestMarkets {
     assertThat(market)
         .isNotNull()
         .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(UTC))
-        .hasFieldOrPropertyWithValue("currency", "USD")
+        .hasFieldOrPropertyWithValue("currency", "US")
     ;
 
   }

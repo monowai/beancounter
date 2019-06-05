@@ -19,45 +19,44 @@ spring:
 beancounter:
   markets:
     MOCK:
-      currency: USD
+      currency: US
       timezone: UTC
 
     NASDAQ:
       timezone: US/Eastern
-      currency: USD
+      currency: US
       aliases:
         WTD:
         ALPHA:
 
     NYSE:
       timezone: US/Eastern
-      currency: USD
+      currency: US
       aliases:
         WTD:
         ALPHA:
 
     AMEX:
       timezone: US/Eastern
-      currency: USD
+      currency: US
       aliases:
         WTD:
         ALPHA:
 
     ASX:
       timezone: Australia/Sydney
-      currency: AUD
+      currency: AU
       aliases:
         WTD: AX
 
     NZX:
       timezone: Pacific/Auckland
-      currency: NZD
+      currency: NZ
       aliases:
         WTD: NZ
 
-
     SGX:
-      currency: SGD
+      currency: SG
       timezone: Asia/Singapore
 
 
@@ -75,6 +74,28 @@ beancounter:
         url: https://www.worldtradingdata.com
         batchSize: 2
         markets: NASDAQ,AMEX,NYSE,NZX,ASX
+  currencies:
+    GB:
+      code: GBP
+      name: Pound
+      symbol: ￡
 
+    US:
+      code: USD
+      name: Dollar
+      symbol: $
 
+    NZ:
+      code: NZD
+      name: Dollar
+      symbol: $
 
+    AU:
+      code: AUD
+      name: Dollar
+      symbol: $
+
+    EU:
+      code: EUR
+      name: Euro
+      symbol: €

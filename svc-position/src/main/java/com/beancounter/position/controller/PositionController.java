@@ -69,7 +69,8 @@ public class PositionController {
   Map<String,Object> getTest() throws IOException {
     try {
       ObjectMapper mapper = new ObjectMapper();
-      MapType javaType = mapper.getTypeFactory().constructMapType(SortedMap.class, String.class, Object.class);
+      MapType javaType = mapper.getTypeFactory()
+          .constructMapType(SortedMap.class, String.class, Object.class);
       File jsonFile = new ClassPathResource("holdings.json").getFile();
       return mapper.readValue(jsonFile, javaType);
     } catch (BusinessException be) {

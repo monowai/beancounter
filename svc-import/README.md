@@ -1,6 +1,7 @@
-Simple google sheet reader adapted from [Google Java Quickstart](https://developers.google.com/sheets/api/quickstart/java)
+## Import capabilities
 
-   
+Data import reader supporting google sheet. Adapted from [Google Java Quickstart](https://developers.google.com/sheets/api/quickstart/java)
+
 Converts rows in a Google Sheet and writes a JSON file with BeanCounter trades that can be passed to other services.  
 These formats are going to evolve, but at the moment, then work for Trades and Dividends using the following structures:
 

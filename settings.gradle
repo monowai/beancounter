@@ -1,6 +1,6 @@
 rootProject.name = 'beancounter'
 include 'jar-common'
-include 'svc-google-docs'
+include 'svc-import'
 include 'svc-md'
 include 'svc-position'
 

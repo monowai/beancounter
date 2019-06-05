@@ -1,7 +1,6 @@
 package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.model.Transaction;
-
 import java.text.ParseException;
 import java.util.List;
 

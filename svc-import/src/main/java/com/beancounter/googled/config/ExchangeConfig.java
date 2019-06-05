@@ -1,7 +1,6 @@
 package com.beancounter.googled.config;
 
 import java.util.Map;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

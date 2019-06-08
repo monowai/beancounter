@@ -50,8 +50,10 @@ class TestMarketValues {
   @Autowired
   void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
-    mockMarketData = new WireMockRule(options().port(9999));
-    mockMarketData.start();
+    if (mockMarketData == null) {
+      mockMarketData = new WireMockRule(options().port(9999));
+      mockMarketData.start();
+    }
   }
 
   @Test
@@ -89,6 +91,47 @@ class TestMarketValues {
     assertThat(result)
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"));
+  }
+
+  @Test
+  @Tag("slow")
+  void assetsAreHydratedOnValuationRequest() throws Exception {
+
+    CollectionType javaType = mapper.getTypeFactory()
+        .constructCollectionType(Collection.class, MarketData.class);
+
+    Asset asset = AssetHelper.getAsset("EBAY", "NASDAQ");
+    Collection<Asset> assets = new ArrayList<>();
+    assets.add(asset);
+
+    File jsonFile = new ClassPathResource("valuationResponse.json").getFile();
+    Object response = mapper.readValue(jsonFile, javaType);
+
+    TestUtils.mockMarketData(mockMarketData, mapper.writeValueAsString(assets),
+        mapper.writeValueAsString(response));
+
+    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+
+    // We need to have a Quantity in order to get the price, so create a position
+
+    Transaction buy = Transaction.builder()
+        .trnType(TrnType.BUY)
+        .asset(asset)
+        .tradeAmount(new BigDecimal(2000))
+        .quantity(new BigDecimal(100)).build();
+
+    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
+    positions.add(position);
+
+    positions = valuation.value(positions);
+
+    Position position1 = positions.get(asset);
+    assertThat(position1)
+        .hasFieldOrProperty("asset");
+
+    assertThat(position1.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
+
   }
 
 

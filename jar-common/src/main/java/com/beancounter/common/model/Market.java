@@ -1,8 +1,8 @@
 package com.beancounter.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import lombok.Builder;
@@ -19,12 +19,11 @@ import lombok.Data;
 @JsonDeserialize(builder = Market.MarketBuilder.class)
 public class Market {
   private String code;
-  private String currency;
+  private Currency currency;
   private TimeZone timezone;
 
-  @SuppressWarnings("UnusedAssignment")
-  @Builder.Default
-  private Map<String,String> aliases = new HashMap<>();
+  @JsonIgnore
+  private Map<String, String> aliases;
 
 
   @JsonPOJOBuilder(withPrefix = "")

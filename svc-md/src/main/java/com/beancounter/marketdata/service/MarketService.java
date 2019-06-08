@@ -18,11 +18,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MarketService {
 
-  private MarketConfig marketConfig;
+  private StaticConfig staticConfig;
 
   @Autowired
-  void setMarkets(MarketConfig marketConfig) {
-    this.marketConfig = marketConfig;
+  void setMarkets(StaticConfig staticConfig) {
+    this.staticConfig = staticConfig;
   }
 
   /**
@@ -33,7 +33,7 @@ public class MarketService {
    */
   public Market getMarket(@NotNull String code) {
     Objects.requireNonNull(code);
-    Market market = marketConfig.getMarketMap().get(code.toUpperCase());
+    Market market = staticConfig.getMarketData().get(code.toUpperCase());
     if (market == null) {
       throw new BusinessException(String.format("Market not found %s", code));
     }

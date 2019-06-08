@@ -17,63 +17,6 @@ spring:
     name: bc-marketData
 
 beancounter:
-  markets:
-    MOCK:
-      currency: US
-      timezone: UTC
-
-    NASDAQ:
-      timezone: US/Eastern
-      currency: US
-      aliases:
-        WTD:
-        ALPHA:
-
-    NYSE:
-      timezone: US/Eastern
-      currency: US
-      aliases:
-        WTD:
-        ALPHA:
-
-    AMEX:
-      timezone: US/Eastern
-      currency: US
-      aliases:
-        WTD:
-        ALPHA:
-
-    ASX:
-      timezone: Australia/Sydney
-      currency: AU
-      aliases:
-        WTD: AX
-
-    NZX:
-      timezone: Pacific/Auckland
-      currency: NZ
-      aliases:
-        WTD: NZ
-
-    SGX:
-      currency: SG
-      timezone: Asia/Singapore
-
-
-  marketdata:
-    provider:
-      MOCK:
-        markets: MOCK
-
-      ALPHA:
-        url: https://www.alphavantage.co
-        batchSize: 1
-        markets:
-
-      WTD:
-        url: https://www.worldtradingdata.com
-        batchSize: 2
-        markets: NASDAQ,AMEX,NYSE,NZX,ASX
   currencies:
     GB:
       code: GBP
@@ -99,3 +42,61 @@ beancounter:
       code: EUR
       name: Euro
       symbol: €
+  markets:
+    MOCK:
+      timezone: UTC
+
+    NASDAQ:
+      timezone: US/Eastern
+      currencyId: US
+      aliases:
+        WTD:
+        ALPHA:
+
+    NYSE:
+      timezone: US/Eastern
+      currencyId: US
+      aliases:
+        WTD:
+        ALPHA:
+
+    AMEX:
+      timezone: US/Eastern
+      currencyId: US
+      aliases:
+        WTD:
+        ALPHA:
+
+    ASX:
+      timezone: Australia/Sydney
+      currencyId: AU
+      aliases:
+        WTD: AX
+
+    NZX:
+      timezone: Pacific/Auckland
+      currencyId: NZ
+      aliases:
+        WTD: NZ
+
+    SGX:
+      currencyId: SG
+      timezone: Asia/Singapore
+
+
+  marketdata:
+    provider:
+      MOCK:
+        markets: MOCK
+
+      ALPHA:
+        url: https://www.alphavantage.co
+        batchSize: 1
+        markets:
+
+      WTD:
+        url: https://www.worldtradingdata.com
+        batchSize: 2
+        markets: NASDAQ,AMEX,NYSE,NZX,ASX
+
+

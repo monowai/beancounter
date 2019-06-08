@@ -58,6 +58,7 @@ public class ValuationService implements Valuation {
             .marketValue(marketData.getClose().multiply(position.getQuantityValues().getTotal()))
             .build();
         position.setMarketValue(marketValue);
+        position.setAsset(marketData.getAsset());
       }
     }
     return positions;

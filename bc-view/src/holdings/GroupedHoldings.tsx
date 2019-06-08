@@ -1,15 +1,15 @@
 import React from "react";
-import { HoldingContract, HoldingGroup, Holdings } from "../types/beancounter";
-import { Table } from "semantic-ui-react";
+import {HoldingContract, HoldingGroup, Holdings} from "../types/beancounter";
+import {Table} from "semantic-ui-react";
 import NumberFormat from "react-number-format";
-import { groupHoldings } from "./groupHoldings";
+import {groupHoldings} from "./groupHoldings";
 
 export default function GroupedHoldings(contract: HoldingContract) {
   // Transform the contract into the view the user requested
   const holdings = groupHoldings(
     contract,
     true,
-    "asset.market.code"
+    "asset.market.currency.code"
   ) as Holdings;
 
   const rows = Object.keys(holdings.holdingGroups).map(groupKey => {

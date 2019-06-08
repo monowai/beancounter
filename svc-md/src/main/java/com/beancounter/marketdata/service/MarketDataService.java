@@ -18,10 +18,12 @@ import org.springframework.stereotype.Service;
 public class MarketDataService {
 
   private MdFactory mdFactory;
+  private MarketService marketService;
 
   @Autowired
-  MarketDataService(MdFactory mdFactory) {
+  MarketDataService(MdFactory mdFactory, MarketService marketService) {
     this.mdFactory = mdFactory;
+    this.marketService = marketService;
   }
 
   /**
@@ -31,7 +33,12 @@ public class MarketDataService {
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
   public MarketData getCurrent(Asset asset) {
+    hydrateAsset(asset);
     return mdFactory.getMarketDataProvider(asset).getCurrent(asset);
+  }
+
+  private void hydrateAsset(Asset asset) {
+    asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
   }
 
   /**
@@ -41,11 +48,16 @@ public class MarketDataService {
    * @return results
    */
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
+
+    for (Asset asset : assets) {
+      hydrateAsset(asset);
+    }
     Map<String, Collection<Asset>> factories = mdFactory.splitProviders(assets);
     Collection<MarketData> results = new ArrayList<>();
 
     for (String dpId : factories.keySet()) {
-      results.addAll(mdFactory.getMarketDataProvider(dpId).getCurrent(factories.get(dpId)));
+      results.addAll(mdFactory.getMarketDataProvider(dpId)
+          .getCurrent(factories.get(dpId)));
     }
     return results;
   }

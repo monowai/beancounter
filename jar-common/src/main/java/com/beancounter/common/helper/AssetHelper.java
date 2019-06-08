@@ -52,8 +52,22 @@ public class AssetHelper {
     if (assetCode == null || marketCode == null) {
       throw new BusinessException("Both asset and market code must be supplied");
     }
+    return getAsset(assetCode, Market.builder().code(marketCode).build());
+  }
+
+  /**
+   * Anset on a market.
+   *
+   * @param assetCode asset.code
+   * @param market market to return
+   * @return asset on a market
+   */
+  public static Asset getAsset(String assetCode, Market market) {
+    if (assetCode == null || market == null) {
+      throw new BusinessException("Both asset and market code must be supplied");
+    }
     return Asset.builder().code(assetCode)
-        .market(Market.builder().code(marketCode).build())
+        .market(market)
         .build();
   }
 }

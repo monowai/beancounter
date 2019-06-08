@@ -21,29 +21,28 @@ import lombok.ToString;
 @ToString(of = {"asset","trnType","id"})
 @JsonDeserialize(builder = Transaction.TransactionBuilder.class)
 public class Transaction {
-  TrnType trnType;
-  Asset asset;
-  TransactionId id;
-  Portfolio portfolio;
-  Market market;
+  private TrnType trnType;
+  private Asset asset;
+  private TransactionId id;
+  private Portfolio portfolio;
+  private Market market;
 
+  private Date tradeDate;
+  private Date settleDate;
 
-  Date tradeDate;
-  Date settleDate;
-
-  BigDecimal quantity;
-  BigDecimal price;
+  private BigDecimal quantity;
+  private BigDecimal price;
   @Builder.Default
-  BigDecimal fees = BigDecimal.ZERO;
+  private BigDecimal fees = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal tax = BigDecimal.ZERO;
+  private BigDecimal tax = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal tradeAmount = BigDecimal.ZERO; // Amount spent in trade currency
-  BigDecimal cashAmount;
-  BigDecimal tradeRate;
+  private BigDecimal tradeAmount = BigDecimal.ZERO; // Amount spent in trade currency
+  private BigDecimal cashAmount;
+  private BigDecimal tradeRate;
 
-  String tradeCurrency;
-  String comments;
+  private String tradeCurrency;
+  private String comments;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

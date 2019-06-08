@@ -6,8 +6,8 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
-import com.beancounter.marketdata.service.MarketConfig;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.beancounter.marketdata.service.StaticConfig;
 import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -51,15 +51,15 @@ public class WtdProviderService implements MarketDataProvider {
 
   private WtdRequestor wtdRequestor;
 
-  private MarketConfig marketConfig;
+  private StaticConfig staticConfig;
 
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
 
   @Autowired
-  WtdProviderService(WtdRequestor wtdRequestor, MarketConfig marketConfig, Dates dates) {
+  WtdProviderService(WtdRequestor wtdRequestor, StaticConfig staticConfig, Dates dates) {
     this.wtdRequestor = wtdRequestor;
     this.dates = dates;
-    this.marketConfig = marketConfig;
+    this.staticConfig = staticConfig;
   }
 
   @PostConstruct
@@ -80,7 +80,7 @@ public class WtdProviderService implements MarketDataProvider {
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
     String date = getDate();
-    log.info("Asset Prices as at [{}]", date);
+    log.debug("Asset Prices as at [{}]", date);
     ProviderArguments providerArguments =
         ProviderArguments.getInstance(assets, this);
 
@@ -90,7 +90,7 @@ public class WtdProviderService implements MarketDataProvider {
       batchedRequests.put(integer,
           wtdRequestor.getMarketData(providerArguments.getBatch().get(integer), date, apiKey));
     }
-    log.info("Assets price retrieval completed.");
+    log.debug("Assets price retrieval completed.");
     return getMarketData(providerArguments, batchedRequests);
   }
 
@@ -185,7 +185,7 @@ public class WtdProviderService implements MarketDataProvider {
   @Override
   public String getMarketProviderCode(Market market) {
     // Don't trust the caller
-    return marketConfig.getMarketMap().get(market.getCode()).getAliases().get(ID);
+    return staticConfig.getMarketData().get(market.getCode()).getAliases().get(ID);
 
   }
 

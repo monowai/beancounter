@@ -6,9 +6,9 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdProviderService;
-import com.beancounter.marketdata.service.CurrencyConfig;
-import com.beancounter.marketdata.service.MarketConfig;
+import com.beancounter.marketdata.service.CurrencyService;
 import com.beancounter.marketdata.service.MarketService;
+import com.beancounter.marketdata.service.StaticConfig;
 import com.beancounter.marketdata.util.Dates;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -25,30 +25,43 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = {MarketService.class, CurrencyConfig.class, MarketConfig.class})
-class TestMarkets {
+@SpringBootTest(classes = {
+    CurrencyService.class,
+    MarketService.class,
+    StaticConfig.class})
+class TestStaticData {
 
-  private MarketConfig marketConfig;
+  private StaticConfig staticConfig;
 
   private MarketService marketService;
 
+  private CurrencyService currencyService;
+
+
   @Autowired
-  TestMarkets(MarketConfig marketConfig,
-              MarketService marketService) {
+  TestStaticData(StaticConfig staticConfig,
+                 MarketService marketService,
+                 CurrencyService currencyService
+  ) {
     this.marketService = marketService;
-    this.marketConfig = marketConfig;
+    this.staticConfig = staticConfig;
+    this.currencyService = currencyService;
   }
 
   @Test
   void marketConfiguration_MockExists() {
 
-    assertThat(marketConfig).isNotNull();
+    assertThat(staticConfig).isNotNull();
     Market market = marketService.getMarket(MockProviderService.ID);
     assertThat(market)
         .isNotNull()
         .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(UTC))
-        .hasFieldOrPropertyWithValue("currency", "US")
+        .hasFieldOrProperty("currency")
+
     ;
+
+    assertThat(market.getCurrency())
+        .hasFieldOrPropertyWithValue("id", "US");
 
   }
 
@@ -100,6 +113,9 @@ class TestMarkets {
         .isNotNull()
         .hasFieldOrProperty("aliases");
 
+    assertThat(market.getCurrency())
+        .hasFieldOrPropertyWithValue("code", "NZD");
+
     assertThat(market.getAliases()
         .get(WtdProviderService.ID))
         .isEqualTo("NZ")
@@ -118,5 +134,16 @@ class TestMarkets {
         .isBlank();
   }
 
+  @Test
+  void currenciesLoad () {
 
+    assertThat(currencyService.getCode("USD"))
+        .isNotNull();
+
+    assertThat(currencyService.getId("US"))
+        .isNotNull();
+
+    assertThat(currencyService.getBase())
+        .isNotNull();
+  }
 }

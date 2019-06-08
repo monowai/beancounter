@@ -9,6 +9,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
+import com.beancounter.marketdata.service.MarketService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,12 +33,15 @@ class MarketDataBootTests {
 
   private WebApplicationContext context;
   private MockProviderService mockProviderService;
+  private MarketService marketService;
 
   @Autowired
   MarketDataBootTests(WebApplicationContext webApplicationContext,
+                      MarketService marketService,
                       MockProviderService mockProviderService) {
     this.context = webApplicationContext;
     this.mockProviderService = mockProviderService;
+    this.marketService = marketService;
   }
 
 
@@ -48,7 +52,7 @@ class MarketDataBootTests {
   @Test
   @Tag("slow")
   void getMarketData() {
-    Asset asset = AssetHelper.getAsset("dummy", "mock");
+    Asset asset = AssetHelper.getAsset("dummy", marketService.getMarket("mock"));
 
     MarketData mdResponse = given()
         .webAppContextSetup(context)
@@ -96,7 +100,30 @@ class MarketDataBootTests {
     assertThat(mdResponse).hasSize(assets.size());
   }
 
+  @Test
+  @Tag("slow")
+  void valuationRequestReturnsFullHydratedAssets() {
+    Asset asset = AssetHelper.getAsset("dummy", marketService.getMarket("mock"));
 
+    MarketData mdResponse = given()
+        .webAppContextSetup(context)
+        .log().all()
+        .when()
+        .get("/{marketId}/{assetId}", asset.getMarket().getCode(), asset.getCode())
+        .then()
+        .log().all(true)
+        .statusCode(200)
+        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        .extract().response().as(MarketData.class);
+
+    assertThat(mdResponse)
+        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
+        .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate())
+    ;
+
+
+  }
 }
 
 

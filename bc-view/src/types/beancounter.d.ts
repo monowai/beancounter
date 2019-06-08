@@ -1,5 +1,12 @@
 export interface Market {
   code: string;
+  currency: Currency;
+}
+
+export interface Currency {
+  id: string;
+  code: string;
+  symbol: string;
 }
 
 interface Asset {

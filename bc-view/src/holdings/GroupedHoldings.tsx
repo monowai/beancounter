@@ -34,6 +34,7 @@ export function HoldingHeader(groupKey: string) {
           {groupKey}
         </Table.HeaderCell>
         <Table.HeaderCell>Quantity</Table.HeaderCell>
+        <Table.HeaderCell>Price</Table.HeaderCell>
         <Table.HeaderCell>Avg Cost</Table.HeaderCell>
         <Table.HeaderCell>Market Value</Table.HeaderCell>
         <Table.HeaderCell>Dividends</Table.HeaderCell>
@@ -60,6 +61,24 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
           />
         }
       </Table.Cell>
+      <Table.Cell>
+        {!position.marketValue ? (
+          "-"
+        ) : (
+          <label>
+            {position.asset.market.currency.id}{position.asset.market.currency.symbol}
+            {" "}
+            <NumberFormat
+              value={position.marketValue.price}
+              displayType={"text"}
+              decimalScale={2}
+              fixedDecimalScale={true}
+              thousandSeparator={true}
+            />
+          </label>
+        )}
+      </Table.Cell>
+
       <Table.Cell>
         {!position.moneyValues ? (
           "-"

@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 /**
  * Converts from the ShareSight trade format.
  *
+ * ShareSight amounts are in Portfolio currency; BC expects values in trade currency.
+ *
  * @author mikeh
  * @since 2019-02-08
  */
@@ -71,8 +73,10 @@ public class ShareSightTrades implements Transformer {
           .trnType(trnType)
           .quantity(helper.parseDouble(row.get(quantity).toString()))
           .price(helper.parseDouble(row.get(price).toString()))
-          .fees(new BigDecimal(row.get(brokerage).toString()))
-          .tradeAmount(tradeAmount.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP))
+          .fees(helper.safeDivide(
+              new BigDecimal(row.get(brokerage).toString()), tradeRate, BigDecimal.ROUND_HALF_UP))
+          .tradeAmount(helper.safeDivide(tradeAmount, tradeRate, BigDecimal.ROUND_HALF_UP)
+              .abs().setScale(2, RoundingMode.HALF_UP))
           .tradeDate(helper.parseDate(row.get(date).toString()))
           .tradeCurrency(row.get(currency).toString())
           .tradeRate(tradeRate) // Trade to Portfolio Reference rate
@@ -90,7 +94,7 @@ public class ShareSightTrades implements Transformer {
   public boolean isValid(List row) {
     if (row.size() > 6) {
       return !row.get(0).toString().equalsIgnoreCase("market");
-    } 
+    }
     return false;
   }
 

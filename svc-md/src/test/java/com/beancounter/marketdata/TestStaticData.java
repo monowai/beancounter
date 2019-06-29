@@ -135,7 +135,7 @@ class TestStaticData {
   }
 
   @Test
-  void currenciesLoad () {
+  void currenciesLoad() {
 
     assertThat(currencyService.getCode("USD"))
         .isNotNull();

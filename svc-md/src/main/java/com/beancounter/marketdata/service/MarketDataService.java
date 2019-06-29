@@ -37,10 +37,6 @@ public class MarketDataService {
     return mdFactory.getMarketDataProvider(asset).getCurrent(asset);
   }
 
-  private void hydrateAsset(Asset asset) {
-    asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
-  }
-
   /**
    * MarketData for a Collection of assets.
    *
@@ -61,4 +57,10 @@ public class MarketDataService {
     }
     return results;
   }
+
+  private void hydrateAsset(Asset asset) {
+    asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
+  }
+
+
 }

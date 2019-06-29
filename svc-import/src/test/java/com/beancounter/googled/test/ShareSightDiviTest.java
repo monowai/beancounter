@@ -72,7 +72,7 @@ class ShareSightDiviTest {
         .hasFieldOrPropertyWithValue("tradeRate", new BigDecimal(".8988"))
         .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("10.09")
             .multiply(new BigDecimal("0.8988")).setScale(2, BigDecimal.ROUND_HALF_UP))
-        .hasFieldOrPropertyWithValue("tax", new BigDecimal("12.23"))
+        .hasFieldOrPropertyWithValue("tax", new BigDecimal("10.992324"))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")
     ;

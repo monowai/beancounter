@@ -11,6 +11,7 @@ import com.beancounter.googled.sharesight.ShareSightTrades;
 import com.beancounter.googled.sharesight.ShareSightTransformers;
 import com.beancounter.googled.sharesight.Transformer;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount",
-            new BigDecimal("2097.85").multiply(new BigDecimal("0.8988"))
+            new BigDecimal("2097.85").divide(new BigDecimal("0.8988"), RoundingMode.HALF_UP)
                 .setScale(2, BigDecimal.ROUND_HALF_UP))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")

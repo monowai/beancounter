@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component;
 
 /**
- * Static data configuration
+ * Static data configuration.
  *
  * @author mikeh
  * @since 2019-03-19
@@ -35,7 +35,7 @@ public class StaticConfig {
   private Currency base;
 
   /**
-   * Convert from configured representation to Objects
+   * Convert from configured representation to Objects.
    */
   @PostConstruct
   void configure() {
@@ -54,8 +54,8 @@ public class StaticConfig {
       }
 
       Object currencyId = markets.get(code).get("currencyId");
-      Currency currency = (currencyId == null ?
-          getBase() :
+      Currency currency = (currencyId == null
+          ? getBase() :
           this.currencyId.get(currencyId.toString()));
 
 

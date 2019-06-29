@@ -45,7 +45,8 @@ class TestAsset {
   @Test
   void invalidKey() {
     assertThrows(BusinessException.class, () -> AssetHelper.parseKey(null));
-    assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket", (Market)null));
+    assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket",
+        (Market)null));
     assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket"));
   }
 

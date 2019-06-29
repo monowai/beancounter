@@ -66,7 +66,7 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
           "-"
         ) : (
           <label>
-            {position.asset.market.currency.id}{position.asset.market.currency.symbol}
+            {position.asset.market.currency.id}
             {" "}
             <NumberFormat
               value={position.marketValue.price}

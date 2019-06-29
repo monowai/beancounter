@@ -16,6 +16,7 @@ import lombok.ToString;
  * @author mikeh
  * @since 2019-02-07
  */
+@SuppressWarnings("UnusedAssignment")
 @Data
 @Builder
 @ToString(of = {"asset","trnType","id"})
@@ -31,15 +32,23 @@ public class Transaction {
   private Date settleDate;
 
   private BigDecimal quantity;
+  // In trade Currency
   private BigDecimal price;
   @Builder.Default
+  // In trade Currency
   private BigDecimal fees = BigDecimal.ZERO;
   @Builder.Default
+  // In trade Currency
   private BigDecimal tax = BigDecimal.ZERO;
   @Builder.Default
-  private BigDecimal tradeAmount = BigDecimal.ZERO; // Amount spent in trade currency
+  // In trade Currency
+  private BigDecimal tradeAmount = BigDecimal.ZERO;
   private BigDecimal cashAmount;
+  // Trade CCY to portfolio reference currency
   private BigDecimal tradeRate;
+  @Builder.Default
+  // Trade Currency to system Base Currency
+  private BigDecimal baseRate = BigDecimal.ONE;
 
   private String tradeCurrency;
   private String comments;

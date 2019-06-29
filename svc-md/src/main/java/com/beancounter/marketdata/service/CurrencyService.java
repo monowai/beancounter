@@ -41,7 +41,7 @@ public class CurrencyService {
   }
 
   /**
-   * Resolves a currency via its ISO code (AK)
+   * Resolves a currency via its ISO code (AK).
    *
    * @param code non-null code
    * @return resolved currency

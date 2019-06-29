@@ -95,4 +95,11 @@ public class ShareSightHelper {
   public String getRange() {
     return range;
   }
+
+  BigDecimal safeDivide(BigDecimal bigDecimal, BigDecimal tradeRate, int roundMode) {
+    if (bigDecimal.equals(BigDecimal.ZERO) || tradeRate.equals(BigDecimal.ZERO)) {
+      return bigDecimal;
+    }
+    return bigDecimal.divide(tradeRate, roundMode);
+  }
 }

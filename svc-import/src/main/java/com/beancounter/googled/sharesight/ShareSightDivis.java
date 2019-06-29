@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 /**
  * Converts from the ShareSight dividend format.
  *
+ * ShareSight amounts are in Portfolio currency; BC expects values in trade currency.
+ *
  * @author mikeh
  * @since 2019-02-08
  */
@@ -49,7 +51,7 @@ public class ShareSightDivis implements Transformer {
     return Transaction.builder()
         .asset(asset)
         .trnType(TrnType.DIVI)
-        .tax(new BigDecimal(row.get(tax).toString()))
+        .tax(new BigDecimal(row.get(tax).toString()).multiply(tradeRate))
         .tradeAmount(helper.parseDouble(row.get(net)).multiply(tradeRate)
             .setScale(2, RoundingMode.HALF_UP))
         .tradeDate(helper.parseDate(row.get(date).toString()))

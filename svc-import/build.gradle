@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = "2.1.4.RELEASE"
+        springBootVersion = "2.1.6.RELEASE"
         googleClientVersion = "1.23.0"
     }
     repositories {
@@ -26,7 +26,7 @@ dependencies {
             project (":jar-common"),
             "org.springframework.boot:spring-boot-starter",
             "org.springframework.boot:spring-boot-starter-logging",
-            "com.fasterxml.jackson.core:jackson-databind:2.9.8",
+            "com.fasterxml.jackson.core:jackson-databind",
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",
             "com.google.oauth-client:google-oauth-client-jetty:${googleClientVersion}",

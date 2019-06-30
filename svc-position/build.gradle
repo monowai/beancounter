@@ -1,8 +1,9 @@
 buildscript {
     ext {
-        springBootVersion = '2.1.4.RELEASE'
+        springBootVersion = '2.1.6.RELEASE'
         springCloudVersion = 'Greenwich.RELEASE'
-        resilience4jVersion = "0.13.2"
+        resilience4jVersion = "0.16.0"
+        wiremockVersion = "2.23.2"
     }
     repositories {
         mavenCentral()
@@ -54,7 +55,7 @@ dependencies {
             "org.junit.platform:junit-platform-launcher",
             "org.junit.platform:junit-platform-runner",
             "org.junit.platform:junit-platform-surefire-provider",
-            "com.github.tomakehurst:wiremock-jre8:2.21.0",
+            "com.github.tomakehurst:wiremock-jre8:${wiremockVersion}",
             "org.projectlombok:lombok"
     )
 }

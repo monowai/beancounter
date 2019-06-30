@@ -15,6 +15,8 @@ import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 
@@ -23,11 +25,13 @@ class TestPositions {
   @Test
   void jsonSerialization() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
+    Map<Position.In, MoneyValues> moneyValuesMap = new HashMap<>();
+    moneyValuesMap.put(Position.In.LOCAL, MoneyValues.builder()
+        .dividends(new BigDecimal(100d))
+        .build());
 
     Position position = Position.builder()
-        .moneyValues(MoneyValues.builder()
-            .dividends(new BigDecimal(100d))
-            .build())
+        .moneyValues(moneyValuesMap)
         .quantityValues(QuantityValues.builder()
             .purchased(new BigDecimal(200))
             .build())
@@ -61,7 +65,7 @@ class TestPositions {
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);
     accumulator.accumulate(transaction, position);
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("dividends", transaction.getTradeAmount());
 
   }

@@ -87,7 +87,7 @@ class TestMarketValues {
 
     positions = valuation.value(positions);
 
-    MarketValue result = positions.get(asset).getMarketValue();
+    MarketValue result = positions.get(asset).getMarketValue(Position.In.LOCAL);
     assertThat(result)
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"));

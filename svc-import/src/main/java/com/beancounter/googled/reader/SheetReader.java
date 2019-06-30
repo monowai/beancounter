@@ -128,6 +128,7 @@ public class SheetReader {
           // Print columns in range, which correspond to indices 0 and 4.
           Transaction transaction;
           Transformer transformer = shareSightTransformers.getTransformer(row);
+
           try {
             if (transformer.isValid(row)) {
               transaction = transformer.of(row);
@@ -147,7 +148,7 @@ public class SheetReader {
               }
             }
           } catch (ParseException e) {
-            log.error("Parsing row {}", trnId);
+            log.error("{} Parsing row {}", transformer.getClass().getSimpleName(), trnId);
             throw new RuntimeException(e);
           }
 

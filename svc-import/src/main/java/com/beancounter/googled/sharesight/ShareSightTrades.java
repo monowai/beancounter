@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 /**
  * Converts from the ShareSight trade format.
  *
- * ShareSight amounts are in Portfolio currency; BC expects values in trade currency.
+ * <p>ShareSight amounts are in Portfolio currency; BC expects values in trade currency.
  *
  * @author mikeh
  * @since 2019-02-08

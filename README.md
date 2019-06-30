@@ -2,8 +2,8 @@
 
 Services that transform transactions from, a Google Sheet, into a collection of portfolio positions which can optionally be valued against market data providers
     
-* [Create trades](svc-import/README.md) from a Google Docs sheet
-* [Create positions](svc-position/README.md) from the trades
+* [Import transactions](svc-import/README.md) from a Google Docs sheet
+* [Create positions](svc-position/README.md) from the transactions
 * Value positions using [Asset Prices](svc-md/README.md) obtained from the Market Data service  
     
 No persistence exists so you need a connection to the Internet to read the trade file and value positions over the Internet    

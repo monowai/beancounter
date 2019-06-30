@@ -39,8 +39,8 @@ interface QuantityValues {
 
 export interface Position {
   asset: Asset;
-  moneyValues: MoneyValues;
-  marketValue: MarketValue;
+  moneyValues: MoneyValues[];
+  marketValues: MarketValue[];
   quantityValues: QuantityValues;
   lastTradeDate: string;
 }

@@ -86,7 +86,8 @@ class TestMoneyValues {
 
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal(50));
 
-    assertThat(position.getMoneyValues().getRealisedGain()).isEqualTo(new BigDecimal("1000.00"));
+    assertThat(position.getMoneyValue(Position.In.LOCAL).getRealisedGain())
+        .isEqualTo(new BigDecimal("1000.00"));
 
   }
 
@@ -134,7 +135,7 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(sell, position);
 
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("sales", new BigDecimal("841.63"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
@@ -148,7 +149,7 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(sell, position);
 
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("sales", new BigDecimal("2712.64"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
@@ -195,7 +196,7 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.TEN);
 
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
         .hasFieldOrPropertyWithValue("realisedGain", BigDecimal.ZERO)
@@ -210,7 +211,7 @@ class TestMoneyValues {
     accumulator.accumulate(sell, position);
 
     // Sell does not affect the cost basis or average cost, but it will create a signed gain
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
@@ -225,7 +226,7 @@ class TestMoneyValues {
     accumulator.accumulate(sell, position);
 
     // Sell down to 0; reset cost basis
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("0"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("0"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
@@ -271,7 +272,7 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO);
 
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
@@ -291,7 +292,7 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", buy.getQuantity());
 
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", buy.getTradeAmount())
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("26.722"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
@@ -305,12 +306,12 @@ class TestMoneyValues {
         .tradeAmount(new BigDecimal("1664.31"))
         .quantity(new BigDecimal("60")).build();
 
-    BigDecimal previousGain = position.getMoneyValues()
+    BigDecimal previousGain = position.getMoneyValue(Position.In.LOCAL)
         .getRealisedGain(); // Track the previous gain
 
     accumulator.accumulate(sell, position);
 
-    assertThat(position.getMoneyValues())
+    assertThat(position.getMoneyValue(Position.In.LOCAL))
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("realisedGain", previousGain.add(new BigDecimal("60.99")))

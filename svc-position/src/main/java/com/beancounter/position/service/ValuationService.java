@@ -57,7 +57,7 @@ public class ValuationService implements Valuation {
             .asAt(marketData.getDate())
             .marketValue(marketData.getClose().multiply(position.getQuantityValues().getTotal()))
             .build();
-        position.setMarketValue(marketValue);
+        position.addMarkeValue(Position.In.LOCAL, marketValue);
         position.setAsset(marketData.getAsset());
       }
     }

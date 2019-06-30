@@ -62,14 +62,14 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
         }
       </Table.Cell>
       <Table.Cell>
-        {!position.marketValue ? (
+        {!position.marketValues["LOCAL"] ? (
           "-"
         ) : (
           <label>
             {position.asset.market.currency.id}
             {" "}
             <NumberFormat
-              value={position.marketValue.price}
+              value={position.marketValues["LOCAL"].price}
               displayType={"text"}
               decimalScale={2}
               fixedDecimalScale={true}
@@ -84,7 +84,7 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
           "-"
         ) : (
           <NumberFormat
-            value={position.moneyValues.averageCost}
+            value={position.moneyValues["LOCAL"].averageCost}
             displayType={"text"}
             decimalScale={2}
             fixedDecimalScale={true}
@@ -93,11 +93,11 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
         )}
       </Table.Cell>
       <Table.Cell>
-        {!position.marketValue ? (
+        {!position.marketValues["LOCAL"] ? (
           "-"
         ) : (
           <NumberFormat
-            value={position.marketValue.marketValue}
+            value={position.marketValues["LOCAL"].marketValue}
             displayType={"text"}
             decimalScale={2}
             fixedDecimalScale={true}
@@ -107,7 +107,7 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
       </Table.Cell>
       <Table.Cell>
         <NumberFormat
-          value={position.moneyValues.dividends}
+          value={position.moneyValues["LOCAL"].dividends}
           displayType={"text"}
           decimalScale={2}
           fixedDecimalScale={true}
@@ -116,7 +116,7 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
       </Table.Cell>
       <Table.Cell>
         <NumberFormat
-          value={position.moneyValues.realisedGain}
+          value={position.moneyValues["LOCAL"].realisedGain}
           displayType={"text"}
           decimalScale={2}
           fixedDecimalScale={true}

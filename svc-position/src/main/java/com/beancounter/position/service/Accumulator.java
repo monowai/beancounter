@@ -64,8 +64,8 @@ public class Accumulator {
   }
 
   private void dividend(Transaction transaction, Position position) {
-    position.getMoneyValues()
-        .setDividends(position.getMoneyValues()
+    position.getMoneyValue(Position.In.LOCAL)
+        .setDividends(position.getMoneyValue(Position.In.LOCAL)
             .getDividends().add(
                 transaction.getTradeAmount()));
   }
@@ -96,7 +96,7 @@ public class Accumulator {
   private void buy(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
-    MoneyValues moneyValues = position.getMoneyValues();
+    MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
 
     moneyValues.setMarketCost(
         moneyValues.getMarketCost().add(transaction.getTradeAmount()));
@@ -125,7 +125,7 @@ public class Accumulator {
 
     QuantityValues quantityValues = position.getQuantityValues();
     quantityValues.setSold(quantityValues.getSold().add(soldQuantity));
-    MoneyValues moneyValues = position.getMoneyValues();
+    MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
 
     moneyValues.setSales(
         moneyValues.getSales().add(transaction.getTradeAmount()));
@@ -155,9 +155,9 @@ public class Accumulator {
     position.getQuantityValues().setAdjustment(
         (transaction.getQuantity().multiply(total)).subtract(total)
     );
-    position.getMoneyValues()
+    position.getMoneyValue(Position.In.LOCAL)
         .setAverageCost(cost(
-            position.getMoneyValues().getCostBasis(),
+            position.getMoneyValue(Position.In.LOCAL).getCostBasis(),
             position.getQuantityValues().getTotal()));
   }
 }

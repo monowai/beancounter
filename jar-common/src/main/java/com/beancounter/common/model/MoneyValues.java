@@ -13,6 +13,7 @@ import lombok.Data;
  * @author mikeh
  * @since 2019-01-28
  */
+@SuppressWarnings("ALL")
 @Data
 @Builder
 @JsonDeserialize(builder = MoneyValues.MoneyValuesBuilder.class)
@@ -21,7 +22,7 @@ public class MoneyValues {
   @Builder.Default
   BigDecimal dividends = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal marketCost = BigDecimal.ZERO; // Cost in Local Market terms
+  BigDecimal marketCost = BigDecimal.ZERO;
   @Builder.Default
   BigDecimal fees = BigDecimal.ZERO;
   @Builder.Default
@@ -36,7 +37,7 @@ public class MoneyValues {
   BigDecimal averageCost = BigDecimal.ZERO;
 
   /**
-   * How much gain has been realised for the position - this is scaled to 2 decimal places.
+   * How much gain has been realised for the position.
    */
   @Builder.Default
   BigDecimal realisedGain = BigDecimal.ZERO;

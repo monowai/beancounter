@@ -4,11 +4,11 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.Market;
+import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdProviderService;
 import com.beancounter.marketdata.service.CurrencyService;
 import com.beancounter.marketdata.service.MarketService;
-import com.beancounter.marketdata.service.StaticConfig;
 import com.beancounter.marketdata.util.Dates;
 import java.time.DayOfWeek;
 import java.time.LocalDate;

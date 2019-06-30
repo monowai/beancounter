@@ -2,6 +2,7 @@ package com.beancounter.marketdata.service;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
+import com.beancounter.marketdata.config.StaticConfig;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;

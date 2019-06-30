@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.service;
+package com.beancounter.marketdata.config;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;

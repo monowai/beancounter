@@ -5,9 +5,9 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
-import com.beancounter.marketdata.service.StaticConfig;
 import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -49,15 +49,15 @@ public class WtdProviderService implements MarketDataProvider {
 
   private Dates dates;
 
-  private WtdRequestor wtdRequestor;
+  private WtdRequester wtdRequester;
 
   private StaticConfig staticConfig;
 
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
 
   @Autowired
-  WtdProviderService(WtdRequestor wtdRequestor, StaticConfig staticConfig, Dates dates) {
-    this.wtdRequestor = wtdRequestor;
+  WtdProviderService(WtdRequester wtdRequester, StaticConfig staticConfig, Dates dates) {
+    this.wtdRequester = wtdRequester;
     this.dates = dates;
     this.staticConfig = staticConfig;
   }
@@ -88,7 +88,7 @@ public class WtdProviderService implements MarketDataProvider {
 
     for (Integer integer : providerArguments.getBatch().keySet()) {
       batchedRequests.put(integer,
-          wtdRequestor.getMarketData(providerArguments.getBatch().get(integer), date, apiKey));
+          wtdRequester.getMarketData(providerArguments.getBatch().get(integer), date, apiKey));
     }
     log.debug("Assets price retrieval completed.");
     return getMarketData(providerArguments, batchedRequests);

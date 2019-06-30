@@ -15,6 +15,8 @@ logging:
 spring:
   application:
     name: bc-marketData
+  cache:
+    cache-names: asset.prices
 
 beancounter:
   currencies:

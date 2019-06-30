@@ -40,6 +40,8 @@ export function HoldingHeader(groupKey: string) {
         <Table.HeaderCell>Market Value</Table.HeaderCell>
         <Table.HeaderCell>Dividends</Table.HeaderCell>
         <Table.HeaderCell>Realised Gain</Table.HeaderCell>
+        <Table.HeaderCell>Unrealised Gain</Table.HeaderCell>
+        <Table.HeaderCell>Total Gain</Table.HeaderCell>
       </Table.Row>
     </Table.Header>
   );
@@ -138,6 +140,29 @@ function WriteHoldings(holdingGroup: HoldingGroup) {
           thousandSeparator={true}
         />
       </Table.Cell>
+      <Table.Cell>
+        {!position.marketValues["LOCAL"] ? (
+          "-"
+        ) : (
+          <NumberFormat
+            value={position.moneyValues["LOCAL"].unrealisedGain}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        )}
+      </Table.Cell>
+      <Table.Cell>
+        <NumberFormat
+          value={position.moneyValues["LOCAL"].totalGain}
+          displayType={"text"}
+          decimalScale={2}
+          fixedDecimalScale={true}
+          thousandSeparator={true}
+        />
+      </Table.Cell>
+
     </Table.Row>
   ));
 }

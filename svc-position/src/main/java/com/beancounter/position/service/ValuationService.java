@@ -2,6 +2,7 @@ package com.beancounter.position.service;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.MoneyValues;
 import com.beancounter.position.integration.MdIntegration;
 import com.beancounter.position.model.MarketValue;
 import com.beancounter.position.model.Position;
@@ -57,11 +58,23 @@ public class ValuationService implements Valuation {
             .asAt(marketData.getDate())
             .marketValue(marketData.getClose().multiply(position.getQuantityValues().getTotal()))
             .build();
-        position.addMarkeValue(Position.In.LOCAL, marketValue);
+
+        position.addMarketValue(Position.In.LOCAL, marketValue);
+        postProcess(position, marketValue);
         position.setAsset(marketData.getAsset());
       }
     }
     return positions;
+  }
+
+  private void postProcess(Position position, MarketValue marketValue) {
+    MoneyValues localMoney = position.getMoneyValue(Position.In.LOCAL);
+    localMoney.setUnrealisedGain(marketValue.getMarketValue()
+        .subtract(position.getMoneyValue(Position.In.LOCAL).getCostValue()));
+
+    localMoney.setTotalGain(localMoney.getUnrealisedGain()
+        .add(localMoney.getDividends()
+        .add(localMoney.getRealisedGain())));
   }
 
 

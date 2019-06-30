@@ -29,6 +29,8 @@ interface MoneyValues {
   costBasis: number;
   averageCost: number;
   realisedGain: number;
+  unrealisedGain: number;
+  totalGain: number;
 }
 
 interface QuantityValues {

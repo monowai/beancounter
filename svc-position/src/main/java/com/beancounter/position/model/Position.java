@@ -85,7 +85,7 @@ public class Position {
   }
 
   @JsonIgnore
-  public MarketValue addMarkeValue(In valueCurrency, MarketValue marketValue) {
+  public MarketValue addMarketValue(In valueCurrency, MarketValue marketValue) {
     this.marketValues.put(valueCurrency, marketValue);
     return marketValue;
   }

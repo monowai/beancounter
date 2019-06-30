@@ -23,6 +23,7 @@ public class MoneyValues {
   BigDecimal dividends = BigDecimal.ZERO;
   @Builder.Default
   BigDecimal costValue = BigDecimal.ZERO;
+  // Internal accounting - tracks the basis used for computing cost.
   @Builder.Default
   BigDecimal costBasis = BigDecimal.ZERO;
   @Builder.Default
@@ -32,7 +33,6 @@ public class MoneyValues {
   @Builder.Default
   BigDecimal sales = BigDecimal.ZERO;
 
-
   @Builder.Default
   BigDecimal averageCost = BigDecimal.ZERO;
 
@@ -41,6 +41,12 @@ public class MoneyValues {
    */
   @Builder.Default
   BigDecimal realisedGain = BigDecimal.ZERO;
+
+  @Builder.Default
+  BigDecimal unrealisedGain = BigDecimal.ZERO;
+
+  @Builder.Default
+  BigDecimal totalGain = BigDecimal.ZERO;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

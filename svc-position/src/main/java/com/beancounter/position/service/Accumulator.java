@@ -60,6 +60,18 @@ public class Accumulator {
     if (dateSensitive) {
       position.setLastTradeDate(transaction.getTradeDate());
     }
+
+    return postProcess(position);
+  }
+
+  private Position postProcess(Position position) {
+    // DRY - non-transaction dependant values
+    MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
+    QuantityValues quantityValues = position.getQuantityValues();
+
+    moneyValues.setCostValue(moneyValues.getAverageCost().multiply(quantityValues.getTotal())
+        .setScale(2, RoundingMode.HALF_UP));
+
     return position;
   }
 
@@ -111,8 +123,6 @@ public class Accumulator {
 
     }
 
-    moneyValues.setCostValue(moneyValues.getAverageCost().multiply(quantityValues.getTotal())
-        .setScale(2, RoundingMode.HALF_UP));
   }
 
   private void sell(Transaction transaction, Position position) {
@@ -140,9 +150,6 @@ public class Accumulator {
               .add(realisedGain).setScale(2, RoundingMode.HALF_UP)
       );
     }
-
-    moneyValues.setCostValue(
-        moneyValues.getAverageCost().multiply(quantityValues.getTotal()));
 
     if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {
       moneyValues.setCostBasis(BigDecimal.ZERO);

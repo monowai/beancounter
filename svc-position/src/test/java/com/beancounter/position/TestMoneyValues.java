@@ -144,7 +144,8 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(sell, position);
 
-    assertThat(position.getQuantityValues().getTotal().multiply(localMoney.getAverageCost()))
+    assertThat(position.getQuantityValues().getTotal().multiply(localMoney.getAverageCost())
+        .setScale(2, RoundingMode.HALF_UP))
         .isEqualTo(localMoney.getCostValue());
 
     assertThat(localMoney)

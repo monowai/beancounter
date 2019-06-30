@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
@@ -91,6 +92,12 @@ class TestMarketValues {
     assertThat(result)
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"));
+
+    MoneyValues localMoney = positions.get(asset).getMoneyValue(Position.In.LOCAL);
+    assertThat(localMoney)
+        .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
+        .hasFieldOrPropertyWithValue("totalGain", new BigDecimal("8000.00"))
+    ;
   }
 
   @Test

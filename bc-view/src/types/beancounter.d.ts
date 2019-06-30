@@ -22,7 +22,7 @@ interface MarketValue {
 
 interface MoneyValues {
   dividends: number;
-  marketCost: number;
+  costValue: number;
   fees: number;
   purchases: number;
   sales: number;

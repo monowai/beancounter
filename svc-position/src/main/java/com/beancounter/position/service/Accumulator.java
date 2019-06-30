@@ -39,7 +39,7 @@ public class Accumulator {
    * Main calculation routine.
    *
    * @param transaction Transaction to add
-   * @param position Position to accumulate the transaction into
+   * @param position    Position to accumulate the transaction into
    * @return result object
    */
   public Position accumulate(Transaction transaction, Position position) {
@@ -98,9 +98,6 @@ public class Accumulator {
     quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
     MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
 
-    moneyValues.setMarketCost(
-        moneyValues.getMarketCost().add(transaction.getTradeAmount()));
-
     moneyValues.setPurchases(
         moneyValues.getPurchases().add(transaction.getTradeAmount()));
 
@@ -114,6 +111,8 @@ public class Accumulator {
 
     }
 
+    moneyValues.setCostValue(moneyValues.getAverageCost().multiply(quantityValues.getTotal())
+        .setScale(2, RoundingMode.HALF_UP));
   }
 
   private void sell(Transaction transaction, Position position) {
@@ -142,8 +141,12 @@ public class Accumulator {
       );
     }
 
+    moneyValues.setCostValue(
+        moneyValues.getAverageCost().multiply(quantityValues.getTotal()));
+
     if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {
       moneyValues.setCostBasis(BigDecimal.ZERO);
+      moneyValues.setCostValue(BigDecimal.ZERO);
       moneyValues.setAverageCost(BigDecimal.ZERO);
     }
 

@@ -22,7 +22,9 @@ public class MoneyValues {
   @Builder.Default
   BigDecimal dividends = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal marketCost = BigDecimal.ZERO;
+  BigDecimal costValue = BigDecimal.ZERO;
+  @Builder.Default
+  BigDecimal costBasis = BigDecimal.ZERO;
   @Builder.Default
   BigDecimal fees = BigDecimal.ZERO;
   @Builder.Default
@@ -30,8 +32,6 @@ public class MoneyValues {
   @Builder.Default
   BigDecimal sales = BigDecimal.ZERO;
 
-  @Builder.Default
-  BigDecimal costBasis = BigDecimal.ZERO;
 
   @Builder.Default
   BigDecimal averageCost = BigDecimal.ZERO;

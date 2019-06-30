@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
@@ -12,6 +13,7 @@ import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import org.junit.jupiter.api.Test;
 
 
@@ -127,6 +129,13 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(buy, position);
 
+    MoneyValues localMoney = position.getMoneyValue(Position.In.LOCAL);
+
+    assertThat(position.getQuantityValues().getTotal().multiply(localMoney.getAverageCost())
+        .setScale(2, RoundingMode.HALF_UP))
+        .isEqualTo(localMoney.getCostBasis());
+
+
     Transaction sell = Transaction.builder()
         .trnType(TrnType.SELL)
         .asset(bidu)
@@ -135,7 +144,10 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(sell, position);
 
-    assertThat(position.getMoneyValue(Position.In.LOCAL))
+    assertThat(position.getQuantityValues().getTotal().multiply(localMoney.getAverageCost()))
+        .isEqualTo(localMoney.getCostValue());
+
+    assertThat(localMoney)
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("sales", new BigDecimal("841.63"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))

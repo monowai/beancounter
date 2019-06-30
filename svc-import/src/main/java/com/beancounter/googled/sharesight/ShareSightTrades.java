@@ -75,8 +75,7 @@ public class ShareSightTrades implements Transformer {
           .price(helper.parseDouble(row.get(price).toString()))
           .fees(helper.safeDivide(
               new BigDecimal(row.get(brokerage).toString()), tradeRate, BigDecimal.ROUND_HALF_UP))
-          .tradeAmount(helper.safeDivide(tradeAmount, tradeRate, BigDecimal.ROUND_HALF_UP)
-              .abs().setScale(2, RoundingMode.HALF_UP))
+          .tradeAmount(tradeAmount.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP))
           .tradeDate(helper.parseDate(row.get(date).toString()))
           .tradeCurrency(row.get(currency).toString())
           .tradeRate(tradeRate) // Trade to Portfolio Reference rate

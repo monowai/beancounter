@@ -12,7 +12,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.config.TransactionConfiguration;
-import com.beancounter.position.model.MarketValue;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
@@ -88,14 +87,11 @@ class TestMarketValues {
 
     positions = valuation.value(positions);
 
-    MarketValue result = positions.get(asset).getMarketValue(Position.In.LOCAL);
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
-        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"));
-
     MoneyValues localMoney = positions.get(asset).getMoneyValue(Position.In.LOCAL);
     assertThat(localMoney)
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
+        .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
+        .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"))
         .hasFieldOrPropertyWithValue("totalGain", new BigDecimal("8000.00"))
     ;
   }

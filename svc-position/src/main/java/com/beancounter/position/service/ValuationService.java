@@ -4,7 +4,6 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.position.integration.MdIntegration;
-import com.beancounter.position.model.MarketValue;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import java.math.BigDecimal;
@@ -53,23 +52,24 @@ public class ValuationService implements Valuation {
     for (MarketData marketData : marketDataResults) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        MarketValue marketValue = MarketValue.builder()
-            .price(marketData.getClose())
-            .asAt(marketData.getDate())
-            .marketValue(marketData.getClose().multiply(position.getQuantityValues().getTotal()))
-            .build();
+        position.getMoneyValue(Position.In.LOCAL)
+            .setPrice(marketData.getClose());
+        position.getMoneyValue(Position.In.LOCAL)
+            .setAsAt(marketData.getDate());
+        position.getMoneyValue(Position.In.LOCAL)
+            .setMarketValue(marketData.getClose()
+                .multiply(position.getQuantityValues().getTotal()));
 
-        position.addMarketValue(Position.In.LOCAL, marketValue);
-        postProcess(position, marketValue);
+        postProcess(position);
         position.setAsset(marketData.getAsset());
       }
     }
     return positions;
   }
 
-  private void postProcess(Position position, MarketValue marketValue) {
+  private void postProcess(Position position) {
     MoneyValues localMoney = position.getMoneyValue(Position.In.LOCAL);
-    localMoney.setUnrealisedGain(marketValue.getMarketValue()
+    localMoney.setUnrealisedGain(position.getMoneyValue(Position.In.LOCAL).getMarketValue()
         .subtract(position.getMoneyValue(Position.In.LOCAL).getCostValue()));
 
     localMoney.setTotalGain(localMoney.getUnrealisedGain()

@@ -64,33 +64,6 @@ public class Position {
   @Getter
   private QuantityValues quantityValues = QuantityValues.builder().build();
 
-  @Builder.Default
-  @SuppressWarnings("UnusedAssignment")
-  private Map<In, MarketValue> marketValues = new HashMap<>();
-
-  /**
-   * Market values are tracked in various currencies.
-   *
-   * @param valueCurrency which currency group?
-   * @return MarketValue in ValueCurrency
-   */
-  @JsonIgnore
-  public MarketValue getMarketValue(In valueCurrency) {
-    MarketValue result = marketValues.get(valueCurrency);
-    if (result == null) {
-      result = MarketValue.builder().build();
-      marketValues.put(valueCurrency, result);
-    }
-    return result;
-  }
-
-  @JsonIgnore
-  public MarketValue addMarketValue(In valueCurrency, MarketValue marketValue) {
-    this.marketValues.put(valueCurrency, marketValue);
-    return marketValue;
-  }
-
-
   private Date lastTradeDate;
 
   @SuppressWarnings("WeakerAccess")

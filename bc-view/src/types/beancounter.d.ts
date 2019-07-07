@@ -15,11 +15,6 @@ interface Asset {
   market: Market;
 }
 
-interface MarketValue {
-  price: number;
-  marketValue: number;
-}
-
 interface MoneyValues {
   dividends: number;
   costValue: number;
@@ -31,6 +26,8 @@ interface MoneyValues {
   realisedGain: number;
   unrealisedGain: number;
   totalGain: number;
+  price: number;
+  marketValue: number;
 }
 
 interface QuantityValues {
@@ -42,7 +39,6 @@ interface QuantityValues {
 export interface Position {
   asset: Asset;
   moneyValues: MoneyValues[];
-  marketValues: MarketValue[];
   quantityValues: QuantityValues;
   lastTradeDate: string;
 }
@@ -65,6 +61,6 @@ interface Holdings {
 // User defined grouping
 interface HoldingGroup {
   group: string;
-  total: number;
+  subTotals: MoneyValues[];
   positions: Position[];
 }

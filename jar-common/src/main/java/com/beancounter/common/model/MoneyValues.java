@@ -3,6 +3,7 @@ package com.beancounter.common.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
+import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
 
@@ -32,6 +33,10 @@ public class MoneyValues {
   BigDecimal purchases = BigDecimal.ZERO;
   @Builder.Default
   BigDecimal sales = BigDecimal.ZERO;
+  @Builder.Default
+  BigDecimal price = BigDecimal.ZERO;
+  @Builder.Default
+  BigDecimal marketValue = BigDecimal.ZERO;
 
   @Builder.Default
   BigDecimal averageCost = BigDecimal.ZERO;
@@ -47,6 +52,8 @@ public class MoneyValues {
 
   @Builder.Default
   BigDecimal totalGain = BigDecimal.ZERO;
+
+  private Date asAt;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

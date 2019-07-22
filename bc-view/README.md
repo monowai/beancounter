@@ -3,12 +3,12 @@ Based on Razzle
 
 **Razzle comes with the "battery-pack included"**:
 
-  * :fire: Universal Hot Module Replacement, so both the client and server update whenever you make edits. No annoying restarts necessary
-  * Comes with your favorite ES6 JavaScript goodies (through `babel-preset-razzle`)
-  * Comes with the same CSS setup as [create-react-app](https://github.com/facebookincubator/create-react-app)
-  * Works with [React](https://github.com/facebook/react), [Preact](https://github.com/developit/preact), [Elm](http://elm-lang.org/), [Reason-React](https://github.com/jaredpalmer/razzle/tree/master/examples/with-reason-react), [Inferno](https://github.com/infernojs), and [Rax](https://github.com/alibaba/rax) as well as [Angular](https://github.com/angular/angular) and [Vue](https://github.com/vuejs/vue) if that's your thing
-  * Escape hatches for customization via `.babelrc` and `razzle.config.js`
-  * [Jest](https://github.com/facebook/jest) test runner setup with sensible defaults via `razzle test`
+*   :fire: Universal Hot Module Replacement, so both the client and server update whenever you make edits. No annoying restarts necessary
+*   Comes with your favorite ES6 JavaScript goodies (through `babel-preset-razzle`)
+*   Comes with the same CSS setup as [create-react-app](https://github.com/facebookincubator/create-react-app)
+*   Works with [React](https://github.com/facebook/react), [Preact](https://github.com/developit/preact), [Elm](http://elm-lang.org/), [Reason-React](https://github.com/jaredpalmer/razzle/tree/master/examples/with-reason-react), [Inferno](https://github.com/infernojs), and [Rax](https://github.com/alibaba/rax) as well as [Angular](https://github.com/angular/angular) and [Vue](https://github.com/vuejs/vue) if that's your thing
+*   Escape hatches for customization via `.babelrc` and `razzle.config.js`
+*   [Jest](https://github.com/facebook/jest) test runner setup with sensible defaults via `razzle test`
 
 ## Quick Start
 

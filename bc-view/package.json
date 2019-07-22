@@ -8,7 +8,8 @@
     "lint": "prettier --write 'src/**/*.ts*' && yarn style ",
     "style": "tslint 'src/**/*.ts*'",
     "test": "razzle test --env=jsdom",
-    "start:prod": "NODE_ENV=production node build/server.js"
+    "start:prod": "NODE_ENV=production node build/server.js",
+    "lint-md": "remark ."
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -59,6 +60,9 @@
     ],
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}"
-    ]
+    ],
+    "remarkConfig": {
+      "plugins": ["remark-preset-lint-recommended"]
+    }
   }
 }

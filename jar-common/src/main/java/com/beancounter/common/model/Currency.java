@@ -10,10 +10,10 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Currency.CurrencyBuilder.class)
 public class Currency {
-  String id;
-  String code;
-  String name;
-  String symbol;
+  private String id;
+  private String code;
+  private String name;
+  private String symbol;
 
   /**
    * Convert the configured properties to an object.

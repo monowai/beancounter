@@ -90,7 +90,7 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  void marketDataReturnsPricesWithMarketDate_WhenRequestDateIsLater() throws Exception {
+  void marketDataReturnsPricesWithMarketDateWhenRequestDateIsLater() throws Exception {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(DataProviderUtils.nasdaq()).build();

@@ -2,12 +2,12 @@ Micro service to obtain market data from a variety of data providers
 
 Currently offers support for: 
 
- * [World Trading Data](https://www.worldtradingdata.com/pricing)    
- * [Alpha Advantage](https://www.alphavantage.co/documentation/)
+  * [World Trading Data](https://www.worldtradingdata.com/pricing)    
+  * [Alpha Advantage](https://www.alphavantage.co/documentation/)
  
- You will need to register for an API key for each provider. See the `application.yml` for how to set the key values.  Data providers can convert market codes as necessary
+You will need to register for an API key for each provider. See the `application.yml` for how to set the key values.  Data providers can convert market codes as necessary
  
- This service return market data for assets. You can request a price for a single asset or a collection of them  
+This service returns market data for assets. You can request a price for a single asset or a collection of them  
  
  ```bash 
  curl -X GET http://localhost:9510/AX/AMP
@@ -47,7 +47,7 @@ Currently offers support for:
 
 ```  
  
- In the use case of this service you ask svc-position to value the assets, in your position collection, which in turn will obtain the prices from this service - which basically makes the call above
+In the use case of this service you ask svc-position to value the assets, in your position collection, which in turn will obtain the prices from this service - which basically makes the call above
  
  ```bash
  curl -H "Content-Type: application/json" -X POST 

@@ -25,10 +25,10 @@ class TestTransaction {
     Transaction transaction = Transaction.builder()
         .asset(asset)
         .trnType(trnType)
-        .quantity(new BigDecimal(100.01))
-        .price(new BigDecimal(22.11))
-        .fees(new BigDecimal(10))
-        .tradeAmount(new BigDecimal(999.99))
+        .quantity(new BigDecimal("100.01"))
+        .price(new BigDecimal("22.11"))
+        .fees(new BigDecimal("10"))
+        .tradeAmount(new BigDecimal("999.99"))
         .build();
 
     String json = mapper.writeValueAsString(transaction);

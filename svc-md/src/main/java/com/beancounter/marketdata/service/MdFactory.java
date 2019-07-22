@@ -5,8 +5,6 @@ import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.alpha.AlphaProviderService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdProviderService;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -33,22 +31,6 @@ public class MdFactory {
     providers.put(alphaProviderService.getId().toUpperCase(), alphaProviderService);
     providers.put(wtdProviderService.getId().toUpperCase(), wtdProviderService);
   }
-
-  Map<String, Collection<Asset>> splitProviders(Collection<Asset> assets) {
-    Map<String, Collection<Asset>> results = new HashMap<>();
-
-    for (Asset asset : assets) {
-      MarketDataProvider marketDataProvider = getMarketDataProvider(asset);
-      Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
-      if (mdpAssets == null) {
-        mdpAssets = new ArrayList<>();
-      }
-      mdpAssets.add(asset);
-      results.put(marketDataProvider.getId(), mdpAssets);
-    }
-    return results;
-  }
-
 
   /**
    * Figures out how to locate a Market Data provider for the requested asset.

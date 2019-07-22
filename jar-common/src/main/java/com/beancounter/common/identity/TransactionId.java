@@ -14,9 +14,9 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = TransactionId.TransactionIdBuilder.class)
 public class TransactionId {
-  String provider;
-  Integer batch;
-  Integer id;
+  private String provider;
+  private Integer batch;
+  private Integer id;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

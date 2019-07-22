@@ -16,11 +16,11 @@ import lombok.Data;
  */
 @Data
 public class ProviderArguments {
-  int count = 0;
-  int maxBatch;
-  Integer currentBatch = 0;
-  String searchBatch = null;
-  String delimiter = ",";
+  private int count = 0;
+  private int maxBatch;
+  private Integer currentBatch = 0;
+  private String searchBatch = null;
+  private String delimiter = ",";
 
   public ProviderArguments(int maxBatch) {
     this.maxBatch = maxBatch;

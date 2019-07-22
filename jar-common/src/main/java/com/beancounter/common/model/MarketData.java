@@ -21,13 +21,13 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @JsonDeserialize(builder = MarketData.MarketDataBuilder.class)
 public class MarketData {
-  Asset asset;
-  Date date;
-  BigDecimal open;
-  BigDecimal close;
-  BigDecimal low;
-  BigDecimal high;
-  BigDecimal volume;
+  private Asset asset;
+  private Date date;
+  private BigDecimal open;
+  private BigDecimal close;
+  private BigDecimal low;
+  private BigDecimal high;
+  private BigDecimal volume;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

@@ -22,7 +22,7 @@ public class CurrencyService {
   private StaticConfig staticConfig;
 
   @Autowired
-  void setMarkets(StaticConfig staticConfig) {
+  private void setMarkets(StaticConfig staticConfig) {
     this.staticConfig = staticConfig;
   }
 

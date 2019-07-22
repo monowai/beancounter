@@ -4,6 +4,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class MarketDataService {
     for (Asset asset : assets) {
       hydrateAsset(asset);
     }
-    Map<String, Collection<Asset>> factories = mdFactory.splitProviders(assets);
+    Map<String, Collection<Asset>> factories = splitProviders(assets);
     Collection<MarketData> results = new ArrayList<>();
 
     for (String dpId : factories.keySet()) {
@@ -58,9 +59,26 @@ public class MarketDataService {
     return results;
   }
 
+  private Map<String, Collection<Asset>> splitProviders(Collection<Asset> assets) {
+    Map<String, Collection<Asset>> results = new HashMap<>();
+
+    for (Asset asset : assets) {
+      MarketDataProvider marketDataProvider = mdFactory.getMarketDataProvider(asset);
+      Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
+      if (mdpAssets == null) {
+        mdpAssets = new ArrayList<>();
+      }
+      mdpAssets.add(asset);
+      results.put(marketDataProvider.getId(), mdpAssets);
+    }
+    return results;
+  }
+
   private void hydrateAsset(Asset asset) {
     asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
   }
+
+
 
 
 }

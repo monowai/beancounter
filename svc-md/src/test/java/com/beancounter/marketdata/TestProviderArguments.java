@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class TestProviderArguments {
 
   @Test
-  void batcheOfOne() {
+  private void batchOfOne() {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
@@ -44,7 +44,7 @@ class TestProviderArguments {
   }
 
   @Test
-  void batcheOfTwo() {
+  private void batchOfTwo() {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
@@ -72,7 +72,7 @@ class TestProviderArguments {
   }
 
   @Test
-  void batcheOfThree() {
+  private void batchOfThree() {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();

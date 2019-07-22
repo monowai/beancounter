@@ -45,12 +45,9 @@ public class AlphaProviderService implements MarketDataProvider {
   private AlphaRequestor alphaRequestor;
   private ObjectMapper objectMapper = new ObjectMapper();
 
-  private Dates dates;
-
   @Autowired
   AlphaProviderService(AlphaRequestor alphaRequestor, Dates dates) {
     this.alphaRequestor = alphaRequestor;
-    this.dates = dates;
   }
 
   @PostConstruct

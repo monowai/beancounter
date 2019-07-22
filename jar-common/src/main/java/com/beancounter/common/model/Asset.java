@@ -16,12 +16,12 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = Asset.AssetBuilder.class)
 public class Asset {
-  String code;
+  private String code;
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  String name;
+  private String name;
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  String category;
-  Market market;
+  private String category;
+  private Market market;
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class AssetBuilder {

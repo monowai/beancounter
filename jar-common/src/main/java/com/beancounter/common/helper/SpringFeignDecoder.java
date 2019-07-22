@@ -8,7 +8,6 @@ import com.google.common.io.CharStreams;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
-
 import java.io.IOException;
 import java.io.Reader;
 
@@ -21,9 +20,9 @@ import java.io.Reader;
  */
 public class SpringFeignDecoder implements ErrorDecoder {
 
-  private ObjectMapper mapper;
+  private static ObjectMapper mapper;
 
-  {
+  static {
     mapper = new ObjectMapper();
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }

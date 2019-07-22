@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Read a google sheet and create an output file.
+ *
  * @author mikeh
  * @since 2019-02-08
  */
@@ -21,7 +22,9 @@ public class SheetBoot {
   }
 
   @Autowired
-  void setSheetReader(SheetReader sheetReader) throws IOException, GeneralSecurityException {
+  private void setSheetReader(SheetReader sheetReader)
+      throws IOException, GeneralSecurityException {
+
     sheetReader.doIt();
   }
 

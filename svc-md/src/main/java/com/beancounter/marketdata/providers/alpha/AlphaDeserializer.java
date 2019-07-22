@@ -95,8 +95,8 @@ public class AlphaDeserializer extends JsonDeserializer {
   private Asset getAsset(JsonNode nodeValue) {
     Asset asset = null;
     if (!isNull(nodeValue)) {
-      nodeValue = nodeValue.get("2. Symbol");
-      String[] values = nodeValue.asText().split(":");
+      JsonNode symbols = nodeValue.get("2. Symbol");
+      String[] values = symbols.asText().split(":");
       Market market = Market.builder().code("US").build();
 
       if (values.length > 1) {

@@ -25,7 +25,7 @@ public class QuantityValues {
   @Builder.Default
   private BigDecimal adjustment = BigDecimal.ZERO;
 
-  BigDecimal total;
+  private BigDecimal total;
 
   public BigDecimal getTotal() {
     return (purchased.add(sold)).add(adjustment);

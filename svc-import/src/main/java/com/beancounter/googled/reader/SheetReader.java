@@ -1,6 +1,7 @@
 package com.beancounter.googled.reader;
 
 import com.beancounter.common.identity.TransactionId;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.googled.config.GoogleDocsConfig;
@@ -73,17 +74,17 @@ public class SheetReader {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  void setGoogleDocsConfig(GoogleDocsConfig googleDocsConfig) {
+  private void setGoogleDocsConfig(GoogleDocsConfig googleDocsConfig) {
     this.googleDocsConfig = googleDocsConfig;
   }
 
   @Autowired
-  void setShareSightHelper(ShareSightHelper shareSightHelper) {
+  private void setShareSightHelper(ShareSightHelper shareSightHelper) {
     this.shareSightHelper = shareSightHelper;
   }
 
   @Autowired
-  void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
+  private void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
     this.shareSightTransformers = shareSightTransformers;
   }
 
@@ -133,7 +134,10 @@ public class SheetReader {
             if (transformer.isValid(row)) {
               transaction = transformer.of(row);
               if (transaction.getPortfolio() == null) {
-                transaction.setPortfolio(Portfolio.builder().code(portfolio).build());
+                transaction.setPortfolio(Portfolio.builder()
+                    .code(portfolio)
+                    .currency(Currency.builder().code("USD").build())
+                    .build());
               }
 
               if (transaction.getId() == null) {

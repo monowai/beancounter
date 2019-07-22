@@ -2,12 +2,12 @@ package com.beancounter.marketdata.providers.alpha;
 
 import static com.beancounter.marketdata.providers.ProviderArguments.getInstance;
 
+import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
-import com.beancounter.marketdata.util.Dates;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -46,7 +46,7 @@ public class AlphaProviderService implements MarketDataProvider {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  AlphaProviderService(AlphaRequestor alphaRequestor, Dates dates) {
+  AlphaProviderService(AlphaRequestor alphaRequestor) {
     this.alphaRequestor = alphaRequestor;
   }
 
@@ -126,7 +126,7 @@ public class AlphaProviderService implements MarketDataProvider {
       }
 
     } catch (IOException | InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
+      throw new SystemException(e.getMessage());
     }
     return results;
 

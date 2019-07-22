@@ -16,12 +16,12 @@ import lombok.Data;
 @Data
 public class WtdResponse {
 
-  Date date;
+  private Date date;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonProperty("Message")
-  String message;
+  private String message;
 
-  Map<String, MarketData> data;
+  private Map<String, MarketData> data;
 
 }

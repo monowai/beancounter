@@ -24,14 +24,12 @@ import lombok.Getter;
 @JsonDeserialize(builder = Position.PositionBuilder.class)
 public class Position {
 
-  public enum In {
-    LOCAL,
-    PORTFOLIO,
-    BASE
-
-  }
-
   private Asset asset;
+  @Builder.Default
+  @SuppressWarnings("UnusedAssignment")
+  @Getter
+  private QuantityValues quantityValues = QuantityValues.builder().build();
+  private Date lastTradeDate;
   @Builder.Default
   @SuppressWarnings("UnusedAssignment")
   @Getter
@@ -59,12 +57,12 @@ public class Position {
     return moneyValues;
   }
 
-  @Builder.Default
-  @SuppressWarnings("UnusedAssignment")
-  @Getter
-  private QuantityValues quantityValues = QuantityValues.builder().build();
+  public enum In {
+    LOCAL,
+    PORTFOLIO,
+    BASE
 
-  private Date lastTradeDate;
+  }
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

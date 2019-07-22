@@ -36,8 +36,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     ShareSightHelper.class})
 class ShareSightDiviTest {
 
-  @Autowired
-  private ShareSightHelper shareSightHelper;
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
@@ -59,7 +57,7 @@ class ShareSightDiviTest {
     row.add(ShareSightDivis.comments, "Test Comment");
 
     Transformer dividends = shareSightTransformers.getTransformer(row);
-    
+
     Transaction transaction = dividends.of(row);
 
     Asset expectedAsset = Asset.builder()

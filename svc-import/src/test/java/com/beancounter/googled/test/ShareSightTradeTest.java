@@ -11,6 +11,7 @@ import com.beancounter.googled.sharesight.ShareSightTrades;
 import com.beancounter.googled.sharesight.ShareSightTransformers;
 import com.beancounter.googled.sharesight.Transformer;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,6 @@ class ShareSightTradeTest {
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
-
 
   @Test
   void convertRowToTransaction() throws Exception {
@@ -64,7 +64,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("2097.85").multiply(new BigDecimal("0.8988"))
-                .setScale(2, BigDecimal.ROUND_HALF_UP))
+                .setScale(2, RoundingMode.HALF_UP))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeDate")
     ;
@@ -118,7 +118,7 @@ class ShareSightTradeTest {
     assertThat(transformer.isValid(row)).isTrue();
 
     Transaction transaction = transformer.of(row);
-    
+
     assertThat(transaction).isNotNull();
   }
 

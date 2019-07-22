@@ -42,13 +42,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles("test")
 class TestMarketValues {
 
+  private static WireMockRule mockMarketData;
   @Autowired
   private Valuation valuation;
 
-  private static WireMockRule mockMarketData;
-
   @Autowired
-  void mockServices() {
+  private void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (mockMarketData == null) {
       mockMarketData = new WireMockRule(options().port(9999));

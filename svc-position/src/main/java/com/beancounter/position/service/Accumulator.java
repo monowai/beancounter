@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 public class Accumulator {
 
   @Value("${beancounter.positions.ordered:false}")
-  boolean orderedTransactions = false;
+  private boolean orderedTransactions = false;
 
   private TransactionConfiguration transactionConfiguration;
   private MathContext mathContext = new MathContext(10);

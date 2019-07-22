@@ -23,12 +23,8 @@ class TestUtils {
 
   static ObjectMapper mapper = new ObjectMapper();
 
-  public static ObjectMapper getMapper() {
-    return mapper;
-  }
-
   static Date convert(LocalDate localDate) {
-    return java.util.Date.from(localDate.atStartOfDay()
+    return Date.from(localDate.atStartOfDay()
         .atZone(ZoneId.systemDefault())
         .toInstant());
   }

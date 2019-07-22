@@ -40,7 +40,7 @@ class TestAlphaVantageApi {
   private MdFactory mdFactory;
 
   @Autowired
-  void mockServices() {
+  private void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (mockInternet == null) {
       mockInternet = new WireMockRule(options().port(9999));
@@ -93,7 +93,7 @@ class TestAlphaVantageApi {
 
     MarketData mdResult = mdFactory.getMarketDataProvider(AlphaProviderService.ID)
         .getCurrent(asset);
-    
+
     assertThat(mdResult)
         .isNotNull()
         .hasFieldOrPropertyWithValue("asset", asset)

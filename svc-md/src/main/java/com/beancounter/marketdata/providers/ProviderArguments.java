@@ -21,6 +21,13 @@ public class ProviderArguments {
   private Integer currentBatch = 0;
   private String searchBatch = null;
   private String delimiter = ",";
+  private Map<String, Asset> dpToBc = new HashMap<>();
+  private Map<Asset, String> bcToDp = new HashMap<>();
+  private String date;
+  /**
+   * How the MarketDataProvider wants the search key for all assets to be passed.
+   */
+  private Map<Integer, String> batch = new HashMap<>();
 
   public ProviderArguments(int maxBatch) {
     this.maxBatch = maxBatch;
@@ -75,16 +82,6 @@ public class ProviderArguments {
       currentBatch++;
     }
   }
-
-  private Map<String, Asset> dpToBc = new HashMap<>();
-  private Map<Asset, String> bcToDp = new HashMap<>();
-  private String date;
-
-  /**
-   * How the MarketDataProvider wants the search key for all assets to be passed.
-   */
-  private Map<Integer, String> batch = new HashMap<>();
-
 
   public String[] getAssets(Integer batchId) {
     return batch.get(batchId).split(delimiter);

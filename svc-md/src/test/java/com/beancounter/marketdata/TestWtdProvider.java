@@ -21,7 +21,7 @@ import org.springframework.core.io.ClassPathResource;
 class TestWtdProvider {
   private ObjectMapper mapper = new ObjectMapper();
 
-  private @Test
+  @Test
   void jsonGoodResponse() throws Exception {
 
 
@@ -38,7 +38,7 @@ class TestWtdProvider {
         .hasFieldOrProperty("data");
   }
 
-  private @Test
+  @Test
   void jsonMessageResponse() throws Exception {
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();

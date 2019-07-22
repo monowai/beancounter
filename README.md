@@ -19,10 +19,9 @@ java -jar svc-import/build/libs/svc-import.jar \
     --out.file=./trades.json 
 
 # Transform transactions to positions
-curl -H "Content-Type: application/json" -X POST -d @trades.json http://localhost:9500/ > positions.json
+curl -H "Content-Type: application/json" -X POST -d @trades.json <http://localhost:9500/> > positions.json
 
 # Value positions    
-curl -H "Content-Type: application/json" -X POST -d @positions.json http://localhost:9500/value > valuedPositions.json
-
+curl -H "Content-Type: application/json" -X POST -d @positions.json <http://localhost:9500/value> > valuedPositions.json
 ```
 

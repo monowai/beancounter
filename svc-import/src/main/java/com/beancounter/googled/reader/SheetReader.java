@@ -1,5 +1,6 @@
 package com.beancounter.googled.reader;
 
+import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
@@ -153,7 +154,7 @@ public class SheetReader {
             }
           } catch (ParseException e) {
             log.error("{} Parsing row {}", transformer.getClass().getSimpleName(), trnId);
-            throw new RuntimeException(e);
+            throw new SystemException(e.getMessage());
           }
 
         }

@@ -63,7 +63,7 @@ If your application is running, and you need to manually restart your server, yo
 
 **Table of Contents**
 
-* [Customization](#customization)
+*   [Customization](#customization)
   * [Extending Babel Config](#extending-babel-config)
   * [Extending Webpack](#extending-webpack)
   * [Environment Variables](#environment-variables)
@@ -72,10 +72,7 @@ If your application is running, and you need to manually restart your server, yo
     * [Linux, macOS (Bash)](#linux-macos-bash)
   * [Adding Environment Variables In `.env`](#adding-environment-variables-in-env)
     * [What other `.env` files are can be used?](#what-other-env-files-are-can-be-used)
-* [How Razzle works (the secret sauce)](#how-razzle-works-the-secret-sauce)
-* [Inspiration](#inspiration)
-  * [Author](#author)
-* [Contributors](#contributors)
+*   [How Razzle works (the secret sauce)](#how-razzle-works-the-secret-sauce)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -132,16 +129,16 @@ Last but not least, if you find yourself needing a more customized setup, Razzle
 
 **The environment variables are embedded during the build time.** You can read them at runtime just because by default we export them with the `webpack.DefinePlugin`.
 
-  * `process.env.RAZZLE_PUBLIC_DIR`: Path to the public directory.
-  * `process.env.RAZZLE_ASSETS_MANIFEST`: Path to a file containing compiled asset outputs
-  * `process.env.REACT_BUNDLE_PATH`: Relative path to where React will be bundled during development. Unless you are modifying the output path of your webpack config, you can safely ignore this. This path is used by `react-error-overlay` and webpack to power up the fancy runtime error iframe. For example, if you are using common chunks and an extra entry to create a vendor bundle with stuff like react, react-dom, react-router, etc. called `vendor.js`, and you've changed webpack's output to `[name].js` in development, you'd want to set this environment variable to `/static/js/vendor.js`. If you do not make this change, nothing bad will happen, you will simply not get the cool error overlay when there are runtime errors. You'll just see them in the console. Note: This does not impact production bundling.
-  * `process.env.VERBOSE`: default is false, setting this to true will not clear the console when you make edits in development (useful for debugging).
-  * `process.env.PORT`: default is `3000`, unless changed
-  * `process.env.HOST`: default is `0.0.0.0`
-  * `process.env.NODE_ENV`: `'development'` or `'production'`
-  * `process.env.BUILD_TARGET`: either `'client'` or `'server'`
-  * `process.env.PUBLIC_PATH`: Only in used in `razzle build`. You can alter the `webpack.config.output.publicPath` of the client assets (bundle, css, and images). This is useful if you plan to serve your assets from a CDN. Make sure to _include_ a trailing slash (e.g. `PUBLIC_PATH=https://cdn.example.com/`). If you are using React and altering the public path, make sure to also [include the `crossorigin` attribute](https://reactjs.org/docs/installation.html#using-a-cdn) on your `<script>` tag in `src/server.js`.
-  * `process.env.CLIENT_PUBLIC_PATH`: The `NODE_ENV=development` build's `BUILD_TARGET=client` has a different `PUBLIC_PATH` than `BUILD_TARGET=server`. Default is `http://${process.env.HOST}:${process.env.PORT + 1}/`
+*   `process.env.RAZZLE_PUBLIC_DIR`: Path to the public directory.
+*   `process.env.RAZZLE_ASSETS_MANIFEST`: Path to a file containing compiled asset outputs
+*   `process.env.REACT_BUNDLE_PATH`: Relative path to where React will be bundled during development. Unless you are modifying the output path of your webpack config, you can safely ignore this. This path is used by `react-error-overlay` and webpack to power up the fancy runtime error iframe. For example, if you are using common chunks and an extra entry to create a vendor bundle with stuff like react, react-dom, react-router, etc. called `vendor.js`, and you've changed webpack's output to `[name].js` in development, you'd want to set this environment variable to `/static/js/vendor.js`. If you do not make this change, nothing bad will happen, you will simply not get the cool error overlay when there are runtime errors. You'll just see them in the console. Note: This does not impact production bundling.
+*   `process.env.VERBOSE`: default is false, setting this to true will not clear the console when you make edits in development (useful for debugging).
+*   `process.env.PORT`: default is `3000`, unless changed
+*   `process.env.HOST`: default is `0.0.0.0`
+*   `process.env.NODE_ENV`: `'development'` or `'production'`
+*   `process.env.BUILD_TARGET`: either `'client'` or `'server'`
+*   `process.env.PUBLIC_PATH`: Only in used in `razzle build`. You can alter the `webpack.config.output.publicPath` of the client assets (bundle, css, and images). This is useful if you plan to serve your assets from a CDN. Make sure to _include_ a trailing slash (e.g. `PUBLIC_PATH=https://cdn.example.com/`). If you are using React and altering the public path, make sure to also [include the `crossorigin` attribute](https://reactjs.org/docs/installation.html#using-a-cdn) on your `<script>` tag in `src/server.js`.
+*   `process.env.CLIENT_PUBLIC_PATH`: The `NODE_ENV=development` build's `BUILD_TARGET=client` has a different `PUBLIC_PATH` than `BUILD_TARGET=server`. Default is `http://${process.env.HOST}:${process.env.PORT + 1}/`
 
 You can create your own custom build-time environment variables. They must start
 with `RAZZLE_`. Any other variables except the ones listed above will be ignored to avoid accidentally exposing a private key on the machine that could have the same name. Changing any environment variables will require you to restart the development server if it is running.
@@ -153,20 +150,18 @@ These environment variables will be defined for you on `process.env`. For exampl
 Defining environment variables can vary between OSes. It’s also important to know that this manner is temporary for the
 life of the shell session.
 
+#### Which`.env` files are can be used?
 
-
-#### What other `.env` files are can be used?
-
-  * `.env`: Default.
-  * `.env.local`: Local overrides. **This file is loaded for all environments except test.**
-  * `.env.development`, `.env.test`, `.env.production`: Environment-specific settings.
-  * `.env.development.local`, `.env.test.local`, `.env.production.local`: Local overrides of environment-specific settings.
+*   `.env`: Default.
+*   `.env.local`: Local overrides. **This file is loaded for all environments except test.**
+*   `.env.development`, `.env.test`, `.env.production`: Environment-specific settings.
+*   `.env.development.local`, `.env.test.local`, `.env.production.local`: Local overrides of environment-specific settings.
   
 Files on the left have more priority than files on the right:
 
-  * `npm start`: `.env.development.local`, `.env.development`, `.env.local`, `.env`
-  * `npm run build`: `.env.production.local`, `.env.production`, `.env.local`, `.env`
-  * `npm test`: `.env.test.local`, `.env.test`, `.env` (note `.env.local` is missing)
+*   `npm start`: `.env.development.local`, `.env.development`, `.env.local`, `.env`
+*   `npm run build`: `.env.production.local`, `.env.production`, `.env.local`, `.env`
+*   `npm test`: `.env.test.local`, `.env.test`, `.env` (note `.env.local` is missing)
 
 These variables will act as the defaults if the machine does not explicitly set them.<br>
 Please refer to the [dotenv documentation](https://github.com/motdotla/dotenv) for more details.
@@ -182,8 +177,8 @@ In development mode (`razzle start`), Razzle bundles both your client and server
 
 ## Razzle Inspiration
 
-  * [palmerhq/backpack](https://github.com/palmerhq/backpack)
-  * [nytimes/kyt](https://github.com/nytimes/kyt)
-  * [facebookincubator/create-react-app](https://github.com/facebookincubator/create-react-app)
-  * [humblespark/sambell](https://github.com/humblespark/sambell)
-  * [zeit/next.js](https://github.com/zeit/next.js)
+*   [palmerhq/backpack](https://github.com/palmerhq/backpack)
+*   [nytimes/kyt](https://github.com/nytimes/kyt)
+*   [facebookincubator/create-react-app](https://github.com/facebookincubator/create-react-app)
+*   [humblespark/sambell](https://github.com/humblespark/sambell)
+*   [zeit/next.js](https://github.com/zeit/next.js)

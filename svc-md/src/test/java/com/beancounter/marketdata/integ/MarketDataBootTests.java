@@ -36,7 +36,7 @@ class MarketDataBootTests {
   private MarketService marketService;
 
   @Autowired
-  MarketDataBootTests(WebApplicationContext webApplicationContext,
+  private MarketDataBootTests(WebApplicationContext webApplicationContext,
                       MarketService marketService,
                       MockProviderService mockProviderService) {
     this.context = webApplicationContext;
@@ -47,6 +47,7 @@ class MarketDataBootTests {
 
   @Test
   void contextLoads() {
+    assertThat(context).isNotNull();
   }
 
   @Test

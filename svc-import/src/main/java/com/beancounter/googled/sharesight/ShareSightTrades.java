@@ -34,7 +34,7 @@ public class ShareSightTrades implements Transformer {
   public static final int price = 6;
   public static final int brokerage = 7;
   public static final int currency = 8;
-  public static final int fxrate = 9;
+  public static final int fxRate = 9;
   public static final int value = 10;
   public static final int comments = 11;
   private final ShareSightHelper helper;
@@ -47,7 +47,7 @@ public class ShareSightTrades implements Transformer {
   @Override
   public Transaction of(List row) throws ParseException {
     try {
-      TrnType trnType = helper.resovleType(row.get(type).toString());
+      TrnType trnType = helper.resolveType(row.get(type).toString());
       if (trnType == null) {
         throw new BusinessException(String.format("Unsupported type %s", row.get(type).toString()));
       }
@@ -64,7 +64,7 @@ public class ShareSightTrades implements Transformer {
       BigDecimal tradeRate = BigDecimal.ZERO;
       BigDecimal tradeAmount = BigDecimal.ZERO;
       if (trnType != TrnType.SPLIT) {
-        tradeRate = new BigDecimal(row.get(fxrate).toString());
+        tradeRate = new BigDecimal(row.get(fxRate).toString());
         tradeAmount = helper.parseDouble(row.get(value));
       }
 

@@ -21,37 +21,37 @@ import lombok.Data;
 public class MoneyValues {
 
   @Builder.Default
-  BigDecimal dividends = BigDecimal.ZERO;
+  private BigDecimal dividends = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal costValue = BigDecimal.ZERO;
+  private BigDecimal costValue = BigDecimal.ZERO;
   // Internal accounting - tracks the basis used for computing cost.
   @Builder.Default
-  BigDecimal costBasis = BigDecimal.ZERO;
+  private BigDecimal costBasis = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal fees = BigDecimal.ZERO;
+  private BigDecimal fees = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal purchases = BigDecimal.ZERO;
+  private BigDecimal purchases = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal sales = BigDecimal.ZERO;
+  private BigDecimal sales = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal price = BigDecimal.ZERO;
+  private BigDecimal price = BigDecimal.ZERO;
   @Builder.Default
-  BigDecimal marketValue = BigDecimal.ZERO;
+  private BigDecimal marketValue = BigDecimal.ZERO;
 
   @Builder.Default
-  BigDecimal averageCost = BigDecimal.ZERO;
+  private BigDecimal averageCost = BigDecimal.ZERO;
 
   /**
    * How much gain has been realised for the position.
    */
   @Builder.Default
-  BigDecimal realisedGain = BigDecimal.ZERO;
+  private BigDecimal realisedGain = BigDecimal.ZERO;
 
   @Builder.Default
-  BigDecimal unrealisedGain = BigDecimal.ZERO;
+  private BigDecimal unrealisedGain = BigDecimal.ZERO;
 
   @Builder.Default
-  BigDecimal totalGain = BigDecimal.ZERO;
+  private BigDecimal totalGain = BigDecimal.ZERO;
 
   private Date asAt;
 

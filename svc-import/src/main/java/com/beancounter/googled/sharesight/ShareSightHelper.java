@@ -52,7 +52,7 @@ public class ShareSightHelper {
     return new BigDecimal(NumberFormat.getInstance(Locale.US).parse(o.toString()).toString());
   }
 
-  TrnType resovleType(String type) {
+  public TrnType resolveType(String type) {
     return TrnType.valueOf(type.toUpperCase());
   }
 

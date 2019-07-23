@@ -51,7 +51,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.price, "12.23");
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxrate, "0.8988");
+    row.add(ShareSightTrades.fxRate, "0.8988");
     row.add(ShareSightTrades.value, "2097.85");
     row.add(ShareSightTrades.comments, "Test Comment");
 
@@ -85,7 +85,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.price, "12.23");
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxrate, "0.8988");
+    row.add(ShareSightTrades.fxRate, "0.8988");
     row.add(ShareSightTrades.value, "2097.85");
 
     Transformer trades = shareSightTransformers.getTransformer(row);
@@ -136,7 +136,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.price, "12.23");
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxrate, null);
+    row.add(ShareSightTrades.fxRate, null);
     row.add(ShareSightTrades.value, null);
     row.add(ShareSightTrades.comments, "Test Comment");
 

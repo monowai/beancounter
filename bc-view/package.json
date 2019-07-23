@@ -5,7 +5,7 @@
   "scripts": {
     "start": "razzle start",
     "build": "razzle build",
-    "lint": "prettier --write 'src/**/*.ts*' && yarn style ",
+    "lint": "prettier --write 'src/**/*.ts*' && yarn style && yarn lint-md",
     "style": "tslint 'src/**/*.ts*'",
     "test": "razzle test --env=jsdom",
     "start:prod": "NODE_ENV=production node build/server.js",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "axios": "^0.19.0",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-number-format": "^4.0.8",
@@ -31,6 +31,7 @@
     "@types/react-dom": "^16.8.4",
     "@types/react-router": "^5.0.3",
     "@types/react-router-dom": "^4.3.4",
+    "jest": "^24.8.0",
     "prettier": "1.17.0",
     "razzle": "^3.0.0",
     "razzle-plugin-typescript": "^3.0.0",
@@ -43,7 +44,8 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "tslint-react": "^4.0.0",
-    "typescript": "^3.4.5"
+    "typescript": "^3.4.5",
+    "webpack": "^4.36.1"
   },
   "jest": {
     "transform": {

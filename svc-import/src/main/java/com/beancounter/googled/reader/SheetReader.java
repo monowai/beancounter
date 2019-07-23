@@ -6,9 +6,8 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.googled.config.GoogleDocsConfig;
-import com.beancounter.googled.sharesight.ShareSightHelper;
 import com.beancounter.googled.sharesight.ShareSightTransformers;
-import com.beancounter.googled.sharesight.Transformer;
+import com.beancounter.googled.sharesight.common.ShareSightHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -75,17 +74,17 @@ public class SheetReader {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  private void setGoogleDocsConfig(GoogleDocsConfig googleDocsConfig) {
+  void setGoogleDocsConfig(GoogleDocsConfig googleDocsConfig) {
     this.googleDocsConfig = googleDocsConfig;
   }
 
   @Autowired
-  private void setShareSightHelper(ShareSightHelper shareSightHelper) {
+  void setShareSightHelper(ShareSightHelper shareSightHelper) {
     this.shareSightHelper = shareSightHelper;
   }
 
   @Autowired
-  private void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
+  void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
     this.shareSightTransformers = shareSightTransformers;
   }
 

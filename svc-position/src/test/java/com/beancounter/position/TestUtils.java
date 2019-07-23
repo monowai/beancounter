@@ -21,7 +21,7 @@ import org.springframework.http.MediaType;
  */
 class TestUtils {
 
-  static ObjectMapper mapper = new ObjectMapper();
+  private static ObjectMapper mapper = new ObjectMapper();
 
   static Date convert(LocalDate localDate) {
     return Date.from(localDate.atStartOfDay()
@@ -40,4 +40,11 @@ class TestUtils {
                     .withStatus(200)));
   }
 
+  public static ObjectMapper getMapper() {
+    return mapper;
+  }
+
+  public static void setMapper(ObjectMapper mapper) {
+    TestUtils.mapper = mapper;
+  }
 }

@@ -1,6 +1,5 @@
-[![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)        
 
-Services that transform transactions from, a Google Sheet, into a collection of portfolio positions which can optionally be valued against market data providers
+Services that import transaction data from, say a Google Sheet, and transforms them into a collection of portfolio positions which can optionally be valued against market data providers
     
 *   [Import transactions](svc-import/README.md) from a Google Docs sheet
 *   [Create positions](svc-position/README.md) from the transactions
@@ -24,3 +23,5 @@ curl -H "Content-Type: application/json" -X POST -d @trades.json <http://localho
 # Value positions    
 curl -H "Content-Type: application/json" -X POST -d @positions.json <http://localhost:9500/value> > valuedPositions.json
 ```
+
+[![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)        

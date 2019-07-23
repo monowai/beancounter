@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.position.TestUtils.mapper;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,14 +61,14 @@ class TestMarketValues {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
 
-    CollectionType javaType = mapper.getTypeFactory()
+    CollectionType javaType = TestUtils.getMapper().getTypeFactory()
         .constructCollectionType(Collection.class, MarketData.class);
 
     File jsonFile = new ClassPathResource("md-ABC.json").getFile();
-    Object response = mapper.readValue(jsonFile, javaType);
+    Object response = TestUtils.getMapper().readValue(jsonFile, javaType);
 
-    TestUtils.mockMarketData(mockMarketData, mapper.writeValueAsString(assets),
-        mapper.writeValueAsString(response));
+    TestUtils.mockMarketData(mockMarketData, TestUtils.getMapper().writeValueAsString(assets),
+        TestUtils.getMapper().writeValueAsString(response));
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -99,7 +98,7 @@ class TestMarketValues {
   @Tag("slow")
   void assetsAreHydratedOnValuationRequest() throws Exception {
 
-    CollectionType javaType = mapper.getTypeFactory()
+    CollectionType javaType = TestUtils.getMapper().getTypeFactory()
         .constructCollectionType(Collection.class, MarketData.class);
 
     Asset asset = AssetHelper.getAsset("EBAY", "NASDAQ");
@@ -107,10 +106,10 @@ class TestMarketValues {
     assets.add(asset);
 
     File jsonFile = new ClassPathResource("valuationResponse.json").getFile();
-    Object response = mapper.readValue(jsonFile, javaType);
+    Object response = TestUtils.getMapper().readValue(jsonFile, javaType);
 
-    TestUtils.mockMarketData(mockMarketData, mapper.writeValueAsString(assets),
-        mapper.writeValueAsString(response));
+    TestUtils.mockMarketData(mockMarketData, TestUtils.getMapper().writeValueAsString(assets),
+        TestUtils.getMapper().writeValueAsString(response));
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

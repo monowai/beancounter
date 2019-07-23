@@ -170,9 +170,9 @@ export function writeFooter(holdingGroup: HoldingGroup) {
   return (
     <Table.Footer>
       <Table.Row textAlign="right" className={"warning"}>
-        <Table.Cell textAlign="left" colSpan="2"/>
+        <Table.Cell textAlign="left" colSpan="2" />
         <Table.Cell textAlign="right">Sub-Total</Table.Cell>
-        <Table.Cell textAlign="left" colSpan="2"/>
+        <Table.Cell textAlign="left" colSpan="2" />
         {/*<Table.Cell textAlign="left" colSpan="4"/>*/}
         <Table.Cell>
           <NumberFormat

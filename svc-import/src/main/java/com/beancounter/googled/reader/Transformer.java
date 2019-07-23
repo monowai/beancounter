@@ -1,4 +1,4 @@
-package com.beancounter.googled.sharesight;
+package com.beancounter.googled.reader;
 
 import com.beancounter.common.model.Transaction;
 import java.text.ParseException;

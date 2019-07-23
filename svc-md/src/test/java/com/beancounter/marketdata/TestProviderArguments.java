@@ -11,12 +11,11 @@ import org.junit.jupiter.api.Test;
 /**
  * ProviderArguments could get quite complex.  Here are some logic checks to assert various states
  * of being based on batch sizes.
- * 
  */
 class TestProviderArguments {
 
   @Test
-  private void batchOfOne() {
+  void batchOfOne() {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
@@ -44,7 +43,7 @@ class TestProviderArguments {
   }
 
   @Test
-  private void batchOfTwo() {
+  void batchOfTwo() {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
@@ -72,7 +71,7 @@ class TestProviderArguments {
   }
 
   @Test
-  private void batchOfThree() {
+  void batchOfThree() {
 
     Asset aapl =
         Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();

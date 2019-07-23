@@ -1,4 +1,4 @@
-package com.beancounter.googled.sharesight;
+package com.beancounter.googled.sharesight.common;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
@@ -9,6 +9,7 @@ import com.google.api.client.repackaged.com.google.common.base.CharMatcher;
 import com.google.api.client.repackaged.com.google.common.base.Splitter;
 import com.google.api.client.util.Strings;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -44,7 +45,7 @@ public class ShareSightHelper {
   }
 
 
-  Date parseDate(String date) throws ParseException {
+  public Date parseDate(String date) throws ParseException {
     return formatter.parse(date);
   }
 
@@ -96,10 +97,10 @@ public class ShareSightHelper {
     return range;
   }
 
-  BigDecimal safeDivide(BigDecimal bigDecimal, BigDecimal tradeRate, int roundMode) {
-    if (bigDecimal.equals(BigDecimal.ZERO) || tradeRate.equals(BigDecimal.ZERO)) {
-      return bigDecimal;
+  public BigDecimal safeDivide(BigDecimal inValue, BigDecimal tradeRate) {
+    if (inValue.equals(BigDecimal.ZERO) || tradeRate.equals(BigDecimal.ZERO)) {
+      return inValue;
     }
-    return bigDecimal.divide(tradeRate, roundMode);
+    return inValue.divide(tradeRate, RoundingMode.HALF_UP);
   }
 }

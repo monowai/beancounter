@@ -3,6 +3,8 @@ package com.beancounter.googled.sharesight;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.googled.reader.Transformer;
+import com.beancounter.googled.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;

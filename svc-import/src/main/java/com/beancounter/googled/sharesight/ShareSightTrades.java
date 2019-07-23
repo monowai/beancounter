@@ -5,6 +5,8 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.googled.reader.Transformer;
+import com.beancounter.googled.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
@@ -74,7 +76,7 @@ public class ShareSightTrades implements Transformer {
           .quantity(helper.parseDouble(row.get(quantity).toString()))
           .price(helper.parseDouble(row.get(price).toString()))
           .fees(helper.safeDivide(
-              new BigDecimal(row.get(brokerage).toString()), tradeRate, BigDecimal.ROUND_HALF_UP))
+              new BigDecimal(row.get(brokerage).toString()), tradeRate))
           .tradeAmount(tradeAmount.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP))
           .tradeDate(helper.parseDate(row.get(date).toString()))
           .tradeCurrency(row.get(currency).toString())

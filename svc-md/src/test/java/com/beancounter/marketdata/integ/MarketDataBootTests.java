@@ -35,10 +35,15 @@ class MarketDataBootTests {
   private MockProviderService mockProviderService;
   private MarketService marketService;
 
+  MarketDataBootTests () {
+
+  }
+
   @Autowired
   private MarketDataBootTests(WebApplicationContext webApplicationContext,
                       MarketService marketService,
                       MockProviderService mockProviderService) {
+    super();
     this.context = webApplicationContext;
     this.mockProviderService = mockProviderService;
     this.marketService = marketService;

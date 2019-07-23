@@ -21,8 +21,13 @@ import org.springframework.web.context.WebApplicationContext;
 class PositionBootTests {
   private WebApplicationContext context;
 
+  PositionBootTests() {
+
+  }
+
   @Autowired
   private PositionBootTests(WebApplicationContext webApplicationContext) {
+    super();
     this.context = webApplicationContext;
   }
 

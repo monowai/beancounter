@@ -14,7 +14,7 @@ Based on Razzle
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/jaredpalmer/razzle.svg)](https://greenkeeper.io/)
 
-Then open http://localhost:3000/ to see your app. Your console should look like this:
+Then open <http://localhost:3000/> to see your app. Your console should look like this:
 
 Below is a list of commands you will probably find useful.
 
@@ -64,14 +64,12 @@ If your application is running, and you need to manually restart your server, yo
 **Table of Contents**
 
 *   [Customization](#customization)
-  * [Extending Babel Config](#extending-babel-config)
-  * [Extending Webpack](#extending-webpack)
-  * [Environment Variables](#environment-variables)
-  * [Adding Temporary Environment Variables In Your Shell](#adding-temporary-environment-variables-in-your-shell)
-    * [Windows (cmd.exe)](#windows-cmdexe)
-    * [Linux, macOS (Bash)](#linux-macos-bash)
-  * [Adding Environment Variables In `.env`](#adding-environment-variables-in-env)
-    * [What other `.env` files are can be used?](#what-other-env-files-are-can-be-used)
+    *   [Extending Babel Config](#extending-babel-config)
+    *   [Extending Webpack](#extending-webpack)
+    *   [Environment Variables](#environment-variables)
+    *   [Adding Temporary Environment Variables In Your Shell](#adding-temporary-environment-variables-in-your-shell)
+*   [Adding Environment Variables In `.env`](#adding-environment-variables-in-env)
+    *   [What other `.env` files are can be used?](#what-other-env-files-are-can-be-used)
 *   [How Razzle works (the secret sauce)](#how-razzle-works-the-secret-sauce)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->

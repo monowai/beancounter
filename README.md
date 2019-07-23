@@ -12,7 +12,7 @@ Put together, the flow looks like this
 
 ```bash
 
-# Create transactoins
+# Create transactions
 java -jar svc-import/build/libs/svc-import.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
@@ -24,4 +24,3 @@ curl -H "Content-Type: application/json" -X POST -d @trades.json <http://localho
 # Value positions    
 curl -H "Content-Type: application/json" -X POST -d @positions.json <http://localhost:9500/value> > valuedPositions.json
 ```
-

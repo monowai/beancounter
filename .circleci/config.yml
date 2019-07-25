@@ -13,7 +13,7 @@ jobs:
             - ~/beancounter
 
   build-common:
-    build:
+    docker:
       - image: circleci/openjdk:11
     machine:
       enabled: true
@@ -47,7 +47,7 @@ jobs:
 
 
   build-import:
-    build:
+    docker:
       - image: circleci/openjdk:11
     machine:
       enabled: true
@@ -78,7 +78,7 @@ jobs:
           path: svc-import/build/*.jar
 
   build-md:
-    build:
+    docker:
       - image: circleci/openjdk:11
     machine:
       enabled: true
@@ -108,7 +108,7 @@ jobs:
           path: svc-md/build/*.jar
 
   build-position:
-    build:
+    docker:
       - image: circleci/openjdk:11
     machine:
       enabled: true

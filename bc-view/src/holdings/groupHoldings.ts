@@ -1,4 +1,4 @@
-import {HoldingContract, Holdings, MoneyValues, Position} from "../types/beancounter";
+import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
 
 export const LOCAL = "LOCAL";
 // Transform the holdingContract into Holdings suitable for display

@@ -1,8 +1,8 @@
 import React from "react";
-import {HoldingContract, HoldingGroup, Holdings} from "../types/beancounter";
-import {Table} from "semantic-ui-react";
+import { HoldingContract, HoldingGroup, Holdings } from "../types/beancounter";
+import { Table } from "semantic-ui-react";
 import NumberFormat from "react-number-format";
-import {groupHoldings, LOCAL} from "./groupHoldings";
+import { groupHoldings, LOCAL } from "./groupHoldings";
 
 export default function GroupedHoldings(contract: HoldingContract) {
   // Transform the contract into the view the user requested
@@ -16,7 +16,7 @@ export default function GroupedHoldings(contract: HoldingContract) {
     // Build out the header
     return (
       <React.Fragment key={groupKey}>
-        <Table striped={true} fixed={false} compact={"very"}>
+        <Table striped={true} fixed={true} compact={"very"}>
           {writeHeader(groupKey)}
           {writeHoldings(holdings.holdingGroups[groupKey])}
           {writeFooter(holdings.holdingGroups[groupKey])}
@@ -37,12 +37,12 @@ export function writeHeader(groupKey: string) {
         <Table.HeaderCell>Quantity</Table.HeaderCell>
         <Table.HeaderCell>Price</Table.HeaderCell>
         <Table.HeaderCell>Avg Cost</Table.HeaderCell>
-        <Table.HeaderCell>Cost Value</Table.HeaderCell>
-        <Table.HeaderCell>Market Value</Table.HeaderCell>
+        <Table.HeaderCell>Cost</Table.HeaderCell>
+        <Table.HeaderCell>Value</Table.HeaderCell>
         <Table.HeaderCell>Dividends</Table.HeaderCell>
-        <Table.HeaderCell>Realised Gain</Table.HeaderCell>
-        <Table.HeaderCell>Unrealised Gain</Table.HeaderCell>
-        <Table.HeaderCell>Total Gain</Table.HeaderCell>
+        <Table.HeaderCell>Realised</Table.HeaderCell>
+        <Table.HeaderCell>Unrealised</Table.HeaderCell>
+        <Table.HeaderCell>Gain</Table.HeaderCell>
       </Table.Row>
     </Table.Header>
   );

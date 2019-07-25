@@ -1,0 +1,130 @@
+{
+  "portfolio": {
+    "code": "Mike",
+    "currency": {
+      "code": "USD"
+    }
+  },
+  "positions": {
+    "GOOG:NASDAQ": {
+      "asset": {
+        "code": "GOOG",
+        "name": "Alphabet Inc",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "id": "US",
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "moneyValues": {
+        "LOCAL": {
+          "dividends": 0,
+          "costValue": 2160.01,
+          "costBasis": 2160.01,
+          "fees": 0,
+          "purchases": 2160.01,
+          "sales": 0,
+          "price": 1121.58,
+          "marketValue": 2243.16,
+          "averageCost": 1080.005,
+          "realisedGain": 0,
+          "unrealisedGain": 83.15,
+          "totalGain": 83.15,
+          "asAt": "2019-07-03T00:00:00.000+0000"
+        }
+      },
+      "quantityValues": {
+        "sold": 0,
+        "purchased": 2,
+        "adjustment": 0,
+        "total": 2
+      },
+      "lastTradeDate": "2019-01-17T17:00:00.000+0000"
+    },
+    "AMP:ASX": {
+      "asset": {
+        "code": "AMP",
+        "name": "Amp Limited",
+        "market": {
+          "code": "ASX",
+          "currency": {
+            "id": "AU",
+            "code": "AUD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "Australia/Sydney"
+        }
+      },
+      "moneyValues": {
+        "LOCAL": {
+          "dividends": 3024.78,
+          "costValue": 2810.19,
+          "costBasis": 2810.19,
+          "fees": 0,
+          "purchases": 2810.19,
+          "sales": 0,
+          "price": 2.17,
+          "marketValue": 1382.29,
+          "averageCost": 4.411601256,
+          "realisedGain": 0,
+          "unrealisedGain": -1427.90,
+          "totalGain": 1596.88,
+          "asAt": "2019-07-03T00:00:00.000+0000"
+        }
+      },
+      "quantityValues": {
+        "sold": 0,
+        "purchased": 637,
+        "adjustment": 0,
+        "total": 637
+      },
+      "lastTradeDate": "2018-09-27T17:00:00.000+0000"
+    },
+    "ABBV:NYSE": {
+      "asset": {
+        "code": "ABBV",
+        "name": "AbbVie Inc",
+        "market": {
+          "code": "NYSE",
+          "currency": {
+            "id": "US",
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "moneyValues": {
+        "LOCAL": {
+          "dividends": 187.20,
+          "costValue": 0,
+          "costBasis": 0,
+          "fees": 0,
+          "purchases": 1085.91,
+          "sales": 1742.28,
+          "price": 74.96,
+          "marketValue": 0.00,
+          "averageCost": 0,
+          "realisedGain": 656.37,
+          "unrealisedGain": 0.00,
+          "totalGain": 843.57,
+          "asAt": "2019-07-03T00:00:00.000+0000"
+        }
+      },
+      "quantityValues": {
+        "sold": -32,
+        "purchased": 32,
+        "adjustment": 0,
+        "total": 0
+      },
+      "lastTradeDate": "2016-01-18T17:00:00.000+0000"
+    }
+  }
+}

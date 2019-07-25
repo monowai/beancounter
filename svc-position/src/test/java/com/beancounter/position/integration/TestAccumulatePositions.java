@@ -1,4 +1,4 @@
-package com.beancounter.position;
+package com.beancounter.position.integration;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.assertj.core.api.Assertions.assertThat;

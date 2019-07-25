@@ -6,7 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * Owner of a collection of Positions. 
+ * Owner of a collection of Positions.
+ *
  * @author mikeh
  * @since 2019-01-28
  */
@@ -15,6 +16,8 @@ import lombok.Data;
 @JsonDeserialize(builder = Portfolio.PortfolioBuilder.class)
 public class Portfolio {
   private String code;
+
+  private Currency currency;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

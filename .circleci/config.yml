@@ -13,6 +13,8 @@ jobs:
             - ~/beancounter
 
   build-common:
+    build:
+      - image: circleci/openjdk:11
     machine:
       enabled: true
     environment:
@@ -44,7 +46,9 @@ jobs:
           path: jar-common/build/*.jar
 
 
-  build-google-docs:
+  build-import:
+    build:
+      - image: circleci/openjdk:11
     machine:
       enabled: true
     environment:
@@ -74,6 +78,8 @@ jobs:
           path: svc-import/build/*.jar
 
   build-md:
+    build:
+      - image: circleci/openjdk:11
     machine:
       enabled: true
     environment:
@@ -102,6 +108,8 @@ jobs:
           path: svc-md/build/*.jar
 
   build-position:
+    build:
+      - image: circleci/openjdk:11
     machine:
       enabled: true
     environment:
@@ -145,6 +153,6 @@ workflows:
       - build-position:
           requires:
             - build-common
-      - build-google-docs:
+      - build-import:
           requires:
             - build-common

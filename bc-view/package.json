@@ -5,11 +5,12 @@
   "scripts": {
     "start": "razzle start",
     "build": "razzle build",
-    "lint": "prettier --write 'src/**/*.ts*' && yarn style && yarn lint-md",
-    "style": "tslint 'src/**/*.ts*'",
-    "test": "razzle test --env=jsdom",
     "start:prod": "NODE_ENV=production node build/server.js",
-    "lint-md": "remark ."
+    "prettier": "prettier --write 'src/**/*.ts*'  && yarn lint",
+    "prettier:check": "prettier  --check 'src/**/*.ts*' && yarn lint",
+    "lint": "tslint 'src/**/*.ts*' && yarn lint-md",
+    "lint-md": "remark .",
+    "test": "razzle test --env=jsdom"
   },
   "dependencies": {
     "axios": "^0.19.0",

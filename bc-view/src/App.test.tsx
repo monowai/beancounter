@@ -1,6 +1,7 @@
 import App from "./App";
 import React from "react";
 import ReactDOM from "react-dom";
+// @ts-ignore
 import MemoryRouter from "react-router-dom/MemoryRouter";
 
 describe("<App />", () => {

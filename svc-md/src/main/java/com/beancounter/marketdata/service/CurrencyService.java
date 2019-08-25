@@ -61,4 +61,7 @@ public class CurrencyService {
   }
 
 
+  public String delimited(String delimiter) {
+    return String.join(delimiter, staticConfig.getCurrencyCode().keySet());
+  }
 }

@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Builder
 @JsonDeserialize(builder = Currency.CurrencyBuilder.class)
+@ToString(exclude = {"id", "name", "symbol"})
 public class Currency {
   private String id;
   private String code;

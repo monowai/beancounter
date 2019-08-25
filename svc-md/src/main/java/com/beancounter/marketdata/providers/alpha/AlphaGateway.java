@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
     name = "alphaRequest",
     url = "${beancounter.marketdata.provider.ALPHA.url:https://www.alphavantage.co}")
 
-public interface AlphaRequest {
+public interface AlphaGateway {
 
   @RequestMapping(
       method = RequestMethod.GET,
@@ -25,7 +25,7 @@ public interface AlphaRequest {
       value = "/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"
   )
   String getMarketDataQuote(@PathVariable("assetId") String assetId,
-                                 @PathVariable("apiKey") String apiKey);
+                            @PathVariable("apiKey") String apiKey);
 
   @RequestMapping(
       method = RequestMethod.GET,

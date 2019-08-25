@@ -14,7 +14,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.DataProviderUtils;
-import com.beancounter.marketdata.providers.wtd.WtdProviderService;
+import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -49,7 +49,7 @@ class TestWorldTradingDataApi {
   private static WireMockRule mockInternet;
 
   @Autowired
-  private WtdProviderService wtdProviderService;
+  private WtdService wtdService;
 
   @Autowired
   private void mockServices() {
@@ -75,14 +75,14 @@ class TestWorldTradingDataApi {
         .stubFor(
             get(urlEqualTo(
                 "/api/v1/history_multi_single_day?symbol=AMP.AX&date="
-                    + wtdProviderService.getDate()
+                    + wtdService.getDate()
                     + "&api_token=demo"))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(new ObjectMapper().writeValueAsString(response))
                     .withStatus(200)));
 
-    Collection<MarketData> mdResult = wtdProviderService.getCurrent(assets);
+    Collection<MarketData> mdResult = wtdService.getCurrent(assets);
 
     assertThat(mdResult).isNotNull()
         .hasSize(1);
@@ -106,11 +106,11 @@ class TestWorldTradingDataApi {
     //  the date as set in the response from the provider.
 
     DataProviderUtils.mockWtdResponse(assets, mockInternet,
-        wtdProviderService.getDate(),
+        wtdService.getDate(),
         false,
         jsonFile);
 
-    Collection<MarketData> mdResult = wtdProviderService.getCurrent(assets);
+    Collection<MarketData> mdResult = wtdService.getCurrent(assets);
     assertThat(mdResult)
         .isNotNull()
         .hasSize(2);
@@ -152,10 +152,10 @@ class TestWorldTradingDataApi {
     assets.add(msft);
 
     File jsonFile = new ClassPathResource("wtdWithInvalidAsset.json").getFile();
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdProviderService.getDate(), jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdService.getDate(), jsonFile);
 
 
-    Collection<MarketData> mdResult = wtdProviderService.getCurrent(assets);
+    Collection<MarketData> mdResult = wtdService.getCurrent(assets);
     assertThat(mdResult)
         .isNotNull()
         .hasSize(2);
@@ -186,9 +186,9 @@ class TestWorldTradingDataApi {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(msft);
 
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdProviderService.getDate(), jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdService.getDate(), jsonFile);
 
-    assertThrows(BusinessException.class, () -> wtdProviderService.getCurrent(assets));
+    assertThrows(BusinessException.class, () -> wtdService.getCurrent(assets));
   }
 
 }

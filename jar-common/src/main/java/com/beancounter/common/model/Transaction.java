@@ -19,11 +19,12 @@ import lombok.ToString;
 @SuppressWarnings("UnusedAssignment")
 @Data
 @Builder
-@ToString(of = {"asset","trnType","id"})
+@ToString(of = {"asset", "trnType", "id"})
 @JsonDeserialize(builder = Transaction.TransactionBuilder.class)
 public class Transaction {
   private TrnType trnType;
   private Asset asset;
+  private Asset cashAsset;
   private TransactionId id;
   private Portfolio portfolio;
   private Market market;
@@ -44,6 +45,9 @@ public class Transaction {
   // In trade Currency
   private BigDecimal tradeAmount = BigDecimal.ZERO;
   private BigDecimal cashAmount;
+  // Trade CCY to settlement  currency
+  private BigDecimal cashRate;
+
   // Trade CCY to portfolio reference currency
   private BigDecimal tradeRate;
   @Builder.Default

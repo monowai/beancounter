@@ -7,7 +7,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.DataProviderUtils;
-import com.beancounter.marketdata.providers.alpha.AlphaProviderService;
+import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MdFactory;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -57,7 +57,7 @@ class TestAlphaVantageApi {
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
-    MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaProviderService.ID);
+    MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
     MarketData mdResult = alphaProvider.getCurrent(asset);
     assertThat(mdResult)
         .isNotNull()
@@ -74,7 +74,7 @@ class TestAlphaVantageApi {
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
-    MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaProviderService.ID);
+    MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
     MarketData mdResult = alphaProvider.getCurrent(asset);
     assertThat(mdResult)
         .isNotNull()
@@ -91,7 +91,7 @@ class TestAlphaVantageApi {
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
-    MarketData mdResult = mdFactory.getMarketDataProvider(AlphaProviderService.ID)
+    MarketData mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
         .getCurrent(asset);
 
     assertThat(mdResult)

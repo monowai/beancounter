@@ -31,15 +31,29 @@ public class DataProviderUtils {
   /**
    * Convenience function to stub a response for ABC symbol.
    *
-   * @param mockAlphaVantage wiremock
-   * @param jsonFile         response file to return
+   * @param wireMockRule wiremock
+   * @param jsonFile     response file to return
    * @throws IOException anything
    */
-  public static void mockAlphaResponse(WireMockRule mockAlphaVantage, File jsonFile)
+  public static void mockAlphaResponse(WireMockRule wireMockRule, File jsonFile)
       throws IOException {
-    mockAlphaVantage
+    mockGetResponse(wireMockRule,
+        "/query?function=TIME_SERIES_DAILY&symbol=ABC.AX&apikey=demo", jsonFile);
+  }
+
+  /**
+   * Convenience function to stub a GET/200 response.
+   *
+   * @param wireMockRule wiremock
+   * @param url          url to stub
+   * @param jsonFile     response file to return
+   * @throws IOException anything
+   */
+  public static void mockGetResponse(WireMockRule wireMockRule, String url, File jsonFile)
+      throws IOException {
+    wireMockRule
         .stubFor(
-            get(urlEqualTo("/query?function=TIME_SERIES_DAILY&symbol=ABC.AX&apikey=demo"))
+            get(urlEqualTo(url))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(mapper.writeValueAsString(mapper.readValue(jsonFile, HashMap.class)))
@@ -64,7 +78,7 @@ public class DataProviderUtils {
    */
   public static void mockWtdResponse(
       Collection<Asset> assets, WireMockRule wtdMock, String asAt,
-      boolean overrideAsAt, File jsonFile)  throws IOException {
+      boolean overrideAsAt, File jsonFile) throws IOException {
 
     StringBuilder assetArg = null;
 
@@ -95,6 +109,7 @@ public class DataProviderUtils {
 
   /**
    * Helper to return a Map from a JSON file.
+   *
    * @param jsonFile input file
    * @return Map
    * @throws IOException err

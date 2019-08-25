@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class WtdProviderService implements MarketDataProvider {
+public class WtdService implements MarketDataProvider {
   public static final String ID = "WTD";
   @Value("${beancounter.marketdata.provider.WTD.key:demo}")
   private String apiKey;
@@ -56,7 +56,7 @@ public class WtdProviderService implements MarketDataProvider {
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
 
   @Autowired
-  WtdProviderService(WtdRequester wtdRequester, StaticConfig staticConfig, Dates dates) {
+  WtdService(WtdRequester wtdRequester, StaticConfig staticConfig, Dates dates) {
     this.wtdRequester = wtdRequester;
     this.dates = dates;
     this.staticConfig = staticConfig;

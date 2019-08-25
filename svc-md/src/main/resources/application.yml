@@ -19,6 +19,8 @@ spring:
     cache-names: asset.prices
 
 beancounter:
+  baseCcy: US
+
   currencies:
     GB:
       code: GBP
@@ -44,6 +46,7 @@ beancounter:
       code: EUR
       name: Euro
       symbol: €
+
   markets:
     MOCK:
       timezone: UTC

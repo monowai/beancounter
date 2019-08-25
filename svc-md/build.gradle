@@ -44,11 +44,11 @@ dependencies {
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter-engine",
-            "org.junit.vintage:junit-vintage-engine",
             "org.junit.platform:junit-platform-launcher",
-            "org.junit.platform:junit-platform-runner",
-            "com.github.tomakehurst:wiremock-jre8:${wiremockVersion}",
-            "org.junit.platform:junit-platform-surefire-provider"
+//            "org.junit.platform:junit-platform-runner",
+//            "org.junit.platform:junit-platform-surefire-provider",
+            "com.github.tomakehurst:wiremock-jre8:${wiremockVersion}"
+
     )
 }
 

@@ -2,9 +2,9 @@ package com.beancounter.marketdata.service;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.marketdata.providers.alpha.AlphaProviderService;
+import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
-import com.beancounter.marketdata.providers.wtd.WtdProviderService;
+import com.beancounter.marketdata.providers.wtd.WtdService;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +25,11 @@ public class MdFactory {
 
   @Autowired
   MdFactory(MockProviderService mockProviderService,
-            AlphaProviderService alphaProviderService,
-            WtdProviderService wtdProviderService) {
+            AlphaService alphaService,
+            WtdService wtdService) {
     providers.put(mockProviderService.getId().toUpperCase(), mockProviderService);
-    providers.put(alphaProviderService.getId().toUpperCase(), alphaProviderService);
-    providers.put(wtdProviderService.getId().toUpperCase(), wtdProviderService);
+    providers.put(alphaService.getId().toUpperCase(), alphaService);
+    providers.put(wtdService.getId().toUpperCase(), wtdService);
   }
 
   /**
@@ -56,11 +56,11 @@ public class MdFactory {
     if (providers.get(MockProviderService.ID).isMarketSupported(market)) {
       return providers.get(MockProviderService.ID);
     }
-    if (providers.get(AlphaProviderService.ID).isMarketSupported(market)) {
-      return providers.get(AlphaProviderService.ID);
+    if (providers.get(AlphaService.ID).isMarketSupported(market)) {
+      return providers.get(AlphaService.ID);
     }
-    if (providers.get(WtdProviderService.ID).isMarketSupported(market)) {
-      return providers.get(WtdProviderService.ID);
+    if (providers.get(WtdService.ID).isMarketSupported(market)) {
+      return providers.get(WtdService.ID);
     }
     log.error("Unable to identify a provider for {}", market);
     return null;

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class AlphaProviderService implements MarketDataProvider {
+public class AlphaService implements MarketDataProvider {
   public static final String ID = "ALPHA";
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
@@ -42,12 +42,12 @@ public class AlphaProviderService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.ALPHA.markets}")
   private String markets;
 
-  private AlphaRequestor alphaRequestor;
+  private AlphaRequester alphaRequester;
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  AlphaProviderService(AlphaRequestor alphaRequestor) {
-    this.alphaRequestor = alphaRequestor;
+  AlphaService(AlphaRequester alphaRequester) {
+    this.alphaRequester = alphaRequester;
   }
 
   @PostConstruct
@@ -76,7 +76,7 @@ public class AlphaProviderService implements MarketDataProvider {
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
       requests.put(batchId,
-          alphaRequestor.getMarketData(providerArguments.getBatch().get(batchId), apiKey));
+          alphaRequester.getMarketData(providerArguments.getBatch().get(batchId), apiKey));
     }
 
     return getMarketData(providerArguments, requests);

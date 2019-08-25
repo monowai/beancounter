@@ -14,18 +14,18 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class AlphaRequestor {
+public class AlphaRequester {
 
-  private AlphaRequest alphaRequest;
+  private AlphaGateway alphaGateway;
 
   @Autowired
-  AlphaRequestor(AlphaRequest alphaRequest) {
-    this.alphaRequest = alphaRequest;
+  AlphaRequester(AlphaGateway alphaGateway) {
+    this.alphaGateway = alphaGateway;
   }
 
   @Async
   Future<String> getMarketData(String code, String apiKey) {
-    String result = alphaRequest.getMarketData(code, apiKey);
+    String result = alphaGateway.getMarketData(code, apiKey);
     return new AsyncResult<>(result);
   }
 }

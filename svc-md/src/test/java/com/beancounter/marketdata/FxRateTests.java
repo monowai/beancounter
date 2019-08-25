@@ -52,7 +52,7 @@ class FxRateTests {
     Map<CurrencyPair, FxRate> results = rateCache.get(asAt);
     assertThat(results).hasSize(pairs.size());
 
-    Map<CurrencyPair, FxRate>values = rateCache.get(asAt);
+    Map<CurrencyPair, FxRate> values = rateCache.get(asAt);
     FxRate audUsd = values.get(AUD_USD);
     FxRate usdAud = values.get(USD_AUD);
     // Verify that the inverse rate is equal

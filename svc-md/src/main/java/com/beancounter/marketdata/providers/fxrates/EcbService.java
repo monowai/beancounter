@@ -46,9 +46,7 @@ public class EcbService {
 
 
   public String date(@NotNull Date inDate) {
-    if (inDate == null)
-    // Callers problem
-    {
+    if (inDate == null) {
       throw new BusinessException("Date must not be null");
     }
 

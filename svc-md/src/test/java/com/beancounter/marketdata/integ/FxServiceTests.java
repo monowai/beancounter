@@ -34,6 +34,7 @@ class FxServiceTests {
   private FxService fxService;
 
   @Autowired
+  @SuppressWarnings("unused")
   private void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (mockInternet == null) {
@@ -65,7 +66,9 @@ class FxServiceTests {
     pairs.add(usdNzd);
     pairs.add(nzdNzd);
     pairs.add(usdUsd);
-    Map<CurrencyPair, FxRate> results = fxService.getRates(date, pairs);
+    Map<Date, Map<CurrencyPair, FxRate>> rateCache = fxService.getRates(date, pairs);
+
+    Map<CurrencyPair, FxRate> results = rateCache.get(date);
     assertThat(results)
         .containsKeys(nzdUsd, usdNzd)
         .hasSize(pairs.size());

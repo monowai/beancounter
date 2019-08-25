@@ -47,12 +47,14 @@ class FxRateTests {
     Map<String, FxRate> rates = getRateTable();
     Date asAt = new Date();
 
-    Map<CurrencyPair, FxRate> results = rateCalculator.compute(asAt, pairs, rates);
+    Map<Date, Map<CurrencyPair, FxRate>> rateCache = rateCalculator.compute(asAt, pairs, rates);
+    assertThat(rateCache).hasSize(1);
+    Map<CurrencyPair, FxRate> results = rateCache.get(asAt);
     assertThat(results).hasSize(pairs.size());
-    assertThat(results.get(USD_USD)).hasFieldOrPropertyWithValue("rate", BigDecimal.ONE);
 
-    FxRate audUsd = results.get(AUD_USD);
-    FxRate usdAud = results.get(USD_AUD);
+    Map<CurrencyPair, FxRate>values = rateCache.get(asAt);
+    FxRate audUsd = values.get(AUD_USD);
+    FxRate usdAud = values.get(USD_AUD);
     // Verify that the inverse rate is equal
     BigDecimal calc = BigDecimal.ONE.divide(audUsd.getRate(), 8, RoundingMode.HALF_UP);
     assertThat(usdAud.getRate()).isEqualTo(calc);

@@ -28,8 +28,8 @@ public class FxService {
     this.rateCalculator = rateCalculator;
   }
 
-  public Map<CurrencyPair, FxRate> getRates(@NotNull Date asAt,
-                                            @NotNull Collection<CurrencyPair> currencyPairs) {
+  public Map<Date, Map<CurrencyPair, FxRate>> getRates(@NotNull Date asAt,
+                                                       @NotNull Collection<CurrencyPair> currencyPairs) {
     verify(currencyPairs);
 
     Collection<FxRate> rates = rateStore.get(asAt);

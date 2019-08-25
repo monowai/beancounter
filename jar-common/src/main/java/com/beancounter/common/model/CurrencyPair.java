@@ -20,6 +20,6 @@ public class CurrencyPair {
 
   @Override
   public String toString() {
-    return from +":" + to;
+    return from + ":" + to;
   }
 }

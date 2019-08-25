@@ -16,16 +16,17 @@ public class RateCalculator {
    * For the supplied Pairs, compute the cross rates using the supplied rate table data.
    * Returns one rate for every requested CurrencyPair. The CurrencyPair serves as the callers
    * index to the result set.
-   *
-   * @param asAt
+   *  @param asAt    Requested date
    * @param pairs   ISO currency codes for which to compute rates, i.e. NZD,AUD
    * @param rateMap Base->Target  (by default, USD->ISO)
+   * @return
    */
-  public Map<CurrencyPair, FxRate> compute(Date asAt, Collection<CurrencyPair> pairs,
-                                           Map<String, FxRate> rateMap) {
-    Map<CurrencyPair, FxRate> results = new HashMap<>();
+  public Map<Date, Map<CurrencyPair, FxRate>> compute(Date asAt, Collection<CurrencyPair> pairs,
+                                                      Map<String, FxRate> rateMap) {
+    Map<Date, Map<CurrencyPair, FxRate>> results = new HashMap<>();
 
     for (CurrencyPair pair : pairs) { // For all requested pairings
+      Map<CurrencyPair, FxRate> cache = results.computeIfAbsent(asAt, k -> new HashMap<>());
       if (!pair.getFrom().equalsIgnoreCase(pair.getTo())) { // Is the answer one?
         FxRate from = rateMap.get(pair.getFrom());
         FxRate to = rateMap.get(pair.getTo());
@@ -33,14 +34,14 @@ public class RateCalculator {
 
         BigDecimal rate = from.getRate().divide(to.getRate(), 8, RoundingMode.HALF_UP);
 
-        results.put(pair, FxRate.builder()
+        cache.put(pair, FxRate.builder()
             .from(from.getTo())
             .to(to.getTo())
             .rate(rate)
             .date(asAt)
             .build());
       } else {
-        results.put(pair, FxRate.builder()
+        cache.put(pair, FxRate.builder()
             .from(rateMap.get(pair.getFrom()).getTo())
             .to(rateMap.get(pair.getTo()).getTo())
             .rate(BigDecimal.ONE)

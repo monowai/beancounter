@@ -20,11 +20,11 @@ public class TotalPositions {
       refSales = refSales.add(portfolioValues.getSales());
       refDividends = refDividends.add(portfolioValues.getDividends());
     }
-    MoneyValues targetValues = MoneyValues.builder()
-        .purchases(refPurchases)
-        .dividends(refDividends)
-        .sales(refSales)
-        .build();
+//    MoneyValues.builder()
+//        .purchases(refPurchases)
+//        .dividends(refDividends)
+//        .sales(refSales)
+//        .build();
     return positions;
   }
 }

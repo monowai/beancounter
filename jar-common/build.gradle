@@ -1,7 +1,7 @@
 buildscript {
     ext {
-        set("junitVersion", "5.3.2")
-        set("junitPlatformVersion", "1.3.2")
+        set("junitVersion", "5.5.1")
+        set("junitPlatformVersion", "1.5.1")
         set("lombokVersion", "1.18.6")
     }
     repositories {
@@ -40,7 +40,7 @@ dependencies() {
             "org.junit.jupiter:junit-jupiter-engine:${junitVersion}",
             "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}",
             "org.junit.platform:junit-platform-runner:${junitPlatformVersion}",
-            "org.junit.platform:junit-platform-surefire-provider:${junitPlatformVersion}"
+            "org.junit.platform:junit-platform-surefire-provider:1.3.2"
     )
 }
 

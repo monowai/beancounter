@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.1.6.RELEASE'
+        springBootVersion = "2.1.7.RELEASE"
         springCloudVersion = 'Greenwich.RELEASE'
         resilience4jVersion = "0.16.0"
         wiremockVersion = "2.23.2"
@@ -27,7 +27,6 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
-//            "org.springframework.cloud:spring-cloud-starter-netflix-ribbon",
             "org.springframework.boot:spring-boot-starter-actuator",
             "io.github.resilience4j:resilience4j-spring-boot2:${resilience4jVersion}",
             "io.github.resilience4j:resilience4j-reactor:${resilience4jVersion}"
@@ -48,7 +47,6 @@ dependencies {
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter-engine",
-            "org.junit.vintage:junit-vintage-engine",
             "org.junit.platform:junit-platform-launcher",
             "org.junit.platform:junit-platform-runner",
             "org.junit.platform:junit-platform-surefire-provider",

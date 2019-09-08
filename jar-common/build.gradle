@@ -19,6 +19,7 @@ dependencies() {
             "org.projectlombok:lombok:${lombokVersion}",
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
             "io.github.openfeign:feign-core:10.1.0",
+            "org.springframework:spring-web:5.1.9.RELEASE",
             "com.google.guava:guava:27.0.1-jre"
     )
 
@@ -37,6 +38,7 @@ dependencies() {
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
             "org.assertj:assertj-core:3.11.1",
+            "org.springframework:spring-web:5.1.9.RELEASE",
             "org.junit.jupiter:junit-jupiter-engine:${junitVersion}",
             "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}",
             "org.junit.platform:junit-platform-runner:${junitPlatformVersion}",

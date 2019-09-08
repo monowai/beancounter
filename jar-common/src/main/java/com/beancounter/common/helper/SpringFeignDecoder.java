@@ -53,6 +53,13 @@ public class SpringFeignDecoder implements ErrorDecoder {
   }
 
   private String getMessage(Response response) throws IOException {
+    if (response.body() == null) {
+      SpringExceptionMessage exceptionMessage = SpringExceptionMessage.builder()
+          .message(response.reason())
+          .status(response.status())
+          .build();
+      return exceptionMessage.getMessage();
+    }
 
     try (Reader reader = response.body().asReader()) {
       String result = CharStreams.toString(reader);

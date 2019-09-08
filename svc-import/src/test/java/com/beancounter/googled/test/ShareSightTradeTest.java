@@ -2,6 +2,8 @@ package com.beancounter.googled.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.googled.config.ExchangeConfig;
@@ -55,8 +57,15 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.value, "2097.85");
     row.add(ShareSightTrades.comments, "Test Comment");
 
-    Transformer trades = shareSightTransformers.getTransformer(row);
-    Transaction transaction = trades.of(row);
+    Transformer trades = shareSightTransformers.transformer(row);
+
+    // Portfolio is in NZD
+    Portfolio portfolio = getPortfolio();
+
+    // System base currency
+    Currency base = getCurrency("USD");
+
+    Transaction transaction = trades.from(row, portfolio, base);
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -69,6 +78,17 @@ class ShareSightTradeTest {
         .hasFieldOrProperty("tradeDate")
     ;
 
+  }
+
+  private Currency getCurrency(String currency) {
+    return Currency.builder().code(currency).build();
+  }
+
+  private Portfolio getPortfolio() {
+    return Portfolio.builder()
+        .code("TEST")
+        .currency(getCurrency("NZD"))
+        .build();
   }
 
   @Test
@@ -88,8 +108,8 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.fxRate, "0.8988");
     row.add(ShareSightTrades.value, "2097.85");
 
-    Transformer trades = shareSightTransformers.getTransformer(row);
-    Transaction transaction = trades.of(row);
+    Transformer trades = shareSightTransformers.transformer(row);
+    Transaction transaction = trades.from(row, getPortfolio(), getCurrency("USD"));
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -114,10 +134,10 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
 
-    Transformer transformer = shareSightTransformers.getTransformer("TRADE");
+    Transformer transformer = shareSightTransformers.transformer("TRADE");
     assertThat(transformer.isValid(row)).isTrue();
 
-    Transaction transaction = transformer.of(row);
+    Transaction transaction = transformer.from(row, getPortfolio(), getCurrency("USD"));
 
     assertThat(transaction).isNotNull();
   }
@@ -140,8 +160,8 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.value, null);
     row.add(ShareSightTrades.comments, "Test Comment");
 
-    Transformer trades = shareSightTransformers.getTransformer("TRADE");
-    Transaction transaction = trades.of(row);
+    Transformer trades = shareSightTransformers.transformer("TRADE");
+    Transaction transaction = trades.from(row, getPortfolio(), getCurrency("USD"));
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -150,6 +170,10 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("0.00"))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
+        .hasFieldOrPropertyWithValue("tradeCurrency", Currency.builder().code("AUD").build())
+        .hasFieldOrPropertyWithValue("baseCurrency", Currency.builder().code("USD").build())
+        .hasFieldOrPropertyWithValue("portfolio", getPortfolio())
+
         .hasFieldOrProperty("tradeDate")
     ;
 

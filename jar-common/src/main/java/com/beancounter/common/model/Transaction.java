@@ -26,8 +26,11 @@ public class Transaction {
   private Asset asset;
   private Asset cashAsset;
   private TransactionId id;
-  private Portfolio portfolio;
   private Market market;
+  private Portfolio portfolio;
+  private Currency tradeCurrency;
+  private Currency cashCurrency;
+  private Currency baseCurrency;
 
   private Date tradeDate;
   private Date settleDate;
@@ -54,7 +57,6 @@ public class Transaction {
   // Trade Currency to system Base Currency
   private BigDecimal baseRate = BigDecimal.ONE;
 
-  private String tradeCurrency;
   private String comments;
 
   @SuppressWarnings("WeakerAccess")

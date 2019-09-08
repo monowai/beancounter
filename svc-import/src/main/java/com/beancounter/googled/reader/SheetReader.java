@@ -64,8 +64,14 @@ public class SheetReader {
 
   private Collection<String> filteredAssets = new ArrayList<>();
 
-  @Value(("${beancounter.portfolio.code:mike}"))
-  private String portfolio;
+  @Value(("${portfolio.code:mike}"))
+  private String portfolioCode;
+
+  @Value(("${portfolio.code:USD}"))
+  private String portfolioCurrency;
+
+  @Value(("${base.code:USD}"))
+  private String baseCurrency;
 
   private ShareSightHelper shareSightHelper;
 
@@ -101,6 +107,13 @@ public class SheetReader {
       filteredAssets = Lists.newArrayList(Splitter.on(",").split(filter));
     }
 
+    Portfolio portfolio = Portfolio.builder()
+        .code(portfolioCode)
+        .currency(Currency.builder().code(portfolioCurrency).build())
+        .build();
+
+    Currency systemBase = Currency.builder().code(baseCurrency).build();
+
     final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
     Sheets service = new Sheets.Builder(httpTransport, JSON_FACTORY,
         getCredentials(httpTransport))
@@ -128,17 +141,11 @@ public class SheetReader {
         for (List row : values) {
           // Print columns in range, which correspond to indices 0 and 4.
           Transaction transaction;
-          Transformer transformer = shareSightTransformers.getTransformer(row);
+          Transformer transformer = shareSightTransformers.transformer(row);
 
           try {
             if (transformer.isValid(row)) {
-              transaction = transformer.of(row);
-              if (transaction.getPortfolio() == null) {
-                transaction.setPortfolio(Portfolio.builder()
-                    .code(portfolio)
-                    .currency(Currency.builder().code("USD").build())
-                    .build());
-              }
+              transaction = transformer.from(row, portfolio, systemBase);
 
               if (transaction.getId() == null) {
                 transaction.setId(TransactionId.builder()

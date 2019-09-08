@@ -30,7 +30,7 @@ public class ShareSightTransformers {
    * @param row analyze this
    * @return appropriate transformer
    */
-  public Transformer getTransformer(List row) {
+  public Transformer transformer(List row) {
     if (row.size() == 9) {
       if (row.get(ShareSightTrades.type).toString().equalsIgnoreCase("split")) {
         return shareSightTrades;
@@ -46,7 +46,7 @@ public class ShareSightTransformers {
    * @param type DIVI/TRADE
    * @return DIVI otherwise TRADE
    */
-  public Transformer getTransformer(String type) {
+  public Transformer transformer(String type) {
     if (type.equalsIgnoreCase("DIVI")) {
       return shareSightDivis;
     } else {

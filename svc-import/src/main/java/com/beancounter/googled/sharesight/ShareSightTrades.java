@@ -2,7 +2,9 @@ package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.googled.reader.Transformer;
@@ -47,7 +49,8 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public Transaction of(List row) throws ParseException {
+  public Transaction from(List row, Portfolio portfolio, Currency baseCurrency)
+      throws ParseException {
     try {
       TrnType trnType = helper.resolveType(row.get(type).toString());
       if (trnType == null) {
@@ -73,13 +76,15 @@ public class ShareSightTrades implements Transformer {
       return Transaction.builder()
           .asset(asset)
           .trnType(trnType)
+          .portfolio(portfolio)
+          .baseCurrency(baseCurrency)
           .quantity(helper.parseDouble(row.get(quantity).toString()))
           .price(helper.parseDouble(row.get(price).toString()))
           .fees(helper.safeDivide(
               new BigDecimal(row.get(brokerage).toString()), tradeRate))
           .tradeAmount(tradeAmount.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP))
           .tradeDate(helper.parseDate(row.get(date).toString()))
-          .tradeCurrency(row.get(currency).toString())
+          .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           .tradeRate(tradeRate) // Trade to Portfolio Reference rate
           .comments(comment)
           .build()

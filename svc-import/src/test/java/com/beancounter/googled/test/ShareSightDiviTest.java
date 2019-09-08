@@ -3,7 +3,9 @@ package com.beancounter.googled.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.googled.config.ExchangeConfig;
 import com.beancounter.googled.reader.Transformer;
@@ -12,6 +14,7 @@ import com.beancounter.googled.sharesight.ShareSightTrades;
 import com.beancounter.googled.sharesight.ShareSightTransformers;
 import com.beancounter.googled.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -40,38 +43,52 @@ class ShareSightDiviTest {
   @Autowired
   private ShareSightTransformers shareSightTransformers;
 
-
   @Test
-  void convertRowToTransaction() throws Exception {
-
+  void areCurrenciesResolvedForDividendTransaction() throws Exception {
     List<String> row = new ArrayList<>();
 
+    // Portfolio is in NZD
+    Portfolio portfolio = Portfolio.builder()
+        .code("TEST")
+        .currency(Currency.builder().code("NZD").build())
+        .build();
+
+    // System base currency
+    Currency base = Currency.builder().code("USD").build();
+
+    // Trade is in USD
     row.add(ShareSightDivis.code, "MO.NYS");
     row.add(ShareSightDivis.name, "Test Asset");
     row.add(ShareSightDivis.date, "21/01/2019");
-    row.add(ShareSightDivis.fxRate, "0.8988");
-    row.add(ShareSightDivis.currency, "AUD");
-    row.add(ShareSightDivis.net, "10.09");
-    row.add(ShareSightDivis.tax, "12.23");
-    row.add(ShareSightDivis.gross, "12.99");
+    String rate = "0.8074"; // Sharesight FX Rate - transformer will convert to Trade CCY
+    row.add(ShareSightDivis.fxRate, rate);
+    row.add(ShareSightDivis.currency, "USD"); // TradeCurrency
+    row.add(ShareSightDivis.net, "15.85");
+    row.add(ShareSightDivis.tax, "0");
+    row.add(ShareSightDivis.gross, "15.85");
     row.add(ShareSightDivis.comments, "Test Comment");
 
-    Transformer dividends = shareSightTransformers.getTransformer(row);
+    Transformer dividends = shareSightTransformers.transformer(row);
 
-    Transaction transaction = dividends.of(row);
+    Transaction transaction = dividends.from(row, portfolio, base);
 
     Asset expectedAsset = Asset.builder()
         .code("MO")
         .market(Market.builder().code("NYSE").build())
         .build();
 
+    BigDecimal fxRate = new BigDecimal(rate);
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("asset", expectedAsset)
-        .hasFieldOrPropertyWithValue("tradeRate", new BigDecimal(".8988"))
-        .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("10.09")
-            .multiply(new BigDecimal("0.8988")).setScale(2, BigDecimal.ROUND_HALF_UP))
-        .hasFieldOrPropertyWithValue("tax", new BigDecimal("10.992324"))
+        .hasFieldOrPropertyWithValue("tradeRate", fxRate)
+        .hasFieldOrPropertyWithValue("tradeAmount",
+            new BigDecimal("15.85").multiply(fxRate).setScale(2, RoundingMode.HALF_UP))
+        .hasFieldOrPropertyWithValue("tax", new BigDecimal("0.0000"))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
+        .hasFieldOrPropertyWithValue("tradeCurrency", Currency.builder().code("USD").build())
+        .hasFieldOrPropertyWithValue("baseCurrency", Currency.builder().code("USD").build())
+        .hasFieldOrPropertyWithValue("portfolio", portfolio)
+
         .hasFieldOrProperty("tradeDate")
     ;
 

@@ -3,6 +3,7 @@ package com.beancounter.position;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
@@ -56,7 +57,7 @@ class TestPositions {
     Transaction transaction = Transaction.builder()
         .asset(asset)
         .trnType(TrnType.DIVI)
-        .tradeCurrency("AUD")
+        .tradeCurrency(Currency.builder().code("AUD").build())
         .tradeRate(new BigDecimal("0.8988"))
         .tradeAmount(new BigDecimal("12.99"))
         .build();

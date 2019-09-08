@@ -23,9 +23,9 @@ class ExchangeAliasTest {
   private ExchangeConfig exchangeConfig;
 
   @Test
-  void verifyStandardDefaults() {
+  void isExchangeConfigWired() {
     assertThat(exchangeConfig).isNotNull();
-    assertThat(!exchangeConfig.getAliases().isEmpty());
+    assertThat(exchangeConfig.getAliases()).isNotEmpty();
 
   }
 

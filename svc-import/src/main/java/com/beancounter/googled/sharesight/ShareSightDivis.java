@@ -1,6 +1,8 @@
 package com.beancounter.googled.sharesight;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.googled.reader.Transformer;
@@ -44,21 +46,23 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public Transaction of(List row) throws ParseException {
-
+  public Transaction from(List row, Portfolio portfolio, Currency baseCurrency)
+      throws ParseException {
 
     Asset asset = helper.resolveAsset(row.get(code).toString());
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
     return Transaction.builder()
         .asset(asset)
+        .portfolio(portfolio)
+        .baseCurrency(baseCurrency)
+        .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
         .trnType(TrnType.DIVI)
         .tax(new BigDecimal(row.get(tax).toString()).multiply(tradeRate))
         .tradeAmount(helper.parseDouble(row.get(net)).multiply(tradeRate)
             .setScale(2, RoundingMode.HALF_UP))
         .tradeDate(helper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
-        .tradeCurrency(row.get(currency).toString())
         .tradeRate(tradeRate)
         .build()
         ;

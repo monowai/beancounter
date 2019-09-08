@@ -32,27 +32,25 @@ class ShareSightHelperTest {
   private ShareSightHelper helper;
 
   @Test
-  void testDoubleHelper() throws ParseException {
+  void areDoubleValueAssumptionsParsedCorrectly() throws ParseException {
     assertThat(helper.parseDouble("5,000.99"))
         .isEqualByComparingTo(BigDecimal.valueOf(5000.99));
   }
 
   @Test
-  void verifyMarketExceptions() {
+  void isExceptionThrownResolvingIncorrectAssetCodes() {
     assertThrows(BusinessException.class, () -> helper.resolveAsset(null));
     assertThrows(BusinessException.class, () -> helper.resolveAsset("ValueWithNoSeparator"));
   }
 
   @Test
-  void marketCodeTest() {
+  void isExchangeAliasReturnedInAssetCode() {
     Asset expectedAsset = Asset.builder()
         .code("ABBV")
         .market(Market.builder().code("NYSE").build())
         .build();
 
     verifyAsset("ABBV.NYSE", expectedAsset);
-    verifyAsset("ABBV:NYSE", expectedAsset);
-    verifyAsset("ABBV-NYSE", expectedAsset);
 
     expectedAsset = Asset.builder()
         .code("AMP")

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.alpha.AlphaResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.core.io.ClassPathResource;
 class TestAlphaProvider {
 
   @Test
+  @VisibleForTesting
   void jsonSerialization() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
 

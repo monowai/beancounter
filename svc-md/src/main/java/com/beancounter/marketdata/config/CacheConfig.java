@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class CacheConfig {
   @PostConstruct
-  void status() {
+  public void status() {
     log.info("Caching enabled");
   }
 }

@@ -63,7 +63,7 @@ public class WtdService implements MarketDataProvider {
   }
 
   @PostConstruct
-  void logStatus() {
+  public void logStatus() {
     log.info("Market Date is [{}]", (date == null ? "calculated" : date));
     log.info("APIKey is [{}}", (apiKey.equalsIgnoreCase("DEMO") ? "DEMO" : "DEFINED"));
   }

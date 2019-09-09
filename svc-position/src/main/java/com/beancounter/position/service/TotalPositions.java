@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TotalPositions {
 
-  Positions calc(Positions positions) {
+  public Positions calc(Positions positions) {
     BigDecimal refPurchases = BigDecimal.ZERO;
     BigDecimal refSales = BigDecimal.ZERO;
     BigDecimal refDividends = BigDecimal.ZERO;
@@ -20,11 +20,6 @@ public class TotalPositions {
       refSales = refSales.add(portfolioValues.getSales());
       refDividends = refDividends.add(portfolioValues.getDividends());
     }
-//    MoneyValues.builder()
-//        .purchases(refPurchases)
-//        .dividends(refDividends)
-//        .sales(refSales)
-//        .build();
     return positions;
   }
 }

@@ -22,7 +22,7 @@ public class MarketService {
   private StaticConfig staticConfig;
 
   @Autowired
-  void setMarkets(StaticConfig staticConfig) {
+  public void setMarkets(StaticConfig staticConfig) {
     this.staticConfig = staticConfig;
   }
 

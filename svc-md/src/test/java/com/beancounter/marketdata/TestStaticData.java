@@ -10,6 +10,7 @@ import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.service.CurrencyService;
 import com.beancounter.marketdata.service.MarketService;
 import com.beancounter.marketdata.util.Dates;
+import com.google.common.annotations.VisibleForTesting;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,6 +40,7 @@ class TestStaticData {
 
 
   @Autowired
+  @VisibleForTesting
   TestStaticData(StaticConfig staticConfig,
                  MarketService marketService,
                  CurrencyService currencyService
@@ -49,7 +51,8 @@ class TestStaticData {
   }
 
   @Test
-  void marketConfigurationCheckMockExists() {
+  @VisibleForTesting
+  void doesMockMarketConfigurationExist() {
 
     assertThat(staticConfig).isNotNull();
     Market market = marketService.getMarket(MockProviderService.ID);
@@ -66,6 +69,7 @@ class TestStaticData {
   }
 
   @Test
+  @VisibleForTesting
   void computeMarketDataProviderAsPriceDateFromUserTz() {
 
     //  The java.util.Date has no concept of time zone, and only represents
@@ -81,7 +85,6 @@ class TestStaticData {
         .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat));
 
     Dates dates = new Dates();
-
 
     Market sgMarket = marketService.getMarket("SGX");
     Market nzMarket = marketService.getMarket("NZX");
@@ -107,7 +110,8 @@ class TestStaticData {
   }
 
   @Test
-  void marketDataAliasWorksForWtdAndNzx() {
+  @VisibleForTesting
+  void doesMarketDataAliasWorkForWtdAndNzx() {
     Market market = marketService.getMarket("NZX");
     assertThat(market)
         .isNotNull()
@@ -123,7 +127,8 @@ class TestStaticData {
   }
 
   @Test
-  void marketDataAliasNasdaqResolvesToNull() {
+  @VisibleForTesting
+  void doesMarketDataAliasNasdaqResolveToNull() {
     Market market = marketService.getMarket("NASDAQ");
     assertThat(market)
         .isNotNull()
@@ -135,7 +140,8 @@ class TestStaticData {
   }
 
   @Test
-  void currenciesLoad() {
+  @VisibleForTesting
+  void doCurrenciesLoad() {
 
     assertThat(currencyService.getCode("USD"))
         .isNotNull();

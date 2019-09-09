@@ -8,6 +8,7 @@ import com.beancounter.common.model.FxRate;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.service.RateCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +29,7 @@ class FxRateTests {
   private static CurrencyPair USD_AUD = CurrencyPair.builder().from("USD").to("AUD").build();
 
   @Test
+  @VisibleForTesting
   void serialiseResponse() throws Exception {
     File jsonFile = new ClassPathResource("ecb-fx-rates.json").getFile();
     EcbRates ecbRates = new ObjectMapper().readValue(jsonFile, EcbRates.class);
@@ -39,6 +41,7 @@ class FxRateTests {
   }
 
   @Test
+  @VisibleForTesting
   void rateCalculator() {
     RateCalculator rateCalculator = new RateCalculator();
 

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -22,6 +23,7 @@ class TestWtdProvider {
   private ObjectMapper mapper = new ObjectMapper();
 
   @Test
+  @VisibleForTesting
   void jsonGoodResponse() throws Exception {
 
 
@@ -39,6 +41,7 @@ class TestWtdProvider {
   }
 
   @Test
+  @VisibleForTesting
   void jsonMessageResponse() throws Exception {
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();

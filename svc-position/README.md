@@ -1,5 +1,7 @@
+## Compute Positions
 
-Micro service to convert [trade transactions](../svc-google-docs/README.md) into a collection of positions.
+Also called Holdings, this service summarises financial attributes across a collection of transactions for an asset
+Convert [trade transactions](../svc-google-docs/README.md) into a collection of positions.
 
 ```bash
 curl -H "Content-Type: application/json" \

@@ -8,11 +8,13 @@ import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.junit.jupiter.api.Test;
 
 
 class TestAsset {
   @Test
+  @VisibleForTesting
   void jsonSerialization() throws Exception {
 
     Asset asset = Asset.builder()
@@ -33,6 +35,7 @@ class TestAsset {
   }
 
   @Test
+  @VisibleForTesting
   void parseKeyInAndOut() {
     Asset asset = AssetHelper.getAsset("ACODE", "MCODE");
 
@@ -43,6 +46,7 @@ class TestAsset {
   }
 
   @Test
+  @VisibleForTesting
   void invalidKey() {
     assertThrows(BusinessException.class, () -> AssetHelper.parseKey(null));
     assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket",

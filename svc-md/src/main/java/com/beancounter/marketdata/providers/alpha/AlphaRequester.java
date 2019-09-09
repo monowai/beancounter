@@ -24,7 +24,7 @@ public class AlphaRequester {
   }
 
   @Async
-  Future<String> getMarketData(String code, String apiKey) {
+  public Future<String> getMarketData(String code, String apiKey) {
     String result = alphaGateway.getMarketData(code, apiKey);
     return new AsyncResult<>(result);
   }

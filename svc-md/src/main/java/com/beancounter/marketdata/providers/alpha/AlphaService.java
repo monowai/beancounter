@@ -51,7 +51,7 @@ public class AlphaService implements MarketDataProvider {
   }
 
   @PostConstruct
-  void logStatus() {
+  public void logStatus() {
     if (apiKey.equalsIgnoreCase("demo")) {
       log.info("Running with the DEMO apiKey");
     } else {

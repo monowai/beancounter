@@ -8,6 +8,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.annotations.VisibleForTesting;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -23,12 +24,14 @@ class TestUtils {
 
   private static ObjectMapper mapper = new ObjectMapper();
 
+  @VisibleForTesting
   static Date convert(LocalDate localDate) {
     return Date.from(localDate.atStartOfDay()
         .atZone(ZoneId.systemDefault())
         .toInstant());
   }
 
+  @VisibleForTesting
   static void mockMarketData(WireMockRule mockMarketData, String requestBody, String responseBody) {
     mockMarketData
         .stubFor(
@@ -40,11 +43,9 @@ class TestUtils {
                     .withStatus(200)));
   }
 
-  public static ObjectMapper getMapper() {
+  @VisibleForTesting
+  static ObjectMapper getMapper() {
     return mapper;
   }
 
-  public static void setMapper(ObjectMapper mapper) {
-    TestUtils.mapper = mapper;
-  }
 }

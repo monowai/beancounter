@@ -58,6 +58,7 @@ idea {
         inheritOutputDirs = false
         downloadSources = true
         outputDir = file("$buildDir/classes/main/")
+        testOutputDir = file("$buildDir/classes/main/")
     }
 }
 

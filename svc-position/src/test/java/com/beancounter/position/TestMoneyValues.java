@@ -12,6 +12,7 @@ import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 class TestMoneyValues {
 
   @Test
+  @VisibleForTesting
   void quantityValues() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
@@ -53,6 +55,7 @@ class TestMoneyValues {
   }
 
   @Test
+  @VisibleForTesting
   void simpleRealisedGain() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
@@ -94,6 +97,7 @@ class TestMoneyValues {
   }
 
   @Test
+  @VisibleForTesting
   void realisedGainWithSignedQuantities() {
     Asset bidu = Asset.builder()
         .code("BIDU")
@@ -173,6 +177,7 @@ class TestMoneyValues {
   }
 
   @Test
+  @VisibleForTesting
   void realisedGainAfterSellingToZero() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
@@ -249,6 +254,7 @@ class TestMoneyValues {
   }
 
   @Test
+  @VisibleForTesting
   void realisedGainAfterReenteringAPosition() {
     Asset intel = Asset.builder()
         .code("INTC")

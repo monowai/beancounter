@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.position.model.Positions;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -11,6 +12,7 @@ import org.springframework.core.io.ClassPathResource;
 class TestTotalPositions {
 
   @Test
+  @VisibleForTesting
   void total() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     File positionFile = new ClassPathResource("testpositions.json").getFile();

@@ -15,6 +15,7 @@ import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 class TestPositions {
 
   @Test
+  @VisibleForTesting
   void jsonSerialization() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     Map<Position.In, MoneyValues> moneyValuesMap = new HashMap<>();
@@ -46,6 +48,7 @@ class TestPositions {
   }
 
   @Test
+  @VisibleForTesting
   void accumulateCashDividend() {
 
     Asset asset = Asset.builder()

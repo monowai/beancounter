@@ -7,6 +7,7 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.position.model.Positions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ class TestAccumulatePositions {
   private WebApplicationContext context;
 
   @Test
+  @VisibleForTesting
   @Tag("slow")
   void getPositionsFromTransactions() throws Exception {
     ObjectMapper mapper = new ObjectMapper();

@@ -1,5 +1,9 @@
 
-Services that import transaction data from, say a Google Sheet, and transforms them into a collection of portfolio positions which can optionally be valued against market data providers
+[![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)   [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2bfdd3f89fbc47b0b9d8920fe094ccd9)](https://www.codacy.com/manual/monowai/beancounter?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monowai/beancounter&amp;utm_campaign=Badge_Grade)
+
+## Financial Transaction Processing Services
+
+Transform financial transaction data into portfolio positions which can then be valued against market data 
     
 *   [Import transactions](svc-import/README.md) from a Google Docs sheet
 *   [Create positions](svc-position/README.md) from the transactions
@@ -24,4 +28,3 @@ curl -H "Content-Type: application/json" -X POST -d @trades.json <http://localho
 curl -H "Content-Type: application/json" -X POST -d @positions.json <http://localhost:9500/value> > valuedPositions.json
 ```
 
-[![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)        

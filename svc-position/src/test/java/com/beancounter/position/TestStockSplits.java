@@ -12,6 +12,7 @@ import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 class TestStockSplits {
 
   @Test
+  @VisibleForTesting
   void splitOccurs() {
 
     Asset apple = getAsset("AAPL", "NASDAQ");

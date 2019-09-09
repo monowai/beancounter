@@ -17,6 +17,7 @@ import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ class TestMarketValues {
 
   @Test
   @Tag("slow")
+  @VisibleForTesting
   void marketValuationFromMarketData() throws Exception {
     Asset asset = AssetHelper.getAsset("ABC", "marketCode");
     Collection<Asset> assets = new ArrayList<>();
@@ -96,6 +98,7 @@ class TestMarketValues {
 
   @Test
   @Tag("slow")
+  @VisibleForTesting
   void assetsAreHydratedOnValuationRequest() throws Exception {
 
     CollectionType javaType = TestUtils.getMapper().getTypeFactory()

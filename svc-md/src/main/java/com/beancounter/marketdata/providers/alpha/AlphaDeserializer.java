@@ -1,9 +1,9 @@
 package com.beancounter.marketdata.providers.alpha;
 
+import com.beancounter.common.helper.Dates;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.util.Dates;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;

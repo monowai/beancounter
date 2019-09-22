@@ -26,9 +26,9 @@ public class EcbService {
     currencies = currencyService.delimited(",");
   }
 
-  public Collection<FxRate> getRates(Date asAt) {
+  public Collection<FxRate> getRates(String asAt) {
     EcbRates rates = fxGateway.getRatesForSymbols(
-        date(asAt),
+        asAt,
         currencyService.getBase().getCode(),
         currencies);
     Collection<FxRate> results = new ArrayList<>();

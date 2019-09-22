@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class TestTransaction {
 
   @Test
-  void jsonSerialization() throws Exception {
+  void is_TransactionSerializing() throws Exception {
     TrnType trnType = TrnType.BUY;
     ObjectMapper mapper = new ObjectMapper();
 

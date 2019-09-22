@@ -2,11 +2,12 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.helper.RateCalculator;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
-import com.beancounter.marketdata.service.RateCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
@@ -15,7 +16,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class FxRateTests {
 
   @Test
   @VisibleForTesting
-  void serialiseResponse() throws Exception {
+  void is_FxRateResponseSerializing() throws Exception {
     File jsonFile = new ClassPathResource("ecb-fx-rates.json").getFile();
     EcbRates ecbRates = new ObjectMapper().readValue(jsonFile, EcbRates.class);
     assertThat(ecbRates)
@@ -42,22 +42,21 @@ class FxRateTests {
 
   @Test
   @VisibleForTesting
-  void rateCalculator() {
+  void is_RateCalculatorComputing() {
     RateCalculator rateCalculator = new RateCalculator();
 
     Collection<CurrencyPair> pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);
 
     Map<String, FxRate> rates = getRateTable();
-    Date asAt = new Date();
+    String asAt = "2019-11-21";
 
-    Map<Date, Map<CurrencyPair, FxRate>> rateCache = rateCalculator.compute(asAt, pairs, rates);
+    Map<String, FxPairResults> rateCache = rateCalculator.compute(asAt, pairs, rates);
     assertThat(rateCache).hasSize(1);
-    Map<CurrencyPair, FxRate> results = rateCache.get(asAt);
-    assertThat(results).hasSize(pairs.size());
+    FxPairResults results = rateCache.get(asAt);
 
-    Map<CurrencyPair, FxRate> values = rateCache.get(asAt);
-    FxRate audUsd = values.get(AUD_USD);
-    FxRate usdAud = values.get(USD_AUD);
+    FxPairResults values = rateCache.get(asAt);
+    FxRate audUsd = values.getRates().get(AUD_USD);
+    FxRate usdAud = values.getRates().get(USD_AUD);
     // Verify that the inverse rate is equal
     BigDecimal calc = BigDecimal.ONE.divide(audUsd.getRate(), 8, RoundingMode.HALF_UP);
     assertThat(usdAud.getRate()).isEqualTo(calc);

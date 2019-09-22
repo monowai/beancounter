@@ -1,12 +1,13 @@
 package com.beancounter.marketdata.service;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.helper.RateCalculator;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.FxResults;
 import com.beancounter.marketdata.providers.fxrates.EcbService;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
@@ -17,20 +18,18 @@ import org.springframework.stereotype.Service;
 public class FxService {
   private CurrencyService currencyService;
   private EcbService ecbService;
-  private RateCalculator rateCalculator;
+  private RateCalculator rateCalculator = new RateCalculator();
   // Persist!
-  private Map<Date, Collection<FxRate>> rateStore = new HashMap<>();
+  private Map<String, Collection<FxRate>> rateStore = new HashMap<>();
 
   @Autowired
-  FxService(EcbService ecbService, CurrencyService currencyService, RateCalculator rateCalculator) {
+  FxService(EcbService ecbService, CurrencyService currencyService) {
     this.ecbService = ecbService;
     this.currencyService = currencyService;
-    this.rateCalculator = rateCalculator;
   }
 
-  public Map<Date, Map<CurrencyPair, FxRate>> getRates(@NotNull Date asAt,
-                                                       @NotNull
-                                                           Collection<CurrencyPair> currencyPairs) {
+  public FxResults getRates(@NotNull String asAt,
+                            @NotNull Collection<CurrencyPair> currencyPairs) {
     verify(currencyPairs);
 
     Collection<FxRate> rates = rateStore.get(asAt);
@@ -42,7 +41,8 @@ public class FxService {
     for (FxRate rate : rates) {
       mappedRates.put(rate.getTo().getCode(), rate);
     }
-    return rateCalculator.compute(asAt, currencyPairs, mappedRates);
+    return FxResults.builder().data(rateCalculator.compute(asAt, currencyPairs, mappedRates))
+        .build();
   }
 
   private void verify(Collection<CurrencyPair> currencyPairs) {

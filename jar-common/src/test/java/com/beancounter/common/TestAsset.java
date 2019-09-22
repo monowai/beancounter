@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class TestAsset {
   @Test
   @VisibleForTesting
-  void jsonSerialization() throws Exception {
+  void is_Serializing() throws Exception {
 
     Asset asset = Asset.builder()
         .code("SomeId")
@@ -36,7 +36,7 @@ class TestAsset {
 
   @Test
   @VisibleForTesting
-  void parseKeyInAndOut() {
+  void is_AssetKeyParsing() {
     Asset asset = AssetHelper.getAsset("ACODE", "MCODE");
 
     String keyIn = AssetHelper.parseKey(asset);
@@ -47,10 +47,10 @@ class TestAsset {
 
   @Test
   @VisibleForTesting
-  void invalidKey() {
+  void is_AssetKeyPareExceptionsBeingThrown() {
     assertThrows(BusinessException.class, () -> AssetHelper.parseKey(null));
     assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket",
-        (Market)null));
+        (Market) null));
     assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket"));
   }
 

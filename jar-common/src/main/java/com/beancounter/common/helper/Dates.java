@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.util;
+package com.beancounter.common.helper;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -7,7 +7,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
 
 /**
  * Date based helper functions.
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component;
  * @since 2019-03-12
  */
 
-@Component
 public class Dates {
 
   /**

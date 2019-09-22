@@ -2,13 +2,13 @@ package com.beancounter.marketdata.providers.wtd;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
+import com.beancounter.common.helper.Dates;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
-import com.beancounter.marketdata.util.Dates;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -47,7 +47,7 @@ public class WtdService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.WTD.markets}")
   private String markets;
 
-  private Dates dates;
+  private Dates dates = new Dates();
 
   private WtdRequester wtdRequester;
 
@@ -56,9 +56,8 @@ public class WtdService implements MarketDataProvider {
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
 
   @Autowired
-  WtdService(WtdRequester wtdRequester, StaticConfig staticConfig, Dates dates) {
+  WtdService(WtdRequester wtdRequester, StaticConfig staticConfig) {
     this.wtdRequester = wtdRequester;
-    this.dates = dates;
     this.staticConfig = staticConfig;
   }
 

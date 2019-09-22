@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class TestCurrency {
   @Test
-  void jsonSerialization() throws Exception {
+  void is_CurrencySerializing() throws Exception {
 
     Currency currency = Currency.builder()
         .code("SomeId")

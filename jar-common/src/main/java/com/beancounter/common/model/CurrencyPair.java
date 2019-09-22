@@ -14,12 +14,14 @@ public class CurrencyPair {
   private String from;
   private String to;
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class CurrencyPairBuilder {
-  }
-
   @Override
   public String toString() {
     return from + ":" + to;
   }
+
+  @SuppressWarnings("WeakerAccess")
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class CurrencyPairBuilder {
+  }
+
 }

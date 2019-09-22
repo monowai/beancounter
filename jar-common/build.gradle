@@ -18,7 +18,7 @@ dependencies() {
     compileOnly (
             "org.projectlombok:lombok:${lombokVersion}",
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
-            "io.github.openfeign:feign-core:10.1.0",
+            "io.github.openfeign:feign-core:10.4.0",
             "org.springframework:spring-web:5.1.9.RELEASE",
             "com.google.guava:guava:27.0.1-jre"
     )

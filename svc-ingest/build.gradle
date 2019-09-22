@@ -1,6 +1,7 @@
 buildscript {
     ext {
         springBootVersion = "2.1.7.RELEASE"
+        feignVersion = "10.4.0"
         googleClientVersion = "1.23.0"
     }
     repositories {
@@ -26,6 +27,10 @@ dependencies {
             project (":jar-common"),
             "org.springframework.boot:spring-boot-starter",
             "org.springframework.boot:spring-boot-starter-logging",
+            "io.github.openfeign:feign-core:${feignVersion}",
+            "io.github.openfeign:feign-okhttp:${feignVersion}",
+            "io.github.openfeign:feign-gson:${feignVersion}",
+            "io.github.openfeign:feign-slf4j:${feignVersion}",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",

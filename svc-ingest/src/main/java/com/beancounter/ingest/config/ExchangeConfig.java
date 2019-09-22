@@ -1,8 +1,10 @@
 package com.beancounter.ingest.config;
 
 import java.util.Map;
+import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -16,11 +18,17 @@ import org.springframework.stereotype.Component;
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
 @Component
+@Slf4j
 public class ExchangeConfig {
 
   @Getter
   @Setter
   private Map<String, String> aliases;
+
+  @PostConstruct
+  public void logConfig (){
+    log.info("{} exchanges loaded", aliases.size());
+  }
 
   /**
    * Return the Exchange code to use for the supplied input.

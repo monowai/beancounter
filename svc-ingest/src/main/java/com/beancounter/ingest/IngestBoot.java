@@ -1,6 +1,6 @@
-package com.beancounter.googled;
+package com.beancounter.ingest;
 
-import com.beancounter.googled.reader.SheetReader;
+import com.beancounter.ingest.reader.SheetReader;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +15,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 2019-02-08
  */
 @SpringBootApplication(scanBasePackages = "com.beancounter")
-public class SheetBoot {
+public class IngestBoot {
 
   public static void main(String[] args) {
-    SpringApplication.run(SheetBoot.class, args);
+    SpringApplication.run(IngestBoot.class, args);
   }
 
   @Autowired

@@ -1,10 +1,10 @@
-package com.beancounter.googled.sharesight.common;
+package com.beancounter.ingest.sharesight.common;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.googled.config.ExchangeConfig;
+import com.beancounter.ingest.config.ExchangeConfig;
 import com.google.api.client.repackaged.com.google.common.base.CharMatcher;
 import com.google.api.client.repackaged.com.google.common.base.Splitter;
 import com.google.api.client.util.Strings;

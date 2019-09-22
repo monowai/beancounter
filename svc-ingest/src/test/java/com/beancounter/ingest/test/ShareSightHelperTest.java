@@ -1,4 +1,4 @@
-package com.beancounter.googled.test;
+package com.beancounter.ingest.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -6,11 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.googled.config.ExchangeConfig;
-import com.beancounter.googled.sharesight.ShareSightDivis;
-import com.beancounter.googled.sharesight.ShareSightTrades;
-import com.beancounter.googled.sharesight.ShareSightTransformers;
-import com.beancounter.googled.sharesight.common.ShareSightHelper;
+import com.beancounter.ingest.config.ExchangeConfig;
+import com.beancounter.ingest.sharesight.ShareSightDivis;
+import com.beancounter.ingest.sharesight.ShareSightTrades;
+import com.beancounter.ingest.sharesight.ShareSightTransformers;
+import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import org.junit.jupiter.api.Test;

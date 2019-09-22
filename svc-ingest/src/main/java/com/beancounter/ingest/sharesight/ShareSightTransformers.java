@@ -1,6 +1,6 @@
-package com.beancounter.googled.sharesight;
+package com.beancounter.ingest.sharesight;
 
-import com.beancounter.googled.reader.Transformer;
+import com.beancounter.ingest.reader.Transformer;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

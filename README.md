@@ -5,7 +5,7 @@
 
 Transform financial transaction data into portfolio positions which can then be valued against market data 
     
-*   [Import transactions](svc-import/README.md) from a Google Docs sheet
+*   [Ingest transactions](svc-ingest/README.md) from a Google Docs sheet
 *   [Create positions](svc-position/README.md) from the transactions
 *   Value positions using [Asset Prices](svc-md/README.md) obtained from the Market Data service  
     
@@ -16,7 +16,7 @@ Put together, the flow looks like this
 ```bash
 
 # Create transactions
-java -jar svc-import/build/libs/svc-import.jar \
+java -jar svc-ingest/build/libs/svc-ingest.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

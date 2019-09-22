@@ -1,4 +1,4 @@
-## Import capabilities
+## Data Ingestion Features
 
 Data import reader supporting google sheet. Adapted from [Google Java Quickstart](https://developers.google.com/sheets/api/quickstart/java)
 
@@ -18,14 +18,11 @@ Code	    Name	    Date Paid	Exchange Rate	Currency	Net Amount	Foreign Tax Deduct
 ABBV.NYS    AbbVie Inc      15/02/2013	0.8074  USD	        15.85	    0.00	             15.85	        Dividend of 40.0 cents per share
 ```
     
-Note that you should _never_ commit unencrypted credentials to a repo.  Hence, it is expected these are managed in a separate project.  You need
-to pass your own Google credentials in the application property:
-
 It is assumed that you are running all commands from the root of the `BeanCounter` project
 Default is to look for google credentials `../secrets/credentials.json`  
 
 ```bash
-java -jar svc-google-docs/build/libs/svc-google-docs.jar \
+java -jar svc-ingest/build/libs/svc-ingest.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

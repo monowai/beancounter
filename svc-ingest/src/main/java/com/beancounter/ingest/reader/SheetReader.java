@@ -1,13 +1,13 @@
-package com.beancounter.googled.reader;
+package com.beancounter.ingest.reader;
 
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.googled.config.GoogleDocsConfig;
-import com.beancounter.googled.sharesight.ShareSightTransformers;
-import com.beancounter.googled.sharesight.common.ShareSightHelper;
+import com.beancounter.ingest.config.GoogleDocsConfig;
+import com.beancounter.ingest.sharesight.ShareSightTransformers;
+import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;

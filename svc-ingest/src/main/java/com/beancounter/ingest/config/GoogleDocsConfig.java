@@ -1,4 +1,4 @@
-package com.beancounter.googled.config;
+package com.beancounter.ingest.config;
 
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;

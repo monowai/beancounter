@@ -1,4 +1,4 @@
-package com.beancounter.googled.sharesight;
+package com.beancounter.ingest.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
@@ -7,8 +7,8 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.googled.reader.Transformer;
-import com.beancounter.googled.sharesight.common.ShareSightHelper;
+import com.beancounter.ingest.reader.Transformer;
+import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;

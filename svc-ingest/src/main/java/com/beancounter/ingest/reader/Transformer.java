@@ -1,4 +1,4 @@
-package com.beancounter.googled.reader;
+package com.beancounter.ingest.reader;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;

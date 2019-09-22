@@ -1,4 +1,4 @@
-package com.beancounter.googled.test;
+package com.beancounter.ingest.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -6,12 +6,12 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.googled.config.ExchangeConfig;
-import com.beancounter.googled.reader.Transformer;
-import com.beancounter.googled.sharesight.ShareSightDivis;
-import com.beancounter.googled.sharesight.ShareSightTrades;
-import com.beancounter.googled.sharesight.ShareSightTransformers;
-import com.beancounter.googled.sharesight.common.ShareSightHelper;
+import com.beancounter.ingest.config.ExchangeConfig;
+import com.beancounter.ingest.reader.Transformer;
+import com.beancounter.ingest.sharesight.ShareSightDivis;
+import com.beancounter.ingest.sharesight.ShareSightTrades;
+import com.beancounter.ingest.sharesight.ShareSightTransformers;
+import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;

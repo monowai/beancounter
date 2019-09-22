@@ -1,4 +1,4 @@
-package com.beancounter.googled.config;
+package com.beancounter.ingest.config;
 
 import java.util.Map;
 import lombok.Getter;

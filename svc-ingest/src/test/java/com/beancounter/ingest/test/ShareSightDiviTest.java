@@ -44,7 +44,7 @@ class ShareSightDiviTest {
   private ShareSightTransformers shareSightTransformers;
 
   @Test
-  void areCurrenciesResolvedForDividendTransaction() throws Exception {
+  void is_CurrencyResolvedForDividendInput() throws Exception {
     List<String> row = new ArrayList<>();
 
     // Portfolio is in NZD

@@ -1,6 +1,7 @@
 package com.beancounter.ingest.sharesight.common;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
@@ -9,7 +10,6 @@ import com.google.api.client.repackaged.com.google.common.base.CharMatcher;
 import com.google.api.client.repackaged.com.google.common.base.Splitter;
 import com.google.api.client.util.Strings;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -40,6 +40,8 @@ public class ShareSightHelper {
 
   @Value("${range:All Trades Report}")
   private String range;
+
+  private MathHelper mathHelper = new MathHelper();
 
   @Autowired
   ShareSightHelper(ExchangeConfig exchangeConfig) {
@@ -100,9 +102,11 @@ public class ShareSightHelper {
   }
 
   public BigDecimal safeDivide(BigDecimal inValue, BigDecimal tradeRate) {
-    if (inValue.equals(BigDecimal.ZERO) || tradeRate.equals(BigDecimal.ZERO)) {
-      return inValue;
-    }
-    return inValue.divide(tradeRate, RoundingMode.HALF_UP);
+    return mathHelper.divide(inValue, tradeRate);
   }
+
+  public BigDecimal getValueWithFx(BigDecimal inValue, BigDecimal tradeRate) {
+    return mathHelper.multiply(inValue, tradeRate);
+  }
+
 }

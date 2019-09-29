@@ -19,12 +19,12 @@ import org.springframework.context.event.EventListener;
 @SpringBootApplication(scanBasePackages = {"com.beancounter.ingest"})
 public class IngestBoot {
 
+  private SheetReader sheetReader;
+
   public static void main(String[] args) {
     SpringApplication.run(IngestBoot.class, args);
 
   }
-
-  private SheetReader sheetReader;
 
   @Autowired
   private void setSheetReader(SheetReader sheetReader) {
@@ -32,7 +32,7 @@ public class IngestBoot {
   }
 
   @EventListener(ApplicationReadyEvent.class)
-  void runIngestion () throws IOException, GeneralSecurityException {
+  public void runIngestion() throws IOException, GeneralSecurityException {
     sheetReader.doIt();
   }
 

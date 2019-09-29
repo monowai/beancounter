@@ -1,9 +1,6 @@
-logging:
-  level:
-    org.springframework: error
-    org.spring: error
-    com.google: error
-    com.beancounter: debug
+spring:
+  main:
+    banner-mode: "off"
 
 beancounter:
   exchanges:
@@ -12,3 +9,21 @@ beancounter:
       NAS: NASDAQ
       AX: ASX
       NZ: NZX
+
+logging:
+  level:
+    root: debug
+    org.springframework.web.servlet: fatal
+    org.springframework: error
+    org.springframework.boot.web: info
+    org.mortbay: error
+    org.spring: error
+    com.google: error
+    org.apache: error
+    com.netflix: error
+    org: error
+    sun: error
+    javax: error
+    com.beancounter: debug
+    feign.template: error
+    io.github.resilience4j: fatal

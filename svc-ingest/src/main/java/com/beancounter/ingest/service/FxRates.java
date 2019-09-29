@@ -19,8 +19,8 @@ public class FxRates {
   private FxGateway fxGateway;
 
   @Bean
-  FxGateway feignFxGateway(){
-    this.fxGateway= Feign.builder()
+  FxGateway feignFxGateway() {
+    this.fxGateway = Feign.builder()
         .client(new OkHttpClient())
         .encoder(new GsonEncoder())
         .decoder(new GsonDecoder())
@@ -30,7 +30,8 @@ public class FxRates {
     return fxGateway;
   }
 
-  FxResults getRates(FxRequest fxRequest ) {
+  @SuppressWarnings("unused")
+  FxResults getRates(FxRequest fxRequest) {
     return fxGateway.getRates(fxRequest);
   }
 

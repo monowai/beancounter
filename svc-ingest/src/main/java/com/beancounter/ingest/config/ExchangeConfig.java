@@ -26,13 +26,13 @@ public class ExchangeConfig {
   private Map<String, String> aliases;
 
   @PostConstruct
-  public void logConfig (){
+  public void logConfig() {
     log.info("{} exchanges loaded", aliases.size());
   }
 
   /**
    * Return the Exchange code to use for the supplied input.
-   * 
+   *
    * @param input code that *might* have an alias.
    * @return the alias or input if no exception is defined.
    */

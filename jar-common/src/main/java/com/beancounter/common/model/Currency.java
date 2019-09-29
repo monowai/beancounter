@@ -1,5 +1,6 @@
 package com.beancounter.common.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Map;
@@ -11,6 +12,7 @@ import lombok.ToString;
 @Builder
 @JsonDeserialize(builder = Currency.CurrencyBuilder.class)
 @ToString(exclude = {"id", "name", "symbol"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Currency {
   private String id;
   private String code;
@@ -33,6 +35,7 @@ public class Currency {
         .build();
   }
 
+  @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")
   public static class CurrencyBuilder {
   }

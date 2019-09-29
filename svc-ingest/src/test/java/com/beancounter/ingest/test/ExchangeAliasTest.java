@@ -23,7 +23,7 @@ class ExchangeAliasTest {
   private ExchangeConfig exchangeConfig;
 
   @Test
-  void isExchangeConfigWired() {
+  void is_ExchangeConfigWired() {
     assertThat(exchangeConfig).isNotNull();
     assertThat(exchangeConfig.getAliases()).isNotEmpty();
 

@@ -10,7 +10,6 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -41,18 +40,18 @@ public class ShareSightTrades implements Transformer {
   public static final int fxRate = 9;
   public static final int value = 10;
   public static final int comments = 11;
-  private final ShareSightHelper helper;
+  private final ShareSightHelper shareSightHelper;
 
   @Autowired
-  public ShareSightTrades(ShareSightHelper helper) {
-    this.helper = helper;
+  public ShareSightTrades(ShareSightHelper shareSightHelper) {
+    this.shareSightHelper = shareSightHelper;
   }
 
   @Override
   public Transaction from(List row, Portfolio portfolio, Currency baseCurrency)
       throws ParseException {
     try {
-      TrnType trnType = helper.resolveType(row.get(type).toString());
+      TrnType trnType = shareSightHelper.resolveType(row.get(type).toString());
       if (trnType == null) {
         throw new BusinessException(String.format("Unsupported type %s", row.get(type).toString()));
       }
@@ -70,7 +69,7 @@ public class ShareSightTrades implements Transformer {
       BigDecimal tradeAmount = BigDecimal.ZERO;
       if (trnType != TrnType.SPLIT) {
         tradeRate = new BigDecimal(row.get(fxRate).toString());
-        tradeAmount = helper.parseDouble(row.get(value));
+        tradeAmount = shareSightHelper.parseDouble(row.get(value));
       }
 
       return Transaction.builder()
@@ -78,12 +77,12 @@ public class ShareSightTrades implements Transformer {
           .trnType(trnType)
           .portfolio(portfolio)
           .baseCurrency(baseCurrency)
-          .quantity(helper.parseDouble(row.get(quantity).toString()))
-          .price(helper.parseDouble(row.get(price).toString()))
-          .fees(helper.safeDivide(
+          .quantity(shareSightHelper.parseDouble(row.get(quantity).toString()))
+          .price(shareSightHelper.parseDouble(row.get(price).toString()))
+          .fees(shareSightHelper.safeDivide(
               new BigDecimal(row.get(brokerage).toString()), tradeRate))
-          .tradeAmount(tradeAmount.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP))
-          .tradeDate(helper.parseDate(row.get(date).toString()))
+          .tradeAmount(shareSightHelper.getValueWithFx(tradeAmount, tradeRate))
+          .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
           .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           .tradeRate(tradeRate) // Trade to Portfolio Reference rate
           .comments(comment)

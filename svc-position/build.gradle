@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        springBootVersion = "2.1.7.RELEASE"
+        springBootVersion = "2.1.8.RELEASE"
         springCloudVersion = 'Greenwich.SR3'
-        resilience4jVersion = "0.17.0"
+        resilience4jVersion = "1.0.0"
         wiremockVersion = "2.23.2"
     }
     repositories {

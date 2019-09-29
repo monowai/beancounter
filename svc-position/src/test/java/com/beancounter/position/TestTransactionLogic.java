@@ -30,7 +30,7 @@ class TestTransactionLogic {
    */
   @Test
   @VisibleForTesting
-  void unorderedTransactionsError() {
+  void do_UnorderedTransactionsError() {
     Asset apple = getAsset("AAPL", "NASDAQ");
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

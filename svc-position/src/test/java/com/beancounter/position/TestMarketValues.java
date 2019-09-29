@@ -58,7 +58,7 @@ class TestMarketValues {
   @Test
   @Tag("slow")
   @VisibleForTesting
-  void marketValuationFromMarketData() throws Exception {
+  void is_MarketValuationCalculated() throws Exception {
     Asset asset = AssetHelper.getAsset("ABC", "marketCode");
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
@@ -99,7 +99,7 @@ class TestMarketValues {
   @Test
   @Tag("slow")
   @VisibleForTesting
-  void assetsAreHydratedOnValuationRequest() throws Exception {
+  void is_AssetHydratedFromValuationRequest() throws Exception {
 
     CollectionType javaType = TestUtils.getMapper().getTypeFactory()
         .constructCollectionType(Collection.class, MarketData.class);

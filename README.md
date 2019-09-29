@@ -16,7 +16,7 @@ Put together, the flow looks like this
 ```bash
 
 # Create transactions
-java -jar svc-ingest/build/libs/svc-ingest.jar \
+java -jar svc-ingest/build/libs/svc-ingest-0.1.1.jar \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

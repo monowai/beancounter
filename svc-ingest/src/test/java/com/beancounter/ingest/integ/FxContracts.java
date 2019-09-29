@@ -24,7 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @Tag("slow")
-@ImportAutoConfiguration( {FeignAutoConfiguration.class})
+@ImportAutoConfiguration({FeignAutoConfiguration.class})
 @SpringBootTest
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,

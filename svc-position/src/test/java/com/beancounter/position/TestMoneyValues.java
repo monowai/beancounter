@@ -22,7 +22,7 @@ class TestMoneyValues {
 
   @Test
   @VisibleForTesting
-  void quantityValues() {
+  void is_QuantityAndMarketValueCalculated() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
         .market(Market.builder().code("NYSE").build())
@@ -56,7 +56,7 @@ class TestMoneyValues {
 
   @Test
   @VisibleForTesting
-  void simpleRealisedGain() {
+  void is_RealisedGainCalculated() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
         .market(Market.builder().code("NYSE").build())
@@ -98,7 +98,7 @@ class TestMoneyValues {
 
   @Test
   @VisibleForTesting
-  void realisedGainWithSignedQuantities() {
+  void is_RealisedGainWithSignedQuantitiesCalculated() {
     Asset bidu = Asset.builder()
         .code("BIDU")
         .market(Market.builder().code("NYSE").build())
@@ -178,7 +178,7 @@ class TestMoneyValues {
 
   @Test
   @VisibleForTesting
-  void realisedGainAfterSellingToZero() {
+  void is_RealisedGainAfterSellingToZeroCalculated() {
     Asset microsoft = Asset.builder()
         .code("MSFT")
         .market(Market.builder().code("NYSE").build())
@@ -255,7 +255,7 @@ class TestMoneyValues {
 
   @Test
   @VisibleForTesting
-  void realisedGainAfterReenteringAPosition() {
+  void is_RealisedGainAfterReenteringAPositionCalculated() {
     Asset intel = Asset.builder()
         .code("INTC")
         .market(Market.builder().code("NYSE").build())

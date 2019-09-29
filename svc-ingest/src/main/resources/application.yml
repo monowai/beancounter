@@ -28,7 +28,10 @@ logging:
     com.netflix: error
     org: error
     sun: error
+    jdk: error
     javax: error
+    io.opencensus: error
+    io: error
     com.beancounter: debug
     feign.template: error
     io.github.resilience4j: fatal

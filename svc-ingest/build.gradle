@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        springBootVersion = "2.1.7.RELEASE"
+        springBootVersion = "2.1.8.RELEASE"
         springCloudVersion = "Greenwich.SR3"
-        googleClientVersion = "1.23.0"
+        googleClientVersion = "1.30.4"
     }
     repositories {
         mavenLocal()
@@ -27,12 +27,11 @@ dependencies {
     implementation(
             project (":jar-common"),
             "org.springframework.cloud:spring-cloud-starter-openfeign",
-
             "com.fasterxml.jackson.core:jackson-databind",
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",
-            "com.google.oauth-client:google-oauth-client-jetty:${googleClientVersion}",
-            "com.google.apis:google-api-services-sheets:v4-rev516-${googleClientVersion}"
+            "com.google.oauth-client:google-oauth-client-jetty:1.30.3",
+            "com.google.apis:google-api-services-sheets:v4-rev581-1.25.0"
     )
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"

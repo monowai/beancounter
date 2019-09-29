@@ -21,7 +21,7 @@ class TestAlphaProvider {
 
   @Test
   @VisibleForTesting
-  void jsonSerialization() throws Exception {
+  void is_ResponseSerialized() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
 
     File jsonFile = new ClassPathResource("alphavantage.json").getFile();

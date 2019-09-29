@@ -18,12 +18,12 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.repackaged.com.google.common.base.Splitter;
 import com.google.api.client.util.Lists;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.common.base.Splitter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -54,6 +54,8 @@ public class SheetReader {
 
   private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+  private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY);
+
   private GoogleDocsConfig googleDocsConfig;
 
   @Value("${sheet:#{null}}")
@@ -72,6 +74,8 @@ public class SheetReader {
 
   @Value(("${base.code:USD}"))
   private String baseCurrency;
+
+  private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
   private ShareSightHelper shareSightHelper;
 
@@ -205,18 +209,11 @@ public class SheetReader {
     try (InputStream in = new FileInputStream(googleDocsConfig.getApi())) {
       GoogleClientSecrets clientSecrets =
           GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-      log.debug("Using Temp Dir {}", System.getProperty("java.io.tmpdir"));
-      // Build flow and trigger user authorization request.
 
       GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-          netHttpTransport,
-          JSON_FACTORY,
-          clientSecrets,
-          Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY)
-      )
-          .setDataStoreFactory(new FileDataStoreFactory(
-              new java.io.File(System.getProperty("java"
-                  + ".io.tmpdir"))))
+          netHttpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+          .setAccessType("offline")
+          .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
           .setAccessType("offline")
           .build();
 

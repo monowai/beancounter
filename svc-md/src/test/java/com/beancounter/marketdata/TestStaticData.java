@@ -52,7 +52,7 @@ class TestStaticData {
 
   @Test
   @VisibleForTesting
-  void doesMockMarketConfigurationExist() {
+  void does_MockMarketConfigurationExist() {
 
     assertThat(staticConfig).isNotNull();
     Market market = marketService.getMarket(MockProviderService.ID);
@@ -70,7 +70,7 @@ class TestStaticData {
 
   @Test
   @VisibleForTesting
-  void computeMarketDataProviderAsPriceDateFromUserTz() {
+  void is_serTzComputed() {
 
     //  The java.util.Date has no concept of time zone, and only represents
     //  the number of seconds passed since the Unix epoch time – 1970-01-01T00:00:00Z.
@@ -111,7 +111,7 @@ class TestStaticData {
 
   @Test
   @VisibleForTesting
-  void doesMarketDataAliasWorkForWtdAndNzx() {
+  void is_MarketDataAliasForWtdAndNzxResolving() {
     Market market = marketService.getMarket("NZX");
     assertThat(market)
         .isNotNull()
@@ -128,7 +128,7 @@ class TestStaticData {
 
   @Test
   @VisibleForTesting
-  void doesMarketDataAliasNasdaqResolveToNull() {
+  void does_MarketDataAliasNasdaqResolveToNull() {
     Market market = marketService.getMarket("NASDAQ");
     assertThat(market)
         .isNotNull()
@@ -141,7 +141,7 @@ class TestStaticData {
 
   @Test
   @VisibleForTesting
-  void doCurrenciesLoad() {
+  void is_CurrencyDataLoading() {
 
     assertThat(currencyService.getCode("USD"))
         .isNotNull();

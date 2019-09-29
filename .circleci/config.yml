@@ -43,12 +43,12 @@ jobs:
           path: jar-common/build/*.jar
 
 
-  build-import:
+  build-ingest:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/svc-import'
+    working_directory: '~/beancounter/svc-ingest'
     # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
@@ -70,7 +70,7 @@ jobs:
           path: ./build/test-results/test
 
       - store_artifacts:
-          path: svc-import/build/*.jar
+          path: svc-ingest/build/*.jar
 
   build-md:
     docker:
@@ -144,6 +144,6 @@ workflows:
       - build-position:
           requires:
             - build-common
-      - build-import:
+      - build-ingest:
           requires:
             - build-common

@@ -3,6 +3,7 @@ package com.beancounter.ingest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.ingest.config.ExchangeConfig;
+import com.google.common.annotations.VisibleForTesting;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ class ExchangeAliasTest {
   private ExchangeConfig exchangeConfig;
 
   @Test
+  @VisibleForTesting
   void is_ExchangeConfigWired() {
     assertThat(exchangeConfig).isNotNull();
     assertThat(exchangeConfig.getAliases()).isNotEmpty();

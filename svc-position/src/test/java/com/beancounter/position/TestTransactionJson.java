@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.model.Transaction;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.core.io.ClassPathResource;
 class TestTransactionJson {
 
   @Test
+  @VisibleForTesting
   void jsonSerialization() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     File tradeFile = new ClassPathResource("contracts/trades.json").getFile();

@@ -9,6 +9,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 class TestMockProviderService {
 
   @Test
+  @VisibleForTesting
   void mockDataProviderReturnsValue() {
     Asset asset = AssetHelper.getAsset("Anything", "MOCK");
     MarketDataProvider provider = new MockProviderService();
@@ -32,6 +34,7 @@ class TestMockProviderService {
   }
 
   @Test
+  @VisibleForTesting
   void mockDataProviderThrowsException() {
     // Hard coded asset exception
     Asset asset = AssetHelper.getAsset("123", "MOCK");

@@ -17,6 +17,7 @@ import com.beancounter.marketdata.DataProviderUtils;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -61,6 +62,7 @@ class TestWorldTradingDataApi {
   }
 
   @Test
+  @VisibleForTesting
   void asxMarketInputConvertsToAxMarket() throws Exception {
     Asset amp = Asset.builder().code("AMP")
         .market(Market.builder().code("ASX").build())
@@ -90,6 +92,7 @@ class TestWorldTradingDataApi {
   }
 
   @Test
+  @VisibleForTesting
   void marketDataReturnsPricesWithMarketDateWhenRequestDateIsLater() throws Exception {
 
     Asset aapl =
@@ -138,6 +141,7 @@ class TestWorldTradingDataApi {
   }
 
   @Test
+  @VisibleForTesting
   void apiGetMarketDataWithAnInvalidAsset() throws Exception {
 
     Asset aapl =
@@ -177,6 +181,7 @@ class TestWorldTradingDataApi {
   }
 
   @Test
+  @VisibleForTesting
   void apiMessage() throws Exception {
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();

@@ -10,6 +10,7 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketService;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,12 +47,14 @@ class MarketDataBootTests {
 
 
   @Test
+  @VisibleForTesting
   void contextLoads() {
     assertThat(context).isNotNull();
   }
 
   @Test
   @Tag("slow")
+  @VisibleForTesting
   void getMarketData() {
     Asset asset = AssetHelper.getAsset("dummy", marketService.getMarket("mock"));
 
@@ -77,6 +80,7 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
+  @VisibleForTesting
   void getCollectionOfMarketData() {
     Collection<Asset> assets = new ArrayList<>();
     Asset asset = Asset.builder().code("assetCode")
@@ -103,6 +107,7 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
+  @VisibleForTesting
   void valuationRequestReturnsFullHydratedAssets() {
     Asset asset = AssetHelper.getAsset("dummy", marketService.getMarket("mock"));
 

@@ -14,6 +14,7 @@ import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ class ShareSightTradeTest {
   private ShareSightTransformers shareSightTransformers;
 
   @Test
+  @VisibleForTesting
   void is_RowWithFxConverted() throws Exception {
 
     List<String> row = new ArrayList<>();
@@ -88,6 +90,7 @@ class ShareSightTradeTest {
   }
 
   @Test
+  @VisibleForTesting
   void is_RowWithoutFxConverted() throws Exception {
 
     List<String> row = new ArrayList<>();
@@ -145,6 +148,7 @@ class ShareSightTradeTest {
   }
 
   @Test
+  @VisibleForTesting
   void is_RowWithNoCommentTransformed() throws Exception {
 
     List<String> row = new ArrayList<>();
@@ -175,6 +179,7 @@ class ShareSightTradeTest {
   }
 
   @Test
+  @VisibleForTesting
   void is_SplitTransactionTransformed() throws Exception {
 
     List<String> row = new ArrayList<>();

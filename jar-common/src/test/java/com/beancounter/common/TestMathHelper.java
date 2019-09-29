@@ -3,12 +3,14 @@ package com.beancounter.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.helper.MathHelper;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class TestMathHelper {
 
   @Test
+  @VisibleForTesting
   void is_RateInputForFxSafe() {
     MathHelper mathHelper = new MathHelper();
 
@@ -30,6 +32,7 @@ class TestMathHelper {
   }
 
   @Test
+  @VisibleForTesting
   void is_RateInputForSaveDivide() {
     MathHelper mathHelper = new MathHelper();
 

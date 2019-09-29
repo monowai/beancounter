@@ -7,12 +7,14 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class TestTransaction {
 
   @Test
+  @VisibleForTesting
   void is_TransactionSerializing() throws Exception {
     TrnType trnType = TrnType.BUY;
     ObjectMapper mapper = new ObjectMapper();

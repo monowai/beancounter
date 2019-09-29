@@ -14,11 +14,10 @@ import com.beancounter.common.request.FxRequest;
 import com.beancounter.marketdata.DataProviderUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,8 @@ class FxMvcTests {
   private MockMvc mockMvc;
 
   @Autowired
-  private void mockServices() {
+  @VisibleForTesting
+  void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
 
     if (mockInternet == null) {
@@ -59,13 +59,13 @@ class FxMvcTests {
   }
 
   @Test
+  @VisibleForTesting
   void is_FxRateResultsObjectReturned() throws Exception {
     File rateResponse = new ClassPathResource("ecb-fx-rates.json").getFile();
     DataProviderUtils.mockGetResponse(
         mockInternet,
         "/2019-08-27?base=USD&symbols=AUD,EUR,GBP,USD,NZD",
         rateResponse);
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
     String date = "2019-08-27";
     CurrencyPair nzdUsd = CurrencyPair.builder().from("NZD").to("USD").build();
     CurrencyPair usdNzd = CurrencyPair.builder().from("USD").to("NZD").build();

@@ -13,6 +13,7 @@ import com.beancounter.ingest.sharesight.ShareSightDivis;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ class ShareSightDiviTest {
   private ShareSightTransformers shareSightTransformers;
 
   @Test
+  @VisibleForTesting
   void is_CurrencyResolvedForDividendInput() throws Exception {
     List<String> row = new ArrayList<>();
 

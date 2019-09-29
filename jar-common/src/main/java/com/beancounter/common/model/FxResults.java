@@ -11,7 +11,7 @@ import lombok.Data;
 @JsonDeserialize(builder = FxResults.FxResultsBuilder.class)
 public class FxResults {
 
-  Map<String, FxPairResults> data;
+  private Map<String, FxPairResults> data;
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class FxResultsBuilder {

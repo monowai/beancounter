@@ -7,6 +7,7 @@ import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxResults;
 import com.beancounter.common.request.FxRequest;
 import com.beancounter.ingest.service.FxRateService;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.junit.jupiter.api.Tag;
@@ -37,7 +38,8 @@ class FxContracts {
   private FxRateService fxRateService;
 
   @Test
-  void given_FxRatesRequest_ThenResultsAreReturned() {
+  @VisibleForTesting
+  void is_FxContractHonoured() {
     Collection<CurrencyPair> currencyPairs = new ArrayList<>();
     currencyPairs.add(CurrencyPair.builder().from("USD").to("EUR").build());
     currencyPairs.add(CurrencyPair.builder().from("USD").to("GBP").build());

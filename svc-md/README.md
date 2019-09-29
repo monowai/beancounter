@@ -1,5 +1,4 @@
-Micro service to obtain market data from a variety of data providers
-
+Micro service to obtain market data from a variety of data providers.
 Currently offers support for: 
 
 *   [World Trading Data](https://www.worldtradingdata.com/pricing)    

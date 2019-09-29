@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class FxPairResults {
   @JsonDeserialize(keyUsing = CurrencyKeyDeserializer.class)
-  Map<CurrencyPair, FxRate> rates = new HashMap<>();
+  private Map<CurrencyPair, FxRate> rates = new HashMap<>();
 }

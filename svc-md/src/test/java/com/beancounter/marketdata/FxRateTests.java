@@ -52,7 +52,6 @@ class FxRateTests {
 
     Map<String, FxPairResults> rateCache = rateCalculator.compute(asAt, pairs, rates);
     assertThat(rateCache).hasSize(1);
-    FxPairResults results = rateCache.get(asAt);
 
     FxPairResults values = rateCache.get(asAt);
     FxRate audUsd = values.getRates().get(AUD_USD);

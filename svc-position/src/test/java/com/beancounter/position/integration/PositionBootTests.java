@@ -3,6 +3,7 @@ package com.beancounter.position.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.position.PositionBoot;
+import com.google.common.annotations.VisibleForTesting;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ class PositionBootTests {
   }
 
   @Test
+  @VisibleForTesting
   void contextLoads() {
     assertThat(context).isNotNull();
   }

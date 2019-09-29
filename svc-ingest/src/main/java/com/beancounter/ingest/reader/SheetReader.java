@@ -23,6 +23,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -54,7 +55,8 @@ public class SheetReader {
 
   private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-  private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY);
+  private static final List<String> SCOPES = Collections
+      .singletonList(SheetsScopes.SPREADSHEETS_READONLY);
 
   private GoogleDocsConfig googleDocsConfig;
 
@@ -84,16 +86,19 @@ public class SheetReader {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
+  @VisibleForTesting
   void setGoogleDocsConfig(GoogleDocsConfig googleDocsConfig) {
     this.googleDocsConfig = googleDocsConfig;
   }
 
   @Autowired
+  @VisibleForTesting
   void setShareSightHelper(ShareSightHelper shareSightHelper) {
     this.shareSightHelper = shareSightHelper;
   }
 
   @Autowired
+  @VisibleForTesting
   void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
     this.shareSightTransformers = shareSightTransformers;
   }

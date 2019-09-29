@@ -1,7 +1,7 @@
 buildscript {
     ext {
         springBootVersion = "2.1.7.RELEASE"
-        feignVersion = "10.4.0"
+        springCloudVersion = "Greenwich.SR3"
         googleClientVersion = "1.23.0"
     }
     repositories {
@@ -12,6 +12,7 @@ buildscript {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     }
 }
+version = "0.1.1"
 
 apply from: '../buildtools/javaCommon.gradle'
 apply plugin: 'org.springframework.boot'
@@ -25,12 +26,8 @@ repositories {
 dependencies {
     implementation(
             project (":jar-common"),
-            "org.springframework.boot:spring-boot-starter",
-            "org.springframework.boot:spring-boot-starter-logging",
-            "io.github.openfeign:feign-core:${feignVersion}",
-            "io.github.openfeign:feign-okhttp:${feignVersion}",
-            "io.github.openfeign:feign-gson:${feignVersion}",
-            "io.github.openfeign:feign-slf4j:${feignVersion}",
+            "org.springframework.cloud:spring-cloud-starter-openfeign",
+
             "com.fasterxml.jackson.core:jackson-databind",
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",
@@ -49,12 +46,24 @@ dependencies {
             "io.rest-assured:rest-assured",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.cloud:spring-cloud-contract-wiremock",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.junit.jupiter:junit-jupiter-engine",
             "org.junit.platform:junit-platform-launcher",
             "org.junit.platform:junit-platform-runner",
             "org.junit.platform:junit-platform-surefire-provider"
     )
+    testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {
+        transitive = false
+    }
 }
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
 
 idea {
     module {

@@ -1,7 +1,10 @@
 buildscript {
     ext {
+        contractsDir = file("mappings")
+        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
         springBootVersion = "2.1.7.RELEASE"
-        springCloudVersion = "Greenwich.RELEASE"
+        springCloudVersion = "Greenwich.SR3"
+        verifierVersion = "2.1.3.RELEASE"
         resilience4jVersion = "0.16.0"
         wiremockVersion = "2.24.1"
 
@@ -12,12 +15,26 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:${verifierVersion}"
     }
 }
 
 apply from: '../buildtools/javaCommon.gradle'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'spring-cloud-contract'
+apply plugin: 'maven-publish'
+
+version = "0.1.1"
+
+publishing {
+    publications {
+        stubs(MavenPublication) {
+            artifactId "${project.name}-stubs"
+            artifact verifierStubsJar
+        }
+    }
+}
 
 
 dependencies {
@@ -42,6 +59,10 @@ dependencies {
             "io.rest-assured:rest-assured",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
+            'org.codehaus.groovy:groovy-all:2.4.6',
+            'org.spockframework:spock-core:1.0-groovy-2.4',
+            'org.spockframework:spock-spring:1.0-groovy-2.4',
+            'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter-engine",
             "org.junit.platform:junit-platform-launcher",

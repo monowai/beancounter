@@ -21,7 +21,7 @@ class TestTransactionJson {
   @Test
   void jsonSerialization() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
-    File tradeFile = new ClassPathResource("trades.json").getFile();
+    File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
 
     CollectionType javaType = mapper.getTypeFactory()
         .constructCollectionType(Collection.class, Transaction.class);

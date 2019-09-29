@@ -15,7 +15,7 @@ class TestTotalPositions {
   @VisibleForTesting
   void total() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
-    File positionFile = new ClassPathResource("testpositions.json").getFile();
+    File positionFile = new ClassPathResource("contracts/postion-results.json").getFile();
 
     Positions positions = mapper.readValue(positionFile, Positions.class);
 

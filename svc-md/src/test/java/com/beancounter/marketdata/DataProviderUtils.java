@@ -84,7 +84,7 @@ public class DataProviderUtils {
 
     for (Asset asset : assets) {
       if (assetArg != null) {
-        assetArg.append("%2C").append(asset.getCode());
+        assetArg.append(",").append(asset.getCode());
       } else {
         assetArg = new StringBuilder(asset.getCode());
       }

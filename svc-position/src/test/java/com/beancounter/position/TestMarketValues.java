@@ -66,7 +66,7 @@ class TestMarketValues {
     CollectionType javaType = TestUtils.getMapper().getTypeFactory()
         .constructCollectionType(Collection.class, MarketData.class);
 
-    File jsonFile = new ClassPathResource("md-ABC.json").getFile();
+    File jsonFile = new ClassPathResource("contracts/price-simple.json").getFile();
     Object response = TestUtils.getMapper().readValue(jsonFile, javaType);
 
     TestUtils.mockMarketData(mockMarketData, TestUtils.getMapper().writeValueAsString(assets),
@@ -108,7 +108,7 @@ class TestMarketValues {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
 
-    File jsonFile = new ClassPathResource("valuationResponse.json").getFile();
+    File jsonFile = new ClassPathResource("contracts/price-response.json").getFile();
     Object response = TestUtils.getMapper().readValue(jsonFile, javaType);
 
     TestUtils.mockMarketData(mockMarketData, TestUtils.getMapper().writeValueAsString(assets),

@@ -1,4 +1,4 @@
-package com.beancounter.ingest.test;
+package com.beancounter.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

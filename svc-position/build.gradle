@@ -1,7 +1,7 @@
 buildscript {
     ext {
         springBootVersion = "2.1.7.RELEASE"
-        springCloudVersion = 'Greenwich.RELEASE'
+        springCloudVersion = 'Greenwich.SR3'
         resilience4jVersion = "0.17.0"
         wiremockVersion = "2.23.2"
     }

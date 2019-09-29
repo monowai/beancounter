@@ -63,7 +63,7 @@ class FxMvcTests {
     File rateResponse = new ClassPathResource("ecb-fx-rates.json").getFile();
     DataProviderUtils.mockGetResponse(
         mockInternet,
-        "/2019-08-27?base=USD&symbols=AUD%2CEUR%2CGBP%2CUSD%2CNZD",
+        "/2019-08-27?base=USD&symbols=AUD,EUR,GBP,USD,NZD",
         rateResponse);
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
     String date = "2019-08-27";

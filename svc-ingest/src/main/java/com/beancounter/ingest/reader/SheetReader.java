@@ -56,7 +56,7 @@ public class SheetReader {
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
   private GoogleDocsConfig googleDocsConfig;
 
-  @Value("${sheet}")
+  @Value("${sheet:#{null}}")
   private String sheetId;
 
   @Value("${filter:#{null}}")

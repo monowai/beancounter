@@ -1,6 +1,11 @@
 spring:
   main:
     banner-mode: "off"
+    web-application-type: none
+
+feign:
+  hystrix:
+    enabled: false
 
 beancounter:
   exchanges:

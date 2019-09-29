@@ -1,0 +1,6 @@
+
+marketdata.url: "http://localhost:8090/api"
+
+stubrunner:
+  idsToServiceIds:
+    svc-md: marketData

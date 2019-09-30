@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 
 @FeignClient(name = "marketData",
-    url = "${marketdata.url:https://localhost:10010/api}")
+    url = "${marketdata.url:http://localhost:10010/api}")
 @Configuration
 public interface FxGateway {
   @RequestMapping(method = RequestMethod.POST,

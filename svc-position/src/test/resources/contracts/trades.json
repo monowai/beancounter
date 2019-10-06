@@ -29,7 +29,7 @@
     "tax": 0,
     "tradeAmount": 1897.43,
     "cashAmount": null,
-    "tradeRate": 0.7826,
+    "tradeRefRate": 0.7826,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -62,7 +62,7 @@
     "tax": 0,
     "tradeAmount": 2646.08,
     "cashAmount": null,
-    "tradeRate": 0.7826,
+    "tradeRefRate": 0.7826,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -95,7 +95,7 @@
     "tax": 0,
     "tradeAmount": 1564.34,
     "cashAmount": null,
-    "tradeRate": 0.7785,
+    "tradeRefRate": 0.7785,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -128,7 +128,7 @@
     "tax": 0,
     "tradeAmount": 1769.28,
     "cashAmount": null,
-    "tradeRate": 0.8121,
+    "tradeRefRate": 0.8121,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -161,7 +161,7 @@
     "tax": 0,
     "tradeAmount": 2273.9,
     "cashAmount": null,
-    "tradeRate": 0.8158,
+    "tradeRefRate": 0.8158,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -194,7 +194,7 @@
     "tax": 0,
     "tradeAmount": 1603.32,
     "cashAmount": null,
-    "tradeRate": 0.8141,
+    "tradeRefRate": 0.8141,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -227,7 +227,7 @@
     "tax": 0,
     "tradeAmount": 1180.74,
     "cashAmount": null,
-    "tradeRate": 0.8067,
+    "tradeRefRate": 0.8067,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -260,7 +260,7 @@
     "tax": 0,
     "tradeAmount": 570.71,
     "cashAmount": null,
-    "tradeRate": 0.8081,
+    "tradeRefRate": 0.8081,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -293,7 +293,7 @@
     "tax": 0,
     "tradeAmount": 1533.37,
     "cashAmount": null,
-    "tradeRate": 0.8096,
+    "tradeRefRate": 0.8096,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -326,7 +326,7 @@
     "tax": 0,
     "tradeAmount": 1664.31,
     "cashAmount": null,
-    "tradeRate": 0.8091,
+    "tradeRefRate": 0.8091,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -359,7 +359,7 @@
     "tax": 0,
     "tradeAmount": 1980.44,
     "cashAmount": null,
-    "tradeRate": 0.7976,
+    "tradeRefRate": 0.7976,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -392,7 +392,7 @@
     "tax": 0,
     "tradeAmount": 1948.8,
     "cashAmount": null,
-    "tradeRate": 0.7890,
+    "tradeRefRate": 0.7890,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -425,7 +425,7 @@
     "tax": 0,
     "tradeAmount": 606.09,
     "cashAmount": null,
-    "tradeRate": 0.7833,
+    "tradeRefRate": 0.7833,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -458,7 +458,7 @@
     "tax": 0,
     "tradeAmount": 2074.64,
     "cashAmount": null,
-    "tradeRate": 0.8065,
+    "tradeRefRate": 0.8065,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -491,7 +491,7 @@
     "tax": 0,
     "tradeAmount": 1695.02,
     "cashAmount": null,
-    "tradeRate": 0.7952,
+    "tradeRefRate": 0.7952,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -524,7 +524,7 @@
     "tax": 0,
     "tradeAmount": 405.21,
     "cashAmount": null,
-    "tradeRate": 0.7844,
+    "tradeRefRate": 0.7844,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -557,7 +557,7 @@
     "tax": 0,
     "tradeAmount": 831.45,
     "cashAmount": null,
-    "tradeRate": 0.7994,
+    "tradeRefRate": 0.7994,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -590,7 +590,7 @@
     "tax": 0,
     "tradeAmount": 1606.69,
     "cashAmount": null,
-    "tradeRate": 0.8061,
+    "tradeRefRate": 0.8061,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -623,7 +623,7 @@
     "tax": 0,
     "tradeAmount": 841.63,
     "cashAmount": null,
-    "tradeRate": 0.8057,
+    "tradeRefRate": 0.8057,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -656,7 +656,7 @@
     "tax": 0,
     "tradeAmount": 1871.01,
     "cashAmount": null,
-    "tradeRate": 0.8014,
+    "tradeRefRate": 0.8014,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -689,7 +689,7 @@
     "tax": 0,
     "tradeAmount": 1911.12,
     "cashAmount": null,
-    "tradeRate": 0.7977,
+    "tradeRefRate": 0.7977,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -722,7 +722,7 @@
     "tax": 0,
     "tradeAmount": 656.7,
     "cashAmount": null,
-    "tradeRate": 0.7489,
+    "tradeRefRate": 0.7489,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -755,7 +755,7 @@
     "tax": 0,
     "tradeAmount": 3066.86,
     "cashAmount": null,
-    "tradeRate": 0.7493,
+    "tradeRefRate": 0.7493,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -788,7 +788,7 @@
     "tax": 0,
     "tradeAmount": 1323.73,
     "cashAmount": null,
-    "tradeRate": 0.7316,
+    "tradeRefRate": 0.7316,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -821,7 +821,7 @@
     "tax": 0,
     "tradeAmount": 1875.23,
     "cashAmount": null,
-    "tradeRate": 0.7316,
+    "tradeRefRate": 0.7316,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -854,7 +854,7 @@
     "tax": 0,
     "tradeAmount": 2120.07,
     "cashAmount": null,
-    "tradeRate": 0.7050,
+    "tradeRefRate": 0.7050,
     "tradeCurrency": {
       "code": "USD"
     },
@@ -887,7 +887,7 @@
     "tax": 0,
     "tradeAmount": 1135.53,
     "cashAmount": null,
-    "tradeRate": 0.7104,
+    "tradeRefRate": 0.7104,
     "tradeCurrency": {
       "code": "USD"
     },

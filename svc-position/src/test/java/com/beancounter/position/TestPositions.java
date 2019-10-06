@@ -61,7 +61,7 @@ class TestPositions {
         .asset(asset)
         .trnType(TrnType.DIVI)
         .tradeCurrency(Currency.builder().code("AUD").build())
-        .tradeRate(new BigDecimal("0.8988"))
+        .tradeRefRate(new BigDecimal("0.8988"))
         .tradeAmount(new BigDecimal("12.99"))
         .build();
 

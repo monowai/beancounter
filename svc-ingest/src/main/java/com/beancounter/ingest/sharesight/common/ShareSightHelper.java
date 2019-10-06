@@ -101,12 +101,15 @@ public class ShareSightHelper {
     return range;
   }
 
-  public BigDecimal safeDivide(BigDecimal inValue, BigDecimal tradeRate) {
-    return mathHelper.divide(inValue, tradeRate);
+  public BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {
+    return mathHelper.divide(money, rate);
   }
 
-  public BigDecimal getValueWithFx(BigDecimal inValue, BigDecimal tradeRate) {
-    return mathHelper.multiply(inValue, tradeRate);
+  public BigDecimal getValueWithFx(BigDecimal money, BigDecimal rate) {
+    return mathHelper.multiply(money, rate);
   }
 
+  public boolean isUnset(BigDecimal value) {
+    return mathHelper.isUnset(value);
+  }
 }

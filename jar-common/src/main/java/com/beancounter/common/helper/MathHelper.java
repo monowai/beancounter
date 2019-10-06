@@ -8,26 +8,31 @@ import java.math.RoundingMode;
  */
 public class MathHelper {
 
-  public BigDecimal divide(BigDecimal inValue, BigDecimal tradeRate) {
-    if (tradeRate == null) {
-      return inValue;
+  public BigDecimal divide(BigDecimal money, BigDecimal rate) {
+    if (isUnset(rate)) {
+      return money;
     }
 
-    if (inValue.doubleValue() == 0d || tradeRate.doubleValue() == 0d) {
-      return inValue;
+    if (isUnset(money)) {
+      return money;
     }
-    return inValue.divide(tradeRate, RoundingMode.HALF_UP);
+    return money.divide(rate, RoundingMode.HALF_UP);
   }
 
-  public BigDecimal multiply(BigDecimal inValue, BigDecimal tradeRate) {
-    if (tradeRate == null) {
-      return inValue;
+  public BigDecimal multiply(BigDecimal money, BigDecimal rate) {
+    if (isUnset(rate)) {
+      return money;
     }
 
-    if (inValue.doubleValue() == 0d || tradeRate.doubleValue() == 0d) {
-      return inValue;
+    if (isUnset(money)) {
+      return money;
     }
 
-    return inValue.multiply(tradeRate).abs().setScale(2, RoundingMode.HALF_UP);
+    return money.multiply(rate).abs().setScale(2, RoundingMode.HALF_UP);
+  }
+
+  // Null and Zero are treated as "unSet"
+  public boolean isUnset(BigDecimal value) {
+    return value == null || BigDecimal.ZERO.compareTo(value) == 0;
   }
 }

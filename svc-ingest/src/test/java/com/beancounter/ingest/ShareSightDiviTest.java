@@ -62,7 +62,7 @@ class ShareSightDiviTest {
     row.add(ShareSightDivis.code, "MO.NYS");
     row.add(ShareSightDivis.name, "Test Asset");
     row.add(ShareSightDivis.date, "21/01/2019");
-    String rate = "0.8074"; // Sharesight FX Rate - transformer will convert to Trade CCY
+    String rate = "0.8074"; // Sharesight Trade to Reference Rate
     row.add(ShareSightDivis.fxRate, rate);
     row.add(ShareSightDivis.currency, "USD"); // TradeCurrency
     row.add(ShareSightDivis.net, "15.85");
@@ -82,7 +82,7 @@ class ShareSightDiviTest {
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("asset", expectedAsset)
-        .hasFieldOrPropertyWithValue("tradeRate", fxRate)
+        .hasFieldOrPropertyWithValue("tradeRefRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("15.85").multiply(fxRate).setScale(2, RoundingMode.HALF_UP))
         .hasFieldOrPropertyWithValue("tax", new BigDecimal("0.0000"))

@@ -53,7 +53,8 @@ public class ShareSightTrades implements Transformer {
     try {
       TrnType trnType = shareSightHelper.resolveType(row.get(type).toString());
       if (trnType == null) {
-        throw new BusinessException(String.format("Unsupported type %s", row.get(type).toString()));
+        throw new BusinessException(String.format("Unsupported type %s",
+            row.get(type).toString()));
       }
 
       Asset asset = Asset.builder().code(
@@ -64,27 +65,32 @@ public class ShareSightTrades implements Transformer {
 
       String comment = (row.size() == 12 ? row.get(comments).toString() : null);
 
-
-      BigDecimal tradeRate = BigDecimal.ZERO;
+      BigDecimal tradeRate = null;
       BigDecimal tradeAmount = BigDecimal.ZERO;
       if (trnType != TrnType.SPLIT) {
-        tradeRate = new BigDecimal(row.get(fxRate).toString());
+        Object rate = row.get(fxRate);
+        if (rate != null) {
+          tradeRate = new BigDecimal(rate.toString());
+        }
+
         tradeAmount = shareSightHelper.parseDouble(row.get(value));
       }
 
       return Transaction.builder()
           .asset(asset)
           .trnType(trnType)
-          .portfolio(portfolio)
-          .baseCurrency(baseCurrency)
           .quantity(shareSightHelper.parseDouble(row.get(quantity).toString()))
           .price(shareSightHelper.parseDouble(row.get(price).toString()))
           .fees(shareSightHelper.safeDivide(
               new BigDecimal(row.get(brokerage).toString()), tradeRate))
           .tradeAmount(shareSightHelper.getValueWithFx(tradeAmount, tradeRate))
           .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
+          .portfolio(portfolio)
+          .baseCurrency(baseCurrency)
+          .cashCurrency(portfolio.getCurrency())
           .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
-          .tradeRate(tradeRate) // Trade to Portfolio Reference rate
+          // Zero and null should be treated as "unknown"
+          .tradeRefRate(shareSightHelper.isUnset(tradeRate) ? null : tradeRate)
           .comments(comment)
           .build()
           ;

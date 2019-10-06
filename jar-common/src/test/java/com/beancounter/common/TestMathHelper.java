@@ -8,11 +8,10 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class TestMathHelper {
-
+  private MathHelper mathHelper = new MathHelper();
   @Test
   @VisibleForTesting
   void is_RateInputForFxSafe() {
-    MathHelper mathHelper = new MathHelper();
 
     assertThat(mathHelper.multiply(new BigDecimal("1000.00"),
         new BigDecimal("0")))
@@ -34,7 +33,7 @@ class TestMathHelper {
   @Test
   @VisibleForTesting
   void is_RateInputForSaveDivide() {
-    MathHelper mathHelper = new MathHelper();
+
 
     assertThat(mathHelper.divide(new BigDecimal("1000.00"),
         new BigDecimal("0")))
@@ -51,5 +50,14 @@ class TestMathHelper {
     assertThat(mathHelper.divide(new BigDecimal("1000.00"),
         new BigDecimal("10.00")))
         .isEqualTo("100.00");
+  }
+
+  @VisibleForTesting
+  @Test
+  void is_ZeroAndNullSafe () {
+    assertThat(mathHelper.isUnset(null)).isTrue();
+    assertThat(mathHelper.isUnset(new BigDecimal("0"))).isTrue();
+    assertThat(mathHelper.isUnset(new BigDecimal("0.00"))).isTrue();
+
   }
 }

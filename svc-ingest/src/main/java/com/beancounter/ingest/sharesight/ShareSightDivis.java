@@ -63,7 +63,7 @@ public class ShareSightDivis implements Transformer {
             .setScale(2, RoundingMode.HALF_UP))
         .tradeDate(helper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
-        .tradeRate(tradeRate)
+        .tradeRefRate(tradeRate)
         .build()
         ;
 

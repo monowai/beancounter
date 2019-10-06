@@ -48,14 +48,13 @@ public class Transaction {
   // In trade Currency
   private BigDecimal tradeAmount = BigDecimal.ZERO;
   private BigDecimal cashAmount;
-  // Trade CCY to settlement  currency
-  private BigDecimal cashRate;
 
   // Trade CCY to portfolio reference currency
-  private BigDecimal tradeRate;
-  @Builder.Default
+  private BigDecimal tradeRefRate;
   // Trade Currency to system Base Currency
-  private BigDecimal baseRate = BigDecimal.ONE;
+  private BigDecimal tradeBaseRate;
+  // Trade CCY to settlement  currency
+  private BigDecimal tradeCashRate;
 
   private String comments;
 

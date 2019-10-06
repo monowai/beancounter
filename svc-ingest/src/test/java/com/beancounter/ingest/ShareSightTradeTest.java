@@ -65,10 +65,10 @@ class ShareSightTradeTest {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio();
+    Portfolio portfolio = UnitTestHelper.getPortfolio();
 
     // System base currency
-    Currency base = getCurrency("USD");
+    Currency base = UnitTestHelper.getCurrency("USD");
 
     Transaction transaction = trades.from(row, portfolio, base);
     log.info(new ObjectMapper().writeValueAsString(transaction));
@@ -82,8 +82,8 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeCurrency")
         .hasFieldOrPropertyWithValue("baseCurrency", base)
-        .hasFieldOrPropertyWithValue("portfolio", getPortfolio())
-        .hasFieldOrPropertyWithValue("baseRate", BigDecimal.ONE)
+        .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
+        .hasFieldOrPropertyWithValue("tradeRefRate", new BigDecimal("0.8988"))
         .hasFieldOrProperty("tradeDate")
     ;
 
@@ -104,20 +104,20 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.price, "12.23");
     row.add(ShareSightTrades.brokerage, "12.99");
     row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, "0.0");
+    row.add(ShareSightTrades.fxRate, "0.0"); // Treat as null
     row.add(ShareSightTrades.value, "2097.85");
     row.add(ShareSightTrades.comments, "Test Comment");
 
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio();
+    Portfolio portfolio = UnitTestHelper.getPortfolio();
 
     // System base currency
-    Currency base = getCurrency("USD");
+    Currency base = UnitTestHelper.getCurrency("USD");
 
     Transaction transaction = trades.from(row, portfolio, base);
-    log.info(new ObjectMapper().writeValueAsString(transaction));
+
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
@@ -127,24 +127,13 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount", new MathHelper()
             .multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("AUD"))
+        .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
         .hasFieldOrPropertyWithValue("baseCurrency", base)
-        .hasFieldOrPropertyWithValue("portfolio", getPortfolio())
-        .hasFieldOrPropertyWithValue("baseRate", BigDecimal.ONE)
+        .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
+        .hasFieldOrPropertyWithValue("tradeRefRate", null)
         .hasFieldOrProperty("tradeDate")
     ;
 
-  }
-
-  private Currency getCurrency(String currency) {
-    return Currency.builder().code(currency).build();
-  }
-
-  private Portfolio getPortfolio() {
-    return Portfolio.builder()
-        .code("TEST")
-        .currency(getCurrency("NZD"))
-        .build();
   }
 
   @Test
@@ -166,7 +155,8 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.value, "2097.85");
 
     Transformer trades = shareSightTransformers.transformer(row);
-    Transaction transaction = trades.from(row, getPortfolio(), getCurrency("USD"));
+    Transaction transaction = trades.from(row, UnitTestHelper.getPortfolio(),
+        UnitTestHelper.getCurrency("USD"));
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -198,7 +188,8 @@ class ShareSightTradeTest {
     row.add(ShareSightTrades.comments, "Test Comment");
 
     Transformer trades = shareSightTransformers.transformer("TRADE");
-    Transaction transaction = trades.from(row, getPortfolio(), getCurrency("USD"));
+    Transaction transaction = trades.from(row, UnitTestHelper.getPortfolio(),
+        UnitTestHelper.getCurrency("USD"));
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -206,9 +197,9 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("baseCurrency", getCurrency("USD"))
-        .hasFieldOrPropertyWithValue("portfolio", getPortfolio())
+        .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
+        .hasFieldOrPropertyWithValue("baseCurrency", UnitTestHelper.getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
 
         .hasFieldOrProperty("tradeDate")
     ;

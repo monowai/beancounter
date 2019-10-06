@@ -12,12 +12,11 @@ import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.FxResults;
 import com.beancounter.common.request.FxRequest;
 import com.beancounter.marketdata.DataProviderUtils;
+import com.beancounter.marketdata.providers.fxrates.EcbRules;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -64,7 +63,8 @@ class FxMvcTests {
     File rateResponse = new ClassPathResource("ecb-fx-rates.json").getFile();
     DataProviderUtils.mockGetResponse(
         mockInternet,
-        "/2019-08-27?base=USD&symbols=AUD,EUR,GBP,USD,NZD",
+        // Matches all supported currencies
+        "/2019-08-27?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
         rateResponse);
     String date = "2019-08-27";
     CurrencyPair nzdUsd = CurrencyPair.builder().from("NZD").to("USD").build();
@@ -72,15 +72,10 @@ class FxMvcTests {
     CurrencyPair usdUsd = CurrencyPair.builder().from("USD").to("USD").build();
     CurrencyPair nzdNzd = CurrencyPair.builder().from("NZD").to("NZD").build();
 
-    Collection<CurrencyPair> pairs = new ArrayList<>();
-    pairs.add(nzdUsd);
-    pairs.add(usdNzd);
-    pairs.add(nzdNzd);
-    pairs.add(usdUsd);
-
     ObjectMapper objectMapper = new ObjectMapper();
 
-    FxRequest fxRequest = FxRequest.builder().rateDate(date).pairs(pairs).build();
+    FxRequest fxRequest = FxRequest.builder().rateDate(date).build();
+    fxRequest.add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
             .contentType(MediaType.APPLICATION_JSON)
@@ -94,7 +89,7 @@ class FxMvcTests {
         .readValue(mvcResult.getResponse().getContentAsString(), FxResults.class);
 
     FxPairResults results = fxResults.getData().get(date);
-    assertThat(results.getRates()).isNotNull().hasSize(pairs.size());
+    assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
     Map<CurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)
         .containsKeys(nzdUsd, usdNzd);
@@ -103,6 +98,14 @@ class FxMvcTests {
       assertThat(results.getRates().get(currencyPair).getDate()).isNotNull();
     }
 
+  }
+
+  @Test
+  @VisibleForTesting
+  void is_EarliestRateDateValid() {
+    EcbRules ecbRules = new EcbRules();
+    assertThat(ecbRules.getValidDate("1990-01-01"))
+        .isEqualTo(EcbRules.earliest);
   }
 
 }

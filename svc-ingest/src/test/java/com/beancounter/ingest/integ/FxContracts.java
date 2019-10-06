@@ -60,4 +60,27 @@ class FxContracts {
           .hasFieldOrPropertyWithValue("date", testDate);
     }
   }
+
+  @Test
+  @VisibleForTesting
+  void is_EarlyDateWorking() {
+    Collection<CurrencyPair> currencyPairs = new ArrayList<>();
+    currencyPairs.add(CurrencyPair.builder().from("USD").to("SGD").build());
+    currencyPairs.add(CurrencyPair.builder().from("GBP").to("NZD").build());
+
+    String testDate = "1996-07-27"; // Earlier than when ECB started recording rates
+    FxResults fxResults = fxRateService.getRates(FxRequest.builder()
+        .rateDate(testDate)
+        .pairs(currencyPairs)
+        .build());
+    assertThat(fxResults).isNotNull().hasNoNullFieldsOrProperties();
+    assertThat(fxResults.getData().keySet()).hasSize(1);
+    assertThat(fxResults.getData()).containsKeys(testDate);
+    FxPairResults fxPairResults = fxResults.getData().get(testDate);
+    for (CurrencyPair currencyPair : currencyPairs) {
+      assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
+      assertThat(fxPairResults.getRates().get(currencyPair))
+          .hasFieldOrPropertyWithValue("date", "1999-01-04");
+    }
+  }
 }

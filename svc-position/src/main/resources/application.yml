@@ -1,5 +1,7 @@
 server:
   port: 9500
+  servlet:
+    context-path: '/api'
 
 beancounter:
   md:

@@ -1,5 +1,7 @@
 server:
   port: 9510
+  servlet:
+    context-path: '/api'
 
 
 logging:
@@ -46,6 +48,11 @@ beancounter:
       code: EUR
       name: Euro
       symbol: €
+
+    SG:
+      code: SGD
+      name: Dollar
+      symbol: $
 
   markets:
     MOCK:

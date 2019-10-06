@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class TestMathHelper {
   private MathHelper mathHelper = new MathHelper();
+
   @Test
   @VisibleForTesting
   void is_RateInputForFxSafe() {
@@ -54,7 +55,7 @@ class TestMathHelper {
 
   @VisibleForTesting
   @Test
-  void is_ZeroAndNullSafe () {
+  void is_ZeroAndNullSafe() {
     assertThat(mathHelper.isUnset(null)).isTrue();
     assertThat(mathHelper.isUnset(new BigDecimal("0"))).isTrue();
     assertThat(mathHelper.isUnset(new BigDecimal("0.00"))).isTrue();

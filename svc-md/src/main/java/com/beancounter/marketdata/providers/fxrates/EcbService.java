@@ -1,22 +1,20 @@
 package com.beancounter.marketdata.providers.fxrates;
 
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.marketdata.service.CurrencyService;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import javax.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class EcbService {
   private FxGateway fxGateway;
   private CurrencyService currencyService;
-  private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
   private String currencies;
+  private EcbRules ecbRules = new EcbRules();
 
   @Autowired
   EcbService(FxGateway fxGateway, CurrencyService currencyService) {
@@ -28,9 +26,10 @@ public class EcbService {
 
   public Collection<FxRate> getRates(String asAt) {
     EcbRates rates = fxGateway.getRatesForSymbols(
-        asAt,
+        ecbRules.getValidDate(asAt),
         currencyService.getBase().getCode(),
         currencies);
+
     Collection<FxRate> results = new ArrayList<>();
     for (String code : rates.getRates().keySet()) {
       results.add(
@@ -38,6 +37,7 @@ public class EcbService {
               .from(currencyService.getBase())
               .to(currencyService.getCode(code))
               .rate(rates.getRates().get(code))
+              .date(ecbRules.date(rates.getDate()))
               .build()
       );
     }
@@ -45,11 +45,4 @@ public class EcbService {
   }
 
 
-  public String date(@NotNull Date inDate) {
-    if (inDate == null) {
-      throw new BusinessException("Date must not be null");
-    }
-
-    return dateFormat.format(inDate);
-  }
 }

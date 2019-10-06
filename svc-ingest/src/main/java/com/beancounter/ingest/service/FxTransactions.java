@@ -1,5 +1,6 @@
 package com.beancounter.ingest.service;
 
+import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
@@ -8,6 +9,10 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.common.request.FxRequest;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class FxTransactions {
   private FxRateService fxRateService;
   private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+  private MathHelper mathHelper = new MathHelper();
 
   @Autowired
   void setFxRateService(FxRateService fxRateService) {
@@ -22,52 +28,91 @@ public class FxTransactions {
   }
 
   public Transaction applyRates(Transaction transaction) {
+    return applyRates(Collections.singleton(transaction)).iterator().next();
+  }
 
-    String tradeDate = simpleDateFormat.format(transaction.getTradeDate());
-    FxRequest fxRequest = FxRequest.builder()
-        .rateDate(tradeDate)
-        .build();
+  public Collection<Transaction> applyRates(Collection<Transaction> transactions) {
+    Map<String, FxRequest> fxRequestMap = new HashMap<>();
+    for (Transaction transaction : transactions) {
+      String tradeDate = simpleDateFormat.format(transaction.getTradeDate());
 
-    CurrencyPair tradeBase = getCurrencyPair(
-        transaction.getTradeBaseRate(),
-        transaction.getBaseCurrency(),
-        transaction.getPortfolio().getCurrency());
+      FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
-    fxRequest.add(tradeBase);
+      CurrencyPair tradeCash = getCurrencyPair(
+          transaction.getTradeCashRate(),
+          transaction.getTradeCurrency(),
+          transaction.getCashCurrency());
 
-    CurrencyPair tradeCash = getCurrencyPair(
-        transaction.getTradeCashRate(),
-        transaction.getTradeCurrency(),
-        transaction.getCashCurrency());
+      fxRequest.add(tradeCash);
 
-    fxRequest.add(tradeCash);
+      CurrencyPair tradeBase = getCurrencyPair(
+          transaction.getTradeBaseRate(),
+          transaction.getBaseCurrency(),
+          transaction.getPortfolio().getCurrency());
+      fxRequest.add(tradeBase);
 
-    CurrencyPair tradeRef = getCurrencyPair(
-        transaction.getTradeRefRate(),
-        transaction.getTradeCurrency(),
-        transaction.getPortfolio().getCurrency());
+      CurrencyPair tradeRef = getCurrencyPair(
+          transaction.getTradeRefRate(),
+          transaction.getTradeCurrency(),
+          transaction.getPortfolio().getCurrency());
 
-    fxRequest.add(tradeRef);
+      fxRequest.add(tradeRef);
 
-    FxResults fxResults = fxRateService.getRates(fxRequest);
-    FxPairResults rates = fxResults.getData().get(tradeDate);
+      FxResults fxResults = fxRateService.getRates(fxRequest);
 
-    if (tradeRef != null) {
-      transaction.setTradeRefRate(rates.getRates().get(tradeRef).getRate());
+      applyRates(fxResults.getData().get(tradeDate),
+          tradeCash,
+          tradeBase,
+          tradeRef,
+          transaction);
     }
-    if (tradeCash != null) {
+    return transactions;
+  }
+
+  private Transaction applyRates(FxPairResults rates,
+                                 CurrencyPair tradeCash,
+                                 CurrencyPair tradeBase,
+                                 CurrencyPair tradeRef,
+                                 Transaction transaction) {
+
+    if (tradeCash != null && mathHelper.isUnset(transaction.getTradeCashRate())) {
       transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
+    } else {
+      transaction.setTradeCashRate(BigDecimal.ONE);
     }
-    if (tradeBase != null) {
+    if (tradeBase != null && mathHelper.isUnset(transaction.getTradeBaseRate())) {
       transaction.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
+    } else {
+      transaction.setTradeBaseRate(BigDecimal.ONE);
+    }
+    if (tradeRef != null && mathHelper.isUnset(transaction.getTradeRefRate())) {
+      transaction.setTradeRefRate(rates.getRates().get(tradeRef).getRate());
+    } else {
+      transaction.setTradeRefRate(BigDecimal.ONE);
     }
 
     return transaction;
   }
 
+  private FxRequest getFxRequest(Map<String, FxRequest> fxRequests, String tradeDate) {
+    FxRequest fxRequest = fxRequests.get(tradeDate);
+
+    if (fxRequest == null) {
+      fxRequest = FxRequest.builder()
+          .rateDate(tradeDate)
+          .build();
+      fxRequests.put(tradeDate, fxRequest);
+    }
+    return fxRequest;
+  }
+
   private CurrencyPair getCurrencyPair(BigDecimal rate, Currency from, Currency to) {
     CurrencyPair currencyPair = null;
-    if (rate == null) {
+    if (from == null || to == null) {
+      return null;
+    }
+
+    if (rate == null && !from.getCode().equalsIgnoreCase(to.getCode())) {
       currencyPair = CurrencyPair.builder()
           .from(from.getCode())
           .to(to.getCode())

@@ -6,6 +6,7 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.config.GoogleAuthConfig;
+import com.beancounter.ingest.service.FxTransactions;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class SheetReader implements Ingester{
+public class SheetReader implements Ingester {
 
   private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
@@ -58,17 +59,22 @@ public class SheetReader implements Ingester{
   @Value(("${portfolio.code:mike}"))
   private String portfolioCode;
 
-  @Value(("${portfolio.code:USD}"))
+  @Value(("${portfolio.currency:USD}"))
   private String portfolioCurrency;
 
   @Value(("${base.code:USD}"))
   private String baseCurrency;
-
+  private FxTransactions fxTransactions;
   private ShareSightHelper shareSightHelper;
-
   private ShareSightTransformers shareSightTransformers;
 
   private ObjectMapper objectMapper = new ObjectMapper();
+
+  @Autowired
+  @VisibleForTesting
+  void setFxTransactions(FxTransactions fxTransactions) {
+    this.fxTransactions = fxTransactions;
+  }
 
   @Autowired
   @VisibleForTesting
@@ -90,7 +96,6 @@ public class SheetReader implements Ingester{
 
   /**
    * Reads a Google sheet and writes the output file.
-   *
    */
   public void ingest() {
     // Build a new authorized API client service.
@@ -172,6 +177,7 @@ public class SheetReader implements Ingester{
 
         }
         if (!transactions.isEmpty()) {
+          transactions = fxTransactions.applyRates(transactions);
           if (outputStream != null) {
             outputStream.write(
                 objectMapper.writerWithDefaultPrettyPrinter()
@@ -200,7 +206,6 @@ public class SheetReader implements Ingester{
     }
     return true;
   }
-
 
 
   private FileOutputStream prepareFile() throws FileNotFoundException {

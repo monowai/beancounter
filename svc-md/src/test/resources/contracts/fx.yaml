@@ -1,24 +1,37 @@
 ---
 request:
-    method: POST
-    url: /api/fx
-    bodyFromFile: "fx/request.json"
-    headers:
-        Content-Type: application/json;charset=UTF-8
+  method: POST
+  url: /api/fx
+  bodyFromFile: "fx/request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
 response:
-    status: 200
-    bodyFromFile: "fx/response.json"
-    headers:
-        Content-Type: application/json;charset=UTF-8
+  status: 200
+  bodyFromFile: "fx/response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
 ---
 request:
-    method: POST
-    url: /api/fx
-    bodyFromFile: "fx/nzdGbpRequest.json"
-    headers:
-        Content-Type: application/json;charset=UTF-8
+  method: POST
+  url: /api/fx
+  bodyFromFile: "fx/nzdGbpRequest.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
 response:
-    status: 200
-    bodyFromFile: "fx/nzdGbpResponse.json"
-    headers:
-        Content-Type: application/json;charset=UTF-8
+  status: 200
+  bodyFromFile: "fx/nzdGbpResponse.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+
+---
+request:
+  method: POST
+  url: /api/fx
+  bodyFromFile: "fx/early-request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+response:
+  status: 200
+  bodyFromFile: "fx/early-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8

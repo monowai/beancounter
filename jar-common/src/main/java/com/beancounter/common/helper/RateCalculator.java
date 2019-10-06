@@ -38,7 +38,7 @@ public class RateCalculator {
             .from(from.getTo())
             .to(to.getTo())
             .rate(rate)
-            .date(asAt)
+            .date(from.getDate())
             .build());
       } else {
         cache.getRates().put(pair, FxRate.builder()

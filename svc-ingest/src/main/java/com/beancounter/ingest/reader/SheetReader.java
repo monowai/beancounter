@@ -5,37 +5,26 @@ import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.ingest.config.GoogleDocsConfig;
+import com.beancounter.ingest.config.GoogleAuthConfig;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.Lists;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,14 +40,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class SheetReader {
+public class SheetReader implements Ingester{
 
   private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-  private static final List<String> SCOPES = Collections
-      .singletonList(SheetsScopes.SPREADSHEETS_READONLY);
 
-  private GoogleDocsConfig googleDocsConfig;
+  private GoogleAuthConfig googleAuthConfig;
 
   @Value("${sheet:#{null}}")
   private String sheetId;
@@ -77,8 +64,6 @@ public class SheetReader {
   @Value(("${base.code:USD}"))
   private String baseCurrency;
 
-  private static final String TOKENS_DIRECTORY_PATH = "tokens";
-
   private ShareSightHelper shareSightHelper;
 
   private ShareSightTransformers shareSightTransformers;
@@ -87,8 +72,8 @@ public class SheetReader {
 
   @Autowired
   @VisibleForTesting
-  void setGoogleDocsConfig(GoogleDocsConfig googleDocsConfig) {
-    this.googleDocsConfig = googleDocsConfig;
+  void setGoogleAuthConfig(GoogleAuthConfig googleAuthConfig) {
+    this.googleAuthConfig = googleAuthConfig;
   }
 
   @Autowired
@@ -104,12 +89,10 @@ public class SheetReader {
   }
 
   /**
-   * Reads the sheet and writes the output file.
+   * Reads a Google sheet and writes the output file.
    *
-   * @throws IOException              error
-   * @throws GeneralSecurityException error
    */
-  public void doIt() throws IOException, GeneralSecurityException {
+  public void ingest() {
     // Build a new authorized API client service.
 
     if (filter != null) {
@@ -123,16 +106,31 @@ public class SheetReader {
 
     Currency systemBase = Currency.builder().code(baseCurrency).build();
 
-    final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-    Sheets service = new Sheets.Builder(httpTransport, JSON_FACTORY,
-        getCredentials(httpTransport))
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+    final NetHttpTransport httpTransport;
+    try {
+      httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+    } catch (GeneralSecurityException | IOException e) {
+      throw new SystemException(e.getMessage());
+    }
+    Sheets service;
+    try {
+      service = new Sheets.Builder(httpTransport, JSON_FACTORY,
+          googleAuthConfig.getCredentials(httpTransport))
+          .setApplicationName(APPLICATION_NAME)
+          .build();
+    } catch (IOException e) {
+      throw new SystemException(e.getMessage());
+    }
 
-    ValueRange response = service.spreadsheets()
-        .values()
-        .get(sheetId, shareSightHelper.getRange())
-        .execute();
+    ValueRange response;
+    try {
+      response = service.spreadsheets()
+          .values()
+          .get(sheetId, shareSightHelper.getRange())
+          .execute();
+    } catch (IOException e) {
+      throw new SystemException(e.getMessage());
+    }
 
     List<List<Object>> values = response.getValues();
     if (values == null || values.isEmpty()) {
@@ -190,6 +188,8 @@ public class SheetReader {
           log.info("No transactions were processed");
         }
 
+      } catch (IOException e) {
+        throw new SystemException(e.getMessage());
       }
     }
   }
@@ -201,35 +201,7 @@ public class SheetReader {
     return true;
   }
 
-  /**
-   * Authenticate against the Google Docs service. This could ask you to download a token.
-   *
-   * @param netHttpTransport transport
-   * @return credentials
-   * @throws IOException file error
-   */
-  private Credential getCredentials(final NetHttpTransport netHttpTransport) throws IOException {
-    // Load client secrets.
-    log.debug("Looking for credentials at {}", googleDocsConfig.getApi());
-    try (InputStream in = new FileInputStream(googleDocsConfig.getApi())) {
-      GoogleClientSecrets clientSecrets =
-          GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-      GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-          netHttpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-          .setAccessType("offline")
-          .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
-          .setAccessType("offline")
-          .build();
-
-      LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-          .setPort(googleDocsConfig.getPort())
-          .build();
-
-      return new AuthorizationCodeInstalledApp(flow, receiver)
-          .authorize("user");
-    }
-  }
 
   private FileOutputStream prepareFile() throws FileNotFoundException {
     if (shareSightHelper.getOutFile() == null) {

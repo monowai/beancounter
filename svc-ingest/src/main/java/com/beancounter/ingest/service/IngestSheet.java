@@ -24,7 +24,7 @@ public class IngestSheet {
 
   @EventListener(ApplicationReadyEvent.class)
   public void runIngestion() throws IOException, GeneralSecurityException {
-    sheetReader.doIt();
+    sheetReader.ingest();
   }
 
 }

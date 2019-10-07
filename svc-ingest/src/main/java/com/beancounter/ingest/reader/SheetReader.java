@@ -5,24 +5,16 @@ import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.ingest.config.GoogleAuthConfig;
 import com.beancounter.ingest.service.FxTransactions;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
+import com.beancounter.ingest.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.Lists;
 import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,18 +35,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class SheetReader implements Ingester {
 
-  private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";
-  private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-
-  private GoogleAuthConfig googleAuthConfig;
+  private GoogleTransport googleTransport;
 
   @Value("${sheet:#{null}}")
   private String sheetId;
-
-  @Value("${filter:#{null}}")
-  private String filter;
-
-  private Collection<String> filteredAssets = new ArrayList<>();
 
   @Value(("${portfolio.code:mike}"))
   private String portfolioCode;
@@ -64,11 +48,25 @@ public class SheetReader implements Ingester {
 
   @Value(("${base.code:USD}"))
   private String baseCurrency;
+  private Filter filter;
+  private IngestWriter ingestWriter;
   private FxTransactions fxTransactions;
   private ShareSightHelper shareSightHelper;
   private ShareSightTransformers shareSightTransformers;
 
   private ObjectMapper objectMapper = new ObjectMapper();
+
+  @Autowired
+  @VisibleForTesting
+  void setFilter(Filter filter) {
+    this.filter = filter;
+  }
+
+  @Autowired
+  @VisibleForTesting
+  void setIngestWriter(IngestWriter ingestWriter) {
+    this.ingestWriter = ingestWriter;
+  }
 
   @Autowired
   @VisibleForTesting
@@ -78,8 +76,8 @@ public class SheetReader implements Ingester {
 
   @Autowired
   @VisibleForTesting
-  void setGoogleAuthConfig(GoogleAuthConfig googleAuthConfig) {
-    this.googleAuthConfig = googleAuthConfig;
+  void setGoogleTransport(GoogleTransport googleTransport) {
+    this.googleTransport = googleTransport;
   }
 
   @Autowired
@@ -100,10 +98,6 @@ public class SheetReader implements Ingester {
   public void ingest() {
     // Build a new authorized API client service.
 
-    if (filter != null) {
-      filteredAssets = Lists.newArrayList(Splitter.on(",").split(filter));
-    }
-
     Portfolio portfolio = Portfolio.builder()
         .code(portfolioCode)
         .currency(Currency.builder().code(portfolioCurrency).build())
@@ -111,108 +105,69 @@ public class SheetReader implements Ingester {
 
     Currency systemBase = Currency.builder().code(baseCurrency).build();
 
-    final NetHttpTransport httpTransport;
-    try {
-      httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-    } catch (GeneralSecurityException | IOException e) {
-      throw new SystemException(e.getMessage());
-    }
-    Sheets service;
-    try {
-      service = new Sheets.Builder(httpTransport, JSON_FACTORY,
-          googleAuthConfig.getCredentials(httpTransport))
-          .setApplicationName(APPLICATION_NAME)
-          .build();
-    } catch (IOException e) {
-      throw new SystemException(e.getMessage());
-    }
+    final NetHttpTransport httpTransport = googleTransport.getHttpTransport();
 
-    ValueRange response;
-    try {
-      response = service.spreadsheets()
-          .values()
-          .get(sheetId, shareSightHelper.getRange())
-          .execute();
-    } catch (IOException e) {
-      throw new SystemException(e.getMessage());
-    }
+    Sheets service = googleTransport.getSheets(httpTransport);
 
-    List<List<Object>> values = response.getValues();
-    if (values == null || values.isEmpty()) {
-      log.error("No data found.");
-    } else {
-      int trnId = 1;
+    List<List<Object>> values = googleTransport.getValues(
+        service,
+        sheetId,
+        shareSightHelper.getRange());
 
-      if (filter != null) {
-        log.info("Filtering for assets matching {}", filter);
-      }
+    int trnId = 1;
 
-      Collection<Transaction> transactions = new ArrayList<>();
-      try (FileOutputStream outputStream = prepareFile()) {
-
-        for (List row : values) {
-          // Print columns in range, which correspond to indices 0 and 4.
-          Transaction transaction;
-          Transformer transformer = shareSightTransformers.transformer(row);
-
-          try {
-            if (transformer.isValid(row)) {
-              transaction = transformer.from(row, portfolio, systemBase);
-
-              if (transaction.getId() == null) {
-                transaction.setId(TransactionId.builder()
-                    .id(trnId++)
-                    .batch(0)
-                    .provider(sheetId)
-                    .build());
-              }
-              if (addTransaction(transaction)) {
-                transactions.add(transaction);
-              }
-            }
-          } catch (ParseException e) {
-            log.error("{} Parsing row {}", transformer.getClass().getSimpleName(), trnId);
-            throw new SystemException(e.getMessage());
-          }
-
-        }
-        if (!transactions.isEmpty()) {
-          transactions = fxTransactions.applyRates(transactions);
-          if (outputStream != null) {
-            outputStream.write(
-                objectMapper.writerWithDefaultPrettyPrinter()
-                    .writeValueAsBytes(transactions));
-
-            log.info("Wrote {} transactions into file {}", transactions.size(),
-                shareSightHelper.getOutFile());
-          } else {
-            log.info(objectMapper
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(transactions));
-          }
-        } else {
-          log.info("No transactions were processed");
-        }
-
-      } catch (IOException e) {
-        throw new SystemException(e.getMessage());
-      }
-    }
-  }
-
-  private boolean addTransaction(Transaction transaction) {
     if (filter != null) {
-      return filteredAssets.contains(transaction.getAsset().getCode());
+      log.info("Filtering for assets matching {}", filter);
     }
-    return true;
-  }
 
+    Collection<Transaction> transactions = new ArrayList<>();
+    try (OutputStream outputStream = ingestWriter.prepareFile(shareSightHelper.getOutFile())) {
 
-  private FileOutputStream prepareFile() throws FileNotFoundException {
-    if (shareSightHelper.getOutFile() == null) {
-      return null;
+      for (List row : values) {
+        Transformer transformer = shareSightTransformers.transformer(row);
+
+        try {
+          if (transformer.isValid(row)) {
+            Transaction transaction = transformer.from(row, portfolio, systemBase);
+
+            if (transaction.getId() == null) {
+              transaction.setId(TransactionId.builder()
+                  .id(trnId++)
+                  .batch(0)
+                  .provider(sheetId)
+                  .build());
+            }
+            if (filter.inFilter(transaction)) {
+              transactions.add(transaction);
+            }
+          }
+        } catch (ParseException e) {
+          log.error("{} Parsing row {}", transformer.getClass().getSimpleName(), trnId);
+          throw new SystemException(e.getMessage());
+        }
+
+      }
+      if (!transactions.isEmpty()) {
+        transactions = fxTransactions.applyRates(transactions);
+        if (outputStream != null) {
+          outputStream.write(
+              objectMapper.writerWithDefaultPrettyPrinter()
+                  .writeValueAsBytes(transactions));
+
+          log.info("Wrote {} transactions into file {}", transactions.size(),
+              shareSightHelper.getOutFile());
+        } else {
+          log.info(objectMapper
+              .writerWithDefaultPrettyPrinter()
+              .writeValueAsString(transactions));
+        }
+      } else {
+        log.info("No transactions were processed");
+      }
+
+    } catch (IOException e) {
+      throw new SystemException(e.getMessage());
     }
-    return new FileOutputStream(shareSightHelper.getOutFile());
   }
 
 

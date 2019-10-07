@@ -7,6 +7,7 @@ import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxResults;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.request.FxRequest;
+import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -23,6 +24,7 @@ public class FxTransactions {
   private MathHelper mathHelper = new MathHelper();
 
   @Autowired
+  @VisibleForTesting
   void setFxRateService(FxRateService fxRateService) {
     this.fxRateService = fxRateService;
   }
@@ -69,7 +71,7 @@ public class FxTransactions {
     return transactions;
   }
 
-  private Transaction applyRates(FxPairResults rates,
+  private void applyRates(FxPairResults rates,
                                  CurrencyPair tradeCash,
                                  CurrencyPair tradeBase,
                                  CurrencyPair tradeRef,
@@ -90,8 +92,6 @@ public class FxTransactions {
     } else {
       transaction.setTradeRefRate(BigDecimal.ONE);
     }
-
-    return transaction;
   }
 
   private FxRequest getFxRequest(Map<String, FxRequest> fxRequests, String tradeDate) {

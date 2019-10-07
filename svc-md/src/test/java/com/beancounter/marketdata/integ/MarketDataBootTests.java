@@ -34,7 +34,8 @@ class MarketDataBootTests {
 
   private WebApplicationContext context;
   private MockProviderService mockProviderService;
-  private MarketService marketService;
+
+  private final Asset dummy;
 
   @Autowired
   private MarketDataBootTests(WebApplicationContext webApplicationContext,
@@ -42,7 +43,9 @@ class MarketDataBootTests {
                               MockProviderService mockProviderService) {
     this.context = webApplicationContext;
     this.mockProviderService = mockProviderService;
-    this.marketService = marketService;
+    dummy = AssetHelper.getAsset(
+        "dummy",
+        marketService.getMarket("mock"));
   }
 
 
@@ -56,13 +59,12 @@ class MarketDataBootTests {
   @Tag("slow")
   @VisibleForTesting
   void getMarketData() {
-    Asset asset = AssetHelper.getAsset("dummy", marketService.getMarket("mock"));
 
     MarketData mdResponse = given()
         .webAppContextSetup(context)
         .log().all()
         .when()
-        .get("/{marketId}/{assetId}", asset.getMarket().getCode(), asset.getCode())
+        .get("/{marketId}/{assetId}", dummy.getMarket().getCode(), dummy.getCode())
         .then()
         .log().all(true)
         .statusCode(200)
@@ -70,7 +72,7 @@ class MarketDataBootTests {
         .extract().response().as(MarketData.class);
 
     assertThat(mdResponse)
-        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrPropertyWithValue("asset", dummy)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate())
     ;
@@ -109,13 +111,12 @@ class MarketDataBootTests {
   @Tag("slow")
   @VisibleForTesting
   void valuationRequestReturnsFullHydratedAssets() {
-    Asset asset = AssetHelper.getAsset("dummy", marketService.getMarket("mock"));
 
     MarketData mdResponse = given()
         .webAppContextSetup(context)
         .log().all()
         .when()
-        .get("/{marketId}/{assetId}", asset.getMarket().getCode(), asset.getCode())
+        .get("/{marketId}/{assetId}", dummy.getMarket().getCode(), dummy.getCode())
         .then()
         .log().all(true)
         .statusCode(200)
@@ -123,7 +124,7 @@ class MarketDataBootTests {
         .extract().response().as(MarketData.class);
 
     assertThat(mdResponse)
-        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrPropertyWithValue("asset", dummy)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate())
     ;

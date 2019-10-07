@@ -47,21 +47,7 @@ class ShareSightTradeTest {
   @VisibleForTesting
   void is_RowWithFxConverted() throws Exception {
 
-    List<String> row = new ArrayList<>();
-
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, "buy");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, "0.8988");
-    row.add(ShareSightTrades.value, "2097.85");
-    row.add(ShareSightTrades.comments, "Test Comment");
-
+    List<String> row = getRow("buy", "0.8988", "2097.85");
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
@@ -93,20 +79,7 @@ class ShareSightTradeTest {
   @VisibleForTesting
   void is_RowWithoutFxConverted() throws Exception {
 
-    List<String> row = new ArrayList<>();
-
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, "buy");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, "0.0"); // Treat as null
-    row.add(ShareSightTrades.value, "2097.85");
-    row.add(ShareSightTrades.comments, "Test Comment");
+    List<String> row = getRow("buy", "0.0", "2097.85");
 
     Transformer trades = shareSightTransformers.transformer(row);
 
@@ -140,19 +113,8 @@ class ShareSightTradeTest {
   @VisibleForTesting
   void is_RowWithNoCommentTransformed() throws Exception {
 
-    List<String> row = new ArrayList<>();
-
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, "buy");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, "0.8988");
-    row.add(ShareSightTrades.value, "2097.85");
+    List<String> row = getRow("buy", "0.8988", "2097.85");
+    row.remove(ShareSightTrades.comments);
 
     Transformer trades = shareSightTransformers.transformer(row);
     Transaction transaction = trades.from(row, UnitTestHelper.getPortfolio(),
@@ -172,20 +134,7 @@ class ShareSightTradeTest {
   @VisibleForTesting
   void is_SplitTransactionTransformed() throws Exception {
 
-    List<String> row = new ArrayList<>();
-
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, "split");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, null);
-    row.add(ShareSightTrades.value, null);
-    row.add(ShareSightTrades.comments, "Test Comment");
+    List<String> row = getRow("split", null, null);
 
     Transformer trades = shareSightTransformers.transformer("TRADE");
     Transaction transaction = trades.from(row, UnitTestHelper.getPortfolio(),
@@ -204,6 +153,24 @@ class ShareSightTradeTest {
         .hasFieldOrProperty("tradeDate")
     ;
 
+  }
+
+  private List<String> getRow(String tranType, String fxRate, String tradeAmount) {
+    List<String> row = new ArrayList<>();
+
+    row.add(ShareSightTrades.market, "AMEX");
+    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.name, "Test Asset");
+    row.add(ShareSightTrades.type, tranType);
+    row.add(ShareSightTrades.date, "21/01/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "AUD");
+    row.add(ShareSightTrades.fxRate, fxRate);
+    row.add(ShareSightTrades.value, tradeAmount);
+    row.add(ShareSightTrades.comments, "Test Comment");
+    return row;
   }
 
 }

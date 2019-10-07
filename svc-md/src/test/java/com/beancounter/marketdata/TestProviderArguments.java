@@ -1,9 +1,9 @@
 package com.beancounter.marketdata;
 
+import static com.beancounter.common.helper.AssetHelper.getAsset;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -13,17 +13,12 @@ import org.junit.jupiter.api.Test;
  * of being based on batch sizes.
  */
 class TestProviderArguments {
+  private Asset aapl = getAsset("AAPL", "NASDAQ");
+  private Asset msft = getAsset("MSFT", "NASDAQ");
+  private Asset intc = getAsset("INTC", "NASDAQ");
 
   @Test
   void batchOfOne() {
-
-    Asset aapl =
-        Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
-    Asset msft =
-        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
-    Asset intc =
-        Asset.builder().code("INTC").market(Market.builder().code("NASDAQ").build()).build();
-
 
     ProviderArguments providerArguments = new ProviderArguments(1);
 
@@ -45,13 +40,6 @@ class TestProviderArguments {
   @Test
   void batchOfTwo() {
 
-    Asset aapl =
-        Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
-    Asset msft =
-        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
-    Asset intc =
-        Asset.builder().code("INTC").market(Market.builder().code("NASDAQ").build()).build();
-
 
     ProviderArguments providerArguments = new ProviderArguments(2);
 
@@ -72,14 +60,6 @@ class TestProviderArguments {
 
   @Test
   void batchOfThree() {
-
-    Asset aapl =
-        Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
-    Asset msft =
-        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
-    Asset intc =
-        Asset.builder().code("INTC").market(Market.builder().code("NASDAQ").build()).build();
-
 
     ProviderArguments providerArguments = new ProviderArguments(3);
 

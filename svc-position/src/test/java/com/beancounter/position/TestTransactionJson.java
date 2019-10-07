@@ -21,7 +21,7 @@ class TestTransactionJson {
 
   @Test
   @VisibleForTesting
-  void jsonSerialization() throws Exception {
+  void is_CollectionOfTradesSerializing() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
 

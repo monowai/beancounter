@@ -1,9 +1,9 @@
 package com.beancounter.position;
 
+import static com.beancounter.common.helper.AssetHelper.getAsset;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
@@ -19,14 +19,13 @@ import org.junit.jupiter.api.Test;
 
 
 class TestMoneyValues {
+  private Asset microsoft = getAsset("MSFT", "NYSE");
+  private Asset intel = getAsset("INTC", "NYSE");
+  private Asset bidu = getAsset("BIDU", "NYSE");
 
   @Test
   @VisibleForTesting
   void is_QuantityAndMarketValueCalculated() {
-    Asset microsoft = Asset.builder()
-        .code("MSFT")
-        .market(Market.builder().code("NYSE").build())
-        .build();
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -57,10 +56,7 @@ class TestMoneyValues {
   @Test
   @VisibleForTesting
   void is_RealisedGainCalculated() {
-    Asset microsoft = Asset.builder()
-        .code("MSFT")
-        .market(Market.builder().code("NYSE").build())
-        .build();
+
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -99,10 +95,6 @@ class TestMoneyValues {
   @Test
   @VisibleForTesting
   void is_RealisedGainWithSignedQuantitiesCalculated() {
-    Asset bidu = Asset.builder()
-        .code("BIDU")
-        .market(Market.builder().code("NYSE").build())
-        .build();
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -179,10 +171,6 @@ class TestMoneyValues {
   @Test
   @VisibleForTesting
   void is_RealisedGainAfterSellingToZeroCalculated() {
-    Asset microsoft = Asset.builder()
-        .code("MSFT")
-        .market(Market.builder().code("NYSE").build())
-        .build();
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -256,10 +244,7 @@ class TestMoneyValues {
   @Test
   @VisibleForTesting
   void is_RealisedGainAfterReenteringAPositionCalculated() {
-    Asset intel = Asset.builder()
-        .code("INTC")
-        .market(Market.builder().code("NYSE").build())
-        .build();
+
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -337,4 +322,6 @@ class TestMoneyValues {
     ;
 
   }
+
+
 }

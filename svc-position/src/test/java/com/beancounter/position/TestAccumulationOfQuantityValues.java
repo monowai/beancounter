@@ -15,7 +15,7 @@ class TestAccumulationOfQuantityValues {
 
   @Test
   @VisibleForTesting
-  void quantitiesTotalCorrectly() {
+  void is_TotalQuantityCorrect() {
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .tradeAmount(new BigDecimal(2000))

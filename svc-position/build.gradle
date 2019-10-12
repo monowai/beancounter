@@ -1,11 +1,12 @@
 buildscript {
     ext {
         springBootVersion = "2.1.8.RELEASE"
-        springCloudVersion = 'Greenwich.SR3'
+        springCloudVersion = "Greenwich.SR3"
+        verifierVersion = "2.1.3.RELEASE"
         resilience4jVersion = "1.0.0"
-        wiremockVersion = "2.23.2"
     }
     repositories {
+        mavenLocal()
         mavenCentral()
     }
     dependencies {
@@ -19,7 +20,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = "com.beancounter"
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 
 dependencies {
     implementation(
@@ -33,11 +34,12 @@ dependencies {
     )
 
     compileOnly(
-            "org.projectlombok:lombok",
-            "org.springframework.boot:spring-boot-configuration-processor"
+            "org.springframework.boot:spring-boot-configuration-processor",
+            "org.projectlombok:lombok"
     )
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
+    testCompile "org.projectlombok:lombok"
 
 
     testImplementation(
@@ -46,18 +48,25 @@ dependencies {
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.cloud:spring-cloud-contract-wiremock",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.junit.jupiter:junit-jupiter-engine",
             "org.junit.platform:junit-platform-launcher",
             "org.junit.platform:junit-platform-runner",
-            "org.junit.platform:junit-platform-surefire-provider",
-            "com.github.tomakehurst:wiremock-jre8:${wiremockVersion}",
-            "org.projectlombok:lombok"
+            "org.junit.platform:junit-platform-surefire-provider"
+
     )
+    testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {
+        transitive = false
+    }
 }
 
 dependencyManagement {
-    imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
+
 
 idea {
     module {

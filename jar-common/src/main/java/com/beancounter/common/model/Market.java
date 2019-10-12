@@ -1,6 +1,7 @@
 package com.beancounter.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Map;
@@ -17,6 +18,7 @@ import lombok.Data;
 @Data
 @Builder
 @JsonDeserialize(builder = Market.MarketBuilder.class)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Market {
   private String code;
   private Currency currency;

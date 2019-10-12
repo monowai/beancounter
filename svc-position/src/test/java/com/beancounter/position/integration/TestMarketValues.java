@@ -1,11 +1,9 @@
-package com.beancounter.position;
+package com.beancounter.position.integration;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
@@ -15,19 +13,18 @@ import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.annotations.VisibleForTesting;
-import java.io.File;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -38,39 +35,25 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-25
  */
 @ExtendWith(SpringExtension.class)
+@Tag("slow")
+@ImportAutoConfiguration({FeignAutoConfiguration.class})
 @SpringBootTest
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = "beancounter:svc-md:+:stubs:8090")
+@DirtiesContext
 @ActiveProfiles("test")
+
 class TestMarketValues {
 
-  private static WireMockRule mockMarketData;
   @Autowired
   private Valuation valuation;
-
-  @Autowired
-  private void mockServices() {
-    // ToDo: Figure out RandomPort + Feign.  Config issues :(
-    if (mockMarketData == null) {
-      mockMarketData = new WireMockRule(options().port(9999));
-      mockMarketData.start();
-    }
-  }
 
   @Test
   @Tag("slow")
   @VisibleForTesting
-  void is_MarketValuationCalculated() throws Exception {
+  void is_MarketValuationCalculated() {
     Asset asset = AssetHelper.getAsset("ABC", "marketCode");
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(asset);
-
-    CollectionType javaType = TestUtils.getMapper().getTypeFactory()
-        .constructCollectionType(Collection.class, MarketData.class);
-
-    File jsonFile = new ClassPathResource("contracts/price-simple.json").getFile();
-    Object response = TestUtils.getMapper().readValue(jsonFile, javaType);
-
-    TestUtils.mockMarketData(mockMarketData, TestUtils.getMapper().writeValueAsString(assets),
-        TestUtils.getMapper().writeValueAsString(response));
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -101,18 +84,8 @@ class TestMarketValues {
   @VisibleForTesting
   void is_AssetHydratedFromValuationRequest() throws Exception {
 
-    CollectionType javaType = TestUtils.getMapper().getTypeFactory()
-        .constructCollectionType(Collection.class, MarketData.class);
-
     Asset asset = AssetHelper.getAsset("EBAY", "NASDAQ");
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(asset);
 
-    File jsonFile = new ClassPathResource("contracts/price-response.json").getFile();
-    Object response = TestUtils.getMapper().readValue(jsonFile, javaType);
-
-    TestUtils.mockMarketData(mockMarketData, TestUtils.getMapper().writeValueAsString(assets),
-        TestUtils.getMapper().writeValueAsString(response));
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

@@ -3,4 +3,4 @@ server:
 
 beancounter:
   md:
-    url: http://localhost:9999
+    url: http://localhost:8090/api

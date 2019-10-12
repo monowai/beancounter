@@ -35,3 +35,27 @@ response:
   bodyFromFile: "fx/early-response.json"
   headers:
     Content-Type: application/json;charset=UTF-8
+---
+request:
+  method: POST
+  url: /api
+  bodyFromFile: "prices/abc-request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+response:
+  status: 200
+  bodyFromFile: "prices/abc-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+---
+request:
+  method: POST
+  url: /api
+  bodyFromFile: "prices/ebay-request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+response:
+  status: 200
+  bodyFromFile: "prices/ebay-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8

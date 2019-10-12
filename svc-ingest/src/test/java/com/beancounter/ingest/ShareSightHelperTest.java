@@ -30,20 +30,22 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class ShareSightHelperTest {
 
   @Autowired
-  private ShareSightHelper helper;
+  private ShareSightHelper shareSightHelper;
 
   @Test
   @VisibleForTesting
   void is_DoubleValueInputCorrect() throws ParseException {
-    assertThat(helper.parseDouble("5,000.99"))
+    assertThat(shareSightHelper.parseDouble("5,000.99"))
         .isEqualByComparingTo(BigDecimal.valueOf(5000.99));
   }
 
   @Test
   @VisibleForTesting
   void is_ExceptionThrownResolvingIncorrectAssetCodes() {
-    assertThrows(BusinessException.class, () -> helper.resolveAsset(null));
-    assertThrows(BusinessException.class, () -> helper.resolveAsset("ValueWithNoSeparator"));
+    assertThrows(BusinessException.class, ()
+        -> shareSightHelper.resolveAsset(null));
+    assertThrows(BusinessException.class, ()
+        -> shareSightHelper.resolveAsset("ValueWithNoSeparator"));
   }
 
   @Test
@@ -64,9 +66,15 @@ class ShareSightHelperTest {
     verifyAsset("AMP.AX", expectedAsset);
   }
 
+  @Test
+  @VisibleForTesting
+  void is_IgnoreRatesDefaultCorrect() {
+    assertThat(shareSightHelper.isRatesIgnored()).isFalse();
+  }
+
   private void verifyAsset(String code, Asset expectedAsset) {
 
-    Asset asset = helper.resolveAsset(code);
+    Asset asset = shareSightHelper.resolveAsset(code);
 
     assertThat(asset)
         .isEqualToComparingFieldByField(expectedAsset);

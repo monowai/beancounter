@@ -1,10 +1,12 @@
 package com.beancounter.ingest;
 
+import static com.beancounter.common.helper.AssetHelper.getAsset;
+import static com.beancounter.ingest.UnitTestHelper.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.config.ExchangeConfig;
@@ -15,7 +17,6 @@ import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -32,17 +33,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-12
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {
-    ExchangeConfig.class,
-    ShareSightTransformers.class,
-    ShareSightDivis.class,
-    ShareSightTrades.class,
-    ShareSightHelper.class})
+@SpringBootTest(
+    classes = {
+        ExchangeConfig.class,
+        ShareSightTransformers.class,
+        ShareSightDivis.class,
+        ShareSightTrades.class,
+        ShareSightHelper.class})
 class ShareSightDiviTest {
 
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
+
+  private  MathHelper mathHelper = new MathHelper();
 
   @Test
   @VisibleForTesting
@@ -73,22 +77,20 @@ class ShareSightDiviTest {
     Transformer dividends = shareSightTransformers.transformer(row);
 
     Transaction transaction = dividends.from(row, portfolio, base);
-
-    Asset expectedAsset = Asset.builder()
-        .code("MO")
-        .market(Market.builder().code("NYSE").build())
-        .build();
+    Asset expectedAsset = getAsset("MO", "NYSE");
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("asset", expectedAsset)
         .hasFieldOrPropertyWithValue("tradeRefRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
-            new BigDecimal("15.85").multiply(fxRate).setScale(2, RoundingMode.HALF_UP))
-        .hasFieldOrPropertyWithValue("tax", new BigDecimal("0.0000"))
+            mathHelper.multiply(new BigDecimal("15.85"), fxRate))
+        .hasFieldOrPropertyWithValue("cashAmount",
+            mathHelper.multiply(new BigDecimal("15.85"), fxRate))
+        .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", Currency.builder().code("USD").build())
-        .hasFieldOrPropertyWithValue("baseCurrency", Currency.builder().code("USD").build())
+        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("baseCurrency",  getCurrency("USD"))
         .hasFieldOrPropertyWithValue("portfolio", portfolio)
 
         .hasFieldOrProperty("tradeDate")

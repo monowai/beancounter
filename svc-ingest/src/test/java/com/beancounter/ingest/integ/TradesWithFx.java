@@ -12,6 +12,7 @@ import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.service.FxTransactions;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
+import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,13 +34,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @Tag("slow")
 @ImportAutoConfiguration({FeignAutoConfiguration.class})
-@SpringBootTest
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
     ids = "beancounter:svc-md:+:stubs:8090")
 @DirtiesContext
 @ActiveProfiles("test")
 @Slf4j
+@SpringBootTest(properties = {"ratesIgnored=true"})
 class TradesWithFx {
 
   @Autowired
@@ -47,6 +48,9 @@ class TradesWithFx {
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
+
+  @Autowired
+  private ShareSightHelper shareSightHelper;
 
   @Test
   @VisibleForTesting
@@ -75,7 +79,7 @@ class TradesWithFx {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio(Currency.builder().code("NZD").build());
+    Portfolio portfolio = getPortfolio(getCurrency("NZD"));
 
     // System base currency
     Currency base = getCurrency("USD");
@@ -84,10 +88,54 @@ class TradesWithFx {
 
     transaction = fxTransactions.applyRates(transaction);
 
+    assertTransaction(portfolio, base, transaction);
+
+  }
+
+
+  @Test
+  @VisibleForTesting
+  void is_FxRateOverridenFromSourceData() throws Exception {
+
+    List<String> row = new ArrayList<>();
+
+    // NZD Portfolio
+    // USD System Base
+    // GBP Trade
+    assertThat(shareSightHelper.isRatesIgnored()).isTrue();
+
+    row.add(ShareSightTrades.market, "AMEX");
+    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.name, "Test Asset");
+    row.add(ShareSightTrades.type, "buy");
+    row.add(ShareSightTrades.date, "27/07/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "GBP");
+    // With switch true, ignore the supplied rate and pull from service
+    row.add(ShareSightTrades.fxRate, "99.99");
+    row.add(ShareSightTrades.value, "2097.85");
+
+    Transformer trades = shareSightTransformers.transformer(row);
+
+    // Portfolio is in NZD
+    Portfolio portfolio = getPortfolio(getCurrency("NZD"));
+
+    // System base currency
+    Currency base = getCurrency("USD");
+
+    Transaction transaction = trades.from(row, portfolio, base);
+
+    transaction = fxTransactions.applyRates(transaction);
+
+    assertTransaction(portfolio, base, transaction);
+
+  }
+
+  private void assertTransaction(Portfolio portfolio, Currency base, Transaction transaction) {
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
-        .hasFieldOrPropertyWithValue("portfolio", getPortfolio())
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("GBP"))
         .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())
@@ -96,8 +144,6 @@ class TradesWithFx {
         .hasFieldOrPropertyWithValue("tradeRefRate", new BigDecimal("0.53457983"))
         .hasFieldOrProperty("tradeDate")
     ;
-
   }
-
 
 }

@@ -8,7 +8,6 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -38,18 +37,18 @@ public class ShareSightDivis implements Transformer {
   public static final int gross = 7;
   public static final int comments = 8;
 
-  private ShareSightHelper helper;
+  private ShareSightHelper shareSightHelper;
 
   @Autowired
-  public ShareSightDivis(ShareSightHelper helper) {
-    this.helper = helper;
+  public ShareSightDivis(ShareSightHelper shareSightHelper) {
+    this.shareSightHelper = shareSightHelper;
   }
 
   @Override
   public Transaction from(List row, Portfolio portfolio, Currency baseCurrency)
       throws ParseException {
 
-    Asset asset = helper.resolveAsset(row.get(code).toString());
+    Asset asset = shareSightHelper.resolveAsset(row.get(code).toString());
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
     return Transaction.builder()
@@ -58,12 +57,16 @@ public class ShareSightDivis implements Transformer {
         .baseCurrency(baseCurrency)
         .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
         .trnType(TrnType.DIVI)
-        .tax(new BigDecimal(row.get(tax).toString()).multiply(tradeRate))
-        .tradeAmount(helper.parseDouble(row.get(net)).multiply(tradeRate)
-            .setScale(2, RoundingMode.HALF_UP))
-        .tradeDate(helper.parseDate(row.get(date).toString()))
+        .tax(shareSightHelper.getMathHelper()
+            .multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
+        .tradeAmount(shareSightHelper.getMathHelper()
+            .multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
+        .cashAmount(shareSightHelper.getMathHelper()
+            .multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
+        .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
-        .tradeRefRate(tradeRate)
+        .tradeRefRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
+            ? null : tradeRate)
         .build()
         ;
 

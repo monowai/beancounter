@@ -34,5 +34,9 @@ public class Filter {
     return true;
   }
 
+  boolean hasFilter() {
+    return filter != null;
+  }
+
 
 }

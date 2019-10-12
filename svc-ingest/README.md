@@ -21,8 +21,11 @@ ABBV.NYS    AbbVie Inc      15/02/2013	0.8074  USD	        15.85	    0.00	      
 It is assumed that you are running all commands from the root of the `BeanCounter` project
 Default is to look for google credentials `../secrets/credentials.json`  
 
+## ShareSight transformer
+passing `ratesIgnored`, the transformer will normalise the fees into trade currency terms using the input rate, but will re-retrieve the trade rate from the market data service.  Default is false, use the rate supplied by SS
 ```bash
-java -jar svc-ingest/build/libs/svc-ingest.jar \
+java -jar svc-ingest/build/libs/svc-ingest-0.1.1.jar \
+    --ratesIgnored=true \
     --beancounter.google.api=../secrets/google-api/credentials.json \
     --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
     --out.file=./trades.json 

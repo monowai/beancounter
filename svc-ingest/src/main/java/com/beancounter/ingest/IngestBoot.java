@@ -15,6 +15,5 @@ public class IngestBoot {
 
   public static void main(String[] args) {
     SpringApplication.run(IngestBoot.class, args);
-
   }
 }

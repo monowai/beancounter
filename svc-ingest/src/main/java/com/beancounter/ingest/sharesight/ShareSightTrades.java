@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,8 +27,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@Configuration
 public class ShareSightTrades implements Transformer {
-
   public static final int market = 0;
   public static final int code = 1;
   public static final int name = 2;
@@ -90,7 +91,8 @@ public class ShareSightTrades implements Transformer {
           .cashCurrency(portfolio.getCurrency())
           .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           // Zero and null should be treated as "unknown"
-          .tradeRefRate(shareSightHelper.isUnset(tradeRate) ? null : tradeRate)
+          .tradeRefRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
+              ? null : tradeRate)
           .comments(comment)
           .build()
           ;

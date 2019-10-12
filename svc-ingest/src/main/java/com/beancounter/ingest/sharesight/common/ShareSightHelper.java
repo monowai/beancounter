@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@Data
 public class ShareSightHelper {
 
   private final ExchangeConfig exchangeConfig;
@@ -37,6 +39,10 @@ public class ShareSightHelper {
 
   @Value("${out.file:#{null}}")
   private String outFile;
+
+  @Value("${ratesIgnored:false}")
+  private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
+  // retrieve rates from market data service
 
   @Value("${range:All Trades Report}")
   private String range;
@@ -91,14 +97,6 @@ public class ShareSightHelper {
   private Market resolveMarket(String market) {
     return Market.builder()
         .code(exchangeConfig.resolveAlias(market)).build();
-  }
-
-  public String getOutFile() {
-    return outFile;
-  }
-
-  public String getRange() {
-    return range;
   }
 
   public BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {

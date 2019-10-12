@@ -1,14 +1,13 @@
 package com.beancounter.position.service;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +27,7 @@ public class Accumulator {
   private boolean orderedTransactions = false;
 
   private TransactionConfiguration transactionConfiguration;
-  private MathContext mathContext = new MathContext(10);
+  private MathHelper mathHelper = new MathHelper();
 
   @Autowired
   public Accumulator(TransactionConfiguration transactionConfiguration) {
@@ -68,9 +67,9 @@ public class Accumulator {
     // DRY - non-transaction dependant values
     MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
     QuantityValues quantityValues = position.getQuantityValues();
+    moneyValues.setCostValue(
+        mathHelper.multiply(moneyValues.getAverageCost(), quantityValues.getTotal()));
 
-    moneyValues.setCostValue(moneyValues.getAverageCost().multiply(quantityValues.getTotal())
-        .setScale(2, RoundingMode.HALF_UP));
 
     return position;
   }
@@ -102,7 +101,7 @@ public class Accumulator {
 
   private BigDecimal cost(BigDecimal costBasis, BigDecimal total) {
     return costBasis
-        .divide(total, mathContext);
+        .divide(total, mathHelper.getMathContext());
   }
 
   private void buy(Transaction transaction, Position position) {
@@ -141,14 +140,10 @@ public class Accumulator {
 
     if (!transaction.getTradeAmount().equals(BigDecimal.ZERO)) {
       BigDecimal tradeCost = transaction.getTradeAmount()
-          .divide(transaction.getQuantity().abs(), mathContext);
+          .divide(transaction.getQuantity().abs(), mathHelper.getMathContext());
       BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
       BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity().abs());
-
-      moneyValues.setRealisedGain(
-          moneyValues.getRealisedGain()
-              .add(realisedGain).setScale(2, RoundingMode.HALF_UP)
-      );
+      moneyValues.setRealisedGain(mathHelper.add(moneyValues.getRealisedGain(), realisedGain));
     }
 
     if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {

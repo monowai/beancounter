@@ -56,6 +56,9 @@ public class SheetReader implements Ingester {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
+  @Value("${stackTraces:false}")
+  private boolean stackTraces = false;
+
   @Autowired
   @VisibleForTesting
   void setFilter(Filter filter) {
@@ -116,12 +119,14 @@ public class SheetReader implements Ingester {
 
     int trnId = 1;
 
-    if (filter != null) {
+    if (filter.hasFilter()) {
       log.info("Filtering for assets matching {}", filter);
     }
 
     Collection<Transaction> transactions = new ArrayList<>();
     try (OutputStream outputStream = ingestWriter.prepareFile(shareSightHelper.getOutFile())) {
+
+      log.info("Processing {} {}", shareSightHelper.getRange(), sheetId);
 
       for (List row : values) {
         Transformer transformer = shareSightTransformers.transformer(row);
@@ -141,15 +146,21 @@ public class SheetReader implements Ingester {
               transactions.add(transaction);
             }
           }
-        } catch (ParseException e) {
-          log.error("{} Parsing row {}", transformer.getClass().getSimpleName(), trnId);
-          throw new SystemException(e.getMessage());
+        } catch (ParseException | NumberFormatException e) {
+          log.error("{} Parsing row {} - {}", transformer.getClass().getSimpleName(), trnId, row);
+          if (stackTraces) {
+            throw new SystemException(e.getMessage());
+          }
+          return;
         }
 
       }
       if (!transactions.isEmpty()) {
+        log.info("Applying FX Rates...");
         transactions = fxTransactions.applyRates(transactions);
+
         if (outputStream != null) {
+          log.info("Writing output...");
           outputStream.write(
               objectMapper.writerWithDefaultPrettyPrinter()
                   .writeValueAsBytes(transactions));

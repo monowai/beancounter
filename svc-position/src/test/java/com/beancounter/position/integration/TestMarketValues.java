@@ -43,7 +43,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     ids = "beancounter:svc-md:+:stubs:8090")
 @DirtiesContext
 @ActiveProfiles("test")
-
 class TestMarketValues {
 
   @Autowired
@@ -58,17 +57,7 @@ class TestMarketValues {
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     // We need to have a Quantity in order to get the price, so create a position
-    Transaction buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(asset)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(100)).build();
-
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
-    positions.add(position);
-
-    positions = valuation.value(positions);
+    positions = getPositions(asset, positions);
 
     MoneyValues localMoney = positions.get(asset).getMoneyValue(Position.In.LOCAL);
     assertThat(localMoney)
@@ -82,15 +71,25 @@ class TestMarketValues {
   @Test
   @Tag("slow")
   @VisibleForTesting
-  void is_AssetHydratedFromValuationRequest() throws Exception {
+  void is_AssetHydratedFromValuationRequest() {
 
     Asset asset = AssetHelper.getAsset("EBAY", "NASDAQ");
-
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     // We need to have a Quantity in order to get the price, so create a position
 
+    positions = getPositions(asset, positions);
+
+    Position position1 = positions.get(asset);
+    assertThat(position1)
+        .hasFieldOrProperty("asset");
+
+    assertThat(position1.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
+
+  }
+
+  private Positions getPositions(Asset asset, Positions positions) {
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
@@ -102,13 +101,7 @@ class TestMarketValues {
     positions.add(position);
 
     positions = valuation.value(positions);
-
-    Position position1 = positions.get(asset);
-    assertThat(position1)
-        .hasFieldOrProperty("asset");
-
-    assertThat(position1.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
-
+    return positions;
   }
 
 

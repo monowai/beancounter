@@ -47,6 +47,7 @@ dependencies {
             "io.rest-assured:rest-assured",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
+            "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",

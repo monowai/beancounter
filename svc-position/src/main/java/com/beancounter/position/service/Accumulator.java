@@ -1,21 +1,24 @@
 package com.beancounter.position.service;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.helper.MathHelper;
-import com.beancounter.common.model.MoneyValues;
-import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.position.config.TransactionConfiguration;
+import com.beancounter.common.model.TrnType;
+import com.beancounter.position.accumulation.AccumulationLogic;
+import com.beancounter.position.accumulation.Buy;
+import com.beancounter.position.accumulation.Dividend;
+import com.beancounter.position.accumulation.Sell;
+import com.beancounter.position.accumulation.Split;
 import com.beancounter.position.model.Position;
-import java.math.BigDecimal;
 import java.util.Date;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
 /**
- * Accumulate transactions into Positions.
+ * Convenience service to apply the correct AccumulationLogic to the transaction
+ * and calculate the value of a position.
  *
  * @author mikeh
  * @since 2019-02-07
@@ -26,12 +29,13 @@ public class Accumulator {
   @Value("${beancounter.positions.ordered:false}")
   private boolean orderedTransactions = false;
 
-  private TransactionConfiguration transactionConfiguration;
-  private MathHelper mathHelper = new MathHelper();
+  private Map<TrnType, AccumulationLogic> logicMap = new HashMap<>();
 
-  @Autowired
-  public Accumulator(TransactionConfiguration transactionConfiguration) {
-    this.transactionConfiguration = transactionConfiguration;
+  public Accumulator() {
+    logicMap.put(TrnType.BUY, new Buy());
+    logicMap.put(TrnType.SELL, new Sell());
+    logicMap.put(TrnType.DIVI, new Dividend());
+    logicMap.put(TrnType.SPLIT, new Split());
   }
 
   /**
@@ -42,44 +46,19 @@ public class Accumulator {
    * @return result object
    */
   public Position accumulate(Transaction transaction, Position position) {
-    boolean dateSensitive = !transactionConfiguration.isDividend(transaction);
+    boolean dateSensitive = (transaction.getTrnType() != TrnType.DIVI);
     if (dateSensitive) {
       isDateSequential(transaction, position);
     }
-
-    if (transactionConfiguration.isDividend(transaction)) {
-      dividend(transaction, position);
-    } else if (transactionConfiguration.isPurchase(transaction)) {
-      buy(transaction, position);
-    } else if (transactionConfiguration.isSale(transaction)) {
-      sell(transaction, position);
-    } else if (transactionConfiguration.isSplit(transaction)) {
-      split(transaction, position);
-    }
+    AccumulationLogic accumulationLogic = logicMap.get(transaction.getTrnType());
+    accumulationLogic.value(transaction, position);
     if (dateSensitive) {
       position.setLastTradeDate(transaction.getTradeDate());
     }
 
-    return postProcess(position);
-  }
-
-  private Position postProcess(Position position) {
-    // DRY - non-transaction dependant values
-    MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
-    QuantityValues quantityValues = position.getQuantityValues();
-    moneyValues.setCostValue(
-        mathHelper.multiply(moneyValues.getAverageCost(), quantityValues.getTotal()));
-
-
     return position;
   }
 
-  private void dividend(Transaction transaction, Position position) {
-    position.getMoneyValue(Position.In.LOCAL)
-        .setDividends(position.getMoneyValue(Position.In.LOCAL)
-            .getDividends().add(
-                transaction.getTradeAmount()));
-  }
 
   private void isDateSequential(Transaction transaction, Position position) {
     boolean validDate = false;
@@ -99,70 +78,5 @@ public class Accumulator {
     }
   }
 
-  private BigDecimal cost(BigDecimal costBasis, BigDecimal total) {
-    return costBasis
-        .divide(total, mathHelper.getMathContext());
-  }
 
-  private void buy(Transaction transaction, Position position) {
-    QuantityValues quantityValues = position.getQuantityValues();
-    quantityValues.setPurchased(quantityValues.getPurchased().add(transaction.getQuantity()));
-    MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
-
-    moneyValues.setPurchases(
-        moneyValues.getPurchases().add(transaction.getTradeAmount()));
-
-    moneyValues.setCostBasis(moneyValues.getCostBasis().add(transaction.getTradeAmount()));
-
-    if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
-
-      moneyValues.setAverageCost(
-          cost(moneyValues.getCostBasis(), quantityValues.getTotal())
-      );
-
-    }
-
-  }
-
-  private void sell(Transaction transaction, Position position) {
-    BigDecimal soldQuantity = transaction.getQuantity();
-    if (soldQuantity.doubleValue() > 0) {
-      // Sign the quantities
-      soldQuantity = new BigDecimal(0 - transaction.getQuantity().doubleValue());
-    }
-
-    QuantityValues quantityValues = position.getQuantityValues();
-    quantityValues.setSold(quantityValues.getSold().add(soldQuantity));
-    MoneyValues moneyValues = position.getMoneyValue(Position.In.LOCAL);
-
-    moneyValues.setSales(
-        moneyValues.getSales().add(transaction.getTradeAmount()));
-
-    if (!transaction.getTradeAmount().equals(BigDecimal.ZERO)) {
-      BigDecimal tradeCost = transaction.getTradeAmount()
-          .divide(transaction.getQuantity().abs(), mathHelper.getMathContext());
-      BigDecimal unitProfit = tradeCost.subtract(moneyValues.getAverageCost());
-      BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity().abs());
-      moneyValues.setRealisedGain(mathHelper.add(moneyValues.getRealisedGain(), realisedGain));
-    }
-
-    if (quantityValues.getTotal().equals(BigDecimal.ZERO)) {
-      moneyValues.setCostBasis(BigDecimal.ZERO);
-      moneyValues.setCostValue(BigDecimal.ZERO);
-      moneyValues.setAverageCost(BigDecimal.ZERO);
-    }
-
-  }
-
-
-  private void split(Transaction transaction, Position position) {
-    BigDecimal total = position.getQuantityValues().getTotal();
-    position.getQuantityValues().setAdjustment(
-        (transaction.getQuantity().multiply(total)).subtract(total)
-    );
-    position.getMoneyValue(Position.In.LOCAL)
-        .setAverageCost(cost(
-            position.getMoneyValue(Position.In.LOCAL).getCostBasis(),
-            position.getQuantityValues().getTotal()));
-  }
 }

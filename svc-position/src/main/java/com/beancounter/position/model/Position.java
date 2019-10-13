@@ -58,9 +58,10 @@ public class Position {
   }
 
   public enum In {
-    LOCAL,
+    TRADE,
     PORTFOLIO,
-    BASE
+    BASE,
+    CASH
 
   }
 

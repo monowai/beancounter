@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.service.Accumulator;
 import com.google.common.annotations.VisibleForTesting;
@@ -21,7 +20,8 @@ class TestAccumulationOfQuantityValues {
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+    Accumulator accumulator = new Accumulator(
+    );
 
     Position position = Position.builder().build();
 

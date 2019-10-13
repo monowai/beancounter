@@ -10,7 +10,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
@@ -29,7 +28,7 @@ class TestPositions {
   void jsonSerialization() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     Map<Position.In, MoneyValues> moneyValuesMap = new HashMap<>();
-    moneyValuesMap.put(Position.In.LOCAL, MoneyValues.builder()
+    moneyValuesMap.put(Position.In.TRADE, MoneyValues.builder()
         .dividends(new BigDecimal(100d))
         .build());
 
@@ -62,11 +61,13 @@ class TestPositions {
         .tradeAmount(new BigDecimal("12.99"))
         .build();
 
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+    Accumulator accumulator = new Accumulator(
+    );
+
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);
     accumulator.accumulate(transaction, position);
-    assertThat(position.getMoneyValue(Position.In.LOCAL))
+    assertThat(position.getMoneyValue(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("dividends", transaction.getTradeAmount());
 
   }

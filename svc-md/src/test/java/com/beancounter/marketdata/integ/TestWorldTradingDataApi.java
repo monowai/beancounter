@@ -63,7 +63,7 @@ class TestWorldTradingDataApi {
 
   @Test
   @VisibleForTesting
-  void asxMarketInputConvertsToAxMarket() throws Exception {
+  void is_asxMarketConvertedToAx() throws Exception {
     Asset amp = Asset.builder().code("AMP")
         .market(Market.builder().code("ASX").build())
         .build();

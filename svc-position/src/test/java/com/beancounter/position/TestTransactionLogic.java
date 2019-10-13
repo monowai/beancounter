@@ -10,7 +10,6 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
@@ -42,7 +41,9 @@ class TestTransactionLogic {
     LocalDate today = LocalDate.now();
     LocalDate yesterday = today.minus(-1, ChronoUnit.DAYS);
 
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+    Accumulator accumulator = new Accumulator(
+    );
+
 
     Transaction buyYesterday = Transaction.builder()
         .trnType(TrnType.BUY)

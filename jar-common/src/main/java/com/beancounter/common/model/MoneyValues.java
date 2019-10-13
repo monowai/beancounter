@@ -23,6 +23,7 @@ public class MoneyValues {
   @Builder.Default
   private BigDecimal dividends = BigDecimal.ZERO;
   @Builder.Default
+  // Cost in Currency terms
   private BigDecimal costValue = BigDecimal.ZERO;
   // Internal accounting - tracks the basis used for computing cost.
   @Builder.Default

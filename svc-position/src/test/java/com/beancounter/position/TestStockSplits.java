@@ -8,10 +8,11 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.config.TransactionConfiguration;
+import com.beancounter.position.accumulation.Buy;
+import com.beancounter.position.accumulation.Sell;
+import com.beancounter.position.accumulation.Split;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
-import com.beancounter.position.service.Accumulator;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,7 +28,7 @@ class TestStockSplits {
 
   @Test
   @VisibleForTesting
-  void splitOccurs() {
+  void is_QuantityWorkingForSplit() {
 
     Asset apple = getAsset("AAPL", "NASDAQ");
 
@@ -40,22 +41,21 @@ class TestStockSplits {
 
     LocalDate today = LocalDate.now();
 
-    Transaction buy = Transaction.builder()
+    Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal("2000"))
         .tradeDate(convert(today))
         .quantity(new BigDecimal("100")).build();
 
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
-    positions.add(position);
-    position = accumulator.accumulate(buy, position);
+    Buy buy = new Buy();
+    buy.value(buyTrn, position);
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100))
     ;
 
-    BigDecimal costBasis = position.getMoneyValue(Position.In.LOCAL).getCostBasis();
+    BigDecimal costBasis = position.getMoneyValue(Position.In.TRADE).getCostBasis();
 
     Transaction stockSplit = Transaction.builder()
         .trnType(TrnType.SPLIT)
@@ -63,24 +63,24 @@ class TestStockSplits {
         .tradeDate(convert(today))
         .quantity(new BigDecimal("7")).build();
 
-    accumulator.accumulate(stockSplit, position);
+    Split split = new Split();
+    split.value(stockSplit, position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(700))
     ;
 
-    assertThat(position.getMoneyValue(Position.In.LOCAL))
+    assertThat(position.getMoneyValue(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", costBasis)
     ;
 
     // Another buy at the adjusted price
-    accumulator.accumulate(buy, position);
+    buy.value(buyTrn, position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", new BigDecimal(800))
-    ;
+        .hasFieldOrPropertyWithValue("total", new BigDecimal(800));
 
     Transaction sell = Transaction.builder()
         .trnType(TrnType.SELL)
@@ -90,16 +90,16 @@ class TestStockSplits {
         .quantity(new BigDecimal("800")).build();
 
     // Sell the entire position
-    accumulator.accumulate(sell, position);
+    new Sell().value(sell, position);
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO)
     ;
 
     // Repurchase; total should be equal to the quantity we just purchased
-    accumulator.accumulate(buy, position);
+    buy.value(buyTrn, position);
     assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", buy.getQuantity())
+        .hasFieldOrPropertyWithValue("total", buyTrn.getQuantity())
     ;
 
   }

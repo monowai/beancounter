@@ -8,7 +8,6 @@ import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.config.TransactionConfiguration;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
@@ -57,9 +56,9 @@ class TestMarketValues {
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     // We need to have a Quantity in order to get the price, so create a position
-    positions = getPositions(asset, positions);
+    getPositions(asset, positions);
 
-    MoneyValues localMoney = positions.get(asset).getMoneyValue(Position.In.LOCAL);
+    MoneyValues localMoney = positions.get(asset).getMoneyValue(Position.In.TRADE);
     assertThat(localMoney)
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
@@ -79,7 +78,7 @@ class TestMarketValues {
 
     // We need to have a Quantity in order to get the price, so create a position
 
-    positions = getPositions(asset, positions);
+    getPositions(asset, positions);
 
     Position position1 = positions.get(asset);
     assertThat(position1)
@@ -89,19 +88,20 @@ class TestMarketValues {
 
   }
 
-  private Positions getPositions(Asset asset, Positions positions) {
+  private void getPositions(Asset asset, Positions positions) {
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator(new TransactionConfiguration());
+    Accumulator accumulator = new Accumulator(
+    );
+
     Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);
 
-    positions = valuation.value(positions);
-    return positions;
+    valuation.value(positions);
   }
 
 

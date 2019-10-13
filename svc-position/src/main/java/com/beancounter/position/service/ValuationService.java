@@ -54,11 +54,11 @@ public class ValuationService implements Valuation {
     for (MarketData marketData : marketDataResults) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        position.getMoneyValue(Position.In.LOCAL)
+        position.getMoneyValue(Position.In.TRADE)
             .setPrice(marketData.getClose());
-        position.getMoneyValue(Position.In.LOCAL)
+        position.getMoneyValue(Position.In.TRADE)
             .setAsAt(marketData.getDate());
-        position.getMoneyValue(Position.In.LOCAL)
+        position.getMoneyValue(Position.In.TRADE)
             .setMarketValue(marketData.getClose()
                 .multiply(position.getQuantityValues().getTotal()));
 
@@ -70,16 +70,16 @@ public class ValuationService implements Valuation {
   }
 
   private void gains(Position position) {
-    MoneyValues localMoney = position.getMoneyValue(Position.In.LOCAL);
+    MoneyValues localMoney = position.getMoneyValue(Position.In.TRADE);
 
     if (!Objects.equals(position.getQuantityValues().getTotal(), BigDecimal.ZERO)) {
-      localMoney.setUnrealisedGain(position.getMoneyValue(Position.In.LOCAL).getMarketValue()
-          .subtract(position.getMoneyValue(Position.In.LOCAL).getCostValue()));
+      localMoney.setUnrealisedGain(position.getMoneyValue(Position.In.TRADE).getMarketValue()
+          .subtract(position.getMoneyValue(Position.In.TRADE).getCostValue()));
     }
 
     localMoney.setTotalGain(localMoney.getUnrealisedGain()
         .add(localMoney.getDividends()
-        .add(localMoney.getRealisedGain())));
+            .add(localMoney.getRealisedGain())));
   }
 
 

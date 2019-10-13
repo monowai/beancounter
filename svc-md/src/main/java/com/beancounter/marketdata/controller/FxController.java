@@ -1,8 +1,8 @@
 package com.beancounter.marketdata.controller;
 
+import com.beancounter.common.contracts.FxRequest;
+import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.FxResults;
-import com.beancounter.common.request.FxRequest;
 import com.beancounter.marketdata.service.FxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ public class FxController {
 
   @PostMapping
   @CrossOrigin
-  FxResults getRates(@RequestBody FxRequest fxRequest) {
+  FxResponse getRates(@RequestBody FxRequest fxRequest) {
     try {
       return fxService.getRates(fxRequest.getRateDate(), fxRequest.getPairs());
     } catch (BusinessException be) {

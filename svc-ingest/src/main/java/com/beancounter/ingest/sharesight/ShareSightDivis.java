@@ -65,7 +65,7 @@ public class ShareSightDivis implements Transformer {
             .multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
         .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
-        .tradeRefRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
+        .tradeCashRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
             ? null : tradeRate)
         .build()
         ;

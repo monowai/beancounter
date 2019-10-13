@@ -6,11 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.common.contracts.FxRequest;
+import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
-import com.beancounter.common.model.FxResults;
-import com.beancounter.common.request.FxRequest;
 import com.beancounter.marketdata.DataProviderUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbRules;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,10 +85,10 @@ class FxMvcTests {
         .andExpect(content().contentType("application/json;charset=UTF-8"))
         .andReturn();
 
-    FxResults fxResults = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), FxResults.class);
+    FxResponse fxResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), FxResponse.class);
 
-    FxPairResults results = fxResults.getData().get(date);
+    FxPairResults results = fxResponse.getData().get(date);
     assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
     Map<CurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)

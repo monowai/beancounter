@@ -69,7 +69,7 @@ class ShareSightTradeTest {
         .hasFieldOrProperty("tradeCurrency")
         .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
-        .hasFieldOrPropertyWithValue("tradeRefRate", new BigDecimal("0.8988"))
+        .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.8988"))
         .hasFieldOrProperty("tradeDate")
     ;
 
@@ -103,7 +103,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
         .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
-        .hasFieldOrPropertyWithValue("tradeRefRate", null)
+        .hasFieldOrPropertyWithValue("tradeCashRate", null)
         .hasFieldOrProperty("tradeDate")
     ;
 

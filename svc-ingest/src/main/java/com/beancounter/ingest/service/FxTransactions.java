@@ -1,12 +1,12 @@
 package com.beancounter.ingest.service;
 
+import com.beancounter.common.contracts.FxRequest;
+import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
-import com.beancounter.common.model.FxResults;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.common.request.FxRequest;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -40,6 +40,19 @@ public class FxTransactions {
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
+      CurrencyPair tradePortfolio = getCurrencyPair(
+          transaction.getTradePortfolioRate(),
+          transaction.getTradeCurrency(),
+          transaction.getPortfolio().getCurrency());
+
+      fxRequest.add(tradePortfolio);
+
+      CurrencyPair tradeBase = getCurrencyPair(
+          transaction.getTradeBaseRate(),
+          transaction.getTradeCurrency(),
+          transaction.getBaseCurrency());
+      fxRequest.add(tradeBase);
+
       CurrencyPair tradeCash = getCurrencyPair(
           transaction.getTradeCashRate(),
           transaction.getTradeCurrency(),
@@ -47,50 +60,37 @@ public class FxTransactions {
 
       fxRequest.add(tradeCash);
 
-      CurrencyPair tradeBase = getCurrencyPair(
-          transaction.getTradeBaseRate(),
-          transaction.getBaseCurrency(),
-          transaction.getPortfolio().getCurrency());
-      fxRequest.add(tradeBase);
+      FxResponse fxResponse = fxRateService.getRates(fxRequest);
 
-      CurrencyPair tradeRef = getCurrencyPair(
-          transaction.getTradeRefRate(),
-          transaction.getTradeCurrency(),
-          transaction.getPortfolio().getCurrency());
-
-      fxRequest.add(tradeRef);
-
-      FxResults fxResults = fxRateService.getRates(fxRequest);
-
-      applyRates(fxResults.getData().get(tradeDate),
-          tradeCash,
+      applyRates(fxResponse.getData().get(tradeDate),
+          tradePortfolio,
           tradeBase,
-          tradeRef,
+          tradeCash,
           transaction);
     }
     return transactions;
   }
 
   private void applyRates(FxPairResults rates,
-                                 CurrencyPair tradeCash,
-                                 CurrencyPair tradeBase,
-                                 CurrencyPair tradeRef,
-                                 Transaction transaction) {
+                          CurrencyPair tradePortfolio,
+                          CurrencyPair tradeBase,
+                          CurrencyPair tradeCash,
+                          Transaction transaction) {
 
-    if (tradeCash != null && mathHelper.isUnset(transaction.getTradeCashRate())) {
-      transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
+    if (tradePortfolio != null && mathHelper.isUnset(transaction.getTradePortfolioRate())) {
+      transaction.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
     } else {
-      transaction.setTradeCashRate(BigDecimal.ONE);
+      transaction.setTradePortfolioRate(BigDecimal.ONE);
     }
     if (tradeBase != null && mathHelper.isUnset(transaction.getTradeBaseRate())) {
       transaction.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
     } else {
       transaction.setTradeBaseRate(BigDecimal.ONE);
     }
-    if (tradeRef != null && mathHelper.isUnset(transaction.getTradeRefRate())) {
-      transaction.setTradeRefRate(rates.getRates().get(tradeRef).getRate());
+    if (tradeCash != null && mathHelper.isUnset(transaction.getTradeCashRate())) {
+      transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
     } else {
-      transaction.setTradeRefRate(BigDecimal.ONE);
+      transaction.setTradeCashRate(BigDecimal.ONE);
     }
   }
 

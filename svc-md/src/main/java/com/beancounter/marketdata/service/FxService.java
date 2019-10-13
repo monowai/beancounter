@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.helper.RateCalculator;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
-import com.beancounter.common.model.FxResults;
 import com.beancounter.marketdata.providers.fxrates.EcbService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,8 +28,8 @@ public class FxService {
     this.currencyService = currencyService;
   }
 
-  public FxResults getRates(@NotNull String asAt,
-                            @NotNull Collection<CurrencyPair> currencyPairs) {
+  public FxResponse getRates(@NotNull String asAt,
+                             @NotNull Collection<CurrencyPair> currencyPairs) {
     verify(currencyPairs);
 
     Collection<FxRate> rates = rateStore.get(asAt);
@@ -41,7 +41,7 @@ public class FxService {
     for (FxRate rate : rates) {
       mappedRates.put(rate.getTo().getCode(), rate);
     }
-    return FxResults.builder().data(rateCalculator.compute(asAt, currencyPairs, mappedRates))
+    return FxResponse.builder().data(rateCalculator.compute(asAt, currencyPairs, mappedRates))
         .build();
   }
 

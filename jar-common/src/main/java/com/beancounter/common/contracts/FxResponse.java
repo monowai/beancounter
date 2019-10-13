@@ -1,5 +1,6 @@
-package com.beancounter.common.model;
+package com.beancounter.common.contracts;
 
+import com.beancounter.common.model.FxPairResults;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Map;
@@ -8,13 +9,13 @@ import lombok.Data;
 
 @Data
 @Builder
-@JsonDeserialize(builder = FxResults.FxResultsBuilder.class)
-public class FxResults {
+@JsonDeserialize(builder = FxResponse.FxResponseBuilder.class)
+public class FxResponse {
 
   private Map<String, FxPairResults> data;
 
   @JsonPOJOBuilder(withPrefix = "")
-  public static class FxResultsBuilder {
+  public static class FxResponseBuilder {
   }
 
 }

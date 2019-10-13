@@ -1,0 +1,74 @@
+{
+  "data": [
+    {
+      "code": "NASDAQ",
+      "currency": {
+        "id": "US",
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "US/Eastern"
+    },
+    {
+      "code": "AMEX",
+      "currency": {
+        "id": "US",
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "US/Eastern"
+    },
+    {
+      "code": "SGX",
+      "currency": {
+        "id": "SG",
+        "code": "SGD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "Asia/Singapore"
+    },
+    {
+      "code": "ASX",
+      "currency": {
+        "id": "AU",
+        "code": "AUD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "Australia/Sydney"
+    },
+    {
+      "code": "NYSE",
+      "currency": {
+        "id": "US",
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "US/Eastern"
+    },
+    {
+      "code": "NZX",
+      "currency": {
+        "id": "NZ",
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "Pacific/Auckland"
+    },
+    {
+      "code": "MOCK",
+      "currency": {
+        "id": "US",
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "UTC"
+    }
+  ]
+}

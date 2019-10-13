@@ -1,8 +1,10 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.config.StaticConfig;
+import java.util.Map;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +23,6 @@ public class MarketService {
 
   private StaticConfig staticConfig;
 
-  @Autowired
-  public void setMarkets(StaticConfig staticConfig) {
-    this.staticConfig = staticConfig;
-  }
-
   /**
    * Resolves a market via its code property.
    *
@@ -41,5 +38,13 @@ public class MarketService {
     return market;
   }
 
+  public MarketResponse getMarkets() {
+    Map<String, Market> markets = staticConfig.getMarketData();
+    return MarketResponse.builder().data(markets.values()).build();
+  }
 
+  @Autowired
+  public void setMarkets(StaticConfig staticConfig) {
+    this.staticConfig = staticConfig;
+  }
 }

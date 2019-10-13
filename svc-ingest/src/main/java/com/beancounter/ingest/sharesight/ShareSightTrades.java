@@ -67,13 +67,13 @@ public class ShareSightTrades implements Transformer {
       String comment = (row.size() == 12 ? row.get(comments).toString() : null);
 
       BigDecimal tradeRate = null;
+      BigDecimal fees = null;
       BigDecimal tradeAmount = BigDecimal.ZERO;
       if (trnType != TrnType.SPLIT) {
         Object rate = row.get(fxRate);
-        if (rate != null) {
-          tradeRate = new BigDecimal(rate.toString());
-        }
-
+        tradeRate = getBigDecimal(rate);
+        Object fee = row.get(brokerage);
+        fees = getBigDecimal(fee);
         tradeAmount = shareSightHelper.parseDouble(row.get(value));
       }
 
@@ -83,7 +83,7 @@ public class ShareSightTrades implements Transformer {
           .quantity(shareSightHelper.parseDouble(row.get(quantity).toString()))
           .price(shareSightHelper.parseDouble(row.get(price).toString()))
           .fees(shareSightHelper.safeDivide(
-              new BigDecimal(row.get(brokerage).toString()), tradeRate))
+              fees, tradeRate))
           .tradeAmount(shareSightHelper.getValueWithFx(tradeAmount, tradeRate))
           .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
           .portfolio(portfolio)
@@ -91,7 +91,7 @@ public class ShareSightTrades implements Transformer {
           .cashCurrency(portfolio.getCurrency())
           .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           // Zero and null should be treated as "unknown"
-          .tradeRefRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
+          .tradeCashRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
               ? null : tradeRate)
           .comments(comment)
           .build()
@@ -101,6 +101,13 @@ public class ShareSightTrades implements Transformer {
       throw re;
     }
 
+  }
+
+  private BigDecimal getBigDecimal(Object rate) {
+    if (rate != null) {
+      return new BigDecimal(rate.toString());
+    }
+    return null;
   }
 
   @Override

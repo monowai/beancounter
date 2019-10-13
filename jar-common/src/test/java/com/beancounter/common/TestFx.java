@@ -2,13 +2,13 @@ package com.beancounter.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.FxRequest;
+import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.helper.RateCalculator;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
-import com.beancounter.common.model.FxResults;
-import com.beancounter.common.request.FxRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
@@ -59,12 +59,12 @@ class TestFx {
         .compute("2019/08/27", pairs, rateMap);
 
     ObjectMapper objectMapper = new ObjectMapper();
-    FxResults fxResults = FxResults.builder().data(rateResults).build();
-    String json = objectMapper.writeValueAsString(fxResults);
-    FxResults fromJson = objectMapper.readValue(json, FxResults.class);
+    FxResponse fxResponse = FxResponse.builder().data(rateResults).build();
+    String json = objectMapper.writeValueAsString(fxResponse);
+    FxResponse fromJson = objectMapper.readValue(json, FxResponse.class);
     assertThat(fromJson)
         .isNotNull()
-        .isEqualToComparingFieldByField(fxResults);
+        .isEqualToComparingFieldByField(fxResponse);
 
   }
 }

@@ -1,4 +1,4 @@
-package com.beancounter.common.request;
+package com.beancounter.common.contracts;
 
 import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.annotation.JsonIgnore;

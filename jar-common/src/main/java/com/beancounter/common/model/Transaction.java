@@ -49,12 +49,12 @@ public class Transaction {
   private BigDecimal tradeAmount = BigDecimal.ZERO;
   private BigDecimal cashAmount;
 
-  // Trade CCY to portfolio reference currency
-  private BigDecimal tradeRefRate;
+  // Trade CCY to cash settlement currency
+  private BigDecimal tradeCashRate;
   // Trade Currency to system Base Currency
   private BigDecimal tradeBaseRate;
-  // Trade CCY to settlement  currency
-  private BigDecimal tradeCashRate;
+  // Trade CCY to portfolio reference  currency
+  private BigDecimal tradePortfolioRate;
 
   private String comments;
 

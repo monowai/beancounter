@@ -92,7 +92,6 @@ class TradesWithFx {
 
   }
 
-
   @Test
   @VisibleForTesting
   void is_FxRateOverridenFromSourceData() throws Exception {
@@ -133,15 +132,63 @@ class TradesWithFx {
 
   }
 
+  @Test
+  @VisibleForTesting
+  void is_Currency() throws Exception {
+
+    List<String> row = new ArrayList<>();
+
+    String testDate = "27/07/2019";
+
+    // Trade CCY USD
+    row.add(ShareSightTrades.market, "NASDAQ");
+    row.add(ShareSightTrades.code, "EBAY");
+    row.add(ShareSightTrades.name, "EBAY");
+    row.add(ShareSightTrades.type, "BUY");
+    row.add(ShareSightTrades.date, testDate);
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "100");
+    row.add(ShareSightTrades.brokerage, null);
+    row.add(ShareSightTrades.currency, "USD");
+    row.add(ShareSightTrades.fxRate, null);
+    row.add(ShareSightTrades.value, "1000.00");
+
+    Transformer trades = shareSightTransformers.transformer(row);
+
+    // Portfolio is in NZD
+    Portfolio portfolio = getPortfolio(getCurrency("NZD"));
+
+    // System base currency is GBP
+    Currency base = getCurrency("GBP");
+
+    Transaction transaction = trades.from(row, portfolio, base);
+
+    transaction = fxTransactions.applyRates(transaction);
+
+    assertThat(transaction)
+        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("baseCurrency", getCurrency("GBP"))
+        .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())
+        .hasFieldOrPropertyWithValue("tradeAmount",
+            new BigDecimal("1000"))
+        .hasFieldOrPropertyWithValue("tradeBaseRate",
+            new BigDecimal("1.24262269"))
+        .hasFieldOrPropertyWithValue("tradeCashRate",
+            new BigDecimal("0.66428103"))
+        .hasFieldOrPropertyWithValue("tradePortfolioRate",
+            new BigDecimal("0.66428103"))
+    ;
+  }
+
   private void assertTransaction(Portfolio portfolio, Currency base, Transaction transaction) {
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("GBP"))
         .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())
-        .hasFieldOrPropertyWithValue("tradeBaseRate", new BigDecimal("0.66428103"))
+        .hasFieldOrPropertyWithValue("tradeBaseRate", new BigDecimal("0.80474951"))
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.53457983"))
-        .hasFieldOrPropertyWithValue("tradeRefRate", new BigDecimal("0.53457983"))
+        .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.53457983"))
         .hasFieldOrProperty("tradeDate")
     ;
   }

@@ -46,7 +46,7 @@ class ShareSightDiviTest {
   @Autowired
   private ShareSightTransformers shareSightTransformers;
 
-  private  MathHelper mathHelper = new MathHelper();
+  private MathHelper mathHelper = new MathHelper();
 
   @Test
   @VisibleForTesting
@@ -82,7 +82,7 @@ class ShareSightDiviTest {
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("asset", expectedAsset)
-        .hasFieldOrPropertyWithValue("tradeRefRate", fxRate)
+        .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
             mathHelper.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("cashAmount",
@@ -90,7 +90,7 @@ class ShareSightDiviTest {
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
-        .hasFieldOrPropertyWithValue("baseCurrency",  getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("baseCurrency", getCurrency("USD"))
         .hasFieldOrPropertyWithValue("portfolio", portfolio)
 
         .hasFieldOrProperty("tradeDate")

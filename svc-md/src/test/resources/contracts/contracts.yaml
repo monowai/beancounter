@@ -1,29 +1,58 @@
 ---
+name: gbpusd-gbpnzd
 request:
   method: POST
   url: /api/fx
-  bodyFromFile: "fx/request.json"
+  bodyFromFile: "fx/gbpnzd-gbpusd-request.json"
   headers:
     Content-Type: application/json;charset=UTF-8
 response:
   status: 200
-  bodyFromFile: "fx/response.json"
+  bodyFromFile: "fx/gbpusd-gbpusd-response.json"
   headers:
     Content-Type: application/json;charset=UTF-8
 ---
+name: usdeur-usdgbp-usdnzd
 request:
   method: POST
   url: /api/fx
-  bodyFromFile: "fx/nzdGbpRequest.json"
+  bodyFromFile: "fx/usdeur-usdgbp-usdnzd-request.json"
   headers:
     Content-Type: application/json;charset=UTF-8
 response:
   status: 200
-  bodyFromFile: "fx/nzdGbpResponse.json"
+  bodyFromFile: "fx/usdeur-usdgbp-usdnzd-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+---
+name: usdnzd-gbpnzd
+request:
+  method: POST
+  url: /api/fx
+  bodyFromFile: "fx/usdnzd-gbpnzd-request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+response:
+  status: 200
+  bodyFromFile: "fx/usdnzd-gbpnzd-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+---
+name: usdnzd-usdgbp
+request:
+  method: POST
+  url: /api/fx
+  bodyFromFile: "fx/usdnzd-usdgbp-request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+response:
+  status: 200
+  bodyFromFile: "fx/usdnzd-usdgbp-response.json"
   headers:
     Content-Type: application/json;charset=UTF-8
 
 ---
+name: early-fx
 request:
   method: POST
   url: /api/fx
@@ -36,6 +65,7 @@ response:
   headers:
     Content-Type: application/json;charset=UTF-8
 ---
+name: price-abc
 request:
   method: POST
   url: /api
@@ -48,6 +78,7 @@ response:
   headers:
     Content-Type: application/json;charset=UTF-8
 ---
+name: price-ebay
 request:
   method: POST
   url: /api
@@ -57,5 +88,15 @@ request:
 response:
   status: 200
   bodyFromFile: "prices/ebay-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+---
+name: markets
+request:
+  method: GET
+  url: /api/markets
+response:
+  status: 200
+  bodyFromFile: "markets/markets.json"
   headers:
     Content-Type: application/json;charset=UTF-8

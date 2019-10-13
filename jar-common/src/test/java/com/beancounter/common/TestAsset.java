@@ -47,7 +47,7 @@ class TestAsset {
 
   @Test
   @VisibleForTesting
-  void is_AssetKeyPareExceptionsBeingThrown() {
+  void is_AssetKeyExceptionsBeingThrown() {
     assertThrows(BusinessException.class, () -> AssetHelper.parseKey(null));
     assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket",
         (Market) null));

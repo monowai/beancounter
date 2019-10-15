@@ -23,13 +23,13 @@ import org.springframework.web.server.ResponseStatusException;
  * @since 2019-01-29
  */
 @RestController
-@RequestMapping("/")
-public class MdController {
+@RequestMapping("/price")
+public class PriceController {
 
   private MarketDataService marketDataService;
 
   @Autowired
-  MdController(MarketDataService marketDataService) {
+  PriceController(MarketDataService marketDataService) {
     this.marketDataService = marketDataService;
   }
 

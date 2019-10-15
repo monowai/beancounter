@@ -13,14 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
     url = "${marketdata.url:http://localhost:9510/api}")
 @Configuration
 public interface BcGateway {
-  @PostMapping(
-      headers = {
-          "Content-Type: application/json"
-      }, value = "/fx"
-  )
+  @PostMapping(value = "/fx", headers = { "Content-Type: application/json"})
   FxResponse getRates(FxRequest fxRequest);
 
-  @GetMapping(value = "/markets")
+  @GetMapping(value = "/market")
   MarketResponse getMarkets();
 
 }

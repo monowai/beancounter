@@ -68,7 +68,7 @@ response:
 name: price-abc
 request:
   method: POST
-  url: /api
+  url: /api/price
   bodyFromFile: "prices/abc-request.json"
   headers:
     Content-Type: application/json;charset=UTF-8
@@ -81,7 +81,7 @@ response:
 name: price-ebay
 request:
   method: POST
-  url: /api
+  url: /api/price
   bodyFromFile: "prices/ebay-request.json"
   headers:
     Content-Type: application/json;charset=UTF-8
@@ -94,7 +94,7 @@ response:
 name: markets
 request:
   method: GET
-  url: /api/markets
+  url: /api/market
 response:
   status: 200
   bodyFromFile: "markets/markets.json"

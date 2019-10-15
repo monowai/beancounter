@@ -10,8 +10,13 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
+
+
 
 /**
  * Integrations with MarketData providers to obtain prices
@@ -20,10 +25,15 @@ import org.springframework.stereotype.Service;
  * @author mikeh
  * @since 2019-02-24
  */
+@Slf4j
+@Configuration
 @Service
 public class ValuationService implements Valuation {
 
   private MdIntegration mdIntegration;
+
+  @Value("${beancounter.md.url}")
+  private String mdUrl;
 
   @Autowired
   ValuationService(MdIntegration mdIntegration) {
@@ -37,6 +47,7 @@ public class ValuationService implements Valuation {
 
   @Override
   public Positions value(Positions positions) {
+    log.debug("Valuing positions against svc-md api: {}", mdUrl);
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
       gains(position);

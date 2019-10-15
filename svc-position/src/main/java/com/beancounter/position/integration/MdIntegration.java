@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public interface MdIntegration {
 
   @CircuitBreaker(name = "marketdata")
-  @RequestMapping(method = RequestMethod.GET, value = "/{assetId}")
+  @RequestMapping(method = RequestMethod.GET, value = "/price/{assetId}")
   MarketData getMarketData(@PathVariable("assetId") String assetId);
 
   @CircuitBreaker(name = "marketdata")
-  @RequestMapping(method = RequestMethod.POST)
+  @RequestMapping(method = RequestMethod.POST, value = "/price")
   Collection<MarketData> getMarketData(Collection<Asset> assetId);
 
 }

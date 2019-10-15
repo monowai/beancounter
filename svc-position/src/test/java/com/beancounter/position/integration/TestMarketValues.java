@@ -95,8 +95,7 @@ class TestMarketValues {
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator(
-    );
+    Accumulator accumulator = new Accumulator();
 
     Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);

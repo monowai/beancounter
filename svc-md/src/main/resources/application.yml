@@ -3,10 +3,18 @@ server:
   servlet:
     context-path: '/api'
 
+management:
+  server:
+    port: 9511
+  endpoint:
+    health.show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
+      base-path: "/"
 
 logging:
   level:
-
     com:
       netfix: ERROR
       beancounter: DEBUG

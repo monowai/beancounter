@@ -27,7 +27,7 @@ public class ValuationController {
     this.valuationService = valuationService;
   }
 
-  @PostMapping()
+  @PostMapping
   Positions getPositions(@RequestBody Positions positions) {
     try {
       return valuationService.value(positions);

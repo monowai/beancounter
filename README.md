@@ -22,9 +22,9 @@ java -jar svc-ingest/build/libs/svc-ingest-0.1.1.jar \
     --out.file=./trades.json 
 
 # Transform transactions to positions
-curl -H "Content-Type: application/json" -X POST -d @trades.json <http://localhost:9500/api> > positions.json
+curl -H "Content-Type: application/json" -X POST -d @trades.json http://localhost:9500/api/ > positions.json
 
 # Value positions    
-curl -H "Content-Type: application/json" -X POST -d @positions.json <http://localhost:9500/api/value> > valuedPositions.json
+curl -H "Content-Type: application/json" -X POST -d @positions.json http://localhost:9500/api/value > valuedPositions.json
 ```
 

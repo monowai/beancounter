@@ -3,27 +3,50 @@ server:
   servlet:
     context-path: '/api'
 
+management:
+  server:
+    port: 9501
+  endpoint:
+    health.show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
+#      base-path: "/"
+
 beancounter:
   md:
     name: marketdata
-    url: http://localhost:9510
+    url: "http://localhost:9510/api"
 
 spring:
   application:
     name: bc-positionKeeper
 
 
-management:
-  endpoints:
-    web.exposure.include: '*'
-    health.mapping.DOWN: OK
-    health.mapping.OUT_OF_SERVICE: OK
-
-  endpoint.health.show-details: always
 
 endpoints:
   default.web.enabled: true
 
+logging:
+  level:
+    root: debug
+    org.springframework.web.servlet: fatal
+    org.springframework: error
+    org.springframework.boot.web: info
+    org.mortbay: error
+    org.spring: error
+    com.google: error
+    org.apache: error
+    com.netflix: error
+    org: error
+    sun: error
+    jdk: error
+    javax: error
+    io.opencensus: error
+    io: error
+    com.beancounter: debug
+    feign.template: error
+    io.github.resilience4j: fatal
 feign:
   client:
     config:

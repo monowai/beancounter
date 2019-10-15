@@ -32,7 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @since 2019-02-01
  */
 @RestController
-@RequestMapping("/")
+@RequestMapping
 @Slf4j
 public class PositionController {
 
@@ -45,7 +45,7 @@ public class PositionController {
     this.valuationService = valuationService;
   }
 
-  @PostMapping()
+  @PostMapping
   Positions computePositions(@RequestBody Collection<Transaction> transactions) {
     try {
       return positionService.computePositions(transactions);

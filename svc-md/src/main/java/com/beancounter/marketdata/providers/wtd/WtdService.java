@@ -2,7 +2,7 @@ package com.beancounter.marketdata.providers.wtd;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
-import com.beancounter.common.helper.Dates;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -47,7 +47,7 @@ public class WtdService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.WTD.markets}")
   private String markets;
 
-  private Dates dates = new Dates();
+  private DateUtils dateUtils = new DateUtils();
 
   private WtdRequester wtdRequester;
 
@@ -193,7 +193,7 @@ public class WtdService implements MarketDataProvider {
     if (date != null) {
       return date;
     }
-    LocalDate result = dates.getLastMarketDate(
+    LocalDate result = dateUtils.getLastMarketDate(
         Instant.now().atZone(ZoneId.systemDefault()),
         timeZone.toZoneId());
 

@@ -1,4 +1,4 @@
-package com.beancounter.common.helper;
+package com.beancounter.common.utils;
 
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;

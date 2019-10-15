@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.helper.RateCalculator;
+import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;

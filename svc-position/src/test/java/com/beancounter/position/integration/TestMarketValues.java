@@ -2,13 +2,13 @@ package com.beancounter.position.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
@@ -52,7 +52,7 @@ class TestMarketValues {
   @Tag("slow")
   @VisibleForTesting
   void is_MarketValuationCalculated() {
-    Asset asset = AssetHelper.getAsset("ABC",
+    Asset asset = AssetUtils.getAsset("ABC",
         Market.builder().code("marketCode")
             .build()
     );
@@ -76,7 +76,7 @@ class TestMarketValues {
   @VisibleForTesting
   void is_AssetHydratedFromValuationRequest() {
 
-    Asset asset = AssetHelper.getAsset("EBAY", "NASDAQ");
+    Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

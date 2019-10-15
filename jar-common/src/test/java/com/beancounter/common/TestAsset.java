@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.helper.AssetHelper;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,21 +37,21 @@ class TestAsset {
   @Test
   @VisibleForTesting
   void is_AssetKeyParsing() {
-    Asset asset = AssetHelper.getAsset("ACODE", "MCODE");
+    Asset asset = AssetUtils.getAsset("ACODE", "MCODE");
 
-    String keyIn = AssetHelper.parseKey(asset);
+    String keyIn = AssetUtils.parseKey(asset);
 
-    assertThat(AssetHelper.getAsset(keyIn)).isEqualTo(asset);
+    assertThat(AssetUtils.getAsset(keyIn)).isEqualTo(asset);
 
   }
 
   @Test
   @VisibleForTesting
   void is_AssetKeyExceptionsBeingThrown() {
-    assertThrows(BusinessException.class, () -> AssetHelper.parseKey(null));
-    assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket",
+    assertThrows(BusinessException.class, () -> AssetUtils.parseKey(null));
+    assertThrows(BusinessException.class, () -> AssetUtils.getAsset("CodeWithNoMarket",
         (Market) null));
-    assertThrows(BusinessException.class, () -> AssetHelper.getAsset("CodeWithNoMarket"));
+    assertThrows(BusinessException.class, () -> AssetUtils.getAsset("CodeWithNoMarket"));
   }
 
 }

@@ -2,7 +2,7 @@ package com.beancounter.ingest.service;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.helper.MathHelper;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class FxTransactions {
   private FxRateService fxRateService;
   private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-  private MathHelper mathHelper = new MathHelper();
+  private MathUtils mathUtils = new MathUtils();
 
   @Autowired
   @VisibleForTesting
@@ -77,17 +77,17 @@ public class FxTransactions {
                           CurrencyPair tradeCash,
                           Transaction transaction) {
 
-    if (tradePortfolio != null && mathHelper.isUnset(transaction.getTradePortfolioRate())) {
+    if (tradePortfolio != null && mathUtils.isUnset(transaction.getTradePortfolioRate())) {
       transaction.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
     } else {
       transaction.setTradePortfolioRate(BigDecimal.ONE);
     }
-    if (tradeBase != null && mathHelper.isUnset(transaction.getTradeBaseRate())) {
+    if (tradeBase != null && mathUtils.isUnset(transaction.getTradeBaseRate())) {
       transaction.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
     } else {
       transaction.setTradeBaseRate(BigDecimal.ONE);
     }
-    if (tradeCash != null && mathHelper.isUnset(transaction.getTradeCashRate())) {
+    if (tradeCash != null && mathUtils.isUnset(transaction.getTradeCashRate())) {
       transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
     } else {
       transaction.setTradeCashRate(BigDecimal.ONE);

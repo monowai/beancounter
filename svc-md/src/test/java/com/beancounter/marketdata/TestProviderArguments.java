@@ -1,6 +1,6 @@
 package com.beancounter.marketdata;
 
-import static com.beancounter.common.helper.AssetHelper.getAsset;
+import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;

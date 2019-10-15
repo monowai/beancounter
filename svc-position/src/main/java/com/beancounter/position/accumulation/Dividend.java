@@ -1,14 +1,14 @@
 package com.beancounter.position.accumulation;
 
-import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 
 public class Dividend implements AccumulationLogic {
 
-  private MathHelper mathHelper = new MathHelper();
+  private MathUtils mathUtils = new MathUtils();
 
   public void value(Transaction transaction, Position position) {
     value(transaction, position, Position.In.TRADE, BigDecimal.ONE);
@@ -24,8 +24,8 @@ public class Dividend implements AccumulationLogic {
 
     MoneyValues moneyValues = position.getMoneyValue(in);
     moneyValues.setDividends(
-        mathHelper.add(moneyValues.getDividends(),
-            mathHelper.multiply(transaction.getTradeAmount(), rate)));
+        mathUtils.add(moneyValues.getDividends(),
+            mathUtils.multiply(transaction.getTradeAmount(), rate)));
 
   }
 

@@ -1,4 +1,4 @@
-package com.beancounter.common.helper;
+package com.beancounter.common.utils;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -7,7 +7,7 @@ import java.math.RoundingMode;
 /**
  * Controls the way BC will deal with Division and Multiplication when it comes to Fx Rates.
  */
-public class MathHelper {
+public class MathUtils {
 
   private MathContext mathContext = new MathContext(10);
 

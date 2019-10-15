@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.providers.alpha;
 
-import com.beancounter.common.helper.Dates;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AlphaDeserializer extends JsonDeserializer {
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static Dates dates = new Dates();
+  private static DateUtils dateUtils = new DateUtils();
 
   @Override
   public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -59,7 +59,7 @@ public class AlphaDeserializer extends JsonDeserializer {
         firstKey = allValues.entrySet().stream().findFirst();
 
     if (firstKey.isPresent()) {
-      LocalDate localDateTime = dates.getDate(
+      LocalDate localDateTime = dateUtils.getDate(
           firstKey.get().getKey().toString(), "yyyy-M-dd");
       Date priceDate = Date.from(
           localDateTime.atStartOfDay(ZoneId.of(timeZone)).toInstant());

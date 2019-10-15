@@ -3,7 +3,7 @@ package com.beancounter.marketdata.service;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.helper.RateCalculator;
+import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.marketdata.providers.fxrates.EcbService;

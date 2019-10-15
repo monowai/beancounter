@@ -1,9 +1,9 @@
 package com.beancounter.position.accumulation;
 
-import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Sell implements AccumulationLogic {
 
-  private MathHelper mathHelper = new MathHelper();
+  private MathUtils mathUtils = new MathUtils();
   private Cost cost = new Cost();
 
   public void value(Transaction transaction, Position position) {
@@ -38,15 +38,15 @@ public class Sell implements AccumulationLogic {
     MoneyValues moneyValues = position.getMoneyValue(in);
     moneyValues.setSales(
         moneyValues.getSales().add(
-            mathHelper.multiply(transaction.getTradeAmount(), rate))
+            mathUtils.multiply(transaction.getTradeAmount(), rate))
     );
 
     if (!transaction.getTradeAmount().equals(BigDecimal.ZERO)) {
-      BigDecimal unitCost = mathHelper.multiply(transaction.getTradeAmount(), rate)
-          .divide(transaction.getQuantity().abs(), mathHelper.getMathContext());
+      BigDecimal unitCost = mathUtils.multiply(transaction.getTradeAmount(), rate)
+          .divide(transaction.getQuantity().abs(), mathUtils.getMathContext());
       BigDecimal unitProfit = unitCost.subtract(moneyValues.getAverageCost());
       BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity().abs());
-      moneyValues.setRealisedGain(mathHelper.add(moneyValues.getRealisedGain(), realisedGain));
+      moneyValues.setRealisedGain(mathUtils.add(moneyValues.getRealisedGain(), realisedGain));
     }
 
     if (position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {

@@ -16,6 +16,7 @@ public interface Position {
 
   /**
    * Return the position collection from a collection of transactions.
+   *
    * @param transactions to return
    * @return computed stock positions
    */

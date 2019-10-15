@@ -1,7 +1,7 @@
 package com.beancounter.ingest.sharesight.common;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.helper.MathHelper;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
@@ -47,7 +47,7 @@ public class ShareSightHelper {
   @Value("${range:All Trades Report}")
   private String range;
 
-  private MathHelper mathHelper = new MathHelper();
+  private MathUtils mathUtils = new MathUtils();
 
   @Autowired
   ShareSightHelper(ExchangeConfig exchangeConfig) {
@@ -100,14 +100,14 @@ public class ShareSightHelper {
   }
 
   public BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {
-    return mathHelper.divide(money, rate);
+    return mathUtils.divide(money, rate);
   }
 
   public BigDecimal getValueWithFx(BigDecimal money, BigDecimal rate) {
-    return mathHelper.multiply(money, rate);
+    return mathUtils.multiply(money, rate);
   }
 
   public boolean isUnset(BigDecimal value) {
-    return mathHelper.isUnset(value);
+    return mathUtils.isUnset(value);
   }
 }

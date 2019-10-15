@@ -1,4 +1,4 @@
-package com.beancounter.common.helper;
+package com.beancounter.common.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

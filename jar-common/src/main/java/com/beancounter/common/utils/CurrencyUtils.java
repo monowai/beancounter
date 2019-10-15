@@ -1,8 +1,8 @@
-package com.beancounter.common.helper;
+package com.beancounter.common.utils;
 
 import com.beancounter.common.model.Currency;
 
-public class CurrencyHelper {
+public class CurrencyUtils {
   public static Currency getCurrency(String isoCode){
     return Currency.builder().code(isoCode).build();
   }

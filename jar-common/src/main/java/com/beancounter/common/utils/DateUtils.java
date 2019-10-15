@@ -1,4 +1,4 @@
-package com.beancounter.common.helper;
+package com.beancounter.common.utils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -15,7 +15,7 @@ import java.util.Objects;
  * @since 2019-03-12
  */
 
-public class Dates {
+public class DateUtils {
 
   /**
    * Identify a date to query a market on taking into account timezones and working days.

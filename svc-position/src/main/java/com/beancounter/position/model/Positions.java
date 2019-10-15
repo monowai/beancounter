@@ -1,8 +1,8 @@
 package com.beancounter.position.model;
 
-import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class Positions {
   }
 
   public void add(Position position) {
-    positions.put(AssetHelper.parseKey(position.getAsset()), position);
+    positions.put(AssetUtils.parseKey(position.getAsset()), position);
 
   }
 
@@ -44,7 +44,7 @@ public class Positions {
    */
   @JsonIgnore
   public Position get(Asset asset) {
-    Position result = positions.get(AssetHelper.parseKey(asset));
+    Position result = positions.get(AssetUtils.parseKey(asset));
     if (result == null) {
       return Position.builder()
           .asset(asset)

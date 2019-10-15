@@ -1,10 +1,10 @@
 package com.beancounter.ingest;
 
-import static com.beancounter.common.helper.AssetHelper.getAsset;
+import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.ingest.UnitTestHelper.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.helper.MathHelper;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
@@ -46,7 +46,7 @@ class ShareSightDiviTest {
   @Autowired
   private ShareSightTransformers shareSightTransformers;
 
-  private MathHelper mathHelper = new MathHelper();
+  private MathUtils mathUtils = new MathUtils();
 
   @Test
   @VisibleForTesting
@@ -84,9 +84,9 @@ class ShareSightDiviTest {
         .hasFieldOrPropertyWithValue("asset", expectedAsset)
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
-            mathHelper.multiply(new BigDecimal("15.85"), fxRate))
+            mathUtils.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("cashAmount",
-            mathHelper.multiply(new BigDecimal("15.85"), fxRate))
+            mathUtils.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))

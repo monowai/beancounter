@@ -1,6 +1,6 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.helper.AssetHelper.getAsset;
+import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.position.TestUtils.convert;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;

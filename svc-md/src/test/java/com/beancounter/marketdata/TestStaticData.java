@@ -3,7 +3,7 @@ package com.beancounter.marketdata;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import com.beancounter.common.helper.Dates;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
@@ -84,11 +84,11 @@ class TestStaticData {
     LocalDateTime sunday = LocalDateTime
         .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat));
 
-    Dates dates = new Dates();
+    DateUtils dateUtils = new DateUtils();
 
     Market sgMarket = marketService.getMarket("SGX");
     Market nzMarket = marketService.getMarket("NZX");
-    LocalDate resolvedDate = dates.getLastMarketDate(
+    LocalDate resolvedDate = dateUtils.getLastMarketDate(
         sunday
             .atZone(sgMarket.getTimezone().toZoneId()),
         marketService.getMarket("NYSE").getTimezone().toZoneId());
@@ -98,7 +98,7 @@ class TestStaticData {
         .hasFieldOrPropertyWithValue("dayOfMonth", 12)
     ;
 
-    resolvedDate = dates.getLastMarketDate(sunday
+    resolvedDate = dateUtils.getLastMarketDate(sunday
             .atZone(nzMarket.getTimezone().toZoneId()),
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 

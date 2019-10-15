@@ -1,4 +1,4 @@
-package com.beancounter.common.helper;
+package com.beancounter.common.utils;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
@@ -10,7 +10,7 @@ import com.beancounter.common.model.Market;
  * @author mikeh
  * @since 2019-02-24
  */
-public class AssetHelper {
+public class AssetUtils {
 
   /**
    * Takes a valid asset and returns a key for it.
@@ -44,7 +44,7 @@ public class AssetHelper {
   /**
    * Helper to create a simple Asset with a USD currency.
    *
-   * @param assetCode assetCode
+   * @param assetCode  assetCode
    * @param marketCode marketCode
    * @return simple Asset.
    */
@@ -59,7 +59,7 @@ public class AssetHelper {
    * Asset on a market.
    *
    * @param assetCode asset.code
-   * @param market market to return
+   * @param market    market to return
    * @return asset on a market
    */
   public static Asset getAsset(String assetCode, Market market) {

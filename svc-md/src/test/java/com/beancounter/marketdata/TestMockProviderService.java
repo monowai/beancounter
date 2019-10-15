@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.helper.AssetHelper;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
@@ -25,7 +25,7 @@ class TestMockProviderService {
   @Test
   @VisibleForTesting
   void mockDataProviderReturnsValue() {
-    Asset asset = AssetHelper.getAsset("Anything", "MOCK");
+    Asset asset = AssetUtils.getAsset("Anything", "MOCK");
     MarketDataProvider provider = new MockProviderService();
     MarketData result = provider.getCurrent(asset);
     assertThat(result)
@@ -37,7 +37,7 @@ class TestMockProviderService {
   @VisibleForTesting
   void mockDataProviderThrowsException() {
     // Hard coded asset exception
-    Asset asset = AssetHelper.getAsset("123", "MOCK");
+    Asset asset = AssetUtils.getAsset("123", "MOCK");
     MarketDataProvider provider = new MockProviderService();
     assertThrows(BusinessException.class, () -> provider.getCurrent(asset));
   }

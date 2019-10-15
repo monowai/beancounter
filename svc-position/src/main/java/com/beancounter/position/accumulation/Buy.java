@@ -1,15 +1,15 @@
 package com.beancounter.position.accumulation;
 
-import com.beancounter.common.helper.MathHelper;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 
 public class Buy implements AccumulationLogic {
   private Cost cost = new Cost();
-  private MathHelper mathHelper = new MathHelper();
+  private MathUtils mathUtils = new MathUtils();
 
   public void value(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
@@ -30,11 +30,11 @@ public class Buy implements AccumulationLogic {
     MoneyValues moneyValues = position.getMoneyValue(in);
 
     moneyValues.setPurchases(moneyValues.getPurchases().add(
-        mathHelper.multiply(transaction.getTradeAmount(), rate))
+        mathUtils.multiply(transaction.getTradeAmount(), rate))
     );
 
     moneyValues.setCostBasis(moneyValues.getCostBasis().add(
-        mathHelper.multiply(transaction.getTradeAmount(), rate))
+        mathUtils.multiply(transaction.getTradeAmount(), rate))
     );
 
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {

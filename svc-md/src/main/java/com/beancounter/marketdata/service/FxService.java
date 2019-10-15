@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.helper.RateCalculator;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,20 +28,20 @@ public class FxService {
     this.currencyService = currencyService;
   }
 
-  public FxResponse getRates(@NotNull String asAt,
-                             @NotNull Collection<CurrencyPair> currencyPairs) {
-    verify(currencyPairs);
+  public FxResponse getRates(FxRequest fxRequest) {
+    verify(fxRequest.getPairs());
 
-    Collection<FxRate> rates = rateStore.get(asAt);
+    Collection<FxRate> rates = rateStore.get(fxRequest.getRateDate());
     if (rates == null) {
-      rates = ecbService.getRates(asAt);
-      rateStore.put(asAt, rates);
+      rates = ecbService.getRates(fxRequest.getRateDate());
+      rateStore.put(fxRequest.getRateDate(), rates);
     }
     Map<String, FxRate> mappedRates = new HashMap<>();
     for (FxRate rate : rates) {
       mappedRates.put(rate.getTo().getCode(), rate);
     }
-    return FxResponse.builder().data(rateCalculator.compute(asAt, currencyPairs, mappedRates))
+    return FxResponse.builder().data(
+        rateCalculator.compute(fxRequest.getRateDate(), fxRequest.getPairs(), mappedRates))
         .build();
   }
 

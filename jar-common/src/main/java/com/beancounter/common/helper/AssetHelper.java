@@ -42,7 +42,7 @@ public class AssetHelper {
   }
 
   /**
-   * Helper to create a simple Asset.
+   * Helper to create a simple Asset with a USD currency.
    *
    * @param assetCode assetCode
    * @param marketCode marketCode
@@ -56,7 +56,7 @@ public class AssetHelper {
   }
 
   /**
-   * Anset on a market.
+   * Asset on a market.
    *
    * @param assetCode asset.code
    * @param market market to return

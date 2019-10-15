@@ -13,8 +13,7 @@ management:
       exposure.include: '*'
 #      base-path: "/"
 
-beancounter:
-  md:
+marketdata:
     name: marketdata
     url: "http://localhost:9510/api"
 

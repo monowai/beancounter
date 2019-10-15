@@ -34,7 +34,7 @@ public class FxController {
   @CrossOrigin
   FxResponse getRates(@RequestBody FxRequest fxRequest) {
     try {
-      return fxService.getRates(fxRequest.getRateDate(), fxRequest.getPairs());
+      return fxService.getRates(fxRequest);
     } catch (BusinessException be) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, be.getMessage(), be);
     }

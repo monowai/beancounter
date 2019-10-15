@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.helper.AssetHelper;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
@@ -51,15 +52,18 @@ class TestMarketValues {
   @Tag("slow")
   @VisibleForTesting
   void is_MarketValuationCalculated() {
-    Asset asset = AssetHelper.getAsset("ABC", "marketCode");
+    Asset asset = AssetHelper.getAsset("ABC",
+        Market.builder().code("marketCode")
+            .build()
+    );
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     // We need to have a Quantity in order to get the price, so create a position
     getPositions(asset, positions);
 
-    MoneyValues localMoney = positions.get(asset).getMoneyValue(Position.In.TRADE);
-    assertThat(localMoney)
+    MoneyValues portfolioValues = positions.get(asset).getMoneyValue(Position.In.PORTFOLIO);
+    assertThat(portfolioValues)
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"))

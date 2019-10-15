@@ -1,6 +1,5 @@
 server:
   port: 0
 
-beancounter:
-  md:
-    url: http://localhost:8090/api
+marketdata:
+  url: http://localhost:8090/api

@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.junit.jupiter.api.Test;

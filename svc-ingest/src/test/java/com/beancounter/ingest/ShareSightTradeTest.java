@@ -2,11 +2,11 @@ package com.beancounter.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.utils.MathUtils;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ExchangeConfig;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightDivis;

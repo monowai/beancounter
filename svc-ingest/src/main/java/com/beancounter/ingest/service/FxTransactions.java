@@ -2,11 +2,11 @@ package com.beancounter.ingest.service;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.utils.MathUtils;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.MathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;

@@ -1,147 +1,115 @@
 version: 2
 jobs:
-
-  checkout-code:
-    machine:
-      enabled: true
-    working_directory: '~/beancounter'
-    steps:
-      - checkout
-      - save_cache:
-          key: beancounter-src-repo-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - ~/beancounter
+#  checkout-code:
+#    machine:
+#      enabled: true
+#    steps:
+#      - checkout
+#      - save_cache:
+#          key: org-bc-common-{{ .Environment.CIRCLE_SHA1 }}
+#          paths:
+#            - ~/beancounter
 
   build-common:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/jar-common'
-    # caches are immutable and will be built once by the common job
+
+    # Restore cached artifacts from a builds
     steps:
+      - checkout
       - restore_cache:
-          key: beancounter-src-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+          keys:
+            - org-beancounter-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+      - run: 'rm -rf ~/.m2/repository/com/beancounter'
+      - run: 'rm -rf ~/.m2/repository/beancounter'
+      - run: 'pwd'
+      - run: 'cd ~/project/jar-common && ./gradlew clean build'
+      - run: 'cd ~/project/svc-md && ./gradlew publishStubsPublicationToMavenLocal'
 
-      - run:
-          command: 'rm -rf ~/.m2/repository/com/beancounter'
-
-      - run:
-          command: './gradlew clean build '
-
+      # Save the environment for this build run with it's dependencies in-place
       - save_cache:
           paths:
             - ~/.m2
-            - ../.gradle
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+            - ~/.gradle
+            - ~/project
+          key: org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
       - store_test_results:
-          path: ./build/test-results/test
+          path: ~/project/jar-common/build/test-results/test
 
       - store_artifacts:
-          path: jar-common/build/*.jar
+          path: ~/project/jar-common/build/libs
 
   build-md:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/svc-md'
     # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
-          key: beancounter-src-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+          keys:
+            - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run:
-          command: './gradlew build publishToMavenLocal'
+      - run: 'pwd'
+      - run: 'cd ~/project/svc-md && ./gradlew build'
 
       - save_cache:
           paths:
             - ~/.m2
-            - ../.gradle
-          key: org-beancounter-md-{{ .Revision }}
+            - ~/.gradle
+          key: org-beancounter-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - store_test_results:
-          path: ./build/test-results/test
+          path: ~/project/svc-md/build/test-results/test
 
       - store_artifacts:
-          path: svc-md/build/libs/*.jar
+          path: ~/project/svc-md/build/libs
 
   build-ingest:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/svc-ingest'
-    # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
-          key: org-beancounter-md-{{ .Revision }}
-      - restore_cache:
-          key: beancounter-src-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+          keys:
+            - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-
-      - run:
-          command: './gradlew build'
-
-      - save_cache:
-          paths:
-            - ~/.m2
-            - ../.gradle
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+      - run: 'cd ~/project/svc-ingest && ./gradlew build'
 
       - store_test_results:
-          path: ./build/test-results/test
+          path: ~/project/svc-ingest/build/test-results/test
 
       - store_artifacts:
-          path: svc-ingest/build/*.jar
+          path: ~/project/svc-ingest/build/libs
 
   build-position:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    working_directory: '~/beancounter/svc-position'
 
     steps:
       - restore_cache:
-          key: org-beancounter-md-{{ .Revision }}
-      - restore_cache:
-          key: beancounter-src-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+          keys:
+            - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run:
-          command: './gradlew build'
-
-      - save_cache:
-          paths:
-            - ~/
-            - ../.gradle
-          key: org-beancounter-v2a-{{ checksum "../build.gradle" }}
+      - run: 'cd ~/project/svc-position && ./gradlew build'
 
       - store_test_results:
-          path: ./build/test-results/test
+          path: ~/project/svc-position/build/test-results/test
 
       - store_artifacts:
-          path: svc-md/build/*.jar
-
-
+          path: ~/project/svc-position/build/libs
 
 workflows:
   version: 2
   build_and_stage:
     jobs:
-      - checkout-code
-      - build-common:
-          requires:
-            - checkout-code
+      - build-common
       - build-md:
           requires:
             - build-common

@@ -2,11 +2,11 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;

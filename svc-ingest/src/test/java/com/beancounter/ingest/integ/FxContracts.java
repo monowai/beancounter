@@ -43,7 +43,7 @@ class FxContracts {
     currencyPairs.add(CurrencyPair.builder().from("USD").to("GBP").build());
     currencyPairs.add(CurrencyPair.builder().from("USD").to("NZD").build());
 
-    String testDate = "2019-07-27";
+    String testDate = "2019-07-28";
     FxResponse fxResponse = fxRateService.getRates(FxRequest.builder()
         .rateDate(testDate)
         .pairs(currencyPairs)
@@ -52,6 +52,8 @@ class FxContracts {
     assertThat(fxResponse.getData().keySet()).hasSize(1);
     assertThat(fxResponse.getData()).containsKeys(testDate);
     FxPairResults fxPairResults = fxResponse.getData().get(testDate);
+    assertThat(fxPairResults.getRates().size()).isEqualTo(currencyPairs.size());
+
     for (CurrencyPair currencyPair : currencyPairs) {
       assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
       assertThat(fxPairResults.getRates().get(currencyPair))

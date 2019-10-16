@@ -3,8 +3,8 @@ package com.beancounter.marketdata;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdService;

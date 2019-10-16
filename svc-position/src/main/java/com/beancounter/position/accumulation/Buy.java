@@ -7,7 +7,7 @@ import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 
-public class Buy implements AccumulationLogic {
+public class Buy implements ValueTransaction {
   private Cost cost = new Cost();
   private MathUtils mathUtils = new MathUtils();
 

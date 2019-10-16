@@ -59,7 +59,7 @@ public class AlphaDeserializer extends JsonDeserializer {
         firstKey = allValues.entrySet().stream().findFirst();
 
     if (firstKey.isPresent()) {
-      LocalDate localDateTime = dateUtils.getDate(
+      LocalDate localDateTime = dateUtils.getLocalDate(
           firstKey.get().getKey().toString(), "yyyy-M-dd");
       Date priceDate = Date.from(
           localDateTime.atStartOfDay(ZoneId.of(timeZone)).toInstant());

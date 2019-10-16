@@ -3,11 +3,11 @@ package com.beancounter.position.service;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.accumulation.AccumulationLogic;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Dividend;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
+import com.beancounter.position.accumulation.ValueTransaction;
 import com.beancounter.position.model.Position;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ public class Accumulator {
   @Value("${beancounter.positions.ordered:false}")
   private boolean orderedTransactions = false;
 
-  private Map<TrnType, AccumulationLogic> logicMap = new HashMap<>();
+  private Map<TrnType, ValueTransaction> logicMap = new HashMap<>();
 
   public Accumulator() {
     logicMap.put(TrnType.BUY, new Buy());
@@ -50,8 +50,8 @@ public class Accumulator {
     if (dateSensitive) {
       isDateSequential(transaction, position);
     }
-    AccumulationLogic accumulationLogic = logicMap.get(transaction.getTrnType());
-    accumulationLogic.value(transaction, position);
+    ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
+    valueTransaction.value(transaction, position);
     if (dateSensitive) {
       position.setLastTradeDate(transaction.getTradeDate());
     }

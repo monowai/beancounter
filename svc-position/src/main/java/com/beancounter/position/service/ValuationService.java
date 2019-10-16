@@ -2,14 +2,14 @@ package com.beancounter.position.service;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.common.model.MoneyValues;
+import com.beancounter.position.accumulation.Gains;
+import com.beancounter.position.accumulation.MarketValue;
 import com.beancounter.position.integration.BcGateway;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 public class ValuationService implements Valuation {
 
   private BcGateway bcGateway;
+  private Gains gains = new Gains();
+  private MarketValue marketValue = new MarketValue();
 
   @Value("${marketdata.url}")
   private String mdUrl;
@@ -40,11 +42,6 @@ public class ValuationService implements Valuation {
   }
 
   @Override
-  public MarketData getPrice(String assetId) {
-    return bcGateway.getMarketData(assetId);
-  }
-
-  @Override
   public Positions value(Positions positions) {
     log.debug("Valuing {} positions against : {}",
         positions.getPositions().size(),
@@ -52,10 +49,7 @@ public class ValuationService implements Valuation {
 
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
-      gains(
-          position.getMoneyValue(Position.In.PORTFOLIO),
-          position.getQuantityValues().getTotal()
-      );
+      gains.value(position, Position.In.PORTFOLIO);
       if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
         assets.add(position.getAsset());
       }
@@ -75,36 +69,10 @@ public class ValuationService implements Valuation {
     for (MarketData marketData : marketDataResults) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        value(
-            position.getMoneyValue(Position.In.PORTFOLIO),
-            marketData,
-            position.getQuantityValues().getTotal());
+        marketValue.value(position,Position.In.PORTFOLIO, marketData, BigDecimal.ONE);
         position.setAsset(marketData.getAsset());
       }
     }
     return positions;
   }
-
-  private void value(MoneyValues moneyValues, MarketData marketData, BigDecimal total) {
-    // Only called if total != Zero
-    moneyValues.setPrice(marketData.getClose());
-    moneyValues.setAsAt(marketData.getDate());
-    moneyValues.setMarketValue(marketData.getClose().multiply(total));
-
-    gains(moneyValues, total);
-
-  }
-
-  private void gains(MoneyValues moneyValues, BigDecimal total) {
-    // Gains need to be calculated ever if we don't value the asset due to a zero total
-    if (!Objects.equals(total, BigDecimal.ZERO)) {
-      moneyValues.setUnrealisedGain(moneyValues.getMarketValue()
-          .subtract(moneyValues.getCostValue()));
-    }
-
-    moneyValues.setTotalGain(moneyValues.getUnrealisedGain()
-        .add(moneyValues.getDividends()
-            .add(moneyValues.getRealisedGain())));
-  }
-
 }

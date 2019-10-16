@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 
 @Service
-public class Sell implements AccumulationLogic {
+public class Sell implements ValueTransaction {
 
   private MathUtils mathUtils = new MathUtils();
   private Cost cost = new Cost();

@@ -6,7 +6,7 @@ import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 
-public class Dividend implements AccumulationLogic {
+public class Dividend implements ValueTransaction {
 
   private MathUtils mathUtils = new MathUtils();
 

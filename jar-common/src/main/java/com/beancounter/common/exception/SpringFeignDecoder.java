@@ -36,16 +36,10 @@ public class SpringFeignDecoder implements ErrorDecoder {
 
     if (response.status() >= 400 && response.status() <= 499) {
       // We don't want business logic exceptions to flip circuit breakers
-      return new BusinessException(
-          response.status(),
-          reason
-      );
+      return new BusinessException(response.status(), reason);
     }
     if (response.status() >= 500 && response.status() <= 599) {
-      return new SystemException(
-          response.status(),
-          reason
-      );
+      return new SystemException(response.status(), reason);
     }
     return FeignException.errorStatus(methodKey, response);
   }

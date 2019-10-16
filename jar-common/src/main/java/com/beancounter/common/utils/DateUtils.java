@@ -2,11 +2,12 @@ package com.beancounter.common.utils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Objects;
+import java.util.TimeZone;
 
 /**
  * Date based helper functions.
@@ -51,32 +52,14 @@ public class DateUtils {
     // ToDo: market holidays...
   }
 
-  /**
-   * Convenience function returning LocalDateTime from a format of "yyyy-M-dd hh:mm:ss a".
-   *
-   * @param inDate DateTime in dateFormat
-   * @return LocalDateTime
-   */
-  public LocalDateTime getDateTime(String inDate) {
-    String dateFormat = "yyyy-M-dd hh:mm:ss a";
-    return getDateTime(inDate, dateFormat);
-  }
-
-  /**
-   * Convenience function returning LocalDateTime.
-   *
-   * @param inDate     DateTime in dateFormat
-   * @param dateFormat format of inDate
-   * @return LocalDateTime
-   */
-  public LocalDateTime getDateTime(String inDate, String dateFormat) {
-    return LocalDateTime
-        .parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
-  }
-
-  public LocalDate getDate(String inDate, String dateFormat) {
+  public LocalDate getLocalDate(String inDate, String dateFormat) {
     return LocalDate
         .parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
   }
 
+  public Date getDate(String inDate, String format) {
+    return Date.from(
+        getLocalDate("2012-10-01", "yyyy-MM-dd")
+            .atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant());
+  }
 }

@@ -12,41 +12,59 @@ class TestMathUtils {
 
   @Test
   @VisibleForTesting
-  void is_RateInputForFxSafe() {
+  void is_MultiplySafe() {
 
-    assertThat(mathUtils.multiply(new BigDecimal("1000.00"),
+    assertThat(mathUtils.multiply(
+        new BigDecimal("1000.00"),
         new BigDecimal("0")))
         .isEqualTo("1000.00");
 
-    assertThat(mathUtils.multiply(new BigDecimal("1000.00"),
+    assertThat(mathUtils.multiply(
+        new BigDecimal("1000.00"),
         new BigDecimal("0.00")))
         .isEqualTo("1000.00");
 
-    assertThat(mathUtils.multiply(new BigDecimal("1000.00"),
+    assertThat(mathUtils.multiply(
+        new BigDecimal("1000.00"),
         null))
         .isEqualTo("1000.00");
 
-    assertThat(mathUtils.multiply(new BigDecimal("1000.00"),
+    assertThat(mathUtils.multiply(
+        new BigDecimal("1000.00"),
         new BigDecimal("10.00")))
         .isEqualTo("10000.00");
+
+    assertThat(mathUtils.multiply(
+        null,
+        new BigDecimal("10.00")))
+        .isNull();
+
   }
 
   @Test
   @VisibleForTesting
-  void is_RateInputForSaveDivide() {
+  void is_DivideSafe() {
 
 
-    assertThat(mathUtils.divide(new BigDecimal("1000.00"),
+    assertThat(mathUtils.divide(
+        new BigDecimal("1000.00"),
         new BigDecimal("0")))
         .isEqualTo("1000.00");
 
-    assertThat(mathUtils.divide(new BigDecimal("1000.00"),
+    assertThat(mathUtils.divide(
+        new BigDecimal("1000.00"),
         new BigDecimal("0.00")))
         .isEqualTo("1000.00");
 
-    assertThat(mathUtils.divide(new BigDecimal("1000.00"),
+    assertThat(mathUtils.divide(
+        new BigDecimal("1000.00"),
         null))
         .isEqualTo("1000.00");
+
+    assertThat(mathUtils.divide(
+        null,
+        new BigDecimal("10.00")))
+        .isNull();
 
     assertThat(mathUtils.divide(new BigDecimal("1000.00"),
         new BigDecimal("10.00")))

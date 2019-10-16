@@ -37,6 +37,16 @@ class TestFx {
 
   @Test
   @VisibleForTesting
+  void is_FxRequestPairsIgnoringDuplicates() {
+    CurrencyPair pair = CurrencyPair.builder().from("THIS").to("THAT").build();
+    FxRequest fxRequest = FxRequest.builder().build();
+    fxRequest.add(pair);
+    fxRequest.add(pair);
+    assertThat(fxRequest.getPairs()).hasSize(1);
+  }
+
+  @Test
+  @VisibleForTesting
   void is_FxResultSerializing() throws Exception {
     CurrencyPair nzdUsd = CurrencyPair.builder().from("NZD").to("USD").build();
     CurrencyPair usdUsd = CurrencyPair.builder().from("USD").to("USD").build();
@@ -62,6 +72,7 @@ class TestFx {
     FxResponse fxResponse = FxResponse.builder().data(rateResults).build();
     String json = objectMapper.writeValueAsString(fxResponse);
     FxResponse fromJson = objectMapper.readValue(json, FxResponse.class);
+    assertThat(fromJson.getData()).isNotNull();
     assertThat(fromJson)
         .isNotNull()
         .isEqualToComparingFieldByField(fxResponse);

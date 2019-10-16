@@ -5,7 +5,7 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 
-public class Split implements AccumulationLogic {
+public class Split implements ValueTransaction {
   private Cost cost = new Cost();
 
   public void value(Transaction transaction, Position position) {

@@ -1,4 +1,6 @@
-version: 2
+version: 2.1
+orbs:
+  codecov: codecov/codecov@1.0.5
 jobs:
 #  checkout-code:
 #    machine:
@@ -39,6 +41,9 @@ jobs:
       - store_test_results:
           path: ~/project/jar-common/build/test-results/test
 
+      - codecov/upload:
+          file: ~/project/jar-common/build/reports/jacoco/test/*.xml
+
       - store_artifacts:
           path: ~/project/jar-common/build/libs
 
@@ -65,6 +70,9 @@ jobs:
       - store_test_results:
           path: ~/project/svc-md/build/test-results/test
 
+      - codecov/upload:
+          file: ~/project/svc-md/build/reports/jacoco/test/*.xml
+
       - store_artifacts:
           path: ~/project/svc-md/build/libs
 
@@ -82,6 +90,9 @@ jobs:
 
       - store_test_results:
           path: ~/project/svc-ingest/build/test-results/test
+
+      - codecov/upload:
+          file: ~/project/svc-ingest/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
           path: ~/project/svc-ingest/build/libs
@@ -101,6 +112,9 @@ jobs:
 
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
+
+      - codecov/upload:
+          file: ~/project/svc-position/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
           path: ~/project/svc-position/build/libs

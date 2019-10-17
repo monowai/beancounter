@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -34,12 +35,12 @@ import org.springframework.stereotype.Component;
 public class GoogleAuthConfig {
 
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-  private String api = "../secrets/google-api/credentials.json";
-  private int port = 8888;
   private static final String TOKENS_DIRECTORY_PATH = "tokens";
   private static final List<String> SCOPES = Collections
       .singletonList(SheetsScopes.SPREADSHEETS_READONLY);
-
+  @Value("${api.key:../secrets/google-api/credentials.json}")
+  private String api;
+  private int port = 8888;
 
   /**
    * Authenticate against the Google Docs service. This could ask you to download a token.

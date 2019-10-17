@@ -3,10 +3,10 @@ package com.beancounter.marketdata.integ;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketService;

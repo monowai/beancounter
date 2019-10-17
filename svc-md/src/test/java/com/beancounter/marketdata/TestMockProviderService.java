@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.google.common.annotations.VisibleForTesting;

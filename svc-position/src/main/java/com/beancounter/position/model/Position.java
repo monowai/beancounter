@@ -51,17 +51,10 @@ public class Position {
     return result;
   }
 
-  @JsonIgnore
-  public MoneyValues addMoneyValue(In valueCurrency, MoneyValues moneyValues) {
-    this.moneyValues.put(valueCurrency, moneyValues);
-    return moneyValues;
-  }
-
   public enum In {
     TRADE,
     PORTFOLIO,
-    BASE,
-    CASH
+    BASE
 
   }
 

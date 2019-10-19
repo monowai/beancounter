@@ -15,25 +15,24 @@ class TestAccumulationOfQuantityValues {
   @Test
   @VisibleForTesting
   void is_TotalQuantityCorrect() {
-    Transaction buy = Transaction.builder()
+    Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator(
-    );
+    Accumulator accumulator = new Accumulator();
 
     Position position = Position.builder().build();
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO);
 
-    position = accumulator.accumulate(buy, position);
+    position = accumulator.accumulate(buyTrn, position);
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(100))
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100));
 
-    position = accumulator.accumulate(buy, position);
+    position = accumulator.accumulate(buyTrn, position);
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("purchased", new BigDecimal(200))
         .hasFieldOrPropertyWithValue("sold", BigDecimal.ZERO)

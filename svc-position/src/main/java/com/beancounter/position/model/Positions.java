@@ -32,7 +32,7 @@ public class Positions {
   }
 
   public void add(Position position) {
-    positions.put(AssetUtils.parseKey(position.getAsset()), position);
+    positions.put(AssetUtils.toKey(position.getAsset()), position);
 
   }
 
@@ -44,7 +44,7 @@ public class Positions {
    */
   @JsonIgnore
   public Position get(Asset asset) {
-    Position result = positions.get(AssetUtils.parseKey(asset));
+    Position result = positions.get(AssetUtils.toKey(asset));
     if (result == null) {
       return Position.builder()
           .asset(asset)

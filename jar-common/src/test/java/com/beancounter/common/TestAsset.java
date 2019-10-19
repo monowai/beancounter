@@ -39,19 +39,19 @@ class TestAsset {
   void is_AssetKeyParsing() {
     Asset asset = AssetUtils.getAsset("ACODE", "MCODE");
 
-    String keyIn = AssetUtils.parseKey(asset);
+    String keyIn = AssetUtils.toKey(asset);
 
-    assertThat(AssetUtils.getAsset(keyIn)).isEqualTo(asset);
+    assertThat(AssetUtils.fromKey(keyIn)).isEqualTo(asset);
 
   }
 
   @Test
   @VisibleForTesting
   void is_AssetKeyExceptionsBeingThrown() {
-    assertThrows(BusinessException.class, () -> AssetUtils.parseKey(null));
+    assertThrows(BusinessException.class, () -> AssetUtils.toKey(null));
     assertThrows(BusinessException.class, () -> AssetUtils.getAsset("CodeWithNoMarket",
         (Market) null));
-    assertThrows(BusinessException.class, () -> AssetUtils.getAsset("CodeWithNoMarket"));
+    assertThrows(BusinessException.class, () -> AssetUtils.fromKey("CodeWithNoMarket"));
   }
 
 }

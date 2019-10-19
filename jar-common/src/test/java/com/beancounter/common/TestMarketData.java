@@ -1,9 +1,9 @@
 package com.beancounter.common;
 
-import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -17,7 +17,7 @@ class TestMarketData {
     DateUtils dateUtils = new DateUtils();
     ObjectMapper objectMapper = new ObjectMapper();
     MarketData marketData = MarketData.builder()
-        .asset(getAsset("Asset", "Market"))
+        .asset(AssetUtils.getAsset("Asset", "Market"))
         .close(BigDecimal.TEN)
         .open(BigDecimal.ONE)
         .close(BigDecimal.TEN)

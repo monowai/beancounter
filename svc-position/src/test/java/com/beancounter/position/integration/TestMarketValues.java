@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -41,7 +40,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
     ids = "beancounter:svc-md:+:stubs:8090")
-@DirtiesContext
 @ActiveProfiles("test")
 class TestMarketValues {
 
@@ -74,16 +72,25 @@ class TestMarketValues {
   @Test
   @Tag("slow")
   @VisibleForTesting
+  void is_ZeroHoldingsSafe() {
+
+    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    valuation.value(positions);
+    assertThat(positions.getPositions()).isEmpty();
+
+  }
+
+  @Test
+  @Tag("slow")
+  @VisibleForTesting
   void is_AssetHydratedFromValuationRequest() {
 
     Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
-
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     // We need to have a Quantity in order to get the price, so create a position
 
     getPositions(asset, positions);
-
     Position position1 = positions.get(asset);
     assertThat(position1)
         .hasFieldOrProperty("asset");

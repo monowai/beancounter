@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -8,6 +7,7 @@ import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Dividend;
 import com.beancounter.position.accumulation.Sell;
@@ -25,9 +25,9 @@ import org.junit.jupiter.api.Test;
 
 class TestMoneyValues {
   private static final BigDecimal TRADE_PORTFOLIO_RATE = new BigDecimal("100");
-  private Asset microsoft = getAsset("MSFT", "NYSE");
-  private Asset intel = getAsset("INTC", "NYSE");
-  private Asset bidu = getAsset("BIDU", "NYSE");
+  private Asset microsoft = AssetUtils.getAsset("MSFT", "NYSE");
+  private Asset intel = AssetUtils.getAsset("INTC", "NYSE");
+  private Asset bidu = AssetUtils.getAsset("BIDU", "NYSE");
 
   /**
    * Tests the lifecycle of a transaction over all supported transaction types and verifies
@@ -68,11 +68,6 @@ class TestMoneyValues {
     assertThat(position.getMoneyValue(Position.In.BASE).getCostBasis())
         .isEqualTo(new BigDecimal("2000.00"));
 
-    assertThat(position.getMoneyValue(Position.In.CASH).getPurchases())
-        .isEqualTo(new BigDecimal("20000.00"));
-    assertThat(position.getMoneyValue(Position.In.CASH).getCostBasis())
-        .isEqualTo(new BigDecimal("20000.00"));
-
     assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getPurchases())
         .isEqualTo(new BigDecimal("200000.00"));
     assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getCostBasis())
@@ -97,9 +92,6 @@ class TestMoneyValues {
 
     assertThat(position.getMoneyValue(Position.In.BASE).getDividends())
         .isEqualTo(new BigDecimal("10.00"));
-
-    assertThat(position.getMoneyValue(Position.In.CASH).getDividends())
-        .isEqualTo(new BigDecimal("100.00"));
 
     assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getDividends())
         .isEqualTo(new BigDecimal("1000.00"));
@@ -133,10 +125,6 @@ class TestMoneyValues {
     assertThat(tradeValues.getCostBasis())
         .isEqualTo(deepCopy.getMoneyValue(Position.In.PORTFOLIO).getCostBasis());
 
-    tradeValues = position.getMoneyValue(Position.In.CASH);
-    assertThat(tradeValues.getCostBasis())
-        .isEqualTo(deepCopy.getMoneyValue(Position.In.CASH).getCostBasis());
-
     Transaction sellTrn = Transaction.builder()
         .trnType(TrnType.SELL)
         .asset(microsoft)
@@ -159,11 +147,6 @@ class TestMoneyValues {
         .isEqualTo(new BigDecimal("4000.00"));
     assertThat(position.getMoneyValue(Position.In.BASE).getRealisedGain())
         .isEqualTo(new BigDecimal("2000.00"));
-
-    assertThat(position.getMoneyValue(Position.In.CASH).getSales())
-        .isEqualTo(new BigDecimal("40000.00"));
-    assertThat(position.getMoneyValue(Position.In.CASH).getRealisedGain())
-        .isEqualTo(new BigDecimal("20000.00"));
 
     assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getSales())
         .isEqualTo(new BigDecimal("400000.00"));

@@ -18,7 +18,7 @@ public class AssetUtils {
    * @param asset valid Asset
    * @return string that can be used to pull the asset from a map
    */
-  public static String parseKey(Asset asset) {
+  public static String toKey(Asset asset) {
     if (asset == null) {
       throw new BusinessException("No asset supplied");
     }
@@ -32,7 +32,7 @@ public class AssetUtils {
    * @param key result of parseKey(Asset)
    * @return an Asset
    */
-  public static Asset getAsset(String key) {
+  public static Asset fromKey(String key) {
     assert key != null;
     String[] marketAsset = key.split(":");
     if (marketAsset.length != 2) {

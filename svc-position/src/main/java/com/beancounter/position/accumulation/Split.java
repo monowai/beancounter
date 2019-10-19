@@ -15,7 +15,6 @@ public class Split implements ValueTransaction {
 
     value(position, position.getMoneyValue(Position.In.TRADE));
     value(position, position.getMoneyValue(Position.In.BASE));
-    value(position, position.getMoneyValue(Position.In.CASH));
     value(position, position.getMoneyValue(Position.In.PORTFOLIO));
   }
 

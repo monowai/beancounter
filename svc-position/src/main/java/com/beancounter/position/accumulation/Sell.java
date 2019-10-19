@@ -25,7 +25,6 @@ public class Sell implements ValueTransaction {
     quantityValues.setSold(quantityValues.getSold().add(soldQuantity));
     value(transaction, position, Position.In.TRADE, BigDecimal.ONE);
     value(transaction, position, Position.In.BASE, transaction.getTradeBaseRate());
-    value(transaction, position, Position.In.CASH, transaction.getTradeCashRate());
     value(transaction, position, Position.In.PORTFOLIO, transaction.getTradePortfolioRate());
 
   }

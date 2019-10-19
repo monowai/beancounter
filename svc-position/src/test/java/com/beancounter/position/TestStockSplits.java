@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.position.TestUtils.convert;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,6 +7,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
@@ -30,7 +30,7 @@ class TestStockSplits {
   @VisibleForTesting
   void is_QuantityWorkingForSplit() {
 
-    Asset apple = getAsset("AAPL", "NASDAQ");
+    Asset apple = AssetUtils.getAsset("AAPL", "NASDAQ");
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

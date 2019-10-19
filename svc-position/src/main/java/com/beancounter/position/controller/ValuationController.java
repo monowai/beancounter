@@ -28,7 +28,7 @@ public class ValuationController {
   }
 
   @PostMapping
-  Positions getPositions(@RequestBody Positions positions) {
+  Positions value(@RequestBody Positions positions) {
     try {
       return valuationService.value(positions);
     } catch (BusinessException be) {

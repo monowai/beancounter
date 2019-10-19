@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -10,6 +9,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
@@ -50,7 +50,7 @@ class TestPositions {
   @VisibleForTesting
   void accumulateCashDividend() {
 
-    Asset asset = getAsset("MO", "NYSE");
+    Asset asset = AssetUtils.getAsset("MO", "NYSE");
 
     //
     Transaction transaction = Transaction.builder()

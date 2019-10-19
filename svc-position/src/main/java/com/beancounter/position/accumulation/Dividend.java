@@ -13,7 +13,6 @@ public class Dividend implements ValueTransaction {
   public void value(Transaction transaction, Position position) {
     value(transaction, position, Position.In.TRADE, BigDecimal.ONE);
     value(transaction, position, Position.In.BASE, transaction.getTradeBaseRate());
-    value(transaction, position, Position.In.CASH, transaction.getTradeCashRate());
     value(transaction, position, Position.In.PORTFOLIO, transaction.getTradePortfolioRate());
   }
 

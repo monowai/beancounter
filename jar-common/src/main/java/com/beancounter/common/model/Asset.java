@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * A representation of an instrument traded on a market.
@@ -21,6 +22,7 @@ public class Asset {
   private String name;
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String category;
+  @NonNull
   private Market market;
 
   @JsonPOJOBuilder(withPrefix = "")

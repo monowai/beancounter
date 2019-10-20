@@ -48,8 +48,8 @@ class TestAsset {
   @Test
   @VisibleForTesting
   void is_AssetKeyExceptionsBeingThrown() {
-    assertThrows(BusinessException.class, () -> AssetUtils.toKey(null));
-    assertThrows(BusinessException.class, () -> AssetUtils.getAsset("CodeWithNoMarket",
+    assertThrows(NullPointerException.class, () -> AssetUtils.toKey(null));
+    assertThrows(NullPointerException.class, () -> AssetUtils.getAsset("CodeWithNoMarket",
         (Market) null));
     assertThrows(BusinessException.class, () -> AssetUtils.fromKey("CodeWithNoMarket"));
   }

@@ -1,5 +1,6 @@
 package com.beancounter.position.service;
 
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.position.accumulation.Gains;
@@ -43,10 +44,6 @@ public class ValuationService implements Valuation {
 
   @Override
   public Positions value(Positions positions) {
-    log.debug("Valuing {} positions against : {}",
-        positions.getPositions().size(),
-        mdUrl);
-
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
       gains.value(position, Position.In.PORTFOLIO);
@@ -63,13 +60,14 @@ public class ValuationService implements Valuation {
     if (assets.isEmpty()) {
       return positions;
     }
+    log.debug("Valuing {} positions against : {}", positions.getPositions().size(), mdUrl);
 
     // Set market data into the positions
-    Collection<MarketData> marketDataResults = bcGateway.getMarketData(assets);
-    for (MarketData marketData : marketDataResults) {
+    PriceResponse priceResponse = bcGateway.getMarketData(assets);
+    for (MarketData marketData : priceResponse.getData()) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        marketValue.value(position,Position.In.PORTFOLIO, marketData, BigDecimal.ONE);
+        marketValue.value(position, Position.In.PORTFOLIO, marketData, BigDecimal.ONE);
         position.setAsset(marketData.getAsset());
       }
     }

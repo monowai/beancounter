@@ -79,7 +79,6 @@ class TestFxUtils {
         .containsOnly(
             CurrencyPair.builder().from("SGD").to("USD").build(), // PF:TRADE
             CurrencyPair.builder().from("SGD").to("GBP").build(), // PF:TRADE
-            CurrencyPair.builder().from("USD").to("GBP").build()  // BASE:TRADE
-        );
+            CurrencyPair.builder().from("USD").to("GBP").build());  // BASE:TRADE
   }
 }

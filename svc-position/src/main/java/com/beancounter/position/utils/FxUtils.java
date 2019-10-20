@@ -20,10 +20,10 @@ public class FxUtils {
 
   public CurrencyPair getPair(Currency from, Position position) {
     Currency to = position.getAsset().getMarket().getCurrency();
-    if ( from == null || to == null ){
+    if (from == null || to == null) {
       return null;
     }
-    if ( from.getCode().equalsIgnoreCase(to.getCode())) {
+    if (from.getCode().equalsIgnoreCase(to.getCode())) {
       return null;
     }
     return CurrencyPair.builder()

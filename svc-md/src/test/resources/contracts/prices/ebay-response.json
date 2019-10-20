@@ -1,24 +1,26 @@
-[
-  {
-    "asset": {
-      "code": "EBAY",
-      "name": "eBay Inc",
-      "market": {
-        "code": "NASDAQ",
-        "currency": {
-          "id": "US",
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "timezone": "US/Eastern"
-      }
-    },
-    "date": "2019-06-06T00:00:00.000+0000",
-    "open": 36.55,
-    "close": 36.81,
-    "low": 36.45,
-    "high": 36.82,
-    "volume": 5962060
-  }
-]
+{
+  "data": [
+    {
+      "asset": {
+        "code": "EBAY",
+        "name": "eBay Inc",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "id": "US",
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "date": "2019-06-06T00:00:00.000+0000",
+      "open": 36.55,
+      "close": 36.81,
+      "low": 36.45,
+      "high": 36.82,
+      "volume": 5962060
+    }
+  ]
+}

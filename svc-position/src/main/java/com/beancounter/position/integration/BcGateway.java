@@ -3,6 +3,7 @@ package com.beancounter.position.integration;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -29,7 +30,7 @@ public interface BcGateway {
   MarketData getMarketData(@PathVariable("assetId") String assetId);
 
   @RequestMapping(method = RequestMethod.POST, value = "/price")
-  Collection<MarketData> getMarketData(Collection<Asset> assetId);
+  PriceResponse getMarketData(Collection<Asset> assetId);
 
   @PostMapping(value = "/fx", headers = { "Content-Type: application/json"})
   FxResponse getRates(FxRequest fxRequest);

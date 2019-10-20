@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Currency;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
@@ -47,5 +49,16 @@ class TestCurrency {
     assertThat(fromMap).isEqualToComparingFieldByField(currency);
     assertThat(fromMap.toString()).isEqualTo("Currency(code=CODE)");
   }
+
+  @Test
+  @VisibleForTesting
+  void is_NullCurrencyCodeWorking() {
+
+    Assertions.assertThrows(NullPointerException.class, () -> {
+      Currency.builder().code(null).build();
+    });
+
+  }
+
 
 }

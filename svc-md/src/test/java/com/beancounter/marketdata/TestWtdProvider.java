@@ -24,7 +24,7 @@ class TestWtdProvider {
 
   @Test
   @VisibleForTesting
-  void jsonGoodResponse() throws Exception {
+  void is_JsonGoodResponse() throws Exception {
 
 
     File jsonFile = new ClassPathResource("wtdMultiAsset.json").getFile();
@@ -42,7 +42,7 @@ class TestWtdProvider {
 
   @Test
   @VisibleForTesting
-  void jsonMessageResponse() throws Exception {
+  void is_JsonResponseWithMessage() throws Exception {
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();
     WtdResponse response = mapper.readValue(jsonFile, WtdResponse.class);

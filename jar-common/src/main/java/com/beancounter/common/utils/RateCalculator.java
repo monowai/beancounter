@@ -30,7 +30,6 @@ public class RateCalculator {
       if (!pair.getFrom().equalsIgnoreCase(pair.getTo())) { // Is the answer one?
         FxRate from = rateMap.get(pair.getFrom().toUpperCase());
         FxRate to = rateMap.get(pair.getTo().toUpperCase());
-        assert (from != null && to != null);
 
         BigDecimal rate = from.getRate().divide(to.getRate(), 8, RoundingMode.HALF_UP);
 

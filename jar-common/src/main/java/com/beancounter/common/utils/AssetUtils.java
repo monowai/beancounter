@@ -3,6 +3,7 @@ package com.beancounter.common.utils;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import lombok.NonNull;
 
 /**
  * Encapsulates routines to assist with asset keys and objects.
@@ -18,11 +19,7 @@ public class AssetUtils {
    * @param asset valid Asset
    * @return string that can be used to pull the asset from a map
    */
-  public static String toKey(Asset asset) {
-    if (asset == null) {
-      throw new BusinessException("No asset supplied");
-    }
-    assert asset.getMarket() != null;
+  public static String toKey(@NonNull  Asset asset) {
     return asset.getCode() + ":" + asset.getMarket().getCode();
   }
 
@@ -32,7 +29,7 @@ public class AssetUtils {
    * @param key result of parseKey(Asset)
    * @return an Asset
    */
-  public static Asset fromKey(String key) {
+  public static Asset fromKey(@NonNull String key) {
     assert key != null;
     String[] marketAsset = key.split(":");
     if (marketAsset.length != 2) {
@@ -48,7 +45,7 @@ public class AssetUtils {
    * @param marketCode marketCode
    * @return simple Asset.
    */
-  public static Asset getAsset(String assetCode, String marketCode) {
+  public static Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
     if (assetCode == null || marketCode == null) {
       throw new BusinessException("Both asset and market code must be supplied");
     }
@@ -62,7 +59,7 @@ public class AssetUtils {
    * @param market    market to return
    * @return asset on a market
    */
-  public static Asset getAsset(String assetCode, Market market) {
+  public static Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
     if (assetCode == null || market == null) {
       throw new BusinessException("Both asset and market code must be supplied");
     }

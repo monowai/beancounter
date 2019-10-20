@@ -24,14 +24,18 @@ class TestFx {
   @VisibleForTesting
   void is_RateRequestSerializing() throws Exception {
     CurrencyPair pair = CurrencyPair.builder().from("THIS").to("THAT").build();
-    Collection<CurrencyPair> pairs = new ArrayList<>();
-    pairs.add(pair);
-    FxRequest fxRequest = FxRequest.builder().pairs(pairs).build();
+
+    FxRequest fxRequest = FxRequest.builder().build();
+    fxRequest.add(pair);
+    fxRequest.add(null); // shouldn't carry null
+
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(fxRequest);
     FxRequest fromJson = mapper.readValue(json, FxRequest.class);
     assertThat(fromJson)
         .isEqualToComparingFieldByFieldRecursively(fxRequest);
+
+    assertThat(fromJson.getPairs()).hasSize(1);
 
   }
 

@@ -1,0 +1,24 @@
+{
+  "data": {
+    "current": {
+      "rates": {
+        "NZD:USD": {
+          "to": {
+            "id": "GB",
+            "code": "GBP",
+            "name": "Pound",
+            "symbol": "￡"
+          },
+          "from": {
+            "id": "NZ",
+            "code": "NZD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "rate": 10.00,
+          "date": "2019-10-20"
+        }
+      }
+    }
+  }
+}

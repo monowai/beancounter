@@ -1,5 +1,7 @@
 package com.beancounter.position.integration;
 
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
+import static com.beancounter.position.TestUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -27,6 +29,7 @@ import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+
 /**
  * Market Valuation testing.
  *
@@ -36,11 +39,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @Tag("slow")
 @ImportAutoConfiguration({FeignAutoConfiguration.class})
-@SpringBootTest
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
     ids = "beancounter:svc-md:+:stubs:8090")
 @ActiveProfiles("test")
+@SpringBootTest
 class TestMarketValues {
 
   @Autowired
@@ -49,16 +52,17 @@ class TestMarketValues {
   @Test
   @Tag("slow")
   @VisibleForTesting
-  void is_MarketValuationCalculated() {
+  void is_MarketValuationCalculatedAsAt() {
     Asset asset = AssetUtils.getAsset("ABC",
         Market.builder().code("marketCode")
+            .currency(getCurrency("USD"))
             .build()
     );
 
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-
+    Positions positions = new Positions(getPortfolio("TEST"));
+    positions.setAsAt("2019-10-20");
     // We need to have a Quantity in order to get the price, so create a position
-    getPositions(asset, positions);
+    getValuedPositions(asset, positions);
 
     MoneyValues portfolioValues = positions.get(asset).getMoneyValue(Position.In.PORTFOLIO);
     assertThat(portfolioValues)
@@ -86,11 +90,11 @@ class TestMarketValues {
   void is_AssetHydratedFromValuationRequest() {
 
     Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-
+    Positions positions = new Positions(getPortfolio("TEST"));
+    positions.setAsAt("2019-10-20");
     // We need to have a Quantity in order to get the price, so create a position
 
-    getPositions(asset, positions);
+    getValuedPositions(asset, positions);
     Position position1 = positions.get(asset);
     assertThat(position1)
         .hasFieldOrProperty("asset");
@@ -99,7 +103,13 @@ class TestMarketValues {
 
   }
 
-  private void getPositions(Asset asset, Positions positions) {
+  private void getValuedPositions(Asset asset, Positions positions) {
+    getPositions(asset, positions);
+
+    valuation.value(positions);
+  }
+
+  public static void getPositions(Asset asset, Positions positions) {
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
@@ -110,8 +120,6 @@ class TestMarketValues {
 
     Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);
-
-    valuation.value(positions);
   }
 
 

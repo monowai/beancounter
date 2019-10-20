@@ -26,7 +26,7 @@ public class PositionService implements Position {
   /**
    * {@inheritDoc}
    */
-  public Positions computePositions(Collection<Transaction> transactions) {
+  public Positions build(Collection<Transaction> transactions) {
     Positions positions = new Positions(Portfolio.builder().code("Mike").build());
 
     for (Transaction transaction : transactions) {

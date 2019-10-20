@@ -58,7 +58,7 @@ class TradesWithFx {
 
     List<String> row = new ArrayList<>();
 
-    String testDate = "27/07/2019";
+    String testDate = "27/07/2019"; // Sharesight format
 
     // NZD Portfolio
     // USD System Base

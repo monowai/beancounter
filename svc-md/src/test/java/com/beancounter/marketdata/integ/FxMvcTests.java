@@ -11,6 +11,7 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.DataProviderUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbRules;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,10 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @ActiveProfiles("test")
+//@AutoConfigureStubRunner(
+//    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+//    ids = "beancounter:svc-md:+:stubs:8090")
+
 @Tag("slow")
 class FxMvcTests {
 
@@ -60,7 +65,7 @@ class FxMvcTests {
   @Test
   @VisibleForTesting
   void is_FxRateResultsObjectReturned() throws Exception {
-    File rateResponse = new ClassPathResource("ecb-fx-rates.json").getFile();
+    File rateResponse = new ClassPathResource("contracts/ecb/fx-rates.json").getFile();
     DataProviderUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies
@@ -93,6 +98,48 @@ class FxMvcTests {
     Map<CurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)
         .containsKeys(nzdUsd, usdNzd);
+
+    for (CurrencyPair currencyPair : theRates.keySet()) {
+      assertThat(results.getRates().get(currencyPair).getDate()).isNotNull();
+    }
+
+  }
+
+  @Test
+  @VisibleForTesting
+  void is_NullDateReturningCurrent() throws Exception {
+
+    File rateResponse = new ClassPathResource("contracts/ecb/fx-rates.json").getFile();
+    String today = new DateUtils().today();
+    DataProviderUtils.mockGetResponse(
+        mockInternet,
+        // Matches all supported currencies
+        "/" + today + "?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
+        rateResponse);
+
+    CurrencyPair nzdUsd = CurrencyPair.builder().from("USD").to("NZD").build();
+
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    FxRequest fxRequest = FxRequest.builder().build();
+    fxRequest.add(nzdUsd);
+    MvcResult mvcResult = mockMvc.perform(
+        post("/fx")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(fxRequest)
+            )
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType("application/json;charset=UTF-8"))
+        .andReturn();
+
+    FxResponse fxResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), FxResponse.class);
+
+    FxPairResults results = fxResponse.getData().get(today);
+    assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
+    Map<CurrencyPair, FxRate> theRates = results.getRates();
+    assertThat(theRates)
+        .containsKeys(nzdUsd);
 
     for (CurrencyPair currencyPair : theRates.keySet()) {
       assertThat(results.getRates().get(currencyPair).getDate()).isNotNull();

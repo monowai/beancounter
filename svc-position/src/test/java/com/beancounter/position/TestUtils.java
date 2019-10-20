@@ -1,18 +1,12 @@
 package com.beancounter.position;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-
+import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.Portfolio;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import org.springframework.http.MediaType;
 
 /**
  * General helper functions to support unit testing.
@@ -20,7 +14,7 @@ import org.springframework.http.MediaType;
  * @author mikeh
  * @since 2019-02-20
  */
-class TestUtils {
+public class TestUtils {
 
   private static ObjectMapper mapper = new ObjectMapper();
 
@@ -31,21 +25,14 @@ class TestUtils {
         .toInstant());
   }
 
-  @VisibleForTesting
-  static void mockMarketData(WireMockRule mockMarketData, String requestBody, String responseBody) {
-    mockMarketData
-        .stubFor(
-            post(urlPathEqualTo("/"))
-                .withRequestBody(equalToJson(requestBody))
-                .willReturn(aResponse()
-                    .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withBody(responseBody)
-                    .withStatus(200)));
+  public static Portfolio getPortfolio(String code) {
+    return getPortfolio(code, Currency.builder().code("NZD").build());
   }
 
-  @VisibleForTesting
-  static ObjectMapper getMapper() {
-    return mapper;
+  public static Portfolio getPortfolio(String code, Currency currency) {
+    return Portfolio.builder()
+        .code("TEST")
+        .currency(currency)
+        .build();
   }
-
 }

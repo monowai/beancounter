@@ -20,5 +20,5 @@ public interface Position {
    * @param transactions to return
    * @return computed stock positions
    */
-  Positions computePositions(Collection<Transaction> transactions);
+  Positions build(Collection<Transaction> transactions);
 }

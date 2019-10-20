@@ -2,6 +2,7 @@ package com.beancounter.common.utils;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import lombok.NonNull;
 
@@ -19,7 +20,7 @@ public class AssetUtils {
    * @param asset valid Asset
    * @return string that can be used to pull the asset from a map
    */
-  public static String toKey(@NonNull  Asset asset) {
+  public static String toKey(@NonNull Asset asset) {
     return asset.getCode() + ":" + asset.getMarket().getCode();
   }
 
@@ -49,7 +50,10 @@ public class AssetUtils {
     if (assetCode == null || marketCode == null) {
       throw new BusinessException("Both asset and market code must be supplied");
     }
-    return getAsset(assetCode, Market.builder().code(marketCode).build());
+    return getAsset(assetCode, Market.builder()
+        .code(marketCode)
+        .currency(Currency.builder().code("USD").build())
+        .build());
   }
 
   /**

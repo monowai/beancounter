@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.marketdata.providers.fxrates.EcbService;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class FxService {
   private CurrencyService currencyService;
   private EcbService ecbService;
   private RateCalculator rateCalculator = new RateCalculator();
+
   // Persist!
   private Map<String, Collection<FxRate>> rateStore = new HashMap<>();
 
@@ -30,18 +32,28 @@ public class FxService {
 
   public FxResponse getRates(FxRequest fxRequest) {
     verify(fxRequest.getPairs());
-
     Collection<FxRate> rates = rateStore.get(fxRequest.getRateDate());
+    String rateKey;
+    String rateDate;
+    if (fxRequest.getRateDate() == null) {
+      // Looking for current
+      rateDate = new DateUtils().today();
+      rateKey = rateDate;
+    } else {
+      rateDate = fxRequest.getRateDate();
+      rateKey = rateDate;
+    }
+
     if (rates == null) {
-      rates = ecbService.getRates(fxRequest.getRateDate());
-      rateStore.put(fxRequest.getRateDate(), rates);
+      rates = ecbService.getRates(rateDate);
+      rateStore.put(rateKey, rates);
     }
     Map<String, FxRate> mappedRates = new HashMap<>();
     for (FxRate rate : rates) {
       mappedRates.put(rate.getTo().getCode(), rate);
     }
     return FxResponse.builder().data(
-        rateCalculator.compute(fxRequest.getRateDate(), fxRequest.getPairs(), mappedRates))
+        rateCalculator.compute(rateDate, fxRequest.getPairs(), mappedRates))
         .build();
   }
 

@@ -1,5 +1,6 @@
 package com.beancounter.common.exception;
 
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +18,9 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @Builder
-class SpringExceptionMessage {
+public class SpringExceptionMessage {
 
-  private String timestamp;
+  private Date timestamp;
   private int status;
   private String error;
   private String message;

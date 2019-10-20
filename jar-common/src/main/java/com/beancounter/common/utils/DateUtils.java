@@ -1,5 +1,7 @@
 package com.beancounter.common.utils;
 
+import com.beancounter.common.exception.BusinessException;
+import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -17,6 +19,8 @@ import java.util.TimeZone;
  */
 
 public class DateUtils {
+
+  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   /**
    * Identify a date to query a market on taking into account timezones and working days.
@@ -53,13 +57,28 @@ public class DateUtils {
   }
 
   public LocalDate getLocalDate(String inDate, String dateFormat) {
-    return LocalDate
-        .parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
+    return LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
+  }
+
+  public Date getDate(String inDate) {
+    return getDate(inDate, "yyyy-MM-dd");
   }
 
   public Date getDate(String inDate, String format) {
     return Date.from(
-        getLocalDate("2012-10-01", "yyyy-MM-dd")
+        getLocalDate(inDate, format)
             .atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant());
+  }
+
+  public String today() {
+    return simpleDateFormat.format(new Date());
+  }
+
+  public void isValid(String inDate) {
+    try {
+      getDate(inDate);
+    } catch (RuntimeException e) {
+      throw new BusinessException(String.format("Unable to parse the date %s", inDate));
+    }
   }
 }

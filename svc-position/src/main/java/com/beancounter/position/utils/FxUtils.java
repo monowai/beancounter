@@ -3,13 +3,22 @@ package com.beancounter.position.utils;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 
 public class FxUtils {
+  private DateUtils dateUtils = new DateUtils();
 
   public FxRequest getFxRequest(Currency base, Positions positions) {
-    FxRequest fxRequest = FxRequest.builder().build();
+    if (positions.getAsAt() == null) {
+      positions.setAsAt(dateUtils.today());
+    }
+
+    FxRequest fxRequest = FxRequest.builder()
+        .rateDate(positions.getAsAt())
+        .build();
+
     Currency portfolio = positions.getPortfolio().getCurrency();
     for (Position position : positions.getPositions().values()) {
       fxRequest.add(getPair(base, position));

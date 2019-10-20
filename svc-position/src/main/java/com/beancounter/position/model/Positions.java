@@ -20,6 +20,7 @@ public class Positions {
 
   @NotNull
   private Portfolio portfolio;
+  private String asAt;
   private Map<String, Position> positions = new HashMap<>();
 
   Positions() {

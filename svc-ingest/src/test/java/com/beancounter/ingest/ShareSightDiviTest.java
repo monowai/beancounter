@@ -81,7 +81,7 @@ class ShareSightDiviTest {
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(transaction)
-        .hasFieldOrPropertyWithValue("asset", expectedAsset)
+        .hasFieldOrPropertyWithValue("asset.code", expectedAsset.getCode())
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
             mathUtils.multiply(new BigDecimal("15.85"), fxRate))

@@ -2,6 +2,7 @@ package com.beancounter.common.contracts;
 
 import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = FxRequest.FxRequestBuilder.class)
 public class FxRequest {
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String rateDate;
 
   private Collection<CurrencyPair> pairs;

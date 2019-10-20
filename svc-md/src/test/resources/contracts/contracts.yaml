@@ -1,4 +1,25 @@
 ---
+name: ecb-fx
+request:
+  method: GET
+  url: "2019-10-20?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD"
+response:
+  status: 200
+  bodyFromFile: "ecb/fx-rates.json"
+---
+name: nzd-usd
+request:
+  method: POST
+  url: /api/fx
+  bodyFromFile: "fx/nzdusd-request.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+response:
+  status: 200
+  bodyFromFile: "fx/nzdusd-response.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+---
 name: gbpusd-gbpnzd
 request:
   method: POST

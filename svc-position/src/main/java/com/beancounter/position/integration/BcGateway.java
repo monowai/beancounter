@@ -13,11 +13,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Obtains market data objects from the Market Data service. 
+ * Obtains market data objects from the Market Data service.
+ *
  * @author mikeh
  * @since 2019-02-01
  */
@@ -26,13 +25,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @FeignClient(name = "${marketdata.name}", url = "${marketdata.url:http://localhost:9510/api}")
 public interface BcGateway {
 
-  @RequestMapping(method = RequestMethod.GET, value = "/price/{assetId}")
+  @GetMapping(value = "/price/{assetId}")
   MarketData getMarketData(@PathVariable("assetId") String assetId);
 
-  @RequestMapping(method = RequestMethod.POST, value = "/price")
+  @GetMapping(value = "/price")
   PriceResponse getMarketData(Collection<Asset> assetId);
 
-  @PostMapping(value = "/fx", headers = { "Content-Type: application/json"})
+  @PostMapping(value = "/fx")
   FxResponse getRates(FxRequest fxRequest);
 
   @GetMapping(value = "/market")

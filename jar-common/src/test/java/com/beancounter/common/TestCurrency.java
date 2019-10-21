@@ -3,6 +3,7 @@ package com.beancounter.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Currency;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
@@ -53,11 +54,16 @@ class TestCurrency {
   @Test
   @VisibleForTesting
   void is_NullCurrencyCodeWorking() {
-
     Assertions.assertThrows(NullPointerException.class, () -> {
       Currency.builder().code(null).build();
     });
+  }
 
+  @Test
+  @VisibleForTesting
+  void is_GetCurrencyWorking() {
+    Currency currency = CurrencyUtils.getCurrency("NZD");
+    assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD");
   }
 
 

@@ -1,7 +1,6 @@
 package com.beancounter.position.integration;
 
 import com.beancounter.common.exception.SpringExceptionMessage;
-import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,12 +13,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class RestApiException {
 
   @ExceptionHandler( {HttpMessageNotReadableException.class})
-  public ResponseEntity<Object> handleBadRequest(
-      HttpMessageNotReadableException ex,
-      HttpServletRequest request) {
+  public ResponseEntity<Object> handleBadRequest(HttpServletRequest request) {
 
     SpringExceptionMessage error = new SpringExceptionMessage();
-    error.setTimestamp(new Date());
     error.setError("We did not understand your request. Please reformat it and try again");
     error.setMessage("Message not readable");
     error.setPath(request.getRequestURI());

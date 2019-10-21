@@ -2,6 +2,7 @@ package com.beancounter.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Transaction;
@@ -27,6 +28,7 @@ class TestTransaction {
     Transaction transaction = Transaction.builder()
         .asset(asset)
         .trnType(trnType)
+        .id(TransactionId.builder().batch(10).id(10).provider("TEST").build())
         .quantity(new BigDecimal("100.01"))
         .price(new BigDecimal("22.11"))
         .fees(new BigDecimal("10"))

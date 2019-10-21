@@ -15,7 +15,8 @@ class TestDateUtils {
   @VisibleForTesting
   void is_TodayAnIso8601String() {
     Calendar calendar = new Calendar.Builder().setInstant(new Date()).build();
-    String now = new DateUtils().today();
+    DateUtils dateUtils = new DateUtils();
+    String now = dateUtils.today();
     calendar.get(Calendar.YEAR);
     assertThat(now)
         .isNotNull()
@@ -23,6 +24,8 @@ class TestDateUtils {
         .contains("-" + (calendar.get(Calendar.MONTH) + 1) + "-")
         .contains("-" + calendar.get(Calendar.DAY_OF_MONTH))
     ;
+    assertThat(dateUtils.getDate("2019-11-29")).isNotNull();
+    dateUtils.isValid("2019-11-29");
   }
 
   @Test

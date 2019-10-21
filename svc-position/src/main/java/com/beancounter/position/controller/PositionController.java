@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Still thinking on this.
+ *
  * @author mikeh
  * @since 2019-02-01
  */
@@ -45,11 +46,11 @@ public class PositionController {
 
   @GetMapping(value = "/test", produces = "application/json")
   @CrossOrigin
-  Map<String,Object> getTest() throws IOException {
-      ObjectMapper mapper = new ObjectMapper();
-      MapType javaType = mapper.getTypeFactory()
-          .constructMapType(SortedMap.class, String.class, Object.class);
-      File jsonFile = new ClassPathResource("holdings.json").getFile();
-      return mapper.readValue(jsonFile, javaType);
+  Map<String, Object> getTest() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    MapType javaType = mapper.getTypeFactory()
+        .constructMapType(SortedMap.class, String.class, Object.class);
+    File jsonFile = new ClassPathResource("holdings.json").getFile();
+    return mapper.readValue(jsonFile, javaType);
   }
 }

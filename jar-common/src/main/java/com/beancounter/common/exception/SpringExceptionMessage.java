@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  * Concrete view of the exception structure we return between services.
@@ -16,11 +15,11 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @Builder
 public class SpringExceptionMessage {
 
-  private Date timestamp;
+  @Builder.Default
+  private Date timestamp = new Date();
   private int status;
   private String error;
   private String message;

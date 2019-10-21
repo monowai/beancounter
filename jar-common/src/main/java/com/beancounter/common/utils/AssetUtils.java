@@ -31,7 +31,6 @@ public class AssetUtils {
    * @return an Asset
    */
   public static Asset fromKey(@NonNull String key) {
-    assert key != null;
     String[] marketAsset = key.split(":");
     if (marketAsset.length != 2) {
       throw new BusinessException(String.format("Unable to parse the key %s", key));
@@ -47,9 +46,6 @@ public class AssetUtils {
    * @return simple Asset.
    */
   public static Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
-    if (assetCode == null || marketCode == null) {
-      throw new BusinessException("Both asset and market code must be supplied");
-    }
     return getAsset(assetCode, Market.builder()
         .code(marketCode)
         .currency(Currency.builder().code("USD").build())
@@ -64,9 +60,6 @@ public class AssetUtils {
    * @return asset on a market
    */
   public static Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
-    if (assetCode == null || market == null) {
-      throw new BusinessException("Both asset and market code must be supplied");
-    }
     return Asset.builder().code(assetCode)
         .market(market)
         .build();

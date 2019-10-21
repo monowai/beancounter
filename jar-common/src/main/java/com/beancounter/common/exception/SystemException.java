@@ -1,7 +1,7 @@
 package com.beancounter.common.exception;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * Classification for integration or other system failures.
@@ -9,24 +9,11 @@ import lombok.EqualsAndHashCode;
  * @author mikeh
  * @since 2019-02-03
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
 public class SystemException extends RuntimeException {
-  private int status;
 
   public SystemException(String reason) {
     super(reason);
-  }
-
-  /**
-   * Typically HTTPStatus 500-599. Unexpected failures
-   *
-   * @author mikeh
-   * @since 2019-02-03
-   */
-  public SystemException(int status, String reason) {
-    super(reason);
-    this.status = status;
   }
 
 }

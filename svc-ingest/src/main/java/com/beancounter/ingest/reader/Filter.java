@@ -2,40 +2,37 @@ package com.beancounter.ingest.reader;
 
 import com.beancounter.common.model.Transaction;
 import com.google.api.client.util.Lists;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class Filter {
 
-  @Value("${filter:#{null}}")
-  private String filter;
-
   private Collection<String> filteredAssets = new ArrayList<>();
 
-  @PostConstruct
-  @VisibleForTesting
-  void init() {
+
+  public Filter(@Value("${filter:#{null}}") String filter) {
+    init(filter);
+  }
+
+  private void init(String filter) {
     if (filter != null) {
-      filteredAssets = Lists.newArrayList(Splitter.on(",").split(filter));
+      filteredAssets = Lists.newArrayList(Splitter.on(",").split(filter.toUpperCase()));
     }
   }
 
-  @VisibleForTesting
-  boolean inFilter(Transaction transaction) {
-    if (filter != null) {
-      return filteredAssets.contains(transaction.getAsset().getCode());
+  public boolean inFilter(Transaction transaction) {
+    if (!filteredAssets.isEmpty()) {
+      return filteredAssets.contains(transaction.getAsset().getCode().toUpperCase());
     }
     return true;
   }
 
-  boolean hasFilter() {
-    return filter != null;
+  public boolean hasFilter() {
+    return !filteredAssets.isEmpty();
   }
 
 

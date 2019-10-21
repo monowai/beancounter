@@ -7,16 +7,14 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.ingest.config.ExchangeConfig;
-import com.beancounter.ingest.reader.Transformer;
-import com.beancounter.ingest.sharesight.ShareSightDivis;
+import com.beancounter.ingest.config.SharesightConfig;
+import com.beancounter.ingest.reader.RowProcessor;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
-import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -32,31 +30,31 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-12
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {ExchangeConfig.class,
-    ShareSightTrades.class,
-    ShareSightTransformers.class,
-    ShareSightDivis.class,
-    ShareSightHelper.class})
+@SpringBootTest(classes = {
+    SharesightConfig.class
+    })
 @Slf4j
 class ShareSightTradeTest {
 
   @Autowired
-  private ShareSightTransformers shareSightTransformers;
+  private RowProcessor rowProcessor;
+
 
   @Test
   @VisibleForTesting
   void is_RowWithFxConverted() throws Exception {
 
-    List<String> row = getRow("buy", "0.8988", "2097.85");
-    Transformer trades = shareSightTransformers.transformer(row);
-
+    List<Object> row = getRow("buy", "0.8988", "2097.85");
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
     // Portfolio is in NZD
     Portfolio portfolio = UnitTestHelper.getPortfolio();
 
     // System base currency
     Currency base = UnitTestHelper.getCurrency("USD");
+    Collection<Transaction> transactions = rowProcessor.process(portfolio, values, "Test");
 
-    Transaction transaction = trades.from(row, portfolio, base);
+    Transaction transaction = transactions.iterator().next();
     log.info(new ObjectMapper().writeValueAsString(transaction));
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
@@ -77,11 +75,11 @@ class ShareSightTradeTest {
 
   @Test
   @VisibleForTesting
-  void is_RowWithoutFxConverted() throws Exception {
+  void is_RowWithoutFxConverted()  {
 
-    List<String> row = getRow("buy", "0.0", "2097.85");
-
-    Transformer trades = shareSightTransformers.transformer(row);
+    List<Object> row = getRow("buy", "0.0", "2097.85");
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
 
     // Portfolio is in NZD
     Portfolio portfolio = UnitTestHelper.getPortfolio();
@@ -89,7 +87,8 @@ class ShareSightTradeTest {
     // System base currency
     Currency base = UnitTestHelper.getCurrency("USD");
 
-    Transaction transaction = trades.from(row, portfolio, base);
+    Transaction transaction = rowProcessor.process(portfolio, values, "Blah")
+        .iterator().next();
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
@@ -111,14 +110,16 @@ class ShareSightTradeTest {
 
   @Test
   @VisibleForTesting
-  void is_RowWithNoCommentTransformed() throws Exception {
+  void is_RowWithNoCommentTransformed() {
 
-    List<String> row = getRow("buy", "0.8988", "2097.85");
+    List<Object> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTrades.comments);
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
 
-    Transformer trades = shareSightTransformers.transformer(row);
-    Transaction transaction = trades.from(row, UnitTestHelper.getPortfolio(),
-        UnitTestHelper.getCurrency("USD"));
+    Transaction transaction =
+        rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee")
+            .iterator().next();
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -132,13 +133,14 @@ class ShareSightTradeTest {
 
   @Test
   @VisibleForTesting
-  void is_SplitTransactionTransformed() throws Exception {
+  void is_SplitTransactionTransformed() {
 
-    List<String> row = getRow("split", null, null);
+    List<Object> row = getRow("split", null, null);
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
 
-    Transformer trades = shareSightTransformers.transformer("TRADE");
-    Transaction transaction = trades.from(row, UnitTestHelper.getPortfolio(),
-        UnitTestHelper.getCurrency("USD"));
+    Transaction transaction = rowProcessor
+        .process(UnitTestHelper.getPortfolio(), values, "blah").iterator().next();
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -155,8 +157,8 @@ class ShareSightTradeTest {
 
   }
 
-  private List<String> getRow(String tranType, String fxRate, String tradeAmount) {
-    List<String> row = new ArrayList<>();
+  private List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
+    List<Object> row = new ArrayList<>();
 
     row.add(ShareSightTrades.market, "AMEX");
     row.add(ShareSightTrades.code, "SLB");

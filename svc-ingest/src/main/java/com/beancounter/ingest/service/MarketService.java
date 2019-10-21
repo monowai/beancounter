@@ -1,7 +1,6 @@
 package com.beancounter.ingest.service;
 
 import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Market;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,13 +28,6 @@ public class MarketService {
       }
     }
     return marketMap;
-  }
-
-  Market getMarket(String code) {
-    if (marketMap == null || marketMap.isEmpty()) {
-      throw new SystemException("Unable to retrieve Markets from host service");
-    }
-    return marketMap.get(code);
   }
 
 }

@@ -18,8 +18,8 @@ public class ShareSightTransformers {
   private ShareSightDivis shareSightDivis;
 
   @Autowired
-  ShareSightTransformers(ShareSightDivis shareSightDivis,
-                         ShareSightTrades shareSightTrades) {
+  public ShareSightTransformers(ShareSightDivis shareSightDivis,
+                                ShareSightTrades shareSightTrades) {
     this.shareSightDivis = shareSightDivis;
     this.shareSightTrades = shareSightTrades;
   }
@@ -38,20 +38,6 @@ public class ShareSightTransformers {
       return shareSightDivis;
     }
     return shareSightTrades;
-  }
-
-  /**
-   * Helper to return a transformer of an explicit type.
-   *
-   * @param type DIVI/TRADE
-   * @return DIVI otherwise TRADE
-   */
-  public Transformer transformer(String type) {
-    if (type.equalsIgnoreCase("DIVI")) {
-      return shareSightDivis;
-    } else {
-      return shareSightTrades;
-    }
   }
 
 }

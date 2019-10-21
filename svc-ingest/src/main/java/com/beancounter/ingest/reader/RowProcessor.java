@@ -41,13 +41,13 @@ public class RowProcessor {
     this.shareSightTransformers = shareSightTransformers;
   }
 
-  Collection<Transaction> process(Portfolio portfolio,
+  public Collection<Transaction> process(Portfolio portfolio,
                                   List<List<Object>> values,
                                   String provider) {
 
     Currency systemBase = Currency.builder().code(baseCurrency).build();
 
-    Collection<Transaction> transactions = new ArrayList<>();
+    Collection<Transaction> results = new ArrayList<>();
     if (filter.hasFilter()) {
       log.info("Filtering for assets matching {}", filter);
     }
@@ -68,7 +68,7 @@ public class RowProcessor {
                 .build());
           }
           if (filter.inFilter(transaction)) {
-            transactions.add(transaction);
+            results.add(transaction);
           }
         }
       } catch (ParseException | NumberFormatException e) {
@@ -76,10 +76,10 @@ public class RowProcessor {
         if (stackTraces) {
           throw new SystemException(e.getMessage());
         }
-        return transactions;
+        return results;
       }
 
     }
-    return transactions;
+    return results;
   }
 }

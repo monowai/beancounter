@@ -50,7 +50,7 @@ public class ShareSightHelper {
   private MathUtils mathUtils = new MathUtils();
 
   @Autowired
-  ShareSightHelper(ExchangeConfig exchangeConfig) {
+  public ShareSightHelper(ExchangeConfig exchangeConfig) {
     this.exchangeConfig = exchangeConfig;
   }
 

@@ -1,13 +1,3 @@
-buildscript {
-    ext {
-        set("junitVersion", "5.5.1")
-        set("lombokVersion", "1.18.6")
-    }
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
 
 
 apply from: '../buildtools/javaCommon.gradle'

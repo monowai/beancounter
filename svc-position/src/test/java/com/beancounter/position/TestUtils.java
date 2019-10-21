@@ -2,7 +2,6 @@ package com.beancounter.position;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -15,8 +14,6 @@ import java.util.Date;
  * @since 2019-02-20
  */
 public class TestUtils {
-
-  private static ObjectMapper mapper = new ObjectMapper();
 
   @VisibleForTesting
   static Date convert(LocalDate localDate) {

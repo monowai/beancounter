@@ -63,8 +63,7 @@ dependencies {
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.boot:spring-boot-starter-test",
-            "org.junit.jupiter:junit-jupiter-engine",
-            "org.junit.platform:junit-platform-launcher"
+            "org.junit.jupiter:junit-jupiter:${junitVersion}"
     )
     testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {
         transitive = false

@@ -57,7 +57,7 @@ class TestWebApi {
   private ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
-  void setup() {
+  void setUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
   }
 

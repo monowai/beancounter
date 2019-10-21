@@ -1,19 +1,19 @@
+apply from: '../buildtools/javaCommon.gradle'
+
 buildscript {
     ext {
         springBootVersion = "2.1.8.RELEASE"
-        springCloudVersion = "Greenwich.SR3"
-        resilience4jVersion = "1.0.0"
     }
+
     repositories {
         mavenLocal()
         mavenCentral()
     }
+
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     }
 }
-
-apply from: '../buildtools/javaCommon.gradle'
 
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
@@ -49,10 +49,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.junit.jupiter:junit-jupiter-engine",
-            "org.junit.platform:junit-platform-launcher",
-            "org.junit.platform:junit-platform-runner",
-            "org.junit.platform:junit-platform-surefire-provider"
+            "org.junit.jupiter:junit-jupiter:${junitVersion}"
 
     )
     testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {

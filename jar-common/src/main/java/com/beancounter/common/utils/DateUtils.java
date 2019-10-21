@@ -70,8 +70,12 @@ public class DateUtils {
             .atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant());
   }
 
+  public String getDate(Date date) {
+    return simpleDateFormat.format(date);
+  }
+
   public String today() {
-    return simpleDateFormat.format(new Date());
+    return getDate(new Date());
   }
 
   public void isValid(String inDate) {

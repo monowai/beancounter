@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import( {
+@Import({
     ShareSightDivis.class, ShareSightTrades.class, ShareSightTransformers.class, Filter.class,
     RowProcessor.class, ExchangeConfig.class,
     ShareSightHelper.class})
-public class SharesightConfig {
+public class ShareSightConfig {
 
 }

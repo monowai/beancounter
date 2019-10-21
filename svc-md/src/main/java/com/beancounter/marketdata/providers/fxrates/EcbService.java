@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.fxrates;
 
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.service.CurrencyService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +16,7 @@ public class EcbService {
   private CurrencyService currencyService;
   private String currencies;
   private EcbRules ecbRules = new EcbRules();
+  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   EcbService(FxGateway fxGateway, CurrencyService currencyService) {
@@ -37,7 +39,7 @@ public class EcbService {
               .from(currencyService.getBase())
               .to(currencyService.getCode(code))
               .rate(rates.getRates().get(code))
-              .date(ecbRules.date(rates.getDate()))
+              .date(dateUtils.getDate(rates.getDate()))
               .build()
       );
     }

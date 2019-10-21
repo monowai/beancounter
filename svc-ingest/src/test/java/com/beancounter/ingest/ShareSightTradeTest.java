@@ -7,7 +7,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.ingest.config.SharesightConfig;
+import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.reader.RowProcessor;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,14 +31,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
-    SharesightConfig.class
+    ShareSightConfig.class
     })
 @Slf4j
 class ShareSightTradeTest {
 
   @Autowired
   private RowProcessor rowProcessor;
-
 
   @Test
   @VisibleForTesting

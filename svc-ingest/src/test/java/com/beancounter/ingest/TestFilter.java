@@ -22,6 +22,7 @@ class TestFilter {
         .build())).isTrue();
 
   }
+
   @Test
   void is_NotInFilter() {
     Filter filter = new Filter(null);

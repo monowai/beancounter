@@ -3,7 +3,6 @@ package com.beancounter.common.contracts;
 import com.beancounter.common.model.FxPairResults;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +11,7 @@ import lombok.Data;
 @JsonDeserialize(builder = FxResponse.FxResponseBuilder.class)
 public class FxResponse {
 
-  private Map<String, FxPairResults> data;
+  private FxPairResults data;
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class FxResponseBuilder {

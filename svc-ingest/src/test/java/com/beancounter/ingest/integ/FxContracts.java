@@ -49,9 +49,7 @@ class FxContracts {
         .pairs(currencyPairs)
         .build());
     assertThat(fxResponse).isNotNull().hasNoNullFieldsOrProperties();
-    assertThat(fxResponse.getData().keySet()).hasSize(1);
-    assertThat(fxResponse.getData()).containsKeys(testDate);
-    FxPairResults fxPairResults = fxResponse.getData().get(testDate);
+    FxPairResults fxPairResults = fxResponse.getData();
     assertThat(fxPairResults.getRates().size()).isEqualTo(currencyPairs.size());
 
     for (CurrencyPair currencyPair : currencyPairs) {
@@ -74,9 +72,7 @@ class FxContracts {
         .pairs(currencyPairs)
         .build());
     assertThat(fxResponse).isNotNull().hasNoNullFieldsOrProperties();
-    assertThat(fxResponse.getData().keySet()).hasSize(1);
-    assertThat(fxResponse.getData()).containsKeys(testDate);
-    FxPairResults fxPairResults = fxResponse.getData().get(testDate);
+    FxPairResults fxPairResults = fxResponse.getData();
     for (CurrencyPair currencyPair : currencyPairs) {
       assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
       assertThat(fxPairResults.getRates().get(currencyPair))

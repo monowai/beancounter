@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class RestApiException {
 
-  @ExceptionHandler( {HttpMessageNotReadableException.class})
+  @ExceptionHandler({HttpMessageNotReadableException.class})
   public ResponseEntity<Object> handleBadRequest(HttpServletRequest request) {
 
     SpringExceptionMessage error = new SpringExceptionMessage();

@@ -93,7 +93,7 @@ class FxMvcTests {
     FxResponse fxResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), FxResponse.class);
 
-    FxPairResults results = fxResponse.getData().get(date);
+    FxPairResults results = fxResponse.getData();
     assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
     Map<CurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)
@@ -135,7 +135,7 @@ class FxMvcTests {
     FxResponse fxResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), FxResponse.class);
 
-    FxPairResults results = fxResponse.getData().get(today);
+    FxPairResults results = fxResponse.getData();
     assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
     Map<CurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)

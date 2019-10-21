@@ -50,10 +50,8 @@ class FxRateTests {
     Map<String, FxRate> rates = getRateTable();
     String asAt = "2019-11-21";
 
-    Map<String, FxPairResults> rateCache = rateCalculator.compute(asAt, pairs, rates);
-    assertThat(rateCache).hasSize(1);
+    FxPairResults values = rateCalculator.compute(asAt, pairs, rates);
 
-    FxPairResults values = rateCache.get(asAt);
     FxRate audUsd = values.getRates().get(AUD_USD);
     FxRate usdAud = values.getRates().get(USD_AUD);
     // Verify that the inverse rate is equal

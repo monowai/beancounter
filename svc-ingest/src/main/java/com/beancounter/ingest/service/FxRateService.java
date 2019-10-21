@@ -2,8 +2,8 @@ package com.beancounter.ingest.service;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
+import com.beancounter.common.model.FxPairResults;
 import com.google.common.annotations.VisibleForTesting;
-import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class FxRateService {
 
   public FxResponse getRates(FxRequest fxRequest) {
     if (fxRequest.getPairs() == null || fxRequest.getPairs().isEmpty()) {
-      return FxResponse.builder().data(new HashMap<>()).build();
+      return FxResponse.builder().data(new FxPairResults()).build();
     }
     return bcGateway.getRates(fxRequest);
   }

@@ -52,7 +52,6 @@ class TestPositions {
 
     Asset asset = AssetUtils.getAsset("MO", "NYSE");
 
-    //
     Transaction transaction = Transaction.builder()
         .asset(asset)
         .trnType(TrnType.DIVI)

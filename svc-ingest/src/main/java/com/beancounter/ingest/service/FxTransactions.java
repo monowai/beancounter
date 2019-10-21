@@ -62,7 +62,7 @@ public class FxTransactions {
 
       FxResponse fxResponse = fxRateService.getRates(fxRequest);
 
-      applyRates(fxResponse.getData().get(tradeDate),
+      applyRates(fxResponse.getData(),
           tradePortfolio,
           tradeBase,
           tradeCash,

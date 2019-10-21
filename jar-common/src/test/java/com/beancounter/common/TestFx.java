@@ -69,7 +69,7 @@ class TestFx {
         .from(Currency.builder().code("USD").build())
         .rate(BigDecimal.ONE).build());
 
-    Map<String, FxPairResults> rateResults = new RateCalculator()
+    FxPairResults rateResults = new RateCalculator()
         .compute("2019/08/27", pairs, rateMap);
 
     ObjectMapper objectMapper = new ObjectMapper();

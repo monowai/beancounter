@@ -1,39 +1,37 @@
 {
   "data": {
-    "2019-07-27": {
-      "rates": {
-        "GBP:USD": {
-          "to": {
-            "id": "US",
-            "code": "USD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "from": {
-            "id": "GB",
-            "code": "GBP",
-            "name": "Pound",
-            "symbol": "￡"
-          },
-          "rate": 0.80474951,
-          "date": "2019-07-26"
+    "rates": {
+      "GBP:USD": {
+        "to": {
+          "id": "US",
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
         },
-        "GBP:NZD": {
-          "to": {
-            "id": "NZ",
-            "code": "NZD",
-            "name": "Dollar",
-            "symbol": "$"
-          },
-          "from": {
-            "id": "GB",
-            "code": "GBP",
-            "name": "Pound",
-            "symbol": "￡"
-          },
-          "rate": 0.53457983,
-          "date": "2019-07-26"
-        }
+        "from": {
+          "id": "GB",
+          "code": "GBP",
+          "name": "Pound",
+          "symbol": "￡"
+        },
+        "rate": 0.80474951,
+        "date": "2019-07-26"
+      },
+      "GBP:NZD": {
+        "to": {
+          "id": "NZ",
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "from": {
+          "id": "GB",
+          "code": "GBP",
+          "name": "Pound",
+          "symbol": "￡"
+        },
+        "rate": 0.53457983,
+        "date": "2019-07-26"
       }
     }
   }

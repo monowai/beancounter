@@ -6,10 +6,10 @@ import com.beancounter.common.model.FxRate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 public class RateCalculator {
+
   /**
    * For the supplied Pairs, compute the cross rates using the supplied rate table data.
    * Returns one rate for every requested CurrencyPair. The CurrencyPair serves as the callers
@@ -20,13 +20,11 @@ public class RateCalculator {
    * @param rateMap Base->Target  (by default, USD->ISO)
    * @return rates for the requested pairs on the requested date.
    */
-  public Map<String, FxPairResults> compute(String asAt, Collection<CurrencyPair> pairs,
-                                            Map<String, FxRate> rateMap) {
+  public FxPairResults compute(String asAt, Collection<CurrencyPair> pairs,
+                               Map<String, FxRate> rateMap) {
 
-    Map<String, FxPairResults> results = new HashMap<>();
-
+    FxPairResults cache = new FxPairResults();
     for (CurrencyPair pair : pairs) { // For all requested pairings
-      FxPairResults cache = results.computeIfAbsent(asAt, k -> new FxPairResults());
       if (!pair.getFrom().equalsIgnoreCase(pair.getTo())) { // Is the answer one?
         FxRate from = rateMap.get(pair.getFrom().toUpperCase());
         FxRate to = rateMap.get(pair.getTo().toUpperCase());
@@ -49,6 +47,6 @@ public class RateCalculator {
 
       }
     }
-    return results;
+    return cache;
   }
 }

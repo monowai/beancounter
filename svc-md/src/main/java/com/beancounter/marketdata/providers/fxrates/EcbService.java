@@ -15,7 +15,7 @@ public class EcbService {
   private FxGateway fxGateway;
   private CurrencyService currencyService;
   private String currencies;
-  private EcbRules ecbRules = new EcbRules();
+  private EcbDate ecbDate = new EcbDate();
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired
@@ -28,7 +28,7 @@ public class EcbService {
 
   public Collection<FxRate> getRates(String asAt) {
     EcbRates rates = fxGateway.getRatesForSymbols(
-        ecbRules.getValidDate(asAt),
+        ecbDate.getValidDate(asAt),
         currencyService.getBase().getCode(),
         currencies);
 

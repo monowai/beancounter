@@ -5,15 +5,10 @@ import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class EcbRules {
-  public static final String earliest = "1999-01-04";
-  private static Date earliestDate;
+public class EcbDate {
   private static DateUtils dateUtils = new DateUtils();
-
-  static {
-    earliestDate = dateUtils.getDate(earliest);
-
-  }
+  public static final String earliest = "1999-01-04";
+  private static Date earliestDate = dateUtils.getDate(earliest);
 
   public String getValidDate(String inDate) {
     dateUtils.isValid(inDate);

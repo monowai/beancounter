@@ -13,7 +13,7 @@ import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.DataProviderUtils;
-import com.beancounter.marketdata.providers.fxrates.EcbRules;
+import com.beancounter.marketdata.providers.fxrates.EcbDate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.annotations.VisibleForTesting;
@@ -150,9 +150,9 @@ class FxMvcTests {
   @Test
   @VisibleForTesting
   void is_EarliestRateDateValid() {
-    EcbRules ecbRules = new EcbRules();
-    assertThat(ecbRules.getValidDate("1990-01-01"))
-        .isEqualTo(EcbRules.earliest);
+    EcbDate ecbDate = new EcbDate();
+    assertThat(ecbDate.getValidDate("1990-01-01"))
+        .isEqualTo(EcbDate.earliest);
   }
 
 }

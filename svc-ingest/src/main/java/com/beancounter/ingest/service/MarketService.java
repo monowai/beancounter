@@ -21,7 +21,7 @@ public class MarketService {
 
   @EventListener(ApplicationReadyEvent.class)
   public Map<String, Market> getMarkets() {
-    if (marketMap == null || marketMap.isEmpty()) {
+    if (marketMap.isEmpty()) {
       MarketResponse marketResponse = bcGateway.getMarkets();
       for (Market market : marketResponse.getData()) {
         marketMap.put(market.getCode(), market);

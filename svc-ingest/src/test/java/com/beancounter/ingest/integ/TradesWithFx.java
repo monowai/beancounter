@@ -4,6 +4,7 @@ import static com.beancounter.ingest.UnitTestHelper.getCurrency;
 import static com.beancounter.ingest.UnitTestHelper.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
@@ -14,6 +15,7 @@ import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +34,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @Tag("slow")
-@ImportAutoConfiguration({FeignAutoConfiguration.class})
+@ImportAutoConfiguration( {FeignAutoConfiguration.class})
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
     ids = "beancounter:svc-md:+:stubs:8090")
@@ -127,7 +129,7 @@ class TradesWithFx {
 
   @Test
   @VisibleForTesting
-  void is_Currency() throws Exception {
+  void is_FxRatesSetToTransaction() throws Exception {
 
     List<String> row = new ArrayList<>();
 
@@ -148,7 +150,7 @@ class TradesWithFx {
 
     Transformer trades = shareSightTransformers.transformer(row);
 
-    // Portfolio is in NZD
+    // Testing all currency buckets
     Portfolio portfolio = getPortfolio(getCurrency("NZD"));
     portfolio.setBase(getCurrency("GBP"));
 
@@ -167,6 +169,44 @@ class TradesWithFx {
         .hasFieldOrPropertyWithValue("tradePortfolioRate",
             new BigDecimal("0.66428103"))
     ;
+  }
+
+  @Test
+  void is_RateOfOneSetForUndefinedCurrencies() throws ParseException {
+
+    List<String> row = new ArrayList<>();
+
+    String testDate = "27/07/2019";
+
+    // Trade CCY USD
+    row.add(ShareSightTrades.market, "NASDAQ");
+    row.add(ShareSightTrades.code, "EBAY");
+    row.add(ShareSightTrades.name, "EBAY");
+    row.add(ShareSightTrades.type, "BUY");
+    row.add(ShareSightTrades.date, testDate);
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "100");
+    row.add(ShareSightTrades.brokerage, null);
+    row.add(ShareSightTrades.currency, "USD");
+    row.add(ShareSightTrades.fxRate, null);
+    row.add(ShareSightTrades.value, "1000.00");
+
+    Transformer trades = shareSightTransformers.transformer(row);
+
+    // Testing all currency buckets
+    Portfolio portfolio = Portfolio.builder().code("TEST").build();
+
+    Transaction transaction = trades.from(row, portfolio);
+    transaction.setCashCurrency(null);
+
+    transaction = fxTransactions.applyRates(transaction);
+    // No currencies are defined so rate defaults to 1
+    assertThat(transaction)
+        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("tradeBaseRate", FxRate.ONE.getRate())
+        .hasFieldOrPropertyWithValue("tradeCashRate", FxRate.ONE.getRate())
+        .hasFieldOrPropertyWithValue("tradePortfolioRate", FxRate.ONE.getRate());
+
   }
 
   private void assertTransaction(Portfolio portfolio, Transaction transaction) {

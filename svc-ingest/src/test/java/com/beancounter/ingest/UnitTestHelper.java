@@ -9,10 +9,10 @@ public class UnitTestHelper {
     return getPortfolio(getCurrency("NZD"));
   }
 
-  public static Portfolio getPortfolio(Currency baseCurrency) {
+  public static Portfolio getPortfolio(Currency refCurrency) {
     return Portfolio.builder()
         .code("TEST")
-        .currency(baseCurrency)
+        .currency(refCurrency)
         .build();
   }
 

@@ -1,12 +1,14 @@
 package com.beancounter.common;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
+import static com.beancounter.common.utils.CurrencyUtils.getCurrencyPair;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
@@ -79,6 +81,25 @@ class TestCurrency {
 
     CurrencyPair byCurrency = CurrencyPair.from(getCurrency(report), getCurrency(trade));
     assertThat(byCode).isEqualToComparingFieldByField(byCurrency);
+
+  }
+
+  @Test
+  void is_CorrectCurrencyPair() {
+    assertThat(getCurrencyPair(null, null, null)).isNull();
+
+    assertThat(getCurrencyPair(BigDecimal.TEN,
+        getCurrency("NZD"),
+        getCurrency("USD")))
+        .isNull(); // We have a rate, so don't request one
+
+    assertThat(getCurrencyPair(null, getCurrency("USD"), getCurrency("USD")))
+        .isNull();
+
+    assertThat(getCurrencyPair(null, getCurrency("NZD"), getCurrency("USD")))
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("from", "NZD")
+        .hasFieldOrPropertyWithValue("to", "USD");
 
   }
 

@@ -2,14 +2,14 @@ package com.beancounter.ingest.service;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
+import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.google.common.annotations.VisibleForTesting;
-import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,20 +40,20 @@ public class FxTransactions {
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
-      CurrencyPair tradePortfolio = getCurrencyPair(
+      CurrencyPair tradePortfolio = CurrencyUtils.getCurrencyPair(
           transaction.getTradePortfolioRate(),
           transaction.getAsset().getMarket().getCurrency(),
           transaction.getPortfolio().getCurrency());
 
       fxRequest.add(tradePortfolio);
 
-      CurrencyPair tradeBase = getCurrencyPair(
+      CurrencyPair tradeBase = CurrencyUtils.getCurrencyPair(
           transaction.getTradeBaseRate(),
           transaction.getAsset().getMarket().getCurrency(),
           transaction.getPortfolio().getBase());
       fxRequest.add(tradeBase);
 
-      CurrencyPair tradeCash = getCurrencyPair(
+      CurrencyPair tradeCash = CurrencyUtils.getCurrencyPair(
           transaction.getTradeCashRate(),
           transaction.getAsset().getMarket().getCurrency(),
           transaction.getCashCurrency());
@@ -80,17 +80,17 @@ public class FxTransactions {
     if (tradePortfolio != null && mathUtils.isUnset(transaction.getTradePortfolioRate())) {
       transaction.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
     } else {
-      transaction.setTradePortfolioRate(BigDecimal.ONE);
+      transaction.setTradePortfolioRate(FxRate.ONE.getRate());
     }
     if (tradeBase != null && mathUtils.isUnset(transaction.getTradeBaseRate())) {
       transaction.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
     } else {
-      transaction.setTradeBaseRate(BigDecimal.ONE);
+      transaction.setTradeBaseRate(FxRate.ONE.getRate());
     }
     if (tradeCash != null && mathUtils.isUnset(transaction.getTradeCashRate())) {
       transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
     } else {
-      transaction.setTradeCashRate(BigDecimal.ONE);
+      transaction.setTradeCashRate(FxRate.ONE.getRate());
     }
   }
 
@@ -106,18 +106,4 @@ public class FxTransactions {
     return fxRequest;
   }
 
-  private CurrencyPair getCurrencyPair(BigDecimal rate, Currency from, Currency to) {
-    CurrencyPair currencyPair = null;
-    if (from == null || to == null) {
-      return null;
-    }
-
-    if (rate == null && !from.getCode().equalsIgnoreCase(to.getCode())) {
-      currencyPair = CurrencyPair.builder()
-          .from(from.getCode())
-          .to(to.getCode())
-          .build();
-    }
-    return currencyPair;
-  }
 }

@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
@@ -64,8 +63,7 @@ class TestMarketValues {
     // We need to have a Quantity in order to get the price, so create a position
     getValuedPositions(asset, positions);
 
-    MoneyValues portfolioValues = positions.get(asset).getMoneyValue(Position.In.PORTFOLIO);
-    assertThat(portfolioValues)
+    assertThat(positions.get(asset).getMoneyValue(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"))
@@ -95,24 +93,19 @@ class TestMarketValues {
     // We need to have a Quantity in order to get the price, so create a position
 
     getValuedPositions(asset, positions);
-    Position position1 = positions.get(asset);
-    assertThat(position1)
+    Position position = positions.get(asset);
+    assertThat(position)
         .hasFieldOrProperty("asset");
 
-    assertThat(position1.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
+    assertThat(position.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
 
   }
 
-  private void getValuedPositions(Asset asset, Positions positions) {
-    getPositions(asset, positions);
-
-    valuation.value(positions);
-  }
-
-  public static void getPositions(Asset asset, Positions positions) {
+  static void getPositions(Asset asset, Positions positions) {
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
+        .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
@@ -120,6 +113,12 @@ class TestMarketValues {
 
     Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);
+  }
+
+  private void getValuedPositions(Asset asset, Positions positions) {
+    getPositions(asset, positions);
+
+    valuation.value(positions);
   }
 
 

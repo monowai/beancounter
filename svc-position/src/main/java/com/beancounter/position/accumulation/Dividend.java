@@ -1,5 +1,7 @@
 package com.beancounter.position.accumulation;
 
+import static com.beancounter.position.utils.PositionalCurrency.getCurrency;
+
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.utils.MathUtils;
@@ -21,7 +23,7 @@ public class Dividend implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValue(in);
+    MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
     moneyValues.setDividends(
         mathUtils.add(moneyValues.getDividends(),
             mathUtils.multiply(transaction.getTradeAmount(), rate)));

@@ -8,7 +8,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
-import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -49,7 +48,7 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public Transaction from(List row, Portfolio portfolio, Currency baseCurrency)
+  public Transaction from(List row, Portfolio portfolio)
       throws ParseException {
     try {
       TrnType trnType = shareSightHelper.resolveType(row.get(type).toString());
@@ -57,11 +56,13 @@ public class ShareSightTrades implements Transformer {
         throw new BusinessException(String.format("Unsupported type %s",
             row.get(type).toString()));
       }
-
       Asset asset = Asset.builder().code(
           row.get(code).toString())
           .name(row.get(name).toString())
-          .market(Market.builder().code(row.get(market).toString()).build())
+          .market(Market.builder()
+              .code(row.get(market).toString())
+              .currency(Currency.builder().code(row.get(currency).toString()).build())
+              .build())
           .build();
 
       String comment = (row.size() == 12 ? row.get(comments).toString() : null);
@@ -87,7 +88,6 @@ public class ShareSightTrades implements Transformer {
           .tradeAmount(shareSightHelper.getValueWithFx(tradeAmount, tradeRate))
           .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
           .portfolio(portfolio)
-          .baseCurrency(baseCurrency)
           .cashCurrency(portfolio.getCurrency())
           .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           // Zero and null should be treated as "unknown"

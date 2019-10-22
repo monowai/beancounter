@@ -16,7 +16,7 @@ class TestWriter {
   void is_IngestWriter() throws IOException {
     IngestWriter ingestWriter = new FileIngestWriter();
     String path = System.getProperty("java.io.tmpdir");
-    if (!path.endsWith("/")){
+    if (!path.endsWith("/")) {
       path = path + "/";
     }
     String tempFile = path + System.currentTimeMillis() + ".tmp";

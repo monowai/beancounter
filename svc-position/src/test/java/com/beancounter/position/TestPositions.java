@@ -1,9 +1,11 @@
 package com.beancounter.position;
 
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
+import static com.beancounter.position.TestUtils.getPortfolio;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.QuantityValues;
@@ -50,18 +52,20 @@ class TestPositions {
   @VisibleForTesting
   void accumulateCashDividend() {
 
-    Asset asset = AssetUtils.getAsset("MO", "NYSE");
+    Asset asset = AssetUtils.getAsset("MO", Market.builder()
+        .code("ASX")
+        .currency(getCurrency("AUD"))
+        .build());
 
     Transaction transaction = Transaction.builder()
         .asset(asset)
         .trnType(TrnType.DIVI)
-        .tradeCurrency(Currency.builder().code("AUD").build())
+        .portfolio(getPortfolio("Test"))
         .tradeCashRate(new BigDecimal("0.8988"))
         .tradeAmount(new BigDecimal("12.99"))
         .build();
 
-    Accumulator accumulator = new Accumulator(
-    );
+    Accumulator accumulator = new Accumulator();
 
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);

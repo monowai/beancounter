@@ -6,7 +6,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
-import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -45,16 +44,16 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public Transaction from(List row, Portfolio portfolio, Currency baseCurrency)
+  public Transaction from(List row, Portfolio portfolio)
       throws ParseException {
 
     Asset asset = shareSightHelper.resolveAsset(row.get(code).toString());
+    asset.getMarket().setCurrency(Currency.builder().code(row.get(currency).toString()).build());
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
     return Transaction.builder()
         .asset(asset)
         .portfolio(portfolio)
-        .baseCurrency(baseCurrency)
         .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
         .trnType(TrnType.DIVI)
         .tax(shareSightHelper.getMathUtils()

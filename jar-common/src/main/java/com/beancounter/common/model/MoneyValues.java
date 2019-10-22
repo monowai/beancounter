@@ -56,6 +56,8 @@ public class MoneyValues {
 
   private Date asAt;
 
+  private Currency currency;
+
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")
   public static class MoneyValuesBuilder {

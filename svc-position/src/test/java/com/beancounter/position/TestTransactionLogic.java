@@ -1,6 +1,7 @@
 package com.beancounter.position;
 
 import static com.beancounter.position.TestUtils.convert;
+import static com.beancounter.position.TestUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -48,6 +49,7 @@ class TestTransactionLogic {
     Transaction buyYesterday = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
+        .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
         .tradeDate(convert(yesterday))
         .quantity(new BigDecimal(100)).build();
@@ -55,6 +57,7 @@ class TestTransactionLogic {
     Transaction buyToday = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
+        .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
         .tradeDate(convert(today))
         .quantity(new BigDecimal(100)).build();

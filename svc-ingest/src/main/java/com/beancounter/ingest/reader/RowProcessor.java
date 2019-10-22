@@ -2,7 +2,6 @@ package com.beancounter.ingest.reader;
 
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.identity.TransactionId;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
@@ -26,9 +25,6 @@ public class RowProcessor {
   @Value("${stackTraces:false}")
   private boolean stackTraces = false;
 
-  @Value(("${base.code:USD}"))
-  private String baseCurrency;
-
   @Autowired
   @VisibleForTesting
   void setFilter(Filter filter) {
@@ -45,8 +41,6 @@ public class RowProcessor {
                                   List<List<Object>> values,
                                   String provider) {
 
-    Currency systemBase = Currency.builder().code(baseCurrency).build();
-
     Collection<Transaction> results = new ArrayList<>();
     if (filter.hasFilter()) {
       log.info("Filtering for assets matching {}", filter);
@@ -58,7 +52,7 @@ public class RowProcessor {
 
       try {
         if (transformer.isValid(row)) {
-          Transaction transaction = transformer.from(row, portfolio, systemBase);
+          Transaction transaction = transformer.from(row, portfolio);
 
           if (transaction.getId() == null) {
             transaction.setId(TransactionId.builder()

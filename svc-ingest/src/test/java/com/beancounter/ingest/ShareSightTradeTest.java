@@ -64,7 +64,6 @@ class ShareSightTradeTest {
             .multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeCurrency")
-        .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.8988"))
         .hasFieldOrProperty("tradeDate")
@@ -83,9 +82,6 @@ class ShareSightTradeTest {
     // Portfolio is in NZD
     Portfolio portfolio = UnitTestHelper.getPortfolio();
 
-    // System base currency
-    Currency base = UnitTestHelper.getCurrency("USD");
-
     Transaction transaction = rowProcessor.process(portfolio, values, "Blah")
         .iterator().next();
 
@@ -99,7 +95,6 @@ class ShareSightTradeTest {
             .multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
         .hasFieldOrPropertyWithValue("tradeCashRate", null)
         .hasFieldOrProperty("tradeDate")
@@ -148,7 +143,6 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("baseCurrency", UnitTestHelper.getCurrency("USD"))
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
 
         .hasFieldOrProperty("tradeDate")

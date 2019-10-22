@@ -1,6 +1,7 @@
 package com.beancounter.ingest;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
+import static com.beancounter.ingest.UnitTestHelper.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Transaction;
@@ -15,10 +16,12 @@ class TestFilter {
     assertThat(filter.hasFilter()).isTrue();
     assertThat(filter.inFilter(Transaction.builder()
         .asset(getAsset("Code", "Market"))
+        .portfolio(getPortfolio())
         .build())).isTrue();
 
     assertThat(filter.inFilter(Transaction.builder()
         .asset(getAsset("code", "Market"))
+        .portfolio(getPortfolio())
         .build())).isTrue();
 
   }

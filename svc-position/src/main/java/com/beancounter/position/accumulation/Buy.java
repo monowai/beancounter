@@ -1,5 +1,7 @@
 package com.beancounter.position.accumulation;
 
+import static com.beancounter.position.utils.PositionalCurrency.getCurrency;
+
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
@@ -26,7 +28,7 @@ public class Buy implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValue(in);
+    MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
 
     moneyValues.setPurchases(moneyValues.getPurchases().add(
         mathUtils.multiply(transaction.getTradeAmount(), rate))

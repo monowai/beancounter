@@ -1,6 +1,7 @@
 package com.beancounter.position.model;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,18 +36,25 @@ public class Position {
   @Getter
   private Map<In, MoneyValues> moneyValues = new HashMap<>();
 
+  @JsonIgnore
+  public MoneyValues getMoneyValue(In reportCurrency) {
+    return moneyValues.get(reportCurrency);
+  }
+
   /**
    * MoneyValues are tracked in various currencies.
    *
-   * @param valueCurrency which model.
+   * @param reportCurrency which model.
    * @return moneyValues in valueCurrency.
    */
   @JsonIgnore
-  public MoneyValues getMoneyValue(In valueCurrency) {
-    MoneyValues result = moneyValues.get(valueCurrency);
+  public MoneyValues getMoneyValue(In reportCurrency, Currency currency) {
+    MoneyValues result = moneyValues.get(reportCurrency);
     if (result == null) {
-      result = MoneyValues.builder().build();
-      moneyValues.put(valueCurrency, result);
+      result = MoneyValues.builder()
+          .currency(currency)
+          .build();
+      moneyValues.put(reportCurrency, result);
     }
     return result;
   }

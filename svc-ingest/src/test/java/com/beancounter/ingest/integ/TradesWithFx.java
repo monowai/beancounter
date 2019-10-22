@@ -4,15 +4,14 @@ import static com.beancounter.ingest.UnitTestHelper.getCurrency;
 import static com.beancounter.ingest.UnitTestHelper.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.service.FxTransactions;
+import com.beancounter.ingest.sharesight.ShareSightHelper;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -81,14 +80,11 @@ class TradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio(getCurrency("NZD"));
 
-    // System base currency
-    Currency base = getCurrency("USD");
-
-    Transaction transaction = trades.from(row, portfolio, base);
+    Transaction transaction = trades.from(row, portfolio);
 
     transaction = fxTransactions.applyRates(transaction);
 
-    assertTransaction(portfolio, base, transaction);
+    assertTransaction(portfolio, transaction);
 
   }
 
@@ -121,14 +117,11 @@ class TradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio(getCurrency("NZD"));
 
-    // System base currency
-    Currency base = getCurrency("USD");
-
-    Transaction transaction = trades.from(row, portfolio, base);
+    Transaction transaction = trades.from(row, portfolio);
 
     transaction = fxTransactions.applyRates(transaction);
 
-    assertTransaction(portfolio, base, transaction);
+    assertTransaction(portfolio, transaction);
 
   }
 
@@ -157,18 +150,14 @@ class TradesWithFx {
 
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio(getCurrency("NZD"));
+    portfolio.setBase(getCurrency("GBP"));
 
-    // System base currency is GBP
-    Currency base = getCurrency("GBP");
-
-    Transaction transaction = trades.from(row, portfolio, base);
+    Transaction transaction = trades.from(row, portfolio);
 
     transaction = fxTransactions.applyRates(transaction);
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
-        .hasFieldOrPropertyWithValue("baseCurrency", getCurrency("GBP"))
-        .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("1000"))
         .hasFieldOrPropertyWithValue("tradeBaseRate",
@@ -180,11 +169,10 @@ class TradesWithFx {
     ;
   }
 
-  private void assertTransaction(Portfolio portfolio, Currency base, Transaction transaction) {
+  private void assertTransaction(Portfolio portfolio, Transaction transaction) {
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("GBP"))
-        .hasFieldOrPropertyWithValue("baseCurrency", base)
         .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())
         .hasFieldOrPropertyWithValue("tradeBaseRate", new BigDecimal("0.80474951"))
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.53457983"))

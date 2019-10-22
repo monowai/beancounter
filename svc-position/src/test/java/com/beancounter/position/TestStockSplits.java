@@ -1,6 +1,7 @@
 package com.beancounter.position;
 
 import static com.beancounter.position.TestUtils.convert;
+import static com.beancounter.position.TestUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -44,6 +45,7 @@ class TestStockSplits {
     Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
+        .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
         .tradeDate(convert(today))
         .quantity(new BigDecimal("100")).build();
@@ -60,6 +62,7 @@ class TestStockSplits {
     Transaction stockSplit = Transaction.builder()
         .trnType(TrnType.SPLIT)
         .asset(apple)
+        .portfolio(getPortfolio("TEST"))
         .tradeDate(convert(today))
         .quantity(new BigDecimal("7")).build();
 
@@ -85,6 +88,7 @@ class TestStockSplits {
     Transaction sell = Transaction.builder()
         .trnType(TrnType.SELL)
         .asset(apple)
+        .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
         .tradeDate(convert(today))
         .quantity(new BigDecimal("800")).build();

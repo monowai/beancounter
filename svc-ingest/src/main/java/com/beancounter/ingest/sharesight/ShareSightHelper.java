@@ -1,4 +1,4 @@
-package com.beancounter.ingest.sharesight.common;
+package com.beancounter.ingest.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;

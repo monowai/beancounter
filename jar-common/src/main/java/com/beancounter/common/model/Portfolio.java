@@ -18,6 +18,9 @@ public class Portfolio {
   private String code;
 
   private Currency currency;
+  @Builder.Default
+  private Currency base = Currency.builder().code("USD").build();
+
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")

@@ -7,11 +7,13 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Gains;
 import com.beancounter.position.accumulation.MarketValue;
+import com.beancounter.position.model.FxReport;
 import com.beancounter.position.model.Position;
 import com.beancounter.position.model.Positions;
 import com.beancounter.position.model.ValuationData;
@@ -19,6 +21,7 @@ import com.beancounter.position.utils.FxUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -77,12 +80,17 @@ public class ValuationService implements Valuation {
     }
     log.debug("Valuing {} positions against : {}", positions.getPositions().size(), mdUrl);
 
+    FxReport fxReport = FxReport.builder()
+        .base(positions.getPortfolio().getBase())
+        .portfolio(positions.getPortfolio().getCurrency())
+        .build();
     // Set market data into the positions
     ValuationData valuationData = getValuationData(positions, assets);
+    Map<CurrencyPair, FxRate> rates = valuationData.getFxResponse().getData().getRates();
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        marketValue.value(position, Position.In.PORTFOLIO, marketData, BigDecimal.ONE);
+        marketValue.value(position, fxReport, marketData, rates);
         position.setAsset(marketData.getAsset());
       }
     }
@@ -92,7 +100,7 @@ public class ValuationService implements Valuation {
   private ValuationData getValuationData(Positions positions, Collection<Asset> assets) {
     CompletableFuture<PriceResponse> futurePriceResponse = bcService.getMarketData(assets);
     FxRequest fxRequest = new FxUtils().getFxRequest(
-        Currency.builder().code("USD").build(),
+        positions.getPortfolio().getBase(),
         positions);
 
     CompletableFuture<FxResponse> futureFxResponse = bcService.getFxData(fxRequest);

@@ -1,5 +1,7 @@
 package com.beancounter.position.accumulation;
 
+import static com.beancounter.position.utils.PositionalCurrency.getCurrency;
+
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.model.Position;
@@ -13,9 +15,12 @@ public class Split implements ValueTransaction {
     position.getQuantityValues()
         .setAdjustment((transaction.getQuantity().multiply(total)).subtract(total));
 
-    value(position, position.getMoneyValue(Position.In.TRADE));
-    value(position, position.getMoneyValue(Position.In.BASE));
-    value(position, position.getMoneyValue(Position.In.PORTFOLIO));
+    value(position, position.getMoneyValue(Position.In.TRADE,
+        getCurrency(Position.In.TRADE, transaction)));
+    value(position, position.getMoneyValue(Position.In.BASE,
+        getCurrency(Position.In.BASE, transaction)));
+    value(position, position.getMoneyValue(Position.In.PORTFOLIO,
+        getCurrency(Position.In.PORTFOLIO, transaction)));
   }
 
   private void value(Position position, MoneyValues moneyValues) {

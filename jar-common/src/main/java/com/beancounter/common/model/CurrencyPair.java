@@ -1,5 +1,6 @@
 package com.beancounter.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
@@ -24,4 +25,11 @@ public class CurrencyPair {
   public static class CurrencyPairBuilder {
   }
 
+  @JsonIgnore
+  public static CurrencyPair from(Currency reporting, Currency trade) {
+    return CurrencyPair.builder()
+        .from(reporting.getCode())
+        .to(trade.getCode())
+        .build();
+  }
 }

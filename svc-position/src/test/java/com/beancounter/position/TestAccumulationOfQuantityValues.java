@@ -1,5 +1,7 @@
 package com.beancounter.position;
 
+import static com.beancounter.common.utils.AssetUtils.getAsset;
+import static com.beancounter.position.TestUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Transaction;
@@ -17,6 +19,8 @@ class TestAccumulationOfQuantityValues {
   void is_TotalQuantityCorrect() {
     Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)
+        .portfolio(getPortfolio("TEST"))
+        .asset(getAsset("CODE", "marketCode"))
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
@@ -41,6 +45,8 @@ class TestAccumulationOfQuantityValues {
 
     Transaction sell = Transaction.builder()
         .trnType(TrnType.SELL)
+        .portfolio(buyTrn.getPortfolio())
+        .asset(buyTrn.getAsset())
         .quantity(new BigDecimal(100)).build();
 
     position = accumulator.accumulate(sell, position);

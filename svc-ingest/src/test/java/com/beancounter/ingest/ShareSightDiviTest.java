@@ -9,12 +9,10 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.ingest.config.ExchangeConfig;
+import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
-import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.beancounter.ingest.sharesight.common.ShareSightHelper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -34,14 +32,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
-    classes = {
-        ExchangeConfig.class,
-        ShareSightTransformers.class,
-        ShareSightDivis.class,
-        ShareSightTrades.class,
-        ShareSightHelper.class})
+    classes = {ShareSightConfig.class})
 class ShareSightDiviTest {
-
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
@@ -59,9 +51,6 @@ class ShareSightDiviTest {
         .currency(Currency.builder().code("NZD").build())
         .build();
 
-    // System base currency
-    Currency base = Currency.builder().code("USD").build();
-
     // Trade is in USD
     row.add(ShareSightDivis.code, "MO.NYS");
     row.add(ShareSightDivis.name, "Test Asset");
@@ -76,7 +65,7 @@ class ShareSightDiviTest {
 
     Transformer dividends = shareSightTransformers.transformer(row);
 
-    Transaction transaction = dividends.from(row, portfolio, base);
+    Transaction transaction = dividends.from(row, portfolio);
     Asset expectedAsset = AssetUtils.getAsset("MO", "NYSE");
 
     BigDecimal fxRate = new BigDecimal(rate);
@@ -90,7 +79,6 @@ class ShareSightDiviTest {
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
-        .hasFieldOrPropertyWithValue("baseCurrency", getCurrency("USD"))
         .hasFieldOrPropertyWithValue("portfolio", portfolio)
 
         .hasFieldOrProperty("tradeDate")

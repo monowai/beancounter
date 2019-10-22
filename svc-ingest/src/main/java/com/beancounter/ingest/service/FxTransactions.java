@@ -6,10 +6,10 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class FxTransactions {
   private FxRateService fxRateService;
-  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
   private MathUtils mathUtils = new MathUtils();
+  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   @VisibleForTesting
@@ -36,26 +36,26 @@ public class FxTransactions {
   public Collection<Transaction> applyRates(Collection<Transaction> transactions) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (Transaction transaction : transactions) {
-      String tradeDate = simpleDateFormat.format(transaction.getTradeDate());
+      String tradeDate = dateUtils.getDate(transaction.getTradeDate());
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
       CurrencyPair tradePortfolio = getCurrencyPair(
           transaction.getTradePortfolioRate(),
-          transaction.getTradeCurrency(),
+          transaction.getAsset().getMarket().getCurrency(),
           transaction.getPortfolio().getCurrency());
 
       fxRequest.add(tradePortfolio);
 
       CurrencyPair tradeBase = getCurrencyPair(
           transaction.getTradeBaseRate(),
-          transaction.getTradeCurrency(),
-          transaction.getBaseCurrency());
+          transaction.getAsset().getMarket().getCurrency(),
+          transaction.getPortfolio().getBase());
       fxRequest.add(tradeBase);
 
       CurrencyPair tradeCash = getCurrencyPair(
           transaction.getTradeCashRate(),
-          transaction.getTradeCurrency(),
+          transaction.getAsset().getMarket().getCurrency(),
           transaction.getCashCurrency());
 
       fxRequest.add(tradeCash);

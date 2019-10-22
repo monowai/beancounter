@@ -67,7 +67,7 @@ class TestFx {
     rateMap.put("USD", FxRate.builder()
         .to(Currency.builder().code("USD").build())
         .from(Currency.builder().code("USD").build())
-        .rate(BigDecimal.ONE).build());
+        .rate(FxRate.ONE.getRate()).build());
 
     FxPairResults rateResults = new RateCalculator()
         .compute("2019/08/27", pairs, rateMap);
@@ -82,4 +82,10 @@ class TestFx {
         .isEqualToComparingFieldByField(fxResponse);
 
   }
+
+  @Test
+  void is_FxOneValid() {
+    assertThat(FxRate.ONE.getRate()).isEqualTo(BigDecimal.ONE);
+  }
+
 }

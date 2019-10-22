@@ -5,7 +5,7 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.service.FxTransactions;
-import com.beancounter.ingest.sharesight.common.ShareSightHelper;
+import com.beancounter.ingest.sharesight.ShareSightHelper;
 import com.beancounter.ingest.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.javanet.NetHttpTransport;

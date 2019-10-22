@@ -1,9 +1,10 @@
 package com.beancounter.common;
 
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.utils.CurrencyUtils;
+import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
@@ -62,9 +63,23 @@ class TestCurrency {
   @Test
   @VisibleForTesting
   void is_GetCurrencyWorking() {
-    Currency currency = CurrencyUtils.getCurrency("NZD");
+    Currency currency = getCurrency("NZD");
     assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD");
   }
 
+  @Test
+  @VisibleForTesting
+  void is_CurrencyPairConsistent() {
+    String trade = "NZD";
+    String report = "USD";
+    CurrencyPair byCode = CurrencyPair.builder()
+        .from(report)
+        .to(trade)
+        .build();
+
+    CurrencyPair byCurrency = CurrencyPair.from(getCurrency(report), getCurrency(trade));
+    assertThat(byCode).isEqualToComparingFieldByField(byCurrency);
+
+  }
 
 }

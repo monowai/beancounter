@@ -49,7 +49,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  void apiErrorMessage() throws Exception {
+  void is_ApiErrorMessageHandled() throws Exception {
 
     File jsonFile = new ClassPathResource("alphavantageError.json").getFile();
 
@@ -66,7 +66,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  void apiInvalidKey() throws Exception {
+  void is_ApiInvalidKeyHandled() throws Exception {
 
     File jsonFile = new ClassPathResource("alphavantageInfo.json").getFile();
 
@@ -83,7 +83,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  void apiCallLimitExceeded() throws Exception {
+  void is_ApiCallLimitExceededHandled() throws Exception {
 
     File jsonFile = new ClassPathResource("alphavantageNote.json").getFile();
 
@@ -98,5 +98,28 @@ class TestAlphaVantageApi {
         .isNotNull()
         .hasFieldOrPropertyWithValue("asset", asset)
         .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+  }
+
+  @Test
+  void is_SuccessHandledForAsx() throws Exception {
+
+    File jsonFile = new ClassPathResource("alphavantage.json").getFile();
+
+    DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
+    Asset asset =
+        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
+
+    MarketData mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
+        .getCurrent(asset);
+
+    assertThat(mdResult)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"))
+        .hasFieldOrPropertyWithValue("open", new BigDecimal("112.0400"))
+        .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
+        .hasFieldOrPropertyWithValue("high", new BigDecimal("112.8800"))
+    ;
+
   }
 }

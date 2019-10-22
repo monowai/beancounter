@@ -1,6 +1,6 @@
 package com.beancounter.position.accumulation;
 
-import static com.beancounter.position.utils.PositionalCurrency.getCurrency;
+import static com.beancounter.position.utils.PositionUtils.getCurrency;
 
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.QuantityValues;

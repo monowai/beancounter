@@ -4,7 +4,7 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.model.Position;
 
-public class PositionalCurrency {
+public class PositionUtils {
   public static Currency getCurrency(Position.In in, Transaction transaction) {
 
     if (in.equals(Position.In.TRADE)) {

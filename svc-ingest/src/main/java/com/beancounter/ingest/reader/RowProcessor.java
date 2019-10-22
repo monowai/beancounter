@@ -1,6 +1,6 @@
 package com.beancounter.ingest.reader;
 
-import com.beancounter.common.exception.SystemException;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
@@ -38,8 +38,8 @@ public class RowProcessor {
   }
 
   public Collection<Transaction> process(Portfolio portfolio,
-                                  List<List<Object>> values,
-                                  String provider) {
+                                         List<List<Object>> values,
+                                         String provider) {
 
     Collection<Transaction> results = new ArrayList<>();
     if (filter.hasFilter()) {
@@ -54,23 +54,18 @@ public class RowProcessor {
         if (transformer.isValid(row)) {
           Transaction transaction = transformer.from(row, portfolio);
 
-          if (transaction.getId() == null) {
-            transaction.setId(TransactionId.builder()
-                .id(trnId++)
-                .batch(0)
-                .provider(provider)
-                .build());
-          }
+          transaction.setId(TransactionId.builder()
+              .id(trnId++)
+              .batch(0)
+              .provider(provider)
+              .build());
           if (filter.inFilter(transaction)) {
             results.add(transaction);
           }
         }
       } catch (ParseException | NumberFormatException e) {
         log.error("{} Parsing row {} - {}", transformer.getClass().getSimpleName(), trnId, row);
-        if (stackTraces) {
-          throw new SystemException(e.getMessage());
-        }
-        return results;
+        throw new BusinessException(e.getMessage());
       }
 
     }

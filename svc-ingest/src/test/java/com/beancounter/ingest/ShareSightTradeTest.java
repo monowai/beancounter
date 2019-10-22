@@ -1,8 +1,9 @@
 package com.beancounter.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.common.model.Currency;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
@@ -32,7 +33,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
     ShareSightConfig.class
-    })
+})
 @Slf4j
 class ShareSightTradeTest {
 
@@ -50,7 +51,6 @@ class ShareSightTradeTest {
     Portfolio portfolio = UnitTestHelper.getPortfolio();
 
     // System base currency
-    Currency base = UnitTestHelper.getCurrency("USD");
     Collection<Transaction> transactions = rowProcessor.process(portfolio, values, "Test");
 
     Transaction transaction = transactions.iterator().next();
@@ -73,7 +73,7 @@ class ShareSightTradeTest {
 
   @Test
   @VisibleForTesting
-  void is_RowWithoutFxConverted()  {
+  void is_RowWithoutFxConverted() {
 
     List<Object> row = getRow("buy", "0.0", "2097.85");
     List<List<Object>> values = new ArrayList<>();
@@ -147,6 +147,28 @@ class ShareSightTradeTest {
 
         .hasFieldOrProperty("tradeDate")
     ;
+
+  }
+
+  @Test
+  void is_IllegalNumberFound() {
+    List<Object> row = getRow("buy", "0.8988e", "2097.85");
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
+    assertThrows(BusinessException.class, () ->
+        rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee"));
+  }
+
+  @Test
+  void is_IllegalDateFound() {
+    List<Object> row = getRow("buy", "0.8988", "2097.85");
+    row.add(ShareSightTrades.date, "21/01/2019'");
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
+
+    assertThrows(BusinessException.class, ()->
+        rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee"));
+
 
   }
 

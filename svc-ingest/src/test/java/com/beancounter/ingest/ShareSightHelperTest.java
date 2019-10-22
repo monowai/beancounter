@@ -6,14 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.ingest.config.ExchangeConfig;
+import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
 import com.beancounter.ingest.sharesight.ShareSightHelper;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
-import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
-    ExchangeConfig.class,
-    ShareSightTransformers.class,
-    ShareSightTrades.class,
-    ShareSightDivis.class,
-    ShareSightHelper.class})
+    ShareSightConfig.class})
 class ShareSightHelperTest {
 
   @Autowired
@@ -78,5 +75,47 @@ class ShareSightHelperTest {
 
     assertThat(asset)
         .isEqualToComparingFieldByField(expectedAsset);
+  }
+
+  @Test
+  void is_ValidTradeRow() {
+    List<Object> row = new ArrayList<>();
+    row.add(ShareSightTrades.market, "market"); // Header Row
+    row.add(ShareSightTrades.code, "code");
+    row.add(ShareSightTrades.name, "name");
+    row.add(ShareSightTrades.type, "type");
+    row.add(ShareSightTrades.date, "date");
+    row.add(ShareSightTrades.quantity, "quantity");
+    row.add(ShareSightTrades.price, "price");
+    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightHelper);
+    assertThat(shareSightTrades.isValid(row)).isFalse();
+
+    row.remove(ShareSightTrades.price);
+    assertThat(shareSightTrades.isValid(row)).isFalse(); // Not enough columns for a trade
+  }
+
+  @Test
+  void is_ValidDividendRow() {
+    List<Object> row = new ArrayList<>();
+    row.add(ShareSightDivis.code, "code"); // Header Row
+    row.add(ShareSightDivis.name, "code");
+    row.add(ShareSightDivis.date, "name");
+    row.add(ShareSightDivis.fxRate, "type");
+    row.add(ShareSightDivis.currency, "date");
+    row.add(ShareSightDivis.net, "quantity");
+    row.add(ShareSightDivis.tax, "tax");
+    row.add(ShareSightDivis.gross, "gross");
+    row.add(ShareSightDivis.comments, "comments");
+    ShareSightDivis shareSightDivis = new ShareSightDivis(shareSightHelper);
+    assertThat(shareSightDivis.isValid(row)).isFalse();// Ignore CODE
+
+    row.remove(ShareSightTrades.code);
+    assertThat(shareSightDivis.isValid(row)).isFalse(); // Not enough columns for a trade
+
+    row.add(ShareSightDivis.code, "total");
+    assertThat(shareSightDivis.isValid(row)).isFalse(); // Ignore TOTAL
+    row.remove(ShareSightTrades.code);
+    row.add(ShareSightDivis.code, "some.code");
+    assertThat(shareSightDivis.isValid(row)).isTrue();
   }
 }

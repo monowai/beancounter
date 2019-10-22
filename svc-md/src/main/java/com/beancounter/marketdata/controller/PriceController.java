@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2019-01-29
  */
 @RestController
-@RequestMapping("/price")
+@RequestMapping("/prices")
 public class PriceController {
 
   private MarketDataService marketDataService;

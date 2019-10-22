@@ -16,7 +16,7 @@ public interface BcGateway {
   @PostMapping(value = "/fx", headers = { "Content-Type: application/json"})
   FxResponse getRates(FxRequest fxRequest);
 
-  @GetMapping(value = "/market")
+  @GetMapping(value = "/markets")
   MarketResponse getMarkets();
 
 }

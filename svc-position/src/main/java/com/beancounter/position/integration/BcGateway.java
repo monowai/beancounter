@@ -25,16 +25,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 @FeignClient(name = "${marketdata.name}", url = "${marketdata.url:http://localhost:9510/api}")
 public interface BcGateway {
 
-  @GetMapping(value = "/price/{assetId}")
+  @GetMapping(value = "/prices/{assetId}")
   MarketData getMarketData(@PathVariable("assetId") String assetId);
 
-  @GetMapping(value = "/price")
+  @GetMapping(value = "/prices")
   PriceResponse getMarketData(Collection<Asset> assetId);
 
   @PostMapping(value = "/fx")
   FxResponse getRates(FxRequest fxRequest);
 
-  @GetMapping(value = "/market")
+  @GetMapping(value = "/markets")
   MarketResponse getMarkets();
 
 

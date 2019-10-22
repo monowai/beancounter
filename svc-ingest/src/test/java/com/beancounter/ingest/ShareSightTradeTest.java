@@ -166,7 +166,7 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
 
-    assertThrows(BusinessException.class, ()->
+    assertThrows(BusinessException.class, () ->
         rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee"));
 
 

@@ -111,7 +111,7 @@ public class SheetReader implements Ingester {
         return;
       }
 
-      log.info("Applying FX Rates...");
+      log.info("Back fill FX rates...");
       transactions = fxTransactions.applyRates(transactions);
 
       if (outputStream != null) {

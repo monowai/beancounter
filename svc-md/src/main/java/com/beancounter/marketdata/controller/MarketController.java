@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2019-01-29
  */
 @RestController
-@RequestMapping("/market")
+@RequestMapping("/markets")
 @CrossOrigin
 public class MarketController {
 

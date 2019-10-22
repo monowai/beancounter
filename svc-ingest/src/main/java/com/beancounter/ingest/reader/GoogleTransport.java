@@ -1,10 +1,10 @@
 package com.beancounter.ingest.reader;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.ingest.config.GoogleAuthConfig;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class GoogleTransport {
 
-  private static final String APPLICATION_NAME = "BeanCounter ShareSight Reader";
-  private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
   private GoogleAuthConfig googleAuthConfig;
 
   @Autowired
@@ -31,7 +29,7 @@ public class GoogleTransport {
   }
 
   @VisibleForTesting
-  NetHttpTransport getHttpTransport() {
+  public NetHttpTransport getHttpTransport() {
     try {
       return GoogleNetHttpTransport.newTrustedTransport();
     } catch (GeneralSecurityException | IOException e) {
@@ -43,9 +41,9 @@ public class GoogleTransport {
   Sheets getSheets(NetHttpTransport httpTransport) {
     Sheets service;
     try {
-      service = new Sheets.Builder(httpTransport, JSON_FACTORY,
+      service = new Sheets.Builder(httpTransport, JacksonFactory.getDefaultInstance(),
           googleAuthConfig.getCredentials(httpTransport))
-          .setApplicationName(APPLICATION_NAME)
+          .setApplicationName("BeanCounter")
           .build();
     } catch (IOException e) {
       throw new SystemException(e.getMessage());
@@ -67,7 +65,7 @@ public class GoogleTransport {
     List<List<Object>> values = response.getValues();
     if (values == null || values.isEmpty()) {
       log.error("No data found.");
-      throw new SystemException(String.format("No data found for %s %s", sheetId, range));
+      throw new BusinessException(String.format("No data found for %s %s", sheetId, range));
     }
 
     return values;

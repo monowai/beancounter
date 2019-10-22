@@ -2,8 +2,6 @@ package com.beancounter.ingest.service;
 
 import com.beancounter.ingest.reader.SheetReader;
 import com.google.common.annotations.VisibleForTesting;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
@@ -23,7 +21,7 @@ public class IngestSheet {
   }
 
   @EventListener(ApplicationReadyEvent.class)
-  public void runIngestion() throws IOException, GeneralSecurityException {
+  public void runIngestion() {
     sheetReader.ingest();
   }
 

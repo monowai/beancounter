@@ -1,7 +1,9 @@
 package com.beancounter.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.common.exception.SystemException;
 import com.beancounter.ingest.writer.FileIngestWriter;
 import com.beancounter.ingest.writer.IngestWriter;
 import java.io.File;
@@ -12,6 +14,18 @@ import org.junit.jupiter.api.Test;
 
 @Slf4j
 class TestWriter {
+
+  @Test
+  void is_NullWriter() {
+    assertThat(new FileIngestWriter().prepareFile(null)).isNull();
+  }
+
+  @Test
+  void is_FailingFile() {
+    assertThrows(SystemException.class, () -> new FileIngestWriter()
+        .prepareFile("/" + (Math.random())));
+  }
+
   @Test
   void is_IngestWriter() throws IOException {
     IngestWriter ingestWriter = new FileIngestWriter();

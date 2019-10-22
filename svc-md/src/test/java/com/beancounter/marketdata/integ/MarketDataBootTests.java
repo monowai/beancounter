@@ -72,7 +72,7 @@ class MarketDataBootTests {
 
   @Test
   void is_MarketsReturned() throws Exception {
-    String json = mockMvc.perform(get("/market")
+    String json = mockMvc.perform(get("/markets")
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -86,7 +86,7 @@ class MarketDataBootTests {
   @VisibleForTesting
   void is_PriceFormMarketAssetFound() throws Exception {
 
-    String json = mockMvc.perform(get("/price/{marketId}/{assetId}", dummy.getMarket().getCode(), dummy.getCode())
+    String json = mockMvc.perform(get("/prices/{marketId}/{assetId}", dummy.getMarket().getCode(), dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -112,7 +112,7 @@ class MarketDataBootTests {
 
     assets.add(asset);
 
-    String json = mockMvc.perform(post("/price",
+    String json = mockMvc.perform(post("/prices",
         dummy.getMarket().getCode(), dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
         .content(objectMapper.writeValueAsString(assets))
@@ -131,7 +131,7 @@ class MarketDataBootTests {
   @Tag("slow")
   @VisibleForTesting
   void valuationRequestReturnsFullHydratedAssets() throws Exception {
-    String json = mockMvc.perform(get("/price/{marketId}/{assetId}",
+    String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
         dummy.getMarket().getCode(), dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
     ).andExpect(status().isOk())

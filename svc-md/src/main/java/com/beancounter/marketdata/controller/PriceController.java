@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.controller;
 
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -48,7 +49,7 @@ public class PriceController {
   }
 
   @PostMapping
-  Collection<MarketData> getPrices(@RequestBody Collection<Asset> assets) {
+  PriceResponse getPrices(@RequestBody Collection<Asset> assets) {
     return marketDataService.getCurrent(assets);
   }
 

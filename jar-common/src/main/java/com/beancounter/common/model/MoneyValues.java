@@ -3,7 +3,6 @@ package com.beancounter.common.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
-import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
 
@@ -53,8 +52,6 @@ public class MoneyValues {
 
   @Builder.Default
   private BigDecimal totalGain = BigDecimal.ZERO;
-
-  private Date asAt;
 
   private Currency currency;
 

@@ -1,14 +1,15 @@
 package com.beancounter.position.service;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Dividend;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
 import com.beancounter.position.accumulation.ValueTransaction;
-import com.beancounter.position.model.Position;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class Accumulator {
   private boolean orderedTransactions = false;
 
   private Map<TrnType, ValueTransaction> logicMap = new HashMap<>();
+  private DateUtils dateUtils = new DateUtils();
 
   public Accumulator() {
     logicMap.put(TrnType.BUY, new Buy());
@@ -53,7 +55,7 @@ public class Accumulator {
     ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
     valueTransaction.value(transaction, position);
     if (dateSensitive) {
-      position.setLastTradeDate(transaction.getTradeDate());
+      position.setLastTradeDate(dateUtils.getDate(transaction.getTradeDate()));
     }
 
     return position;
@@ -64,7 +66,7 @@ public class Accumulator {
     boolean validDate = false;
 
     Date tradeDate = transaction.getTradeDate();
-    Date positionDate = position.getLastTradeDate();
+    Date positionDate = dateUtils.getDate(position.getLastTradeDate());
 
     if (positionDate == null) {
       validDate = true;

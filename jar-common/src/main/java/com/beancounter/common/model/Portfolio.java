@@ -25,7 +25,5 @@ public class Portfolio {
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")
   public static class PortfolioBuilder {
-
-
   }
 }

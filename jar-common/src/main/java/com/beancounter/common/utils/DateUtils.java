@@ -56,21 +56,30 @@ public class DateUtils {
     // ToDo: market holidays...
   }
 
-  public LocalDate getLocalDate(String inDate, String dateFormat) {
-    return LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
-  }
-
   public Date getDate(String inDate) {
     return getDate(inDate, "yyyy-MM-dd");
   }
 
   public Date getDate(String inDate, String format) {
+    if (inDate == null) {
+      return null;
+    }
     return Date.from(
         getLocalDate(inDate, format)
             .atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant());
   }
 
+  public LocalDate getLocalDate(String inDate, String dateFormat) {
+    if (inDate == null) {
+      return null;
+    }
+    return LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
+  }
+
   public String getDate(Date date) {
+    if ( date == null ) {
+      return null;
+    }
     return simpleDateFormat.format(date);
   }
 

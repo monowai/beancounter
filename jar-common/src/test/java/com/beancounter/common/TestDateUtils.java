@@ -5,14 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.utils.DateUtils;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.Calendar;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 class TestDateUtils {
+
   @Test
-  @VisibleForTesting
   void is_TodayAnIso8601String() {
     Calendar calendar = new Calendar.Builder().setInstant(new Date()).build();
     DateUtils dateUtils = new DateUtils();
@@ -29,13 +28,20 @@ class TestDateUtils {
   }
 
   @Test
-  @VisibleForTesting
   void is_InvalidDateDetected() {
     String invalidDate = "2019-11-07'";
     assertThrows(BusinessException.class, () -> {
       new DateUtils().isValid(invalidDate);
     });
+  }
 
+  @Test
+  void is_NullIsoDate() {
+    String nullString = null;
+    assertThat(new DateUtils().getDate(nullString)).isNull();
+    assertThat(new DateUtils().getLocalDate(nullString, "yyyy-MM-dd")).isNull();
+    Date nullDate = null;
+    assertThat(new DateUtils().getDate(nullDate)).isNull();
   }
 
 }

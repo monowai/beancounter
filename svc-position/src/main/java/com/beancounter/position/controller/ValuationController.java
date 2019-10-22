@@ -1,6 +1,6 @@
 package com.beancounter.position.controller;
 
-import com.beancounter.position.model.Positions;
+import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.position.service.Valuation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Still thinking on this.
+ *
  * @author mikeh
  * @since 2019-02-01
  */
@@ -25,8 +26,8 @@ public class ValuationController {
   }
 
   @PostMapping
-  Positions value(@RequestBody Positions positions) {
-    return valuationService.value(positions);
+  PositionResponse value(@RequestBody PositionResponse positions) {
+    return valuationService.value(positions.getData());
   }
 
 }

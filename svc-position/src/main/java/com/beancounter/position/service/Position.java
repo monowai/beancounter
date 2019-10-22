@@ -1,7 +1,7 @@
 package com.beancounter.position.service;
 
+import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.position.model.Positions;
 import java.util.Collection;
 
 /**
@@ -20,5 +20,5 @@ public interface Position {
    * @param transactions to return
    * @return computed stock positions
    */
-  Positions build(Collection<Transaction> transactions);
+  PositionResponse build(Collection<Transaction> transactions);
 }

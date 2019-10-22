@@ -7,11 +7,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.Position;
+import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.position.model.Position;
-import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,6 +47,20 @@ class TestMarketValues {
 
   @Autowired
   private Valuation valuation;
+
+  static void getPositions(Asset asset, Positions positions) {
+    Transaction buy = Transaction.builder()
+        .trnType(TrnType.BUY)
+        .asset(asset)
+        .portfolio(getPortfolio("TEST"))
+        .tradeAmount(new BigDecimal(2000))
+        .quantity(new BigDecimal(100)).build();
+
+    Accumulator accumulator = new Accumulator();
+
+    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
+    positions.add(position);
+  }
 
   @Test
   @Tag("slow")
@@ -99,20 +113,6 @@ class TestMarketValues {
 
     assertThat(position.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
 
-  }
-
-  static void getPositions(Asset asset, Positions positions) {
-    Transaction buy = Transaction.builder()
-        .trnType(TrnType.BUY)
-        .asset(asset)
-        .portfolio(getPortfolio("TEST"))
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(100)).build();
-
-    Accumulator accumulator = new Accumulator();
-
-    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
-    positions.add(position);
   }
 
   private void getValuedPositions(Asset asset, Positions positions) {

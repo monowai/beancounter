@@ -1,11 +1,12 @@
 package com.beancounter.position.service;
 
-import com.beancounter.position.model.Positions;
+import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.model.Positions;
 
 /**
  * Valuation services are responsible for computing
  * the market value of Positions.
- * 
+ *
  * @author mikeh
  * @since 2019-02-24
  */
@@ -18,7 +19,7 @@ public interface Valuation {
    * @param positions to value
    * @return positions with values and hydrated Asset objects
    */
-  Positions value(Positions positions);
+  PositionResponse value(Positions positions);
 
 
 }

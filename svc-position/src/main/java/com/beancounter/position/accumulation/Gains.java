@@ -1,7 +1,7 @@
 package com.beancounter.position.accumulation;
 
 import com.beancounter.common.model.MoneyValues;
-import com.beancounter.position.model.Position;
+import com.beancounter.common.model.Position;
 import java.math.BigDecimal;
 
 public class Gains {

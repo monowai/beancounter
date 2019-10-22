@@ -6,14 +6,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.Position;
+import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
-import com.beancounter.position.model.Position;
-import com.beancounter.position.model.Positions;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.time.LocalDate;

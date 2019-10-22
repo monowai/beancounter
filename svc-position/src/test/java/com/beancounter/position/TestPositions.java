@@ -6,47 +6,19 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.QuantityValues;
+import com.beancounter.common.model.Position;
+import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.position.model.Position;
-import com.beancounter.position.model.Positions;
 import com.beancounter.position.service.Accumulator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 
 class TestPositions {
-
-  @Test
-  @VisibleForTesting
-  void jsonSerialization() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-    Map<Position.In, MoneyValues> moneyValuesMap = new HashMap<>();
-    moneyValuesMap.put(Position.In.TRADE, MoneyValues.builder()
-        .dividends(new BigDecimal(100d))
-        .build());
-
-    Position position = Position.builder()
-        .moneyValues(moneyValuesMap)
-        .quantityValues(QuantityValues.builder()
-            .purchased(new BigDecimal(200))
-            .build())
-        .build();
-
-    String json = mapper.writeValueAsString(position);
-
-    Position fromJson = mapper.readValue(json, Position.class);
-
-    assertThat(fromJson).isEqualToComparingFieldByField(position);
-  }
 
   @Test
   @VisibleForTesting

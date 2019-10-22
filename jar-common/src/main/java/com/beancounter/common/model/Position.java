@@ -1,18 +1,14 @@
-package com.beancounter.position.model;
+package com.beancounter.common.model;
 
-import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.MoneyValues;
-import com.beancounter.common.model.QuantityValues;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * Represents an Asset held in a Portfolio.
@@ -25,12 +21,13 @@ import lombok.Getter;
 @JsonDeserialize(builder = Position.PositionBuilder.class)
 public class Position {
 
+  @NonNull
   private Asset asset;
   @Builder.Default
   @SuppressWarnings("UnusedAssignment")
   @Getter
   private QuantityValues quantityValues = QuantityValues.builder().build();
-  private Date lastTradeDate;
+  private String lastTradeDate;
   @Builder.Default
   @SuppressWarnings("UnusedAssignment")
   @Getter

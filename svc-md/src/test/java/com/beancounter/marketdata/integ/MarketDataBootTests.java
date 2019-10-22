@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -15,12 +16,10 @@ import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -120,11 +119,8 @@ class MarketDataBootTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    CollectionType javaType = objectMapper.getTypeFactory()
-        .constructCollectionType(Collection.class, MarketData.class);
-
-    List<MarketData> mdResponse = objectMapper.readValue(json, javaType);
-    assertThat(mdResponse).hasSize(assets.size());
+    PriceResponse mdResponse = objectMapper.readValue(json, PriceResponse.class);
+    assertThat(mdResponse.getData()).hasSize(assets.size());
   }
 
   @Test

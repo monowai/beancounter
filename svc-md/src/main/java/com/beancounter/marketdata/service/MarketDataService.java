@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class MarketDataService {
    * @param assets to query
    * @return results
    */
-  public Collection<MarketData> getCurrent(Collection<Asset> assets) {
+  public PriceResponse getCurrent(Collection<Asset> assets) {
 
     for (Asset asset : assets) {
       hydrateAsset(asset);
@@ -56,7 +57,7 @@ public class MarketDataService {
       results.addAll(mdFactory.getMarketDataProvider(dpId)
           .getCurrent(factories.get(dpId)));
     }
-    return results;
+    return PriceResponse.builder().data(results).build();
   }
 
   private Map<String, Collection<Asset>> splitProviders(Collection<Asset> assets) {

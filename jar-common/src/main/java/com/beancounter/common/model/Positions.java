@@ -1,13 +1,11 @@
-package com.beancounter.position.model;
+package com.beancounter.common.model;
 
-import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * A container for Position objects.
@@ -18,7 +16,7 @@ import lombok.Data;
 @Data
 public class Positions {
 
-  @NotNull
+  @NonNull
   private Portfolio portfolio;
   private String asAt;
   private Map<String, Position> positions = new HashMap<>();

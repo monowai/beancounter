@@ -3,10 +3,10 @@ package com.beancounter.position.accumulation;
 import static com.beancounter.position.utils.PositionUtils.getCurrency;
 
 import com.beancounter.common.model.MoneyValues;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 

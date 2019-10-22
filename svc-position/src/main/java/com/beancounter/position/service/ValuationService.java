@@ -4,18 +4,19 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
+import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.Position;
+import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Gains;
 import com.beancounter.position.accumulation.MarketValue;
 import com.beancounter.position.model.FxReport;
-import com.beancounter.position.model.Position;
-import com.beancounter.position.model.Positions;
 import com.beancounter.position.model.ValuationData;
 import com.beancounter.position.utils.FxUtils;
 import java.math.BigDecimal;
@@ -58,7 +59,7 @@ public class ValuationService implements Valuation {
   }
 
   @Override
-  public Positions value(Positions positions) {
+  public PositionResponse value(Positions positions) {
     if (positions.getAsAt() != null) {
       dateUtils.isValid(positions.getAsAt());
     }
@@ -70,7 +71,7 @@ public class ValuationService implements Valuation {
       }
     }
 
-    return value(positions, assets);
+    return PositionResponse.builder().data(value(positions, assets)).build();
   }
 
   private Positions value(Positions positions, Collection<Asset> assets) {

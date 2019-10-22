@@ -9,6 +9,7 @@ import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
@@ -16,7 +17,6 @@ import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.MarketValue;
 import com.beancounter.position.model.FxReport;
-import com.beancounter.position.model.Position;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ class TestMarketValuesWithFx {
         CurrencyPair.from(
             portfolio.getCurrency(),
             asset.getMarket().getCurrency()
-            ),
+        ),
         FxRate.builder().rate(simpleRate).build());
 
     // Revalue based on marketData prices

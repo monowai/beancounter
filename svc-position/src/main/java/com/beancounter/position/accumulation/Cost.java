@@ -1,9 +1,9 @@
 package com.beancounter.position.accumulation;
 
 import com.beancounter.common.model.MoneyValues;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.position.model.Position;
 import java.math.BigDecimal;
 
 public class Cost {

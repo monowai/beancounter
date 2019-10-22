@@ -4,9 +4,9 @@ import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.position.TestUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.position.model.Position;
 import com.beancounter.position.service.Accumulator;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
@@ -26,7 +26,9 @@ class TestAccumulationOfQuantityValues {
 
     Accumulator accumulator = new Accumulator();
 
-    Position position = Position.builder().build();
+    Position position = Position.builder()
+        .asset(buyTrn.getAsset())
+        .build();
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO);

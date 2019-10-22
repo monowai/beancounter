@@ -1,8 +1,8 @@
 package com.beancounter.position.utils;
 
 import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.position.model.Position;
 
 public class PositionUtils {
   public static Currency getCurrency(Position.In in, Transaction transaction) {

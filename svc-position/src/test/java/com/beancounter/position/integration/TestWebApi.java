@@ -7,11 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.position.model.Positions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.google.common.annotations.VisibleForTesting;
@@ -80,7 +81,9 @@ class TestWebApi {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    Positions positions = new ObjectMapper().readValue(json, Positions.class);
+    PositionResponse positionResponse = new ObjectMapper().readValue(json, PositionResponse.class);
+    assertThat(positionResponse).hasFieldOrProperty("data");
+    Positions positions = positionResponse.getData();
 
     assertThat(positions).isNotNull();
     assertThat(positions.getPositions()).isNotNull().hasSize(2);
@@ -94,15 +97,20 @@ class TestWebApi {
     Positions positions = new Positions(getPortfolio("TEST"));
     positions.setAsAt("2019-10-20");
     getPositions(asset, positions);
+    PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
 
     String json = mockMvc.perform(post("/value")
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .content(mapper.writeValueAsString(positions))
+        .content(mapper.writeValueAsString(positionResponse))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    Positions mvcPositions = new ObjectMapper().readValue(json, Positions.class);
+    PositionResponse fromJson = new ObjectMapper()
+        .readValue(json, PositionResponse.class);
+
+    assertThat(fromJson).isNotNull().hasFieldOrProperty("data");
+    Positions mvcPositions = fromJson.getData();
     assertThat(mvcPositions).isNotNull();
     assertThat(mvcPositions.getPositions()).hasSize(positions.getPositions().size());
   }
@@ -115,10 +123,11 @@ class TestWebApi {
     Positions positions = new Positions(getPortfolio("TEST"));
     getPositions(asset, positions);
     positions.setAsAt("2019-10-20'");
+    PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
 
     MvcResult result = mockMvc.perform(post("/value")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(positions))
+        .content(mapper.writeValueAsString(positionResponse))
     ).andExpect(status().is4xxClientError()).andReturn();
 
     Optional<BusinessException> someException = Optional.ofNullable((BusinessException)

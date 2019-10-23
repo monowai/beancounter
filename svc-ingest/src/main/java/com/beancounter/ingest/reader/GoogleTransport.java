@@ -8,7 +8,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -23,12 +22,10 @@ public class GoogleTransport {
   private GoogleAuthConfig googleAuthConfig;
 
   @Autowired
-  @VisibleForTesting
   void setGoogleAuthConfig(GoogleAuthConfig googleAuthConfig) {
     this.googleAuthConfig = googleAuthConfig;
   }
 
-  @VisibleForTesting
   public NetHttpTransport getHttpTransport() {
     try {
       return GoogleNetHttpTransport.newTrustedTransport();
@@ -37,7 +34,6 @@ public class GoogleTransport {
     }
   }
 
-  @VisibleForTesting
   Sheets getSheets(NetHttpTransport httpTransport) {
     Sheets service;
     try {
@@ -51,7 +47,6 @@ public class GoogleTransport {
     return service;
   }
 
-  @VisibleForTesting
   List<List<Object>> getValues(Sheets service, String sheetId, String range) {
     ValueRange response;
     try {

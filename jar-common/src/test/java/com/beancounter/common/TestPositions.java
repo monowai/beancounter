@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestPositions {
@@ -69,9 +68,9 @@ class TestPositions {
         .build();
 
     // Requesting a non existent MV.  Without a currency, it can't be created
-    Assertions.assertThat(position.getMoneyValue(Position.In.TRADE)).isNull();
+    assertThat(position.getMoneyValue(Position.In.TRADE)).isNull();
     // Retrieve with a currency will create if missing
-    Assertions.assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
+    assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
         .isNotNull()
         .hasFieldOrPropertyWithValue("currency", getCurrency("SGD"));
   }

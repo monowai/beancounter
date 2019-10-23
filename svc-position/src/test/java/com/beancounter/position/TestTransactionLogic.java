@@ -1,7 +1,6 @@
 package com.beancounter.position;
 
-import static com.beancounter.position.TestUtils.convert;
-import static com.beancounter.position.TestUtils.getPortfolio;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -13,6 +12,7 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.service.Accumulator;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
  * Test rules that would prevent a transaction from accumulating.
  */
 class TestTransactionLogic {
+  private DateUtils dateUtils = new DateUtils();
   /**
    * Transactions should be ordered.  If the date is ==, then it will be accepted but
    * unordered transactions will result in an Exception being thrown
@@ -42,16 +43,14 @@ class TestTransactionLogic {
     LocalDate today = LocalDate.now();
     LocalDate yesterday = today.minus(-1, ChronoUnit.DAYS);
 
-    Accumulator accumulator = new Accumulator(
-    );
-
+    Accumulator accumulator = new Accumulator();
 
     Transaction buyYesterday = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
         .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
-        .tradeDate(convert(yesterday))
+        .tradeDate(dateUtils.convert(yesterday))
         .quantity(new BigDecimal(100)).build();
 
     Transaction buyToday = Transaction.builder()
@@ -59,7 +58,7 @@ class TestTransactionLogic {
         .asset(apple)
         .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
-        .tradeDate(convert(today))
+        .tradeDate(dateUtils.convert(today))
         .quantity(new BigDecimal(100)).build();
 
     positions.add(position);

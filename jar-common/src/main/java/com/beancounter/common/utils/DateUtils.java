@@ -44,6 +44,12 @@ public class DateUtils {
     return result.toLocalDate();
   }
 
+  public Date convert(LocalDate localDate) {
+    return Date.from(localDate.atStartOfDay()
+        .atZone(ZoneId.systemDefault())
+        .toInstant());
+  }
+
 
   private boolean isWorkDay(ZonedDateTime evaluate) {
     // Naive implementation that is only aware of Western markets

@@ -1,7 +1,7 @@
 package com.beancounter.position;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
-import static com.beancounter.position.TestUtils.getPortfolio;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Position;

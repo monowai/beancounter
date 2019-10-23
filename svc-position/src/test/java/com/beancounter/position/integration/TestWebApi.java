@@ -1,6 +1,6 @@
 package com.beancounter.position.integration;
 
-import static com.beancounter.position.TestUtils.getPortfolio;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static com.beancounter.position.integration.TestMarketValues.getPositions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

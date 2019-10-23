@@ -1,9 +1,11 @@
 package com.beancounter.common;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
@@ -26,19 +28,19 @@ class TestValuation {
         .dividends(new BigDecimal(100d))
         .build());
 
-    Position position = Position.builder()
+    Positions positions = new Positions(Portfolio.builder()
+        .code("T")
+        .currency(Currency.builder().code("SGD").build())
+        .build());
+
+    positions.add(Position.builder()
         .asset(getAsset("TEST", "TEST"))
         .moneyValues(moneyValuesMap)
         .quantityValues(QuantityValues.builder()
             .purchased(new BigDecimal(200))
             .build())
-        .build();
-
-    Positions positions = new Positions(Portfolio.builder()
-        .code("T")
-        .currency(Currency.builder().code("SGD").build())
-        .build());
-    positions.add(position);
+        .build()
+    );
 
     PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
     String json = mapper.writeValueAsString(positionResponse);
@@ -46,5 +48,15 @@ class TestValuation {
     PositionResponse fromJson = mapper.readValue(json, PositionResponse.class);
 
     assertThat(fromJson).isEqualToComparingFieldByField(positionResponse);
+  }
+
+  @Test
+  void is_GetPositionNonNull() {
+
+    Positions positions = new Positions(getPortfolio("Test"));
+    Asset asset = getAsset("TEST", "TEST");
+    Position position = positions.get(asset);
+    assertThat(position).isNotNull().hasFieldOrPropertyWithValue("asset", asset);
+
   }
 }

@@ -1,7 +1,6 @@
 package com.beancounter.position;
 
-import static com.beancounter.position.TestUtils.convert;
-import static com.beancounter.position.TestUtils.getPortfolio;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -11,6 +10,7 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
  * @since 2019-02-20
  */
 class TestStockSplits {
+  private DateUtils dateUtils = new DateUtils();
 
   @Test
   @VisibleForTesting
@@ -47,7 +48,7 @@ class TestStockSplits {
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(convert(today))
+        .tradeDate(dateUtils.convert(today))
         .quantity(new BigDecimal("100")).build();
 
     Buy buy = new Buy();
@@ -63,7 +64,7 @@ class TestStockSplits {
         .trnType(TrnType.SPLIT)
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
-        .tradeDate(convert(today))
+        .tradeDate(dateUtils.convert(today))
         .quantity(new BigDecimal("7")).build();
 
     Split split = new Split();
@@ -90,7 +91,7 @@ class TestStockSplits {
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(convert(today))
+        .tradeDate(dateUtils.convert(today))
         .quantity(new BigDecimal("800")).build();
 
     // Sell the entire position

@@ -44,12 +44,12 @@ public class Positions {
   @JsonIgnore
   public Position get(Asset asset) {
     Position result = positions.get(AssetUtils.toKey(asset));
-    if (result == null) {
-      return Position.builder()
-          .asset(asset)
-          .build();
+    if (result != null) {
+      return result;
     }
-    return result;
+    return Position.builder()
+        .asset(asset)
+        .build();
   }
 
 }

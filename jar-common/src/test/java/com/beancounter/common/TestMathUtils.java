@@ -3,7 +3,6 @@ package com.beancounter.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.utils.MathUtils;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +10,6 @@ class TestMathUtils {
   private MathUtils mathUtils = new MathUtils();
 
   @Test
-  @VisibleForTesting
   void is_MultiplySafe() {
 
     assertThat(mathUtils.multiply(
@@ -42,9 +40,7 @@ class TestMathUtils {
   }
 
   @Test
-  @VisibleForTesting
   void is_DivideSafe() {
-
 
     assertThat(mathUtils.divide(
         new BigDecimal("1000.00"),
@@ -71,12 +67,20 @@ class TestMathUtils {
         .isEqualTo("100.00");
   }
 
-  @VisibleForTesting
   @Test
   void is_ZeroAndNullSafe() {
     assertThat(mathUtils.isUnset(null)).isTrue();
     assertThat(mathUtils.isUnset(new BigDecimal("0"))).isTrue();
     assertThat(mathUtils.isUnset(new BigDecimal("0.00"))).isTrue();
+  }
 
+  @Test
+  void is_AdditionWorkingToScale() {
+    BigDecimal val = new BigDecimal("100.992");
+    // HalfUp
+    assertThat(mathUtils.add(val, val)).isEqualTo(new BigDecimal("201.98"));
+
+    val = new BigDecimal("100.994");
+    assertThat(mathUtils.add(val, val)).isEqualTo(new BigDecimal("201.99"));
   }
 }

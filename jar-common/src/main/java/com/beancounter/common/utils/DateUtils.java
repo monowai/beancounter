@@ -51,7 +51,7 @@ public class DateUtils {
   }
 
 
-  private boolean isWorkDay(ZonedDateTime evaluate) {
+  public boolean isWorkDay(ZonedDateTime evaluate) {
     // Naive implementation that is only aware of Western markets
     if (evaluate.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
       return false;

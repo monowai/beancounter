@@ -1,6 +1,7 @@
 package com.beancounter.common;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
@@ -16,9 +17,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class TestValuation {
+class TestPositions {
 
   @Test
   void is_PostionResponseChainSerializing() throws Exception {
@@ -58,5 +60,19 @@ class TestValuation {
     Position position = positions.get(asset);
     assertThat(position).isNotNull().hasFieldOrPropertyWithValue("asset", asset);
 
+  }
+
+  @Test
+  void is_MoneyValuesFromPosition () {
+
+    Position position = Position.builder().asset(getAsset("Twee", "Twee"))
+        .build();
+
+    // Requesting a non existent MV.  Without a currency, it can't be created
+    Assertions.assertThat(position.getMoneyValue(Position.In.TRADE)).isNull();
+    // Retrieve with a currency will create if missing
+    Assertions.assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("currency", getCurrency("SGD"));
   }
 }

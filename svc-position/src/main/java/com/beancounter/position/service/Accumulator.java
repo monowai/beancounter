@@ -2,6 +2,7 @@ package com.beancounter.position.service;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Position;
+import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
@@ -40,6 +41,10 @@ public class Accumulator {
     logicMap.put(TrnType.SPLIT, new Split());
   }
 
+  public Position accumulate(Transaction transaction, Positions positions) {
+    return accumulate(transaction, positions.get(transaction));
+  }
+
   /**
    * Main calculation routine.
    *
@@ -55,7 +60,7 @@ public class Accumulator {
     ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
     valueTransaction.value(transaction, position);
     if (dateSensitive) {
-      position.setLastTradeDate(dateUtils.getDate(transaction.getTradeDate()));
+      position.getDateValues().setLast(dateUtils.getDate(transaction.getTradeDate()));
     }
 
     return position;
@@ -66,7 +71,7 @@ public class Accumulator {
     boolean validDate = false;
 
     Date tradeDate = transaction.getTradeDate();
-    Date positionDate = dateUtils.getDate(position.getLastTradeDate());
+    Date positionDate = dateUtils.getDate(position.getDateValues().getLast());
 
     if (positionDate == null) {
       validDate = true;

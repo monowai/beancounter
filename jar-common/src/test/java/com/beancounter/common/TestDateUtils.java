@@ -60,7 +60,7 @@ class TestDateUtils {
     assertThat(dateUtils.convert(found)).isEqualTo(getFriday());
   }
 
-    @Test
+  @Test
   void is_WeekendFound() {
     ZonedDateTime zonedDateTime = getSunday()
         .toInstant()
@@ -85,19 +85,19 @@ class TestDateUtils {
 
   }
 
-  private Date getMonday (){
+  private Date getMonday() {
     return dateUtils.getDate("2019-10-21");
   }
 
-  private Date getSunday (){
+  private Date getSunday() {
     return dateUtils.getDate("2019-10-20");
   }
 
-  private Date getSaturday (){
+  private Date getSaturday() {
     return dateUtils.getDate("2019-10-19");
   }
 
-  private Date getFriday (){
+  private Date getFriday() {
     return dateUtils.getDate("2019-10-18");
   }
 

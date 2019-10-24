@@ -30,12 +30,11 @@ public class PositionService implements Position {
    */
   public PositionResponse build(Collection<Transaction> transactions) {
     Positions positions = null;
-    // ToDo: PostionRequestRequest
     for (Transaction transaction : transactions) {
       if (positions == null) {
         positions = new Positions(transaction.getPortfolio());
       }
-      positions.add(accumulator.accumulate(transaction, positions.get(transaction.getAsset())));
+      positions.add(accumulator.accumulate(transaction, positions));
     }
     return PositionResponse.builder().data(positions).build();
   }

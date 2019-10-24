@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 class TestTransactionLogic {
   private DateUtils dateUtils = new DateUtils();
+
   /**
    * Transactions should be ordered.  If the date is ==, then it will be accepted but
    * unordered transactions will result in an Exception being thrown

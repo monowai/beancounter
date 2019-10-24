@@ -23,13 +23,16 @@ public class Position {
 
   @NonNull
   private Asset asset;
+
   @Builder.Default
-  @SuppressWarnings("UnusedAssignment")
   @Getter
   private QuantityValues quantityValues = QuantityValues.builder().build();
-  private String lastTradeDate;
+
   @Builder.Default
-  @SuppressWarnings("UnusedAssignment")
+  @Getter
+  private DateValues dateValues = DateValues.builder().build();
+
+  @Builder.Default
   @Getter
   private Map<In, MoneyValues> moneyValues = new HashMap<>();
 

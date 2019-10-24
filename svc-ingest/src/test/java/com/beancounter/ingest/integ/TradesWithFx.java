@@ -1,7 +1,7 @@
 package com.beancounter.ingest.integ;
 
-import static com.beancounter.ingest.UnitTestHelper.getCurrency;
-import static com.beancounter.ingest.UnitTestHelper.getPortfolio;
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.FxRate;
@@ -80,7 +80,7 @@ class TradesWithFx {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio(getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     Transaction transaction = trades.from(row, portfolio);
 
@@ -117,7 +117,7 @@ class TradesWithFx {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio(getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     Transaction transaction = trades.from(row, portfolio);
 
@@ -151,7 +151,7 @@ class TradesWithFx {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Testing all currency buckets
-    Portfolio portfolio = getPortfolio(getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     portfolio.setBase(getCurrency("GBP"));
 
     Transaction transaction = trades.from(row, portfolio);

@@ -1,5 +1,7 @@
 package com.beancounter.ingest;
 
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -10,9 +12,10 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.reader.RowProcessor;
+import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
+import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,15 +43,17 @@ class ShareSightTradeTest {
   @Autowired
   private RowProcessor rowProcessor;
 
+  @Autowired
+  private ShareSightTransformers shareSightTransformers;
+
   @Test
-  @VisibleForTesting
   void is_RowWithFxConverted() throws Exception {
 
     List<Object> row = getRow("buy", "0.8988", "2097.85");
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     // Portfolio is in NZD
-    Portfolio portfolio = UnitTestHelper.getPortfolio();
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     // System base currency
     Collection<Transaction> transactions = rowProcessor.process(portfolio, values, "Test");
@@ -64,7 +69,7 @@ class ShareSightTradeTest {
             MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeCurrency")
-        .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
+        .hasFieldOrPropertyWithValue("portfolio", getPortfolio("Test", getCurrency("NZD")))
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.8988"))
         .hasFieldOrProperty("tradeDate")
     ;
@@ -72,7 +77,23 @@ class ShareSightTradeTest {
   }
 
   @Test
-  @VisibleForTesting
+  void is_SplitTransformerFoundForRow() {
+    List<Object> row = new ArrayList<>();
+    row.add(ShareSightTrades.market, "AMEX");
+    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.name, "Test Asset");
+    row.add(ShareSightTrades.type, "split");
+    row.add(ShareSightTrades.date, "21/01/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "AUD");
+
+    Transformer transformer = shareSightTransformers.transformer(row);
+    assertThat(transformer).isInstanceOf(ShareSightTrades.class);
+  }
+
+  @Test
   void is_RowWithoutFxConverted() {
 
     List<Object> row = getRow("buy", "0.0", "2097.85");
@@ -80,7 +101,7 @@ class ShareSightTradeTest {
     values.add(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = UnitTestHelper.getPortfolio();
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     Transaction transaction = rowProcessor.process(portfolio, values, "Blah")
         .iterator().next();
@@ -94,8 +115,8 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount",
             MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
+        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("AUD"))
+        .hasFieldOrPropertyWithValue("portfolio", getPortfolio("Test", getCurrency("NZD")))
         .hasFieldOrPropertyWithValue("tradeCashRate", null)
         .hasFieldOrProperty("tradeDate")
     ;
@@ -103,7 +124,6 @@ class ShareSightTradeTest {
   }
 
   @Test
-  @VisibleForTesting
   void is_RowWithNoCommentTransformed() {
 
     List<Object> row = getRow("buy", "0.8988", "2097.85");
@@ -112,7 +132,7 @@ class ShareSightTradeTest {
     values.add(row);
 
     Transaction transaction =
-        rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee")
+        rowProcessor.process(getPortfolio("Test", getCurrency("NZD")), values, "twee")
             .iterator().next();
 
     assertThat(transaction)
@@ -126,15 +146,14 @@ class ShareSightTradeTest {
   }
 
   @Test
-  @VisibleForTesting
   void is_SplitTransactionTransformed() {
 
     List<Object> row = getRow("split", null, null);
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
-
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     Transaction transaction = rowProcessor
-        .process(UnitTestHelper.getPortfolio(), values, "blah").iterator().next();
+        .process(portfolio, values, "blah").iterator().next();
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -142,8 +161,8 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
+        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("AUD"))
+        .hasFieldOrPropertyWithValue("portfolio", portfolio)
 
         .hasFieldOrProperty("tradeDate")
     ;
@@ -156,7 +175,8 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     assertThrows(BusinessException.class, () ->
-        rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee"));
+        rowProcessor.process(getPortfolio("Test", getCurrency("NZD")),
+            values, "twee"));
   }
 
   @Test
@@ -167,7 +187,8 @@ class ShareSightTradeTest {
     values.add(row);
 
     assertThrows(BusinessException.class, () ->
-        rowProcessor.process(UnitTestHelper.getPortfolio(), values, "twee"));
+        rowProcessor.process(getPortfolio("Test", getCurrency("NZD")),
+            values, "twee"));
 
 
   }

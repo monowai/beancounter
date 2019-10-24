@@ -1,20 +1,18 @@
 package com.beancounter.position;
 
+import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -28,12 +26,11 @@ import org.junit.jupiter.api.Test;
 class TestStockSplits {
 
   @Test
-  @VisibleForTesting
   void is_QuantityWorkingForSplit() {
 
-    Asset apple = AssetUtils.getAsset("AAPL", "NASDAQ");
+    Asset apple = getAsset("AAPL", "NASDAQ");
 
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    Positions positions = new Positions(getPortfolio("TEST"));
 
     Position position = positions.get(apple);
 
@@ -64,19 +61,18 @@ class TestStockSplits {
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
         .tradeDate(DateUtils.convert(today))
-        .quantity(new BigDecimal("7")).build();
+        .quantity(new BigDecimal("7"))
+        .build();
 
     Split split = new Split();
     split.value(stockSplit, position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", new BigDecimal(700))
-    ;
+        .hasFieldOrPropertyWithValue("total", new BigDecimal(700));
 
     assertThat(position.getMoneyValue(Position.In.TRADE))
-        .hasFieldOrPropertyWithValue("costBasis", costBasis)
-    ;
+        .hasFieldOrPropertyWithValue("costBasis", costBasis);
 
     // Another buy at the adjusted price
     buy.value(buyTrn, position);
@@ -103,8 +99,8 @@ class TestStockSplits {
     // Repurchase; total should be equal to the quantity we just purchased
     buy.value(buyTrn, position);
     assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", buyTrn.getQuantity())
-    ;
+        .hasFieldOrPropertyWithValue("total", buyTrn.getQuantity());
 
   }
+
 }

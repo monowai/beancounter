@@ -1,6 +1,6 @@
 package com.beancounter.ingest;
 
-import static com.beancounter.ingest.UnitTestHelper.getCurrency;
+import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;

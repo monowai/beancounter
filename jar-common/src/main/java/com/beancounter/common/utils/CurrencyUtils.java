@@ -3,13 +3,15 @@ package com.beancounter.common.utils;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import java.math.BigDecimal;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class CurrencyUtils {
-  public static Currency getCurrency(String isoCode) {
+  public Currency getCurrency(String isoCode) {
     return Currency.builder().code(isoCode).build();
   }
 
-  public static CurrencyPair getCurrencyPair(BigDecimal rate, Currency from, Currency to) {
+  public CurrencyPair getCurrencyPair(BigDecimal rate, Currency from, Currency to) {
     CurrencyPair currencyPair = null;
     if (from == null || to == null) {
       return null;

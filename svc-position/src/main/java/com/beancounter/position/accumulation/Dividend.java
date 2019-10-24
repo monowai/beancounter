@@ -10,8 +10,6 @@ import java.math.BigDecimal;
 
 public class Dividend implements ValueTransaction {
 
-  private MathUtils mathUtils = new MathUtils();
-
   public void value(Transaction transaction, Position position) {
     value(transaction, position, Position.In.TRADE, BigDecimal.ONE);
     value(transaction, position, Position.In.BASE, transaction.getTradeBaseRate());
@@ -25,8 +23,8 @@ public class Dividend implements ValueTransaction {
 
     MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
     moneyValues.setDividends(
-        mathUtils.add(moneyValues.getDividends(),
-            mathUtils.multiply(transaction.getTradeAmount(), rate)));
+        MathUtils.add(moneyValues.getDividends(),
+            MathUtils.multiply(transaction.getTradeAmount(), rate)));
 
   }
 

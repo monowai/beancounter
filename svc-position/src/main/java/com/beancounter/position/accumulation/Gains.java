@@ -3,9 +3,10 @@ package com.beancounter.position.accumulation;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Position;
 import java.math.BigDecimal;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class Gains {
-
 
   public void value(Position position, Position.In in) {
 

@@ -6,13 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class EcbDate {
-  private static DateUtils dateUtils = new DateUtils();
   public static final String earliest = "1999-01-04";
-  private static Date earliestDate = dateUtils.getDate(earliest);
+  private static Date earliestDate = DateUtils.getDate(earliest);
 
   public String getValidDate(String inDate) {
-    dateUtils.isValid(inDate);
-    Date compareTo = dateUtils.getDate(inDate);
+    DateUtils.isValid(inDate);
+    Date compareTo = DateUtils.getDate(inDate);
 
     if (compareTo.before(earliestDate)) {
       return earliest;

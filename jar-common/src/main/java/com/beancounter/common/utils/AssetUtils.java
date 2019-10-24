@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
 /**
  * Encapsulates routines to assist with asset keys and objects.
@@ -12,6 +13,7 @@ import lombok.NonNull;
  * @author mikeh
  * @since 2019-02-24
  */
+@UtilityClass
 public class AssetUtils {
 
   /**
@@ -20,7 +22,7 @@ public class AssetUtils {
    * @param asset valid Asset
    * @return string that can be used to pull the asset from a map
    */
-  public static String toKey(@NonNull Asset asset) {
+  public String toKey(@NonNull Asset asset) {
     return asset.getCode() + ":" + asset.getMarket().getCode();
   }
 
@@ -30,7 +32,7 @@ public class AssetUtils {
    * @param key result of parseKey(Asset)
    * @return an Asset
    */
-  public static Asset fromKey(@NonNull String key) {
+  public Asset fromKey(@NonNull String key) {
     String[] marketAsset = key.split(":");
     if (marketAsset.length != 2) {
       throw new BusinessException(String.format("Unable to parse the key %s", key));
@@ -45,7 +47,7 @@ public class AssetUtils {
    * @param marketCode marketCode
    * @return simple Asset.
    */
-  public static Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
+  public Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
     return getAsset(assetCode, Market.builder()
         .code(marketCode)
         .currency(Currency.builder().code("USD").build())
@@ -59,7 +61,7 @@ public class AssetUtils {
    * @param market    market to return
    * @return asset on a market
    */
-  public static Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
+  public Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
     return Asset.builder().code(assetCode)
         .market(market)
         .build();

@@ -84,11 +84,9 @@ class TestStaticData {
     LocalDateTime sunday = LocalDateTime
         .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat));
 
-    DateUtils dateUtils = new DateUtils();
-
     Market sgMarket = marketService.getMarket("SGX");
     Market nzMarket = marketService.getMarket("NZX");
-    LocalDate resolvedDate = dateUtils.getLastMarketDate(
+    LocalDate resolvedDate = DateUtils.getLastMarketDate(
         sunday
             .atZone(sgMarket.getTimezone().toZoneId()),
         marketService.getMarket("NYSE").getTimezone().toZoneId());
@@ -98,7 +96,7 @@ class TestStaticData {
         .hasFieldOrPropertyWithValue("dayOfMonth", 12)
     ;
 
-    resolvedDate = dateUtils.getLastMarketDate(sunday
+    resolvedDate = DateUtils.getLastMarketDate(sunday
             .atZone(nzMarket.getTimezone().toZoneId()),
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 

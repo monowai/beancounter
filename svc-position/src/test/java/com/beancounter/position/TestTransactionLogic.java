@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
  * Test rules that would prevent a transaction from accumulating.
  */
 class TestTransactionLogic {
-  private DateUtils dateUtils = new DateUtils();
 
   /**
    * Transactions should be ordered.  If the date is ==, then it will be accepted but
@@ -51,7 +50,7 @@ class TestTransactionLogic {
         .asset(apple)
         .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
-        .tradeDate(dateUtils.convert(yesterday))
+        .tradeDate(DateUtils.convert(yesterday))
         .quantity(new BigDecimal(100)).build();
 
     Transaction buyToday = Transaction.builder()
@@ -59,7 +58,7 @@ class TestTransactionLogic {
         .asset(apple)
         .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
-        .tradeDate(dateUtils.convert(today))
+        .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal(100)).build();
 
     positions.add(position);

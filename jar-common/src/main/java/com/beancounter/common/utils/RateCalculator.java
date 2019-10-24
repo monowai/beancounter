@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Map;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class RateCalculator {
 
   /**

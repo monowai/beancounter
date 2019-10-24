@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class FxService {
   private CurrencyService currencyService;
   private EcbService ecbService;
-  private RateCalculator rateCalculator = new RateCalculator();
 
   // Persist!
   private Map<String, Collection<FxRate>> rateStore = new HashMap<>();
@@ -37,7 +36,7 @@ public class FxService {
     String rateDate;
     if (fxRequest.getRateDate() == null) {
       // Looking for current
-      rateDate = new DateUtils().today();
+      rateDate = DateUtils.today();
       rateKey = rateDate;
     } else {
       rateDate = fxRequest.getRateDate();
@@ -53,7 +52,7 @@ public class FxService {
       mappedRates.put(rate.getTo().getCode(), rate);
     }
     return FxResponse.builder().data(
-        rateCalculator.compute(rateDate, fxRequest.getPairs(), mappedRates))
+        RateCalculator.compute(rateDate, fxRequest.getPairs(), mappedRates))
         .build();
   }
 

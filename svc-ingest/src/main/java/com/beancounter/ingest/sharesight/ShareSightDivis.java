@@ -5,6 +5,7 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.reader.Transformer;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -56,12 +57,9 @@ public class ShareSightDivis implements Transformer {
         .portfolio(portfolio)
         .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
         .trnType(TrnType.DIVI)
-        .tax(shareSightHelper.getMathUtils()
-            .multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
-        .tradeAmount(shareSightHelper.getMathUtils()
-            .multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
-        .cashAmount(shareSightHelper.getMathUtils()
-            .multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
+        .tax(MathUtils.multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
+        .tradeAmount(MathUtils.multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
+        .cashAmount(MathUtils.multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
         .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
         .tradeCashRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)

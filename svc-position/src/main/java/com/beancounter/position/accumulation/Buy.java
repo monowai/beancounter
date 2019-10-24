@@ -10,8 +10,6 @@ import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 
 public class Buy implements ValueTransaction {
-  private Cost cost = new Cost();
-  private MathUtils mathUtils = new MathUtils();
 
   public void value(Transaction transaction, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
@@ -31,20 +29,20 @@ public class Buy implements ValueTransaction {
     MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
 
     moneyValues.setPurchases(moneyValues.getPurchases().add(
-        mathUtils.multiply(transaction.getTradeAmount(), rate))
+        MathUtils.multiply(transaction.getTradeAmount(), rate))
     );
 
     moneyValues.setCostBasis(moneyValues.getCostBasis().add(
-        mathUtils.multiply(transaction.getTradeAmount(), rate))
+        MathUtils.multiply(transaction.getTradeAmount(), rate))
     );
 
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
 
       moneyValues.setAverageCost(
-          cost.average(moneyValues.getCostBasis(), position.getQuantityValues().getTotal())
+          Cost.average(moneyValues.getCostBasis(), position.getQuantityValues().getTotal())
       );
 
     }
-    cost.setCostValue(position, moneyValues);
+    Cost.setCostValue(position, moneyValues);
   }
 }

@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Test;
 
 class TestPositions {
 
-  private DateUtils dateUtils = new DateUtils();
-
   @Test
   void is_PositionResponseChainSerializing() throws Exception {
     Map<Position.In, MoneyValues> moneyValuesMap = new HashMap<>();
@@ -49,12 +47,11 @@ class TestPositions {
         .build()
     );
     Position position = positions.get(asset);
-    DateUtils dateUtils = new DateUtils();
 
     DateValues dateValues = DateValues.builder()
-        .opened(dateUtils.today())
-        .closed(dateUtils.today())
-        .last(dateUtils.today())
+        .opened(DateUtils.today())
+        .closed(DateUtils.today())
+        .last(DateUtils.today())
         .build();
 
     position.setDateValues(dateValues);
@@ -73,7 +70,7 @@ class TestPositions {
 
     Asset asset = getAsset("Dates", "Code");
 
-    Date tradeDate = dateUtils.getDate("2018-12-01");
+    Date tradeDate = DateUtils.getDate("2018-12-01");
     Transaction initial = Transaction.builder()
         .tradeDate(tradeDate)
         .portfolio(getPortfolio("CODE"))

@@ -38,8 +38,6 @@ class ShareSightDiviTest {
   @Autowired
   private ShareSightTransformers shareSightTransformers;
 
-  private MathUtils mathUtils = new MathUtils();
-
   @Test
   @VisibleForTesting
   void is_CurrencyResolvedForDividendInput() throws Exception {
@@ -73,9 +71,9 @@ class ShareSightDiviTest {
         .hasFieldOrPropertyWithValue("asset.code", expectedAsset.getCode())
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
-            mathUtils.multiply(new BigDecimal("15.85"), fxRate))
+            MathUtils.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("cashAmount",
-            mathUtils.multiply(new BigDecimal("15.85"), fxRate))
+            MathUtils.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))

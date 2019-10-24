@@ -8,11 +8,10 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
 
 public class FxUtils {
-  private DateUtils dateUtils = new DateUtils();
 
   public FxRequest getFxRequest(Currency base, Positions positions) {
     if (positions.getAsAt() == null) {
-      positions.setAsAt(dateUtils.today());
+      positions.setAsAt(DateUtils.today());
     }
 
     FxRequest fxRequest = FxRequest.builder()

@@ -13,9 +13,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class Sell implements ValueTransaction {
 
-  private MathUtils mathUtils = new MathUtils();
-  private Cost cost = new Cost();
-
   public void value(Transaction transaction, Position position) {
     BigDecimal soldQuantity = transaction.getQuantity();
     if (soldQuantity.doubleValue() > 0) {
@@ -39,15 +36,15 @@ public class Sell implements ValueTransaction {
     MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
     moneyValues.setSales(
         moneyValues.getSales().add(
-            mathUtils.multiply(transaction.getTradeAmount(), rate))
+            MathUtils.multiply(transaction.getTradeAmount(), rate))
     );
 
     if (!transaction.getTradeAmount().equals(BigDecimal.ZERO)) {
-      BigDecimal unitCost = mathUtils.multiply(transaction.getTradeAmount(), rate)
-          .divide(transaction.getQuantity().abs(), mathUtils.getMathContext());
+      BigDecimal unitCost = MathUtils.multiply(transaction.getTradeAmount(), rate)
+          .divide(transaction.getQuantity().abs(), MathUtils.getMathContext());
       BigDecimal unitProfit = unitCost.subtract(moneyValues.getAverageCost());
       BigDecimal realisedGain = unitProfit.multiply(transaction.getQuantity().abs());
-      moneyValues.setRealisedGain(mathUtils.add(moneyValues.getRealisedGain(), realisedGain));
+      moneyValues.setRealisedGain(MathUtils.add(moneyValues.getRealisedGain(), realisedGain));
     }
 
     if (position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
@@ -56,6 +53,6 @@ public class Sell implements ValueTransaction {
       moneyValues.setAverageCost(BigDecimal.ZERO);
     }
     // If quantity changes, we need to update the cost Value
-    cost.setCostValue(position, moneyValues);
+    Cost.setCostValue(position, moneyValues);
   }
 }

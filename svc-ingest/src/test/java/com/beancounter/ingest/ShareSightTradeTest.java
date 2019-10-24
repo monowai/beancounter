@@ -60,8 +60,8 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("fees", new BigDecimal("14.45"))
-        .hasFieldOrPropertyWithValue("tradeAmount", new MathUtils()
-            .multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
+        .hasFieldOrPropertyWithValue("tradeAmount",
+            MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeCurrency")
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())
@@ -91,8 +91,8 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("fees", new BigDecimal("12.99"))
 
-        .hasFieldOrPropertyWithValue("tradeAmount", new MathUtils()
-            .multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
+        .hasFieldOrPropertyWithValue("tradeAmount",
+            MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", UnitTestHelper.getCurrency("AUD"))
         .hasFieldOrPropertyWithValue("portfolio", UnitTestHelper.getPortfolio())

@@ -24,7 +24,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestMarketValuesWithFx {
-  private MathUtils mathUtils = new MathUtils();
 
   @Test
   @VisibleForTesting
@@ -54,7 +53,6 @@ class TestMarketValuesWithFx {
         .close(new BigDecimal("10.00"))
         .build();
 
-    MarketValue marketValue = new MarketValue();
     FxReport fxReport = FxReport.builder()
         .portfolio(portfolio.getCurrency())
         .base(portfolio.getBase())
@@ -69,7 +67,7 @@ class TestMarketValuesWithFx {
         FxRate.builder().rate(simpleRate).build());
 
     // Revalue based on marketData prices
-    marketValue.value(position, fxReport, marketData, fxRateMap);
+    MarketValue.value(position, fxReport, marketData, fxRateMap);
 
     assertThat(position.getMoneyValue(Position.In.TRADE))
         .isEqualToComparingFieldByField(MoneyValues.builder()
@@ -81,7 +79,7 @@ class TestMarketValuesWithFx {
             .costValue(buyTrn.getTradeAmount())
             .totalGain(new BigDecimal("-1000.00"))
             .unrealisedGain(new BigDecimal("-1000.00"))
-            .marketValue(mathUtils.multiply(buyTrn.getQuantity(), marketData.getClose()))
+            .marketValue(MathUtils.multiply(buyTrn.getQuantity(), marketData.getClose()))
             .build());
 
 
@@ -95,7 +93,7 @@ class TestMarketValuesWithFx {
             .costValue(buyTrn.getTradeAmount())
             .totalGain(new BigDecimal("-1000.00"))
             .unrealisedGain(new BigDecimal("-1000.00"))
-            .marketValue(mathUtils.multiply(buyTrn.getQuantity(), marketData.getClose()))
+            .marketValue(MathUtils.multiply(buyTrn.getQuantity(), marketData.getClose()))
             .build());
 
     // Basically 10% of the non-portfolio values due to the simpleRate value used

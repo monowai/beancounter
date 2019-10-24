@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
  * @since 2019-02-20
  */
 class TestStockSplits {
-  private DateUtils dateUtils = new DateUtils();
 
   @Test
   @VisibleForTesting
@@ -48,7 +47,7 @@ class TestStockSplits {
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(dateUtils.convert(today))
+        .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal("100")).build();
 
     Buy buy = new Buy();
@@ -64,7 +63,7 @@ class TestStockSplits {
         .trnType(TrnType.SPLIT)
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
-        .tradeDate(dateUtils.convert(today))
+        .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal("7")).build();
 
     Split split = new Split();
@@ -91,7 +90,7 @@ class TestStockSplits {
         .asset(apple)
         .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(dateUtils.convert(today))
+        .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal("800")).build();
 
     // Sell the entire position

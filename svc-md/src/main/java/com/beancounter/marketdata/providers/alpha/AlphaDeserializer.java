@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AlphaDeserializer extends JsonDeserializer {
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static DateUtils dateUtils = new DateUtils();
 
   @Override
   public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -59,7 +58,7 @@ public class AlphaDeserializer extends JsonDeserializer {
         firstKey = allValues.entrySet().stream().findFirst();
 
     if (firstKey.isPresent()) {
-      LocalDate localDateTime = dateUtils.getLocalDate(
+      LocalDate localDateTime = DateUtils.getLocalDate(
           firstKey.get().getKey().toString(), "yyyy-M-dd");
       Date priceDate = Date.from(
           localDateTime.atStartOfDay(ZoneId.of(timeZone)).toInstant());

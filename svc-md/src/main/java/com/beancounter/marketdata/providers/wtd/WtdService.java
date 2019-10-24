@@ -47,8 +47,6 @@ public class WtdService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.WTD.markets}")
   private String markets;
 
-  private DateUtils dateUtils = new DateUtils();
-
   private WtdRequester wtdRequester;
 
   private StaticConfig staticConfig;
@@ -193,7 +191,7 @@ public class WtdService implements MarketDataProvider {
     if (date != null) {
       return date;
     }
-    LocalDate result = dateUtils.getLastMarketDate(
+    LocalDate result = DateUtils.getLastMarketDate(
         Instant.now().atZone(ZoneId.systemDefault()),
         timeZone.toZoneId());
 

@@ -46,9 +46,6 @@ import org.springframework.stereotype.Service;
 public class ValuationService implements Valuation {
 
   private BcService bcService;
-  private Gains gains = new Gains();
-  private DateUtils dateUtils = new DateUtils();
-  private MarketValue marketValue = new MarketValue();
 
   @Value("${marketdata.url}")
   private String mdUrl;
@@ -61,11 +58,11 @@ public class ValuationService implements Valuation {
   @Override
   public PositionResponse value(Positions positions) {
     if (positions.getAsAt() != null) {
-      dateUtils.isValid(positions.getAsAt());
+      DateUtils.isValid(positions.getAsAt());
     }
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
-      gains.value(position, Position.In.PORTFOLIO);
+      Gains.value(position, Position.In.PORTFOLIO);
       if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
         assets.add(position.getAsset());
       }
@@ -91,7 +88,7 @@ public class ValuationService implements Valuation {
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        marketValue.value(position, fxReport, marketData, rates);
+        MarketValue.value(position, fxReport, marketData, rates);
         position.setAsset(marketData.getAsset());
       }
     }

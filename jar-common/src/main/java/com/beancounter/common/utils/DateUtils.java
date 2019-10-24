@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
 import java.util.TimeZone;
+import lombok.experimental.UtilityClass;
 
 /**
  * Date based helper functions.
@@ -17,7 +18,7 @@ import java.util.TimeZone;
  * @author mikeh
  * @since 2019-03-12
  */
-
+@UtilityClass
 public class DateUtils {
 
   private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -62,6 +63,13 @@ public class DateUtils {
     // ToDo: market holidays...
   }
 
+  public String getDate(Date date) {
+    if (date == null) {
+      return null;
+    }
+    return simpleDateFormat.format(date);
+  }
+
   public Date getDate(String inDate) {
     return getDate(inDate, "yyyy-MM-dd");
   }
@@ -80,13 +88,6 @@ public class DateUtils {
       return null;
     }
     return LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat));
-  }
-
-  public String getDate(Date date) {
-    if ( date == null ) {
-      return null;
-    }
-    return simpleDateFormat.format(date);
   }
 
   public String today() {

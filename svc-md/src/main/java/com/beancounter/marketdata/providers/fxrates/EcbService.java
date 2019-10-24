@@ -16,7 +16,6 @@ public class EcbService {
   private CurrencyService currencyService;
   private String currencies;
   private EcbDate ecbDate = new EcbDate();
-  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   EcbService(FxGateway fxGateway, CurrencyService currencyService) {
@@ -39,7 +38,7 @@ public class EcbService {
               .from(currencyService.getBase())
               .to(currencyService.getCode(code))
               .rate(rates.getRates().get(code))
-              .date(dateUtils.getDate(rates.getDate()))
+              .date(DateUtils.getDate(rates.getDate()))
               .build()
       );
     }

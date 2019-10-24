@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class FxTransactions {
   private FxRateService fxRateService;
-  private MathUtils mathUtils = new MathUtils();
-  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   @VisibleForTesting
@@ -36,7 +34,7 @@ public class FxTransactions {
   public Collection<Transaction> applyRates(Collection<Transaction> transactions) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (Transaction transaction : transactions) {
-      String tradeDate = dateUtils.getDate(transaction.getTradeDate());
+      String tradeDate = DateUtils.getDate(transaction.getTradeDate());
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
@@ -77,17 +75,17 @@ public class FxTransactions {
                           CurrencyPair tradeCash,
                           Transaction transaction) {
 
-    if (tradePortfolio != null && mathUtils.isUnset(transaction.getTradePortfolioRate())) {
+    if (tradePortfolio != null && MathUtils.isUnset(transaction.getTradePortfolioRate())) {
       transaction.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
     } else {
       transaction.setTradePortfolioRate(FxRate.ONE.getRate());
     }
-    if (tradeBase != null && mathUtils.isUnset(transaction.getTradeBaseRate())) {
+    if (tradeBase != null && MathUtils.isUnset(transaction.getTradeBaseRate())) {
       transaction.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
     } else {
       transaction.setTradeBaseRate(FxRate.ONE.getRate());
     }
-    if (tradeCash != null && mathUtils.isUnset(transaction.getTradeCashRate())) {
+    if (tradeCash != null && MathUtils.isUnset(transaction.getTradeCashRate())) {
       transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
     } else {
       transaction.setTradeCashRate(FxRate.ONE.getRate());

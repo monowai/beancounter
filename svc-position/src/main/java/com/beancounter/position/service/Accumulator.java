@@ -32,7 +32,6 @@ public class Accumulator {
   private boolean orderedTransactions = false;
 
   private Map<TrnType, ValueTransaction> logicMap = new HashMap<>();
-  private DateUtils dateUtils = new DateUtils();
 
   public Accumulator() {
     logicMap.put(TrnType.BUY, new Buy());
@@ -60,7 +59,7 @@ public class Accumulator {
     ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
     valueTransaction.value(transaction, position);
     if (dateSensitive) {
-      position.getDateValues().setLast(dateUtils.getDate(transaction.getTradeDate()));
+      position.getDateValues().setLast(DateUtils.getDate(transaction.getTradeDate()));
     }
 
     return position;
@@ -71,7 +70,7 @@ public class Accumulator {
     boolean validDate = false;
 
     Date tradeDate = transaction.getTradeDate();
-    Date positionDate = dateUtils.getDate(position.getDateValues().getLast());
+    Date positionDate = DateUtils.getDate(position.getDateValues().getLast());
 
     if (positionDate == null) {
       validDate = true;

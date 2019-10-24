@@ -47,8 +47,6 @@ public class ShareSightHelper {
   @Value("${range:All Trades Report}")
   private String range;
 
-  private MathUtils mathUtils = new MathUtils();
-
   @Autowired
   public ShareSightHelper(ExchangeConfig exchangeConfig) {
     this.exchangeConfig = exchangeConfig;
@@ -100,14 +98,14 @@ public class ShareSightHelper {
   }
 
   public BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {
-    return mathUtils.divide(money, rate);
+    return MathUtils.divide(money, rate);
   }
 
   public BigDecimal getValueWithFx(BigDecimal money, BigDecimal rate) {
-    return mathUtils.multiply(money, rate);
+    return MathUtils.multiply(money, rate);
   }
 
   public boolean isUnset(BigDecimal value) {
-    return mathUtils.isUnset(value);
+    return MathUtils.isUnset(value);
   }
 }

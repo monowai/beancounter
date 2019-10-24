@@ -3,10 +3,12 @@ package com.beancounter.common.utils;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import lombok.experimental.UtilityClass;
 
 /**
  * Controls the way BC will deal with Division and Multiplication when it comes to Fx Rates.
  */
+@UtilityClass
 public class MathUtils {
 
   private MathContext mathContext = new MathContext(10);

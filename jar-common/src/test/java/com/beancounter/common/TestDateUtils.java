@@ -13,12 +13,11 @@ import java.util.Date;
 import org.junit.jupiter.api.Test;
 
 class TestDateUtils {
-  private DateUtils dateUtils = new DateUtils();
 
   @Test
   void is_TodayAnIso8601String() {
     Calendar calendar = new Calendar.Builder().setInstant(new Date()).build();
-    String now = dateUtils.today();
+    String now = DateUtils.today();
     calendar.get(Calendar.YEAR);
     assertThat(now)
         .isNotNull()
@@ -26,28 +25,28 @@ class TestDateUtils {
         .contains("-" + (calendar.get(Calendar.MONTH) + 1) + "-")
         .contains("-" + calendar.get(Calendar.DAY_OF_MONTH))
     ;
-    assertThat(dateUtils.getDate("2019-11-29")).isNotNull();
-    dateUtils.isValid("2019-11-29");
+    assertThat(DateUtils.getDate("2019-11-29")).isNotNull();
+    DateUtils.isValid("2019-11-29");
   }
 
   @Test
   void is_InvalidDateDetected() {
     String invalidDate = "2019-11-07'";
-    assertThrows(BusinessException.class, () -> dateUtils.isValid(invalidDate));
+    assertThrows(BusinessException.class, () -> DateUtils.isValid(invalidDate));
   }
 
   @Test
   void is_NullIsoDate() {
     String nullString = null;
-    assertThat(dateUtils.getDate(nullString)).isNull();
-    assertThat(dateUtils.getLocalDate(nullString, "yyyy-MM-dd")).isNull();
+    assertThat(DateUtils.getDate(nullString)).isNull();
+    assertThat(DateUtils.getLocalDate(nullString, "yyyy-MM-dd")).isNull();
     Date nullDate = null;
-    assertThat(dateUtils.getDate(nullDate)).isNull();
+    assertThat(DateUtils.getDate(nullDate)).isNull();
   }
 
   @Test
   void is_LocalDateEqualToToday() {
-    assertThat(dateUtils.convert(LocalDate.now())).isEqualTo(dateUtils.today());
+    assertThat(DateUtils.convert(LocalDate.now())).isEqualTo(DateUtils.today());
   }
 
   @Test
@@ -56,8 +55,8 @@ class TestDateUtils {
         .toInstant()
         .atZone(ZoneId.systemDefault());
 
-    LocalDate found = dateUtils.getLastMarketDate(sunday, ZoneId.systemDefault());
-    assertThat(dateUtils.convert(found)).isEqualTo(getFriday());
+    LocalDate found = DateUtils.getLastMarketDate(sunday, ZoneId.systemDefault());
+    assertThat(DateUtils.convert(found)).isEqualTo(getFriday());
   }
 
   @Test
@@ -66,39 +65,39 @@ class TestDateUtils {
         .toInstant()
         .atZone(ZoneId.systemDefault());
 
-    assertThat(dateUtils.isWorkDay(zonedDateTime)).isFalse();// Sunday
+    assertThat(DateUtils.isWorkDay(zonedDateTime)).isFalse();// Sunday
 
     zonedDateTime = getSaturday()
         .toInstant()
         .atZone(ZoneId.systemDefault());
-    assertThat(dateUtils.isWorkDay(zonedDateTime)).isFalse(); // Saturday
+    assertThat(DateUtils.isWorkDay(zonedDateTime)).isFalse(); // Saturday
 
     zonedDateTime = getFriday()
         .toInstant()
         .atZone(ZoneId.systemDefault());
-    assertThat(dateUtils.isWorkDay(zonedDateTime)).isTrue(); // Friday
+    assertThat(DateUtils.isWorkDay(zonedDateTime)).isTrue(); // Friday
 
     zonedDateTime = getMonday()
         .toInstant()
         .atZone(ZoneId.systemDefault());
-    assertThat(dateUtils.isWorkDay(zonedDateTime)).isTrue(); // Monday
+    assertThat(DateUtils.isWorkDay(zonedDateTime)).isTrue(); // Monday
 
   }
 
   private Date getMonday() {
-    return dateUtils.getDate("2019-10-21");
+    return DateUtils.getDate("2019-10-21");
   }
 
   private Date getSunday() {
-    return dateUtils.getDate("2019-10-20");
+    return DateUtils.getDate("2019-10-20");
   }
 
   private Date getSaturday() {
-    return dateUtils.getDate("2019-10-19");
+    return DateUtils.getDate("2019-10-19");
   }
 
   private Date getFriday() {
-    return dateUtils.getDate("2019-10-18");
+    return DateUtils.getDate("2019-10-18");
   }
 
 }

@@ -43,14 +43,13 @@ class FxRateTests {
   @Test
   @VisibleForTesting
   void is_RateCalculatorComputing() {
-    RateCalculator rateCalculator = new RateCalculator();
 
     Collection<CurrencyPair> pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);
 
     Map<String, FxRate> rates = getRateTable();
     String asAt = "2019-11-21";
 
-    FxPairResults values = rateCalculator.compute(asAt, pairs, rates);
+    FxPairResults values = RateCalculator.compute(asAt, pairs, rates);
 
     FxRate audUsd = values.getRates().get(AUD_USD);
     FxRate usdAud = values.getRates().get(USD_AUD);

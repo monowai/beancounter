@@ -20,8 +20,6 @@ class TestMarketData {
   @Test
   @VisibleForTesting
   void is_MarketDataSerializing() throws Exception {
-    DateUtils dateUtils = new DateUtils();
-
 
     Collection<MarketData> marketDataCollection = new ArrayList<>();
     marketDataCollection.add(MarketData.builder()
@@ -30,7 +28,7 @@ class TestMarketData {
         .open(BigDecimal.ONE)
         .close(BigDecimal.TEN)
         .high(BigDecimal.TEN)
-        .date(dateUtils.getDate("2012-10-01", "yyyy-MM-dd"))
+        .date(DateUtils.getDate("2012-10-01", "yyyy-MM-dd"))
         .build());
 
     PriceResponse priceResponse = PriceResponse.builder().data(marketDataCollection).build();

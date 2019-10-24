@@ -8,7 +8,6 @@ import com.beancounter.common.model.Transaction;
 import java.math.BigDecimal;
 
 public class Split implements ValueTransaction {
-  private Cost cost = new Cost();
 
   public void value(Transaction transaction, Position position) {
     BigDecimal total = position.getQuantityValues().getTotal();
@@ -26,10 +25,10 @@ public class Split implements ValueTransaction {
   private void value(Position position, MoneyValues moneyValues) {
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
       moneyValues.setAverageCost(
-          cost.average(moneyValues.getCostBasis(), position.getQuantityValues().getTotal())
+          Cost.average(moneyValues.getCostBasis(), position.getQuantityValues().getTotal())
       );
     }
 
-    cost.setCostValue(position, moneyValues);
+    Cost.setCostValue(position, moneyValues);
   }
 }

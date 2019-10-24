@@ -110,7 +110,7 @@ class FxMvcTests {
   void is_NullDateReturningCurrent() throws Exception {
 
     File rateResponse = new ClassPathResource("contracts/ecb/fx-rates.json").getFile();
-    String today = new DateUtils().today();
+    String today = DateUtils.today();
     DataProviderUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies

@@ -69,8 +69,7 @@ class TestFx {
         .from(Currency.builder().code("USD").build())
         .rate(FxRate.ONE.getRate()).build());
 
-    FxPairResults rateResults = new RateCalculator()
-        .compute("2019/08/27", pairs, rateMap);
+    FxPairResults rateResults = RateCalculator.compute("2019/08/27", pairs, rateMap);
 
     ObjectMapper objectMapper = new ObjectMapper();
     FxResponse fxResponse = FxResponse.builder().data(rateResults).build();

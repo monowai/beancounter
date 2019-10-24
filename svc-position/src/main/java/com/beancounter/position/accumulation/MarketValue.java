@@ -11,10 +11,10 @@ import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.FxReport;
 import java.math.BigDecimal;
 import java.util.Map;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class MarketValue {
-  private Gains gains = new Gains();
-  private MathUtils mathUtils = new MathUtils();
 
   public void value(Position position,
                     FxReport fxReport,
@@ -31,9 +31,9 @@ public class MarketValue {
   private void value(Position position, MarketData marketData, FxRate rate, Position.In in) {
     BigDecimal total = position.getQuantityValues().getTotal();
     MoneyValues moneyValues = position.getMoneyValue(in);
-    moneyValues.setPrice(mathUtils.multiply(marketData.getClose(), rate.getRate()));
+    moneyValues.setPrice(MathUtils.multiply(marketData.getClose(), rate.getRate()));
     moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));
-    gains.value(position, in);
+    Gains.value(position, in);
   }
 
   private FxRate rate(Currency report, Currency trade, Map<CurrencyPair, FxRate> rates) {

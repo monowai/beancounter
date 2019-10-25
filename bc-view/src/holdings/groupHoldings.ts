@@ -1,11 +1,54 @@
 import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
+import { GroupBy, ValuationCcy } from "./enums";
 
-export const LOCAL = "LOCAL";
+function getPath(path: string, position: Position): string {
+  return (path
+    .split(".")
+    .reduce(
+      (p, c) => (p && p[c]) || "undefined",
+      position
+    ) as unknown) as string;
+}
+
+function subTotal(subTotals: MoneyValues[], position: Position, valueIn: ValuationCcy): MoneyValues[] {
+  if (!subTotals) {
+    subTotals = [];
+    subTotals[valueIn] = {
+      costValue: 0,
+      dividends: 0,
+      marketValue: 0,
+      realisedGain: 0,
+      totalGain: 0,
+      unrealisedGain: 0
+    };
+  }
+  subTotals[valueIn].marketValue +=
+    position.moneyValues[valueIn].marketValue;
+  subTotals[valueIn].costValue =
+    subTotals[valueIn].costValue +
+    position.moneyValues[valueIn].costValue;
+  subTotals[valueIn].dividends =
+    subTotals[valueIn].dividends +
+    position.moneyValues[valueIn].dividends;
+  subTotals[valueIn].realisedGain =
+    subTotals[valueIn].realisedGain +
+    position.moneyValues[valueIn].realisedGain;
+  subTotals[valueIn].unrealisedGain =
+    subTotals[valueIn].unrealisedGain +
+    position.moneyValues[valueIn].unrealisedGain;
+  subTotals[valueIn].totalGain =
+    subTotals[valueIn].totalGain +
+    position.moneyValues[valueIn].totalGain;
+
+  return subTotals;
+}
+
 // Transform the holdingContract into Holdings suitable for display
 export function groupHoldings(
   contract: HoldingContract,
   hideEmpty: boolean,
-  groupBy: string
+  valueIn: ValuationCcy,
+  groupBy: GroupBy
 ): Holdings {
   return Object.keys(contract.positions)
     .filter(positionKey =>
@@ -26,49 +69,11 @@ export function groupHoldings(
         results.holdingGroups[groupKey].positions.push(position);
         results.holdingGroups[groupKey].subTotals = subTotal(
           results.holdingGroups[groupKey].subTotals,
-          position
+          position, valueIn
         );
 
         return results;
       },
       { portfolio: contract.portfolio, holdingGroups: [] }
     );
-}
-
-function subTotal(subTotals: MoneyValues[], position: Position): MoneyValues[] {
-  if (!subTotals) {
-    subTotals = [];
-    subTotals[LOCAL] = {
-      costValue: 0,
-      dividends: 0,
-      marketValue: 0,
-      realisedGain: 0,
-      totalGain: 0,
-      unrealisedGain: 0
-    };
-  }
-  subTotals[LOCAL].marketValue =
-    subTotals[LOCAL].marketValue + position.moneyValues[LOCAL].marketValue;
-  subTotals[LOCAL].costValue =
-    subTotals[LOCAL].costValue + position.moneyValues[LOCAL].costValue;
-  subTotals[LOCAL].dividends =
-    subTotals[LOCAL].dividends + position.moneyValues[LOCAL].dividends;
-  subTotals[LOCAL].realisedGain =
-    subTotals[LOCAL].realisedGain + position.moneyValues[LOCAL].realisedGain;
-  subTotals[LOCAL].unrealisedGain =
-    subTotals[LOCAL].unrealisedGain +
-    position.moneyValues[LOCAL].unrealisedGain;
-  subTotals[LOCAL].totalGain =
-    subTotals[LOCAL].totalGain + position.moneyValues[LOCAL].totalGain;
-
-  return subTotals;
-}
-
-function getPath(path: string, position: Position): string {
-  return (path
-    .split(".")
-    .reduce(
-      (p, c) => (p && p[c]) || "undefined",
-      position
-    ) as unknown) as string;
 }

@@ -45,6 +45,8 @@ export interface Position {
 
 interface Portfolio {
   code: string;
+  currency: Currency;
+  base: Currency;
 }
 // Server side contract
 interface HoldingContract {
@@ -64,3 +66,4 @@ interface HoldingGroup {
   subTotals: MoneyValues[];
   positions: Position[];
 }
+

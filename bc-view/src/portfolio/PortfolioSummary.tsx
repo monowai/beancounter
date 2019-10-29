@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/style.sass";
+import "../assets/styles.sass";
 import { Portfolio } from "../types/beancounter";
 
 export default function PortfolioSummary(portfolio: Portfolio): JSX.Element {

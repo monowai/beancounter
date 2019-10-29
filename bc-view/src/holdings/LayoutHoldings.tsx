@@ -4,13 +4,17 @@ import React from "react";
 import "../App.css";
 import useAxios from "axios-hooks";
 
-
 const LayoutHoldings = () => {
+  const [{ data, loading, error }, refetch] = useAxios(
+    "http://localhost:9500/api/test"
+  );
 
-  const [{ data, loading, error }, refetch] = useAxios("http://localhost:9500/api/test");
-
-  if (loading) return <p>Loading...</p>
-  if (error) return <p>Error!</p>
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  if (error) {
+    return <p>Error!</p>;
+  }
   if (data) {
     const portfolio = data.data.portfolio;
     return (
@@ -20,8 +24,7 @@ const LayoutHoldings = () => {
       </div>
     );
   }
-  return <div>"Umm..."</div>;
-
+  return <div>Umm...</div>;
 };
 
 export default LayoutHoldings;

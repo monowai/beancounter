@@ -1,3 +1,4 @@
+import { ValuationCcy } from "../holdings/enums";
 export interface Market {
   code: string;
   currency: Currency;
@@ -38,7 +39,7 @@ interface QuantityValues {
 
 export interface Position {
   asset: Asset;
-  moneyValues: MoneyValues[];
+  moneyValues: { [ValuationCCy: ValuationCcy]: MoneyValues };
   quantityValues: QuantityValues;
   lastTradeDate: string;
 }
@@ -63,7 +64,6 @@ interface Holdings {
 // User defined grouping
 interface HoldingGroup {
   group: string;
-  subTotals: MoneyValues[];
+  subTotals: { [ValuationCCy: ValuationCcy]: MoneyValues };
   positions: Position[];
 }
-

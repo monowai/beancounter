@@ -1,4 +1,9 @@
-import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
+import {
+  HoldingContract,
+  Holdings,
+  MoneyValues,
+  Position
+} from "../types/beancounter";
 import { GroupBy, ValuationCcy } from "./enums";
 
 function getPath(path: string, position: Position): string {
@@ -10,7 +15,11 @@ function getPath(path: string, position: Position): string {
     ) as unknown) as string;
 }
 
-function subTotal(subTotals: MoneyValues[], position: Position, valueIn: ValuationCcy): MoneyValues[] {
+function subTotal(
+  subTotals: MoneyValues[],
+  position: Position,
+  valueIn: ValuationCcy
+): MoneyValues[] {
   if (!subTotals) {
     subTotals = [];
     subTotals[valueIn] = {
@@ -22,14 +31,11 @@ function subTotal(subTotals: MoneyValues[], position: Position, valueIn: Valuati
       unrealisedGain: 0
     };
   }
-  subTotals[valueIn].marketValue +=
-    position.moneyValues[valueIn].marketValue;
+  subTotals[valueIn].marketValue += position.moneyValues[valueIn].marketValue;
   subTotals[valueIn].costValue =
-    subTotals[valueIn].costValue +
-    position.moneyValues[valueIn].costValue;
+    subTotals[valueIn].costValue + position.moneyValues[valueIn].costValue;
   subTotals[valueIn].dividends =
-    subTotals[valueIn].dividends +
-    position.moneyValues[valueIn].dividends;
+    subTotals[valueIn].dividends + position.moneyValues[valueIn].dividends;
   subTotals[valueIn].realisedGain =
     subTotals[valueIn].realisedGain +
     position.moneyValues[valueIn].realisedGain;
@@ -37,8 +43,7 @@ function subTotal(subTotals: MoneyValues[], position: Position, valueIn: Valuati
     subTotals[valueIn].unrealisedGain +
     position.moneyValues[valueIn].unrealisedGain;
   subTotals[valueIn].totalGain =
-    subTotals[valueIn].totalGain +
-    position.moneyValues[valueIn].totalGain;
+    subTotals[valueIn].totalGain + position.moneyValues[valueIn].totalGain;
 
   return subTotals;
 }
@@ -69,7 +74,8 @@ export function groupHoldings(
         results.holdingGroups[groupKey].positions.push(position);
         results.holdingGroups[groupKey].subTotals = subTotal(
           results.holdingGroups[groupKey].subTotals,
-          position, valueIn
+          position,
+          valueIn
         );
 
         return results;

@@ -1,9 +1,4 @@
-export enum ValuationCcy {
-  LOCAL = "LOCAL",
-  BASE = "BASE",
-  PORTFOLIO = "PORTFOLIO",
-  CASH = "CASH"
-}
+export type ValuationCcy = "LOCAL" | "BASE" | "PORTFOLIO" | "CASH";
 
 export enum GroupBy {
   MARKET_CURRENCY = "asset.market.currency.code",

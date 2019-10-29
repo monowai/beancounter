@@ -6,9 +6,7 @@ import { GroupBy, ValuationCcy } from "./enums";
 
 export function writeHeader(groupKey: string): JSX.Element {
   return (
-    <table>
-      <thead>
-      <tbody>
+    <thead>
       <tr>
         <th>{groupKey}</th>
         <th>Quantity</th>
@@ -21,39 +19,35 @@ export function writeHeader(groupKey: string): JSX.Element {
         <th>Unrealised</th>
         <th>Gain</th>
       </tr>
-      </tbody>
-
-      </thead>
-    </table>
+    </thead>
   );
 }
 
 function writeHoldings(
   holdingGroup: HoldingGroup,
   valueIn: ValuationCcy
-): any[] {
-  console.log("Tweee");
+): JSX.Element {
+  console.log(holdingGroup);
   // eslint-disable-next-line complexity
-  return holdingGroup.positions.map(position => (
+  const rows = holdingGroup.positions.map(position => (
     <tr key={holdingGroup.group + position.asset.code}>
       <td>{position.asset.code + ": " + position.asset.name}</td>
       <td>
-        {
-          <NumberFormat
-            value={position.quantityValues.total}
-            displayType={"text"}
-            decimalScale={0}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        }
+        <NumberFormat
+          value={position.quantityValues.total}
+          displayType={"text"}
+          decimalScale={0}
+          fixedDecimalScale={true}
+          thousandSeparator={true}
+        />
       </td>
       <td>
         {!position.asset.market.currency ? (
           "-"
         ) : (
           <label>
-            {position.asset.market.currency.id}{" "}
+            {position.asset.market.currency.id}
+            &nbsp;
             <NumberFormat
               value={position.moneyValues[valueIn].price}
               displayType={"text"}
@@ -147,6 +141,7 @@ function writeHoldings(
       </td>
     </tr>
   ));
+  return <tbody>{rows}</tbody>;
 }
 
 export function writeFooter(
@@ -155,79 +150,76 @@ export function writeFooter(
 ): JSX.Element {
   return (
     <tfoot>
-    <tbody>
+      <tr>
+        <th colSpan={3}>Sub-Total</th>
+        <td>
+          <NumberFormat
+            value={holdingGroup.subTotals[valueIn].costValue}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        </td>
 
-    </tbody>
-    <tr>
-      <th/>
-      <th>Sub-Total</th>
-      <th/>
-      <td>
-        <NumberFormat
-          value={holdingGroup.subTotals[valueIn].costValue}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
+        <td>
+          <NumberFormat
+            value={holdingGroup.subTotals[valueIn].marketValue}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        </td>
 
-      <td>
-        <NumberFormat
-          value={holdingGroup.subTotals[valueIn].marketValue}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
+        <td>
+          <NumberFormat
+            value={holdingGroup.subTotals[valueIn].dividends}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        </td>
 
-      <td>
-        <NumberFormat
-          value={holdingGroup.subTotals[valueIn].dividends}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
+        <td>
+          <NumberFormat
+            value={holdingGroup.subTotals[valueIn].realisedGain}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        </td>
 
-      <td>
-        <NumberFormat
-          value={holdingGroup.subTotals[valueIn].realisedGain}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
+        <td>
+          <NumberFormat
+            value={holdingGroup.subTotals[valueIn].unrealisedGain}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        </td>
 
-      <td>
-        <NumberFormat
-          value={holdingGroup.subTotals[valueIn].unrealisedGain}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
-
-      <td>
-        <NumberFormat
-          value={holdingGroup.subTotals[valueIn].totalGain}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
-    </tr>
+        <td>
+          <NumberFormat
+            value={holdingGroup.subTotals[valueIn].totalGain}
+            displayType={"text"}
+            decimalScale={2}
+            fixedDecimalScale={true}
+            thousandSeparator={true}
+          />
+        </td>
+      </tr>
     </tfoot>
   );
 }
 
-export default function GroupedHoldings(contract: HoldingContract): JSX.Element {
-  const valueIn = ValuationCcy.PORTFOLIO;
+export default function GroupedHoldings(
+  contract: HoldingContract
+): JSX.Element {
+  const valueIn: ValuationCcy = "PORTFOLIO";
   // Transform the contract into the view the user requested
   const holdings = groupHoldings(
     contract,
@@ -239,20 +231,12 @@ export default function GroupedHoldings(contract: HoldingContract): JSX.Element 
   const rows = Object.keys(holdings.holdingGroups).map(groupKey => {
     // Build out the header
     return (
-      <React.Fragment key={groupKey}>
-        <table>
-          {writeHeader(groupKey)}
-          {writeHoldings(
-            holdings.holdingGroups[groupKey],
-            valueIn
-          )}
-          {writeFooter(
-            holdings.holdingGroups[groupKey],
-            valueIn
-          )}
-        </table>
-      </React.Fragment>
+      <table key={groupKey}>
+        {writeHeader(groupKey)}
+        {writeHoldings(holdings.holdingGroups[groupKey], valueIn)}
+        {writeFooter(holdings.holdingGroups[groupKey], valueIn)}
+      </table>
     );
   });
-  return <table>{rows}</table>;
+  return <React.Fragment>{rows}</React.Fragment>;
 }

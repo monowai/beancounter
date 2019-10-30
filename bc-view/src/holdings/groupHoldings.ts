@@ -1,9 +1,4 @@
-import {
-  HoldingContract,
-  Holdings,
-  MoneyValues,
-  Position
-} from "../types/beancounter";
+import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
 import { GroupBy, ValuationCcy } from "./enums";
 
 function getPath(path: string, position: Position): string {
@@ -28,7 +23,8 @@ function subTotal(
       marketValue: 0,
       realisedGain: 0,
       totalGain: 0,
-      unrealisedGain: 0
+      unrealisedGain: 0,
+      currency: position.moneyValues[valueIn].currency
     };
   }
   subTotals[valueIn].marketValue += position.moneyValues[valueIn].marketValue;
@@ -77,9 +73,9 @@ export function groupHoldings(
           position,
           valueIn
         );
-
+        results.valueIn = valueIn;
         return results;
       },
-      { portfolio: contract.portfolio, holdingGroups: [] }
+      { portfolio: contract.portfolio, holdingGroups: [], valueIn: "PORTFOLIO" }
     );
 }

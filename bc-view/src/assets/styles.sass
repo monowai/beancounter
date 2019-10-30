@@ -1,14 +1,70 @@
-@charset "utf-8"
-@import url('https://fonts.googleapis.com/css?family=Nunito:400,700')
-$family-sans-serif: "Nunito", sans-serif
-@import "../../node_modules/bulma/sass/utilities/all"
-@import "../../node_modules/bulma/sass/base/all"
-@import "../../node_modules/bulma/sass/elements/button"
-@import "../../node_modules/bulma/sass/elements/container"
-@import "../../node_modules/bulma/sass/elements/title"
-@import "../../node_modules/bulma/sass/form/all"
-@import "../../node_modules/bulma/sass/components/navbar"
-@import "../../node_modules/bulma/sass/layout/hero"
-@import "../../node_modules/bulma/sass/layout/section"
+@import "~bulma/sass/utilities/all"
+$family-sans-serif: "Helvetica Neue", "Helvetica", "Arial", sans-serif
+$table-header-border: #00a546
+$table-border: #e7e7e7
+$table-head-background-color: #00a546
+$table-foot-background-color: #00a546
+$table-foot-cell-color: $white
+$table-head-cell-color: $white
 
-$primary : #98ffcc
+body
+  width: 100%
+  height: 100%
+  margin: 4px
+  padding: 0
+
+caption
+  display: none
+
+table
+  table-layout: fixed
+  text-align: right
+
+  th
+    background: #00a546
+    font-size: smaller
+    width: 900px
+    color: whitesmoke
+    border: solid $table-header-border
+
+  td
+    font-size: smaller
+
+  tfoot
+    text-align: right
+    color: whitesmoke
+
+.flex-cell
+  text-align: right
+
+.left-cell
+  text-align: left
+
+.asset
+  text-align: left
+  width: 30%
+
+@media only screen and (max-width: 767px)
+  .table-container
+    th, td
+      width: auto
+      display: block
+      border: 0
+
+  th
+    border-left: solid 1px $table-header-border
+    border-right: solid 1px $table-header-border
+    border-bottom: solid 1px $table-header-border
+
+  td
+    border-left: solid 1px $table-border
+    border-right: solid 1px $table-border
+    border-bottom: solid 1px $table-border
+
+  .flex-row
+    width: 100%
+
+
+@import "~bulma/sass/elements/table"
+@import "~bulma/sass/layout/section"
+

@@ -1,4 +1,5 @@
 import { ValuationCcy } from "../holdings/enums";
+
 export interface Market {
   code: string;
   currency: Currency;
@@ -29,6 +30,8 @@ interface MoneyValues {
   totalGain: number;
   price: number;
   marketValue: number;
+  currency: Currency;
+  valueIn: ValuationCcy;
 }
 
 interface QuantityValues {
@@ -57,8 +60,9 @@ interface HoldingContract {
 
 // The payload we render in the UI
 interface Holdings {
-  portfolio: Portfolio;
   holdingGroups: HoldingGroup[];
+  portfolio: Portfolio;
+  valueIn: ValuationCcy;
 }
 
 // User defined grouping

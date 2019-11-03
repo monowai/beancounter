@@ -85,7 +85,9 @@ class MarketDataBootTests {
   @VisibleForTesting
   void is_PriceFormMarketAssetFound() throws Exception {
 
-    String json = mockMvc.perform(get("/prices/{marketId}/{assetId}", dummy.getMarket().getCode(), dummy.getCode())
+    String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
+        dummy.getMarket().getCode(),
+        dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))

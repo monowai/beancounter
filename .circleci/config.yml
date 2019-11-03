@@ -27,8 +27,8 @@ jobs:
       - run: 'rm -rf ~/.m2/repository/com/beancounter'
       - run: 'rm -rf ~/.m2/repository/beancounter'
       - run: 'pwd'
-      - run: 'cd ~/project/jar-common && ./gradlew clean build'
-      - run: 'cd ~/project/svc-md && ./gradlew publishStubsPublicationToMavenLocal'
+      - run: './gradlew jar-common:clean jar-common:build'
+      - run: './gradlew svc-md:publishStubsPublicationToMavenLocal'
 
       # Save the environment for this build run with it's dependencies in-place
       - save_cache:
@@ -59,7 +59,7 @@ jobs:
             - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: 'pwd'
-      - run: 'cd ~/project/svc-md && ./gradlew build'
+      - run: './gradlew svc-md:build'
 
       - save_cache:
           paths:
@@ -86,7 +86,7 @@ jobs:
           keys:
             - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: 'cd ~/project/svc-ingest && ./gradlew build'
+      - run: './gradlew svc-ingest:build'
 
       - store_test_results:
           path: ~/project/svc-ingest/build/test-results/test
@@ -108,7 +108,7 @@ jobs:
           keys:
             - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: 'cd ~/project/svc-position && ./gradlew build'
+      - run: './gradlew svc-position:build'
 
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test

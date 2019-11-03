@@ -23,6 +23,9 @@ targetCompatibility = 11
 checkstyle {
     toolVersion = '8.23'
     configFile = project.file('../checkstyle.xml')
+//    configFile = file("$rootProject.projectDir/buildtools/checkstyle.xml")
+    configDir = file("$rootProject.projectDir/buildtools")
+
     configProperties = [
             'javaCommon.cache.file': "${buildDir}/javaCommon.cache",
     ]

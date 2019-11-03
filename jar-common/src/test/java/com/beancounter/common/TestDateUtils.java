@@ -23,7 +23,7 @@ class TestDateUtils {
         .isNotNull()
         .startsWith(String.valueOf(calendar.get(Calendar.YEAR)))
         .contains("-" + (calendar.get(Calendar.MONTH) + 1) + "-")
-        .contains("-" + calendar.get(Calendar.DAY_OF_MONTH))
+        .contains("-" + String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH)))
     ;
     assertThat(DateUtils.getDate("2019-11-29")).isNotNull();
     DateUtils.isValid("2019-11-29");
@@ -81,6 +81,20 @@ class TestDateUtils {
         .toInstant()
         .atZone(ZoneId.systemDefault());
     assertThat(DateUtils.isWorkDay(zonedDateTime)).isTrue(); // Monday
+
+  }
+
+  @Test
+  void is_MarketDataPriceDateCalculated() {
+    String sgToday = "2019-11-01"; // Friday in Singapore
+    ZonedDateTime sgDateTime = DateUtils.getDate(sgToday)
+        .toInstant()
+        .atZone(ZoneId.of("Asia/Singapore"));
+
+    LocalDate marketDataDate = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"));
+    assertThat(DateUtils.getDate(
+        DateUtils.convert(marketDataDate))).isEqualTo("2019-10-31"); // Boo!
+
 
   }
 

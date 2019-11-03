@@ -25,18 +25,18 @@ public class DateUtils {
 
   /**
    * Identify a date to query a market on taking into account timezones and working days.
-   * Subtracts a day until it finds a working one, which may prove less than ideal.
+   * Always takes One from seedDate. Then subtracts a day until it finds a working one.
    * For instance - Sunday 7th in Singapore will result to Friday 5th in New York
    *
-   * @param requestedDate date the user is requesting in _their_ timezone
+   * @param seedDate usually Today requesting in callers timezeon timezone
    * @param targetZone    market to locate requestedDate on
    * @return resolved Date
    */
-  public LocalDate getLastMarketDate(ZonedDateTime requestedDate, ZoneId targetZone) {
-    Objects.requireNonNull(requestedDate);
+  public LocalDate getLastMarketDate(ZonedDateTime seedDate, ZoneId targetZone) {
+    Objects.requireNonNull(seedDate);
     Objects.requireNonNull(targetZone);
 
-    ZonedDateTime result = requestedDate.toLocalDateTime().atZone(targetZone);
+    ZonedDateTime result = seedDate.toLocalDateTime().atZone(targetZone).minusDays(1);
 
     while (!isWorkDay(result)) {
       result = result.minusDays(1);

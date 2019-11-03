@@ -1,8 +1,16 @@
 spring:
   main:
     banner-mode: "off"
-    web-application-type: none
+
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+#    web-application-type: none
+
 server:
+  port: 9520
+  servlet:
+    context-path: '/api'
   error:
     include-stacktrace: never
 

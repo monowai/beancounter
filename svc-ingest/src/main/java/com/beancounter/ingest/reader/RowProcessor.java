@@ -20,16 +20,9 @@ import org.springframework.stereotype.Service;
 public class RowProcessor {
 
   private ShareSightTransformers shareSightTransformers;
-  private Filter filter;
 
   @Value("${stackTraces:false}")
   private boolean stackTraces = false;
-
-  @Autowired
-  @VisibleForTesting
-  void setFilter(Filter filter) {
-    this.filter = filter;
-  }
 
   @Autowired
   @VisibleForTesting
@@ -40,6 +33,13 @@ public class RowProcessor {
   public Collection<Transaction> process(Portfolio portfolio,
                                          List<List<Object>> values,
                                          String provider) {
+    return process(portfolio, values, new Filter(null), provider);
+  }
+
+  Collection<Transaction> process(Portfolio portfolio,
+                                  List<List<Object>> values,
+                                  Filter filter,
+                                  String provider) {
 
     Collection<Transaction> results = new ArrayList<>();
     if (filter.hasFilter()) {
@@ -71,4 +71,5 @@ public class RowProcessor {
     }
     return results;
   }
+
 }

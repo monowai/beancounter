@@ -24,12 +24,20 @@ Default is to look for google credentials `../secrets/credentials.json`
 ## ShareSight transformer
 passing `ratesIgnored`, the transformer will normalise the fees into trade currency terms using the input rate, but will re-retrieve the trade rate from the market data service.  Default is false, use the rate supplied by SS
 ```bash
-java -jar svc-ingest/build/libs/svc-ingest-0.1.1.jar \
-    --ratesIgnored=true \
-    --beancounter.google.api=../secrets/google-api/credentials.json \
-    --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
-    --out.file=./trades.json 
+curl -X POST \
+  http://localhost:9520/api/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "sheetId":"1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+  "ratesIgnored": true,
+  "portfolio": {
+  	"code": "mike",
+  	"currency": { "code": "USD"},
+  	"base": { "code": "NZD"}
+  }
+}' \
+-o trades.json 
 ```
 
-You can pass an optional case sensitive filter with `--filter={CODE,CODE}` which will only include the transactions where the Asset codes match those in the filter
+You can pass an optional case sensitive filter property `"filter": "MSFT,"APPL"` which will only include the transactions where the Asset codes match those in the filter
  

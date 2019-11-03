@@ -3,7 +3,6 @@ apply from: '../buildtools/javaCommon.gradle'
 buildscript {
     ext {
         springBootVersion = "2.1.8.RELEASE"
-
         googleClientVersion = "1.30.4"
     }
     repositories {
@@ -27,8 +26,11 @@ repositories {
 
 dependencies {
     implementation(
-            project (":jar-common"),
+            project(":jar-common"),
+            "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
+            "org.springframework.boot:spring-boot-starter-actuator",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",
@@ -36,7 +38,11 @@ dependencies {
             "com.google.apis:google-api-services-sheets:v4-rev581-1.25.0"
     )
 
-    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+    compileOnly(
+            "org.springframework.boot:spring-boot-configuration-processor",
+            "org.projectlombok:lombok"
+    )
+
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
     testCompile "org.projectlombok:lombok"

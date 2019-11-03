@@ -1,9 +1,9 @@
 package com.beancounter.ingest.reader;
 
 import com.beancounter.common.exception.SystemException;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.ingest.model.IngestionRequest;
 import com.beancounter.ingest.service.FxTransactions;
 import com.beancounter.ingest.sharesight.ShareSightHelper;
 import com.beancounter.ingest.writer.IngestWriter;
@@ -13,11 +13,11 @@ import com.google.api.services.sheets.v4.Sheets;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
@@ -32,15 +32,6 @@ import org.springframework.stereotype.Service;
 public class SheetReader implements Ingester {
 
   private GoogleTransport googleTransport;
-
-  @Value("${sheet:#{null}}")
-  private String sheetId;
-
-  @Value(("${portfolio.code:mike}"))
-  private String portfolioCode;
-
-  @Value(("${portfolio.currency:USD}"))
-  private String portfolioCurrency;
 
   private IngestWriter ingestWriter;
   private FxTransactions fxTransactions;
@@ -81,19 +72,22 @@ public class SheetReader implements Ingester {
 
   /**
    * Reads a Google sheet and writes the output file.
+   *
+   * @param ingestionRequest parameters to run the import.
+   * @return JSON transformation
    */
-  public void ingest() {
+  public Collection<Transaction> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
 
     Portfolio portfolio = Portfolio.builder()
-        .code(portfolioCode)
-        .currency(Currency.builder().code(portfolioCurrency).build())
+        .code(ingestionRequest.getPortfolio().getCode())
+        .currency(ingestionRequest.getPortfolio().getCurrency())
         .build();
 
     final NetHttpTransport httpTransport = googleTransport.getHttpTransport();
 
     Sheets service = googleTransport.getSheets(httpTransport);
-
+    String sheetId = ingestionRequest.getSheetId();
     List<List<Object>> values = googleTransport.getValues(
         service,
         sheetId,
@@ -105,10 +99,11 @@ public class SheetReader implements Ingester {
       Collection<Transaction> transactions = rowProcessor.process(
           portfolio,
           values,
+          new Filter(ingestionRequest.getFilter()),
           sheetId);
 
       if (transactions.isEmpty()) {
-        return;
+        return new ArrayList<>();
       }
 
       log.info("Back fill FX rates...");
@@ -122,11 +117,9 @@ public class SheetReader implements Ingester {
 
         log.info("Wrote {} transactions into file {}", transactions.size(),
             shareSightHelper.getOutFile());
-      } else {
-        log.info(objectMapper
-            .writerWithDefaultPrettyPrinter()
-            .writeValueAsString(transactions));
       }
+
+      return transactions;
 
     } catch (IOException e) {
       throw new SystemException(e.getMessage());

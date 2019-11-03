@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author mikeh
  * @since 2019-02-08
  */
-@SpringBootApplication(scanBasePackages = "com.beancounter.ingest")
+@SpringBootApplication
 public class IngestBoot {
 
   public static void main(String[] args) {

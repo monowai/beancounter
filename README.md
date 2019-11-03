@@ -15,16 +15,26 @@ Put together, the flow looks like this
 
 ```bash
 
-# Create transactions
-java -jar svc-ingest/build/libs/svc-ingest-0.1.1.jar \
-    --beancounter.google.api=../secrets/google-api/credentials.json \
-    --sheet=1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8 \
-    --out.file=./trades.json 
+# Transform columnar data into transaction objects
+```bash
+curl -X POST \
+  http://localhost:9520/api/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "sheetId":"1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+  "ratesIgnored": true,
+  "portfolio": {
+  	"code": "mike",
+  	"currency": { "code": "USD"},
+  	"base": { "code": "NZD"}
+  }
+}' \
+-o trades.json 
 
-# Transform transactions to positions
+# Rollup transactions into positions
 curl -H "Content-Type: application/json" -X POST -d @trades.json http://localhost:9500/api/ > positions.json
 
-# Value positions    
+# Value positions with market data    
 curl -H "Content-Type: application/json" -X POST -d @positions.json http://localhost:9500/api/value > valuedPositions.json
 ```
 

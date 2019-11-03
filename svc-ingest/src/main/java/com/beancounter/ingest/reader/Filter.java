@@ -6,9 +6,7 @@ import com.google.common.base.Splitter;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-@Service
 public class Filter {
 
   private Collection<String> filteredAssets = new ArrayList<>();

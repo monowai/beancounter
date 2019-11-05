@@ -10,7 +10,6 @@ import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
 import com.beancounter.ingest.sharesight.ShareSightHelper;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -30,14 +29,12 @@ class ShareSightHelperTest {
   private ShareSightHelper shareSightHelper;
 
   @Test
-  @VisibleForTesting
   void is_DoubleValueInputCorrect() throws ParseException {
     assertThat(shareSightHelper.parseDouble("5,000.99"))
         .isEqualByComparingTo(BigDecimal.valueOf(5000.99));
   }
 
   @Test
-  @VisibleForTesting
   void is_ExceptionThrownResolvingIncorrectAssetCodes() {
     assertThrows(BusinessException.class, ()
         -> shareSightHelper.resolveAsset(null));
@@ -46,7 +43,6 @@ class ShareSightHelperTest {
   }
 
   @Test
-  @VisibleForTesting
   void is_ExchangeAliasReturnedInAssetCode() {
     Asset expectedAsset = Asset.builder()
         .code("ABBV")
@@ -64,7 +60,6 @@ class ShareSightHelperTest {
   }
 
   @Test
-  @VisibleForTesting
   void is_IgnoreRatesDefaultCorrect() {
     assertThat(shareSightHelper.isRatesIgnored()).isFalse();
   }

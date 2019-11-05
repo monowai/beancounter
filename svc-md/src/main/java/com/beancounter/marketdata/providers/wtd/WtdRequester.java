@@ -17,17 +17,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class WtdRequester {
 
-  private WtdRequest wtdRequest;
+  private WtdGateway wtdGateway;
 
-  @Autowired
-  WtdRequester(WtdRequest wtdRequest) {
-    this.wtdRequest = wtdRequest;
+  @Autowired(required = false)
+  void setWtdGateway(WtdGateway wtdGateway) {
+    this.wtdGateway = wtdGateway;
   }
 
   @Async
   @Cacheable("asset.prices")
   public Future<WtdResponse> getMarketData(String assets, String marketOpenDate, String apiKey) {
-    WtdResponse result = wtdRequest.getMarketDataForAssets(assets, marketOpenDate, apiKey);
+    WtdResponse result = wtdGateway.getMarketDataForAssets(assets, marketOpenDate, apiKey);
     return new AsyncResult<>(result);
   }
 }

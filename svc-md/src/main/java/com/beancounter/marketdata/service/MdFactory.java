@@ -39,7 +39,7 @@ public class MdFactory {
    * @param asset who wants to know?
    * @return the provider that supports the asset
    */
-  MarketDataProvider getMarketDataProvider(Asset asset) {
+  public MarketDataProvider getMarketDataProvider(Asset asset) {
     MarketDataProvider provider = resolveProvider(asset.getMarket());
     if (provider == null) {
       return providers.get(MockProviderService.ID);

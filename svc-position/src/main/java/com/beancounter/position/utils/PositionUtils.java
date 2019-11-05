@@ -3,7 +3,9 @@ package com.beancounter.position.utils;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class PositionUtils {
   public static Currency getCurrency(Position.In in, Transaction transaction) {
 

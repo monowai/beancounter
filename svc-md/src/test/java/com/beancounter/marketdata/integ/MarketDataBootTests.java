@@ -40,12 +40,11 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 class MarketDataBootTests {
 
+  private final Asset dummy;
   private WebApplicationContext wac;
   private MockProviderService mockProviderService;
   private MockMvc mockMvc;
   private ObjectMapper objectMapper = new ObjectMapper();
-
-  private final Asset dummy;
 
   @Autowired
   private MarketDataBootTests(WebApplicationContext webApplicationContext,
@@ -82,7 +81,6 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  @VisibleForTesting
   void is_PriceFormMarketAssetFound() throws Exception {
 
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
@@ -105,7 +103,6 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  @VisibleForTesting
   void is_MdCollectionReturnedForAssets() throws Exception {
     Collection<Asset> assets = new ArrayList<>();
     Asset asset = Asset.builder().code("assetCode")
@@ -127,7 +124,6 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  @VisibleForTesting
   void valuationRequestReturnsFullHydratedAssets() throws Exception {
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
         dummy.getMarket().getCode(), dummy.getCode())

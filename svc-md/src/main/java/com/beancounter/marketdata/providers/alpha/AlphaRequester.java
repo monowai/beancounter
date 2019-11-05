@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 /**
- * Async requestor to obtain MarketData.
+ * Async requester to obtain MarketData.
  *
  * @author mikeh
  * @since 2019-03-06
@@ -18,8 +18,8 @@ public class AlphaRequester {
 
   private AlphaGateway alphaGateway;
 
-  @Autowired
-  AlphaRequester(AlphaGateway alphaGateway) {
+  @Autowired(required = false)
+  void setAlphaGateway(AlphaGateway alphaGateway) {
     this.alphaGateway = alphaGateway;
   }
 

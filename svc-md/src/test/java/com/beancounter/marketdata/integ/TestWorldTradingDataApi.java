@@ -92,7 +92,6 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  @VisibleForTesting
   void marketDataReturnsPricesWithMarketDateWhenRequestDateIsLater() throws Exception {
 
     Asset aapl =
@@ -141,7 +140,6 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  @VisibleForTesting
   void apiGetMarketDataWithAnInvalidAsset() throws Exception {
 
     Asset aapl =

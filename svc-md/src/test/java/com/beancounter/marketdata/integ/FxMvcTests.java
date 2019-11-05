@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
@@ -19,6 +20,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +46,7 @@ import org.springframework.web.context.WebApplicationContext;
 class FxMvcTests {
 
   private static WireMockRule mockInternet;
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   private WebApplicationContext wac;
@@ -76,8 +79,6 @@ class FxMvcTests {
     CurrencyPair usdNzd = CurrencyPair.builder().from("USD").to("NZD").build();
     CurrencyPair usdUsd = CurrencyPair.builder().from("USD").to("USD").build();
     CurrencyPair nzdNzd = CurrencyPair.builder().from("NZD").to("NZD").build();
-
-    ObjectMapper objectMapper = new ObjectMapper();
 
     FxRequest fxRequest = FxRequest.builder().rateDate(date).build();
     fxRequest.add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd);
@@ -153,6 +154,29 @@ class FxMvcTests {
     EcbDate ecbDate = new EcbDate();
     assertThat(ecbDate.getValidDate("1990-01-01"))
         .isEqualTo(EcbDate.earliest);
+  }
+
+  @Test
+  void is_InvalidCurrenciesReturned() throws Exception {
+    String date = "2019-08-27";
+    CurrencyPair invalid = CurrencyPair.builder().from("ANC").to("SDF").build();
+
+    FxRequest fxRequest = FxRequest.builder().rateDate(date).build();
+    fxRequest.add(invalid);
+    MvcResult mvcResult = mockMvc.perform(
+        post("/fx")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(fxRequest)
+            )
+    ).andExpect(status().is4xxClientError())
+        .andReturn();
+
+    Optional<BusinessException> someException = Optional.ofNullable((BusinessException)
+        mvcResult.getResolvedException());
+
+    assertThat(someException.isPresent()).isTrue();
+    assertThat(someException.get()).hasMessageContaining("ANC").hasMessageContaining("SDF");
+
   }
 
 }

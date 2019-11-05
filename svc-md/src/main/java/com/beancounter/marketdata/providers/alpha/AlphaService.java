@@ -42,11 +42,11 @@ public class AlphaService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.ALPHA.markets}")
   private String markets;
 
-  private AlphaRequester alphaRequester;
   private ObjectMapper objectMapper = new ObjectMapper();
+  private AlphaRequester alphaRequester;
 
   @Autowired
-  AlphaService(AlphaRequester alphaRequester) {
+  void setAlphaRequester(AlphaRequester alphaRequester) {
     this.alphaRequester = alphaRequester;
   }
 

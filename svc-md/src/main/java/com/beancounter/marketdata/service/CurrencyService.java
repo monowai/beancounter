@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.service;
 
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
 import com.beancounter.marketdata.config.StaticConfig;
 import java.util.Objects;
@@ -34,11 +33,7 @@ public class CurrencyService {
    */
   public Currency getId(@NotNull String code) {
     Objects.requireNonNull(code);
-    Currency currency = staticConfig.getCurrencyId().get(code.toUpperCase());
-    if (currency == null) {
-      throw new BusinessException(String.format("Currency not found %s", code));
-    }
-    return currency;
+    return staticConfig.getCurrencyId().get(code.toUpperCase());
   }
 
   /**
@@ -49,11 +44,7 @@ public class CurrencyService {
    */
   public Currency getCode(@NotNull String code) {
     Objects.requireNonNull(code);
-    Currency currency = staticConfig.getCurrencyCode().get(code.toUpperCase());
-    if (currency == null) {
-      throw new BusinessException(String.format("Currency not found %s", code));
-    }
-    return currency;
+    return staticConfig.getCurrencyCode().get(code.toUpperCase());
   }
 
   public Currency getBase() {

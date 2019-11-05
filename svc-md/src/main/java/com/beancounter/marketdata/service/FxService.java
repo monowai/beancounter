@@ -20,9 +20,6 @@ public class FxService {
   private CurrencyService currencyService;
   private EcbService ecbService;
 
-  // Persist!
-  private Map<String, Collection<FxRate>> rateStore = new HashMap<>();
-
   @Autowired
   FxService(EcbService ecbService, CurrencyService currencyService) {
     this.ecbService = ecbService;
@@ -31,22 +28,18 @@ public class FxService {
 
   public FxResponse getRates(FxRequest fxRequest) {
     verify(fxRequest.getPairs());
-    Collection<FxRate> rates = rateStore.get(fxRequest.getRateDate());
-    String rateKey;
+    Collection<FxRate> rates;
+
     String rateDate;
     if (fxRequest.getRateDate() == null) {
       // Looking for current
       rateDate = DateUtils.today();
-      rateKey = rateDate;
     } else {
       rateDate = fxRequest.getRateDate();
-      rateKey = rateDate;
     }
 
-    if (rates == null) {
-      rates = ecbService.getRates(rateDate);
-      rateStore.put(rateKey, rates);
-    }
+    rates = ecbService.getRates(rateDate);
+
     Map<String, FxRate> mappedRates = new HashMap<>();
     for (FxRate rate : rates) {
       mappedRates.put(rate.getTo().getCode(), rate);

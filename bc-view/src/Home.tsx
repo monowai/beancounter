@@ -1,29 +1,32 @@
 import React from "react";
+import { Route, Switch } from "react-router-dom";
+import Loadable from "react-loadable";
 
-import * as logo from "./react.svg";
+const Holdings = Loadable({
+  loader: () => import("./holdings/LayoutHoldings"),
+  loading: () => null
+});
+
+const Error = Loadable({
+  loader: () => import("./common/errors/Error"),
+  loading: () => null
+});
 
 function Home(): JSX.Element {
   return (
     <div className="Home">
-      <div className="Home-header">
-        <img src={logo} className="Home-logo" alt="logo" />
-        <h2>Welcome to Beancounter</h2>
-      </div>
-      <p className="Home-intro">
-        To get started, edit <code>src/App.js</code> or <code>src/Home.js</code>{" "}
-        and save to reload.
-      </p>
+      BeanCounter Functions
       <ul className="Home-resources">
         <li>
-          <a href="https://github.com/jaredpalmer/razzle">Docs</a>
-        </li>
-        <li>
-          <a href="https://github.com/jaredpalmer/razzle/issues">Issues</a>
-        </li>
-        <li>
-          <a href="https://palmer.chat">Community Slack</a>
+          <a href="/holdings">Holdings</a>
         </li>
       </ul>
+      <Switch>
+        {/*<Route exact={true} path="/" component={Home} />*/}
+        <Route path="/holdings" component={Holdings} />
+        {/*<Route path="/status" component={Status} />*/}
+        <Route path="/error" component={Error} />
+      </Switch>
     </div>
   );
 }

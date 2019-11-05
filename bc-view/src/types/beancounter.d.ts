@@ -1,5 +1,12 @@
 import { ValuationCcy } from "../holdings/enums";
 
+declare global {
+  interface Window {
+    initialI18nStore: any;
+    initialLanguage: any;
+  }
+}
+
 export interface Market {
   code: string;
   currency: Currency;

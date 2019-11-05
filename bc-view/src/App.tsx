@@ -1,8 +1,8 @@
 import Home from "./Home";
 import React from "react";
+import "./bc-i18n";
 import { Route, Switch } from "react-router-dom";
 import LayoutHoldings from "./holdings/LayoutHoldings";
-import "./App.css";
 
 const App = (): JSX.Element => (
   <Switch>

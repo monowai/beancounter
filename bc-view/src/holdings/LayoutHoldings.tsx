@@ -2,27 +2,26 @@ import GroupHoldings from "./GroupedHoldings";
 import PortfolioSummary from "../portfolio/PortfolioSummary";
 import React, { useState } from "react";
 import "../App.css";
-import useAxios from "axios-hooks";
-import { groupHoldings } from "./groupHoldings";
+import { prepHoldings } from "./prepHoldings";
 import { GroupBy, ValuationCcy } from "./enums";
 import { Holdings } from "../types/beancounter";
+import useAxios from "axios-hooks";
 
 const LayoutHoldings = (): JSX.Element => {
-  const [valueIn, setValueIn]= useState<ValuationCcy>("PORTFOLIO");
-  const [hideEmpty, setHideEmpty]= useState<boolean>(true);
-  const [groupBy, setGroupBy] = useState<GroupBy>(GroupBy.MARKET_CURRENCY);
-  const [{ data, loading, error }] = useAxios("http://localhost:9500/api/test");
+  const [valueIn] = useState<ValuationCcy>("PORTFOLIO");
+  const [hideEmpty] = useState<boolean>(true);
+  const [groupBy] = useState<GroupBy>(GroupBy.MARKET_CURRENCY);
+  const [axiosResponse] = useAxios("http://localhost:9500/api/" + "test");
 
-  if (loading) {
+  if (axiosResponse.loading) {
     return <p>Loading...</p>;
   }
-  if (error) {
-    return <p>{error.message}!</p>;
+  if (axiosResponse.error) {
+    return <p>{axiosResponse.error.message}!</p>;
   }
-  if (data) {
-    const portfolio = data.data.portfolio;
-    const holdings = groupHoldings(
-      data.data,
+  if (axiosResponse.data) {
+    const holdings = prepHoldings(
+      axiosResponse.data.data,
       hideEmpty,
       valueIn,
       groupBy
@@ -30,12 +29,12 @@ const LayoutHoldings = (): JSX.Element => {
 
     return (
       <div>
-        <PortfolioSummary {...portfolio} />
-        <GroupHoldings {...holdings}  />
+        <PortfolioSummary {...axiosResponse.data.data.portfolio} />
+        <GroupHoldings {...holdings} />
       </div>
     );
   }
-  return <div>Umm...</div>;
+  return <div>No Holdings...</div>;
 };
 
 export default LayoutHoldings;

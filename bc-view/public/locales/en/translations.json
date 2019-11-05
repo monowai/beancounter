@@ -1,0 +1,12 @@
+{
+  "app": "BeanCounter",
+  "quantity": "Quantity",
+  "price": "Price",
+  "cost.avg": "Avg Cost",
+  "cost":"Cost",
+  "value": "Value",
+  "dividends": "Dividends",
+  "gain.realised": "Realised",
+  "gain.unrealised": "Unrealised",
+  "gain": "Gain"
+}

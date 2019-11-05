@@ -10,14 +10,14 @@ function getPath(path: string, position: Position): string {
     ) as unknown) as string;
 }
 
-function subTotal(
-  subTotals: MoneyValues[],
+function total(
+  totals: MoneyValues[],
   position: Position,
   valueIn: ValuationCcy
 ): MoneyValues[] {
-  if (!subTotals) {
-    subTotals = [];
-    subTotals[valueIn] = {
+  if (!totals) {
+    totals = [];
+    totals[valueIn] = {
       costValue: 0,
       dividends: 0,
       marketValue: 0,
@@ -27,25 +27,24 @@ function subTotal(
       currency: position.moneyValues[valueIn].currency
     };
   }
-  subTotals[valueIn].marketValue += position.moneyValues[valueIn].marketValue;
-  subTotals[valueIn].costValue =
-    subTotals[valueIn].costValue + position.moneyValues[valueIn].costValue;
-  subTotals[valueIn].dividends =
-    subTotals[valueIn].dividends + position.moneyValues[valueIn].dividends;
-  subTotals[valueIn].realisedGain =
-    subTotals[valueIn].realisedGain +
-    position.moneyValues[valueIn].realisedGain;
-  subTotals[valueIn].unrealisedGain =
-    subTotals[valueIn].unrealisedGain +
+  totals[valueIn].marketValue += position.moneyValues[valueIn].marketValue;
+  totals[valueIn].costValue =
+    totals[valueIn].costValue + position.moneyValues[valueIn].costValue;
+  totals[valueIn].dividends =
+    totals[valueIn].dividends + position.moneyValues[valueIn].dividends;
+  totals[valueIn].realisedGain =
+    totals[valueIn].realisedGain + position.moneyValues[valueIn].realisedGain;
+  totals[valueIn].unrealisedGain =
+    totals[valueIn].unrealisedGain +
     position.moneyValues[valueIn].unrealisedGain;
-  subTotals[valueIn].totalGain =
-    subTotals[valueIn].totalGain + position.moneyValues[valueIn].totalGain;
+  totals[valueIn].totalGain =
+    totals[valueIn].totalGain + position.moneyValues[valueIn].totalGain;
 
-  return subTotals;
+  return totals;
 }
 
 // Transform the holdingContract into Holdings suitable for display
-export function groupHoldings(
+export function prepHoldings(
   contract: HoldingContract,
   hideEmpty: boolean,
   valueIn: ValuationCcy,
@@ -68,7 +67,7 @@ export function groupHoldings(
           total: 0
         };
         results.holdingGroups[groupKey].positions.push(position);
-        results.holdingGroups[groupKey].subTotals = subTotal(
+        results.holdingGroups[groupKey].subTotals = total(
           results.holdingGroups[groupKey].subTotals,
           position,
           valueIn

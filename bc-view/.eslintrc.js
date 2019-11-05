@@ -7,7 +7,7 @@ module.exports = {
         "prettier/@typescript-eslint",
         "plugin:prettier/recommended"
     ],
-    "plugins": ["@typescript-eslint"],
+    "plugins": ["@typescript-eslint", "react-hooks"],
     settings: {
         "react": {
             "version": "detect"
@@ -57,6 +57,8 @@ module.exports = {
             allowTypedFunctionExpressions: true
         }],
         "@typescript-eslint/no-explicit-any": "off",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn"
     },
     env: {
         "es6": true,

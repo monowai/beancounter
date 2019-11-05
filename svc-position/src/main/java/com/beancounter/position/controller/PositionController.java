@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,16 +37,17 @@ public class PositionController {
   }
 
   @PostMapping
+  @CrossOrigin
   PositionResponse computePositions(@RequestBody Collection<Transaction> transactions) {
     return positionService.build(transactions);
   }
 
 
-  @GetMapping(value = "/test", produces = "application/json")
+  @GetMapping(value = "/{portfolioCode}", produces = "application/json")
   @CrossOrigin
-  PositionResponse getTest() throws IOException {
+  PositionResponse getTest(@PathVariable String portfolioCode) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    File jsonFile = new ClassPathResource("holdings.json").getFile();
+    File jsonFile = new ClassPathResource(portfolioCode+".json").getFile();
     return mapper.readValue(jsonFile, PositionResponse.class);
   }
 }

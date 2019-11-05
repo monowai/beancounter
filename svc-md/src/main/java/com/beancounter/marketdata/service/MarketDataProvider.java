@@ -25,7 +25,7 @@ public interface MarketDataProvider {
   /**
    * MarketDataProviders have difference API restrictions. Number of assets in a single call is
    * one of them.
-   * 
+   *
    * @return Number of Assets to request in a single call.
    */
   Integer getBatchSize();

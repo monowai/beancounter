@@ -3,12 +3,12 @@ package com.beancounter.position.integration;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static com.beancounter.position.integration.TestMarketValues.getPositions;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.common.contracts.PositionResponse;
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
@@ -32,6 +32,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -116,21 +117,31 @@ class TestWebApi {
   }
 
   @Test
+  void is_PositionsForPortfolio() throws Exception {
+
+    String json = mockMvc.perform(get("/{code}", "test"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andReturn().getResponse().getContentAsString();
+
+    PositionResponse fromJson = new ObjectMapper()
+        .readValue(json, PositionResponse.class);
+
+    assertThat(fromJson).isNotNull().hasFieldOrProperty("data");
+  }
+
+  @Test
   @VisibleForTesting
   @Tag("slow")
   void is_MvcRestException() throws Exception {
-    Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
-    Positions positions = new Positions(getPortfolio("TEST"));
-    getPositions(asset, positions);
-    positions.setAsAt("2019-10-20'");
-    PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
 
     MvcResult result = mockMvc.perform(post("/value")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(positionResponse))
+        .content(mapper.writeValueAsString("{asdf}"))
     ).andExpect(status().is4xxClientError()).andReturn();
 
-    Optional<BusinessException> someException = Optional.ofNullable((BusinessException)
+    Optional<HttpMessageNotReadableException> someException =
+        Optional.ofNullable((HttpMessageNotReadableException)
         result.getResolvedException());
 
     assertThat(someException.isPresent()).isTrue();

@@ -40,7 +40,7 @@ public class Accumulator {
     logicMap.put(TrnType.SPLIT, new Split());
   }
 
-  public Position accumulate(Transaction transaction, Positions positions) {
+  Position accumulate(Transaction transaction, Positions positions) {
     return accumulate(transaction, positions.get(transaction));
   }
 
@@ -72,9 +72,7 @@ public class Accumulator {
     Date tradeDate = transaction.getTradeDate();
     Date positionDate = DateUtils.getDate(position.getDateValues().getLast());
 
-    if (positionDate == null) {
-      validDate = true;
-    } else if (positionDate.compareTo(tradeDate) <= 0) {
+    if (positionDate == null ||  (positionDate.compareTo(tradeDate) <= 0) ) {
       validDate = true;
     }
 

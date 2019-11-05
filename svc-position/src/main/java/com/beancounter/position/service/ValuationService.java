@@ -103,6 +103,11 @@ public class ValuationService implements Valuation {
 
     CompletableFuture<FxResponse> futureFxResponse = bcService.getFxData(fxRequest);
 
+    return getValuationData(futurePriceResponse, futureFxResponse);
+
+  }
+
+  private ValuationData getValuationData(CompletableFuture<PriceResponse> futurePriceResponse, CompletableFuture<FxResponse> futureFxResponse) {
     PriceResponse priceResponse;
     FxResponse fxResponse;
     try {
@@ -119,6 +124,5 @@ public class ValuationService implements Valuation {
       log.error(e.getMessage());
       throw new SystemException("Timeout getting market data");
     }
-
   }
 }

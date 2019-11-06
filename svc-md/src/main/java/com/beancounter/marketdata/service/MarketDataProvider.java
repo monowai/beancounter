@@ -23,6 +23,5 @@ public interface MarketDataProvider {
    */
   String getId();
 
-
   boolean isMarketSupported(Market market);
 }

@@ -11,8 +11,6 @@ public interface DataProviderConfig {
    */
   Integer getBatchSize();
 
-  Boolean isMarketSupported(Market market);
-
   /**
    * MarketDataProviders often have difference ways of handling Market Codes.
    *

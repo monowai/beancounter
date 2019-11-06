@@ -28,7 +28,7 @@ public class WtdConfig implements DataProviderConfig {
   private String date;
 
   @Value("${beancounter.marketdata.provider.WTD.markets}")
-  private String wtdMarkets;
+  private String markets;
 
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
   private StaticConfig staticConfig;
@@ -36,15 +36,6 @@ public class WtdConfig implements DataProviderConfig {
   @Autowired
   void setStaticConfig(StaticConfig staticConfig) {
     this.staticConfig = staticConfig;
-  }
-
-  @Override
-  public Boolean isMarketSupported(Market market) {
-    if (wtdMarkets == null) {
-      return false;
-    }
-    return wtdMarkets.contains(market.getCode());
-
   }
 
   @Override

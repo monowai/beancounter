@@ -20,14 +20,6 @@ public class MockConfig implements DataProviderConfig {
   }
 
   @Override
-  public Boolean isMarketSupported(Market market) {
-    if (markets == null) {
-      return false;
-    }
-    return markets.contains(market.getCode());
-  }
-
-  @Override
   public String translateMarketCode(Market market) {
     return market.getCode();
   }

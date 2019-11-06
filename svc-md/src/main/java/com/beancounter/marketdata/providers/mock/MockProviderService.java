@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,9 +26,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
-
-  @Value("${beancounter.marketdata.provider.MOCK.markets}")
-  private String markets;
 
   private MockConfig mockConfig;
 
@@ -69,7 +65,11 @@ public class MockProviderService implements MarketDataProvider {
 
   @Override
   public boolean isMarketSupported(Market market) {
-    return mockConfig.isMarketSupported(market);
+    if (mockConfig.getMarkets() == null) {
+      return false;
+    }
+    return mockConfig.getMarkets().contains(market.getCode());
+
   }
 
   public Date getPriceDate() {

@@ -174,7 +174,10 @@ public class AlphaService implements MarketDataProvider {
 
   @Override
   public boolean isMarketSupported(Market market) {
-    return alphaConfig.isMarketSupported(market);
+    if (alphaConfig.getMarkets() == null) {
+      return false;
+    }
+    return alphaConfig.getMarkets().contains(market.getCode());
   }
 
 

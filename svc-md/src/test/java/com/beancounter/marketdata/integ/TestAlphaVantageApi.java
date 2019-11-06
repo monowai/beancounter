@@ -103,7 +103,7 @@ class TestAlphaVantageApi {
   @Test
   void is_SuccessHandledForAsx() throws Exception {
 
-    File jsonFile = new ClassPathResource("alphavantage.json").getFile();
+    File jsonFile = new ClassPathResource("alphavantage-asx.json").getFile();
 
     DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =

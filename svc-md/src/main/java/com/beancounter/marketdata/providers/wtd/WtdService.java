@@ -151,7 +151,11 @@ public class WtdService implements MarketDataProvider {
 
   @Override
   public boolean isMarketSupported(Market market) {
-    return wtdConfig.isMarketSupported(market);
+    if (wtdConfig.getMarkets() == null) {
+      return false;
+    }
+    return wtdConfig.getMarkets().contains(market.getCode());
+
   }
 
 

@@ -7,11 +7,18 @@ beancounter:
 
       ALPHA:
         url: http://localhost:9999
+        markets: NZX
       WTD:
         url: http://localhost:8888
+        markets: NASDAQ,AMEX,NYSE,ASX
       FX:
         url: http://localhost:7777
-
       MOCK:
-        markets:
-          - MOCK
+        markets: MOCK
+
+  markets:
+    NZX:
+      timezone: Pacific/Auckland
+      currencyId: NZ
+      aliases:
+        ALPHA: NZ

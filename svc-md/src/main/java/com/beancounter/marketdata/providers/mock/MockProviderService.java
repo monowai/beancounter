@@ -75,7 +75,7 @@ public class MockProviderService implements MarketDataProvider {
   }
 
   @Override
-  public String getMarketProviderCode(Market market) {
+  public String translateMarketCode(Market market) {
     return market.getCode();
   }
 

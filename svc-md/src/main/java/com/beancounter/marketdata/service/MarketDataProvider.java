@@ -38,7 +38,7 @@ public interface MarketDataProvider {
    * @param market BeanCounter view of the Market Code
    * @return DataProvider view of the same MarketCode
    */
-  String getMarketProviderCode(Market market);
+  String translateMarketCode(Market market);
 
   /**
    * Last price date on the Market.

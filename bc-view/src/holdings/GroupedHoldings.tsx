@@ -202,7 +202,7 @@ export function writeFooter(
 }
 
 export default function GroupedHoldings(holdings: Holdings): JSX.Element {
-  const { t } = useTranslation('translations', { i18n });
+  const { t } = useTranslation("translations", { i18n });
   // Transform the contract into the view the user requested
   const rows = Object.keys(holdings.holdingGroups).map((groupKey, index) => {
     return (

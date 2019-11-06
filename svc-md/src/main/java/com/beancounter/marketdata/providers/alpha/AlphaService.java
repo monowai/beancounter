@@ -174,13 +174,11 @@ public class AlphaService implements MarketDataProvider {
   }
 
   @Override
-  public String getMarketProviderCode(Market market) {
+  public String translateMarketCode(Market market) {
 
     if (market.getCode().equalsIgnoreCase("NASDAQ")
         || market.getCode().equalsIgnoreCase("NYSE")
-        || market.getCode().equalsIgnoreCase("AMEX")
-
-    ) {
+        || market.getCode().equalsIgnoreCase("AMEX")) {
       return null;
     }
     if (market.getCode().equalsIgnoreCase("ASX")) {

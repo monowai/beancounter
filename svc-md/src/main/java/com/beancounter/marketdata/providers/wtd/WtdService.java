@@ -180,7 +180,7 @@ public class WtdService implements MarketDataProvider {
   }
 
   @Override
-  public String getMarketProviderCode(Market market) {
+  public String translateMarketCode(Market market) {
     // Don't trust the caller
     return staticConfig.getMarketData().get(market.getCode()).getAliases().get(ID);
 

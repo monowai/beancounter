@@ -22,18 +22,18 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Deserializes a BC MarketData object from a AlphaVantage result.
+ * Deserialize a BC MarketData object from a AlphaVantage result.
  * Only returns the "latest" price.
  *
  * @author mikeh
  * @since 2019-03-03
  */
 @Slf4j
-public class AlphaDeserializer extends JsonDeserializer {
+public class AlphaDeserializer extends JsonDeserializer<MarketData> {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @Override
-  public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+  public MarketData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
     JsonNode source = p.getCodec().readTree(p);
 
     JsonNode nodeValue = source.get("Meta Data");

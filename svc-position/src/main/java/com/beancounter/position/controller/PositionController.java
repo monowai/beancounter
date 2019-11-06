@@ -47,7 +47,7 @@ public class PositionController {
   @CrossOrigin
   PositionResponse getTest(@PathVariable String portfolioCode) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
-    File jsonFile = new ClassPathResource(portfolioCode+".json").getFile();
+    File jsonFile = new ClassPathResource(portfolioCode + ".json").getFile();
     return mapper.readValue(jsonFile, PositionResponse.class);
   }
 }

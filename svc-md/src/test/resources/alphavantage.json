@@ -1,7 +1,7 @@
 {
   "Meta Data": {
     "1. Information": "Daily Prices (open, high, low, close) and Volumes",
-    "2. Symbol": "MSFT",
+    "2. Symbol": "MSFT:NASDAQ",
     "3. Last Refreshed": "2019-02-28",
     "4. Output Size": "Compact",
     "5. Time Zone": "US/Eastern"

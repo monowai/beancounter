@@ -3,7 +3,7 @@ package com.beancounter.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.providers.alpha.AlphaResponse;
+import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
@@ -22,12 +22,11 @@ class TestAlphaProvider {
   @Test
   @VisibleForTesting
   void is_ResponseSerialized() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-
+    ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
     File jsonFile = new ClassPathResource("alphavantage.json").getFile();
-    MarketData response = mapper.readValue(jsonFile, AlphaResponse.class);
+    MarketData marketData = mapper.readValue(jsonFile, MarketData.class);
 
-    assertThat(response)
+    assertThat(marketData)
         .isNotNull()
         .hasFieldOrProperty("asset")
         .hasFieldOrProperty("date")

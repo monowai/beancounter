@@ -72,7 +72,7 @@ public class Accumulator {
     Date tradeDate = transaction.getTradeDate();
     Date positionDate = DateUtils.getDate(position.getDateValues().getLast());
 
-    if (positionDate == null ||  (positionDate.compareTo(tradeDate) <= 0) ) {
+    if (positionDate == null || (positionDate.compareTo(tradeDate) <= 0)) {
       validDate = true;
     }
 

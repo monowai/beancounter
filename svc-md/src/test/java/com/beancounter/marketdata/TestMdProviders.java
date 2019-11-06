@@ -59,11 +59,11 @@ class TestMdProviders {
 
   @Test
   void is_FoundByMarket() {
-    Asset amp= AssetUtils.getAsset("AMP", Market.builder().code("ASX").build());
+    Asset amp = AssetUtils.getAsset("AMP", Market.builder().code("ASX").build());
     MarketDataProvider asxMarket = mdFactory.getMarketDataProvider(amp);
     assertThat(asxMarket.getId()).isEqualTo(WtdService.ID);
 
-    Asset gne= AssetUtils.getAsset("GNE", Market.builder().code("NZX").build());
+    Asset gne = AssetUtils.getAsset("GNE", Market.builder().code("NZX").build());
     MarketDataProvider nzxMarket = mdFactory.getMarketDataProvider(gne);
     assertThat(nzxMarket.getId())
         .isEqualTo(AlphaService.ID);
@@ -75,8 +75,6 @@ class TestMdProviders {
 
   @Test
   void is_InvalidMarketException() {
-    assertThrows(BusinessException.class, () -> {
-      marketService.getMarket("illegal");
-    });
+    assertThrows(BusinessException.class, () -> marketService.getMarket("illegal"));
   }
 }

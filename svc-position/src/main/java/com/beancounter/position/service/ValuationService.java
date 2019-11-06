@@ -107,7 +107,9 @@ public class ValuationService implements Valuation {
 
   }
 
-  private ValuationData getValuationData(CompletableFuture<PriceResponse> futurePriceResponse, CompletableFuture<FxResponse> futureFxResponse) {
+  private ValuationData getValuationData(
+      CompletableFuture<PriceResponse> futurePriceResponse,
+      CompletableFuture<FxResponse> futureFxResponse) {
     PriceResponse priceResponse;
     FxResponse fxResponse;
     try {

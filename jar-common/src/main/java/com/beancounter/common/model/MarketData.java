@@ -1,7 +1,5 @@
 package com.beancounter.common.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -12,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Various data points representing marketdata for an asset.
+ *
  * @author mikeh
  * @since 2019-01-27
  */
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @Builder
 @RequiredArgsConstructor
 @AllArgsConstructor
-@JsonDeserialize(builder = MarketData.MarketDataBuilder.class)
 public class MarketData {
   private Asset asset;
   private Date date;
@@ -29,9 +27,4 @@ public class MarketData {
   private BigDecimal high;
   private BigDecimal volume;
 
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class MarketDataBuilder {
-
-  }
 }

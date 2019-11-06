@@ -8,8 +8,10 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,7 +44,7 @@ public class AlphaService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.ALPHA.markets}")
   private String markets;
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectMapper alphaMdMapper;
   private AlphaRequester alphaRequester;
 
   @Autowired
@@ -52,12 +54,21 @@ public class AlphaService implements MarketDataProvider {
 
   @PostConstruct
   public void logStatus() {
-    if (apiKey.equalsIgnoreCase("demo")) {
-      log.info("Running with the DEMO apiKey");
-    } else {
-      log.info("Running with an apiKey {}***", apiKey.substring(0, 4));
-    }
+    this.alphaMdMapper = getAlphaObjectMapper();
+    log.info("Running with apiKey {}{}", apiKey.substring(0, 4).toUpperCase(),
+        apiKey.equalsIgnoreCase("demo") ? "" : "***");
 
+  }
+
+  public ObjectMapper getAlphaObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+
+    SimpleModule module =
+        new SimpleModule("AlphaMarketDataDeserializer",
+            new Version(1, 0, 0, null, null, null));
+    module.addDeserializer(MarketData.class, new AlphaDeserializer());
+    mapper.registerModule(module);
+    return mapper;
   }
 
   @Override
@@ -115,7 +126,7 @@ public class AlphaService implements MarketDataProvider {
         if (!isMdResponse(asset, result)) {
           results.add(getDefault(asset));
         } else {
-          MarketData marketData = objectMapper.readValue(response.get(), AlphaResponse.class);
+          MarketData marketData = alphaMdMapper.readValue(response.get(), MarketData.class);
 
           String assetName = marketData.getAsset().getName();
           asset.setName(assetName); // Keep the name
@@ -143,7 +154,7 @@ public class AlphaService implements MarketDataProvider {
     }
 
     if (field != null) {
-      JsonNode resultMessage = objectMapper.readTree(result);
+      JsonNode resultMessage = alphaMdMapper.readTree(result);
       log.error("{} - API returned [{}]", asset, resultMessage.get(field));
       return false;
     }

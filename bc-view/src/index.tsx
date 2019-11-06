@@ -1,4 +1,5 @@
 import express from "express";
+import logger from "./ConfigLogging";
 
 // this require is necessary for server HMR to recover from error
 // tslint:disable-next-line:no-var-requires
@@ -6,14 +7,14 @@ let app = require("./server").default;
 
 if (module.hot) {
   module.hot.accept("./server", () => {
-    console.log("🔁  HMR Reloading `./server`...");
+    logger.info("🔁  HMR Reloading `./server`...");
     try {
       app = require("./server").default;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   });
-  console.info("✅  Server-side HMR Enabled!");
+  logger.info("✅  Server-side HMR Enabled!");
 }
 
 const port = process.env.PORT || 3000;
@@ -21,9 +22,9 @@ const port = process.env.PORT || 3000;
 export default express()
   .use((req, res) => app.handle(req, res))
   .listen(port, () => {
-    // console.log("> Started on port ${port}");
+    logger.info("> Started on port %s", port);
   })
   .on("error", e => {
-    console.error(e.message);
+    logger.error(e.message);
     throw e;
   });

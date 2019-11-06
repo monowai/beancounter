@@ -32,7 +32,8 @@
     "react-router": "^5.0.0",
     "react-router-dom": "^5.1.2",
     "react-table": "^7.0.0-beta.12",
-    "remark-lint": "^6.0.5"
+    "remark-lint": "^6.0.5",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@testing-library/dom": "^6.10.0",

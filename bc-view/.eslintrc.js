@@ -57,6 +57,8 @@ module.exports = {
             allowTypedFunctionExpressions: true
         }],
         "@typescript-eslint/no-explicit-any": "off",
+        "jsx-quotes": "warn",
+        "react/jsx-pascal-case": "error",
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "warn"
     },

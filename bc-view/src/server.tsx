@@ -5,8 +5,8 @@ import { StaticRouter } from "react-router";
 import fs from "fs";
 
 import App from "./App";
-// import i18nextMiddleware from "i18next-express-middleware";
 import * as path from "path";
+import logger from "./ConfigLogging";
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string =>
@@ -20,7 +20,7 @@ if (process.env.RAZZLE_PUBLIC_DIR) {
 }
 
 const syncLoadAssets = (): any => {
-  console.log("Static Dir" + `${resolveApp(publicDir)}`);
+  logger.log("info", "Static Dir %s", `${resolveApp(publicDir)}`);
   if (process.env.RAZZLE_ASSETS_MANIFEST) {
     assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
   }

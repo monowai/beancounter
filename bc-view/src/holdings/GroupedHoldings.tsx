@@ -3,7 +3,7 @@ import NumberFormat from "react-number-format";
 import { useTranslation } from "react-i18next";
 import { HoldingGroup, Holdings } from "../types/beancounter";
 import { ValuationCcy } from "./enums";
-import i18n from "../bc-i18n";
+import i18n from "../ConfigI18n";
 
 function writeHoldings(
   holdingGroup: HoldingGroup,

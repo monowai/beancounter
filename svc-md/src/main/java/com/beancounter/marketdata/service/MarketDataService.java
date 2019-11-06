@@ -5,7 +5,9 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,9 +36,10 @@ public class MarketDataService {
    * @param asset to query
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
-  public MarketData getCurrent(Asset asset) {
+  public PriceResponse getCurrent(Asset asset) {
     hydrateAsset(asset);
-    return mdFactory.getMarketDataProvider(asset).getCurrent(asset);
+    List<Asset> assets = Collections.singletonList(asset);
+    return getCurrent(assets);
   }
 
   /**

@@ -3,7 +3,6 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.service.MarketDataService;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +37,7 @@ public class PriceController {
    * @return Market Dat information for the supplied asset
    */
   @GetMapping(value = "/{marketId}/{assetId}", produces = "application/json")
-  MarketData getPrice(@PathVariable("marketId") String marketId,
+  PriceResponse getPrice(@PathVariable("marketId") String marketId,
                       @PathVariable("assetId") String assetId) {
     Asset testAsset = Asset.builder()
         .code(assetId)

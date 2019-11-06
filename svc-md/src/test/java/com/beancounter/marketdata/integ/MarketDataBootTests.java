@@ -91,9 +91,11 @@ class MarketDataBootTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    MarketData mdResponse = objectMapper.readValue(json, MarketData.class);
+    PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
+    assertThat(priceResponse.getData()).hasSize(1);
 
-    assertThat(mdResponse)
+    MarketData marketData = priceResponse.getData().iterator().next();
+    assertThat(marketData)
         .hasFieldOrPropertyWithValue("asset", dummy)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());
@@ -132,9 +134,11 @@ class MarketDataBootTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    MarketData mdResponse = objectMapper.readValue(json, MarketData.class);
+    PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
+    assertThat(priceResponse.getData()).hasSize(1);
 
-    assertThat(mdResponse)
+    MarketData marketData = priceResponse.getData().iterator().next();
+    assertThat(marketData)
         .hasFieldOrPropertyWithValue("asset", dummy)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());

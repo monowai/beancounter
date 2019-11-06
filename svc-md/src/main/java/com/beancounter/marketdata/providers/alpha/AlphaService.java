@@ -38,18 +38,19 @@ public class AlphaService implements MarketDataProvider {
   public static final String ID = "ALPHA";
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
-  @Value("${beancounter.marketdata.provider.ALPHA.batchSize:2}")
-  private Integer batchSize;
-
-  @Value("${beancounter.marketdata.provider.ALPHA.markets}")
-  private String markets;
 
   private ObjectMapper alphaMdMapper;
   private AlphaRequester alphaRequester;
+  private AlphaConfig alphaConfig;
 
   @Autowired
   void setAlphaRequester(AlphaRequester alphaRequester) {
     this.alphaRequester = alphaRequester;
+  }
+
+  @Autowired
+  void setAlphaConfig(AlphaConfig alphaConfig) {
+    this.alphaConfig = alphaConfig;
   }
 
   @PostConstruct
@@ -81,7 +82,7 @@ public class AlphaService implements MarketDataProvider {
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
 
-    ProviderArguments providerArguments = getInstance(assets, this);
+    ProviderArguments providerArguments = getInstance(assets, alphaConfig);
 
     Map<Integer, Future<String>> requests = new ConcurrentHashMap<>();
 
@@ -172,36 +173,8 @@ public class AlphaService implements MarketDataProvider {
   }
 
   @Override
-  public Integer getBatchSize() {
-    return batchSize;
-  }
-
-  @Override
-  public Boolean isMarketSupported(Market market) {
-    if (markets == null) {
-      return false;
-    }
-    return markets.contains(market.getCode());
-  }
-
-  @Override
-  public String translateMarketCode(Market market) {
-
-    if (market.getCode().equalsIgnoreCase("NASDAQ")
-        || market.getCode().equalsIgnoreCase("NYSE")
-        || market.getCode().equalsIgnoreCase("AMEX")) {
-      return null;
-    }
-    if (market.getCode().equalsIgnoreCase("ASX")) {
-      return "AX";
-    }
-    return market.getCode();
-
-  }
-
-  @Override
-  public String getDate() {
-    return "2019-04-04";
+  public boolean isMarketSupported(Market market) {
+    return alphaConfig.isMarketSupported(market);
   }
 
 

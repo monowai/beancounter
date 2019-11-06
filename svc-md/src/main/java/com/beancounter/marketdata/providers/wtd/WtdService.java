@@ -5,18 +5,12 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -38,30 +32,20 @@ public class WtdService implements MarketDataProvider {
   public static final String ID = "WTD";
   @Value("${beancounter.marketdata.provider.WTD.key:demo}")
   private String apiKey;
-  @Value("${beancounter.marketdata.provider.WTD.batchSize:2}")
-  private Integer batchSize;
-
-  @Value("${beancounter.marketdata.provider.WTD.date:#{null}}")
-  private String date;
-
-  @Value("${beancounter.marketdata.provider.WTD.markets}")
-  private String markets;
-
   private WtdRequester wtdRequester;
+  private WtdConfig wtdConfig;
 
-  private StaticConfig staticConfig;
-
-  private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
 
   @Autowired
-  WtdService(WtdRequester wtdRequester, StaticConfig staticConfig) {
+  WtdService(WtdRequester wtdRequester, WtdConfig wtdConfig) {
     this.wtdRequester = wtdRequester;
-    this.staticConfig = staticConfig;
+    this.wtdConfig = wtdConfig;
   }
 
   @PostConstruct
   public void logStatus() {
-    log.info("Market Date is [{}]", (date == null ? "calculated" : date));
+    log.info("Market Date is [{}]",
+        (wtdConfig.getDate() == null ? "calculated" : wtdConfig.getDate()));
     log.info("APIKey is [{}}", (apiKey.equalsIgnoreCase("DEMO") ? "DEMO" : "DEFINED"));
   }
 
@@ -76,10 +60,10 @@ public class WtdService implements MarketDataProvider {
 
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    String date = getDate();
+    String date = wtdConfig.getDate();
     log.debug("Asset Prices as at [{}]", date);
     ProviderArguments providerArguments =
-        ProviderArguments.getInstance(assets, this);
+        ProviderArguments.getInstance(assets, wtdConfig);
 
     Map<Integer, Future<WtdResponse>> batchedRequests = new ConcurrentHashMap<>();
 
@@ -153,7 +137,7 @@ public class WtdService implements MarketDataProvider {
 
   private MarketData getDefault(Asset asset, String dpAsset) {
     log.warn("Unable to locate a price on {} for {} using code {}. Returning a default",
-        getDate(), asset, dpAsset);
+        wtdConfig.getDate(), asset, dpAsset);
 
     return MarketData.builder()
         .asset(asset)
@@ -166,36 +150,8 @@ public class WtdService implements MarketDataProvider {
   }
 
   @Override
-  public Integer getBatchSize() {
-    return batchSize;
-  }
-
-  @Override
-  public Boolean isMarketSupported(Market market) {
-    if (markets == null) {
-      return false;
-    }
-    return markets.contains(market.getCode());
-
-  }
-
-  @Override
-  public String translateMarketCode(Market market) {
-    // Don't trust the caller
-    return staticConfig.getMarketData().get(market.getCode()).getAliases().get(ID);
-
-  }
-
-  @Override
-  public String getDate() {
-    if (date != null) {
-      return date;
-    }
-    LocalDate result = DateUtils.getLastMarketDate(
-        Instant.now().atZone(ZoneId.systemDefault()),
-        timeZone.toZoneId());
-
-    return result.toString();
+  public boolean isMarketSupported(Market market) {
+    return wtdConfig.isMarketSupported(market);
   }
 
 

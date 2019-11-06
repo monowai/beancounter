@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.marketdata.service.MarketDataProvider;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,18 +36,18 @@ public class ProviderArguments {
    * Helper to build an instance of this class based on the supplied arguments.
    *
    * @param assets             Assets being requested
-   * @param marketDataProvider Who our provider is
+   * @param dataProviderConfig Who our provider is
    * @return This class with various keys cross indexed for convenience
    */
   public static ProviderArguments getInstance(Collection<Asset> assets,
-                                              MarketDataProvider marketDataProvider) {
-    ProviderArguments providerArguments = new ProviderArguments(marketDataProvider.getBatchSize());
+                                              DataProviderConfig dataProviderConfig) {
+    ProviderArguments providerArguments = new ProviderArguments(dataProviderConfig.getBatchSize());
 
-    providerArguments.setDate(marketDataProvider.getDate());
+    providerArguments.setDate(dataProviderConfig.getDate());
 
     for (Asset asset : assets) {
 
-      String marketCode = marketDataProvider.translateMarketCode(asset.getMarket());
+      String marketCode = dataProviderConfig.translateMarketCode(asset.getMarket());
       String assetCode = asset.getCode();
 
       if (marketCode != null && !marketCode.isEmpty()) {

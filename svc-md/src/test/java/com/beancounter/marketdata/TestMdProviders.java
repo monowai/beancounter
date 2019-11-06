@@ -9,6 +9,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
+import com.beancounter.marketdata.providers.mock.MockConfig;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdConfig;
 import com.beancounter.marketdata.providers.wtd.WtdService;
@@ -29,9 +30,9 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(classes = {
     AlphaConfig.class,
     WtdConfig.class,
+    MockConfig.class,
     MdFactory.class,
-    MarketService.class,
-    MockProviderService.class})
+    MarketService.class})
 @ActiveProfiles("test")
 class TestMdProviders {
   private MdFactory mdFactory;

@@ -14,6 +14,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.DataProviderUtils;
+import com.beancounter.marketdata.providers.wtd.WtdConfig;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -53,6 +54,9 @@ class TestWorldTradingDataApi {
   private WtdService wtdService;
 
   @Autowired
+  private WtdConfig wtdConfig;
+
+  @Autowired
   private void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (mockInternet == null) {
@@ -77,7 +81,7 @@ class TestWorldTradingDataApi {
         .stubFor(
             get(urlEqualTo(
                 "/api/v1/history_multi_single_day?symbol=AMP.AX&date="
-                    + wtdService.getDate()
+                    + wtdConfig.getDate()
                     + "&api_token=demo"))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -108,7 +112,7 @@ class TestWorldTradingDataApi {
     //  the date as set in the response from the provider.
 
     DataProviderUtils.mockWtdResponse(assets, mockInternet,
-        wtdService.getDate(),
+        wtdConfig.getDate(),
         false,
         jsonFile);
 
@@ -154,7 +158,7 @@ class TestWorldTradingDataApi {
     assets.add(msft);
 
     File jsonFile = new ClassPathResource("wtdWithInvalidAsset.json").getFile();
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdService.getDate(), jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdConfig.getDate(), jsonFile);
 
 
     Collection<MarketData> mdResult = wtdService.getCurrent(assets);
@@ -189,7 +193,7 @@ class TestWorldTradingDataApi {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(msft);
 
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdService.getDate(), jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdConfig.getDate(), jsonFile);
 
     assertThrows(BusinessException.class, () -> wtdService.getCurrent(assets));
   }

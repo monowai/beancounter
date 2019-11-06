@@ -18,32 +18,11 @@ public interface MarketDataProvider {
 
   /**
    * Convenience function to return the ID.
+   *
    * @return Unique Id of the MarketDataProvider
    */
   String getId();
 
-  /**
-   * MarketDataProviders have difference API restrictions. Number of assets in a single call is
-   * one of them.
-   *
-   * @return Number of Assets to request in a single call.
-   */
-  Integer getBatchSize();
 
-  Boolean isMarketSupported(Market market);
-
-  /**
-   * MarketDataProviders often have difference ways of handling Market Codes.
-   * 
-   * @param market BeanCounter view of the Market Code
-   * @return DataProvider view of the same MarketCode
-   */
-  String translateMarketCode(Market market);
-
-  /**
-   * Last price date on the Market.
-   * @return date to use for retrieval ops
-   */
-  String getDate();
-
+  boolean isMarketSupported(Market market);
 }

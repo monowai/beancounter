@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,12 @@ public class MockProviderService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.MOCK.markets}")
   private String markets;
 
+  private MockConfig mockConfig;
+
+  @Autowired
+  void setMockConfig(MockConfig mockConfig) {
+    this.mockConfig = mockConfig;
+  }
 
   @Override
   public MarketData getCurrent(Asset asset) {
@@ -61,32 +68,13 @@ public class MockProviderService implements MarketDataProvider {
   }
 
   @Override
-  public Integer getBatchSize() {
-    return 1;
-  }
-
-  @Override
-  public Boolean isMarketSupported(Market market) {
-    if (markets == null) {
-      return false;
-    }
-    return markets.contains(market.getCode());
-
-  }
-
-  @Override
-  public String translateMarketCode(Market market) {
-    return market.getCode();
+  public boolean isMarketSupported(Market market) {
+    return mockConfig.isMarketSupported(market);
   }
 
   public Date getPriceDate() {
     return Date.from(
-        ZonedDateTime.of(LocalDate.parse(getDate()).atStartOfDay(), ZoneId.of("UTC")).toInstant());
-  }
-
-  @Override
-  public String getDate() {
-    return "2019-11-21";
+        ZonedDateTime.of(LocalDate.parse("2019-11-21").atStartOfDay(), ZoneId.of("UTC")).toInstant());
   }
 
 

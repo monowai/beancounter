@@ -12,7 +12,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,20 +26,11 @@ import org.springframework.stereotype.Service;
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
 
-  private MockConfig mockConfig;
-
-  @Autowired
-  void setMockConfig(MockConfig mockConfig) {
-    this.mockConfig = mockConfig;
-  }
-
-  @Override
   public MarketData getCurrent(Asset asset) {
     if (asset.getCode().equalsIgnoreCase("123")) {
       throw new BusinessException(
           String.format("Invalid asset code [%s]", asset.getCode()));
     }
-
     return MarketData.builder()
         .asset(asset)
         .close(BigDecimal.valueOf(999.99))
@@ -65,10 +55,7 @@ public class MockProviderService implements MarketDataProvider {
 
   @Override
   public boolean isMarketSupported(Market market) {
-    if (mockConfig.getMarkets() == null) {
-      return false;
-    }
-    return mockConfig.getMarkets().contains(market.getCode());
+    return "MOCK".equalsIgnoreCase(market.getCode());
 
   }
 

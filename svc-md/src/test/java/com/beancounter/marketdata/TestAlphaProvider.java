@@ -19,11 +19,12 @@ import org.springframework.core.io.ClassPathResource;
 class TestAlphaProvider {
 
   @Test
-  void is_NullAsset () throws Exception {
+  void is_NullAsset() throws Exception {
     ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
     File jsonFile = new ClassPathResource("alphavantage-empty-response.json").getFile();
     mapper.readValue(jsonFile, MarketData.class);
   }
+
   @Test
   void is_ResponseWithMarketCodeSerialized() throws Exception {
     File jsonFile = new ClassPathResource("alphavantage-asx.json").getFile();

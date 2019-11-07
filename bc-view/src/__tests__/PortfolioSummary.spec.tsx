@@ -1,6 +1,7 @@
 import PortfolioSummary from "../portfolio/PortfolioSummary";
 import React from "react";
-import { cleanup, render } from "@testing-library/react/pure";
+import { cleanup, render } from "@testing-library/react";
+import "@testing-library/jest-dom/extend-expect";
 import { Currency } from "../types/beancounter";
 
 afterEach(cleanup);
@@ -9,9 +10,11 @@ const usd: Currency = { id: "us", code: "USD", symbol: "$" };
 
 describe("<PortfolioSummary />", () => {
   it("should match snapshot", () => {
-    const component = render(
-      <PortfolioSummary code={"code"} currency={usd} base={usd} />
+    const container = render(
+      <table>
+        <PortfolioSummary code={"mike"} currency={usd} base={usd} />
+      </table>
     );
-    expect(component).toMatchSnapshot();
+    expect(container).toMatchSnapshot();
   });
 });

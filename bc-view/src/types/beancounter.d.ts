@@ -70,11 +70,12 @@ interface Holdings {
   holdingGroups: HoldingGroup[];
   portfolio: Portfolio;
   valueIn: ValuationCcy;
+  totals: { [ValuationCCy: ValuationCcy]: MoneyValues };
 }
 
 // User defined grouping
 interface HoldingGroup {
   group: string;
-  subTotals: { [ValuationCCy: ValuationCcy]: MoneyValues };
   positions: Position[];
+  subTotals: { [ValuationCCy: ValuationCcy]: MoneyValues };
 }

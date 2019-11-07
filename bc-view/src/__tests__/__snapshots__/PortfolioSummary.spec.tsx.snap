@@ -5,25 +5,81 @@ Object {
   "asFragment": [Function],
   "baseElement": <body>
     <div>
-      <div
-        class="subTitle"
-      >
-        Portfolio 
-        code
-         -
-        USD
-      </div>
+      <table>
+        <tbody
+          class="table-container is-large"
+        >
+          <tr>
+            <th>
+              SUMMARY
+            </th>
+            <th
+              colspan="5"
+            >
+               
+            </th>
+            <th
+              align="right"
+            >
+              dividends
+            </th>
+            <th
+              align="right"
+            >
+              gain.realised
+            </th>
+            <th
+              align="right"
+            >
+              gain.unrealised
+            </th>
+            <th
+              align="right"
+            >
+              gain
+            </th>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </body>,
   "container": <div>
-    <div
-      class="subTitle"
-    >
-      Portfolio 
-      code
-       -
-      USD
-    </div>
+    <table>
+      <tbody
+        class="table-container is-large"
+      >
+        <tr>
+          <th>
+            SUMMARY
+          </th>
+          <th
+            colspan="5"
+          >
+             
+          </th>
+          <th
+            align="right"
+          >
+            dividends
+          </th>
+          <th
+            align="right"
+          >
+            gain.realised
+          </th>
+          <th
+            align="right"
+          >
+            gain.unrealised
+          </th>
+          <th
+            align="right"
+          >
+            gain
+          </th>
+        </tr>
+      </tbody>
+    </table>
   </div>,
   "debug": [Function],
   "findAllByAltText": [Function],

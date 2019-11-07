@@ -1,11 +1,12 @@
-import GroupHoldings from "./GroupedHoldings";
+import { HoldingFooter, HoldingHeader, WriteHoldings } from "./GroupedHoldings";
 import PortfolioSummary from "../portfolio/PortfolioSummary";
 import React, { useState } from "react";
 import "../App.css";
-import { prepHoldings } from "./prepHoldings";
+import { computeHoldings } from "./computeHoldings";
 import { GroupBy, ValuationCcy } from "./enums";
 import { Holdings } from "../types/beancounter";
 import useAxios from "axios-hooks";
+import Totals from "./Totals";
 
 const LayoutHoldings = (): JSX.Element => {
   const [valueIn] = useState<ValuationCcy>("PORTFOLIO");
@@ -20,18 +21,31 @@ const LayoutHoldings = (): JSX.Element => {
     return <p>{axiosResponse.error.message}!</p>;
   }
   if (axiosResponse.data) {
-    const holdings = prepHoldings(
+    const holdings = computeHoldings(
       axiosResponse.data.data,
       hideEmpty,
       valueIn,
       groupBy
     ) as Holdings;
 
+    const holdingsByGroup = Object.keys(holdings.holdingGroups).map((groupKey, index) => {
+      return (
+        <React.Fragment key={index}>
+          {HoldingHeader(groupKey)}
+          {WriteHoldings(holdings.holdingGroups[groupKey], holdings.valueIn)}
+          {HoldingFooter(holdings.holdingGroups[groupKey], holdings.valueIn)}
+        </React.Fragment>
+      );
+    });
+
     return (
-      <div>
-        <PortfolioSummary {...axiosResponse.data.data.portfolio} />
-        <GroupHoldings {...holdings} />
-      </div>
+
+        <table className={"table-container is-striped is-hoverable"}>
+          <PortfolioSummary {...axiosResponse.data.data.portfolio} />
+          {holdingsByGroup}
+          <Totals {...holdings} />
+        </table>
+
     );
   }
   return <div>No Holdings...</div>;

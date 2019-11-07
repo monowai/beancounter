@@ -17,29 +17,37 @@ import org.springframework.core.io.ClassPathResource;
  * @since 2019-03-03
  */
 class TestAlphaProvider {
+  private ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
 
   @Test
   void is_NullAsset() throws Exception {
     ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
     File jsonFile = new ClassPathResource("alphavantage-empty-response.json").getFile();
-    mapper.readValue(jsonFile, MarketData.class);
+    assertThat(mapper.readValue(jsonFile, MarketData.class)).isNull();
   }
 
   @Test
   void is_ResponseWithMarketCodeSerialized() throws Exception {
     File jsonFile = new ClassPathResource("alphavantage-asx.json").getFile();
-    validateResponse(jsonFile);
+    MarketData marketData = validateResponse(jsonFile);
+    assertThat(
+        marketData.getAsset())
+        .hasFieldOrPropertyWithValue("code", "MSFT")
+        .hasFieldOrPropertyWithValue("market.code", "NASDAQ");
 
   }
 
   @Test
-  void is_ResponseWithoutMarketCodeSerialized() throws Exception {
+  void is_ResponseWithoutMarketCodeSetToUs() throws Exception {
     File jsonFile = new ClassPathResource("alphavantage-nasdaq.json").getFile();
-    validateResponse(jsonFile);
+    MarketData marketData = validateResponse(jsonFile);
+    assertThat(
+        marketData.getAsset())
+        .hasFieldOrPropertyWithValue("code", "MSFT")
+        .hasFieldOrPropertyWithValue("market.code", "US");
   }
 
-  private void validateResponse(File jsonFile) throws java.io.IOException {
-    ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
+  private MarketData validateResponse(File jsonFile) throws Exception {
     MarketData marketData = mapper.readValue(jsonFile, MarketData.class);
 
     assertThat(marketData)
@@ -50,5 +58,6 @@ class TestAlphaProvider {
         .hasFieldOrPropertyWithValue("high", new BigDecimal("112.8800"))
         .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
         .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"));
+    return marketData;
   }
 }

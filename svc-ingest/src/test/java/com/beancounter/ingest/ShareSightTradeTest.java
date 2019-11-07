@@ -11,6 +11,7 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ShareSightConfig;
+import com.beancounter.ingest.reader.Filter;
 import com.beancounter.ingest.reader.RowProcessor;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
@@ -140,6 +141,34 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("comments", null)
+        .hasFieldOrProperty("tradeDate");
+
+  }
+
+  @Test
+  void is_RowFilterWorking() {
+
+    List<Object> inFilter = getRow("buy", "0.8988", "2097.85");
+    List<Object> outFilter = getRow("ABC", "ABC", "buy", "0.8988", "2097.85");
+    inFilter.remove(ShareSightTrades.comments);
+    List<List<Object>> values = new ArrayList<>();
+    values.add(inFilter);
+    values.add(outFilter);
+
+    Collection<Transaction> transactions =
+        rowProcessor.process(
+            getPortfolio("Test", getCurrency("NZD")),
+            values,
+            new Filter("SLB"),
+            "twee");
+
+    assertThat(transactions).hasSize(1);
+    Transaction transaction = transactions.iterator().next();
+    assertThat(transaction)
+        .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
+        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
+        .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
+        .hasFieldOrPropertyWithValue("comments", null)
         .hasFieldOrProperty("tradeDate")
     ;
 
@@ -194,10 +223,18 @@ class ShareSightTradeTest {
   }
 
   private List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
+    return getRow("AMEX", "SLB", tranType, fxRate, tradeAmount);
+  }
+
+  private List<Object> getRow(String market,
+                              String code,
+                              String tranType,
+                              String fxRate,
+                              String tradeAmount) {
     List<Object> row = new ArrayList<>();
 
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.market, market);
+    row.add(ShareSightTrades.code, code);
     row.add(ShareSightTrades.name, "Test Asset");
     row.add(ShareSightTrades.type, tranType);
     row.add(ShareSightTrades.date, "21/01/2019");

@@ -11,6 +11,7 @@ import com.beancounter.common.exception.SystemException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import feign.FeignException;
 import feign.Request;
 import feign.Response;
 import java.nio.charset.Charset;
@@ -52,6 +53,26 @@ class TestExceptions {
         .build();
     assertThrows(SystemException.class, () -> validSystemException(
         springFeignDecoder.decode("test", response)));
+
+  }
+
+  @VisibleForTesting
+  @Test
+  void is_FeignExceptionThrown() {
+    SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
+    Response response = Response.builder()
+        .reason("Integration Error")
+        .status(HttpStatus.SWITCHING_PROTOCOLS.value())
+        .request(Request.create(
+            Request.HttpMethod.GET, "/test", new HashMap<>(), Request.Body.empty()))
+        .build();
+
+    assertThrows(FeignException.class, () -> {
+      Exception e =springFeignDecoder.decode("test", response);
+      assertThat(e.getMessage()).isEqualTo("status 101 reading test");
+      throw e;
+    });
+
 
   }
 

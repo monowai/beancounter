@@ -70,17 +70,29 @@ class TestPositions {
 
     Asset asset = getAsset("Dates", "Code");
 
-    Date tradeDate = DateUtils.getDate("2018-12-01");
-    Transaction initial = Transaction.builder()
-        .tradeDate(tradeDate)
+    Date firstTradeDate = DateUtils.getDate("2018-12-01");
+    Transaction firstTrade = Transaction.builder()
+        .tradeDate(firstTradeDate)
+        .portfolio(getPortfolio("CODE"))
+        .asset(asset)
+        .build();
+
+    Date secondTradeDate = DateUtils.getDate("2018-12-02");
+    Transaction secondTrade = Transaction.builder()
+        .tradeDate(secondTradeDate)
         .portfolio(getPortfolio("CODE"))
         .asset(asset)
         .build();
 
     Positions positions = new Positions(getPortfolio("Twee"));
-    Position position = positions.get(initial);
+    Position position = positions.get(firstTrade);
+    positions.add(position);
+    // Calling this should not set the "first" trade date.
+    position = positions.get(secondTrade);
+
     assertThat(position.getDateValues())
-        .hasFieldOrPropertyWithValue("opened", "2018-12-01");
+        .hasFieldOrPropertyWithValue("opened", "2018-12-01")
+    ;
   }
 
   @Test
@@ -106,5 +118,8 @@ class TestPositions {
     assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
         .isNotNull()
         .hasFieldOrPropertyWithValue("currency", getCurrency("SGD"));
+
+    assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
+        .isNotNull();
   }
 }

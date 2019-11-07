@@ -27,12 +27,7 @@ public class SpringFeignDecoder implements ErrorDecoder {
 
   @Override
   public Exception decode(String methodKey, Response response) {
-    String reason;
-    try {
-      reason = getMessage(response);
-    } catch (IOException e) {
-      return FeignException.errorStatus(methodKey, response);
-    }
+    String reason = getMessage(response);
 
     if (response.status() >= 400 && response.status() <= 499) {
       // We don't want business logic exceptions to flip circuit breakers
@@ -44,7 +39,7 @@ public class SpringFeignDecoder implements ErrorDecoder {
     return FeignException.errorStatus(methodKey, response);
   }
 
-  private String getMessage(Response response) throws IOException {
+  private String getMessage(Response response) {
     if (response.body() == null) {
       SpringExceptionMessage exceptionMessage = SpringExceptionMessage.builder()
           .message(response.reason())
@@ -56,11 +51,12 @@ public class SpringFeignDecoder implements ErrorDecoder {
     try (Reader reader = response.body().asReader()) {
       String result = CharStreams.toString(reader);
 
-
       //init the Pojo
       SpringExceptionMessage exceptionMessage = mapper.readValue(result,
           SpringExceptionMessage.class);
       return exceptionMessage.getMessage();
+    } catch (IOException e) {
+      return "Unexpected: " + e.getMessage();
     }
 
   }

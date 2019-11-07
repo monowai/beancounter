@@ -36,7 +36,7 @@ public class RowProcessor {
     return process(portfolio, values, new Filter(null), provider);
   }
 
-  Collection<Transaction> process(Portfolio portfolio,
+  public Collection<Transaction> process(Portfolio portfolio,
                                   List<List<Object>> values,
                                   Filter filter,
                                   String provider) {

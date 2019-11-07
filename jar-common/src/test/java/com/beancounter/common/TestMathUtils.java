@@ -82,4 +82,17 @@ class TestMathUtils {
     val = new BigDecimal("100.994");
     assertThat(MathUtils.add(val, val)).isEqualTo(new BigDecimal("201.99"));
   }
+
+  @Test
+  void is_MathContextDividesToScale() {
+    BigDecimal costBasis = new BigDecimal("1000");
+    BigDecimal total = new BigDecimal("500.00");
+    assertThat(costBasis.divide(total, MathUtils.getMathContext()))
+        .isEqualTo(new BigDecimal("2"));
+
+    total = new BigDecimal("555.00");
+    assertThat(costBasis.divide(total, MathUtils.getMathContext()))
+        .isEqualTo(new BigDecimal("1.801801802"));
+
+  }
 }

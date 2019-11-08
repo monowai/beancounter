@@ -1,6 +1,6 @@
 import Home from "./Home";
 import React from "react";
-import "./ConfigI18n";
+import "./i18nConfig";
 import { Route, Switch } from "react-router-dom";
 import LayoutHoldings from "./holdings/LayoutHoldings";
 

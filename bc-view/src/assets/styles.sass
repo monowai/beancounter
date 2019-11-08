@@ -1,4 +1,6 @@
 @import "~bulma/sass/utilities/all"
+@import url('https://fonts.googleapis.com/css?family=Helvetica Neue:400,700')
+
 $family-sans-serif: "Helvetica Neue", "Helvetica", "Arial", sans-serif
 $table-header-border: #00a546
 $table-border: #e7e7e7
@@ -6,6 +8,8 @@ $table-head-background-color: #00a546
 $table-foot-background-color: #00a546
 $table-foot-cell-color: $white
 $table-head-cell-color: $white
+
+@import "~bulma/sass/elements/table"
 
 body
   width: 100%
@@ -16,23 +20,66 @@ body
 caption
   display: none
 
+.holding-header
+  background: #00a546
+  width: 900px
+  color: whitesmoke
+  border: solid $table-header-border
+
+.table-header
+  background: #00a546
+  width: 900px
+  color: whitesmoke
+  border: solid $table-header-border
+  th
+    color: whitesmoke
+
+.table-header-row
+  color: whitesmoke
+
+.table-header-column
+  color: whitesmoke
+  text-align: right
+
+.header-column
+  background: #00a546
+  color: whitesmoke
+  border: solid $table-header-border
+  table
+    th
+      color: whitesmoke
+
+
+.holding-row
+  width: 900px
+  table
+    table-layout: fixed
+    text-align: right
+
+.holding-footer
+  font-weight: bolder
+  table
+    table-layout: fixed
+    text-align: right
+
+.totals-row
+  font-weight: bold
+  font-size: larger
+  color: black
+
 table
-  table-layout: fixed
   text-align: right
 
   th
+    color: whitesmoke
     background: #00a546
     font-size: smaller
     width: 900px
-    color: whitesmoke
     border: solid $table-header-border
 
   td
     font-size: smaller
 
-  tfoot
-    text-align: right
-    color: whitesmoke
 
 .flex-cell
   text-align: right
@@ -64,7 +111,4 @@ table
   .flex-row
     width: 100%
 
-
-@import "~bulma/sass/elements/table"
-@import "~bulma/sass/layout/section"
 

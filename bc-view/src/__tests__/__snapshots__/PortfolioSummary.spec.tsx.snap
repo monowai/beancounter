@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<PortfolioSummary /> should match snapshot 1`] = `
+exports[`<PortfolioStats /> should match snapshot 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": <body>
@@ -12,11 +12,6 @@ Object {
           <tr>
             <th>
               SUMMARY
-            </th>
-            <th
-              colspan="5"
-            >
-               
             </th>
             <th
               align="right"
@@ -51,11 +46,6 @@ Object {
         <tr>
           <th>
             SUMMARY
-          </th>
-          <th
-            colspan="5"
-          >
-             
           </th>
           <th
             align="right"

@@ -1,4 +1,4 @@
-import PortfolioSummary from "../portfolio/PortfolioSummary";
+import PortfolioStats from "../portfolio/PortfolioStats";
 import React from "react";
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
@@ -8,11 +8,11 @@ afterEach(cleanup);
 
 const usd: Currency = { id: "us", code: "USD", symbol: "$" };
 
-describe("<PortfolioSummary />", () => {
+describe("<PortfolioStats />", () => {
   it("should match snapshot", () => {
     const container = render(
       <table>
-        <PortfolioSummary code={"mike"} currency={usd} base={usd} />
+        <PortfolioStats code={"mike"} currency={usd} base={usd} />
       </table>
     );
     expect(container).toMatchSnapshot();

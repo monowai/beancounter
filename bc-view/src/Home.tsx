@@ -1,5 +1,7 @@
 import React from "react";
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, withRouter } from "react-router-dom";
+import { withTranslation, WithTranslation } from "react-i18next";
+import { RouteComponentProps } from "react-router";
 import Loadable from "react-loadable";
 
 const Holdings = Loadable({
@@ -12,13 +14,16 @@ const Error = Loadable({
   loading: () => null
 });
 
-function Home(): JSX.Element {
+const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
+  const { history } = props;
   return (
     <div className="Home">
-      BeanCounter Functions
+      BeanCounter Functions.
       <ul className="Home-resources">
         <li>
-          <a href="/holdings">Holdings</a>
+          <a href="/holdings" onClick={() => history.push("/")}>
+            Holdings
+          </a>
         </li>
       </ul>
       <Switch>
@@ -29,6 +34,6 @@ function Home(): JSX.Element {
       </Switch>
     </div>
   );
-}
+};
 
-export default Home;
+export default withTranslation()(withRouter(Home));

@@ -5,8 +5,18 @@ import { useSSR } from "react-i18next";
 
 import App from "./App";
 
+declare global {
+  interface WindowI18n extends Window {
+    initialI18nStore: any;
+    initialLanguage: any;
+  }
+}
+
 const BaseApp = (): JSX.Element => {
-  useSSR(window.initialI18nStore, window.initialLanguage);
+  useSSR(
+    (window as WindowI18n).initialI18nStore,
+    (window as WindowI18n).initialLanguage
+  );
 
   return (
     <Suspense fallback={<div>Loading ...</div>}>

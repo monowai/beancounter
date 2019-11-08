@@ -1,5 +1,5 @@
 import { HoldingFooter, HoldingHeader, WriteHoldings } from "./GroupedHoldings";
-import PortfolioSummary from "../portfolio/PortfolioSummary";
+import PortfolioStats from "../portfolio/PortfolioStats";
 import React, { useState } from "react";
 import "../App.css";
 import { computeHoldings } from "./computeHoldings";
@@ -28,24 +28,33 @@ const LayoutHoldings = (): JSX.Element => {
       groupBy
     ) as Holdings;
 
-    const holdingsByGroup = Object.keys(holdings.holdingGroups).map((groupKey, index) => {
-      return (
-        <React.Fragment key={index}>
-          {HoldingHeader(groupKey)}
-          {WriteHoldings(holdings.holdingGroups[groupKey], holdings.valueIn)}
-          {HoldingFooter(holdings.holdingGroups[groupKey], holdings.valueIn)}
-        </React.Fragment>
-      );
-    });
+    const holdingsByGroup = Object.keys(holdings.holdingGroups).map(
+      (groupKey, index) => {
+        return (
+          <React.Fragment key={index}>
+            {HoldingHeader(groupKey)}
+            {WriteHoldings(holdings.holdingGroups[groupKey], holdings.valueIn)}
+            {HoldingFooter(holdings.holdingGroups[groupKey], holdings.valueIn)}
+          </React.Fragment>
+        );
+      }
+    );
 
     return (
-
-        <table className={"table-container is-striped is-hoverable"}>
-          <PortfolioSummary {...axiosResponse.data.data.portfolio} />
-          {holdingsByGroup}
-          <Totals {...holdings} />
-        </table>
-
+      <div>
+        <div>ToDo: Add Filters</div>
+        <div className={"stats-container"}>
+          <table>
+            <PortfolioStats {...axiosResponse.data.data.portfolio} />
+          </table>
+        </div>
+        <div className={"holdings-container"}>
+          <table className={"table holding-table is-striped is-hoverable"}>
+            {holdingsByGroup}
+            <Totals {...holdings} />
+          </table>
+        </div>
+      </div>
     );
   }
   return <div>No Holdings...</div>;

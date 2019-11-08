@@ -28,7 +28,7 @@ module.exports = {
       }
     }
   ],
-  modify(config, { target, dev: IS_DEV }, webpackObject) {
+  modify(config, { target, dev: IS_DEV }, webpack) {
 
     const { module } = config;
     const { rules } = module;
@@ -48,6 +48,7 @@ module.exports = {
 
     return {
       ...config,
+      node: { fs: "empty"},
       module: {
         ...module,
         rules: [...remove(fileLoaderIdx, 1, rules), fileLoader, newRule]

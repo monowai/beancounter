@@ -19,16 +19,25 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - yarn-packages-{{ checksum "~/project/bc-view/yarn.lock" }}
-      - run: 'cd "~/project/bc-view'
+            - yarn-cache-{{ checksum "./bc-view/yarn.lock" }}
       - run:
           name: Install Dependencies
-          command: yarn install --frozen-lockfile
+          command: cd ./bc-view && pwd && yarn install --frozen-lockfile
+      - run:
+          name: Test with coverage
+          command: cd ./bc-view && yarn test --ci --coverage --reporters=default --reporters=jest-junit
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "./reports/junit"
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "yarn.lock" }}
+          key: yarn-cache-{{ checksum "~/project/bc-view/yarn.lock" }}
           paths:
             - ~/.cache/yarn
+            - ./bc-view/node_modules
+      - store_test_results:
+          path: bc-view/reports/junit
+      - store_artifacts:
+          path: bc-view/reports/junit
 
   build-common:
     docker:
@@ -70,7 +79,6 @@ jobs:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-    # caches are immutable and will be built once by the common job
     steps:
       - restore_cache:
           keys:
@@ -141,6 +149,7 @@ workflows:
   version: 2
   build_and_stage:
     jobs:
+      - build-app
       - build-common
       - build-md:
           requires:

@@ -9,10 +9,10 @@ Object {
         <div>
           ToDo: Add Filters
         </div>
-        <div>
-          <table
-            class="table-container"
-          >
+        <div
+          class="stats-container"
+        >
+          <table>
             <tbody
               class="table-container is-large"
             >
@@ -44,11 +44,15 @@ Object {
             </tbody>
           </table>
         </div>
-        <div>
+        <div
+          class="holdings-container"
+        >
           <table
-            class="table-container is-striped is-hoverable"
+            class="table holding-table is-striped is-hoverable"
           >
-            <tbody>
+            <tbody
+              class="table-header"
+            >
               <tr>
                 <th>
                   USD
@@ -101,7 +105,9 @@ Object {
               </tr>
             </tbody>
             <tbody>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -157,7 +163,9 @@ Object {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -213,7 +221,9 @@ Object {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -269,7 +279,9 @@ Object {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -325,7 +337,9 @@ Object {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -381,7 +395,9 @@ Object {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -439,7 +455,9 @@ Object {
               </tr>
             </tbody>
             <tbody>
-              <tr>
+              <tr
+                class="holding-footer"
+              >
                 <td
                   align="right"
                   colspan="4"
@@ -491,7 +509,9 @@ Object {
                 </td>
               </tr>
             </tbody>
-            <tbody>
+            <tbody
+              class="table-header"
+            >
               <tr>
                 <th>
                   AUD
@@ -544,7 +564,9 @@ Object {
               </tr>
             </tbody>
             <tbody>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -602,7 +624,9 @@ Object {
               </tr>
             </tbody>
             <tbody>
-              <tr>
+              <tr
+                class="holding-footer"
+              >
                 <td
                   align="right"
                   colspan="4"
@@ -654,7 +678,9 @@ Object {
                 </td>
               </tr>
             </tbody>
-            <tbody>
+            <tbody
+              class="table-header"
+            >
               <tr>
                 <th>
                   NZD
@@ -707,7 +733,9 @@ Object {
               </tr>
             </tbody>
             <tbody>
-              <tr>
+              <tr
+                class="holding-row"
+              >
                 <td
                   class="asset"
                 >
@@ -765,7 +793,9 @@ Object {
               </tr>
             </tbody>
             <tbody>
-              <tr>
+              <tr
+                class="holding-footer"
+              >
                 <td
                   align="right"
                   colspan="4"
@@ -818,7 +848,7 @@ Object {
               </tr>
             </tbody>
             <tbody
-              class="table-container is-large"
+              class="totals-row"
             >
               <tr>
                 <td
@@ -881,10 +911,10 @@ Object {
       <div>
         ToDo: Add Filters
       </div>
-      <div>
-        <table
-          class="table-container"
-        >
+      <div
+        class="stats-container"
+      >
+        <table>
           <tbody
             class="table-container is-large"
           >
@@ -916,11 +946,15 @@ Object {
           </tbody>
         </table>
       </div>
-      <div>
+      <div
+        class="holdings-container"
+      >
         <table
-          class="table-container is-striped is-hoverable"
+          class="table holding-table is-striped is-hoverable"
         >
-          <tbody>
+          <tbody
+            class="table-header"
+          >
             <tr>
               <th>
                 USD
@@ -973,7 +1007,9 @@ Object {
             </tr>
           </tbody>
           <tbody>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1029,7 +1065,9 @@ Object {
                 </span>
               </td>
             </tr>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1085,7 +1123,9 @@ Object {
                 </span>
               </td>
             </tr>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1141,7 +1181,9 @@ Object {
                 </span>
               </td>
             </tr>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1197,7 +1239,9 @@ Object {
                 </span>
               </td>
             </tr>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1253,7 +1297,9 @@ Object {
                 </span>
               </td>
             </tr>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1311,7 +1357,9 @@ Object {
             </tr>
           </tbody>
           <tbody>
-            <tr>
+            <tr
+              class="holding-footer"
+            >
               <td
                 align="right"
                 colspan="4"
@@ -1363,7 +1411,9 @@ Object {
               </td>
             </tr>
           </tbody>
-          <tbody>
+          <tbody
+            class="table-header"
+          >
             <tr>
               <th>
                 AUD
@@ -1416,7 +1466,9 @@ Object {
             </tr>
           </tbody>
           <tbody>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1474,7 +1526,9 @@ Object {
             </tr>
           </tbody>
           <tbody>
-            <tr>
+            <tr
+              class="holding-footer"
+            >
               <td
                 align="right"
                 colspan="4"
@@ -1526,7 +1580,9 @@ Object {
               </td>
             </tr>
           </tbody>
-          <tbody>
+          <tbody
+            class="table-header"
+          >
             <tr>
               <th>
                 NZD
@@ -1579,7 +1635,9 @@ Object {
             </tr>
           </tbody>
           <tbody>
-            <tr>
+            <tr
+              class="holding-row"
+            >
               <td
                 class="asset"
               >
@@ -1637,7 +1695,9 @@ Object {
             </tr>
           </tbody>
           <tbody>
-            <tr>
+            <tr
+              class="holding-footer"
+            >
               <td
                 align="right"
                 colspan="4"
@@ -1690,7 +1750,7 @@ Object {
             </tr>
           </tbody>
           <tbody
-            class="table-container is-large"
+            class="totals-row"
           >
             <tr>
               <td

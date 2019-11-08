@@ -12,6 +12,24 @@ jobs:
 #          paths:
 #            - ~/beancounter
 
+  build-app:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - yarn-packages-{{ checksum "~/project/bc-view/yarn.lock" }}
+      - run: 'cd "~/project/bc-view'
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
   build-common:
     docker:
       - image: circleci/openjdk:11

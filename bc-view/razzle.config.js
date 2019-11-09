@@ -1,19 +1,28 @@
 /* eslint-disable */
 const { findIndex, has, remove } = require("ramda");
-const modifyBuilder = require("razzle-plugin-postcss").default;
-const cssConfig = {
-  postcssPlugins: [
-    require("postcss-flexbugs-fixes"),
-    require("autoprefixer")
-  ]
-};
-
-const modify = modifyBuilder({ cssConfig });
 
 module.exports = {
   plugins: [
-    "scss",
-    { func: modify },
+    {
+      name: "scss",
+      options: {
+        dev: {
+          sourceMap: true,
+          ident: 'postcss',
+        },
+        prod: {
+          sourceMap: false,
+          ident: 'postcss',
+        },
+        plugins: [
+          require("postcss-flexbugs-fixes"),
+          require("autoprefixer")({
+            // overrideBrowserslist: ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'],
+            flexbox: 'no-2009',
+          }),
+        ],
+      }
+    },
     {
       name: "typescript",
       options: {

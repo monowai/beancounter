@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css?family=Helvetica Neue:400,700')
 
 $family-sans-serif: "Helvetica Neue", "Helvetica", "Arial", sans-serif
-$table-header-border: #00a546
 $table-border: #e7e7e7
 $table-head-background-color: #00a546
 $table-foot-background-color: #00a546
@@ -24,13 +23,12 @@ caption
   background: #00a546
   width: 900px
   color: whitesmoke
-  border: solid $table-header-border
 
 .table-header
   background: #00a546
   width: 900px
   color: whitesmoke
-  border: solid $table-header-border
+
   th
     color: whitesmoke
 
@@ -44,10 +42,17 @@ caption
 .header-column
   background: #00a546
   color: whitesmoke
-  border: solid $table-header-border
   table
     th
       color: whitesmoke
+
+.stats-row
+  background: #69a569
+
+.stats-header
+  background: #69a569
+  color: white
+  height: 2em
 
 
 .holding-row
@@ -59,8 +64,9 @@ caption
 .holding-footer
   font-weight: bolder
   table
-    table-layout: fixed
-    text-align: right
+    border-top-width: 2px
+    border-top-style: solid
+    border-top-color: black
 
 .totals-row
   font-weight: bold
@@ -75,7 +81,6 @@ table
     background: #00a546
     font-size: smaller
     width: 900px
-    border: solid $table-header-border
 
   td
     font-size: smaller
@@ -99,9 +104,9 @@ table
       border: 0
 
   th
-    border-left: solid 1px $table-header-border
-    border-right: solid 1px $table-header-border
-    border-bottom: solid 1px $table-header-border
+    border-left: solid 1px
+    border-right: solid 1px
+    border-bottom: solid 1px
 
   td
     border-left: solid 1px $table-border

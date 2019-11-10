@@ -1,5 +1,5 @@
 import { HoldingFooter, HoldingHeader, WriteHoldings } from "./GroupedHoldings";
-import PortfolioStats from "../portfolio/PortfolioStats";
+import PortfolioStats, { Stats } from "../portfolio/PortfolioStats";
 import React, { useState } from "react";
 import "../App.css";
 import { computeHoldings } from "./computeHoldings";
@@ -9,7 +9,8 @@ import useAxios from "axios-hooks";
 import Totals from "./Totals";
 
 const LayoutHoldings = (): JSX.Element => {
-  const [valueIn] = useState<ValuationCcy>("PORTFOLIO");
+  const [holdingsValueIn] = useState<ValuationCcy>("PORTFOLIO");
+  const [portfolioValueIn] = useState<ValuationCcy>("PORTFOLIO");
   const [hideEmpty] = useState<boolean>(true);
   const [groupBy] = useState<GroupBy>(GroupBy.MARKET_CURRENCY);
   const [axiosResponse] = useAxios("http://localhost:9500/api/" + "test");
@@ -24,7 +25,7 @@ const LayoutHoldings = (): JSX.Element => {
     const holdings = computeHoldings(
       axiosResponse.data.data,
       hideEmpty,
-      valueIn,
+      holdingsValueIn,
       groupBy
     ) as Holdings;
 
@@ -33,8 +34,8 @@ const LayoutHoldings = (): JSX.Element => {
         return (
           <React.Fragment key={index}>
             {HoldingHeader(groupKey)}
-            {WriteHoldings(holdings.holdingGroups[groupKey], holdings.valueIn)}
-            {HoldingFooter(holdings.holdingGroups[groupKey], holdings.valueIn)}
+            {WriteHoldings(holdings.holdingGroups[groupKey], holdingsValueIn)}
+            {HoldingFooter(holdings.holdingGroups[groupKey], holdingsValueIn)}
           </React.Fragment>
         );
       }
@@ -46,6 +47,7 @@ const LayoutHoldings = (): JSX.Element => {
         <div className={"stats-container"}>
           <table>
             <PortfolioStats {...axiosResponse.data.data.portfolio} />
+            <Stats {...holdings.totals[portfolioValueIn]} />
           </table>
         </div>
         <div className={"holdings-container"}>

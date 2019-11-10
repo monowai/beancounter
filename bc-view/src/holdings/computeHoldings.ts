@@ -34,13 +34,13 @@ function total(
     };
   }
   total.marketValue += position.moneyValues[valueIn].marketValue;
-  total.costValue = total.costValue + position.moneyValues[valueIn].costValue;
-  total.dividends = total.dividends + position.moneyValues[valueIn].dividends;
-  total.realisedGain =
-    total.realisedGain + position.moneyValues[valueIn].realisedGain;
-  total.unrealisedGain =
-    total.unrealisedGain + position.moneyValues[valueIn].unrealisedGain;
-  total.totalGain = total.totalGain + position.moneyValues[valueIn].totalGain;
+  total.costValue += position.moneyValues[valueIn].costValue;
+  total.dividends += position.moneyValues[valueIn].dividends;
+  total.realisedGain += position.moneyValues[valueIn].realisedGain;
+  total.unrealisedGain += position.moneyValues[valueIn].unrealisedGain;
+  total.totalGain += position.moneyValues[valueIn].totalGain;
+  total.purchases += position.moneyValues[valueIn].purchases;
+  total.sales += position.moneyValues[valueIn].sales;
 
   return total;
 }
@@ -77,9 +77,8 @@ export function computeHoldings(
         results.holdingGroups[groupKey] = results.holdingGroups[groupKey] || {
           group: groupKey,
           positions: [],
-          total: 0
+          totals: []
         };
-        results.totals["PORTFOLIO"] = results.totals["PORTFOLIO"] || {};
         results.holdingGroups[groupKey].positions.push(position);
         results.totals["PORTFOLIO"] = total(
           results.totals["PORTFOLIO"],

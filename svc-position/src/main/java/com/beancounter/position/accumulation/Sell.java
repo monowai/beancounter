@@ -33,7 +33,7 @@ public class Sell implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
+    MoneyValues moneyValues = position.getMoneyValues(in, getCurrency(in, transaction));
     moneyValues.setSales(
         moneyValues.getSales().add(
             MathUtils.multiply(transaction.getTradeAmount(), rate))

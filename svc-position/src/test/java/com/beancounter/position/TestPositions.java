@@ -42,7 +42,7 @@ class TestPositions {
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);
     accumulator.accumulate(transaction, position);
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("dividends", transaction.getTradeAmount());
 
   }

@@ -26,7 +26,7 @@ public class Buy implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
+    MoneyValues moneyValues = position.getMoneyValues(in, getCurrency(in, transaction));
 
     moneyValues.setPurchases(moneyValues.getPurchases().add(
         MathUtils.multiply(transaction.getTradeAmount(), rate))

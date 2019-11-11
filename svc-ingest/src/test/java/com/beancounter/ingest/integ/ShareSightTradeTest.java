@@ -1,4 +1,4 @@
-package com.beancounter.ingest;
+package com.beancounter.ingest.integ;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
@@ -26,6 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
@@ -35,9 +38,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-12
  */
 @ExtendWith(SpringExtension.class)
+
 @SpringBootTest(classes = {
     ShareSightConfig.class
 })
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = "beancounter:svc-md:+:stubs:8090")
+@ActiveProfiles("test")
 @Slf4j
 class ShareSightTradeTest {
 

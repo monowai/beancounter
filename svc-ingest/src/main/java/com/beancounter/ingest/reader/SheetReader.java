@@ -5,7 +5,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.model.IngestionRequest;
 import com.beancounter.ingest.service.FxTransactions;
-import com.beancounter.ingest.sharesight.ShareSightHelper;
+import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -35,7 +35,7 @@ public class SheetReader implements Ingester {
 
   private IngestWriter ingestWriter;
   private FxTransactions fxTransactions;
-  private ShareSightHelper shareSightHelper;
+  private ShareSightService shareSightService;
   private RowProcessor rowProcessor;
 
   private ObjectMapper objectMapper = new ObjectMapper();
@@ -66,8 +66,8 @@ public class SheetReader implements Ingester {
 
   @Autowired
   @VisibleForTesting
-  void setShareSightHelper(ShareSightHelper shareSightHelper) {
-    this.shareSightHelper = shareSightHelper;
+  void setShareSightService(ShareSightService shareSightService) {
+    this.shareSightService = shareSightService;
   }
 
   /**
@@ -91,11 +91,11 @@ public class SheetReader implements Ingester {
     List<List<Object>> values = googleTransport.getValues(
         service,
         sheetId,
-        shareSightHelper.getRange());
+        shareSightService.getRange());
 
-    try (OutputStream outputStream = ingestWriter.prepareFile(shareSightHelper.getOutFile())) {
+    try (OutputStream outputStream = ingestWriter.prepareFile(shareSightService.getOutFile())) {
 
-      log.info("Processing {} {}", shareSightHelper.getRange(), sheetId);
+      log.info("Processing {} {}", shareSightService.getRange(), sheetId);
       Collection<Transaction> transactions = rowProcessor.process(
           portfolio,
           values,
@@ -116,7 +116,7 @@ public class SheetReader implements Ingester {
                 .writeValueAsBytes(transactions));
 
         log.info("Wrote {} transactions into file {}", transactions.size(),
-            shareSightHelper.getOutFile());
+            shareSightService.getOutFile());
       }
 
       return transactions;

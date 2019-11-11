@@ -40,18 +40,18 @@ public class ShareSightTrades implements Transformer {
   public static final int fxRate = 9;
   public static final int value = 10;
   public static final int comments = 11;
-  private final ShareSightHelper shareSightHelper;
+  private final ShareSightService shareSightService;
 
   @Autowired
-  public ShareSightTrades(ShareSightHelper shareSightHelper) {
-    this.shareSightHelper = shareSightHelper;
+  public ShareSightTrades(ShareSightService shareSightService) {
+    this.shareSightService = shareSightService;
   }
 
   @Override
   public Transaction from(List row, Portfolio portfolio)
       throws ParseException {
     try {
-      TrnType trnType = shareSightHelper.resolveType(row.get(type).toString());
+      TrnType trnType = shareSightService.resolveType(row.get(type).toString());
       if (trnType == null) {
         throw new BusinessException(String.format("Unsupported type %s",
             row.get(type).toString()));
@@ -75,23 +75,23 @@ public class ShareSightTrades implements Transformer {
         tradeRate = getBigDecimal(rate);
         Object fee = row.get(brokerage);
         fees = getBigDecimal(fee);
-        tradeAmount = shareSightHelper.parseDouble(row.get(value));
+        tradeAmount = shareSightService.parseDouble(row.get(value));
       }
 
       return Transaction.builder()
           .asset(asset)
           .trnType(trnType)
-          .quantity(shareSightHelper.parseDouble(row.get(quantity).toString()))
-          .price(shareSightHelper.parseDouble(row.get(price).toString()))
-          .fees(shareSightHelper.safeDivide(
+          .quantity(shareSightService.parseDouble(row.get(quantity).toString()))
+          .price(shareSightService.parseDouble(row.get(price).toString()))
+          .fees(shareSightService.safeDivide(
               fees, tradeRate))
-          .tradeAmount(shareSightHelper.getValueWithFx(tradeAmount, tradeRate))
-          .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
+          .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
+          .tradeDate(shareSightService.parseDate(row.get(date).toString()))
           .portfolio(portfolio)
           .cashCurrency(portfolio.getCurrency())
           .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           // Zero and null should be treated as "unknown"
-          .tradeCashRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
+          .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
               ? null : tradeRate)
           .comments(comment)
           .build()

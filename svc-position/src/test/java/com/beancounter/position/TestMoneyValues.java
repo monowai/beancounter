@@ -60,19 +60,19 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues().getTotal())
         .isEqualTo(new BigDecimal("100"));
 
-    assertThat(position.getMoneyValue(Position.In.TRADE).getPurchases())
+    assertThat(position.getMoneyValues(Position.In.TRADE).getPurchases())
         .isEqualTo(new BigDecimal("2000.00"));
-    assertThat(position.getMoneyValue(Position.In.TRADE).getCostBasis())
-        .isEqualTo(new BigDecimal("2000.00"));
-
-    assertThat(position.getMoneyValue(Position.In.BASE).getPurchases())
-        .isEqualTo(new BigDecimal("2000.00"));
-    assertThat(position.getMoneyValue(Position.In.BASE).getCostBasis())
+    assertThat(position.getMoneyValues(Position.In.TRADE).getCostBasis())
         .isEqualTo(new BigDecimal("2000.00"));
 
-    assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getPurchases())
+    assertThat(position.getMoneyValues(Position.In.BASE).getPurchases())
+        .isEqualTo(new BigDecimal("2000.00"));
+    assertThat(position.getMoneyValues(Position.In.BASE).getCostBasis())
+        .isEqualTo(new BigDecimal("2000.00"));
+
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getPurchases())
         .isEqualTo(new BigDecimal("200000.00"));
-    assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getCostBasis())
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getCostBasis())
         .isEqualTo(new BigDecimal("200000.00"));
 
     Transaction diviTrn = Transaction.builder()
@@ -90,13 +90,13 @@ class TestMoneyValues {
     dividend.value(diviTrn, position);
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal("100"));
 
-    assertThat(position.getMoneyValue(Position.In.TRADE).getDividends())
+    assertThat(position.getMoneyValues(Position.In.TRADE).getDividends())
         .isEqualTo(new BigDecimal("10.00"));
 
-    assertThat(position.getMoneyValue(Position.In.BASE).getDividends())
+    assertThat(position.getMoneyValues(Position.In.BASE).getDividends())
         .isEqualTo(new BigDecimal("10.00"));
 
-    assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getDividends())
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getDividends())
         .isEqualTo(new BigDecimal("1000.00"));
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -117,17 +117,17 @@ class TestMoneyValues {
 
     split.value(splitTrn, position);
 
-    MoneyValues tradeValues = position.getMoneyValue(Position.In.TRADE);
+    MoneyValues tradeValues = position.getMoneyValues(Position.In.TRADE);
     assertThat(tradeValues.getCostBasis())
-        .isEqualTo(deepCopy.getMoneyValue(Position.In.TRADE).getCostBasis());
+        .isEqualTo(deepCopy.getMoneyValues(Position.In.TRADE).getCostBasis());
 
-    tradeValues = position.getMoneyValue(Position.In.BASE);
+    tradeValues = position.getMoneyValues(Position.In.BASE);
     assertThat(tradeValues.getCostBasis())
-        .isEqualTo(deepCopy.getMoneyValue(Position.In.BASE).getCostBasis());
+        .isEqualTo(deepCopy.getMoneyValues(Position.In.BASE).getCostBasis());
 
-    tradeValues = position.getMoneyValue(Position.In.PORTFOLIO);
+    tradeValues = position.getMoneyValues(Position.In.PORTFOLIO);
     assertThat(tradeValues.getCostBasis())
-        .isEqualTo(deepCopy.getMoneyValue(Position.In.PORTFOLIO).getCostBasis());
+        .isEqualTo(deepCopy.getMoneyValues(Position.In.PORTFOLIO).getCostBasis());
 
     Transaction sellTrn = Transaction.builder()
         .trnType(TrnType.SELL)
@@ -143,19 +143,19 @@ class TestMoneyValues {
     Sell sell = new Sell();
     sell.value(sellTrn, position);
 
-    assertThat(position.getMoneyValue(Position.In.TRADE).getSales())
+    assertThat(position.getMoneyValues(Position.In.TRADE).getSales())
         .isEqualTo(new BigDecimal("4000.00"));
-    assertThat(position.getMoneyValue(Position.In.TRADE).getRealisedGain())
+    assertThat(position.getMoneyValues(Position.In.TRADE).getRealisedGain())
         .isEqualTo(new BigDecimal("2000.00"));
 
-    assertThat(position.getMoneyValue(Position.In.BASE).getSales())
+    assertThat(position.getMoneyValues(Position.In.BASE).getSales())
         .isEqualTo(new BigDecimal("4000.00"));
-    assertThat(position.getMoneyValue(Position.In.BASE).getRealisedGain())
+    assertThat(position.getMoneyValues(Position.In.BASE).getRealisedGain())
         .isEqualTo(new BigDecimal("2000.00"));
 
-    assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getSales())
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getSales())
         .isEqualTo(new BigDecimal("400000.00"));
-    assertThat(position.getMoneyValue(Position.In.PORTFOLIO).getRealisedGain())
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getRealisedGain())
         .isEqualTo(new BigDecimal("200000.00"));
 
   }
@@ -226,7 +226,7 @@ class TestMoneyValues {
 
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal(50));
 
-    assertThat(position.getMoneyValue(Position.In.TRADE).getRealisedGain())
+    assertThat(position.getMoneyValues(Position.In.TRADE).getRealisedGain())
         .isEqualTo(new BigDecimal("1000.00"));
 
   }
@@ -267,7 +267,7 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(buy, position);
 
-    MoneyValues localMoney = position.getMoneyValue(Position.In.TRADE);
+    MoneyValues localMoney = position.getMoneyValues(Position.In.TRADE);
 
     assertThat(position.getQuantityValues().getTotal().multiply(localMoney.getAverageCost())
         .setScale(2, RoundingMode.HALF_UP))
@@ -302,7 +302,7 @@ class TestMoneyValues {
 
     position = accumulator.accumulate(sell, position);
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("sales", new BigDecimal("2712.64"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
@@ -349,7 +349,7 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.TEN);
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
         .hasFieldOrPropertyWithValue("realisedGain", BigDecimal.ZERO)
@@ -365,7 +365,7 @@ class TestMoneyValues {
     accumulator.accumulate(sell, position);
 
     // Sell does not affect the cost basis or average cost, but it will create a signed gain
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("2100.23"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("210.023"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
@@ -381,7 +381,7 @@ class TestMoneyValues {
     accumulator.accumulate(sell, position);
 
     // Sell down to 0; reset cost basis
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", new BigDecimal("0"))
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("0"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("612.41"))
@@ -424,7 +424,7 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO);
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
@@ -445,7 +445,7 @@ class TestMoneyValues {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", buy.getQuantity());
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", buy.getTradeAmount())
         .hasFieldOrPropertyWithValue("averageCost", new BigDecimal("26.722"))
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("-372.18"))
@@ -460,12 +460,12 @@ class TestMoneyValues {
         .tradeAmount(new BigDecimal("1664.31"))
         .quantity(new BigDecimal("60")).build();
 
-    BigDecimal previousGain = position.getMoneyValue(Position.In.TRADE)
+    BigDecimal previousGain = position.getMoneyValues(Position.In.TRADE)
         .getRealisedGain(); // Track the previous gain
 
     accumulator.accumulate(sell, position);
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("realisedGain", previousGain.add(new BigDecimal("60.99")))

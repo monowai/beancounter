@@ -1,5 +1,6 @@
 package com.beancounter.ingest.service;
 
+import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.MarketResponse;
@@ -13,7 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
     url = "${marketdata.url:http://localhost:9510/api}")
 @Configuration
 public interface BcGateway {
-  @PostMapping(value = "/fx", headers = { "Content-Type: application/json"})
+  @GetMapping(value = "/currencies")
+  CurrencyResponse getCurrencies();
+
+  @PostMapping(value = "/fx", headers = {"Content-Type: application/json"})
   FxResponse getRates(FxRequest fxRequest);
 
   @GetMapping(value = "/markets")

@@ -77,7 +77,7 @@ class TestMarketValues {
     // We need to have a Quantity in order to get the price, so create a position
     getValuedPositions(asset, positions);
 
-    assertThat(positions.get(asset).getMoneyValue(Position.In.TRADE))
+    assertThat(positions.get(asset).getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"))

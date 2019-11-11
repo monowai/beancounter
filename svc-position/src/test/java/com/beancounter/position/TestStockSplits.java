@@ -54,7 +54,7 @@ class TestStockSplits {
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100))
     ;
 
-    BigDecimal costBasis = position.getMoneyValue(Position.In.TRADE).getCostBasis();
+    BigDecimal costBasis = position.getMoneyValues(Position.In.TRADE).getCostBasis();
 
     Transaction stockSplit = Transaction.builder()
         .trnType(TrnType.SPLIT)
@@ -71,7 +71,7 @@ class TestStockSplits {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(700));
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", costBasis);
 
     // Another buy at the adjusted price

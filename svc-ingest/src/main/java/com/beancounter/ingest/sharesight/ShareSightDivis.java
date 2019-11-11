@@ -37,18 +37,18 @@ public class ShareSightDivis implements Transformer {
   public static final int gross = 7;
   public static final int comments = 8;
 
-  private ShareSightHelper shareSightHelper;
+  private ShareSightService shareSightService;
 
   @Autowired
-  public ShareSightDivis(ShareSightHelper shareSightHelper) {
-    this.shareSightHelper = shareSightHelper;
+  public ShareSightDivis(ShareSightService shareSightService) {
+    this.shareSightService = shareSightService;
   }
 
   @Override
   public Transaction from(List row, Portfolio portfolio)
       throws ParseException {
 
-    Asset asset = shareSightHelper.resolveAsset(row.get(code).toString());
+    Asset asset = shareSightService.resolveAsset(row.get(code).toString());
     asset.getMarket().setCurrency(Currency.builder().code(row.get(currency).toString()).build());
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
@@ -58,11 +58,11 @@ public class ShareSightDivis implements Transformer {
         .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
         .trnType(TrnType.DIVI)
         .tax(MathUtils.multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
-        .tradeAmount(MathUtils.multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
-        .cashAmount(MathUtils.multiply(shareSightHelper.parseDouble(row.get(net)), tradeRate))
-        .tradeDate(shareSightHelper.parseDate(row.get(date).toString()))
+        .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
+        .cashAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
+        .tradeDate(shareSightService.parseDate(row.get(date).toString()))
         .comments(row.get(comments).toString())
-        .tradeCashRate(shareSightHelper.isRatesIgnored() || shareSightHelper.isUnset(tradeRate)
+        .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
             ? null : tradeRate)
         .build()
         ;

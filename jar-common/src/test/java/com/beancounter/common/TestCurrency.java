@@ -4,6 +4,7 @@ import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.CurrencyUtils.getCurrencyPair;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +34,28 @@ class TestCurrency {
     Currency fromJson = om.readValue(json, Currency.class);
 
     assertThat(fromJson).isEqualTo(currency);
+  }
+
+  @Test
+  void is_CurrencyResponseSerializing() throws Exception {
+
+    CurrencyResponse currencyResponse = CurrencyResponse.builder().build();
+    Map<String, Currency> currencyMap = new HashMap<>();
+    Currency currency = Currency.builder()
+        .code("SomeId")
+        .name("Some Name")
+        .symbol("$")
+        .build();
+
+    currencyMap.put(currency.getCode(), currency);
+    currencyResponse.setData(currencyMap);
+
+    ObjectMapper om = new ObjectMapper();
+    String json = om.writeValueAsString(currencyResponse);
+
+    CurrencyResponse fromJson = om.readValue(json, CurrencyResponse.class);
+
+    assertThat(fromJson).isEqualTo(currencyResponse);
   }
 
   @Test

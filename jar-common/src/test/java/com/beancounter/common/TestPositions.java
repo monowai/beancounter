@@ -113,13 +113,13 @@ class TestPositions {
         .build();
 
     // Requesting a non existent MV.  Without a currency, it can't be created
-    assertThat(position.getMoneyValue(Position.In.TRADE)).isNull();
+    assertThat(position.getMoneyValues(Position.In.TRADE)).isNull();
     // Retrieve with a currency will create if missing
-    assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
+    assertThat(position.getMoneyValues(Position.In.TRADE, getCurrency("SGD")))
         .isNotNull()
         .hasFieldOrPropertyWithValue("currency", getCurrency("SGD"));
 
-    assertThat(position.getMoneyValue(Position.In.TRADE, getCurrency("SGD")))
+    assertThat(position.getMoneyValues(Position.In.TRADE, getCurrency("SGD")))
         .isNotNull();
   }
 }

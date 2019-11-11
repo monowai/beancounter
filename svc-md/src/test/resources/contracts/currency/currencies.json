@@ -1,0 +1,40 @@
+{
+  "data": {
+    "AUD": {
+      "id": "AU",
+      "code": "AUD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "SGD": {
+      "id": "SG",
+      "code": "SGD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "EUR": {
+      "id": "EU",
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€"
+    },
+    "GBP": {
+      "id": "GB",
+      "code": "GBP",
+      "name": "Pound",
+      "symbol": "￡"
+    },
+    "USD": {
+      "id": "US",
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "NZD": {
+      "id": "NZ",
+      "code": "NZD",
+      "name": "Dollar",
+      "symbol": "$"
+    }
+  }
+}

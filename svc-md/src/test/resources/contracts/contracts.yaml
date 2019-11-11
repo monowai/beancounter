@@ -7,6 +7,17 @@ response:
   status: 200
   bodyFromFile: "ecb/fx-rates.json"
 ---
+name: currencies
+request:
+  method: GET
+  url: /api/currencies
+response:
+  status: 200
+  bodyFromFile: "currency/currencies.json"
+  headers:
+    Content-Type: application/json;charset=UTF-8
+
+---
 name: nzd-usd
 request:
   method: POST

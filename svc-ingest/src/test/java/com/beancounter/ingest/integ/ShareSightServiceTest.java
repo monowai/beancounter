@@ -1,4 +1,4 @@
-package com.beancounter.ingest;
+package com.beancounter.ingest.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,38 +8,48 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
-import com.beancounter.ingest.sharesight.ShareSightHelper;
+import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
-    ShareSightConfig.class})
-class ShareSightHelperTest {
+    ShareSightConfig.class
+})
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
+    ids = "beancounter:svc-md:+:stubs:8090")
+@ActiveProfiles("test")
+@Slf4j
+class ShareSightServiceTest {
 
   @Autowired
-  private ShareSightHelper shareSightHelper;
+  private ShareSightService shareSightService;
 
   @Test
   void is_DoubleValueInputCorrect() throws ParseException {
-    assertThat(shareSightHelper.parseDouble("5,000.99"))
+    assertThat(shareSightService.parseDouble("5,000.99"))
         .isEqualByComparingTo(BigDecimal.valueOf(5000.99));
   }
 
   @Test
   void is_ExceptionThrownResolvingIncorrectAssetCodes() {
     assertThrows(BusinessException.class, ()
-        -> shareSightHelper.resolveAsset(null));
+        -> shareSightService.resolveAsset(null));
     assertThrows(BusinessException.class, ()
-        -> shareSightHelper.resolveAsset("ValueWithNoSeparator"));
+        -> shareSightService.resolveAsset("ValueWithNoSeparator"));
   }
 
   @Test
@@ -61,12 +71,12 @@ class ShareSightHelperTest {
 
   @Test
   void is_IgnoreRatesDefaultCorrect() {
-    assertThat(shareSightHelper.isRatesIgnored()).isFalse();
+    assertThat(shareSightService.isRatesIgnored()).isFalse();
   }
 
   private void verifyAsset(String code, Asset expectedAsset) {
 
-    Asset asset = shareSightHelper.resolveAsset(code);
+    Asset asset = shareSightService.resolveAsset(code);
 
     assertThat(asset)
         .isEqualToComparingFieldByField(expectedAsset);
@@ -82,7 +92,7 @@ class ShareSightHelperTest {
     row.add(ShareSightTrades.date, "date");
     row.add(ShareSightTrades.quantity, "quantity");
     row.add(ShareSightTrades.price, "price");
-    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightHelper);
+    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightService);
     assertThat(shareSightTrades.isValid(row)).isFalse();
 
     row.remove(ShareSightTrades.price);
@@ -101,7 +111,7 @@ class ShareSightHelperTest {
     row.add(ShareSightDivis.tax, "tax");
     row.add(ShareSightDivis.gross, "gross");
     row.add(ShareSightDivis.comments, "comments");
-    ShareSightDivis shareSightDivis = new ShareSightDivis(shareSightHelper);
+    ShareSightDivis shareSightDivis = new ShareSightDivis(shareSightService);
     assertThat(shareSightDivis.isValid(row)).isFalse();// Ignore CODE
 
     row.remove(ShareSightTrades.code);

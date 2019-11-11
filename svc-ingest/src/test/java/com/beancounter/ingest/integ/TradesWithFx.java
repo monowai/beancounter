@@ -10,7 +10,7 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.service.FxTransactions;
-import com.beancounter.ingest.sharesight.ShareSightHelper;
+import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
 import com.google.common.annotations.VisibleForTesting;
@@ -51,7 +51,7 @@ class TradesWithFx {
   private ShareSightTransformers shareSightTransformers;
 
   @Autowired
-  private ShareSightHelper shareSightHelper;
+  private ShareSightService shareSightService;
 
   @Test
   @VisibleForTesting
@@ -99,7 +99,7 @@ class TradesWithFx {
     // NZD Portfolio
     // USD System Base
     // GBP Trade
-    assertThat(shareSightHelper.isRatesIgnored()).isTrue();
+    assertThat(shareSightService.isRatesIgnored()).isTrue();
 
     row.add(ShareSightTrades.market, "AMEX");
     row.add(ShareSightTrades.code, "SLB");

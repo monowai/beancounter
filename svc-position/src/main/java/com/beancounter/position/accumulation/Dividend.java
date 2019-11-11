@@ -21,7 +21,7 @@ public class Dividend implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValue(in, getCurrency(in, transaction));
+    MoneyValues moneyValues = position.getMoneyValues(in, getCurrency(in, transaction));
     moneyValues.setDividends(
         MathUtils.add(moneyValues.getDividends(),
             MathUtils.multiply(transaction.getTradeAmount(), rate)));

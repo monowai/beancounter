@@ -14,11 +14,11 @@ public class Split implements ValueTransaction {
     position.getQuantityValues()
         .setAdjustment((transaction.getQuantity().multiply(total)).subtract(total));
 
-    value(position, position.getMoneyValue(Position.In.TRADE,
+    value(position, position.getMoneyValues(Position.In.TRADE,
         getCurrency(Position.In.TRADE, transaction)));
-    value(position, position.getMoneyValue(Position.In.BASE,
+    value(position, position.getMoneyValues(Position.In.BASE,
         getCurrency(Position.In.BASE, transaction)));
-    value(position, position.getMoneyValue(Position.In.PORTFOLIO,
+    value(position, position.getMoneyValues(Position.In.PORTFOLIO,
         getCurrency(Position.In.PORTFOLIO, transaction)));
   }
 

@@ -6,6 +6,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ExchangeConfig;
+import com.beancounter.ingest.service.StaticDataService;
 import com.google.api.client.util.Strings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -24,7 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Helper methods for converting ShareSight google doc output into BC domain objects.
+ * Helper methods for converting ShareSight file format into BC domain objects.
  *
  * @author mikeh
  * @since 2019-02-12
@@ -32,28 +33,30 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @Data
-public class ShareSightHelper {
+public class ShareSightService {
 
   private final ExchangeConfig exchangeConfig;
   private DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-
+  private StaticDataService staticDataService;
   @Value("${out.file:#{null}}")
   private String outFile;
-
   @Value("${ratesIgnored:false}")
   private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
-  // retrieve rates from market data service
-
   @Value("${range:All Trades Report}")
   private String range;
+  // retrieve rates from market data service
 
   @Autowired
-  public ShareSightHelper(ExchangeConfig exchangeConfig) {
+  public ShareSightService(ExchangeConfig exchangeConfig) {
     this.exchangeConfig = exchangeConfig;
   }
 
+  @Autowired
+  private void setStaticDataService(StaticDataService staticDataService) {
+    this.staticDataService = staticDataService;
+  }
 
-  public Date parseDate(String date) throws ParseException {
+  Date parseDate(String date) throws ParseException {
     return formatter.parse(date);
   }
 
@@ -61,7 +64,7 @@ public class ShareSightHelper {
     return new BigDecimal(NumberFormat.getInstance(Locale.US).parse(o.toString()).toString());
   }
 
-  public TrnType resolveType(String type) {
+  TrnType resolveType(String type) {
     return TrnType.valueOf(type.toUpperCase());
   }
 
@@ -97,15 +100,15 @@ public class ShareSightHelper {
         .code(exchangeConfig.resolveAlias(market)).build();
   }
 
-  public BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {
+  BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {
     return MathUtils.divide(money, rate);
   }
 
-  public BigDecimal getValueWithFx(BigDecimal money, BigDecimal rate) {
+  BigDecimal getValueWithFx(BigDecimal money, BigDecimal rate) {
     return MathUtils.multiply(money, rate);
   }
 
-  public boolean isUnset(BigDecimal value) {
+  boolean isUnset(BigDecimal value) {
     return MathUtils.isUnset(value);
   }
 }

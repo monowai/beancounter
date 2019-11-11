@@ -37,7 +37,7 @@ public class Position {
   private Map<In, MoneyValues> moneyValues = new HashMap<>();
 
   @JsonIgnore
-  public MoneyValues getMoneyValue(In reportCurrency) {
+  public MoneyValues getMoneyValues(In reportCurrency) {
     return moneyValues.get(reportCurrency);
   }
 
@@ -48,7 +48,7 @@ public class Position {
    * @return moneyValues in valueCurrency.
    */
   @JsonIgnore
-  public MoneyValues getMoneyValue(In reportCurrency, Currency currency) {
+  public MoneyValues getMoneyValues(In reportCurrency, Currency currency) {
     MoneyValues result = moneyValues.get(reportCurrency);
     if (result == null) {
       result = MoneyValues.builder()

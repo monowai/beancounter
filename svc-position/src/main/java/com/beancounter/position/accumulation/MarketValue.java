@@ -30,7 +30,7 @@ public class MarketValue {
 
   private void value(Position position, MarketData marketData, FxRate rate, Position.In in) {
     BigDecimal total = position.getQuantityValues().getTotal();
-    MoneyValues moneyValues = position.getMoneyValue(in);
+    MoneyValues moneyValues = position.getMoneyValues(in);
     moneyValues.setPrice(MathUtils.multiply(marketData.getClose(), rate.getRate()));
     moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));
     Gains.value(position, in);

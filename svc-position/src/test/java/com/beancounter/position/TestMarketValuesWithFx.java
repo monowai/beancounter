@@ -69,7 +69,7 @@ class TestMarketValuesWithFx {
     // Revalue based on marketData prices
     MarketValue.value(position, fxReport, marketData, fxRateMap);
 
-    assertThat(position.getMoneyValue(Position.In.TRADE))
+    assertThat(position.getMoneyValues(Position.In.TRADE))
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(marketData.getClose())
             .averageCost(new BigDecimal("20.00"))
@@ -83,7 +83,7 @@ class TestMarketValuesWithFx {
             .build());
 
 
-    assertThat(position.getMoneyValue(Position.In.BASE))
+    assertThat(position.getMoneyValues(Position.In.BASE))
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(marketData.getClose())
             .averageCost(new BigDecimal("20.00"))
@@ -97,7 +97,7 @@ class TestMarketValuesWithFx {
             .build());
 
     // Basically 10% of the non-portfolio values due to the simpleRate value used
-    assertThat(position.getMoneyValue(Position.In.PORTFOLIO))
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(new BigDecimal("1.00"))
             .currency(portfolio.getCurrency())

@@ -17,10 +17,16 @@ import org.springframework.stereotype.Service;
 public class PositionService implements Position {
 
   private Accumulator accumulator;
+  private BcService bcService;
 
   @Autowired
-  PositionService(Accumulator accumulator) {
+  void setPositionService(Accumulator accumulator) {
     this.accumulator = accumulator;
+  }
+
+  @Autowired
+  void setBcService(BcService bcService) {
+    this.bcService = bcService;
   }
 
   /**
@@ -31,11 +37,21 @@ public class PositionService implements Position {
   public PositionResponse build(Collection<Transaction> transactions) {
     Positions positions = null;
     for (Transaction transaction : transactions) {
+      setObjects(transaction);
       if (positions == null) {
         positions = new Positions(transaction.getPortfolio());
       }
       positions.add(accumulator.accumulate(transaction, positions));
     }
     return PositionResponse.builder().data(positions).build();
+  }
+
+  public void setObjects(Transaction transaction) {
+    transaction.setCashCurrency(bcService.getCurrency(transaction.getCashCurrency()));
+    transaction.setTradeCurrency(
+        bcService.getCurrency(transaction.getAsset().getMarket().getCurrency()));
+    transaction.getPortfolio().setBase(bcService.getCurrency(transaction.getPortfolio().getBase()));
+    transaction.getPortfolio().setCurrency(
+        bcService.getCurrency(transaction.getPortfolio().getCurrency()));
   }
 }

@@ -38,10 +38,6 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @ActiveProfiles("test")
-//@AutoConfigureStubRunner(
-//    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-//    ids = "beancounter:svc-md:+:stubs:8090")
-
 @Tag("slow")
 class FxMvcTests {
 

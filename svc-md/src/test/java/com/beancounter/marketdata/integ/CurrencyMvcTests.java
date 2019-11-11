@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.integ;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -8,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +26,6 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 class CurrencyMvcTests {
 
-  private static WireMockRule mockInternet;
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
@@ -37,12 +34,6 @@ class CurrencyMvcTests {
 
   @Autowired
   void mockServices() {
-    // ToDo: Figure out RandomPort + Feign.  Config issues :(
-
-    if (mockInternet == null) {
-      mockInternet = new WireMockRule(options().port(7777));
-      mockInternet.start();
-    }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 
   }

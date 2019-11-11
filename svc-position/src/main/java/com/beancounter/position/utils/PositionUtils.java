@@ -10,7 +10,7 @@ public class PositionUtils {
   public static Currency getCurrency(Position.In in, Transaction transaction) {
 
     if (in.equals(Position.In.TRADE)) {
-      return transaction.getAsset().getMarket().getCurrency();
+      return transaction.getTradeCurrency();
     } else if (in.equals(Position.In.PORTFOLIO)) {
       return transaction.getPortfolio().getCurrency();
     } else {

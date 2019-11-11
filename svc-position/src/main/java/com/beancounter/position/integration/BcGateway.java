@@ -1,5 +1,6 @@
 package com.beancounter.position.integration;
 
+import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.MarketResponse;
@@ -36,6 +37,9 @@ public interface BcGateway {
 
   @GetMapping(value = "/markets")
   MarketResponse getMarkets();
+
+  @GetMapping(value = "/currencies")
+  CurrencyResponse getCurrencies();
 
 
 }

@@ -1,7 +1,6 @@
 package com.beancounter.position.integration;
 
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
-import static com.beancounter.position.integration.TestMarketValues.getPositions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,13 +9,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.position.service.Accumulator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +119,20 @@ class TestWebApi {
     assertThat(mvcPositions.getPositions()).hasSize(positions.getPositions().size());
   }
 
+  private void getPositions(Asset asset, Positions positions) {
+    Transaction buy = Transaction.builder()
+        .trnType(TrnType.BUY)
+        .asset(asset)
+        .portfolio(getPortfolio("TEST"))
+        .tradeAmount(new BigDecimal(2000))
+        .quantity(new BigDecimal(100)).build();
+
+    Accumulator accumulator = new Accumulator();
+
+    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
+    positions.add(position);
+  }
+
   @Test
   void is_PositionsForPortfolio() throws Exception {
 
@@ -142,7 +159,7 @@ class TestWebApi {
 
     Optional<HttpMessageNotReadableException> someException =
         Optional.ofNullable((HttpMessageNotReadableException)
-        result.getResolvedException());
+            result.getResolvedException());
 
     assertThat(someException.isPresent()).isTrue();
 

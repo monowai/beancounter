@@ -41,6 +41,7 @@ class TestMarketValuesWithFx {
         .asset(asset)
         .portfolio(portfolio)
         .tradeAmount(new BigDecimal("2000.00"))
+        .tradeCurrency(asset.getMarket().getCurrency())
         .tradePortfolioRate(simpleRate)
         .quantity(new BigDecimal("100")).build();
 

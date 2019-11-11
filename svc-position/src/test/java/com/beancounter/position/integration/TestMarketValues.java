@@ -13,6 +13,7 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
+import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
@@ -48,18 +49,31 @@ class TestMarketValues {
   @Autowired
   private Valuation valuation;
 
-  static void getPositions(Asset asset, Positions positions) {
+  @Autowired
+  private PositionService positionService;
+
+  private Positions getValuedPositions(Asset asset, String asAt) {
+    Positions positions = getPositions(asset, asAt);
+    valuation.value(positions);
+    return positions;
+  }
+
+  private Positions getPositions(Asset asset, String asAt) {
+    Portfolio portfolio = getPortfolio("TEST");
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
-        .portfolio(getPortfolio("TEST"))
+        .portfolio(portfolio)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
+    positionService.setObjects(buy);
     Accumulator accumulator = new Accumulator();
-
+    Positions positions = new Positions(portfolio);
+    positions.setAsAt(asAt);
     Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);
+    return positions;
   }
 
   @Test
@@ -72,10 +86,8 @@ class TestMarketValues {
             .build()
     );
 
-    Positions positions = new Positions(getPortfolio("TEST"));
-    positions.setAsAt("2019-10-20");
     // We need to have a Quantity in order to get the price, so create a position
-    getValuedPositions(asset, positions);
+    Positions positions = getValuedPositions(asset, "2019-10-20");
 
     assertThat(positions.get(asset).getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
@@ -99,26 +111,24 @@ class TestMarketValues {
   @Test
   @Tag("slow")
   @VisibleForTesting
-  void is_AssetHydratedFromValuationRequest() {
+  void is_AssetAndCurrencyHydratedFromValuationRequest() {
 
     Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
-    Positions positions = new Positions(getPortfolio("TEST"));
-    positions.setAsAt("2019-10-20");
-    // We need to have a Quantity in order to get the price, so create a position
 
-    getValuedPositions(asset, positions);
+    Positions positions = getValuedPositions(asset, "2019-10-20");
     Position position = positions.get(asset);
     assertThat(position)
         .hasFieldOrProperty("asset");
 
     assertThat(position.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
 
-  }
+    assertThat(position.getMoneyValues().get(Position.In.PORTFOLIO).getCurrency())
+        .hasNoNullFieldsOrProperties();
+    assertThat(position.getMoneyValues().get(Position.In.BASE).getCurrency())
+        .hasNoNullFieldsOrProperties();
+    assertThat(position.getMoneyValues().get(Position.In.TRADE).getCurrency())
+        .hasNoNullFieldsOrProperties();
 
-  private void getValuedPositions(Asset asset, Positions positions) {
-    getPositions(asset, positions);
-
-    valuation.value(positions);
   }
 
 

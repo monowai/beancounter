@@ -6,37 +6,32 @@ import { MoneyValues, Portfolio } from "../types/beancounter";
 
 export default function PortfolioStats(portfolio: Portfolio): JSX.Element {
   return (
-    <tbody className={"table-container"} key={portfolio.code}>
-      <tr className={"stats-row"}>
-        <th className={"stats-header"}>
-          {portfolio.code}: Summary - {portfolio.currency.code}
-        </th>
-        <th className={"stats-header"} align={"right"}>
-          {translate("dividends")}
-        </th>
-        <th className={"stats-header"} align={"right"}>
-          {translate("value")}
-        </th>
-        <th className={"stats-header"} align={"right"}>
-          {translate("purchases")}
-        </th>
-        <th className={"stats-header"} align={"right"}>
-          {translate("sales")}
-        </th>
-        <th className={"stats-header"} align={"right"}>
-          {translate("strategy")}
-        </th>
+    <tbody key={portfolio.code}>
+      <tr className={"stats-header"}>
+        <th align={"left"}>Summary</th>
+        <th>{translate("dividends")}</th>
+        <th>{translate("value")}</th>
+        <th>{translate("purchases")}</th>
+        <th>{translate("sales")}</th>
+        <th>{translate("strategy")}</th>
       </tr>
     </tbody>
   );
 }
 
-export function Stats(moneyValues: MoneyValues): JSX.Element {
+export function Stats(
+  portfolio: Portfolio,
+  moneyValues: MoneyValues
+): JSX.Element {
   return (
     <tbody>
-      <tr>
-        <td />
-        <td align={"right"}>
+      <tr className={"stats-row"}>
+        <td>
+          <div className="left-cell">
+            {portfolio.code.toUpperCase()}: {portfolio.currency.code}
+          </div>
+        </td>
+        <td>
           <NumberFormat
             value={moneyValues.dividends}
             displayType={"text"}
@@ -45,7 +40,7 @@ export function Stats(moneyValues: MoneyValues): JSX.Element {
             thousandSeparator={true}
           />
         </td>
-        <td align={"right"}>
+        <td>
           <NumberFormat
             value={moneyValues.marketValue}
             displayType={"text"}
@@ -54,7 +49,7 @@ export function Stats(moneyValues: MoneyValues): JSX.Element {
             thousandSeparator={true}
           />
         </td>
-        <td align={"right"}>
+        <td>
           <NumberFormat
             value={moneyValues.purchases}
             displayType={"text"}
@@ -63,7 +58,7 @@ export function Stats(moneyValues: MoneyValues): JSX.Element {
             thousandSeparator={true}
           />
         </td>
-        <td align={"right"}>
+        <td>
           <NumberFormat
             value={moneyValues.sales}
             displayType={"text"}
@@ -72,13 +67,13 @@ export function Stats(moneyValues: MoneyValues): JSX.Element {
             thousandSeparator={true}
           />
         </td>
-        <td align={"right"}>
+        <td>
           <NumberFormat
             value={
-              moneyValues.purchases -
+              moneyValues.marketValue -
+              moneyValues.purchases +
               moneyValues.sales +
-              moneyValues.dividends +
-              moneyValues.marketValue
+              moneyValues.dividends
             }
             displayType={"text"}
             decimalScale={2}

@@ -1,4 +1,4 @@
-import { ValuationCcy } from "../holdings/enums";
+import { ValuationCcy } from "../holdings/groupBy";
 
 declare global {
   interface Window {

@@ -6,32 +6,29 @@ Object {
   "baseElement": <body>
     <div>
       <table>
-        <tbody
-          class="table-container is-large"
-        >
-          <tr>
-            <th>
-              SUMMARY
-            </th>
+        <tbody>
+          <tr
+            class="stats-header"
+          >
             <th
-              align="right"
+              align="left"
             >
+              Summary
+            </th>
+            <th>
               dividends
             </th>
-            <th
-              align="right"
-            >
-              gain.realised
+            <th>
+              value
             </th>
-            <th
-              align="right"
-            >
-              gain.unrealised
+            <th>
+              purchases
             </th>
-            <th
-              align="right"
-            >
-              gain
+            <th>
+              sales
+            </th>
+            <th>
+              strategy
             </th>
           </tr>
         </tbody>
@@ -40,32 +37,29 @@ Object {
   </body>,
   "container": <div>
     <table>
-      <tbody
-        class="table-container is-large"
-      >
-        <tr>
-          <th>
-            SUMMARY
-          </th>
+      <tbody>
+        <tr
+          class="stats-header"
+        >
           <th
-            align="right"
+            align="left"
           >
+            Summary
+          </th>
+          <th>
             dividends
           </th>
-          <th
-            align="right"
-          >
-            gain.realised
+          <th>
+            value
           </th>
-          <th
-            align="right"
-          >
-            gain.unrealised
+          <th>
+            purchases
           </th>
-          <th
-            align="right"
-          >
-            gain
+          <th>
+            sales
+          </th>
+          <th>
+            strategy
           </th>
         </tr>
       </tbody>

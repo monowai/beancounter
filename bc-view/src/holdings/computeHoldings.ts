@@ -1,5 +1,5 @@
 import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
-import { GroupBy, ValuationCcy } from "./enums";
+import { GroupBy, ValuationCcy } from "./groupBy";
 
 function getPath(path: string, position: Position): string {
   return (path

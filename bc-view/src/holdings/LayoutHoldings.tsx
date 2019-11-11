@@ -3,7 +3,7 @@ import PortfolioStats, { Stats } from "../portfolio/PortfolioStats";
 import React, { useState } from "react";
 import "../App.css";
 import { computeHoldings } from "./computeHoldings";
-import { GroupBy, ValuationCcy } from "./enums";
+import { description, GroupBy, ValuationCcy } from "./groupBy";
 import { Holdings } from "../types/beancounter";
 import useAxios from "axios-hooks";
 import Totals from "./Totals";
@@ -29,30 +29,37 @@ const LayoutHoldings = (): JSX.Element => {
       groupBy
     ) as Holdings;
 
-    const holdingsByGroup = Object.keys(holdings.holdingGroups).map(
-      (groupKey, index) => {
-        return (
-          <React.Fragment key={index}>
-            {HoldingHeader(groupKey)}
-            {WriteHoldings(holdings.holdingGroups[groupKey], holdingsValueIn)}
-            {HoldingFooter(holdings.holdingGroups[groupKey], holdingsValueIn)}
-          </React.Fragment>
-        );
-      }
-    );
-
     return (
-      <div>
+      <div className={"page-box"}>
         <div>ToDo: Add Filters</div>
         <div className={"stats-container"}>
           <table>
             <PortfolioStats {...axiosResponse.data.data.portfolio} />
-            <Stats {...holdings.totals[portfolioValueIn]} />
+            {Stats(
+              axiosResponse.data.data.portfolio,
+              holdings.totals[portfolioValueIn]
+            )}
           </table>
         </div>
-        <div className={"holdings-container"}>
-          <table className={"table holding-table is-striped is-hoverable"}>
-            {holdingsByGroup}
+        <div className={"group-header"}>Grouped by {description(groupBy)}</div>
+
+        <div>
+          <table className={"table is-striped is-hoverable"}>
+            {Object.keys(holdings.holdingGroups).map(groupKey => {
+              return (
+                <React.Fragment key={groupKey}>
+                  {HoldingHeader(groupKey)}
+                  {WriteHoldings(
+                    holdings.holdingGroups[groupKey],
+                    holdingsValueIn
+                  )}
+                  {HoldingFooter(
+                    holdings.holdingGroups[groupKey],
+                    holdingsValueIn
+                  )}
+                </React.Fragment>
+              );
+            })}
             <Totals {...holdings} />
           </table>
         </div>

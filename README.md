@@ -14,9 +14,7 @@ No persistence exists so you need a connection to the Internet to read the trade
 Put together, the flow looks like this
 
 ```bash
-
 # Transform columnar data into transaction objects
-```bash
 curl -X POST \
   http://localhost:9520/api/ \
   -H 'Content-Type: application/json' \

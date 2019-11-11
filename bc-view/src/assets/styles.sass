@@ -5,39 +5,20 @@ $family-sans-serif: "Helvetica Neue", "Helvetica", "Arial", sans-serif
 $table-border: #e7e7e7
 $table-head-background-color: #00a546
 $table-foot-background-color: #00a546
-$table-foot-cell-color: $white
-$table-head-cell-color: $white
+$table-foot-cell-color: whitesmoke
+$table-head-cell-color: whitesmoke
 
 @import "~bulma/sass/elements/table"
 
-body
-  width: 100%
-  height: 100%
-  margin: 4px
-  padding: 0
-
-caption
-  display: none
-
-.holding-header
-  background: #00a546
-  width: 900px
-  color: whitesmoke
+.page-box
+  padding: 5px 10px
 
 .table-header
   background: #00a546
   width: 900px
   color: whitesmoke
-
   th
     color: whitesmoke
-
-.table-header-row
-  color: whitesmoke
-
-.table-header-column
-  color: whitesmoke
-  text-align: right
 
 .header-column
   background: #00a546
@@ -46,14 +27,25 @@ caption
     th
       color: whitesmoke
 
-.stats-row
-  background: #69a569
+.group-header
+  //font-size: medium
+  background: whitesmoke
+  line-height: 2rem
 
 .stats-header
-  background: #69a569
-  color: white
-  height: 2em
 
+  color: whitesmoke
+  height: 2em
+  th
+    background-color: #00883A
+
+.stats-row
+  font-size: medium
+  background: whitesmoke
+  td
+    text-align: right
+    font-size: larger
+    height: 2em
 
 .holding-row
   width: 900px
@@ -61,21 +53,32 @@ caption
     table-layout: fixed
     text-align: right
 
+.holding-totals-row
+  font-weight: bold
+  td
+    padding-right: 10px
+    border-top:
+      width: 1px
+      color: black
+      style: solid
+
 .holding-footer
   font-weight: bolder
-  table
-    border-top-width: 2px
-    border-top-style: solid
-    border-top-color: black
 
 .totals-row
   font-weight: bold
   font-size: larger
-  color: black
+
+  td
+    padding-right: 10px
+    border-top:
+      width: 1.5px
+      color: black
+      style: solid
 
 table
   text-align: right
-
+  border-collapse: collapse
   th
     color: whitesmoke
     background: #00a546

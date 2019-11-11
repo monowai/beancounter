@@ -4,7 +4,7 @@ import React from "react";
 
 export default function Totals(holdings: Holdings): JSX.Element {
   // Transform the contract into the view the user requested
-  const valueIn = "BASE";
+  const valueIn = "PORTFOLIO";
   return (
     <tbody className={"totals-row"} key={holdings.portfolio.code + "totals"}>
       <tr key={holdings.totals[valueIn].valueIn}>

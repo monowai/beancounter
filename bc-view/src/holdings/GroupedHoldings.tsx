@@ -1,7 +1,7 @@
 import React from "react";
 import NumberFormat from "react-number-format";
 import { HoldingGroup } from "../types/beancounter";
-import { ValuationCcy } from "./enums";
+import { ValuationCcy } from "./groupBy";
 
 import { translate } from "../i18nConfig";
 
@@ -48,7 +48,8 @@ export function WriteHoldings(
           "-"
         ) : (
           <label>
-            {position.moneyValues[valueIn].currency.code}
+            {position.moneyValues[valueIn].currency.id}
+            {position.moneyValues[valueIn].currency.symbol}
             &nbsp;
             <NumberFormat
               value={position.moneyValues[valueIn].price}
@@ -151,7 +152,7 @@ export function HoldingFooter(
   valueIn: ValuationCcy
 ): JSX.Element {
   return (
-    <tbody>
+    <tbody className={"holding-totals-row"}>
       <tr key={holdingGroup.group} className={"holding-footer"}>
         <td colSpan={4} align={"right"}>
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}

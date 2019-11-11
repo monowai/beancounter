@@ -5,7 +5,9 @@ Object {
   "asFragment": [Function],
   "baseElement": <body>
     <div>
-      <div>
+      <div
+        class="page-box"
+      >
         <div>
           ToDo: Add Filters
         </div>
@@ -13,42 +15,83 @@ Object {
           class="stats-container"
         >
           <table>
-            <tbody
-              class="table-container is-large"
-            >
-              <tr>
-                <th>
-                  SUMMARY
-                </th>
+            <tbody>
+              <tr
+                class="stats-header"
+              >
                 <th
-                  align="right"
+                  align="left"
                 >
+                  Summary
+                </th>
+                <th>
                   dividends
                 </th>
-                <th
-                  align="right"
-                >
-                  gain.realised
+                <th>
+                  value
                 </th>
-                <th
-                  align="right"
-                >
-                  gain.unrealised
+                <th>
+                  purchases
                 </th>
-                <th
-                  align="right"
-                >
-                  gain
+                <th>
+                  sales
                 </th>
+                <th>
+                  strategy
+                </th>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr
+                class="stats-row"
+              >
+                <td>
+                  <div
+                    class="left-cell"
+                  >
+                    MIKE
+                    : 
+                    USD
+                  </div>
+                </td>
+                <td>
+                  <span>
+                    8,030.77
+                  </span>
+                </td>
+                <td>
+                  <span>
+                    19,424.85
+                  </span>
+                </td>
+                <td>
+                  <span>
+                    22,755.61
+                  </span>
+                </td>
+                <td>
+                  <span>
+                    6,008.97
+                  </span>
+                </td>
+                <td>
+                  <span>
+                    10,708.98
+                  </span>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
         <div
-          class="holdings-container"
+          class="group-header"
         >
+          Grouped by 
+          groupby.currency
+        </div>
+        <div>
           <table
-            class="table holding-table is-striped is-hoverable"
+            class="table is-striped is-hoverable"
           >
             <tbody
               class="table-header"
@@ -120,7 +163,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       95.40
@@ -178,7 +220,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       98.62
@@ -236,7 +277,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       46.71
@@ -294,7 +334,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       132.98
@@ -352,7 +391,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       236.41
@@ -410,7 +448,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       32.31
@@ -454,7 +491,9 @@ Object {
                 </td>
               </tr>
             </tbody>
-            <tbody>
+            <tbody
+              class="holding-totals-row"
+            >
               <tr
                 class="holding-footer"
               >
@@ -579,7 +618,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       1.19
@@ -623,7 +661,9 @@ Object {
                 </td>
               </tr>
             </tbody>
-            <tbody>
+            <tbody
+              class="holding-totals-row"
+            >
               <tr
                 class="holding-footer"
               >
@@ -748,7 +788,6 @@ Object {
                 </td>
                 <td>
                   <label>
-                    USD
                      
                     <span>
                       2.15
@@ -792,7 +831,9 @@ Object {
                 </td>
               </tr>
             </tbody>
-            <tbody>
+            <tbody
+              class="holding-totals-row"
+            >
               <tr
                 class="holding-footer"
               >
@@ -907,7 +948,9 @@ Object {
     </div>
   </body>,
   "container": <div>
-    <div>
+    <div
+      class="page-box"
+    >
       <div>
         ToDo: Add Filters
       </div>
@@ -915,42 +958,83 @@ Object {
         class="stats-container"
       >
         <table>
-          <tbody
-            class="table-container is-large"
-          >
-            <tr>
-              <th>
-                SUMMARY
-              </th>
+          <tbody>
+            <tr
+              class="stats-header"
+            >
               <th
-                align="right"
+                align="left"
               >
+                Summary
+              </th>
+              <th>
                 dividends
               </th>
-              <th
-                align="right"
-              >
-                gain.realised
+              <th>
+                value
               </th>
-              <th
-                align="right"
-              >
-                gain.unrealised
+              <th>
+                purchases
               </th>
-              <th
-                align="right"
-              >
-                gain
+              <th>
+                sales
               </th>
+              <th>
+                strategy
+              </th>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr
+              class="stats-row"
+            >
+              <td>
+                <div
+                  class="left-cell"
+                >
+                  MIKE
+                  : 
+                  USD
+                </div>
+              </td>
+              <td>
+                <span>
+                  8,030.77
+                </span>
+              </td>
+              <td>
+                <span>
+                  19,424.85
+                </span>
+              </td>
+              <td>
+                <span>
+                  22,755.61
+                </span>
+              </td>
+              <td>
+                <span>
+                  6,008.97
+                </span>
+              </td>
+              <td>
+                <span>
+                  10,708.98
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div
-        class="holdings-container"
+        class="group-header"
       >
+        Grouped by 
+        groupby.currency
+      </div>
+      <div>
         <table
-          class="table holding-table is-striped is-hoverable"
+          class="table is-striped is-hoverable"
         >
           <tbody
             class="table-header"
@@ -1022,7 +1106,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     95.40
@@ -1080,7 +1163,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     98.62
@@ -1138,7 +1220,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     46.71
@@ -1196,7 +1277,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     132.98
@@ -1254,7 +1334,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     236.41
@@ -1312,7 +1391,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     32.31
@@ -1356,7 +1434,9 @@ Object {
               </td>
             </tr>
           </tbody>
-          <tbody>
+          <tbody
+            class="holding-totals-row"
+          >
             <tr
               class="holding-footer"
             >
@@ -1481,7 +1561,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     1.19
@@ -1525,7 +1604,9 @@ Object {
               </td>
             </tr>
           </tbody>
-          <tbody>
+          <tbody
+            class="holding-totals-row"
+          >
             <tr
               class="holding-footer"
             >
@@ -1650,7 +1731,6 @@ Object {
               </td>
               <td>
                 <label>
-                  USD
                    
                   <span>
                     2.15
@@ -1694,7 +1774,9 @@ Object {
               </td>
             </tr>
           </tbody>
-          <tbody>
+          <tbody
+            class="holding-totals-row"
+          >
             <tr
               class="holding-footer"
             >

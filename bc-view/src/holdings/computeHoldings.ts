@@ -41,7 +41,6 @@ function total(
   total.totalGain += position.moneyValues[valueIn].totalGain;
   total.purchases += position.moneyValues[valueIn].purchases;
   total.sales += position.moneyValues[valueIn].sales;
-
   return total;
 }
 
@@ -90,6 +89,12 @@ export function computeHoldings(
           position,
           "BASE"
         );
+        // results.totals["TRADE"] = total(
+        //   results.totals["BASE"],
+        //   position,
+        //   "BASE"
+        // );
+
         results.holdingGroups[groupKey].subTotals = totals(
           results.holdingGroups[groupKey].subTotals,
           position,

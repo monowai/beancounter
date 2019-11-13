@@ -1,15 +1,16 @@
 import React from "react";
 import NumberFormat from "react-number-format";
 import { HoldingGroup } from "../types/beancounter";
-import { ValuationCcy } from "./groupBy";
 
 import { translate } from "../i18nConfig";
+import { ValuationCcy } from "./groupBy";
+import { FormatMoneyValue } from "../common/MoneyUtils";
 
-export function HoldingHeader(groupKey: string): JSX.Element {
+export function HoldingHeader(props: { groupKey: string }): JSX.Element {
   return (
     <tbody className={"table-header"}>
       <tr>
-        <th>{groupKey}</th>
+        <th>{props.groupKey}</th>
         <th align={"right"}>{translate("quantity")}</th>
         <th align={"right"}>{translate("price")}</th>
         <th align={"right"}>{translate("cost.avg")}</th>
@@ -24,13 +25,14 @@ export function HoldingHeader(groupKey: string): JSX.Element {
   );
 }
 
-export function WriteHoldings(
-  holdingGroup: HoldingGroup,
-  valueIn: ValuationCcy
-): JSX.Element {
+export function HoldingRows(props: {
+  holdingGroup: HoldingGroup;
+  valueIn: ValuationCcy;
+}): JSX.Element {
+  const valueIn = props.valueIn;
   // eslint-disable-next-line complexity
-  const holdings = holdingGroup.positions.map((position, index) => (
-    <tr key={holdingGroup.group + index} className={"holding-row"}>
+  const holdings = props.holdingGroup.positions.map((position, index) => (
+    <tr key={props.holdingGroup.group + index} className={"holding-row"}>
       <td className={"asset"}>
         {position.asset.code + ": " + position.asset.name}
       </td>
@@ -62,160 +64,76 @@ export function WriteHoldings(
         )}
       </td>
 
-      <td>
-        {!position.moneyValues ? (
-          "-"
-        ) : (
-          <NumberFormat
-            value={position.moneyValues[valueIn].averageCost}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        )}
-      </td>
-      <td>
-        {!position.moneyValues ? (
-          "-"
-        ) : (
-          <NumberFormat
-            value={position.moneyValues[valueIn].costValue}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        )}
-      </td>
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"averageCost"}
+      />
 
-      <td>
-        {!position.moneyValues[valueIn] ? (
-          "-"
-        ) : (
-          <NumberFormat
-            value={position.moneyValues[valueIn].marketValue}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        )}
-      </td>
-      <td>
-        <NumberFormat
-          value={position.moneyValues[valueIn].dividends}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
-      <td>
-        <NumberFormat
-          value={position.moneyValues[valueIn].realisedGain}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
-      <td>
-        {!position.moneyValues[valueIn] ? (
-          "-"
-        ) : (
-          <NumberFormat
-            value={position.moneyValues[valueIn].unrealisedGain}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        )}
-      </td>
-      <td>
-        <NumberFormat
-          value={position.moneyValues[valueIn].totalGain}
-          displayType={"text"}
-          decimalScale={2}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"costValue"}
+      />
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"marketValue"}
+      />
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"dividends"}
+      />
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"realisedGain"}
+      />
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"unrealisedGain"}
+      />
+      <FormatMoneyValue
+        moneyValues={position.moneyValues[valueIn]}
+        moneyField={"totalGain"}
+      />
     </tr>
   ));
   return <tbody>{holdings}</tbody>;
 }
 
-export function HoldingFooter(
-  holdingGroup: HoldingGroup,
-  valueIn: ValuationCcy
-): JSX.Element {
+export function HoldingFooter(props: {
+  holdingGroup: HoldingGroup;
+  valueIn: ValuationCcy;
+}): JSX.Element {
+  const valueIn = props.valueIn;
+  const holdingGroup = props.holdingGroup;
   return (
     <tbody className={"holding-totals-row"}>
       <tr key={holdingGroup.group} className={"holding-footer"}>
         <td colSpan={4} align={"right"}>
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}
         </td>
-        <td align={"right"}>
-          <NumberFormat
-            value={holdingGroup.subTotals[valueIn].costValue}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-
-        <td align={"right"}>
-          <NumberFormat
-            value={holdingGroup.subTotals[valueIn].marketValue}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-
-        <td align={"right"}>
-          <NumberFormat
-            value={holdingGroup.subTotals[valueIn].dividends}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-
-        <td align={"right"}>
-          <NumberFormat
-            value={holdingGroup.subTotals[valueIn].realisedGain}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-
-        <td align={"right"}>
-          <NumberFormat
-            value={holdingGroup.subTotals[valueIn].unrealisedGain}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-
-        <td align={"right"}>
-          <NumberFormat
-            value={holdingGroup.subTotals[valueIn].totalGain}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
+        <FormatMoneyValue
+          moneyValues={holdingGroup.subTotals[valueIn]}
+          moneyField={"costValue"}
+        />
+        <FormatMoneyValue
+          moneyValues={holdingGroup.subTotals[valueIn]}
+          moneyField={"marketValue"}
+        />
+        <FormatMoneyValue
+          moneyValues={holdingGroup.subTotals[valueIn]}
+          moneyField={"dividends"}
+        />
+        <FormatMoneyValue
+          moneyValues={holdingGroup.subTotals[valueIn]}
+          moneyField={"realisedGain"}
+        />
+        <FormatMoneyValue
+          moneyValues={holdingGroup.subTotals[valueIn]}
+          moneyField={"unrealisedGain"}
+        />
+        <FormatMoneyValue
+          moneyValues={holdingGroup.subTotals[valueIn]}
+          moneyField={"totalGain"}
+        />
       </tr>
     </tbody>
   );

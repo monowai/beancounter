@@ -1,12 +1,15 @@
 import React from "react";
 import "../assets/styles.sass";
 import { translate } from "../i18nConfig";
-import NumberFormat from "react-number-format";
 import { MoneyValues, Portfolio } from "../types/beancounter";
+import { FormatMoneyValue } from "../common/MoneyUtils";
+import { ValuationCcy } from "../holdings/groupBy";
 
-export default function PortfolioStats(portfolio: Portfolio): JSX.Element {
+export default function StatsHeader(props: {
+  portfolio: Portfolio;
+}): JSX.Element {
   return (
-    <tbody key={portfolio.code}>
+    <tbody key={props.portfolio.code}>
       <tr className={"stats-header"}>
         <th align={"left"}>Summary</th>
         <th>{translate("dividends")}</th>
@@ -19,68 +22,31 @@ export default function PortfolioStats(portfolio: Portfolio): JSX.Element {
   );
 }
 
-export function Stats(
-  portfolio: Portfolio,
-  moneyValues: MoneyValues
-): JSX.Element {
+export function StatsRow(props: {
+  portfolio: Portfolio;
+  moneyValues: MoneyValues[];
+  valueIn: ValuationCcy;
+}): JSX.Element {
+  const portfolio = props.portfolio;
+  const valueIn = props.valueIn;
+  const moneyValues = props.moneyValues[valueIn];
   return (
     <tbody>
       <tr className={"stats-row"}>
         <td>
           <div className="left-cell">
-            {portfolio.code.toUpperCase()}: {portfolio.currency.code}
+            {portfolio.code.toUpperCase()}:{" "}
+            {valueIn === "TRADE" ? "N/A" : moneyValues.currency.code}
           </div>
         </td>
-        <td>
-          <NumberFormat
-            value={moneyValues.dividends}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-        <td>
-          <NumberFormat
-            value={moneyValues.marketValue}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-        <td>
-          <NumberFormat
-            value={moneyValues.purchases}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-        <td>
-          <NumberFormat
-            value={moneyValues.sales}
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
-        <td>
-          <NumberFormat
-            value={
-              moneyValues.marketValue -
-              moneyValues.purchases +
-              moneyValues.sales +
-              moneyValues.dividends
-            }
-            displayType={"text"}
-            decimalScale={2}
-            fixedDecimalScale={true}
-            thousandSeparator={true}
-          />
-        </td>
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
+        <FormatMoneyValue
+          moneyValues={moneyValues}
+          moneyField={"marketValue"}
+        />
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"totalGain"} />
       </tr>
     </tbody>
   );

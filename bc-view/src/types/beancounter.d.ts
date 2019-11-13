@@ -7,6 +7,21 @@ declare global {
   }
 }
 
+export type MoneyFields =
+  | "dividends"
+  | "price"
+  | "costValue"
+  | "averageCost"
+  | "marketValue"
+  | "realisedGain"
+  | "unrealisedGain"
+  | "totalGain"
+  | "sales"
+  | "purchases"
+  | "purchases"
+  | "marketValue"
+  | "investmentGain";
+
 export interface Market {
   code: string;
   currency: Currency;
@@ -49,7 +64,7 @@ interface QuantityValues {
 
 export interface Position {
   asset: Asset;
-  moneyValues: { [ValuationCCy: ValuationCcy]: MoneyValues };
+  moneyValues: MoneyValues[];
   quantityValues: QuantityValues;
   lastTradeDate: string;
 }
@@ -70,12 +85,12 @@ interface Holdings {
   holdingGroups: HoldingGroup[];
   portfolio: Portfolio;
   valueIn: ValuationCcy;
-  totals: { [ValuationCCy: ValuationCcy]: MoneyValues };
+  totals: MoneyValues[];
 }
 
 // User defined grouping
 interface HoldingGroup {
   group: string;
   positions: Position[];
-  subTotals: { [ValuationCCy: ValuationCcy]: MoneyValues };
+  subTotals: MoneyValues[];
 }

@@ -11,7 +11,7 @@
   "gain.realised": "Realised",
   "gain.unrealised": "Unrealised",
   "gain": "Gain",
-  "strategy": "Nominal Return",
+  "strategy": "Net Gain",
   "groupby.currency": "Currency",
   "groupby.market": "Market",
   "groupby.unknown": "Unknown"

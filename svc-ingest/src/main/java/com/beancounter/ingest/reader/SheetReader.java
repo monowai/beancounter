@@ -82,6 +82,7 @@ public class SheetReader implements Ingester {
     Portfolio portfolio = Portfolio.builder()
         .code(ingestionRequest.getPortfolio().getCode())
         .currency(ingestionRequest.getPortfolio().getCurrency())
+        .base(ingestionRequest.getPortfolio().getBase())
         .build();
 
     final NetHttpTransport httpTransport = googleTransport.getHttpTransport();

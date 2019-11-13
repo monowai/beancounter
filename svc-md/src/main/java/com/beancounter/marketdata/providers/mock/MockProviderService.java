@@ -61,7 +61,8 @@ public class MockProviderService implements MarketDataProvider {
 
   public Date getPriceDate() {
     return Date.from(
-        ZonedDateTime.of(LocalDate.parse("2019-11-21").atStartOfDay(), ZoneId.of("UTC")).toInstant());
+        ZonedDateTime.of(LocalDate.parse("2019-11-21").atStartOfDay(), ZoneId.of("UTC"))
+            .toInstant());
   }
 
 

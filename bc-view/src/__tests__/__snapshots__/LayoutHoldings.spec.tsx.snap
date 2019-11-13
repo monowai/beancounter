@@ -9,7 +9,24 @@ Object {
         class="page-box"
       >
         <div>
-          ToDo: Add Filters
+          <select>
+            <option
+              selected=""
+              value="PORTFOLIO"
+            >
+              Portfolio
+            </option>
+            <option
+              value="BASE"
+            >
+              Base
+            </option>
+            <option
+              value="TRADE"
+            >
+              Trade
+            </option>
+          </select>
         </div>
         <div
           class="stats-container"
@@ -50,31 +67,42 @@ Object {
                     class="left-cell"
                   >
                     MIKE
-                    : 
+                    :
+                     
                     USD
                   </div>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     8,030.77
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     19,424.85
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     22,755.61
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     6,008.97
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     10,708.98
                   </span>
@@ -169,37 +197,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     125.40
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     2,382.54
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,812.60
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     0.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     0.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     -569.94
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     -569.94
                   </span>
@@ -226,37 +268,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     33.54
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     838.48
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     2,465.50
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     270.75
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,141.03
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,627.02
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     3,038.80
                   </span>
@@ -283,37 +339,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     27.18
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,494.65
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     2,569.05
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     302.90
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     236.37
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,074.40
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,613.67
                   </span>
@@ -340,37 +410,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     104.50
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,567.43
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,994.70
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     77.85
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     0.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     427.27
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     505.12
                   </span>
@@ -397,37 +481,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     166.26
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,995.06
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     2,836.92
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     162.36
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     607.18
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     841.86
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,611.40
                   </span>
@@ -454,37 +552,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     44.11
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,985.14
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,453.95
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     45.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     0.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     -531.19
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     -486.19
                   </span>
@@ -624,37 +736,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     6.46
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     4,115.76
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     758.03
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     4,158.17
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     0.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     -3,357.73
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     800.44
                   </span>
@@ -794,37 +920,51 @@ Object {
                     </span>
                   </label>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1.69
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     4,352.16
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     5,534.10
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     3,013.74
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     0.00
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     1,181.94
                   </span>
                 </td>
-                <td>
+                <td
+                  align="right"
+                >
                   <span>
                     4,195.68
                   </span>
@@ -896,7 +1036,8 @@ Object {
                   align="right"
                   colspan="4"
                 >
-                  Totals
+                  Totals 
+                  PORTFOLIO
                 </td>
                 <td
                   align="right"
@@ -952,7 +1093,24 @@ Object {
       class="page-box"
     >
       <div>
-        ToDo: Add Filters
+        <select>
+          <option
+            selected=""
+            value="PORTFOLIO"
+          >
+            Portfolio
+          </option>
+          <option
+            value="BASE"
+          >
+            Base
+          </option>
+          <option
+            value="TRADE"
+          >
+            Trade
+          </option>
+        </select>
       </div>
       <div
         class="stats-container"
@@ -993,31 +1151,42 @@ Object {
                   class="left-cell"
                 >
                   MIKE
-                  : 
+                  :
+                   
                   USD
                 </div>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   8,030.77
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   19,424.85
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   22,755.61
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   6,008.97
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   10,708.98
                 </span>
@@ -1112,37 +1281,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   125.40
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   2,382.54
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,812.60
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   0.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   0.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   -569.94
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   -569.94
                 </span>
@@ -1169,37 +1352,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   33.54
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   838.48
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   2,465.50
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   270.75
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,141.03
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,627.02
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   3,038.80
                 </span>
@@ -1226,37 +1423,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   27.18
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,494.65
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   2,569.05
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   302.90
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   236.37
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,074.40
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,613.67
                 </span>
@@ -1283,37 +1494,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   104.50
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,567.43
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,994.70
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   77.85
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   0.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   427.27
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   505.12
                 </span>
@@ -1340,37 +1565,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   166.26
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,995.06
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   2,836.92
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   162.36
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   607.18
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   841.86
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,611.40
                 </span>
@@ -1397,37 +1636,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   44.11
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,985.14
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,453.95
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   45.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   0.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   -531.19
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   -486.19
                 </span>
@@ -1567,37 +1820,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   6.46
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   4,115.76
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   758.03
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   4,158.17
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   0.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   -3,357.73
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   800.44
                 </span>
@@ -1737,37 +2004,51 @@ Object {
                   </span>
                 </label>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1.69
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   4,352.16
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   5,534.10
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   3,013.74
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   0.00
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   1,181.94
                 </span>
               </td>
-              <td>
+              <td
+                align="right"
+              >
                 <span>
                   4,195.68
                 </span>
@@ -1839,7 +2120,8 @@ Object {
                 align="right"
                 colspan="4"
               >
-                Totals
+                Totals 
+                PORTFOLIO
               </td>
               <td
                 align="right"

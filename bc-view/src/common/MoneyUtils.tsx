@@ -1,0 +1,23 @@
+import NumberFormat from "react-number-format";
+import React from "react";
+import { MoneyFields, MoneyValues } from "../types/beancounter";
+
+export function FormatMoneyValue(props: {
+  moneyValues: MoneyValues;
+  moneyField: MoneyFields;
+}): JSX.Element {
+  if (!props.moneyValues || !props.moneyValues[props.moneyField] == undefined) {
+    return <td align={"center"}>-</td>;
+  }
+  return (
+    <td align={"right"}>
+      <NumberFormat
+        value={props.moneyValues[props.moneyField]}
+        displayType={"text"}
+        decimalScale={2}
+        fixedDecimalScale={true}
+        thousandSeparator={true}
+      />
+    </td>
+  );
+}

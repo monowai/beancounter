@@ -3,7 +3,9 @@ package com.beancounter.position.controller;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.service.PositionService;
+import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -27,27 +29,40 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping
 @Slf4j
+@CrossOrigin
 public class PositionController {
 
   private PositionService positionService;
+  private Valuation valuationService;
+  private ObjectMapper mapper = new ObjectMapper();
+
 
   @Autowired
   PositionController(PositionService positionService) {
     this.positionService = positionService;
   }
 
+  @Autowired
+  void setValuationService(Valuation valuationService) {
+    this.valuationService = valuationService;
+  }
+
+
   @PostMapping
-  @CrossOrigin
   PositionResponse computePositions(@RequestBody Collection<Transaction> transactions) {
     return positionService.build(transactions);
   }
 
 
   @GetMapping(value = "/{portfolioCode}", produces = "application/json")
-  @CrossOrigin
-  PositionResponse getTest(@PathVariable String portfolioCode) throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    File jsonFile = new ClassPathResource(portfolioCode + ".json").getFile();
-    return mapper.readValue(jsonFile, PositionResponse.class);
+  PositionResponse get(@PathVariable String portfolioCode) throws IOException {
+    // Currently no persistence. This is an emulated flow
+    File tradeFile = new ClassPathResource(portfolioCode + ".json").getFile();
+    CollectionType javaType = mapper.getTypeFactory()
+        .constructCollectionType(Collection.class, Transaction.class);
+
+    Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
+    PositionResponse positionResponse = positionService.build(results);
+    return valuationService.value(positionResponse.getData());
   }
 }

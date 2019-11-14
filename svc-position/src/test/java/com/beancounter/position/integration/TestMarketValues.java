@@ -81,7 +81,7 @@ class TestMarketValues {
   @VisibleForTesting
   void is_MarketValuationCalculatedAsAt() {
     Asset asset = AssetUtils.getAsset("ABC",
-        Market.builder().code("marketCode")
+        Market.builder().code("MOCK")
             .currency(getCurrency("USD"))
             .build()
     );

@@ -4,7 +4,7 @@
       "asset": {
         "code": "ABC",
         "market": {
-          "code": "marketCode"
+          "code": "MOCK"
         }
       },
       "date": null,

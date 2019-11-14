@@ -68,7 +68,7 @@ class TestExceptions {
         .build();
 
     assertThrows(FeignException.class, () -> {
-      Exception e =springFeignDecoder.decode("test", response);
+      Exception e = springFeignDecoder.decode("test", response);
       assertThat(e.getMessage()).isEqualTo("status 101 reading test");
       throw e;
     });

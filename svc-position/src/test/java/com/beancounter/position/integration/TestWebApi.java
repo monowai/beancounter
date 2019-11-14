@@ -2,7 +2,6 @@ package com.beancounter.position.integration;
 
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,20 +130,6 @@ class TestWebApi {
 
     Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
     positions.add(position);
-  }
-
-  @Test
-  void is_PositionsForPortfolio() throws Exception {
-
-    String json = mockMvc.perform(get("/{code}", "test"))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-        .andReturn().getResponse().getContentAsString();
-
-    PositionResponse fromJson = new ObjectMapper()
-        .readValue(json, PositionResponse.class);
-
-    assertThat(fromJson).isNotNull().hasFieldOrProperty("data");
   }
 
   @Test

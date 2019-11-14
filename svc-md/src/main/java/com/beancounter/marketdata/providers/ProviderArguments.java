@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.utils.AssetUtils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import lombok.Data;
 @Data
 public class ProviderArguments {
   private int count = 0;
-  private int maxBatch;
+  private DataProviderConfig dataProviderConfig;
   private Integer currentBatch = 0;
   private String searchBatch = null;
   private String delimiter = ",";
@@ -28,8 +29,9 @@ public class ProviderArguments {
    */
   private Map<Integer, String> batch = new HashMap<>();
 
-  public ProviderArguments(int maxBatch) {
-    this.maxBatch = maxBatch;
+  public ProviderArguments(DataProviderConfig dataProviderConfig) {
+    this.dataProviderConfig = dataProviderConfig;
+    setDate(dataProviderConfig.getDate());
   }
 
   /**
@@ -41,22 +43,30 @@ public class ProviderArguments {
    */
   public static ProviderArguments getInstance(Collection<Asset> assets,
                                               DataProviderConfig dataProviderConfig) {
-    ProviderArguments providerArguments = new ProviderArguments(dataProviderConfig.getBatchSize());
+    ProviderArguments providerArguments = new ProviderArguments(dataProviderConfig);
 
-    providerArguments.setDate(dataProviderConfig.getDate());
+    // Data providers can have market dependent price dates. Batch first by market, then by size
+    Map<String, Collection<Asset>> marketAssets = AssetUtils.split(assets);
+    for (String market : marketAssets.keySet()) {
+      for (Asset asset : marketAssets.get(market)) {
 
-    for (Asset asset : assets) {
+        String marketCode = dataProviderConfig.translateMarketCode(asset.getMarket());
+        String assetCode = asset.getCode();
 
-      String marketCode = dataProviderConfig.translateMarketCode(asset.getMarket());
-      String assetCode = asset.getCode();
+        if (marketCode != null && !marketCode.isEmpty()) {
+          assetCode = assetCode + "." + marketCode;
+        }
+        providerArguments.addAsset(asset, assetCode);
 
-      if (marketCode != null && !marketCode.isEmpty()) {
-        assetCode = assetCode + "." + marketCode;
       }
-      providerArguments.addAsset(asset, assetCode);
-
+      providerArguments.bumpBatch();
     }
+
     return providerArguments;
+  }
+
+  private void bumpBatch() {
+    currentBatch++;
   }
 
   /**
@@ -76,7 +86,7 @@ public class ProviderArguments {
     }
     getBatch().put(currentBatch, searchKey);
     count++;
-    if (count >= maxBatch) {
+    if (count >= dataProviderConfig.getBatchSize()) {
       count = 0;
       currentBatch++;
     }

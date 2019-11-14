@@ -95,6 +95,10 @@ class TestDateUtils {
     assertThat(DateUtils.getDate(
         DateUtils.convert(marketDataDate))).isEqualTo("2019-10-31"); // Boo!
 
+    marketDataDate = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"), 2);
+    assertThat(DateUtils.getDate(
+        DateUtils.convert(marketDataDate))).isEqualTo("2019-10-30");
+
 
   }
 

@@ -4,6 +4,10 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
@@ -65,5 +69,16 @@ public class AssetUtils {
     return Asset.builder().code(assetCode)
         .market(market)
         .build();
+  }
+
+  public Map<String, Collection<Asset>> split(Collection<Asset> assets) {
+    Map<String, Collection<Asset>> results = new HashMap<>();
+    for (Asset asset : assets) {
+      Market market = asset.getMarket();
+      Collection<Asset> marketAssets =
+          results.computeIfAbsent(market.getCode(), k -> new ArrayList<>());
+      marketAssets.add(asset);
+    }
+    return results;
   }
 }

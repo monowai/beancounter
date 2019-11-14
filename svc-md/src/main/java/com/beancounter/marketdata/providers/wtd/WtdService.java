@@ -61,7 +61,7 @@ public class WtdService implements MarketDataProvider {
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
     String date = wtdConfig.getDate();
-    log.debug("Asset Prices as at [{}]", date);
+    log.debug("Asset Prices start at [{}]", date);
     ProviderArguments providerArguments =
         ProviderArguments.getInstance(assets, wtdConfig);
 

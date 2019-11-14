@@ -8,13 +8,14 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 
 class TestAsset {
   @Test
-  @VisibleForTesting
   void is_Serializing() throws Exception {
 
     Asset asset = Asset.builder()
@@ -35,7 +36,6 @@ class TestAsset {
   }
 
   @Test
-  @VisibleForTesting
   void is_AssetKeyParsing() {
     Asset asset = AssetUtils.getAsset("ACODE", "MCODE");
 
@@ -46,7 +46,6 @@ class TestAsset {
   }
 
   @Test
-  @VisibleForTesting
   void is_AssetKeyExceptionsBeingThrown() {
     assertThrows(NullPointerException.class, () -> AssetUtils.toKey(null));
     assertThrows(NullPointerException.class, () -> AssetUtils.getAsset("CodeWithNoMarket",
@@ -54,4 +53,19 @@ class TestAsset {
     assertThrows(BusinessException.class, () -> AssetUtils.fromKey("CodeWithNoMarket"));
   }
 
+  @Test
+  void is_AssetsSplitByMarket() {
+    Collection<Asset> assets = new ArrayList<>();
+    assets.add(AssetUtils.getAsset("ABC", "AAA"));
+    assets.add(AssetUtils.getAsset("123", "AAA"));
+    assets.add(AssetUtils.getAsset("ABC", "BBB"));
+    assets.add(AssetUtils.getAsset("123", "BBB"));
+    assets.add(AssetUtils.getAsset("123", "CCC"));
+    Map<String, Collection<Asset>> results = AssetUtils.split(assets);
+    assertThat(results.size()).isEqualTo(3);
+    assertThat(results.get("AAA")).hasSize(2);
+    assertThat(results.get("BBB")).hasSize(2);
+    assertThat(results.get("CCC")).hasSize(1);
+
+  }
 }

@@ -3,8 +3,12 @@ package com.beancounter.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.marketdata.providers.DataProviderConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +22,9 @@ class TestProviderArguments {
   private Asset intc = AssetUtils.getAsset("INTC", "NASDAQ");
 
   @Test
-  void batchOfOne() {
+  void is_BatchOfOne() {
 
-    ProviderArguments providerArguments = new ProviderArguments(1);
+    ProviderArguments providerArguments = new ProviderArguments(new TestConfig(1));
 
     providerArguments.addAsset(aapl, "appl");
     providerArguments.addAsset(msft, "msft");
@@ -38,11 +42,8 @@ class TestProviderArguments {
   }
 
   @Test
-  void batchOfTwo() {
-
-
-    ProviderArguments providerArguments = new ProviderArguments(2);
-
+  void is_BatchOfTwo() {
+    ProviderArguments providerArguments = new ProviderArguments(new TestConfig(2));
     providerArguments.addAsset(aapl, "appl");
     providerArguments.addAsset(msft, "msft");
     providerArguments.addAsset(intc, "intc");
@@ -54,15 +55,11 @@ class TestProviderArguments {
         .containsValue("appl,msft")
         .containsValue("intc")
     ;
-
-
   }
 
   @Test
-  void batchOfThree() {
-
-    ProviderArguments providerArguments = new ProviderArguments(3);
-
+  void is_BatchOfThree() {
+    ProviderArguments providerArguments = new ProviderArguments(new TestConfig(3));
     providerArguments.addAsset(aapl, "appl");
     providerArguments.addAsset(msft, "msft");
     providerArguments.addAsset(intc, "intc");
@@ -72,8 +69,45 @@ class TestProviderArguments {
         .containsOnlyKeys(0)
         .containsValue("appl,msft,intc")
     ;
+  }
 
+  @Test
+  void is_SplitByMarket() {
+    Collection<Asset> assets = new ArrayList<>();
+    assets.add(AssetUtils.getAsset("ABC", "AAA"));
+    assets.add(AssetUtils.getAsset("ABC", "BBB"));
+    assets.add(AssetUtils.getAsset("ABC", "CCC"));
+    TestConfig testConfig = new TestConfig(10);
+    ProviderArguments providerArguments =
+        ProviderArguments.getInstance(assets, testConfig);
+    Map<Integer, String> batch = providerArguments.getBatch();
+
+    assertThat(batch)
+        .containsOnlyKeys(0, 1, 2);
 
   }
 
+
+  private static class TestConfig implements DataProviderConfig {
+    private Integer batchSize;
+
+    TestConfig(Integer batchSize) {
+      this.batchSize = batchSize;
+    }
+
+    @Override
+    public Integer getBatchSize() {
+      return batchSize;
+    }
+
+    @Override
+    public String translateMarketCode(Market market) {
+      return null;
+    }
+
+    @Override
+    public String getDate() {
+      return null;
+    }
+  }
 }

@@ -5,6 +5,7 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.providers.BatchConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.math.BigDecimal;
@@ -44,8 +45,6 @@ public class WtdService implements MarketDataProvider {
 
   @PostConstruct
   public void logStatus() {
-    log.info("Market Date is [{}]",
-        (wtdConfig.getDate() == null ? "calculated" : wtdConfig.getDate()));
     log.info("APIKey is [{}}", (apiKey.equalsIgnoreCase("DEMO") ? "DEMO" : "DEFINED"));
   }
 
@@ -60,16 +59,18 @@ public class WtdService implements MarketDataProvider {
 
   @Override
   public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    String date = wtdConfig.getDate();
-    log.debug("Asset Prices start at [{}]", date);
+
     ProviderArguments providerArguments =
         ProviderArguments.getInstance(assets, wtdConfig);
 
     Map<Integer, Future<WtdResponse>> batchedRequests = new ConcurrentHashMap<>();
 
-    for (Integer integer : providerArguments.getBatch().keySet()) {
-      batchedRequests.put(integer,
-          wtdRequester.getMarketData(providerArguments.getBatch().get(integer), date, apiKey));
+    for (Integer batch : providerArguments.getBatch().keySet()) {
+      batchedRequests.put(batch,
+          wtdRequester.getMarketData(
+              providerArguments.getBatch().get(batch),
+              providerArguments.getBatchConfigs().get(batch).getDate(),
+              apiKey));
     }
     log.debug("Assets price retrieval completed.");
     return getMarketData(providerArguments, batchedRequests);
@@ -102,6 +103,7 @@ public class WtdService implements MarketDataProvider {
       WtdResponse wtdResponse = response.get();
 
       String[] assets = providerArguments.getAssets(batchId);
+      BatchConfig batchConfig = providerArguments.getBatchConfigs().get(batchId);
       for (String dpAsset : assets) {
 
         // Ensure we return a MarketData result for each requested asset
@@ -121,7 +123,7 @@ public class WtdService implements MarketDataProvider {
 
         if (marketData == null) {
           // Not contained in the response
-          marketData = getDefault(bcAsset, dpAsset);
+          marketData = getDefault(bcAsset, dpAsset, batchConfig);
         } else {
           marketData.setAsset(bcAsset);
         }
@@ -135,9 +137,9 @@ public class WtdService implements MarketDataProvider {
   }
 
 
-  private MarketData getDefault(Asset asset, String dpAsset) {
+  private MarketData getDefault(Asset asset, String dpAsset, BatchConfig batchConfig) {
     log.warn("Unable to locate a price on {} for {} using code {}. Returning a default",
-        wtdConfig.getDate(), asset, dpAsset);
+        batchConfig.getDate(), asset, dpAsset);
 
     return MarketData.builder()
         .asset(asset)

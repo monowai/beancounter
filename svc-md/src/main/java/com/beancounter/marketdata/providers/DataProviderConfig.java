@@ -19,10 +19,5 @@ public interface DataProviderConfig {
    */
   String translateMarketCode(Market market);
 
-  /**
-   * Last price date on the Market.
-   *
-   * @return date to use for retrieval ops
-   */
-  String getDate();
+  String getMarketDate(Market market);
 }

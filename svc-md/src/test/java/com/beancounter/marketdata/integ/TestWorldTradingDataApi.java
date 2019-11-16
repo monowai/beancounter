@@ -18,7 +18,6 @@ import com.beancounter.marketdata.providers.wtd.WtdConfig;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -66,7 +65,6 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  @VisibleForTesting
   void is_asxMarketConvertedToAx() throws Exception {
     Asset amp = Asset.builder().code("AMP")
         .market(Market.builder().code("ASX").build())
@@ -81,7 +79,7 @@ class TestWorldTradingDataApi {
         .stubFor(
             get(urlEqualTo(
                 "/api/v1/history_multi_single_day?symbol=AMP.AX&date="
-                    + wtdConfig.getDate()
+                    + "2019-11-15"
                     + "&api_token=demo"))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -112,7 +110,7 @@ class TestWorldTradingDataApi {
     //  the date as set in the response from the provider.
 
     DataProviderUtils.mockWtdResponse(assets, mockInternet,
-        wtdConfig.getDate(),
+        "2019-11-15", // Prices are at T-1. configured date set in -test.yaml
         false,
         jsonFile);
 
@@ -158,7 +156,8 @@ class TestWorldTradingDataApi {
     assets.add(msft);
 
     File jsonFile = new ClassPathResource("wtdWithInvalidAsset.json").getFile();
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdConfig.getDate(), jsonFile);
+    // Prices are at T-1. configured date set in -test.yaml
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, "2019-11-15", jsonFile);
 
 
     Collection<MarketData> mdResult = wtdService.getCurrent(assets);
@@ -183,7 +182,6 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  @VisibleForTesting
   void apiMessage() throws Exception {
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();
@@ -193,7 +191,7 @@ class TestWorldTradingDataApi {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(msft);
 
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, wtdConfig.getDate(), jsonFile);
+    DataProviderUtils.mockWtdResponse(mockInternet, assets, "2019-11-15", jsonFile);
 
     assertThrows(BusinessException.class, () -> wtdService.getCurrent(assets));
   }

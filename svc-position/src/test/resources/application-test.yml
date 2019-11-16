@@ -3,3 +3,9 @@ server:
 
 marketdata:
   url: http://localhost:8090/api
+
+beancounter:
+  marketdata:
+    provider:
+      WTD:
+        date: 2019-11-16

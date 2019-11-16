@@ -40,7 +40,7 @@ public class AlphaConfig implements DataProviderConfig {
   }
 
   @Override
-  public String getDate() {
+  public String getMarketDate(Market market) {
     return "2019-04-04";
   }
 }

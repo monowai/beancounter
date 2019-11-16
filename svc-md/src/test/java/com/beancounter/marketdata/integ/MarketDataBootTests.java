@@ -16,7 +16,6 @@ import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.service.MarketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,8 +62,7 @@ class MarketDataBootTests {
   }
 
   @Test
-  @VisibleForTesting
-  void contextLoads() {
+  void is_ContextLoaded() {
     assertThat(wac).isNotNull();
   }
 
@@ -126,7 +124,7 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  void valuationRequestReturnsFullHydratedAssets() throws Exception {
+  void is_ValuationRequestHydratingAssets() throws Exception {
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
         dummy.getMarket().getCode(), dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)

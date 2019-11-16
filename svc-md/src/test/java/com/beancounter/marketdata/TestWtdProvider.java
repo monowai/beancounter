@@ -2,9 +2,10 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.model.Market;
+import com.beancounter.marketdata.providers.wtd.WtdConfig;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,7 +24,6 @@ class TestWtdProvider {
   private ObjectMapper mapper = new ObjectMapper();
 
   @Test
-  @VisibleForTesting
   void is_JsonGoodResponse() throws Exception {
 
 
@@ -41,7 +41,6 @@ class TestWtdProvider {
   }
 
   @Test
-  @VisibleForTesting
   void is_JsonResponseWithMessage() throws Exception {
 
     File jsonFile = new ClassPathResource("wtdMessage.json").getFile();
@@ -51,4 +50,19 @@ class TestWtdProvider {
         .isNotNull()
         .hasFieldOrProperty("message");
   }
+
+  @Test
+  void is_NzxValuationDateCorrect() {
+    WtdConfig wtdConfig = new WtdConfig();
+
+    assertThat(wtdConfig.getMarketDate(
+        Market.builder().code("NZX").build(), "2019-11-15"))
+        .isEqualTo("2019-11-13");
+
+    assertThat(wtdConfig.getMarketDate(
+        Market.builder().code("NZX").build(), "2019-11-18"))
+        .isEqualTo("2019-11-15");
+
+  }
+
 }

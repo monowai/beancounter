@@ -21,9 +21,9 @@ public class ProviderArguments {
   private Integer currentBatch = 0;
   private String searchBatch = null;
   private String delimiter = ",";
+  private Map<Integer, BatchConfig> batchConfigs = new HashMap<>();
   private Map<String, Asset> dpToBc = new HashMap<>();
   private Map<Asset, String> bcToDp = new HashMap<>();
-  private String date;
   /**
    * How the MarketDataProvider wants the search key for all assets to be passed.
    */
@@ -31,7 +31,6 @@ public class ProviderArguments {
 
   public ProviderArguments(DataProviderConfig dataProviderConfig) {
     this.dataProviderConfig = dataProviderConfig;
-    setDate(dataProviderConfig.getDate());
   }
 
   /**
@@ -56,7 +55,8 @@ public class ProviderArguments {
         if (marketCode != null && !marketCode.isEmpty()) {
           assetCode = assetCode + "." + marketCode;
         }
-        providerArguments.addAsset(asset, assetCode);
+        providerArguments.addAsset(asset, assetCode, dataProviderConfig
+            .getMarketDate(asset.getMarket()));
 
       }
       providerArguments.bumpBatch();
@@ -75,10 +75,19 @@ public class ProviderArguments {
    * @param bcKey BeanCounter Asset
    * @param dpKey DataProvider Asset ID
    */
-  public void addAsset(Asset bcKey, String dpKey) {
+  public void addAsset(Asset bcKey, String dpKey, String date) {
     dpToBc.put(dpKey, bcKey);
     bcToDp.put(bcKey, dpKey);
-    String searchKey = getBatch().get(currentBatch);
+    BatchConfig batchConfig = batchConfigs.get(currentBatch);
+    if (batchConfig == null) {
+      batchConfig = BatchConfig.builder()
+          .batch(currentBatch)
+          .date(date)
+          .build();
+      batchConfigs.put(currentBatch, batchConfig);
+    }
+
+    String searchKey = getBatch().get(batchConfig.getBatch());
     if (searchKey == null) {
       searchKey = dpKey;
     } else {

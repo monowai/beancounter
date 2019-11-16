@@ -26,9 +26,9 @@ class TestProviderArguments {
 
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(1));
 
-    providerArguments.addAsset(aapl, "appl");
-    providerArguments.addAsset(msft, "msft");
-    providerArguments.addAsset(intc, "intc");
+    providerArguments.addAsset(aapl, "appl", "");
+    providerArguments.addAsset(msft, "msft", "");
+    providerArguments.addAsset(intc, "intc", "");
 
     Map<Integer, String> batch = providerArguments.getBatch();
     assertThat(batch)
@@ -44,9 +44,9 @@ class TestProviderArguments {
   @Test
   void is_BatchOfTwo() {
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(2));
-    providerArguments.addAsset(aapl, "appl");
-    providerArguments.addAsset(msft, "msft");
-    providerArguments.addAsset(intc, "intc");
+    providerArguments.addAsset(aapl, "appl", "");
+    providerArguments.addAsset(msft, "msft", "");
+    providerArguments.addAsset(intc, "intc", "");
 
     Map<Integer, String> batch = providerArguments.getBatch();
 
@@ -60,9 +60,9 @@ class TestProviderArguments {
   @Test
   void is_BatchOfThree() {
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(3));
-    providerArguments.addAsset(aapl, "appl");
-    providerArguments.addAsset(msft, "msft");
-    providerArguments.addAsset(intc, "intc");
+    providerArguments.addAsset(aapl, "appl", "");
+    providerArguments.addAsset(msft, "msft", "");
+    providerArguments.addAsset(intc, "intc", "");
 
     Map<Integer, String> batch = providerArguments.getBatch();
     assertThat(batch)
@@ -105,9 +105,13 @@ class TestProviderArguments {
       return null;
     }
 
-    @Override
-    public String getDate() {
+    private String getDate() {
       return null;
+    }
+
+    @Override
+    public String getMarketDate(Market market) {
+      return getDate();
     }
   }
 }

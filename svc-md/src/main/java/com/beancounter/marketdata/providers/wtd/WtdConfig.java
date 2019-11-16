@@ -6,7 +6,6 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.DataProviderConfig;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.TimeZone;
@@ -25,7 +24,7 @@ public class WtdConfig implements DataProviderConfig {
   private Integer batchSize;
 
   @Value("${beancounter.marketdata.provider.WTD.date:#{null}}")
-  private String date;
+  private String date; // Static date
 
   @Value("${beancounter.marketdata.provider.WTD.markets}")
   private String markets;
@@ -43,17 +42,27 @@ public class WtdConfig implements DataProviderConfig {
     return staticConfig.getMarketData().get(market.getCode()).getAliases().get(ID);
   }
 
-  @Override
+  // For testing purposes - allows us to setup a static base date for which Market Prices Dates
+  // can reliably computed from.
   public String getDate() {
-    if (date != null) {
-      return date;
-    }
+    return (date == null ? DateUtils.today() : date);
+  }
 
+  @Override
+  // Price dates are usually T-1.  Still need to implement this as a configuration by market option.
+  public String getMarketDate(Market market) {
+    return getMarketDate(market, getDate());
+  }
+
+  public String getMarketDate(Market market, String startDate) {
+    int dayCount = 1;
+    if (market.getCode().equalsIgnoreCase("NZX")) {
+      dayCount = 2;
+    }
     LocalDate result = DateUtils.getLastMarketDate(
-        Instant.now().atZone(ZoneId.systemDefault()),
-        timeZone.toZoneId());
+        DateUtils.getDate(startDate).toInstant().atZone(ZoneId.systemDefault()),
+        timeZone.toZoneId(), dayCount);
 
     return result.toString();
-
   }
 }

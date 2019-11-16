@@ -38,7 +38,7 @@ public class PriceController {
    */
   @GetMapping(value = "/{marketId}/{assetId}", produces = "application/json")
   PriceResponse getPrice(@PathVariable("marketId") String marketId,
-                      @PathVariable("assetId") String assetId) {
+                         @PathVariable("assetId") String assetId) {
     Asset testAsset = Asset.builder()
         .code(assetId)
         .market(Market.builder().code(marketId).build())

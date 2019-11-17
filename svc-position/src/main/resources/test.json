@@ -46,10 +46,730 @@
 }, {
   "trnType" : "BUY",
   "asset" : {
-    "code" : "KMI",
-    "name" : "Kinder Morgan Inc",
+    "code" : "AMP",
+    "name" : "Amp Limited",
     "market" : {
-      "code" : "AMEX",
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 3
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "1997-04-19T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 424,
+  "price" : 4.14,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 1755.36,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.85923793,
+  "tradePortfolioRate" : 1.62015438,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 4
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2010-10-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 13,
+  "price" : 5.01,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 65.13,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.76175599,
+  "tradePortfolioRate" : 1.00376180,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 5
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2011-08-03T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 12,
+  "price" : 5.34,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 64.08,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80326891,
+  "tradePortfolioRate" : 0.94637712,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 6
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2011-10-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 17,
+  "price" : 3.91,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 66.47,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.77767512,
+  "tradePortfolioRate" : 0.97537481,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 7
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2012-04-04T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 17,
+  "price" : 4.01,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 68.22,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79308623,
+  "tradePortfolioRate" : 0.97260484,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 8
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2012-10-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 14,
+  "price" : 4.35,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 60.90,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80012646,
+  "tradePortfolioRate" : 0.97563608,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 9
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2014-09-04T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 11,
+  "price" : 5.57,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 61.27,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.88554410,
+  "tradePortfolioRate" : 1.06780970,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 10
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2015-03-04T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 10,
+  "price" : 6.57,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 65.70,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.96129120,
+  "tradePortfolioRate" : 1.28331376,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 11
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2015-09-02T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 13,
+  "price" : 5.75,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 74.75,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.90700831,
+  "tradePortfolioRate" : 1.42799893,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 12
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2015-10-08T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 12,
+  "price" : 5.75,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 69.00,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.91381750,
+  "tradePortfolioRate" : 1.36437247,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 09 Oct 2015 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 13
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2016-04-07T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 13,
+  "price" : 5.69,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 73.97,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.90057886,
+  "tradePortfolioRate" : 1.32808237,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 08 Apr 2016 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 14
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2016-10-06T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 14,
+  "price" : 5.35,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 74.90,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.94265555,
+  "tradePortfolioRate" : 1.31921005,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 07 Oct 2016 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 15
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2017-03-30T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 16,
+  "price" : 4.98,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 79.68,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.91331896,
+  "tradePortfolioRate" : 1.30782902,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 31 Mar 2017 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 16
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2017-09-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 17,
+  "price" : 5.02,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 85.34,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.92179283,
+  "tradePortfolioRate" : 1.27689311,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 29 Sep 2017 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 17
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2018-03-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 16,
+  "price" : 5.32,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 85.12,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.94477306,
+  "tradePortfolioRate" : 1.30117761,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 28 Mar 2018 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AMP",
+    "name" : "Amp Limited",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 18
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2018-09-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 18,
+  "price" : 3.35,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 60.30,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.91676664,
+  "tradePortfolioRate" : 1.38631652,
+  "comments" : "This trade has been created from the Dividend Reinvestment Plan for your dividend received on 28 Sep 2018 "
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "HAS",
+    "name" : "Hasbro, Inc.",
+    "market" : {
+      "code" : "NASDAQ",
       "currency" : {
         "code" : "USD"
       }
@@ -68,7 +788,7 @@
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
     "batch" : 0,
-    "id" : 2
+    "id" : 19
   },
   "tradeCurrency" : {
     "code" : "USD"
@@ -76,24 +796,25 @@
   "cashCurrency" : {
     "code" : "USD"
   },
-  "tradeDate" : "2019-03-06T16:00:00.000+0000",
+  "tradeDate" : "2012-05-29T16:00:00.000+0000",
   "settleDate" : null,
-  "quantity" : 80,
-  "price" : 19.98,
-  "fees" : 4.08,
+  "quantity" : 42,
+  "price" : 35.28,
+  "fees" : 4.05,
   "tax" : 0,
-  "tradeAmount" : 1601.50,
+  "tradeAmount" : 1484.93,
   "cashAmount" : null,
   "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.67771030,
+  "tradeBaseRate" : 0.75832216,
   "tradePortfolioRate" : 1,
   "comments" : null
 }, {
-  "trnType" : "DIVI",
+  "trnType" : "BUY",
   "asset" : {
-    "code" : "KMI",
+    "code" : "AAPL",
+    "name" : "Apple Inc",
     "market" : {
-      "code" : "AMEX",
+      "code" : "NASDAQ",
       "currency" : {
         "code" : "USD"
       }
@@ -112,30 +833,2474 @@
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
     "batch" : 0,
-    "id" : 363
+    "id" : 25
   },
   "tradeCurrency" : {
     "code" : "USD"
   },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2013-02-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 2,
+  "price" : 475,
+  "fees" : 3.10,
+  "tax" : 0,
+  "tradeAmount" : 952.50,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.83564455,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 26
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2013-02-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 1,
+  "price" : 460.04,
+  "fees" : 1.42,
+  "tax" : 0,
+  "tradeAmount" : 461.19,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.84856397,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SPLIT",
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 27
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2014-09-05T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 7,
+  "price" : 0,
+  "fees" : null,
+  "tax" : 0,
+  "tradeAmount" : 0,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.82930891,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "NDAQ",
+    "name" : "Nasdaq Inc - Ordinary Shares - 144A",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 31
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2013-07-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 45,
+  "price" : 34.1,
+  "fees" : 3.93,
+  "tax" : 0,
+  "tradeAmount" : 1537.60,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.78692262,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "NDAQ",
+    "name" : "Nasdaq Inc - Ordinary Shares - 144A",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 32
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2013-08-21T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 15,
+  "price" : 31.55,
+  "fees" : 1.91,
+  "tax" : 0,
+  "tradeAmount" : 474.75,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.78145346,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "HAS",
+    "name" : "Hasbro, Inc.",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 46
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2015-12-23T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -12,
+  "price" : 67.39,
+  "fees" : 2.82,
+  "tax" : 0,
+  "tradeAmount" : 806.68,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68197109,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "NDAQ",
+    "name" : "Nasdaq Inc - Ordinary Shares - 144A",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 47
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2015-12-23T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -20,
+  "price" : 58.35,
+  "fees" : 2.82,
+  "tax" : 0,
+  "tradeAmount" : 1165.00,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68197109,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 48
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2016-01-06T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -11,
+  "price" : 97.17,
+  "fees" : 4.30,
+  "tax" : 0,
+  "tradeAmount" : 1065.87,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.66010690,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 49
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2016-01-18T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -10,
+  "price" : 95.8,
+  "fees" : 4.32,
+  "tax" : 0,
+  "tradeAmount" : 955.00,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.64833264,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "HAS",
+    "name" : "Hasbro, Inc.",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 59
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2017-09-21T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -20,
+  "price" : 95,
+  "fees" : 16.91,
+  "tax" : 0,
+  "tradeAmount" : 1887.50,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.73218658,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "NDAQ",
+    "name" : "Nasdaq Inc - Ordinary Shares - 144A",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 60
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2017-09-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -15,
+  "price" : 76.86,
+  "fees" : 4.08,
+  "tax" : 0,
+  "tradeAmount" : 1149.90,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.71979466,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AAPL",
+    "name" : "Apple Inc",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 62
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2018-04-22T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 12,
+  "price" : 166,
+  "fees" : 3.98,
+  "tax" : 0,
+  "tradeAmount" : 1995.06,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.71768707,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "SELL",
+  "asset" : {
+    "code" : "HAS",
+    "name" : "Hasbro, Inc.",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 69
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2019-03-10T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : -10,
+  "price" : 87.22,
+  "fees" : 2.71,
+  "tax" : 0,
+  "tradeAmount" : 870.20,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68178511,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "DLR",
+    "name" : "Digital Realty Trust Inc",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 109
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2018-04-08T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 15,
+  "price" : 104.3,
+  "fees" : 3.93,
+  "tax" : 0,
+  "tradeAmount" : 1567.43,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.72929880,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "AYX",
+    "name" : "Alteryx Inc - Ordinary Shares - Class A",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 123
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2019-08-04T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 19,
+  "price" : 125.24,
+  "fees" : 4.16,
+  "tax" : 0,
+  "tradeAmount" : 2382.54,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65246820,
+  "tradePortfolioRate" : 1,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "GNE",
+    "name" : "Genesis Energy Limited (NS)",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 127
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2014-04-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 2414,
+  "price" : 1.55,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 3741.70,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.16315029,
+  "comments" : null
+}, {
+  "trnType" : "BUY",
+  "asset" : {
+    "code" : "GNE",
+    "name" : "Genesis Energy Limited (NS)",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 128
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : {
+    "code" : "USD"
+  },
+  "tradeDate" : "2015-04-22T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : 160,
+  "price" : 0,
+  "fees" : 0.00,
+  "tax" : 0,
+  "tradeAmount" : 0,
+  "cashAmount" : null,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.32370962,
+  "comments" : null
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 168
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
   "cashCurrency" : null,
-  "tradeDate" : "2019-05-14T16:00:00.000+0000",
+  "tradeDate" : "1999-04-25T16:00:00.000+0000",
   "settleDate" : null,
   "quantity" : null,
   "price" : null,
   "fees" : 0,
   "tax" : 0.00,
-  "tradeAmount" : 20.00,
-  "cashAmount" : 20.00,
+  "tradeAmount" : 76.32,
+  "cashAmount" : 76.32,
   "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.65524111,
-  "tradePortfolioRate" : 1,
+  "tradeBaseRate" : 0.84456039,
+  "tradePortfolioRate" : 1.54032410,
+  "comments" : "Dividend of 18.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 169
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "1999-10-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 84.80,
+  "cashAmount" : 84.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79043159,
+  "tradePortfolioRate" : 1.55430036,
+  "comments" : "Dividend of 20.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 170
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2000-04-10T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 89.04,
+  "cashAmount" : 89.04,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.83692036,
+  "tradePortfolioRate" : 1.67802793,
+  "comments" : "Dividend of 21.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 171
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2000-10-24T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 97.52,
+  "cashAmount" : 97.52,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.76798846,
+  "tradePortfolioRate" : 1.92343806,
+  "comments" : "Dividend of 23.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 172
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2001-04-19T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 101.76,
+  "cashAmount" : 101.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79675577,
+  "tradePortfolioRate" : 1.93981533,
+  "comments" : "Dividend of 24.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 173
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2001-10-29T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 106.00,
+  "cashAmount" : 106.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.81844910,
+  "tradePortfolioRate" : 1.96557811,
   "comments" : "Dividend of 25.0 cents per share"
 }, {
   "trnType" : "DIVI",
   "asset" : {
-    "code" : "KMI",
+    "code" : "AMP",
     "market" : {
-      "code" : "AMEX",
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 174
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2002-04-22T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 110.24,
+  "cashAmount" : 110.24,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.82874372,
+  "tradePortfolioRate" : 1.85888188,
+  "comments" : "Dividend of 26.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 175
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2002-10-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 110.24,
+  "cashAmount" : 110.24,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.87349068,
+  "tradePortfolioRate" : 1.79012220,
+  "comments" : "Dividend of 26.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 176
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2003-04-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 84.80,
+  "cashAmount" : 84.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.89800769,
+  "tradePortfolioRate" : 1.61079365,
+  "comments" : "Dividend of 20.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 177
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2003-10-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 29.68,
+  "cashAmount" : 29.68,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.86957888,
+  "tradePortfolioRate" : 1.42225649,
+  "comments" : "Dividend of 7.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 178
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2004-04-26T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 38.16,
+  "cashAmount" : 38.16,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.85646363,
+  "tradePortfolioRate" : 1.36384285,
+  "comments" : "Dividend of 9.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 179
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2004-10-25T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 55.12,
+  "cashAmount" : 55.12,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.93532529,
+  "tradePortfolioRate" : 1.33940864,
+  "comments" : "Dividend of 13.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 180
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2005-04-25T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 59.36,
+  "cashAmount" : 59.36,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.93438394,
+  "tradePortfolioRate" : 1.28349126,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 181
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2005-10-24T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 59.36,
+  "cashAmount" : 59.36,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.93350473,
+  "tradePortfolioRate" : 1.32944995,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 182
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2006-04-25T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 76.32,
+  "cashAmount" : 76.32,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.84235330,
+  "tradePortfolioRate" : 1.33786720,
+  "comments" : "Dividend of 18.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 183
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2006-10-23T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 80.56,
+  "cashAmount" : 80.56,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.87519146,
+  "tradePortfolioRate" : 1.32126625,
+  "comments" : "Dividend of 19.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 184
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2007-04-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 89.04,
+  "cashAmount" : 89.04,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.88144023,
+  "tradePortfolioRate" : 1.21066310,
+  "comments" : "Dividend of 21.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 185
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2007-10-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 93.28,
+  "cashAmount" : 93.28,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.85490537,
+  "tradePortfolioRate" : 1.10915120,
+  "comments" : "Dividend of 22.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 186
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2008-04-03T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 101.76,
+  "cashAmount" : 101.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.85669938,
+  "tradePortfolioRate" : 1.08828393,
+  "comments" : "Dividend of 24.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 187
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2008-10-16T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 101.76,
+  "cashAmount" : 101.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.89772103,
+  "tradePortfolioRate" : 1.46351835,
+  "comments" : "Dividend of 24.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 188
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2009-04-08T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 67.84,
+  "cashAmount" : 67.84,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.81289617,
+  "tradePortfolioRate" : 1.40096436,
+  "comments" : "Dividend of 16.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 189
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2009-10-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 59.36,
+  "cashAmount" : 59.36,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80509485,
+  "tradePortfolioRate" : 1.09038940,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 190
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2010-04-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 67.84,
+  "cashAmount" : 67.84,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.76394782,
+  "tradePortfolioRate" : 1.07109805,
+  "comments" : "Dividend of 16.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 191
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2010-10-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 63.60,
+  "cashAmount" : 63.60,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.76175599,
+  "tradePortfolioRate" : 1.00376180,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 192
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2011-04-07T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 65.55,
+  "cashAmount" : 65.55,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.74200369,
+  "tradePortfolioRate" : 0.95042011,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 193
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2011-10-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 67.35,
+  "cashAmount" : 67.35,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.77767512,
+  "tradePortfolioRate" : 0.97537481,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 194
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2012-04-04T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 65.24,
+  "cashAmount" : 65.24,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79308623,
+  "tradePortfolioRate" : 0.97260484,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 195
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2012-10-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 60.38,
+  "cashAmount" : 60.38,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80012646,
+  "tradePortfolioRate" : 0.97563608,
+  "comments" : "Dividend of 12.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 196
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-04-10T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 62.13,
+  "cashAmount" : 62.13,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.81974901,
+  "tradePortfolioRate" : 0.94603247,
+  "comments" : "Dividend of 12.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 197
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-10-10T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 57.16,
+  "cashAmount" : 57.16,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.88051165,
+  "tradePortfolioRate" : 1.05543270,
+  "comments" : "Dividend of 11.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 198
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-04-09T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 57.16,
+  "cashAmount" : 57.16,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.92398394,
+  "tradePortfolioRate" : 1.06237831,
+  "comments" : "Dividend of 11.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 199
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-10-09T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 62.13,
+  "cashAmount" : 62.13,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.89762464,
+  "tradePortfolioRate" : 1.14820383,
+  "comments" : "Dividend of 12.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 200
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-04-09T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 68.58,
+  "cashAmount" : 68.58,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.98328473,
+  "tradePortfolioRate" : 1.30785241,
+  "comments" : "Dividend of 13.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 201
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-10-08T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 72.52,
+  "cashAmount" : 72.52,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.91381750,
+  "tradePortfolioRate" : 1.36437247,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 202
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-04-07T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 74.34,
+  "cashAmount" : 74.34,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.90057886,
+  "tradePortfolioRate" : 1.32808237,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 203
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-10-06T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 74.34,
+  "cashAmount" : 74.34,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.94265555,
+  "tradePortfolioRate" : 1.31921005,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 204
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-03-30T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 74.34,
+  "cashAmount" : 74.34,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.91331896,
+  "tradePortfolioRate" : 1.30782902,
+  "comments" : "Dividend of 14.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 205
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-09-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 84.97,
+  "cashAmount" : 84.97,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.92179283,
+  "tradePortfolioRate" : 1.27689311,
+  "comments" : "Dividend of 14.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 206
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-03-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 87.44,
+  "cashAmount" : 87.44,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.94477306,
+  "tradePortfolioRate" : 1.30117761,
+  "comments" : "Dividend of 14.5 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 207
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-09-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 61.90,
+  "cashAmount" : 61.90,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.91676664,
+  "tradePortfolioRate" : 1.38631652,
+  "comments" : "Dividend of 10.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AMP",
+    "market" : {
+      "code" : "ASX",
+      "currency" : {
+        "code" : "AUD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 208
+  },
+  "tradeCurrency" : {
+    "code" : "AUD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-03-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 25.49,
+  "cashAmount" : 25.49,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.96008238,
+  "tradePortfolioRate" : 1.41290783,
+  "comments" : "Dividend of 4.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
       "currency" : {
         "code" : "USD"
       }
@@ -154,7 +3319,679 @@
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
     "batch" : 0,
-    "id" : 364
+    "id" : 209
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-05-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.15,
+  "cashAmount" : 9.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.81602937,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 305.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 210
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.15,
+  "cashAmount" : 9.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80690576,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 305.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 211
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-11-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.15,
+  "cashAmount" : 9.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.82525643,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 305.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 212
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-02-12T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.15,
+  "cashAmount" : 9.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.83389231,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 305.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 213
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-05-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.87,
+  "cashAmount" : 9.87,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.86526036,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 329.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 214
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-08-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.87,
+  "cashAmount" : 9.87,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.85015893,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 47.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 215
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-11-12T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.87,
+  "cashAmount" : 9.87,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79005455,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 47.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 216
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-02-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.87,
+  "cashAmount" : 9.87,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.73687634,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 47.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 217
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-05-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 10.92,
+  "cashAmount" : 10.92,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.75129943,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 52.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 218
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-08-12T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 10.92,
+  "cashAmount" : 10.92,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65753181,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 52.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 219
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-11-11T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 10.92,
+  "cashAmount" : 10.92,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65215541,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 52.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 220
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-05-16T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 8.76,
+  "cashAmount" : 8.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68934307,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 73.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 221
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-08-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 8.76,
+  "cashAmount" : 8.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65848150,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 73.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 222
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-11-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 8.76,
+  "cashAmount" : 8.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68098307,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 73.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 223
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-02-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 8.76,
+  "cashAmount" : 8.76,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68340611,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 73.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 224
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-05-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.24,
+  "cashAmount" : 9.24,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65656684,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 77.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "AAPL",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 225
   },
   "tradeCurrency" : {
     "code" : "USD"
@@ -166,12 +4003,2868 @@
   "price" : null,
   "fees" : 0,
   "tax" : 0.00,
-  "tradeAmount" : 20.00,
-  "cashAmount" : 20.00,
+  "tradeAmount" : 9.24,
+  "cashAmount" : 9.24,
   "tradeCashRate" : 1,
   "tradeBaseRate" : 0.64409913,
   "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 77.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "DLR",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 258
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-06-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.15,
+  "cashAmount" : 15.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67594364,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 101.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "DLR",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 259
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-09-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.15,
+  "cashAmount" : 15.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.66129677,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 101.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "DLR",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 260
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-01-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.15,
+  "cashAmount" : 15.15,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68174494,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 101.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "DLR",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 261
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-03-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 16.20,
+  "cashAmount" : 16.20,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68090909,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 108.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "DLR",
+    "market" : {
+      "code" : "NYSE",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 262
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-06-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 16.20,
+  "cashAmount" : 16.20,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67099057,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 108.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 278
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-10-16T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 159.32,
+  "cashAmount" : 159.32,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.25867582,
+  "comments" : "Dividend of 6.6 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 279
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-04-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 193.12,
+  "cashAmount" : 193.12,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.31061526,
+  "comments" : "Dividend of 8.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 280
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-10-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 205.92,
+  "cashAmount" : 205.92,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.47332746,
+  "comments" : "Dividend of 8.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 281
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-04-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 211.07,
+  "cashAmount" : 211.07,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.44753633,
+  "comments" : "Dividend of 8.2 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 282
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-10-13T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 211.07,
+  "cashAmount" : 211.07,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.40956190,
+  "comments" : "Dividend of 8.2 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 283
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-04-12T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 211.07,
+  "cashAmount" : 211.07,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.42784572,
+  "comments" : "Dividend of 8.2 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 284
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-10-12T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 216.22,
+  "cashAmount" : 216.22,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.40059272,
+  "comments" : "Dividend of 8.4 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 285
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-04-19T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 213.64,
+  "cashAmount" : 213.64,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.38370298,
+  "comments" : "Dividend of 8.3 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 286
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-10-18T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 221.36,
+  "cashAmount" : 221.36,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.51517001,
+  "comments" : "Dividend of 8.6 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 287
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-10-18T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 31.25,
+  "cashAmount" : 31.25,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.51517001,
+  "comments" : "Dividend of 1.2141 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 288
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-04-17T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 217.50,
+  "cashAmount" : 217.50,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.49502222,
+  "comments" : "Dividend of 8.45 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "GNE",
+    "market" : {
+      "code" : "NZX",
+      "currency" : {
+        "code" : "NZD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 289
+  },
+  "tradeCurrency" : {
+    "code" : "NZD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-04-17T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 30.71,
+  "cashAmount" : 30.71,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 1,
+  "tradePortfolioRate" : 1.49502222,
+  "comments" : "Dividend of 1.1929 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 298
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2012-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.12,
+  "cashAmount" : 15.12,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80482528,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 36.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 299
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2012-11-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.12,
+  "cashAmount" : 15.12,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.81108921,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 36.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 300
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2012-12-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.12,
+  "cashAmount" : 15.12,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.82121722,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 36.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 301
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-05-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 16.80,
+  "cashAmount" : 16.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.82135104,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 40.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 302
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 16.80,
+  "cashAmount" : 16.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.80690576,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 40.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 303
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-11-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 16.80,
+  "cashAmount" : 16.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.83004440,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 40.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 304
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-02-17T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 16.80,
+  "cashAmount" : 16.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.83107372,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 40.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 305
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-05-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 18.06,
+  "cashAmount" : 18.06,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.86526036,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 43.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 306
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 18.06,
+  "cashAmount" : 18.06,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.84976198,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 43.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 307
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-11-16T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 18.06,
+  "cashAmount" : 18.06,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79213946,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 43.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 308
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-02-16T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 18.06,
+  "cashAmount" : 18.06,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.75391322,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 43.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 309
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-05-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 19.32,
+  "cashAmount" : 19.32,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.74345344,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 46.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 310
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-08-16T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 19.32,
+  "cashAmount" : 19.32,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65575707,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 46.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 311
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-11-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 19.32,
+  "cashAmount" : 19.32,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.64775885,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 46.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 312
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-02-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 13.80,
+  "cashAmount" : 13.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65950032,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 46.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 313
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-05-15T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.30,
+  "cashAmount" : 15.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67983430,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 51.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 314
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.30,
+  "cashAmount" : 15.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.72138340,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 51.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 315
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-11-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.30,
+  "cashAmount" : 15.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.71084258,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 51.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 316
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-02-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.30,
+  "cashAmount" : 15.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.71778307,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 51.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 317
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-05-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 17.10,
+  "cashAmount" : 17.10,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.69114961,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 57.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 318
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 17.10,
+  "cashAmount" : 17.10,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.72849079,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 57.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 319
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-11-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 5.70,
+  "cashAmount" : 5.70,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.69058034,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 57.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 320
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-02-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 5.70,
+  "cashAmount" : 5.70,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.73883731,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 57.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 321
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-05-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 6.30,
+  "cashAmount" : 6.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68998955,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 63.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 322
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-08-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 6.30,
+  "cashAmount" : 6.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.65564371,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 63.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 323
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-11-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 6.30,
+  "cashAmount" : 6.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68098307,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 63.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "HAS",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 324
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-02-14T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 6.30,
+  "cashAmount" : 6.30,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68524830,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 63.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 365
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-09-26T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 7.80,
+  "cashAmount" : 7.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.82678800,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 13.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 366
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2013-12-26T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 7.80,
+  "cashAmount" : 7.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.81773516,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 13.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 367
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-03-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 7.80,
+  "cashAmount" : 7.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.86736431,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 13.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 368
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-06-26T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.00,
+  "cashAmount" : 9.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.87633509,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 369
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-09-25T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.00,
+  "cashAmount" : 9.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.79031657,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 370
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2014-12-25T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.00,
+  "cashAmount" : 9.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.77301196,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 371
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-03-26T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.00,
+  "cashAmount" : 9.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.75693767,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 15.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 372
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-06-25T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.00,
+  "cashAmount" : 15.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68526335,
+  "tradePortfolioRate" : 1,
   "comments" : "Dividend of 25.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 373
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-09-24T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.00,
+  "cashAmount" : 15.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.63437251,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 25.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 374
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2015-12-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.00,
+  "cashAmount" : 15.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68431238,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 25.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 375
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-03-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 10.00,
+  "cashAmount" : 10.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67011114,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 25.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 376
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-06-23T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 12.80,
+  "cashAmount" : 12.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.70876833,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 32.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 377
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-09-29T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 12.80,
+  "cashAmount" : 12.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.72620210,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 32.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 378
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2016-12-29T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 12.80,
+  "cashAmount" : 12.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.69540837,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 32.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 379
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-03-30T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 12.80,
+  "cashAmount" : 12.80,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.69834738,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 32.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 380
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-06-29T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.20,
+  "cashAmount" : 15.20,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.73370194,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 38.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 381
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-09-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 15.20,
+  "cashAmount" : 15.20,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.72190290,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 38.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 382
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2017-12-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.50,
+  "cashAmount" : 9.50,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.71175074,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 38.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 383
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-03-29T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 9.50,
+  "cashAmount" : 9.50,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.72061060,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 38.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 384
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-06-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 11.00,
+  "cashAmount" : 11.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67594364,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 44.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 385
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-09-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 11.00,
+  "cashAmount" : 11.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.66129677,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 44.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 386
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2018-12-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 11.00,
+  "cashAmount" : 11.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67139508,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 44.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 387
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-03-28T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 11.00,
+  "cashAmount" : 11.00,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.68090909,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 44.0 cents per share"
+}, {
+  "trnType" : "DIVI",
+  "asset" : {
+    "code" : "NDAQ",
+    "market" : {
+      "code" : "NASDAQ",
+      "currency" : {
+        "code" : "USD"
+      }
+    }
+  },
+  "portfolio" : {
+    "code" : "mike",
+    "currency" : {
+      "code" : "USD"
+    },
+    "base" : {
+      "code" : "NZD"
+    }
+  },
+  "cashAsset" : null,
+  "id" : {
+    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "batch" : 0,
+    "id" : 388
+  },
+  "tradeCurrency" : {
+    "code" : "USD"
+  },
+  "cashCurrency" : null,
+  "tradeDate" : "2019-06-27T16:00:00.000+0000",
+  "settleDate" : null,
+  "quantity" : null,
+  "price" : null,
+  "fees" : 0,
+  "tax" : 0.00,
+  "tradeAmount" : 11.75,
+  "cashAmount" : 11.75,
+  "tradeCashRate" : 1,
+  "tradeBaseRate" : 0.67099057,
+  "tradePortfolioRate" : 1,
+  "comments" : "Dividend of 47.0 cents per share"
 }, {
   "trnType" : "DIVI",
   "asset" : {

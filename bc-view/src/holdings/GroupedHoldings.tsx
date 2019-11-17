@@ -3,8 +3,8 @@ import NumberFormat from "react-number-format";
 import { HoldingGroup } from "../types/beancounter";
 
 import { translate } from "../i18nConfig";
-import { ValuationCcy } from "./groupBy";
 import { FormatMoneyValue } from "../common/MoneyUtils";
+import { CurrencyValues } from "./valueBy";
 
 export function HoldingHeader(props: { groupKey: string }): JSX.Element {
   return (
@@ -27,7 +27,7 @@ export function HoldingHeader(props: { groupKey: string }): JSX.Element {
 
 export function HoldingRows(props: {
   holdingGroup: HoldingGroup;
-  valueIn: ValuationCcy;
+  valueIn: CurrencyValues;
 }): JSX.Element {
   const valueIn = props.valueIn;
   // eslint-disable-next-line complexity
@@ -100,7 +100,7 @@ export function HoldingRows(props: {
 
 export function HoldingFooter(props: {
   holdingGroup: HoldingGroup;
-  valueIn: ValuationCcy;
+  valueIn: CurrencyValues;
 }): JSX.Element {
   const valueIn = props.valueIn;
   const holdingGroup = props.holdingGroup;

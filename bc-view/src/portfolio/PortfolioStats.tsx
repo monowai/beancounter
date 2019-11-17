@@ -3,7 +3,7 @@ import "../assets/styles.sass";
 import { translate } from "../i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";
-import { ValuationCcy } from "../holdings/groupBy";
+import { CurrencyValues } from "../holdings/valueBy";
 
 export default function StatsHeader(props: {
   portfolio: Portfolio;
@@ -25,7 +25,7 @@ export default function StatsHeader(props: {
 export function StatsRow(props: {
   portfolio: Portfolio;
   moneyValues: MoneyValues[];
-  valueIn: ValuationCcy;
+  valueIn: CurrencyValues;
 }): JSX.Element {
   const portfolio = props.portfolio;
   const valueIn = props.valueIn;

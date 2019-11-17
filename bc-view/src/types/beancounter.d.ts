@@ -1,4 +1,5 @@
-import { ValuationCcy } from "../holdings/groupBy";
+import { GroupBy } from "../holdings/groupBy";
+import { ValuationCcy } from "../holdings/valueBy";
 
 declare global {
   interface Window {
@@ -93,4 +94,14 @@ interface HoldingGroup {
   group: string;
   positions: Position[];
   subTotals: MoneyValues[];
+}
+
+interface GroupOption {
+  label: string;
+  value: GroupBy;
+}
+
+interface CurrencyOption {
+  label: string;
+  value: ValuationCcy;
 }

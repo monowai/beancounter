@@ -33,6 +33,7 @@
     "react-router": "^5.0.0",
     "react-router-dom": "^5.1.2",
     "react-select": "^3.0.8",
+    "react-switch": "^5.0.1",
     "react-table": "^7.0.0-beta.12",
     "remark-lint": "^6.0.5",
     "winston": "^3.2.1"
@@ -55,6 +56,7 @@
     "@types/react-loadable": "^5.5.2",
     "@types/react-router": "^5.1.2",
     "@types/react-router-dom": "^5.1.2",
+    "@types/react-select": "^3.0.8",
     "@types/webpack": "^4.39.3",
     "@types/webpack-env": "^1.14.0",
     "@typescript-eslint/eslint-plugin": "^2.4.0",

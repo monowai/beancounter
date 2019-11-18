@@ -21,7 +21,7 @@ public class IngestionController {
     this.sheetReader = sheetReader;
   }
 
-  @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   Collection<Transaction> ingest(@RequestBody IngestionRequest ingestionRequest) {
     return sheetReader.ingest(ingestionRequest);
   }

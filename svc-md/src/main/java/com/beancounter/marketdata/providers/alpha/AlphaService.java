@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.alpha;
 
 import static com.beancounter.marketdata.providers.ProviderArguments.getInstance;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -73,16 +74,17 @@ public class AlphaService implements MarketDataProvider {
   }
 
   @Override
-  public MarketData getCurrent(Asset asset) {
+  public MarketData getPrices(Asset asset) {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
-    return getCurrent(assets).iterator().next();
+
+    return getPrices(PriceRequest.builder().assets(assets).build()).iterator().next();
   }
 
   @Override
-  public Collection<MarketData> getCurrent(Collection<Asset> assets) {
+  public Collection<MarketData> getPrices(PriceRequest priceRequest) {
 
-    ProviderArguments providerArguments = getInstance(assets, alphaConfig);
+    ProviderArguments providerArguments = getInstance(priceRequest, alphaConfig);
 
     Map<Integer, Future<String>> requests = new ConcurrentHashMap<>();
 

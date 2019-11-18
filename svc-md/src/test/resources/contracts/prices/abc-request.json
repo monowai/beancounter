@@ -1,8 +1,9 @@
-[
-  {
-    "code": "ABC",
-    "market": {
-      "code": "MOCK"
+{
+  "assets": [
+    {
+      "code": "ABC",
+      "market": {
+        "code": "MOCK"
+      }
     }
-  }
-]
+  ]}

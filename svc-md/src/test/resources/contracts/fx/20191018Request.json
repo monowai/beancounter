@@ -1,13 +1,13 @@
 {
-  "rateDate": "2019-07-27",
+  "rateDate": "2019-10-18",
   "pairs": [
     {
       "from": "USD",
       "to": "NZD"
     },
     {
-      "from": "GBP",
-      "to": "NZD"
+      "from": "USD",
+      "to": "GBP"
     }
   ]
 }

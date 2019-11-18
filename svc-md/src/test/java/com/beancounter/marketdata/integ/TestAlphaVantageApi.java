@@ -1,12 +1,13 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.marketdata.AlphaMockUtils.alphaContracts;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.DataProviderUtils;
+import com.beancounter.marketdata.AlphaMockUtils;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MdFactory;
@@ -51,14 +52,14 @@ class TestAlphaVantageApi {
   @Test
   void is_ApiErrorMessageHandled() throws Exception {
 
-    File jsonFile = new ClassPathResource("alphavantageError.json").getFile();
+    File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
 
-    DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    MarketData mdResult = alphaProvider.getCurrent(asset);
+    MarketData mdResult = alphaProvider.getPrices(asset);
     assertThat(mdResult)
         .isNotNull()
         .hasFieldOrPropertyWithValue("asset", asset)
@@ -68,14 +69,14 @@ class TestAlphaVantageApi {
   @Test
   void is_ApiInvalidKeyHandled() throws Exception {
 
-    File jsonFile = new ClassPathResource("alphavantageInfo.json").getFile();
+    File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
 
-    DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    MarketData mdResult = alphaProvider.getCurrent(asset);
+    MarketData mdResult = alphaProvider.getPrices(asset);
     assertThat(mdResult)
         .isNotNull()
         .hasFieldOrPropertyWithValue("asset", asset)
@@ -85,14 +86,14 @@ class TestAlphaVantageApi {
   @Test
   void is_ApiCallLimitExceededHandled() throws Exception {
 
-    File jsonFile = new ClassPathResource("alphavantageNote.json").getFile();
+    File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
 
-    DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketData mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getCurrent(asset);
+        .getPrices(asset);
 
     assertThat(mdResult)
         .isNotNull()
@@ -103,14 +104,14 @@ class TestAlphaVantageApi {
   @Test
   void is_SuccessHandledForAsx() throws Exception {
 
-    File jsonFile = new ClassPathResource("alphavantage-asx.json").getFile();
+    File jsonFile = new ClassPathResource(alphaContracts + "/alphavantage-asx.json").getFile();
 
-    DataProviderUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketData mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getCurrent(asset);
+        .getPrices(asset);
 
     assertThat(mdResult)
         .isNotNull()

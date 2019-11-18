@@ -1,134 +1,137 @@
 ---
-name: ecb-fx
-request:
-  method: GET
-  url: "2019-10-20?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD"
-response:
-  status: 200
-  bodyFromFile: "ecb/fx-rates.json"
----
 name: currencies
 request:
   method: GET
-  url: /api/currencies
+  url: /currencies
 response:
   status: 200
   bodyFromFile: "currency/currencies.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
-
+    Content-Type: application/json
 ---
-name: nzd-usd
+name: nzdUsd
 request:
   method: POST
-  url: /api/fx
-  bodyFromFile: "fx/nzdusd-request.json"
+  url: /fx
+  bodyFromFile: "fx/20190101Request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
-  bodyFromFile: "fx/nzdusd-response.json"
+  bodyFromFile: "fx/20190101Response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
-name: gbpusd-gbpnzd
+name: gbpnzd-gbpusd
 request:
   method: POST
-  url: /api/fx
-  bodyFromFile: "fx/gbpnzd-gbpusd-request.json"
+  url: /fx
+  bodyFromFile: "fx/20190727Request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
-  bodyFromFile: "fx/gbpusd-gbpusd-response.json"
+  bodyFromFile: "fx/20190727Response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
-name: usdeur-usdgbp-usdnzd
+name: usdEur-usdGbp-usdNzd
 request:
   method: POST
-  url: /api/fx
-  bodyFromFile: "fx/usdeur-usdgbp-usdnzd-request.json"
+  url: /fx
+  bodyFromFile: "fx/20191112Request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
-  bodyFromFile: "fx/usdeur-usdgbp-usdnzd-response.json"
+  bodyFromFile: "fx/20191112Response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
-name: usdnzd-gbpnzd
+name: usdNzd-gbpNzd-20190726
 request:
   method: POST
-  url: /api/fx
-  bodyFromFile: "fx/usdnzd-gbpnzd-request.json"
+  url: /fx
+  bodyFromFile: "fx/20190726Request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
-  bodyFromFile: "fx/usdnzd-gbpnzd-response.json"
+  bodyFromFile: "fx/20190726Response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
-name: usdnzd-usdgbp
+name: usdNzd-usdGbp-20191018
 request:
   method: POST
-  url: /api/fx
-  bodyFromFile: "fx/usdnzd-usdgbp-request.json"
+  url: /fx
+  bodyFromFile: "fx/20191018Request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
-  bodyFromFile: "fx/usdnzd-usdgbp-response.json"
+  bodyFromFile: "fx/20191018Response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
-
+    Content-Type: application/json
+---
+name: nzdUsd-20191018
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "fx/20191018Request2.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "fx/20191018Response2.json"
+  headers:
+    Content-Type: application/json
 ---
 name: early-fx
 request:
   method: POST
-  url: /api/fx
+  url: /fx
   bodyFromFile: "fx/early-request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
   bodyFromFile: "fx/early-response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
-name: price-abc
+name: ABC-price
 request:
   method: POST
-  url: /api/prices
+  url: /prices
   bodyFromFile: "prices/abc-request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
   bodyFromFile: "prices/abc-response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
-name: price-ebay
+name: EBAY-price
 request:
   method: POST
-  url: /api/prices
-  bodyFromFile: "prices/ebay-request.json"
+  url: /prices
+  bodyFromFile: "prices/EBAY-request.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 response:
   status: 200
-  bodyFromFile: "prices/ebay-response.json"
+  bodyFromFile: "prices/EBAY-response.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json
 ---
 name: markets
 request:
   method: GET
-  url: /api/markets
+  url: /markets
 response:
   status: 200
   bodyFromFile: "markets/markets.json"
   headers:
-    Content-Type: application/json;charset=UTF-8
+    Content-Type: application/json

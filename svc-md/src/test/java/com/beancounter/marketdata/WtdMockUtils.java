@@ -1,69 +1,67 @@
 package com.beancounter.marketdata;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
+import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.providers.wtd.WtdResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.TimeZone;
+import java.util.Map;
 import org.springframework.http.MediaType;
 
 /**
- * Convenience functions to reduce the LOC in a unit test.
- *
- * @author mikeh
- * @since 2019-03-09
+ * WorldTradingData mocking support.
  */
-public class DataProviderUtils {
+public class WtdMockUtils {
+  public static final String WTD_PATH = "/contracts/wtd";
+  private static final ObjectMapper mapper = new ObjectMapper();
 
-  private static ObjectMapper mapper = new ObjectMapper();
+  private static ZonedDateTime zonedDateTime = new Date()
+      .toInstant()
+      .atZone(ZoneId.systemDefault());
 
-  /**
-   * Convenience function to stub a response for ABC symbol.
-   *
-   * @param wireMockRule wiremock
-   * @param jsonFile     response file to return
-   * @throws IOException anything
-   */
-  public static void mockAlphaResponse(WireMockRule wireMockRule, File jsonFile)
-      throws IOException {
-    mockGetResponse(wireMockRule,
-        "/query?function=TIME_SERIES_DAILY&symbol=ABC.AX&apikey=demo", jsonFile);
+  public static final String priceDate = DateUtils.getDate(
+      DateUtils.convert(
+          DateUtils.getLastMarketDate(zonedDateTime, ZoneId.systemDefault())));
+
+  public static WtdResponse get(String date, Map<String, MarketData> prices) {
+    WtdResponse response = new WtdResponse();
+    response.setDate(DateUtils.getDate(date));
+    response.setData(prices);
+    return response;
   }
 
-  /**
-   * Convenience function to stub a GET/200 response.
-   *
-   * @param wireMockRule wiremock
-   * @param url          url to stub
-   * @param jsonFile     response file to return
-   * @throws IOException anything
-   */
-  public static void mockGetResponse(WireMockRule wireMockRule, String url, File jsonFile)
-      throws IOException {
-    wireMockRule
-        .stubFor(
-            get(urlEqualTo(url))
-                .willReturn(aResponse()
-                    .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withBody(mapper.writeValueAsString(mapper.readValue(jsonFile, HashMap.class)))
-                    .withStatus(200)));
+  public static MarketData get(String date, Asset asset, String open,
+                               String close, String high, String low, String volume) {
+    return MarketData.builder()
+        .open(new BigDecimal(open))
+        .close(new BigDecimal(close))
+        .high(new BigDecimal(high))
+        .low(new BigDecimal(low))
+        .volume(new BigDecimal(volume))
+        .date(date)
+        .asset(asset).build();
   }
 
-  public static void mockWtdResponse(
-      WireMockRule wtdMock, Collection<Asset> assets, String asAt, File jsonFile)
-      throws IOException {
-    mockWtdResponse(assets, wtdMock, asAt, true, jsonFile);
+  public static WtdResponse get(String message) {
+    WtdResponse wtdResponse = new WtdResponse();
+    wtdResponse.setMessage(message);
+    return wtdResponse;
   }
 
   /**
@@ -83,10 +81,17 @@ public class DataProviderUtils {
     StringBuilder assetArg = null;
 
     for (Asset asset : assets) {
+      String suffix = "";
+      if (!(asset.getMarket().getCode().equalsIgnoreCase("NASDAQ"))) {
+        // Horrible hack to support WTD contract mocking ASX/AX
+        suffix = "." + (asset.getMarket().getCode().equalsIgnoreCase("ASX")
+            ? "AX" : asset.getMarket().getCode());
+      }
+
       if (assetArg != null) {
-        assetArg.append(",").append(asset.getCode());
+        assetArg.append(",").append(asset.getCode()).append(suffix);
       } else {
-        assetArg = new StringBuilder(asset.getCode());
+        assetArg = new StringBuilder(asset.getCode()).append(suffix);
       }
     }
 
@@ -97,7 +102,7 @@ public class DataProviderUtils {
     }
     wtdMock
         .stubFor(
-            get(urlEqualTo(
+            WireMock.get(urlEqualTo(
                 "/api/v1/history_multi_single_day?symbol=" + assetArg
                     + "&date=" + asAt
                     + "&api_token=demo"))
@@ -120,18 +125,4 @@ public class DataProviderUtils {
 
     return mapper.readValue(jsonFile, mapType);
   }
-
-  /**
-   * Nasdaq.
-   *
-   * @return Proper representation of Nasdaq
-   */
-  public static Market nasdaq() {
-    return Market.builder()
-        .code("NASDAQ")
-        .timezone(TimeZone.getTimeZone("US/Eastern"))
-        .build();
-  }
-
-
 }

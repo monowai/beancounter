@@ -1,7 +1,6 @@
 package com.beancounter.common.model;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 public class MarketData {
   private Asset asset;
-  private Date date;
+  private String date;
   private BigDecimal open;
   private BigDecimal close;
   private BigDecimal low;

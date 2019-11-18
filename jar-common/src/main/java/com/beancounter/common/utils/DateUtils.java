@@ -1,6 +1,7 @@
 package com.beancounter.common.utils;
 
 import com.beancounter.common.exception.BusinessException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -102,6 +103,19 @@ public class DateUtils {
     try {
       getDate(inDate);
     } catch (RuntimeException e) {
+      throw new BusinessException(String.format("Unable to parse the date %s", inDate));
+    }
+  }
+
+  public static boolean isToday(String inDate) {
+    if (inDate == null) {
+      return true; // Null date is BC is "today"
+    }
+    try {
+      Date today = simpleDateFormat.parse(today());
+      Date compareWith = simpleDateFormat.parse(inDate);
+      return today.compareTo(compareWith) == 0;
+    } catch (ParseException e) {
       throw new BusinessException(String.format("Unable to parse the date %s", inDate));
     }
   }

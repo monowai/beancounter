@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
@@ -36,29 +37,30 @@ public class MarketDataService {
    * @param asset to query
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
-  public PriceResponse getCurrent(Asset asset) {
+  public PriceResponse getPrice(Asset asset) {
     hydrateAsset(asset);
     List<Asset> assets = Collections.singletonList(asset);
-    return getCurrent(assets);
+    PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
+    return getPrice(priceRequest);
   }
 
   /**
    * MarketData for a Collection of assets.
    *
-   * @param assets to query
+   * @param priceRequest to query
    * @return results
    */
-  public PriceResponse getCurrent(Collection<Asset> assets) {
+  public PriceResponse getPrice(PriceRequest priceRequest) {
 
-    for (Asset asset : assets) {
+    for (Asset asset : priceRequest.getAssets()) {
       hydrateAsset(asset);
     }
-    Map<String, Collection<Asset>> factories = splitProviders(assets);
+    Map<String, Collection<Asset>> factories = splitProviders(priceRequest.getAssets());
     Collection<MarketData> results = new ArrayList<>();
 
     for (String dpId : factories.keySet()) {
       results.addAll(mdFactory.getMarketDataProvider(dpId)
-          .getCurrent(factories.get(dpId)));
+          .getPrices(priceRequest));
     }
     return PriceResponse.builder().data(results).build();
   }

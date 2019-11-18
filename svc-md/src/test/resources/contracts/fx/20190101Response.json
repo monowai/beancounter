@@ -1,0 +1,22 @@
+{
+  "data": {
+    "rates": {
+      "NZD:USD": {
+        "from": {
+          "id": "NZ",
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "to": {
+          "id": "US",
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "rate": "10.0",
+        "date": "2019-01-01"
+      }
+    }
+  }
+}

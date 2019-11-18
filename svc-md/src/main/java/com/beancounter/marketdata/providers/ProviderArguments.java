@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.utils.AssetUtils;
 import java.util.Collection;
@@ -36,16 +37,16 @@ public class ProviderArguments {
   /**
    * Helper to build an instance of this class based on the supplied arguments.
    *
-   * @param assets             Assets being requested
+   * @param priceRequest       Args
    * @param dataProviderConfig Who our provider is
    * @return This class with various keys cross indexed for convenience
    */
-  public static ProviderArguments getInstance(Collection<Asset> assets,
+  public static ProviderArguments getInstance(PriceRequest priceRequest,
                                               DataProviderConfig dataProviderConfig) {
     ProviderArguments providerArguments = new ProviderArguments(dataProviderConfig);
 
     // Data providers can have market dependent price dates. Batch first by market, then by size
-    Map<String, Collection<Asset>> marketAssets = AssetUtils.split(assets);
+    Map<String, Collection<Asset>> marketAssets = AssetUtils.split(priceRequest.getAssets());
     for (String market : marketAssets.keySet()) {
       for (Asset asset : marketAssets.get(market)) {
 
@@ -55,8 +56,8 @@ public class ProviderArguments {
         if (marketCode != null && !marketCode.isEmpty()) {
           assetCode = assetCode + "." + marketCode;
         }
-        providerArguments.addAsset(asset, assetCode, dataProviderConfig
-            .getMarketDate(asset.getMarket()));
+        providerArguments.addAsset(asset, assetCode,
+            (dataProviderConfig.getMarketDate(asset.getMarket(), priceRequest.getDate())));
 
       }
       providerArguments.bumpBatch();

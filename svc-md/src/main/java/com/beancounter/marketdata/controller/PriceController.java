@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.controller;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.service.MarketDataService;
-import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,13 +43,13 @@ public class PriceController {
         .code(assetId)
         .market(Market.builder().code(marketId).build())
         .build();
-    return marketDataService.getCurrent(testAsset);
+    return marketDataService.getPrice(testAsset);
 
   }
 
   @PostMapping
-  PriceResponse getPrices(@RequestBody Collection<Asset> assets) {
-    return marketDataService.getCurrent(assets);
+  PriceResponse getPrices(@RequestBody PriceRequest priceRequest) {
+    return marketDataService.getPrice(priceRequest);
   }
 
 }

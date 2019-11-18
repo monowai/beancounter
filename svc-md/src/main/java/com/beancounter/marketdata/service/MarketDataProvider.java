@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -12,9 +13,9 @@ import java.util.Collection;
  * @since 2019-01-27
  */
 public interface MarketDataProvider {
-  MarketData getCurrent(Asset asset);
+  MarketData getPrices(Asset asset);
 
-  Collection<MarketData> getCurrent(Collection<Asset> assets);
+  Collection<MarketData> getPrices(PriceRequest priceRequest);
 
   /**
    * Convenience function to return the ID.

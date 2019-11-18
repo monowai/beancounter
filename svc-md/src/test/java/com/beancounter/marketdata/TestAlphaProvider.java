@@ -22,13 +22,15 @@ class TestAlphaProvider {
   @Test
   void is_NullAsset() throws Exception {
     ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
-    File jsonFile = new ClassPathResource("alphavantage-empty-response.json").getFile();
+    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
+        + "/alphavantage-empty-response.json").getFile();
     assertThat(mapper.readValue(jsonFile, MarketData.class)).isNull();
   }
 
   @Test
   void is_ResponseWithMarketCodeSerialized() throws Exception {
-    File jsonFile = new ClassPathResource("alphavantage-asx.json").getFile();
+    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
+        + "/alphavantage-asx.json").getFile();
     MarketData marketData = validateResponse(jsonFile);
     assertThat(
         marketData.getAsset())
@@ -39,7 +41,8 @@ class TestAlphaProvider {
 
   @Test
   void is_ResponseWithoutMarketCodeSetToUs() throws Exception {
-    File jsonFile = new ClassPathResource("alphavantage-nasdaq.json").getFile();
+    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
+        + "/alphavantage-nasdaq.json").getFile();
     MarketData marketData = validateResponse(jsonFile);
     assertThat(
         marketData.getAsset())

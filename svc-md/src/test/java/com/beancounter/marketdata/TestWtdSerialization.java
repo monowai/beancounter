@@ -20,14 +20,14 @@ import org.springframework.core.io.ClassPathResource;
  * @author mikeh
  * @since 2019-03-03
  */
-class TestWtdProvider {
+class TestWtdSerialization {
   private ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void is_JsonGoodResponse() throws Exception {
 
 
-    File jsonFile = new ClassPathResource("wtdMultiAsset.json").getFile();
+    File jsonFile = new ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").getFile();
     WtdResponse response = mapper.readValue(jsonFile, WtdResponse.class);
 
     ZonedDateTime compareTo = ZonedDateTime.of(
@@ -43,7 +43,7 @@ class TestWtdProvider {
   @Test
   void is_JsonResponseWithMessage() throws Exception {
 
-    File jsonFile = new ClassPathResource("wtdMessage.json").getFile();
+    File jsonFile = new ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").getFile();
     WtdResponse response = mapper.readValue(jsonFile, WtdResponse.class);
 
     assertThat(response)
@@ -55,12 +55,14 @@ class TestWtdProvider {
   void is_NzxValuationDateCorrect() {
     WtdConfig wtdConfig = new WtdConfig();
 
+    // Overriding today, so should just return today
     assertThat(wtdConfig.getMarketDate(
         Market.builder().code("NZX").build(), "2019-11-15"))
-        .isEqualTo("2019-11-13");
+        .isEqualTo("2019-11-15");
 
+    // If it's Saturday, count back to Friday
     assertThat(wtdConfig.getMarketDate(
-        Market.builder().code("NZX").build(), "2019-11-18"))
+        Market.builder().code("NZX").build(), "2019-11-17"))
         .isEqualTo("2019-11-15");
 
   }

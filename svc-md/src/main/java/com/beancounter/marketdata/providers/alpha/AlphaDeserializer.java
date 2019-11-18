@@ -81,7 +81,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
       BigDecimal close = new BigDecimal(data.get("4. close").toString());
       marketData = MarketData.builder()
           .asset(asset)
-          .date(priceDate)
+          .date(DateUtils.getDate(priceDate))
           .open(open)
           .close(close)
           .high(high)

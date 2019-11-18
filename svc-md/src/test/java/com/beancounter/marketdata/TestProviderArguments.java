@@ -2,6 +2,7 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
@@ -77,9 +78,10 @@ class TestProviderArguments {
     assets.add(AssetUtils.getAsset("ABC", "AAA"));
     assets.add(AssetUtils.getAsset("ABC", "BBB"));
     assets.add(AssetUtils.getAsset("ABC", "CCC"));
+    PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
     TestConfig testConfig = new TestConfig(10);
     ProviderArguments providerArguments =
-        ProviderArguments.getInstance(assets, testConfig);
+        ProviderArguments.getInstance(priceRequest, testConfig);
     Map<Integer, String> batch = providerArguments.getBatch();
 
     assertThat(batch)
@@ -105,13 +107,10 @@ class TestProviderArguments {
       return null;
     }
 
-    private String getDate() {
-      return null;
+    @Override
+    public String getMarketDate(Market market, String date) {
+      return date;
     }
 
-    @Override
-    public String getMarketDate(Market market) {
-      return getDate();
-    }
   }
 }

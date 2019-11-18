@@ -25,8 +25,8 @@ dependencies() {
     )
 
     testImplementation(
-            "com.fasterxml.jackson.core:jackson-databind:2.9.8",
-            "org.assertj:assertj-core:3.11.1",
+            "com.fasterxml.jackson.core:jackson-databind:2.10.1",
+            "org.assertj:assertj-core:3.13.2",
             "io.github.openfeign:feign-core:10.4.0",
             "org.springframework:spring-web:5.1.9.RELEASE",
             "org.junit.jupiter:junit-jupiter:${junitVersion}",

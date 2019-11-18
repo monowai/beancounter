@@ -1,6 +1,11 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.DataProviderUtils.getResponseMap;
+import static com.beancounter.marketdata.WtdMockUtils.getResponseMap;
+import static com.beancounter.marketdata.WtdMockUtils.priceDate;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.aapl;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.amp;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.msft;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.msftInvalid;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -9,23 +14,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.DataProviderUtils;
-import com.beancounter.marketdata.providers.wtd.WtdConfig;
+import com.beancounter.marketdata.WtdMockUtils;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.io.File;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,8 +51,6 @@ class TestWorldTradingDataApi {
   @Autowired
   private WtdService wtdService;
 
-  @Autowired
-  private WtdConfig wtdConfig;
 
   @Autowired
   private void mockServices() {
@@ -65,13 +62,11 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  void is_asxMarketConvertedToAx() throws Exception {
-    Asset amp = Asset.builder().code("AMP")
-        .market(Market.builder().code("ASX").build())
-        .build();
+  void is_AsxMarketConvertedToAx() throws Exception {
 
-    File jsonFile = new ClassPathResource("/wtdAsxResponse.json").getFile();
-    HashMap<String, Object> response = getResponseMap(jsonFile);
+    HashMap<String, Object> response = getResponseMap(
+        new ClassPathResource(WtdMockUtils.WTD_PATH + "/AMP-ASX.json").getFile());
+
     Collection<Asset> assets = new ArrayList<>();
     assets.add(amp);
 
@@ -86,7 +81,10 @@ class TestWorldTradingDataApi {
                     .withBody(new ObjectMapper().writeValueAsString(response))
                     .withStatus(200)));
 
-    Collection<MarketData> mdResult = wtdService.getCurrent(assets);
+    Collection<MarketData> mdResult = wtdService.getPrices(PriceRequest.builder()
+        .date("2019-11-15")
+        .assets(assets).build()
+    );
 
     assertThat(mdResult).isNotNull()
         .hasSize(1);
@@ -94,45 +92,40 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  void marketDataReturnsPricesWithMarketDateWhenRequestDateIsLater() throws Exception {
-
-    Asset aapl =
-        Asset.builder().code("AAPL").market(DataProviderUtils.nasdaq()).build();
-    Asset msft =
-        Asset.builder().code("MSFT").market(DataProviderUtils.nasdaq()).build();
+  void is_MarketDataDateOverridingRequestDate() throws Exception {
 
     Collection<Asset> assets = new ArrayList<>();
     assets.add(aapl);
     assets.add(msft);
 
-    File jsonFile = new ClassPathResource("/wtdMultiAsset.json").getFile();
     // While the request date is relative to "Today", we are testing that we get back
     //  the date as set in the response from the provider.
 
-    DataProviderUtils.mockWtdResponse(assets, mockInternet,
+    WtdMockUtils.mockWtdResponse(assets, mockInternet,
         "2019-11-15", // Prices are at T-1. configured date set in -test.yaml
         false,
-        jsonFile);
+        new ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").getFile());
 
-    Collection<MarketData> mdResult = wtdService.getCurrent(assets);
+    Collection<MarketData> mdResult =
+        wtdService.getPrices(PriceRequest.builder()
+            .date("2019-11-15")
+            .assets(assets).build());
+
+
     assertThat(mdResult)
         .isNotNull()
         .hasSize(2);
 
-    // Compare with the date in the mocked response
-    ZonedDateTime compareTo = ZonedDateTime.of(
-        LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC"));
-
     for (MarketData marketData : mdResult) {
       if (marketData.getAsset().equals(msft)) {
         assertThat(marketData)
-            .hasFieldOrPropertyWithValue("date", Date.from(compareTo.toInstant()))
+            .hasFieldOrPropertyWithValue("date", "2019-03-08")
             .hasFieldOrPropertyWithValue("asset", msft)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("109.16"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("110.51"));
       } else if (marketData.getAsset().equals(aapl)) {
         assertThat(marketData)
-            .hasFieldOrPropertyWithValue("date", Date.from(compareTo.toInstant()))
+            .hasFieldOrPropertyWithValue("date", "2019-03-08")
             .hasFieldOrPropertyWithValue("asset", aapl)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("170.32"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("172.91"));
@@ -142,25 +135,19 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  void apiGetMarketDataWithAnInvalidAsset() throws Exception {
-
-    Asset aapl =
-        Asset.builder().code("AAPL").market(Market.builder().code("NASDAQ").build()).build();
-
-    Asset msft =
-        Asset.builder().code("MSFTx").market(Market.builder().code("NASDAQ").build()).build();
-
+  void is_WtdInvalidAssetPriceDefaulting() throws Exception {
     Collection<Asset> assets = new ArrayList<>();
 
     assets.add(aapl);
-    assets.add(msft);
+    assets.add(msftInvalid);
 
-    File jsonFile = new ClassPathResource("wtdWithInvalidAsset.json").getFile();
     // Prices are at T-1. configured date set in -test.yaml
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, "2019-11-15", jsonFile);
+    WtdMockUtils.mockWtdResponse(assets, mockInternet, priceDate, true,
+        new ClassPathResource(WtdMockUtils.WTD_PATH + "/APPL.json").getFile());
 
+    Collection<MarketData> mdResult = wtdService.getPrices(
+        PriceRequest.builder().assets(assets).build());
 
-    Collection<MarketData> mdResult = wtdService.getCurrent(assets);
     assertThat(mdResult)
         .isNotNull()
         .hasSize(2);
@@ -182,18 +169,18 @@ class TestWorldTradingDataApi {
   }
 
   @Test
-  void apiMessage() throws Exception {
-
-    File jsonFile = new ClassPathResource("wtdMessage.json").getFile();
-    Asset msft =
-        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
+  void is_NoDataReturned() throws Exception {
 
     Collection<Asset> assets = new ArrayList<>();
     assets.add(msft);
 
-    DataProviderUtils.mockWtdResponse(mockInternet, assets, "2019-11-15", jsonFile);
+    WtdMockUtils.mockWtdResponse(assets, mockInternet, "2019-11-15", true,
+        new ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").getFile());
 
-    assertThrows(BusinessException.class, () -> wtdService.getCurrent(assets));
+    assertThrows(BusinessException.class, () -> wtdService.getPrices(
+        PriceRequest.builder()
+            .date("2019-11-15")
+            .assets(assets).build()));
   }
 
 }

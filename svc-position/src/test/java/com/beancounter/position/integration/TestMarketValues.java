@@ -15,7 +15,6 @@ import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -59,6 +58,7 @@ class TestMarketValues {
   }
 
   private Positions getPositions(Asset asset, String asAt) {
+    // Changing the currency of the portfolio will mean having to regenerate contracts
     Portfolio portfolio = getPortfolio("TEST");
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
@@ -78,16 +78,15 @@ class TestMarketValues {
 
   @Test
   @Tag("slow")
-  @VisibleForTesting
   void is_MarketValuationCalculatedAsAt() {
-    Asset asset = AssetUtils.getAsset("ABC",
-        Market.builder().code("MOCK")
+    Asset asset = AssetUtils.getAsset("EBAY",
+        Market.builder().code("NASDAQ")
             .currency(getCurrency("USD"))
             .build()
     );
 
     // We need to have a Quantity in order to get the price, so create a position
-    Positions positions = getValuedPositions(asset, "2019-10-20");
+    Positions positions = getValuedPositions(asset, "2019-10-18");
 
     assertThat(positions.get(asset).getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
@@ -99,7 +98,6 @@ class TestMarketValues {
 
   @Test
   @Tag("slow")
-  @VisibleForTesting
   void is_ZeroHoldingsSafe() {
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
@@ -110,12 +108,11 @@ class TestMarketValues {
 
   @Test
   @Tag("slow")
-  @VisibleForTesting
   void is_AssetAndCurrencyHydratedFromValuationRequest() {
 
     Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
 
-    Positions positions = getValuedPositions(asset, "2019-10-20");
+    Positions positions = getValuedPositions(asset, "2019-10-18");
     Position position = positions.get(asset);
     assertThat(position)
         .hasFieldOrProperty("asset");

@@ -48,20 +48,22 @@ public class WtdConfig implements DataProviderConfig {
     return (date == null ? DateUtils.today() : date);
   }
 
-  @Override
-  // Price dates are usually T-1.  Still need to implement this as a configuration by market option.
-  public String getMarketDate(Market market) {
-    return getMarketDate(market, getDate());
-  }
-
   public String getMarketDate(Market market, String startDate) {
-    int dayCount = 1;
-    if (market.getCode().equalsIgnoreCase("NZX")) {
-      dayCount = 2;
+    int daysToSubtract = 0;
+    if (DateUtils.isToday(startDate)) {
+      // If Current, price date is T-daysToSubtract
+      daysToSubtract = 1;
+      if (market.getCode().equalsIgnoreCase("NZX")) {
+        daysToSubtract = 2;
+      }
     }
+    if (startDate == null) {
+      startDate = DateUtils.today();
+    }
+    // If startDate is not "TODAY", assume nothing, just discount the weekends
     LocalDate result = DateUtils.getLastMarketDate(
         DateUtils.getDate(startDate).toInstant().atZone(ZoneId.systemDefault()),
-        timeZone.toZoneId(), dayCount);
+        timeZone.toZoneId(), daysToSubtract);
 
     return result.toString();
   }

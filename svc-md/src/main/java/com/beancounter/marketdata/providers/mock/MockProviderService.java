@@ -1,9 +1,11 @@
 package com.beancounter.marketdata.providers.mock;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,7 +28,7 @@ import org.springframework.stereotype.Service;
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
 
-  public MarketData getCurrent(Asset asset) {
+  public MarketData getPrices(Asset asset) {
     if (asset.getCode().equalsIgnoreCase("123")) {
       throw new BusinessException(
           String.format("Invalid asset code [%s]", asset.getCode()));
@@ -40,10 +42,10 @@ public class MockProviderService implements MarketDataProvider {
   }
 
   @Override
-  public Collection<MarketData> getCurrent(Collection<Asset> assets) {
-    Collection<MarketData> results = new ArrayList<>(assets.size());
-    for (Asset asset : assets) {
-      results.add(getCurrent(asset));
+  public Collection<MarketData> getPrices(PriceRequest priceRequest) {
+    Collection<MarketData> results = new ArrayList<>(priceRequest.getAssets().size());
+    for (Asset asset : priceRequest.getAssets()) {
+      results.add(getPrices(asset));
     }
     return results;
   }
@@ -59,10 +61,10 @@ public class MockProviderService implements MarketDataProvider {
 
   }
 
-  public Date getPriceDate() {
-    return Date.from(
+  public String getPriceDate() {
+    return DateUtils.getDate(Date.from(
         ZonedDateTime.of(LocalDate.parse("2019-11-21").atStartOfDay(), ZoneId.of("UTC"))
-            .toInstant());
+            .toInstant()));
   }
 
 

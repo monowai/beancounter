@@ -43,7 +43,7 @@ class FxContracts {
     currencyPairs.add(CurrencyPair.builder().from("USD").to("GBP").build());
     currencyPairs.add(CurrencyPair.builder().from("USD").to("NZD").build());
 
-    String testDate = "2019-07-28";
+    String testDate = "2019-11-12";
     FxResponse fxResponse = fxRateService.getRates(FxRequest.builder()
         .rateDate(testDate)
         .pairs(currencyPairs)

@@ -41,7 +41,7 @@ jobs:
 
   build-common:
     docker:
-      - image: circleci/openjdk:11
+      - image: codeaches/openjdk:12-jdk
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
 
@@ -55,7 +55,6 @@ jobs:
       - run: 'rm -rf ~/.m2/repository/beancounter'
       - run: 'pwd'
       - run: './gradlew jar-common:clean jar-common:build'
-      - run: './gradlew svc-md:publishStubsPublicationToMavenLocal'
 
       # Save the environment for this build run with it's dependencies in-place
       - save_cache:
@@ -76,7 +75,7 @@ jobs:
 
   build-md:
     docker:
-      - image: circleci/openjdk:11
+      - image: codeaches/openjdk:12-jdk
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
@@ -86,6 +85,7 @@ jobs:
 
       - run: 'pwd'
       - run: './gradlew svc-md:build'
+      - run: './gradlew svc-md:publishToMavenLocal'
 
       - save_cache:
           paths:
@@ -104,7 +104,7 @@ jobs:
 
   build-ingest:
     docker:
-      - image: circleci/openjdk:11
+      - image: codeaches/openjdk:12-jdk
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
@@ -125,7 +125,7 @@ jobs:
 
   build-position:
     docker:
-      - image: circleci/openjdk:11
+      - image: codeaches/openjdk:12-jdk
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
 

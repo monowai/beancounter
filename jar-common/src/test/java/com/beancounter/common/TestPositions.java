@@ -3,7 +3,7 @@ package com.beancounter.common;
 import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;

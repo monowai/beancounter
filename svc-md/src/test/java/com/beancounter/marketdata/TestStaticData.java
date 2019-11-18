@@ -1,7 +1,7 @@
 package com.beancounter.marketdata;
 
 import static java.time.ZoneOffset.UTC;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
@@ -11,7 +11,6 @@ import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.service.CurrencyService;
 import com.beancounter.marketdata.service.MarketService;
 import com.google.common.annotations.VisibleForTesting;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -92,8 +91,7 @@ class TestStaticData {
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)
-        .hasFieldOrPropertyWithValue("dayOfWeek", DayOfWeek.FRIDAY)
-        .hasFieldOrPropertyWithValue("dayOfMonth", 12)
+        .isEqualTo(LocalDate.of(2019, 4, 12))
     ;
 
     resolvedDate = DateUtils.getLastMarketDate(sunday
@@ -101,8 +99,7 @@ class TestStaticData {
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)
-        .hasFieldOrPropertyWithValue("dayOfWeek", DayOfWeek.FRIDAY)
-        .hasFieldOrPropertyWithValue("dayOfMonth", 12)
+        .isEqualTo(LocalDate.of(2019, 4, 12))
     ;
 
   }

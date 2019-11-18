@@ -3,7 +3,6 @@
     {
       "asset": {
         "code": "EBAY",
-        "name": "eBay Inc",
         "market": {
           "code": "NASDAQ",
           "currency": {
@@ -15,12 +14,12 @@
           "timezone": "US/Eastern"
         }
       },
-      "date": "2019-06-06T00:00:00.000+0000",
-      "open": 36.55,
-      "close": 36.81,
-      "low": 36.45,
-      "high": 36.82,
-      "volume": 5962060
+      "date": "2019-10-18",
+      "open": 39.21,
+      "close": 100.00,
+      "low": 38.74,
+      "high": 39.35,
+      "volume": 6274307
     }
   ]
 }

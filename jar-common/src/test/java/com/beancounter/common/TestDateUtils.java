@@ -15,6 +15,12 @@ import org.junit.jupiter.api.Test;
 class TestDateUtils {
 
   @Test
+  void is_Today() {
+    assertThat(DateUtils.isToday(DateUtils.today())).isTrue();
+    assertThat(DateUtils.isToday(null)).isTrue();
+  }
+
+  @Test
   void is_TodayAnIso8601String() {
     Calendar calendar = new Calendar.Builder().setInstant(new Date()).build();
     String now = DateUtils.today();

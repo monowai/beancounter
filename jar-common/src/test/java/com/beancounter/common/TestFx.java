@@ -33,7 +33,7 @@ class TestFx {
     String json = mapper.writeValueAsString(fxRequest);
     FxRequest fromJson = mapper.readValue(json, FxRequest.class);
     assertThat(fromJson)
-        .isEqualToComparingFieldByFieldRecursively(fxRequest);
+        .usingRecursiveComparison().isEqualTo(fxRequest);
 
     assertThat(fromJson.getPairs()).hasSize(1);
 

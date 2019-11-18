@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/currencies")
+@CrossOrigin
 public class CurrencyController {
 
   private StaticConfig staticConfig;
@@ -26,7 +27,6 @@ public class CurrencyController {
   }
 
   @GetMapping
-  @CrossOrigin
   CurrencyResponse getCurrencies() {
     return CurrencyResponse.builder()
         .data(staticConfig.getCurrencyCode())

@@ -1,22 +1,27 @@
-apply from: '../buildtools/javaCommon.gradle'
-
 buildscript {
     ext {
-        springBootVersion = "2.1.8.RELEASE"
+        contractsDir = file("mappings")
+        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+        springBootVersion = "2.2.1.RELEASE"
+        springCloudVersion = "Hoxton.SR2"
+        verifierVersion = "2.2.0.RC2"
     }
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-    }
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
+plugins {
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+//    id "org.springframework.cloud.contract" version "${verifierVersion}"
+    id "org.springframework.boot" version "${springBootVersion}"
+    id "maven-publish"
+}
+apply from: "../buildtools/javaCommon.gradle"
+repositories {
+    mavenLocal()
+    maven { url "https://repo.spring.io/milestone" }
+    mavenCentral()
+    gradlePluginPortal()
+}
 
 group = "com.beancounter"
 version = '0.0.1'
@@ -39,10 +44,11 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
     testCompile "org.projectlombok:lombok"
+    testImplementation("io.rest-assured:rest-assured") {
+        exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
 
     testImplementation(
             "org.assertj:assertj-core",
-            "io.rest-assured:rest-assured",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
             "com.fasterxml.jackson.core:jackson-databind",

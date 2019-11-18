@@ -4,11 +4,10 @@ import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import java.util.Collection;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,10 +26,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface BcGateway {
 
   @GetMapping(value = "/prices/{assetId}")
-  MarketData getMarketData(@PathVariable("assetId") String assetId);
+  MarketData getPrices(@PathVariable("assetId") String assetId);
 
   @GetMapping(value = "/prices")
-  PriceResponse getMarketData(Collection<Asset> assetId);
+  PriceResponse getPrices(PriceRequest priceRequest);
 
   @PostMapping(value = "/fx")
   FxResponse getRates(FxRequest fxRequest);

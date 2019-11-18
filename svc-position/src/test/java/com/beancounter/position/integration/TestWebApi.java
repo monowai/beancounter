@@ -78,10 +78,10 @@ class TestWebApi {
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
 
     String json = mockMvc.perform(post("/")
-        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
         .content(mapper.writeValueAsString(results))
     ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
     PositionResponse positionResponse = new ObjectMapper().readValue(json, PositionResponse.class);
@@ -98,15 +98,15 @@ class TestWebApi {
   void is_MvcValuingPositions() throws Exception {
     Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
     Positions positions = new Positions(getPortfolio("TEST"));
-    positions.setAsAt("2019-10-20");
+    positions.setAsAt("2019-10-18");
     getPositions(asset, positions);
     PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
 
     String json = mockMvc.perform(post("/value")
-        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
         .content(mapper.writeValueAsString(positionResponse))
     ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
     PositionResponse fromJson = new ObjectMapper()

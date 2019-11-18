@@ -31,13 +31,13 @@ class FxRateTests {
   @Test
   @VisibleForTesting
   void is_FxRateResponseSerializing() throws Exception {
-    File jsonFile = new ClassPathResource("ecb-fx-rates.json").getFile();
+    File jsonFile = new ClassPathResource("contracts/ecb/ecbEarly.json").getFile();
     EcbRates ecbRates = new ObjectMapper().readValue(jsonFile, EcbRates.class);
     assertThat(ecbRates)
         .isNotNull()
         .hasNoNullFieldsOrProperties()
     ;
-    assertThat(ecbRates.getRates()).hasSize(5);
+    assertThat(ecbRates.getRates()).hasSize(6);
   }
 
   @Test

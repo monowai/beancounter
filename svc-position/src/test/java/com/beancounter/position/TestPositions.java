@@ -2,7 +2,7 @@ package com.beancounter.position;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -13,7 +13,6 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
@@ -21,8 +20,7 @@ import org.junit.jupiter.api.Test;
 class TestPositions {
 
   @Test
-  @VisibleForTesting
-  void accumulateCashDividend() {
+  void is_CashDividendAccumulated() {
 
     Asset asset = AssetUtils.getAsset("MO", Market.builder()
         .code("ASX")

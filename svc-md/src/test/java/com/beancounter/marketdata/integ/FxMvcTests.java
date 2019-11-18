@@ -13,7 +13,7 @@ import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.DataProviderUtils;
+import com.beancounter.marketdata.AlphaMockUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbDate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -52,7 +52,6 @@ class FxMvcTests {
   @VisibleForTesting
   void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
-
     if (mockInternet == null) {
       mockInternet = new WireMockRule(options().port(7777));
       mockInternet.start();
@@ -64,8 +63,8 @@ class FxMvcTests {
   @Test
   @VisibleForTesting
   void is_FxRateResultsObjectReturned() throws Exception {
-    File rateResponse = new ClassPathResource("contracts/ecb/fx-rates.json").getFile();
-    DataProviderUtils.mockGetResponse(
+    File rateResponse = new ClassPathResource("contracts/ecb/fx-current-rates.json").getFile();
+    AlphaMockUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies
         "/2019-08-27?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
@@ -84,7 +83,7 @@ class FxMvcTests {
             .content(objectMapper.writeValueAsString(fxRequest)
             )
     ).andExpect(status().isOk())
-        .andExpect(content().contentType("application/json;charset=UTF-8"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
     FxResponse fxResponse = objectMapper
@@ -106,9 +105,9 @@ class FxMvcTests {
   @VisibleForTesting
   void is_NullDateReturningCurrent() throws Exception {
 
-    File rateResponse = new ClassPathResource("contracts/ecb/fx-rates.json").getFile();
+    File rateResponse = new ClassPathResource("contracts/ecb/fx-current-rates.json").getFile();
     String today = DateUtils.today();
-    DataProviderUtils.mockGetResponse(
+    AlphaMockUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies
         "/" + today + "?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
@@ -126,7 +125,7 @@ class FxMvcTests {
             .content(objectMapper.writeValueAsString(fxRequest)
             )
     ).andExpect(status().isOk())
-        .andExpect(content().contentType("application/json;charset=UTF-8"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
     FxResponse fxResponse = objectMapper

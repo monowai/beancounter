@@ -19,5 +19,5 @@ public interface DataProviderConfig {
    */
   String translateMarketCode(Market market);
 
-  String getMarketDate(Market market);
+  String getMarketDate(Market market, String date);
 }

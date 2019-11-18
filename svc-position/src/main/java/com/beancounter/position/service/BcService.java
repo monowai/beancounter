@@ -3,11 +3,10 @@ package com.beancounter.position.service;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.position.integration.BcGateway;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -30,8 +29,8 @@ public class BcService {
 
 
   @Async
-  public CompletableFuture<PriceResponse> getMarketData(Collection<Asset> assets) {
-    return CompletableFuture.completedFuture(bcGateway.getMarketData(assets));
+  public CompletableFuture<PriceResponse> getMarketData(PriceRequest priceRequest) {
+    return CompletableFuture.completedFuture(bcGateway.getPrices(priceRequest));
   }
 
   @Async

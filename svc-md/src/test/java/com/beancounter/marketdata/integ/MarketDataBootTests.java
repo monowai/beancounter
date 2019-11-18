@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -69,9 +70,9 @@ class MarketDataBootTests {
   @Test
   void is_MarketsReturned() throws Exception {
     String json = mockMvc.perform(get("/markets")
-        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
     ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
     MarketResponse marketResponse = objectMapper.readValue(json, MarketResponse.class);
     assertThat(marketResponse.getData()).isNotNull().isNotEmpty();
@@ -84,9 +85,9 @@ class MarketDataBootTests {
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
         dummy.getMarket().getCode(),
         dummy.getCode())
-        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
     ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
     PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
@@ -110,12 +111,14 @@ class MarketDataBootTests {
 
     assets.add(asset);
 
+    PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
+
     String json = mockMvc.perform(post("/prices",
         dummy.getMarket().getCode(), dummy.getCode())
-        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-        .content(objectMapper.writeValueAsString(assets))
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .content(objectMapper.writeValueAsString(priceRequest))
     ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
     PriceResponse mdResponse = objectMapper.readValue(json, PriceResponse.class);
@@ -127,9 +130,9 @@ class MarketDataBootTests {
   void is_ValuationRequestHydratingAssets() throws Exception {
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
         dummy.getMarket().getCode(), dummy.getCode())
-        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
     ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
     PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);

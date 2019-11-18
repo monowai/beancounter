@@ -5,6 +5,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
@@ -82,9 +83,11 @@ public class ValuationService implements Valuation {
         .base(positions.getPortfolio().getBase())
         .portfolio(positions.getPortfolio().getCurrency())
         .build();
+
     // Set market data into the positions
     ValuationData valuationData = getValuationData(positions, assets);
     Map<CurrencyPair, FxRate> rates = valuationData.getFxResponse().getData().getRates();
+
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
@@ -96,11 +99,17 @@ public class ValuationService implements Valuation {
   }
 
   private ValuationData getValuationData(Positions positions, Collection<Asset> assets) {
-    CompletableFuture<PriceResponse> futurePriceResponse = bcService.getMarketData(assets);
+    CompletableFuture<PriceResponse> futurePriceResponse =
+        bcService.getMarketData(
+            PriceRequest.builder()
+                .date(positions.getAsAt())
+                .assets(assets).build()
+        );
+
     FxRequest fxRequest = new FxUtils().getFxRequest(
         positions.getPortfolio().getBase(),
         positions);
-
+    log.debug("Value request {}",fxRequest);
     CompletableFuture<FxResponse> futureFxResponse = bcService.getFxData(fxRequest);
 
     return getValuationData(futurePriceResponse, futureFxResponse);

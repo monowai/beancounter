@@ -133,7 +133,7 @@ class TradesWithFx {
 
     List<String> row = new ArrayList<>();
 
-    String testDate = "27/07/2019";
+    String testDate = "18/10/2019";
 
     // Trade CCY USD
     row.add(ShareSightTrades.market, "NASDAQ");
@@ -163,11 +163,11 @@ class TradesWithFx {
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("1000"))
         .hasFieldOrPropertyWithValue("tradeBaseRate",
-            new BigDecimal("1.24262269"))
+            new BigDecimal("1.28929253"))
         .hasFieldOrPropertyWithValue("tradeCashRate",
-            new BigDecimal("0.66428103"))
+            new BigDecimal("0.63723696"))
         .hasFieldOrPropertyWithValue("tradePortfolioRate",
-            new BigDecimal("0.66428103"))
+            new BigDecimal("0.63723696"))
     ;
   }
 

@@ -7,9 +7,9 @@
           "code": "MOCK"
         }
       },
-      "date": null,
-      "open": 100.00,
-      "close": 100.00,
+      "date": "2019-11-21",
+      "open": 999.99,
+      "close": 999.99,
       "low": null,
       "high": null,
       "volume": null

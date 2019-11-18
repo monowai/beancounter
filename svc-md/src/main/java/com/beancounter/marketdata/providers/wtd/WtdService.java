@@ -1,10 +1,12 @@
 package com.beancounter.marketdata.providers.wtd;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.BatchConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
@@ -49,19 +51,20 @@ public class WtdService implements MarketDataProvider {
   }
 
   @Override
-  public MarketData getCurrent(Asset asset) {
+  public MarketData getPrices(Asset asset) {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
-    Collection<MarketData> response = getCurrent(assets);
+
+    Collection<MarketData> response = getPrices(PriceRequest.builder().assets(assets).build());
 
     return response.iterator().next();
   }
 
   @Override
-  public Collection<MarketData> getCurrent(Collection<Asset> assets) {
+  public Collection<MarketData> getPrices(PriceRequest priceRequest) {
 
     ProviderArguments providerArguments =
-        ProviderArguments.getInstance(assets, wtdConfig);
+        ProviderArguments.getInstance(priceRequest, wtdConfig);
 
     Map<Integer, Future<WtdResponse>> batchedRequests = new ConcurrentHashMap<>();
 
@@ -127,7 +130,7 @@ public class WtdService implements MarketDataProvider {
         } else {
           marketData.setAsset(bcAsset);
         }
-        marketData.setDate(wtdResponse.getDate());
+        marketData.setDate(DateUtils.getDate(wtdResponse.getDate()));
         results.add(marketData);
       }
       return results;

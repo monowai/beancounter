@@ -1,17 +1,26 @@
-apply from: '../buildtools/javaCommon.gradle'
-
 buildscript {
     ext {
-        springBootVersion = "2.1.8.RELEASE"
+        contractsDir = file("mappings")
+        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+        springBootVersion = "2.2.1.RELEASE"
+        springCloudVersion = "Hoxton.SR2"
+        verifierVersion = "2.2.0.RC2"
         googleClientVersion = "1.30.4"
     }
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-    }
+}
+
+plugins {
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+//    id "org.springframework.cloud.contract" version "${verifierVersion}"
+    id "org.springframework.boot" version "${springBootVersion}"
+    id "maven-publish"
+}
+apply from: "../buildtools/javaCommon.gradle"
+repositories {
+    mavenLocal()
+    maven { url "https://repo.spring.io/milestone" }
+    mavenCentral()
+    gradlePluginPortal()
 }
 version = "0.1.1"
 
@@ -22,6 +31,7 @@ apply plugin: 'io.spring.dependency-management'
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "http://repo.spring.io/libs-milestone" }
 }
 
 dependencies {
@@ -46,16 +56,16 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
     testCompile "org.projectlombok:lombok"
-
+    testImplementation("io.rest-assured:rest-assured") {
+        exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
 
     testImplementation(
             "org.assertj:assertj-core",
-            "io.rest-assured:rest-assured",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.junit.jupiter:junit-jupiter:${junitVersion}"
+            "org.junit.jupiter:junit-jupiter"
     )
     testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {
         transitive = false

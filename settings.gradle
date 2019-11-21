@@ -6,12 +6,6 @@ pluginManagement {
         verifierVersion = "2.2.0.RC2"
     }
 
-    plugins {
-        id "io.spring.dependency-management" version "1.0.8.RELEASE"
-        id "org.springframework.cloud.contract" version "${verifierVersion}"
-        id "org.springframework.boot" version "${springBootVersion}"
-        id "maven-publish"
-    }
     repositories {
         mavenLocal()
         maven { url "https://repo.spring.io/milestone" }

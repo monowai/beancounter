@@ -11,7 +11,6 @@ buildscript {
 
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
-//    id "org.springframework.cloud.contract" version "${verifierVersion}"
     id "org.springframework.boot" version "${springBootVersion}"
     id "maven-publish"
 }

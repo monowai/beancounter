@@ -85,7 +85,8 @@ jobs:
 
       - run: 'pwd'
       - run: './gradlew svc-md:build'
-      - run: './gradlew svc-md:publishToMavenLocal'
+      - run: './gradlew svc-md:publishStubsPublicationToMavenLocal'
+
 
       - save_cache:
           paths:

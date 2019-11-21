@@ -38,7 +38,6 @@ publishing {
     }
 }
 
-
 dependencies {
     implementation(
             project(":jar-common"),
@@ -53,28 +52,23 @@ dependencies {
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
-    testCompile "org.projectlombok:lombok"
 
     testImplementation("io.rest-assured:rest-assured") {
         exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
 
     testImplementation(
+
+            "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
             'org.codehaus.groovy:groovy-all:2.4.6',
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
-            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter"
     )
-    testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {
-        transitive = false
-    }
-
 }
-
 
 dependencyManagement {
     imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
@@ -91,4 +85,9 @@ idea {
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
     }
+}
+
+task pubStubs {
+    dependsOn build
+    dependsOn publishToMavenLocal
 }

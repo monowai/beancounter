@@ -42,11 +42,12 @@ dependencies {
     )
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
-    testCompile "org.projectlombok:lombok"
     testImplementation("io.rest-assured:rest-assured") {
         exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
 
     testImplementation(
+            "beancounter:svc-md-stubs:0.1.1:stubs",
+            "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
@@ -57,9 +58,6 @@ dependencies {
             "org.junit.jupiter:junit-jupiter:${junitVersion}"
 
     )
-    testCompile("beancounter:svc-md-stubs:0.1.1:stubs") {
-        transitive = false
-    }
 }
 
 dependencyManagement {

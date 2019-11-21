@@ -14,11 +14,6 @@ pluginManagement {
     }
 }
 
-
-
 rootProject.name = 'beancounter'
-include 'jar-common'
-include 'svc-md'
-include 'svc-position'
-include 'svc-ingest'
+include 'jar-common', 'svc-md', 'svc-position', 'svc-ingest'
 

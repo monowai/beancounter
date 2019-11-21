@@ -12,7 +12,6 @@ buildscript {
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id "org.springframework.boot" version "${springBootVersion}"
-    id "maven-publish"
 }
 apply from: "../buildtools/javaCommon.gradle"
 repositories {
@@ -59,15 +58,14 @@ dependencies {
     }
 
     testImplementation(
-            project(":svc-md"),
+            "beancounter:svc-md-stubs:0.1.1:stubs",
             "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.junit.jupiter:junit-jupiter",
-            "beancounter:svc-md-stubs:0.1.1:stubs"
+            "org.junit.jupiter:junit-jupiter"
     )
 }
 

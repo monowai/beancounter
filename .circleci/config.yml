@@ -62,7 +62,7 @@ jobs:
             - ~/.m2
             - ~/.gradle
             - ~/project
-          key: org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+          key: v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
       - store_test_results:
           path: ~/project/jar-common/build/test-results/test
@@ -81,17 +81,17 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: 'pwd'
-      - run: './gradlew svc-md:pubStubs'
-
+      - run: './gradlew svc-md:build'
 
       - save_cache:
           paths:
             - ~/.m2
             - ~/.gradle
-          key: org-beancounter-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+            - ~/project
+          key: v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
       - store_test_results:
           path: ~/project/svc-md/build/test-results/test
@@ -110,9 +110,9 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-ingest:build'
+      - run: './gradlew svc-md:publishToMavenLocal svc-ingest:build'
 
       - store_test_results:
           path: ~/project/svc-ingest/build/test-results/test
@@ -132,9 +132,9 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-position:build'
+      - run: './gradlew svc-md:publishToMavenLocal svc-position:build'
 
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test

@@ -23,7 +23,7 @@ class TestWriter {
   @Test
   void is_FailingFile() {
     assertThrows(SystemException.class, () -> new FileIngestWriter()
-        .prepareFile("/" + (Math.random())));
+        .prepareFile(""));
   }
 
   @Test

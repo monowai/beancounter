@@ -84,8 +84,7 @@ jobs:
             - org-beancounter-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: 'pwd'
-      - run: './gradlew svc-md:build'
-      - run: './gradlew svc-md:publishStubsPublicationToMavenLocal'
+      - run: './gradlew svc-md:pubStubs'
 
 
       - save_cache:

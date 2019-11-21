@@ -57,12 +57,12 @@ public class WtdConfig implements DataProviderConfig {
         daysToSubtract = 2;
       }
     }
-    if (startDate == null) {
-      startDate = DateUtils.today();
-    }
+
     // If startDate is not "TODAY", assume nothing, just discount the weekends
     LocalDate result = DateUtils.getLastMarketDate(
-        DateUtils.getDate(startDate).toInstant().atZone(ZoneId.systemDefault()),
+        DateUtils.getDate(startDate==null ? DateUtils.today() : startDate)
+            .toInstant()
+            .atZone(ZoneId.systemDefault()),
         timeZone.toZoneId(), daysToSubtract);
 
     return result.toString();

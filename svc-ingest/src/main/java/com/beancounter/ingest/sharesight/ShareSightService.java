@@ -51,11 +51,6 @@ public class ShareSightService {
     this.exchangeConfig = exchangeConfig;
   }
 
-  @Autowired
-  private void setStaticDataService(StaticDataService staticDataService) {
-    this.staticDataService = staticDataService;
-  }
-
   Date parseDate(String date) throws ParseException {
     return formatter.parse(date);
   }

@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.EcbMock.get;
-import static com.beancounter.marketdata.EcbMock.getRateMap;
+import static com.beancounter.marketdata.EcbMockUtils.get;
+import static com.beancounter.marketdata.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;

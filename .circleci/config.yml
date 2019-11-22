@@ -41,7 +41,7 @@ jobs:
 
   build-common:
     docker:
-      - image: circleci/openjdk:12-jdk
+      - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
 
@@ -75,7 +75,7 @@ jobs:
 
   build-md:
     docker:
-      - image: circleci/openjdk:12-jdk
+      - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
@@ -104,7 +104,7 @@ jobs:
 
   build-ingest:
     docker:
-      - image: circleci/openjdk:12-jdk
+      - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
@@ -125,7 +125,8 @@ jobs:
 
   build-position:
     docker:
-      - image: circleci/openjdk:12-jdk
+      - image: circleci/openjdk:11
+#      - image: circleci/openjdk:13.0-buster
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
 

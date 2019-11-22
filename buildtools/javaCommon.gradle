@@ -19,8 +19,8 @@ apply plugin: 'idea'
 apply plugin: "checkstyle"
 apply plugin: 'jacoco'
 
-sourceCompatibility = JavaVersion.VERSION_12
-targetCompatibility = JavaVersion.VERSION_12
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 checkstyle {
     toolVersion = '8.23'

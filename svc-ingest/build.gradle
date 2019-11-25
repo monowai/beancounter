@@ -5,7 +5,7 @@ buildscript {
         springBootVersion = "2.2.1.RELEASE"
         springCloudVersion = "Hoxton.SR2"
         verifierVersion = "2.2.0.RC2"
-        googleClientVersion = "1.30.4"
+        googleClientVersion = "1.30.5"
     }
 }
 

@@ -43,7 +43,7 @@ dependencies {
             "org.projectlombok:lombok",
             "com.google.api-client:google-api-client:${googleClientVersion}",
             "com.google.oauth-client:google-oauth-client-jetty:1.30.3",
-            "com.google.apis:google-api-services-sheets:v4-rev581-1.25.0"
+            "com.google.apis:google-api-services-sheets:v4-rev20191115-1.30.3"
     )
 
     compileOnly(

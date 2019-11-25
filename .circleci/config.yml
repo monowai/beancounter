@@ -39,55 +39,19 @@ jobs:
       - store_artifacts:
           path: bc-view/reports/junit
 
-  build-common:
-    docker:
-      - image: circleci/openjdk:11
-    environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-
-    # Restore cached artifacts from a builds
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - org-beancounter-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
-      - run: 'pwd'
-      - run: './gradlew jar-common:clean jar-common:build'
-
-      # Save the environment for this build run with it's dependencies in-place
-      - save_cache:
-          paths:
-            - ~/.gradle
-            - ~/project
-          key: v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
-
-      - store_test_results:
-          path: ~/project/jar-common/build/test-results/test
-
-      - codecov/upload:
-          file: ~/project/jar-common/build/reports/jacoco/test/*.xml
-
-      - store_artifacts:
-          path: ~/project/jar-common/build/libs
-
   build-md:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
+      - checkout
       - restore_cache:
           keys:
-            - v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - run: 'pwd'
-      - run: './gradlew svc-md:build'
-
-      - save_cache:
-          paths:
-            - ~/.gradle
-            - ~/project
-          key: v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+      - run: './gradlew jar-common:build svc-md:build svc-md:publishToMavenLocal'
 
       - store_test_results:
           path: ~/project/svc-md/build/test-results/test
@@ -95,8 +59,24 @@ jobs:
       - codecov/upload:
           file: ~/project/svc-md/build/reports/jacoco/test/*.xml
 
+      - save_cache:
+          paths:
+            - ~/.gradle
+            - ~/.m2
+          key: v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+
+      - save_cache:
+          paths:
+            - ~/.gradle
+            - ~/.m2
+            - ~/project
+          key: v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+
       - store_artifacts:
           path: ~/project/svc-md/build/libs
+
+      - store_artifacts:
+          path: ~/project/jar-common/build/libs
 
   build-ingest:
     docker:
@@ -106,9 +86,9 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-md:publishToMavenLocal svc-ingest:build'
+      - run: './gradlew svc-ingest:build'
 
       - store_test_results:
           path: ~/project/svc-ingest/build/test-results/test
@@ -129,9 +109,9 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-md:publishToMavenLocal svc-position:build'
+      - run: './gradlew svc-position:build'
 
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
@@ -147,10 +127,7 @@ workflows:
   build_and_stage:
     jobs:
       - build-app
-      - build-common
-      - build-md:
-          requires:
-            - build-common
+      - build-md
       - build-position:
           requires:
             - build-md

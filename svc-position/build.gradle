@@ -1,18 +1,14 @@
 buildscript {
     ext {
-        contractsDir = file("mappings")
-        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
         springBootVersion = "2.2.1.RELEASE"
         springCloudVersion = "Hoxton.SR2"
         verifierVersion = "2.2.0.RC2"
     }
-
 }
 
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id "org.springframework.boot" version "${springBootVersion}"
-    id "maven-publish"
 }
 apply from: "../buildtools/javaCommon.gradle"
 repositories {
@@ -22,7 +18,6 @@ repositories {
     gradlePluginPortal()
 }
 
-group = "com.beancounter"
 version = '0.0.1'
 
 dependencies {

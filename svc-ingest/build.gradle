@@ -1,11 +1,9 @@
 buildscript {
     ext {
-        contractsDir = file("mappings")
-        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
         springBootVersion = "2.2.1.RELEASE"
         springCloudVersion = "Hoxton.SR2"
         verifierVersion = "2.2.0.RC2"
-        googleClientVersion = "1.30.4"
+        googleClientVersion = "1.30.5"
     }
 }
 
@@ -25,12 +23,6 @@ version = "0.1.1"
 apply from: '../buildtools/javaCommon.gradle'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven { url "https://repo.spring.io/libs-milestone" }
-}
 
 dependencies {
     implementation(

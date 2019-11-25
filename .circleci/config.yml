@@ -51,15 +51,12 @@ jobs:
       - restore_cache:
           keys:
             - org-beancounter-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
-      - run: 'rm -rf ~/.m2/repository/com/beancounter'
-      - run: 'rm -rf ~/.m2/repository/beancounter'
       - run: 'pwd'
       - run: './gradlew jar-common:clean jar-common:build'
 
       # Save the environment for this build run with it's dependencies in-place
       - save_cache:
           paths:
-            - ~/.m2
             - ~/.gradle
             - ~/project
           key: v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}
@@ -88,7 +85,6 @@ jobs:
 
       - save_cache:
           paths:
-            - ~/.m2
             - ~/.gradle
             - ~/project
           key: v1-build-artifacts-{{ .Environment.CIRCLE_SHA1 }}

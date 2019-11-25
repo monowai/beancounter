@@ -9,7 +9,7 @@ dependencies() {
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
             "io.github.openfeign:feign-core:10.4.0",
             "org.springframework:spring-web:5.1.9.RELEASE",
-            "com.google.guava:guava:27.0.1-jre"
+            "com.google.guava:guava:28.1-jre"
     )
 
     annotationProcessor (
@@ -27,7 +27,7 @@ dependencies() {
             "io.github.openfeign:feign-core:10.4.0",
             "org.springframework:spring-web:5.2.1.RELEASE",
             "org.junit.jupiter:junit-jupiter:${junitVersion}",
-            "com.google.guava:guava:27.0.1-jre"
+            "com.google.guava:guava:28.1-jre"
     )
 }
 

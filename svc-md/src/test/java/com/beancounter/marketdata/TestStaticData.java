@@ -10,7 +10,6 @@ import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.service.CurrencyService;
 import com.beancounter.marketdata.service.MarketService;
-import com.google.common.annotations.VisibleForTesting;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,7 +38,6 @@ class TestStaticData {
 
 
   @Autowired
-  @VisibleForTesting
   TestStaticData(StaticConfig staticConfig,
                  MarketService marketService,
                  CurrencyService currencyService
@@ -50,7 +48,6 @@ class TestStaticData {
   }
 
   @Test
-  @VisibleForTesting
   void does_MockMarketConfigurationExist() {
 
     assertThat(staticConfig).isNotNull();
@@ -68,7 +65,6 @@ class TestStaticData {
   }
 
   @Test
-  @VisibleForTesting
   void is_serTzComputed() {
 
     //  The java.util.Date has no concept of time zone, and only represents
@@ -105,7 +101,6 @@ class TestStaticData {
   }
 
   @Test
-  @VisibleForTesting
   void is_MarketDataAliasForWtdAndNzxResolving() {
     Market market = marketService.getMarket("NZX");
     assertThat(market)
@@ -122,7 +117,6 @@ class TestStaticData {
   }
 
   @Test
-  @VisibleForTesting
   void does_MarketDataAliasNasdaqResolveToNull() {
     Market market = marketService.getMarket("NASDAQ");
     assertThat(market)
@@ -135,7 +129,6 @@ class TestStaticData {
   }
 
   @Test
-  @VisibleForTesting
   void is_CurrencyDataLoading() {
 
     assertThat(currencyService.getCode("USD"))

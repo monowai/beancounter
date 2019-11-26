@@ -1,4 +1,4 @@
-package com.beancounter.ingest.integ;
+package com.beancounter.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -16,23 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
-import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {
-    ShareSightConfig.class
-})
-@AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = "beancounter:svc-md:+:stubs:8090")
-@ActiveProfiles("test")
 @Slf4j
+@SpringBootTest(classes = {ShareSightConfig.class})
 class ShareSightServiceTest {
 
   @Autowired

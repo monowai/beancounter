@@ -1,29 +1,20 @@
 package com.beancounter.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @Builder
 @EqualsAndHashCode
-@JsonDeserialize(builder = CurrencyPair.CurrencyPairBuilder.class)
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class CurrencyPair {
   private String from;
   private String to;
-
-  @Override
-  public String toString() {
-    return from + ":" + to;
-  }
-
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class CurrencyPairBuilder {
-  }
 
   @JsonIgnore
   public static CurrencyPair from(Currency reporting, Currency trade) {
@@ -31,5 +22,10 @@ public class CurrencyPair {
         .from(reporting.getCode())
         .to(trade.getCode())
         .build();
+  }
+
+  @Override
+  public String toString() {
+    return from + ":" + to;
   }
 }

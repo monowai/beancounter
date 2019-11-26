@@ -1,9 +1,10 @@
+
 pluginManagement {
     ext {
-        contractsDir = file("mappings")
         springBootVersion = "2.2.1.RELEASE"
         springCloudVersion = "Hoxton.SR2"
-        verifierVersion = "2.2.0.RC2"
+        // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html
+        verifierVersion = "2.2.0.RELEASE"
     }
 
     repositories {

@@ -10,7 +10,6 @@ import com.beancounter.common.exception.SpringFeignDecoder;
 import com.beancounter.common.exception.SystemException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
@@ -20,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 class TestExceptions {
-  @VisibleForTesting
+
   @Test
   void is_FeignBusinessExceptionThrown() {
     SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
@@ -41,7 +40,6 @@ class TestExceptions {
     throw e;
   }
 
-  @VisibleForTesting
   @Test
   void is_FeignSystemExceptionThrown() {
     SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
@@ -56,7 +54,6 @@ class TestExceptions {
 
   }
 
-  @VisibleForTesting
   @Test
   void is_FeignExceptionThrown() {
     SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
@@ -81,7 +78,6 @@ class TestExceptions {
     throw e;
   }
 
-  @VisibleForTesting
   @Test
   void is_ServiceIntegrationErrorDecoded() throws JsonProcessingException {
     SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
@@ -108,14 +104,12 @@ class TestExceptions {
     throw e;
   }
 
-  @VisibleForTesting
   @Test
   void is_ExceptionsBodiesCorrect() {
     assertThrows(BusinessException.class, this::throwBusinessException);
     assertThrows(SystemException.class, this::throwSystemException);
   }
 
-  @VisibleForTesting
   @Test
   void is_PredicateAssumptions() {
     RecordFailurePredicate recordFailurePredicate = new RecordFailurePredicate();
@@ -123,7 +117,6 @@ class TestExceptions {
     assertThat(recordFailurePredicate.test(new SystemException("System Error"))).isTrue();
   }
 
-  @VisibleForTesting
   @Test
   void is_SpringErrorSerializable() throws Exception {
     SpringExceptionMessage springExceptionMessage = SpringExceptionMessage

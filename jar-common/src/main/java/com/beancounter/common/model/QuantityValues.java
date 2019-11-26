@@ -1,10 +1,10 @@
 package com.beancounter.common.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 
 /**
@@ -15,7 +15,8 @@ import lombok.Data;
  */
 @Data
 @Builder
-@JsonDeserialize(builder = QuantityValues.QuantityValuesBuilder.class)
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class QuantityValues {
   @Builder.Default
   private BigDecimal sold = BigDecimal.ZERO;
@@ -31,9 +32,4 @@ public class QuantityValues {
     return (purchased.add(sold)).add(adjustment);
   }
 
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class QuantityValuesBuilder {
-
-  }
 }

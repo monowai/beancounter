@@ -10,6 +10,7 @@ import com.beancounter.common.model.MarketData;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,20 +26,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 @FeignClient(name = "${marketdata.name}", url = "${marketdata.url:http://localhost:9510/api}")
 public interface BcGateway {
 
-  @GetMapping(value = "/prices/{assetId}")
+  @GetMapping(value = "/prices/{assetId}", produces = {MediaType.APPLICATION_JSON_VALUE})
   MarketData getPrices(@PathVariable("assetId") String assetId);
 
-  @GetMapping(value = "/prices")
+  @GetMapping(value = "/prices", produces = {MediaType.APPLICATION_JSON_VALUE})
   PriceResponse getPrices(PriceRequest priceRequest);
 
-  @PostMapping(value = "/fx")
+  @PostMapping(value = "/fx",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
+      consumes = {MediaType.APPLICATION_JSON_VALUE})
   FxResponse getRates(FxRequest fxRequest);
 
-  @GetMapping(value = "/markets")
-  MarketResponse getMarkets();
-
-  @GetMapping(value = "/currencies")
+  @GetMapping(value = "/currencies", produces = {MediaType.APPLICATION_JSON_VALUE})
   CurrencyResponse getCurrencies();
+
+  @GetMapping(value = "/markets", produces = {MediaType.APPLICATION_JSON_VALUE})
+  MarketResponse getMarkets();
 
 
 }

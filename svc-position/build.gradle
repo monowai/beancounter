@@ -2,7 +2,6 @@ buildscript {
     ext {
         springBootVersion = "2.2.1.RELEASE"
         springCloudVersion = "Hoxton.SR2"
-        verifierVersion = "2.2.0.RC2"
     }
 }
 
@@ -38,21 +37,22 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
     testImplementation("io.rest-assured:rest-assured") {
-        exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
+        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
+    }
 
     testImplementation(
-            "beancounter:svc-md-stubs:0.1.1:stubs",
             "org.projectlombok:lombok",
             "org.assertj:assertj-core",
-            "io.rest-assured:spring-mock-mvc",
-            "io.rest-assured:json-schema-validator",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.junit.jupiter:junit-jupiter:${junitVersion}"
+            "org.junit.jupiter:junit-jupiter"
 
     )
+    testImplementation("org.beancounter:svc-md:0.1.1:stubs") {
+        transitive = false
+    }
 }
 
 dependencyManagement {

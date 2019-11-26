@@ -1,7 +1,7 @@
 package com.beancounter.common.utils;
 
+import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.model.CurrencyPair;
-import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;

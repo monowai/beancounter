@@ -17,7 +17,6 @@ import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.accumulation.Buy;
 import com.beancounter.position.accumulation.MarketValue;
 import com.beancounter.position.model.FxReport;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.Test;
 class TestMarketValuesWithFx {
 
   @Test
-  @VisibleForTesting
   void is_MarketValue() {
     Portfolio portfolio = Portfolio.builder()
         .code("MV")

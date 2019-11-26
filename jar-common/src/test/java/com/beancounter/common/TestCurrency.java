@@ -8,7 +8,6 @@ import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -78,7 +77,6 @@ class TestCurrency {
   }
 
   @Test
-  @VisibleForTesting
   void is_NullCurrencyCodeWorking() {
     Assertions.assertThrows(NullPointerException.class, () -> {
       Currency.builder().code(null).build();
@@ -86,14 +84,12 @@ class TestCurrency {
   }
 
   @Test
-  @VisibleForTesting
   void is_GetCurrencyWorking() {
     Currency currency = getCurrency("NZD");
     assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD");
   }
 
   @Test
-  @VisibleForTesting
   void is_CurrencyPairConsistent() {
     String trade = "NZD";
     String report = "USD";

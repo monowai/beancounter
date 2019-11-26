@@ -17,7 +17,6 @@ import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
 import com.beancounter.position.service.Accumulator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,7 +38,6 @@ class TestMoneyValues {
    * <p>Simple FX values make assertions easier to calculate.
    */
   @Test
-  @VisibleForTesting
   void is_ValuedInTrackedCurrencies() throws IOException {
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
     Position position = positions.get(microsoft);
@@ -161,7 +159,6 @@ class TestMoneyValues {
   }
 
   @Test
-  @VisibleForTesting
   void is_QuantityAndMarketValueCalculated() {
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
@@ -192,7 +189,6 @@ class TestMoneyValues {
   }
 
   @Test
-  @VisibleForTesting
   void is_RealisedGainCalculated() {
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
@@ -232,7 +228,6 @@ class TestMoneyValues {
   }
 
   @Test
-  @VisibleForTesting
   void is_RealisedGainWithSignedQuantitiesCalculated() {
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
@@ -313,7 +308,6 @@ class TestMoneyValues {
   }
 
   @Test
-  @VisibleForTesting
   void is_RealisedGainAfterSellingToZeroCalculated() {
 
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
@@ -389,7 +383,6 @@ class TestMoneyValues {
   }
 
   @Test
-  @VisibleForTesting
   void is_RealisedGainAfterReenteringAPositionCalculated() {
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 

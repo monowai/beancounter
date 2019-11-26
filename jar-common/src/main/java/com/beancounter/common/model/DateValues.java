@@ -1,21 +1,18 @@
 package com.beancounter.common.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @Builder
-@JsonDeserialize(builder = DateValues.DateValuesBuilder.class)
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class DateValues {
 
   private String opened;
   private String last;
   private String closed;
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class DateValuesBuilder {
-
-  }
 }

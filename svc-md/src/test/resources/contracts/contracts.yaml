@@ -1,5 +1,6 @@
 ---
 name: currencies
+priority: 1
 request:
   method: GET
   url: /currencies
@@ -8,6 +9,19 @@ response:
   bodyFromFile: "currency/currencies.json"
   headers:
     Content-Type: application/json
+
+---
+name: markets
+priority: 1
+request:
+  method: GET
+  url: /markets
+response:
+  status: 200
+  bodyFromFile: "markets/markets.json"
+  headers:
+    Content-Type: application/json
+
 ---
 name: nzdUsd
 request:
@@ -23,6 +37,7 @@ response:
     Content-Type: application/json
 ---
 name: gbpnzd-gbpusd
+priority: 1
 request:
   method: POST
   url: /fx
@@ -36,6 +51,7 @@ response:
     Content-Type: application/json
 ---
 name: usdEur-usdGbp-usdNzd
+priority: 1
 request:
   method: POST
   url: /fx
@@ -49,6 +65,7 @@ response:
     Content-Type: application/json
 ---
 name: usdNzd-gbpNzd-20190726
+priority: 1
 request:
   method: POST
   url: /fx
@@ -62,6 +79,7 @@ response:
     Content-Type: application/json
 ---
 name: usdNzd-usdGbp-20191018
+priority: 1
 request:
   method: POST
   url: /fx
@@ -75,6 +93,7 @@ response:
     Content-Type: application/json
 ---
 name: nzdUsd-20191018
+priority: 1
 request:
   method: POST
   url: /fx
@@ -88,6 +107,7 @@ response:
     Content-Type: application/json
 ---
 name: early-fx
+priority: 1
 request:
   method: POST
   url: /fx
@@ -101,6 +121,7 @@ response:
     Content-Type: application/json
 ---
 name: ABC-price
+priority: 1
 request:
   method: POST
   url: /prices
@@ -114,6 +135,7 @@ response:
     Content-Type: application/json
 ---
 name: EBAY-price
+priority: 1
 request:
   method: POST
   url: /prices
@@ -123,15 +145,5 @@ request:
 response:
   status: 200
   bodyFromFile: "prices/EBAY-response.json"
-  headers:
-    Content-Type: application/json
----
-name: markets
-request:
-  method: GET
-  url: /markets
-response:
-  status: 200
-  bodyFromFile: "markets/markets.json"
   headers:
     Content-Type: application/json

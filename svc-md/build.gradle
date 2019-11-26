@@ -2,15 +2,14 @@ buildscript {
     ext {
         contractsDir = file("mappings")
         stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+        // redefine values from settings.gradle, but the vars can't be used in the dependencies closure
         springBootVersion = "2.2.1.RELEASE"
-        springCloudVersion = "Hoxton.SR2"
-        verifierVersion = "2.2.0.RC2"
+        verifierVersion = "2.2.0.RELEASE"
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:${verifierVersion}"
     }
-
 }
 
 plugins {
@@ -32,7 +31,8 @@ version = "0.1.1"
 publishing {
     publications {
         stubs(MavenPublication) {
-            artifactId "${project.name}-stubs"
+            groupId "org.beancounter"
+            artifactId "${project.name}"
             artifact verifierStubsJar
         }
     }
@@ -57,14 +57,14 @@ dependencies {
         exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
 
     testImplementation(
-
             "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
-            'org.codehaus.groovy:groovy-all:2.4.6',
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
+            // Not needed, but pulling into cache
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter"
     )
@@ -75,6 +75,8 @@ dependencyManagement {
 }
 
 contracts {
+    // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html#gradle-default-setup
+//    testFramework ='JUNIT5'
     packageWithBaseClasses = 'com.beancounter.marketdata.integ'
 }
 

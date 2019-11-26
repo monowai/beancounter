@@ -2,15 +2,14 @@ package com.beancounter.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
-import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.RateCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Test;
 class TestFx {
 
   @Test
-  @VisibleForTesting
   void is_RateRequestSerializing() throws Exception {
     CurrencyPair pair = CurrencyPair.builder().from("THIS").to("THAT").build();
 
@@ -40,7 +38,6 @@ class TestFx {
   }
 
   @Test
-  @VisibleForTesting
   void is_FxRequestPairsIgnoringDuplicates() {
     CurrencyPair pair = CurrencyPair.builder().from("THIS").to("THAT").build();
     FxRequest fxRequest = FxRequest.builder().build();
@@ -50,7 +47,6 @@ class TestFx {
   }
 
   @Test
-  @VisibleForTesting
   void is_FxResultSerializing() throws Exception {
     CurrencyPair nzdUsd = CurrencyPair.builder().from("NZD").to("USD").build();
     CurrencyPair usdUsd = CurrencyPair.builder().from("USD").to("USD").build();

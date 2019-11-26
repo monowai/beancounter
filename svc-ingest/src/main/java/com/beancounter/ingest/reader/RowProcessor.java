@@ -5,7 +5,6 @@ import com.beancounter.common.identity.TransactionId;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.google.common.annotations.VisibleForTesting;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +24,6 @@ public class RowProcessor {
   private boolean stackTraces = false;
 
   @Autowired
-  @VisibleForTesting
   void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
     this.shareSightTransformers = shareSightTransformers;
   }
@@ -37,9 +35,9 @@ public class RowProcessor {
   }
 
   public Collection<Transaction> process(Portfolio portfolio,
-                                  List<List<Object>> values,
-                                  Filter filter,
-                                  String provider) {
+                                         List<List<Object>> values,
+                                         Filter filter,
+                                         String provider) {
 
     Collection<Transaction> results = new ArrayList<>();
     if (filter.hasFilter()) {

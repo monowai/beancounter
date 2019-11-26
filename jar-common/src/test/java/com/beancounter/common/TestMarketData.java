@@ -9,7 +9,6 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +18,6 @@ class TestMarketData {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
-  @VisibleForTesting
   void is_MarketDataSerializing() throws Exception {
 
     Collection<MarketData> marketDataCollection = new ArrayList<>();

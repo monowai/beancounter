@@ -3,6 +3,7 @@ package com.beancounter.position.service;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
+import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Currency;
@@ -10,12 +11,12 @@ import com.beancounter.position.integration.BcGateway;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class BcService {
 
@@ -27,7 +28,6 @@ public class BcService {
     this.bcGateway = bcGateway;
   }
 
-
   @Async
   public CompletableFuture<PriceResponse> getMarketData(PriceRequest priceRequest) {
     return CompletableFuture.completedFuture(bcGateway.getPrices(priceRequest));
@@ -38,10 +38,13 @@ public class BcService {
     return CompletableFuture.completedFuture(bcGateway.getRates(fxRequest));
   }
 
-  @EventListener(ApplicationReadyEvent.class)
-  public Map<String, Currency> getCurrencies() {
+  private Map<String, Currency> getCurrencies() {
     if (currencyMap.isEmpty()) {
       CurrencyResponse response = bcGateway.getCurrencies();
+      if (response == null) {
+        log.info("No currencies retrieved");
+        return new HashMap<>();
+      }
       currencyMap.putAll(response.getData());
     }
     return currencyMap;
@@ -52,7 +55,10 @@ public class BcService {
     if (currency == null) {
       return null;
     }
-    return currencyMap.get(currency.getCode());
+    return getCurrencies().get(currency.getCode());
   }
 
+  public MarketResponse getMarkets() {
+    return bcGateway.getMarkets();
+  }
 }

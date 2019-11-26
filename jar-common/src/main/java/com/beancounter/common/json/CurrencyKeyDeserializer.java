@@ -1,5 +1,6 @@
-package com.beancounter.common.model;
+package com.beancounter.common.json;
 
+import com.beancounter.common.model.CurrencyPair;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.KeyDeserializer;
 

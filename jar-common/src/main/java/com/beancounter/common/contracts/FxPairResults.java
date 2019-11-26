@@ -1,5 +1,8 @@
-package com.beancounter.common.model;
+package com.beancounter.common.contracts;
 
+import com.beancounter.common.json.CurrencyKeyDeserializer;
+import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.FxRate;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.HashMap;
 import java.util.Map;

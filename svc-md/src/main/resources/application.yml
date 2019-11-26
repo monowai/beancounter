@@ -3,15 +3,15 @@ server:
   servlet:
     context-path: '/api'
 
-management:
-  server:
-    port: 9511
-  endpoint:
-    health.show-details: always
-  endpoints:
-    web:
-      exposure.include: '*'
-      base-path: "/"
+#management:
+#  server:
+#    port: 9511
+#  endpoint:
+#    health.show-details: always
+#  endpoints:
+#    web:
+#      exposure.include: '*'
+#      base-path: "/"
 
 logging:
   level:

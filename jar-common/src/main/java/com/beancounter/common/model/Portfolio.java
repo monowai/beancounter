@@ -1,9 +1,9 @@
 package com.beancounter.common.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Owner of a collection of Positions.
@@ -13,7 +13,8 @@ import lombok.Data;
  */
 @Data
 @Builder
-@JsonDeserialize(builder = Portfolio.PortfolioBuilder.class)
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class Portfolio {
   private String code;
 
@@ -22,8 +23,4 @@ public class Portfolio {
   private Currency base = Currency.builder().code("USD").build();
 
 
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class PortfolioBuilder {
-  }
 }

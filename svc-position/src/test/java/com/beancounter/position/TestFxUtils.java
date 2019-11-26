@@ -12,13 +12,11 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.position.utils.FxUtils;
-import com.google.common.annotations.VisibleForTesting;
 import org.junit.jupiter.api.Test;
 
 class TestFxUtils {
   private FxUtils fxUtils = new FxUtils();
 
-  @VisibleForTesting
   @Test
   void is_CurrencyPairResultsAsExpected() {
 
@@ -46,7 +44,6 @@ class TestFxUtils {
         .isNotNull();// From != To
   }
 
-  @VisibleForTesting
   @Test
   void is_FxRequestCorrect() {
     Currency usd = getCurrency("USD");

@@ -8,14 +8,12 @@ import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.service.Accumulator;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 class TestAccumulationOfQuantityValues {
 
   @Test
-  @VisibleForTesting
   void is_TotalQuantityCorrect() {
     Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)

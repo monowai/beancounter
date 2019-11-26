@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.fxrates;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public interface FxGateway {
   @RequestMapping(
       method = RequestMethod.GET,
-      headers = {"Content-Type: text/plain"},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       value = "/{date}?base={base}&symbols={symbols}&"
   )
   EcbRates getRatesForSymbols(

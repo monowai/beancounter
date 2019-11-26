@@ -44,6 +44,7 @@ jobs:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+
     steps:
       - checkout
       - restore_cache:
@@ -51,7 +52,8 @@ jobs:
             - v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - run: 'pwd'
-      - run: './gradlew jar-common:build svc-md:build svc-md:publishToMavenLocal'
+      - run: './gradlew jar-common:build svc-md:build'
+      - run: './gradlew svc-md:publishToMavenLocal'
 
       - store_test_results:
           path: ~/project/svc-md/build/test-results/test
@@ -62,14 +64,14 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-            - ~/.m2
           key: v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - save_cache:
           paths:
-            - ~/.gradle
             - ~/.m2
+            - ~/.gradle
             - ~/project
+
           key: v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - store_artifacts:
@@ -83,12 +85,17 @@ jobs:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-ingest:build'
+      - run: './gradlew svc-ingest:build --info'
 
       - store_test_results:
           path: ~/project/svc-ingest/build/test-results/test
@@ -105,13 +112,18 @@ jobs:
 #      - image: circleci/openjdk:13.0-buster
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-position:build'
+      - run: './gradlew svc-position:build --info'
 
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
@@ -128,9 +140,9 @@ workflows:
     jobs:
       - build-app
       - build-md
-      - build-position:
+      - build-ingest:
           requires:
             - build-md
-      - build-ingest:
+      - build-position:
           requires:
             - build-md

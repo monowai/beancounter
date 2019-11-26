@@ -14,7 +14,6 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.service.Accumulator;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -30,7 +29,6 @@ class TestTransactionLogic {
    * unordered transactions will result in an Exception being thrown
    */
   @Test
-  @VisibleForTesting
   void do_UnorderedTransactionsError() {
     Asset apple = AssetUtils.getAsset("AAPL", "NASDAQ");
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());

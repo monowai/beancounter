@@ -2,14 +2,13 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
-import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,7 +28,6 @@ class FxRateTests {
   private static CurrencyPair USD_AUD = CurrencyPair.builder().from("USD").to("AUD").build();
 
   @Test
-  @VisibleForTesting
   void is_FxRateResponseSerializing() throws Exception {
     File jsonFile = new ClassPathResource("contracts/ecb/ecbEarly.json").getFile();
     EcbRates ecbRates = new ObjectMapper().readValue(jsonFile, EcbRates.class);
@@ -41,7 +39,6 @@ class FxRateTests {
   }
 
   @Test
-  @VisibleForTesting
   void is_RateCalculatorComputing() {
 
     Collection<CurrencyPair> pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);

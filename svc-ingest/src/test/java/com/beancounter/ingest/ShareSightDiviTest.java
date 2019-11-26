@@ -1,4 +1,4 @@
-package com.beancounter.ingest.integ;
+package com.beancounter.ingest;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,19 +13,13 @@ import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
-import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 
 /**
@@ -34,22 +28,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author mikeh
  * @since 2019-02-12
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {
-    ShareSightConfig.class
-})
-@AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = "beancounter:svc-md:+:stubs:8090")
-@ActiveProfiles("test")
 @Slf4j
+@SpringBootTest(classes = {ShareSightConfig.class})
 class ShareSightDiviTest {
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
 
   @Test
-  @VisibleForTesting
   void is_CurrencyResolvedForDividendInput() throws Exception {
     List<String> row = new ArrayList<>();
 

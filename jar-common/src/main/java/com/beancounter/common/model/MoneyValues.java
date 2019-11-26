@@ -1,10 +1,10 @@
 package com.beancounter.common.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 
 /**
@@ -13,10 +13,10 @@ import lombok.Data;
  * @author mikeh
  * @since 2019-01-28
  */
-@SuppressWarnings("ALL")
 @Data
 @Builder
-@JsonDeserialize(builder = MoneyValues.MoneyValuesBuilder.class)
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class MoneyValues {
 
   @Builder.Default
@@ -54,10 +54,5 @@ public class MoneyValues {
   private BigDecimal totalGain = BigDecimal.ZERO;
 
   private Currency currency;
-
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class MoneyValuesBuilder {
-  }
 
 }

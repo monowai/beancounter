@@ -6,7 +6,6 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ExchangeConfig;
-import com.beancounter.ingest.service.StaticDataService;
 import com.google.api.client.util.Strings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -37,7 +36,6 @@ public class ShareSightService {
 
   private final ExchangeConfig exchangeConfig;
   private DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-  private StaticDataService staticDataService;
   @Value("${out.file:#{null}}")
   private String outFile;
   @Value("${ratesIgnored:false}")

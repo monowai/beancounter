@@ -1,6 +1,5 @@
 package com.beancounter.common.contracts;
 
-import com.beancounter.common.model.FxPairResults;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;

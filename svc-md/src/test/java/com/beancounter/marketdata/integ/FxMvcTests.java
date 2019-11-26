@@ -6,18 +6,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.CurrencyPair;
-import com.beancounter.common.model.FxPairResults;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.AlphaMockUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbDate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +48,6 @@ class FxMvcTests {
   private MockMvc mockMvc;
 
   @Autowired
-  @VisibleForTesting
   void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (mockInternet == null) {
@@ -61,7 +59,6 @@ class FxMvcTests {
   }
 
   @Test
-  @VisibleForTesting
   void is_FxRateResultsObjectReturned() throws Exception {
     File rateResponse = new ClassPathResource("contracts/ecb/fx-current-rates.json").getFile();
     AlphaMockUtils.mockGetResponse(
@@ -102,7 +99,6 @@ class FxMvcTests {
   }
 
   @Test
-  @VisibleForTesting
   void is_NullDateReturningCurrent() throws Exception {
 
     File rateResponse = new ClassPathResource("contracts/ecb/fx-current-rates.json").getFile();
@@ -144,7 +140,6 @@ class FxMvcTests {
   }
 
   @Test
-  @VisibleForTesting
   void is_EarliestRateDateValid() {
     EcbDate ecbDate = new EcbDate();
     assertThat(ecbDate.getValidDate("1990-01-01"))

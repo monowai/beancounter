@@ -10,7 +10,6 @@ import com.beancounter.ingest.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.sheets.v4.Sheets;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -41,31 +40,26 @@ public class SheetReader implements Ingester {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  @VisibleForTesting
   void setIngestWriter(IngestWriter ingestWriter) {
     this.ingestWriter = ingestWriter;
   }
 
   @Autowired
-  @VisibleForTesting
   void setFxTransactions(FxTransactions fxTransactions) {
     this.fxTransactions = fxTransactions;
   }
 
   @Autowired
-  @VisibleForTesting
   void setGoogleTransport(GoogleTransport googleTransport) {
     this.googleTransport = googleTransport;
   }
 
   @Autowired
-  @VisibleForTesting
   void setRowProcessor(RowProcessor rowProcessor) {
     this.rowProcessor = rowProcessor;
   }
 
   @Autowired
-  @VisibleForTesting
   void setShareSightService(ShareSightService shareSightService) {
     this.shareSightService = shareSightService;
   }

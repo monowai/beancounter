@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CurrencyPair;
@@ -86,6 +87,10 @@ public class ValuationService implements Valuation {
 
     // Set market data into the positions
     ValuationData valuationData = getValuationData(positions, assets);
+    FxResponse fxResponse = valuationData.getFxResponse();
+    if (fxResponse == null) {
+      throw new BusinessException("Unable to obtain FX Rates ");
+    }
     Map<CurrencyPair, FxRate> rates = valuationData.getFxResponse().getData().getRates();
 
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
@@ -109,7 +114,7 @@ public class ValuationService implements Valuation {
     FxRequest fxRequest = new FxUtils().getFxRequest(
         positions.getPortfolio().getBase(),
         positions);
-    log.debug("Value request {}",fxRequest);
+    log.debug("Value request {}", fxRequest);
     CompletableFuture<FxResponse> futureFxResponse = bcService.getFxData(fxRequest);
 
     return getValuationData(futurePriceResponse, futureFxResponse);

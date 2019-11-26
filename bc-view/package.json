@@ -61,7 +61,7 @@
     "@types/webpack-env": "^1.14.0",
     "@typescript-eslint/eslint-plugin": "^2.4.0",
     "@typescript-eslint/parser": "^2.4.0",
-    "autoprefixer": "^9.7.0",
+    "autoprefixer": "^9.7.2",
     "babel-jest": "^24.9.0",
     "bulma": "^0.8.0",
     "bulma-start": "^0.0.3",

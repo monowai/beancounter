@@ -4,7 +4,7 @@ buildscript {
         stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
         springBootVersion = "2.2.1.RELEASE"
         springCloudVersion = "Hoxton.SR2"
-        verifierVersion = "2.2.0.RC2"
+        verifierVersion = "2.1.4.RELEASE"
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -32,7 +32,8 @@ version = "0.1.1"
 publishing {
     publications {
         stubs(MavenPublication) {
-            artifactId "${project.name}-stubs"
+            groupId "org.beancounter"
+            artifactId "${project.name}"
             artifact verifierStubsJar
         }
     }

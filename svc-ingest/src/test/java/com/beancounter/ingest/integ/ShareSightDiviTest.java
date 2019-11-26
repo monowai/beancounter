@@ -39,8 +39,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     ShareSightConfig.class
 })
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = "beancounter:svc-md:+:stubs:8090")
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = "org.beancounter:svc-md:+:stubs:8090")
 @ActiveProfiles("test")
 @Slf4j
 class ShareSightDiviTest {

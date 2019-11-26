@@ -42,8 +42,6 @@ jobs:
   build-md:
     docker:
       - image: circleci/openjdk:11
-    environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
       - checkout
       - restore_cache:
@@ -51,7 +49,8 @@ jobs:
             - v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - run: 'pwd'
-      - run: './gradlew jar-common:build svc-md:build svc-md:publishToMavenLocal'
+      - run: './gradlew jar-common:build svc-md:build'
+      - run: './gradlew svc-md:publishToMavenLocal'
 
       - store_test_results:
           path: ~/project/svc-md/build/test-results/test
@@ -62,15 +61,15 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-            - ~/.m2
           key: v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-md/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - save_cache:
           paths:
-            - ~/.gradle
             - ~/.m2
+            - ~/.gradle
             - ~/project
-          key: v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+
+          key: v2-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - store_artifacts:
           path: ~/project/svc-md/build/libs
@@ -81,12 +80,11 @@ jobs:
   build-ingest:
     docker:
       - image: circleci/openjdk:11
-    environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
     steps:
+
       - restore_cache:
           keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - v2-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: './gradlew svc-ingest:build'
 
@@ -103,13 +101,12 @@ jobs:
     docker:
       - image: circleci/openjdk:11
 #      - image: circleci/openjdk:13.0-buster
-    environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
 
     steps:
+
       - restore_cache:
           keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - v2-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: './gradlew svc-position:build'
 

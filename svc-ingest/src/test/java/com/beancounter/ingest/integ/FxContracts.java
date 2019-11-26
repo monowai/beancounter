@@ -27,8 +27,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ImportAutoConfiguration({FeignAutoConfiguration.class})
 @SpringBootTest
 @AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.CLASSPATH,
-    ids = "beancounter:svc-md:+:stubs:8090")
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = "org.beancounter:svc-md:+:stubs:8090")
 @ActiveProfiles("test")
 class FxContracts {
 

@@ -61,7 +61,7 @@ dependencies {
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
-            'org.codehaus.groovy:groovy-all:2.4.6',
+            'org.codehaus.groovy:groovy-all:2.5.8',
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             // Not needed, but pulling into cache

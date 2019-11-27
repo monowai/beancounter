@@ -69,7 +69,7 @@ jobs:
             - ~/.gradle
             - ~/project
 
-          key: v2-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - store_artifacts:
           path: ~/project/svc-md/build/libs
@@ -84,9 +84,10 @@ jobs:
 
       - restore_cache:
           keys:
-            - v2-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-ingest:build'
+      #- run: './gradlew svc-md:publishToMavenLocal --info'
+      - run: './gradlew svc-ingest:build --debug'
 
       - store_test_results:
           path: ~/project/svc-ingest/build/test-results/test
@@ -106,8 +107,9 @@ jobs:
 
       - restore_cache:
           keys:
-            - v2-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
+      #- run: './gradlew svc-md:publishToMavenLocal'
       - run: './gradlew svc-position:build'
 
       - store_test_results:

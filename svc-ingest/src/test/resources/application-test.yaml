@@ -1,5 +1,6 @@
 
-marketdata.url: "http://localhost:8090"
+marketdata:
+  url: http://localhost:10999
 
 stubrunner:
   idsToServiceIds:

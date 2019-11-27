@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,15 +19,13 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
 @Tag("slow")
 @ImportAutoConfiguration({FeignAutoConfiguration.class})
 @SpringBootTest
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = "org.beancounter:svc-md:+:stubs:8090")
+    ids = "org.beancounter:svc-md:+:stubs:10999")
 @ActiveProfiles("test")
 class FxContracts {
 

@@ -10,7 +10,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.reader.Filter;
 import com.beancounter.ingest.reader.RowProcessor;
 import com.beancounter.ingest.reader.Transformer;
@@ -23,13 +22,11 @@ import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Sharesight Transaction to BC model.Transaction.
@@ -37,16 +34,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author mikeh
  * @since 2019-02-12
  */
-@ExtendWith(SpringExtension.class)
-
-@SpringBootTest(classes = {
-    ShareSightConfig.class
-})
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = "org.beancounter:svc-md:+:stubs:8090")
+    ids = "org.beancounter:svc-md:+:stubs:10999")
 @ActiveProfiles("test")
 @Slf4j
+@SpringBootTest
 class ShareSightTradeTest {
 
   @Autowired

@@ -13,7 +13,6 @@ import com.beancounter.ingest.service.FxTransactions;
 import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.google.common.annotations.VisibleForTesting;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -21,27 +20,19 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
-import org.springframework.cloud.openfeign.FeignAutoConfiguration;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
 @Tag("slow")
-@ImportAutoConfiguration({FeignAutoConfiguration.class})
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = "org.beancounter:svc-md:+:stubs:8090")
-@DirtiesContext
+    ids = "org.beancounter:svc-md:+:stubs:10999")
 @ActiveProfiles("test")
 @Slf4j
-@SpringBootTest(properties = {"ratesIgnored=true"})
+@SpringBootTest
 class TradesWithFx {
 
   @Autowired
@@ -54,7 +45,6 @@ class TradesWithFx {
   private ShareSightService shareSightService;
 
   @Test
-  @VisibleForTesting
   void is_FxRatesSetFromCurrencies() throws Exception {
 
     List<String> row = new ArrayList<>();
@@ -91,11 +81,10 @@ class TradesWithFx {
   }
 
   @Test
-  @VisibleForTesting
   void is_FxRateOverridenFromSourceData() throws Exception {
 
     List<String> row = new ArrayList<>();
-
+    shareSightService.setRatesIgnored(true);
     // NZD Portfolio
     // USD System Base
     // GBP Trade
@@ -128,19 +117,19 @@ class TradesWithFx {
   }
 
   @Test
-  @VisibleForTesting
   void is_FxRatesSetToTransaction() throws Exception {
 
     List<String> row = new ArrayList<>();
 
     String testDate = "18/10/2019";
+    shareSightService.setRatesIgnored(false);
 
     // Trade CCY USD
+    row.add(ShareSightTrades.date, testDate);
     row.add(ShareSightTrades.market, "NASDAQ");
     row.add(ShareSightTrades.code, "EBAY");
     row.add(ShareSightTrades.name, "EBAY");
     row.add(ShareSightTrades.type, "BUY");
-    row.add(ShareSightTrades.date, testDate);
     row.add(ShareSightTrades.quantity, "10");
     row.add(ShareSightTrades.price, "100");
     row.add(ShareSightTrades.brokerage, null);
@@ -222,3 +211,6 @@ class TradesWithFx {
   }
 
 }
+
+
+

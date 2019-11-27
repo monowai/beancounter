@@ -3,7 +3,6 @@ package com.beancounter.ingest.service;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.model.FxPairResults;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ public class FxRateService {
   private BcGateway bcGateway;
 
   @Autowired
-  @VisibleForTesting
   void setBcGateway(BcGateway bcGateway) {
     this.bcGateway = bcGateway;
   }

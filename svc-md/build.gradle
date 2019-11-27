@@ -4,7 +4,7 @@ buildscript {
         stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
         // redefine values from settings.gradle, but the vars can't be used in the dependencies closure
         springBootVersion = "2.2.1.RELEASE"
-        verifierVersion = "2.2.0.RC2"
+        verifierVersion = "2.1.4.RELEASE"
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")

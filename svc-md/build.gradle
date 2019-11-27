@@ -2,15 +2,14 @@ buildscript {
     ext {
         contractsDir = file("mappings")
         stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+        // redefine values from settings.gradle, but the vars can't be used in the dependencies closure
         springBootVersion = "2.2.1.RELEASE"
-        springCloudVersion = "Hoxton.SR2"
-        verifierVersion = "2.1.4.RELEASE"
+        verifierVersion = "2.2.0.RC2"
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:${verifierVersion}"
     }
-
 }
 
 plugins {
@@ -58,7 +57,6 @@ dependencies {
         exclude(group:"com.sun.xml.bind", module:"jaxb-osgi") }
 
     testImplementation(
-
             "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
@@ -66,6 +64,8 @@ dependencies {
             'org.codehaus.groovy:groovy-all:2.4.6',
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
+            // Not needed, but pulling into cache
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter"
     )

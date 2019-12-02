@@ -85,7 +85,7 @@
     "razzle-plugin-scss": "^3.0.0",
     "razzle-plugin-typescript": "^3.0.0",
     "react-hot-loader": "^4.12.15",
-    "react-test-renderer": "^16.9.0",
+    "react-test-renderer": "^16.12.0",
     "remark-cli": "^7.0.0",
     "remark-lint-no-literal-urls": "^1.0.3",
     "remark-preset-lint-recommended": "^3.0.3",

@@ -1,12 +1,5 @@
 
 pluginManagement {
-    ext {
-        springBootVersion = "2.2.1.RELEASE"
-        springCloudVersion = "Hoxton.SR2"
-        // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html
-        verifierVersion = "2.2.0.RELEASE"
-    }
-
     repositories {
         mavenLocal()
         maven { url "https://repo.spring.io/milestone" }

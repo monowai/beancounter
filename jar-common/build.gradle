@@ -5,7 +5,7 @@ dependencies() {
     compileOnly(
             "org.projectlombok:lombok:${lombokVersion}",
             "com.fasterxml.jackson.core:jackson-databind:2.9.8",
-            "io.github.openfeign:feign-core:10.4.0",
+            "io.github.openfeign:feign-core:10.7.0",
             "org.springframework:spring-web:5.2.1.RELEASE",
             "com.google.guava:guava:28.1-jre"
     )
@@ -22,7 +22,7 @@ dependencies() {
             "com.fasterxml.jackson.core:jackson-databind:2.10.1",
             "org.projectlombok:lombok:${lombokVersion}",
             "org.assertj:assertj-core:3.14.0",
-            "io.github.openfeign:feign-core:10.4.0",
+            "io.github.openfeign:feign-core:10.7.0",
             "org.springframework:spring-web:5.2.1.RELEASE",
             "org.junit.jupiter:junit-jupiter:${junitVersion}",
             "com.google.guava:guava:28.1-jre"

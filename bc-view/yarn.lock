@@ -10469,10 +10469,10 @@ react-switch@^5.0.1:
   dependencies:
     prop-types "^15.6.2"
 
-react-table@^7.0.0-beta.12:
-  version "7.0.0-beta.27"
-  resolved "https://registry.yarnpkg.com/react-table/-/react-table-7.0.0-beta.27.tgz#0505aed2beffedc596dd003e72c91a4709b91456"
-  integrity sha512-Lkc8xIwc6OhV4RV753zJt/29WdPh0H5TlZVT8KRjiCaX4Xcrx/MI0kAG+WljxIz9USN6+FYiKrYVtOcScHIxBA==
+react-table@^7.0.0-beta.28:
+  version "7.0.0-beta.28"
+  resolved "https://registry.yarnpkg.com/react-table/-/react-table-7.0.0-beta.28.tgz#f5cd37b09fdbc7f22f472d021c56637d9fae097c"
+  integrity sha512-Ym05FAFNPGU6cid3Uw2W2+tn3mfGqKkLs51dw5FAJyz3fFNV0/i/CrTzHXZbVDA/KO2KNFYUjKGQJxIiDbXb4w==
 
 react-test-renderer@^16.9.0:
   version "16.12.0"

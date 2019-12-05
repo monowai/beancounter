@@ -1,13 +1,23 @@
+buildscript {
+    ext {
+        openFeign = "10.7.0"
+        springWeb = "5.2.2.RELEASE"
+        guava = "28.1-jre"
+        jackson = "2.10.1"
+        assertJ = "3.14.0"
+    }
+}
+
 apply from: '../buildtools/javaCommon.gradle'
 
 dependencies() {
 
     compileOnly(
             "org.projectlombok:lombok:${lombokVersion}",
-            "com.fasterxml.jackson.core:jackson-databind:2.9.8",
-            "io.github.openfeign:feign-core:10.4.0",
-            "org.springframework:spring-web:5.2.1.RELEASE",
-            "com.google.guava:guava:28.1-jre"
+            "com.fasterxml.jackson.core:jackson-databind:${jackson}",
+            "io.github.openfeign:feign-core:${openFeign}",
+            "org.springframework:spring-web:${springWeb}",
+            "com.google.guava:guava:${guava}"
     )
 
     annotationProcessor(
@@ -19,13 +29,13 @@ dependencies() {
     )
 
     testImplementation(
-            "com.fasterxml.jackson.core:jackson-databind:2.10.1",
+            "com.fasterxml.jackson.core:jackson-databind:${jackson}",
             "org.projectlombok:lombok:${lombokVersion}",
-            "org.assertj:assertj-core:3.14.0",
-            "io.github.openfeign:feign-core:10.4.0",
-            "org.springframework:spring-web:5.2.1.RELEASE",
+            "org.assertj:assertj-core:${assertJ}",
+            "io.github.openfeign:feign-core:${openFeign}",
+            "org.springframework:spring-web:${springWeb}",
             "org.junit.jupiter:junit-jupiter:${junitVersion}",
-            "com.google.guava:guava:28.1-jre"
+            "com.google.guava:guava:${guava}"
     )
 }
 

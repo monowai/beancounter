@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import feign.Request;
+import feign.RequestTemplate;
 import feign.Response;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 class TestExceptions {
+  private RequestTemplate requestTemplate = new RequestTemplate();
 
   @Test
   void is_FeignBusinessExceptionThrown() {
@@ -27,7 +29,8 @@ class TestExceptions {
         .reason("Business Logic")
         .status(HttpStatus.BAD_REQUEST.value())
         .request(Request.create(
-            Request.HttpMethod.GET, "/test", new HashMap<>(), Request.Body.empty()))
+            Request.HttpMethod.GET, "/test",
+            new HashMap<>(), Request.Body.empty(), requestTemplate))
         .build();
     assertThrows(BusinessException.class, () -> validBusinessException(
         springFeignDecoder.decode("test", response)));
@@ -47,7 +50,8 @@ class TestExceptions {
         .reason("Integration Error")
         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
         .request(Request.create(
-            Request.HttpMethod.GET, "/test", new HashMap<>(), Request.Body.empty()))
+            Request.HttpMethod.GET, "/test", new HashMap<>(),
+            Request.Body.empty(), requestTemplate))
         .build();
     assertThrows(SystemException.class, () -> validSystemException(
         springFeignDecoder.decode("test", response)));
@@ -61,12 +65,13 @@ class TestExceptions {
         .reason("Integration Error")
         .status(HttpStatus.SWITCHING_PROTOCOLS.value())
         .request(Request.create(
-            Request.HttpMethod.GET, "/test", new HashMap<>(), Request.Body.empty()))
+            Request.HttpMethod.GET, "/test", new HashMap<>(),
+            Request.Body.empty(), requestTemplate))
         .build();
 
     assertThrows(FeignException.class, () -> {
       Exception e = springFeignDecoder.decode("test", response);
-      assertThat(e.getMessage()).isEqualTo("status 101 reading test");
+      assertThat(e.getMessage()).contains("101 Integration Error");
       throw e;
     });
 
@@ -90,7 +95,7 @@ class TestExceptions {
         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
         .request(Request.create(
             Request.HttpMethod.GET, "/test", new HashMap<>(),
-            Request.Body.empty()))
+            Request.Body.empty(), requestTemplate))
         .body(objectMapper.writeValueAsString(springExceptionMessage), Charset.defaultCharset())
         .build();
     assertThrows(SystemException.class, () -> validIntegrationException(

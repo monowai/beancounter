@@ -1,7 +1,7 @@
 buildscript {
     ext {
         springBootVersion = "2.2.1.RELEASE"
-        googleClientVersion = "1.30.5"
+        googleClientVersion = "1.30.6"
     }
 }
 plugins {

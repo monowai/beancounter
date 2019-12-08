@@ -2,6 +2,7 @@ package com.beancounter.marketdata.config;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -24,13 +25,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Data
 public class StaticConfig {
-  private Map<String, Map<String, Object>> currencies;
-  private Map<String, Map<String, Object>> markets;
+  private Collection<Currency> currencies;
+  private Collection<Market> markets;
 
   private Map<String, Market> marketData = new HashMap<>();
 
-  private Map<String, Currency> currencyId = new HashMap<>();
-  private Map<String, Currency> currencyCode = new HashMap<>();
+  private Map<String, Currency> currencyById = new HashMap<>();
+  private Map<String, Currency> currencyByCode = new HashMap<>();
 
   private Currency base;
 
@@ -45,39 +46,25 @@ public class StaticConfig {
   }
 
   private void handleMarkets() {
-    // ToDo: This looks cumbersome. Must be a better way to deserialize
-    for (String code : markets.keySet()) {
-      Map<String, Object> marketValues = markets.get(code);
-      Map<String, String> aliases = null;
-      if (marketValues.containsKey("aliases")) {
-        aliases = (Map<String, String>) marketValues.get("aliases");
-      }
-
-      Object currencyId = markets.get(code).get("currencyId");
+    for (Market market : markets) {
+      String currencyId = market.getCurrencyId();
       Currency currency = (currencyId == null
           ? getBase() :
-          this.currencyId.get(currencyId.toString()));
+          this.currencyById.get(currencyId));
+      market.setCurrency(currency);
+      market.setTimezone(getTimeZone(market.getTimezoneId()));
 
+      this.marketData.put(market.getCode(), market);
 
-      Market market = Market
-          .builder()
-          .code(code)
-          .aliases(aliases)
-          .currency(currency)
-          .timezone(getTimeZone(marketValues)
-          ).build();
-      this.marketData.put(code, market);
     }
-    log.info(markets.toString());
   }
 
   private void handleCurrencies() {
-    for (String code : currencies.keySet()) {
-      Currency currency = Currency.of(code, currencies.get(code));
-      currencyId.put(code, currency);
-      currencyCode.put(currency.getCode(), currency);
+    for (Currency currency : currencies) {
+      currencyById.put(currency.getId(), currency);
+      currencyByCode.put(currency.getCode(), currency);
     }
-    base = currencyId.get("US");
+    base = currencyById.get("US");
   }
 
   public Currency getBase() {
@@ -85,12 +72,11 @@ public class StaticConfig {
   }
 
 
-  private TimeZone getTimeZone(Map<String, Object> market) {
-    Object result = market.get("timezone");
-    if (result == null) {
+  private TimeZone getTimeZone(String timezoneId) {
+    if (timezoneId == null) {
       return TimeZone.getDefault();
     }
-    return TimeZone.getTimeZone(result.toString());
+    return TimeZone.getTimeZone(timezoneId);
   }
 
 }

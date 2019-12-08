@@ -14,10 +14,6 @@ server:
   error:
     include-stacktrace: never
 
-feign:
-  hystrix:
-    enabled: false
-
 beancounter:
   exchanges:
     aliases:

@@ -33,7 +33,7 @@ public class CurrencyService {
    */
   public Currency getId(@NotNull String code) {
     Objects.requireNonNull(code);
-    return staticConfig.getCurrencyId().get(code.toUpperCase());
+    return staticConfig.getCurrencyById().get(code.toUpperCase());
   }
 
   /**
@@ -44,7 +44,7 @@ public class CurrencyService {
    */
   public Currency getCode(@NotNull String code) {
     Objects.requireNonNull(code);
-    return staticConfig.getCurrencyCode().get(code.toUpperCase());
+    return staticConfig.getCurrencyByCode().get(code.toUpperCase());
   }
 
   public Currency getBase() {
@@ -53,6 +53,6 @@ public class CurrencyService {
 
 
   public String delimited(String delimiter) {
-    return String.join(delimiter, staticConfig.getCurrencyCode().keySet());
+    return String.join(delimiter, staticConfig.getCurrencyByCode().keySet());
   }
 }

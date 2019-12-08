@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -38,14 +37,12 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
 @WebAppConfiguration
@@ -103,15 +100,6 @@ class StubbedFxValuations {
     assertThat(valuation).isNotNull();
     valuation.value(positions);
     return positions;
-  }
-
-  @BeforeAll
-  static void mappings() {
-    log.info("---MAPPINGS---");
-    RestTemplate restTemplate = new RestTemplate();
-    ResponseEntity<String> response
-        = restTemplate.getForEntity("http://localhost:10999/__admin/mappings", String.class);
-    log.info(response.getBody());
   }
 
   @Test
@@ -223,7 +211,8 @@ class StubbedFxValuations {
     assertThat(position)
         .hasFieldOrProperty("asset");
 
-    assertThat(position.getAsset().getMarket()).hasNoNullFieldsOrPropertiesExcept("aliases");
+    assertThat(position.getAsset().getMarket())
+        .hasNoNullFieldsOrPropertiesExcept("aliases","currencyId","timezoneId");
 
     assertThat(position.getMoneyValues().get(Position.In.PORTFOLIO).getCurrency())
         .hasNoNullFieldsOrProperties();

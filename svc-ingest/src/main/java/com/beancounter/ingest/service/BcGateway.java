@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
-@FeignClient(name = "marketData",
+@FeignClient(name = "marketdata",
     url = "${marketdata.url:http://localhost:9510/api}")
 @Configuration
 public interface BcGateway {

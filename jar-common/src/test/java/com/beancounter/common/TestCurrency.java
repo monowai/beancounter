@@ -58,29 +58,9 @@ class TestCurrency {
   }
 
   @Test
-  void is_FromMapConverting() {
-    Currency currency = Currency.builder()
-        .id("TWEE")
-        .code("CODE")
-        .name("Name")
-        .symbol("$")
-        .build();
-
-    Map<String, Object> mapCurrency = new HashMap<>();
-    mapCurrency.put("code", currency.getCode());
-    mapCurrency.put("name", currency.getName());
-    mapCurrency.put("symbol", currency.getSymbol());
-
-    Currency fromMap = Currency.of(currency.getId(), mapCurrency);
-    assertThat(fromMap).isEqualToComparingFieldByField(currency);
-    assertThat(fromMap.toString()).isEqualTo("Currency(code=CODE)");
-  }
-
-  @Test
   void is_NullCurrencyCodeWorking() {
-    Assertions.assertThrows(NullPointerException.class, () -> {
-      Currency.builder().code(null).build();
-    });
+    Assertions.assertThrows(NullPointerException.class, ()
+        -> Currency.builder().code(null).build());
   }
 
   @Test

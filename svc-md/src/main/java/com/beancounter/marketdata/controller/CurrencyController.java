@@ -29,7 +29,7 @@ public class CurrencyController {
   @GetMapping
   CurrencyResponse getCurrencies() {
     return CurrencyResponse.builder()
-        .data(staticConfig.getCurrencyCode())
+        .data(staticConfig.getCurrencyByCode())
         .build();
   }
 }

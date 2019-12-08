@@ -15,10 +15,3 @@ beancounter:
         url: http://localhost:7777
       MOCK:
         markets: MOCK
-
-  markets:
-    NZX:
-      timezone: Pacific/Auckland
-      currencyId: NZ
-      aliases:
-        ALPHA: NZ

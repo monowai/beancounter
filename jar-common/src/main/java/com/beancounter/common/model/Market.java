@@ -2,12 +2,13 @@ package com.beancounter.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * A stock exchange.
@@ -17,15 +18,19 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @Builder
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Market {
   private String code;
   private Currency currency;
-  private TimeZone timezone;
-
   @JsonIgnore
-  private Map<String, String> aliases;
+  private String currencyId;
+  private TimeZone timezone;
+  private String timezoneId;
+
+  @Builder.Default
+  @JsonIgnore
+  private Map<String, String> aliases = new HashMap<>();
 
 }

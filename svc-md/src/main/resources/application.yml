@@ -32,76 +32,68 @@ beancounter:
   baseCcy: US
 
   currencies:
-    GB:
-      code: GBP
-      name: Pound
-      symbol: ￡
+    - code: "GBP"
+      id: "GB"
+      name: "Pound"
+      symbol: "￡"
 
-    US:
-      code: USD
+    - code: USD
+      id: US
       name: Dollar
       symbol: $
 
-    NZ:
-      code: NZD
+    - code: NZD
+      id: NZ
       name: Dollar
       symbol: $
 
-    AU:
+    - id: AU
       code: AUD
       name: Dollar
       symbol: $
 
-    EU:
+    - id: EU
       code: EUR
       name: Euro
       symbol: €
 
-    SG:
+    - id: SG
       code: SGD
       name: Dollar
       symbol: $
 
   markets:
-    MOCK:
-      timezone: UTC
+    - code: MOCK
+      timezoneId: UTC
 
-    NASDAQ:
-      timezone: US/Eastern
+    - code: NASDAQ
+      timezoneId: US/Eastern
       currencyId: US
-      aliases:
-        WTD:
-        ALPHA:
 
-    NYSE:
-      timezone: US/Eastern
+    - code: NYSE
+      timezoneId: US/Eastern
       currencyId: US
-      aliases:
-        WTD:
-        ALPHA:
 
-    AMEX:
-      timezone: US/Eastern
+    - code: AMEX
+      timezoneId: US/Eastern
       currencyId: US
-      aliases:
-        WTD:
-        ALPHA:
 
-    ASX:
-      timezone: Australia/Sydney
+    - code: ASX
+      timezoneId: Australia/Sydney
       currencyId: AU
       aliases:
         WTD: AX
 
-    NZX:
-      timezone: Pacific/Auckland
+    - code: NZX
+      timezoneId: Pacific/Auckland
       currencyId: NZ
       aliases:
         WTD: NZ
+        ALPHA: NZ
 
-    SGX:
+    - code: SGX
       currencyId: SG
-      timezone: Asia/Singapore
+      timezoneId: Asia/Singapore
 
 
   marketdata:

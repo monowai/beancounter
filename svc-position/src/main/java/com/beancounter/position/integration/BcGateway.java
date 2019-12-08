@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
  */
 @Configuration
 @CircuitBreaker(name = "marketdata")
-@FeignClient(name = "${marketdata.name}", url = "${marketdata.url:http://localhost:9510/api}")
+@FeignClient(name = "marketdata", url = "${marketdata.url:http://localhost:9510/api}")
 public interface BcGateway {
 
   @GetMapping(value = "/prices/{assetId}", produces = {MediaType.APPLICATION_JSON_VALUE})

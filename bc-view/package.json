@@ -34,7 +34,7 @@
     "react-router-dom": "^5.1.2",
     "react-select": "^3.0.8",
     "react-switch": "^5.0.1",
-    "react-table": "^7.0.0-beta.12",
+    "react-table": "^7.0.0-rc.6",
     "remark-lint": "^6.0.5",
     "winston": "^3.2.1"
   },

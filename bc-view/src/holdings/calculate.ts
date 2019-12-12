@@ -1,6 +1,6 @@
 import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
-import { GroupBy } from "./groupBy";
-import { CurrencyValues } from "./valueBy";
+import { GroupBy } from "../types/groupBy";
+import { ValueIn } from "../types/valueBy";
 
 function getPath(path: string, position: Position): string {
   return (path
@@ -14,7 +14,7 @@ function getPath(path: string, position: Position): string {
 function total(
   total: MoneyValues,
   position: Position,
-  valueIn: CurrencyValues
+  valueIn: ValueIn
 ): MoneyValues {
   if (!total) {
     total = {
@@ -48,7 +48,7 @@ function total(
 function totals(
   totals: MoneyValues[],
   position: Position,
-  valueIn: CurrencyValues
+  valueIn: ValueIn
 ): MoneyValues[] {
   if (!totals) {
     totals = [];
@@ -57,10 +57,10 @@ function totals(
   return totals;
 }
 // Transform the holdingContract into Holdings suitable for display
-export function computeHoldings(
+export function calculate(
   contract: HoldingContract,
   hideEmpty: boolean,
-  valueIn: CurrencyValues,
+  valueIn: ValueIn,
   groupBy: GroupBy
 ): Holdings {
   return Object.keys(contract.positions)
@@ -83,12 +83,12 @@ export function computeHoldings(
         results.totals["PORTFOLIO"] = total(
           results.totals["PORTFOLIO"],
           position,
-          CurrencyValues.PORTFOLIO
+          ValueIn.PORTFOLIO
         );
         results.totals["BASE"] = total(
           results.totals["BASE"],
           position,
-          CurrencyValues.BASE
+          ValueIn.BASE
         );
         // results.totals["TRADE"] = total(
         //   results.totals["BASE"],

@@ -3,7 +3,7 @@ import "../assets/styles.sass";
 import { translate } from "../i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";
-import { CurrencyValues } from "../holdings/valueBy";
+import { ValueIn } from "../types/valueBy";
 
 export default function StatsHeader(props: {
   portfolio: Portfolio;
@@ -25,7 +25,7 @@ export default function StatsHeader(props: {
 export function StatsRow(props: {
   portfolio: Portfolio;
   moneyValues: MoneyValues[];
-  valueIn: CurrencyValues;
+  valueIn: ValueIn;
 }): JSX.Element {
   const portfolio = props.portfolio;
   const valueIn = props.valueIn;
@@ -36,9 +36,7 @@ export function StatsRow(props: {
         <td>
           <div className="left-cell">
             {portfolio.code.toUpperCase()}:{" "}
-            {valueIn === CurrencyValues.TRADE
-              ? "N/A"
-              : moneyValues.currency.code}
+            {valueIn === ValueIn.TRADE ? "N/A" : moneyValues.currency.code}
           </div>
         </td>
         <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />

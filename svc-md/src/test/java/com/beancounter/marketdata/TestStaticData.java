@@ -31,11 +31,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 class TestStaticData {
 
   private StaticConfig staticConfig;
-
   private MarketService marketService;
-
   private CurrencyService currencyService;
-
 
   @Autowired
   TestStaticData(StaticConfig staticConfig,

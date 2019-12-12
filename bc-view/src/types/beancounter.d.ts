@@ -1,5 +1,5 @@
-import { GroupBy } from "../holdings/groupBy";
-import { ValuationCcy } from "../holdings/valueBy";
+import { GroupBy } from "./groupBy";
+import { ValuationCcy } from "./valueBy";
 
 declare global {
   interface Window {
@@ -13,12 +13,10 @@ export type MoneyFields =
   | "price"
   | "costValue"
   | "averageCost"
-  | "marketValue"
   | "realisedGain"
   | "unrealisedGain"
   | "totalGain"
   | "sales"
-  | "purchases"
   | "purchases"
   | "marketValue"
   | "investmentGain";
@@ -101,7 +99,7 @@ interface GroupOption {
   value: GroupBy;
 }
 
-interface CurrencyOption {
+interface ValuationOption {
   label: string;
   value: ValuationCcy;
 }

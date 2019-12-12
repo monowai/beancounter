@@ -1,4 +1,4 @@
-import PortfolioStats from "../portfolio/PortfolioStats";
+import PortfolioStats from "../portfolio/Stats";
 import React from "react";
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";

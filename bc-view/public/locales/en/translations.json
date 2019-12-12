@@ -14,5 +14,8 @@
   "strategy": "Net Gain",
   "groupby.currency": "Currency",
   "groupby.market": "Market",
-  "groupby.unknown": "Unknown"
+  "groupby.unknown": "Unknown",
+  "valuein.trade": "Trade",
+  "valuein.base": "Base",
+  "valuein.portfolio": "Portfolio"
 }

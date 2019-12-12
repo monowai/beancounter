@@ -2,12 +2,12 @@ import Home from "./Home";
 import React from "react";
 import "./i18nConfig";
 import { Route, Switch } from "react-router-dom";
-import LayoutHoldings from "./holdings/LayoutHoldings";
+import Layout from "./holdings";
 
 const App = (): JSX.Element => (
   <Switch>
     <Route exact={true} path="/" component={Home} />
-    <Route exact={true} path="/holdings" component={LayoutHoldings} />
+    <Route exact={true} path="/holdings" component={Layout} />
   </Switch>
 );
 

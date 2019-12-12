@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 public class Portfolio {
   private String code;
+  private String name;
 
   private Currency currency;
   @Builder.Default

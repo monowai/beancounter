@@ -1,11 +1,11 @@
 import { Holdings } from "../types/beancounter";
 import React from "react";
 import { FormatMoneyValue } from "../common/MoneyUtils";
-import { CurrencyValues } from "./valueBy";
+import { ValueIn } from "../types/valueBy";
 
-export default function Totals(props: {
+export default function Total(props: {
   holdings: Holdings;
-  valueIn: CurrencyValues;
+  valueIn: ValueIn;
 }): JSX.Element {
   // Transform the contract into the view the user requested
   const holdings = props.holdings;

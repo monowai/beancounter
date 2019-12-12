@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<LayoutHoldings /> should match snapshot 1`] = `
+exports[`<Layout /> should match snapshot 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": .emotion-8 {

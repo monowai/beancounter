@@ -1,19 +1,19 @@
-import { HoldingFooter, HoldingHeader, HoldingRows } from "./GroupedHoldings";
+import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
 import React, { useState } from "react";
 import "../App.css";
-import { computeHoldings } from "./computeHoldings";
-import { description, GroupBy, GroupOptions } from "./groupBy";
-import { CurrencyOption, GroupOption, Holdings } from "../types/beancounter";
+import { calculate } from "./calculate";
+import { description, GroupBy, groupOptions } from "../types/groupBy";
+import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
 import useAxios from "axios-hooks";
-import Totals from "./Totals";
-import StatsHeader, { StatsRow } from "../portfolio/PortfolioStats";
+import Total from "./Total";
+import StatsHeader, { StatsRow } from "../portfolio/Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
-import { CurrencyOptions, CurrencyValues } from "./valueBy";
+import { valuationOptions, ValueIn } from "../types/valueBy";
 
-const LayoutHoldings = (): JSX.Element => {
-  const [valueBy, setValueBy] = useState<CurrencyOption>({
-    value: CurrencyValues.PORTFOLIO,
+const Layout = (): JSX.Element => {
+  const [valueIn, setValueIn] = useState<ValuationOption>({
+    value: ValueIn.PORTFOLIO,
     label: "Portfolio"
   });
   // const [portfolioValueIn, setPortfolioValueIn] = useState<ValuationCcy>("BASE");
@@ -24,16 +24,16 @@ const LayoutHoldings = (): JSX.Element => {
   });
   const [axiosResponse] = useAxios("http://localhost:9500/api/" + "test");
   if (axiosResponse.loading) {
-    return <p>Loading...</p>;
+    return <div id="root">Loading...</div>;
   }
   if (axiosResponse.error) {
-    return <p>{axiosResponse.error.message}!</p>;
+    return <div id="root">${axiosResponse.error.message}</div>;
   }
   if (axiosResponse.data) {
-    const holdings = computeHoldings(
+    const holdings = calculate(
       axiosResponse.data.data,
       hideEmpty,
-      valueBy.value,
+      valueIn.value,
       groupBy.value
     ) as Holdings;
 
@@ -45,13 +45,13 @@ const LayoutHoldings = (): JSX.Element => {
           <div className={"filter-column"}>
             <div>Value In</div>
             <Select
-              options={CurrencyOptions}
-              defaultValue={valueBy}
+              options={valuationOptions()}
+              defaultValue={valueIn}
               isSearchable={false}
               isClearable={false}
-              onChange={(newValue: ValueType<CurrencyOption>) => {
+              onChange={(newValue: ValueType<ValuationOption>) => {
                 if (newValue) {
-                  setValueBy(newValue as CurrencyOption);
+                  setValueIn(newValue as ValuationOption);
                 }
               }}
             />
@@ -59,7 +59,7 @@ const LayoutHoldings = (): JSX.Element => {
           <div className={"filter-column"}>
             <div>Group By</div>
             <Select
-              options={GroupOptions}
+              options={groupOptions()}
               defaultValue={groupBy}
               isSearchable={false}
               isClearable={false}
@@ -86,7 +86,7 @@ const LayoutHoldings = (): JSX.Element => {
             <StatsRow
               portfolio={axiosResponse.data.data.portfolio}
               moneyValues={holdings.totals}
-              valueIn={valueBy.value}
+              valueIn={valueIn.value}
             />
           </table>
         </div>
@@ -102,22 +102,22 @@ const LayoutHoldings = (): JSX.Element => {
                   <HoldingHeader groupKey={groupKey} />
                   <HoldingRows
                     holdingGroup={holdings.holdingGroups[groupKey]}
-                    valueIn={valueBy.value}
+                    valueIn={valueIn.value}
                   />
                   <HoldingFooter
                     holdingGroup={holdings.holdingGroups[groupKey]}
-                    valueIn={valueBy.value}
+                    valueIn={valueIn.value}
                   />
                 </React.Fragment>
               );
             })}
-            <Totals holdings={holdings} valueIn={valueBy.value} />
+            <Total holdings={holdings} valueIn={valueIn.value} />
           </table>
         </div>
       </div>
     );
   }
-  return <div>No Holdings...</div>;
+  return <div id="root">No Holdings to display</div>;
 };
 
-export default LayoutHoldings;
+export default Layout;

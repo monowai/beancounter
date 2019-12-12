@@ -101,7 +101,7 @@ public class SheetReader implements Ingester {
         return new ArrayList<>();
       }
 
-      log.info("Back fill FX rates...");
+      log.info("Back filling FX rates...");
       transactions = fxTransactions.applyRates(transactions);
 
       if (outputStream != null) {
@@ -113,7 +113,7 @@ public class SheetReader implements Ingester {
         log.info("Wrote {} transactions into file {}", transactions.size(),
             shareSightService.getOutFile());
       }
-
+      log.info("Complete!");
       return transactions;
 
     } catch (IOException e) {

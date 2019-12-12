@@ -5,7 +5,7 @@ import { RouteComponentProps } from "react-router";
 import Loadable from "react-loadable";
 
 const Holdings = Loadable({
-  loader: () => import("./holdings/LayoutHoldings"),
+  loader: () => import("./holdings"),
   loading: () => null
 });
 

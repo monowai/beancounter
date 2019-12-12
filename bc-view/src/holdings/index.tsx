@@ -2,7 +2,7 @@ import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
 import React, { useState } from "react";
 import "../App.css";
 import { calculate } from "./calculate";
-import { description, GroupBy, groupOptions } from "../types/groupBy";
+import { GroupBy, groupOptions } from "../types/groupBy";
 import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
 import useAxios from "axios-hooks";
 import Total from "./Total";
@@ -38,12 +38,12 @@ const Layout = (): JSX.Element => {
     ) as Holdings;
 
     return (
-      <div className={"page-box"}>
-        <div className="filter">
-          <div />
-          <div />
-          <div className={"filter-column"}>
-            <div>Value In</div>
+      <div className="page-box">
+        <div className="filter-columns">
+          <div className="filter-label"/>
+          <div className="filter-label"/>
+          <div className="filter-label">Value In</div>
+          <div className="filter-column">
             <Select
               options={valuationOptions()}
               defaultValue={valueIn}
@@ -56,8 +56,8 @@ const Layout = (): JSX.Element => {
               }}
             />
           </div>
-          <div className={"filter-column"}>
-            <div>Group By</div>
+          <div className="filter-label">Group By</div>
+          <div className="filter-column">
             <Select
               options={groupOptions()}
               defaultValue={groupBy}
@@ -70,8 +70,8 @@ const Layout = (): JSX.Element => {
               }}
             />
           </div>
-          <div>
-            <div>Hide Closed</div>
+          <div className="filter-label">Hide Closed</div>
+          <div className="filter-column">
             <Switch
               className="react-switch"
               onChange={setHideEmpty}
@@ -90,10 +90,6 @@ const Layout = (): JSX.Element => {
             />
           </table>
         </div>
-        <div className={"group-header"}>
-          Grouped by {description(groupBy.value)}
-        </div>
-
         <div>
           <table className={"table is-striped is-hoverable"}>
             {Object.keys(holdings.holdingGroups).map(groupKey => {

@@ -12,17 +12,22 @@ $table-head-cell-color: whitesmoke
 .page-box
   padding: 5px 10px
 
-.filter
-  grid-template-columns: 20% calc(80% - 20px)
+.filter-columns
   display: flex
   width: 100%
   justify-content: space-between
-  text-align: left
+  align-items: center
+  font-size: medium
+  padding-top: 7.5px
+  padding-bottom: 7.5px
+
 
 .filter-column
-  justify-content: space-between
-  text-align: left
-  //position: relative
+  min-width: 10%
+
+.filter-label
+  text-align: right
+  //padding-right: 5px
   min-width: 10%
 
 .table-header

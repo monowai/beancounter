@@ -70,7 +70,7 @@ const Layout = (): JSX.Element => {
               }}
             />
           </div>
-          <div className="filter-label">Hide Closed</div>
+          <div className="filter-label">Open Only</div>
           <div className="filter-column">
             <Switch
               className="react-switch"
@@ -92,7 +92,7 @@ const Layout = (): JSX.Element => {
         </div>
         <div>
           <table className={"table is-striped is-hoverable"}>
-            {Object.keys(holdings.holdingGroups).map(groupKey => {
+            {Object.keys(holdings.holdingGroups).sort().map(groupKey => {
               return (
                 <React.Fragment key={groupKey}>
                   <HoldingHeader groupKey={groupKey} />

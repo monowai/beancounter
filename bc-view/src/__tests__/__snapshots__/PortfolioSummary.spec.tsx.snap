@@ -16,10 +16,10 @@ Object {
               Summary
             </th>
             <th>
-              dividends
+              value
             </th>
             <th>
-              value
+              dividends
             </th>
             <th>
               purchases
@@ -47,10 +47,10 @@ Object {
             Summary
           </th>
           <th>
-            dividends
+            value
           </th>
           <th>
-            value
+            dividends
           </th>
           <th>
             purchases

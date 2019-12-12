@@ -90,12 +90,6 @@ export function calculate(
           position,
           ValueIn.BASE
         );
-        // results.totals["TRADE"] = total(
-        //   results.totals["BASE"],
-        //   position,
-        //   "BASE"
-        // );
-
         results.holdingGroups[groupKey].subTotals = totals(
           results.holdingGroups[groupKey].subTotals,
           position,

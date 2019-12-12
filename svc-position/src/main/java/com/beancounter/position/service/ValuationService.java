@@ -69,8 +69,9 @@ public class ValuationService implements Valuation {
         assets.add(position.getAsset());
       }
     }
+    Positions valuedPositions = value(positions, assets);
 
-    return PositionResponse.builder().data(value(positions, assets)).build();
+    return PositionResponse.builder().data(valuedPositions).build();
   }
 
   private Positions value(Positions positions, Collection<Asset> assets) {

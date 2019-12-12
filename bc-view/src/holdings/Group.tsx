@@ -11,8 +11,8 @@ export function HoldingHeader(props: { groupKey: string }): JSX.Element {
     <tbody className={"table-header"}>
       <tr>
         <th>{props.groupKey}</th>
-        <th align={"right"}>{translate("quantity")}</th>
         <th align={"right"}>{translate("price")}</th>
+        <th align={"right"}>{translate("quantity")}</th>
         <th align={"right"}>{translate("cost.avg")}</th>
         <th align={"right"}>{translate("cost")}</th>
         <th align={"right"}>{translate("value")}</th>
@@ -37,15 +37,6 @@ export function HoldingRows(props: {
         {position.asset.code + ": " + position.asset.name}
       </td>
       <td>
-        <NumberFormat
-          value={position.quantityValues.total}
-          displayType={"text"}
-          decimalScale={0}
-          fixedDecimalScale={true}
-          thousandSeparator={true}
-        />
-      </td>
-      <td>
         {!position.asset.market.currency ? (
           "-"
         ) : (
@@ -62,6 +53,15 @@ export function HoldingRows(props: {
             />
           </label>
         )}
+      </td>
+      <td>
+        <NumberFormat
+          value={position.quantityValues.total}
+          displayType={"text"}
+          decimalScale={0}
+          fixedDecimalScale={true}
+          thousandSeparator={true}
+        />
       </td>
 
       <FormatMoneyValue

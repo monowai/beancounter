@@ -3,8 +3,8 @@ package com.beancounter.common.model;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -20,7 +20,7 @@ public class Positions {
   @NonNull
   private Portfolio portfolio;
   private String asAt;
-  private Map<String, Position> positions = new HashMap<>();
+  private Map<String, Position> positions = new TreeMap<>();
 
   Positions() {
     super();

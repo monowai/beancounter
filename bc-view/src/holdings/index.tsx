@@ -40,8 +40,8 @@ const Layout = (): JSX.Element => {
     return (
       <div className="page-box">
         <div className="filter-columns">
-          <div className="filter-label"/>
-          <div className="filter-label"/>
+          <div className="filter-label" />
+          <div className="filter-label" />
           <div className="filter-label">Value In</div>
           <div className="filter-column">
             <Select
@@ -92,21 +92,23 @@ const Layout = (): JSX.Element => {
         </div>
         <div>
           <table className={"table is-striped is-hoverable"}>
-            {Object.keys(holdings.holdingGroups).sort().map(groupKey => {
-              return (
-                <React.Fragment key={groupKey}>
-                  <HoldingHeader groupKey={groupKey} />
-                  <HoldingRows
-                    holdingGroup={holdings.holdingGroups[groupKey]}
-                    valueIn={valueIn.value}
-                  />
-                  <HoldingFooter
-                    holdingGroup={holdings.holdingGroups[groupKey]}
-                    valueIn={valueIn.value}
-                  />
-                </React.Fragment>
-              );
-            })}
+            {Object.keys(holdings.holdingGroups)
+              .sort()
+              .map(groupKey => {
+                return (
+                  <React.Fragment key={groupKey}>
+                    <HoldingHeader groupKey={groupKey} />
+                    <HoldingRows
+                      holdingGroup={holdings.holdingGroups[groupKey]}
+                      valueIn={valueIn.value}
+                    />
+                    <HoldingFooter
+                      holdingGroup={holdings.holdingGroups[groupKey]}
+                      valueIn={valueIn.value}
+                    />
+                  </React.Fragment>
+                );
+              })}
             <Total holdings={holdings} valueIn={valueIn.value} />
           </table>
         </div>

@@ -2,7 +2,7 @@ package com.beancounter.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.contracts.PortfolioResults;
+import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,10 +17,10 @@ class TestPortfolio {
     Portfolio portfolio = PortfolioUtils.getPortfolio("Test");
     Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(portfolio);
-    PortfolioResults portfolioResults = PortfolioResults.builder().data(portfolios).build();
-    String json = objectMapper.writeValueAsString(portfolioResults);
+    PortfolioResponse portfolioResponse = PortfolioResponse.builder().data(portfolios).build();
+    String json = objectMapper.writeValueAsString(portfolioResponse);
 
-    assertThat(objectMapper.readValue(json, PortfolioResults.class))
-        .isEqualToComparingFieldByField(portfolioResults);
+    assertThat(objectMapper.readValue(json, PortfolioResponse.class))
+        .isEqualToComparingFieldByField(portfolioResponse);
   }
 }

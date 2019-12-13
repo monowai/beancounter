@@ -11,6 +11,6 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class PortfolioResults {
+public class PortfolioResponse {
   private Collection<Portfolio> data;
 }

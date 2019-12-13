@@ -1,11 +1,11 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.marketdata.EcbMockUtils.get;
 import static com.beancounter.marketdata.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.WtdMockUtils;
@@ -21,7 +21,6 @@ import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,16 +48,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @AutoConfigureWireMock(port = 0)
 public class ContractVerifierBase {
 
-  static Asset aapl =
-      Asset.builder().code("AAPL").market(nasdaq()).build();
-  private static Asset ebay =
-      Asset.builder().code("EBAY").market(nasdaq()).build();
-  static Asset msft =
-      Asset.builder().code("MSFT").market(nasdaq()).build();
-  static Asset msftInvalid =
-      Asset.builder().code("MSFTx").market(nasdaq()).build();
-  static Asset amp =
-      Asset.builder().code("AMP").market(Market.builder().code("ASX").build()).build();
+  static Asset aapl = getAsset("AAPL", "NASDAQ");
+  private static Asset ebay = getAsset("EBAY", "NASDAQ");
+  static Asset msft = getAsset("MSFT", "NASDAQ");
+  static Asset msftInvalid = getAsset("MSFTx", "NASDAQ");
+  static Asset amp = getAsset("AMP", "ASX");
 
   @Autowired
   private FxController fxController;
@@ -143,14 +137,6 @@ public class ContractVerifierBase {
     Mockito.when(wtdGateway.getMarketDataForAssets(assets, date, "demo"))
         .thenReturn(wtdResponse);
   }
-
-  public static Market nasdaq() {
-    return Market.builder()
-        .code("NASDAQ")
-        .timezone(TimeZone.getTimeZone("US/Eastern"))
-        .build();
-  }
-
 
   @Test
   public void is_Started() {

@@ -54,6 +54,7 @@ public class AssetUtils {
   public Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
     return getAsset(assetCode, Market.builder()
         .code(marketCode)
+        .id(marketCode)
         .currency(Currency.builder().code("USD").build())
         .build());
   }
@@ -66,7 +67,9 @@ public class AssetUtils {
    * @return asset on a market
    */
   public Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
-    return Asset.builder().code(assetCode)
+    return Asset.builder()
+        .id(assetCode)
+        .code(assetCode)
         .market(market)
         .build();
   }

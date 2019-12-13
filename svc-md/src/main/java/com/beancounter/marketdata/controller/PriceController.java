@@ -41,7 +41,10 @@ public class PriceController {
                          @PathVariable("assetId") String assetId) {
     Asset testAsset = Asset.builder()
         .code(assetId)
-        .market(Market.builder().code(marketId).build())
+        .id(assetId)
+        .market(Market.builder()
+            .id(marketId)
+            .code(marketId).build())
         .build();
     return marketDataService.getPrice(testAsset);
 

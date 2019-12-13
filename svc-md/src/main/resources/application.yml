@@ -64,27 +64,33 @@ beancounter:
 
   markets:
     - code: MOCK
+      id: MOCK
       timezoneId: UTC
 
     - code: NASDAQ
+      id: NASDAQ
       timezoneId: US/Eastern
       currencyId: US
 
     - code: NYSE
+      id: NYSE
       timezoneId: US/Eastern
       currencyId: US
 
     - code: AMEX
+      id: AMEX
       timezoneId: US/Eastern
       currencyId: US
 
     - code: ASX
+      id: ASX
       timezoneId: Australia/Sydney
       currencyId: AU
       aliases:
         WTD: AX
 
     - code: NZX
+      id: NZX
       timezoneId: Pacific/Auckland
       currencyId: NZ
       aliases:
@@ -92,6 +98,7 @@ beancounter:
         ALPHA: NZ
 
     - code: SGX
+      id: SGX
       currencyId: SG
       timezoneId: Asia/Singapore
 

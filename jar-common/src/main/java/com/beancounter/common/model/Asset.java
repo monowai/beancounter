@@ -1,10 +1,10 @@
 package com.beancounter.common.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
@@ -13,10 +13,12 @@ import lombok.NonNull;
  * @author mikeh
  * @since 2019-01-27
  */
-@Data(staticConstructor = "of")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@JsonDeserialize(builder = Asset.AssetBuilder.class)
 public class Asset {
+  private String id;
   private String code;
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String name;
@@ -25,7 +27,4 @@ public class Asset {
   @NonNull
   private Market market;
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class AssetBuilder {
-  }
 }

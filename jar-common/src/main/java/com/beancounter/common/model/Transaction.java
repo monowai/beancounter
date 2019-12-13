@@ -1,12 +1,12 @@
 package com.beancounter.common.model;
 
 import com.beancounter.common.identity.TransactionId;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.math.BigDecimal;
 import java.util.Date;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
 
@@ -20,16 +20,17 @@ import lombok.ToString;
 @SuppressWarnings("UnusedAssignment")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString(of = {"asset", "trnType", "id"})
-@JsonDeserialize(builder = Transaction.TransactionBuilder.class)
 public class Transaction {
+  private TransactionId id;
   private TrnType trnType;
   @NonNull
   private Asset asset;
   @NonNull
   private Portfolio portfolio;
   private Asset cashAsset;
-  private TransactionId id;
   private Currency tradeCurrency;
   private Currency cashCurrency;
 
@@ -59,9 +60,4 @@ public class Transaction {
 
   private String comments;
 
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class TransactionBuilder {
-
-  }
 }

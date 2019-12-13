@@ -26,8 +26,7 @@ curl -X POST \
   	"currency": { "code": "USD"},
   	"base": { "code": "NZD"}
   }
-}' \
--o trades.json 
+}' -o trades.json 
 
 # Rollup transactions into positions
 curl -H "Content-Type: application/json" -X POST -d @trades.json http://localhost:9500/api/ > positions.json

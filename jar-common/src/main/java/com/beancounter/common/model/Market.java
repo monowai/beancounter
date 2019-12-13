@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Market {
+  private String id;
   private String code;
   private Currency currency;
   @JsonIgnore

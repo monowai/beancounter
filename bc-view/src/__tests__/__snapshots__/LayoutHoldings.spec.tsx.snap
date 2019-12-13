@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<Layout /> should match snapshot 1`] = `
+exports[`<ViewHoldings /> should match snapshot 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": .emotion-8 {
@@ -354,9 +354,6 @@ Object {
                   Summary
                 </th>
                 <th>
-                  value
-                </th>
-                <th>
                   dividends
                 </th>
                 <th>
@@ -364,6 +361,9 @@ Object {
                 </th>
                 <th>
                   sales
+                </th>
+                <th>
+                  value
                 </th>
                 <th>
                   strategy
@@ -388,13 +388,6 @@ Object {
                   align="right"
                 >
                   <span>
-                    19,424.85
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
                     8,030.77
                   </span>
                 </td>
@@ -410,6 +403,13 @@ Object {
                 >
                   <span>
                     6,008.97
+                  </span>
+                </td>
+                <td
+                  align="right"
+                >
+                  <span>
+                    19,424.85
                   </span>
                 </td>
                 <td
@@ -447,7 +447,7 @@ Object {
                 <th
                   align="right"
                 >
-                  cost.avg
+                  value
                 </th>
                 <th
                   align="right"
@@ -457,7 +457,7 @@ Object {
                 <th
                   align="right"
                 >
-                  value
+                  cost.avg
                 </th>
                 <th
                   align="right"
@@ -507,7 +507,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    6.46
+                    758.03
                   </span>
                 </td>
                 <td
@@ -521,7 +521,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    758.03
+                    6.46
                   </span>
                 </td>
                 <td
@@ -631,7 +631,7 @@ Object {
                 <th
                   align="right"
                 >
-                  cost.avg
+                  value
                 </th>
                 <th
                   align="right"
@@ -641,7 +641,7 @@ Object {
                 <th
                   align="right"
                 >
-                  value
+                  cost.avg
                 </th>
                 <th
                   align="right"
@@ -691,7 +691,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    1.69
+                    5,534.10
                   </span>
                 </td>
                 <td
@@ -705,7 +705,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    5,534.10
+                    1.69
                   </span>
                 </td>
                 <td
@@ -815,7 +815,7 @@ Object {
                 <th
                   align="right"
                 >
-                  cost.avg
+                  value
                 </th>
                 <th
                   align="right"
@@ -825,7 +825,7 @@ Object {
                 <th
                   align="right"
                 >
-                  value
+                  cost.avg
                 </th>
                 <th
                   align="right"
@@ -875,7 +875,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    125.40
+                    1,812.60
                   </span>
                 </td>
                 <td
@@ -889,7 +889,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    1,812.60
+                    125.40
                   </span>
                 </td>
                 <td
@@ -946,7 +946,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    33.54
+                    2,465.50
                   </span>
                 </td>
                 <td
@@ -960,7 +960,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    2,465.50
+                    33.54
                   </span>
                 </td>
                 <td
@@ -1017,7 +1017,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    27.18
+                    2,569.05
                   </span>
                 </td>
                 <td
@@ -1031,7 +1031,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    2,569.05
+                    27.18
                   </span>
                 </td>
                 <td
@@ -1088,7 +1088,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    104.50
+                    1,994.70
                   </span>
                 </td>
                 <td
@@ -1102,7 +1102,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    1,994.70
+                    104.50
                   </span>
                 </td>
                 <td
@@ -1159,7 +1159,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    166.26
+                    2,836.92
                   </span>
                 </td>
                 <td
@@ -1173,7 +1173,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    2,836.92
+                    166.26
                   </span>
                 </td>
                 <td
@@ -1230,7 +1230,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    44.11
+                    1,453.95
                   </span>
                 </td>
                 <td
@@ -1244,7 +1244,7 @@ Object {
                   align="right"
                 >
                   <span>
-                    1,453.95
+                    44.11
                   </span>
                 </td>
                 <td
@@ -1744,9 +1744,6 @@ Object {
                 Summary
               </th>
               <th>
-                value
-              </th>
-              <th>
                 dividends
               </th>
               <th>
@@ -1754,6 +1751,9 @@ Object {
               </th>
               <th>
                 sales
+              </th>
+              <th>
+                value
               </th>
               <th>
                 strategy
@@ -1778,13 +1778,6 @@ Object {
                 align="right"
               >
                 <span>
-                  19,424.85
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
                   8,030.77
                 </span>
               </td>
@@ -1800,6 +1793,13 @@ Object {
               >
                 <span>
                   6,008.97
+                </span>
+              </td>
+              <td
+                align="right"
+              >
+                <span>
+                  19,424.85
                 </span>
               </td>
               <td
@@ -1837,7 +1837,7 @@ Object {
               <th
                 align="right"
               >
-                cost.avg
+                value
               </th>
               <th
                 align="right"
@@ -1847,7 +1847,7 @@ Object {
               <th
                 align="right"
               >
-                value
+                cost.avg
               </th>
               <th
                 align="right"
@@ -1897,7 +1897,7 @@ Object {
                 align="right"
               >
                 <span>
-                  6.46
+                  758.03
                 </span>
               </td>
               <td
@@ -1911,7 +1911,7 @@ Object {
                 align="right"
               >
                 <span>
-                  758.03
+                  6.46
                 </span>
               </td>
               <td
@@ -2021,7 +2021,7 @@ Object {
               <th
                 align="right"
               >
-                cost.avg
+                value
               </th>
               <th
                 align="right"
@@ -2031,7 +2031,7 @@ Object {
               <th
                 align="right"
               >
-                value
+                cost.avg
               </th>
               <th
                 align="right"
@@ -2081,7 +2081,7 @@ Object {
                 align="right"
               >
                 <span>
-                  1.69
+                  5,534.10
                 </span>
               </td>
               <td
@@ -2095,7 +2095,7 @@ Object {
                 align="right"
               >
                 <span>
-                  5,534.10
+                  1.69
                 </span>
               </td>
               <td
@@ -2205,7 +2205,7 @@ Object {
               <th
                 align="right"
               >
-                cost.avg
+                value
               </th>
               <th
                 align="right"
@@ -2215,7 +2215,7 @@ Object {
               <th
                 align="right"
               >
-                value
+                cost.avg
               </th>
               <th
                 align="right"
@@ -2265,7 +2265,7 @@ Object {
                 align="right"
               >
                 <span>
-                  125.40
+                  1,812.60
                 </span>
               </td>
               <td
@@ -2279,7 +2279,7 @@ Object {
                 align="right"
               >
                 <span>
-                  1,812.60
+                  125.40
                 </span>
               </td>
               <td
@@ -2336,7 +2336,7 @@ Object {
                 align="right"
               >
                 <span>
-                  33.54
+                  2,465.50
                 </span>
               </td>
               <td
@@ -2350,7 +2350,7 @@ Object {
                 align="right"
               >
                 <span>
-                  2,465.50
+                  33.54
                 </span>
               </td>
               <td
@@ -2407,7 +2407,7 @@ Object {
                 align="right"
               >
                 <span>
-                  27.18
+                  2,569.05
                 </span>
               </td>
               <td
@@ -2421,7 +2421,7 @@ Object {
                 align="right"
               >
                 <span>
-                  2,569.05
+                  27.18
                 </span>
               </td>
               <td
@@ -2478,7 +2478,7 @@ Object {
                 align="right"
               >
                 <span>
-                  104.50
+                  1,994.70
                 </span>
               </td>
               <td
@@ -2492,7 +2492,7 @@ Object {
                 align="right"
               >
                 <span>
-                  1,994.70
+                  104.50
                 </span>
               </td>
               <td
@@ -2549,7 +2549,7 @@ Object {
                 align="right"
               >
                 <span>
-                  166.26
+                  2,836.92
                 </span>
               </td>
               <td
@@ -2563,7 +2563,7 @@ Object {
                 align="right"
               >
                 <span>
-                  2,836.92
+                  166.26
                 </span>
               </td>
               <td
@@ -2620,7 +2620,7 @@ Object {
                 align="right"
               >
                 <span>
-                  44.11
+                  1,453.95
                 </span>
               </td>
               <td
@@ -2634,7 +2634,7 @@ Object {
                 align="right"
               >
                 <span>
-                  1,453.95
+                  44.11
                 </span>
               </td>
               <td

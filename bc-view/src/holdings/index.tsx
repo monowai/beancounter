@@ -11,7 +11,7 @@ import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
 
-const Layout = (): JSX.Element => {
+const ViewHoldings = (): JSX.Element => {
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio"
@@ -118,4 +118,4 @@ const Layout = (): JSX.Element => {
   return <div id="root">No Holdings to display</div>;
 };
 
-export default Layout;
+export default ViewHoldings;

@@ -1,7 +1,7 @@
 import React from "react";
 import { cleanup, render, waitForElement } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
-import Layout from "../holdings";
+import ViewHoldings from "../holdings";
 import nock from "nock";
 
 afterEach(cleanup);
@@ -13,9 +13,9 @@ nock("http://localhost:9500")
     "Content-type": "application/json"
   });
 
-describe("<Layout />", () => {
+describe("<ViewHoldings />", () => {
   it("should match snapshot", async () => {
-    const container = render(<Layout />);
+    const container = render(<ViewHoldings />);
 
     await waitForElement(() => container.getByText("NZD"));
     expect(container).toMatchSnapshot();

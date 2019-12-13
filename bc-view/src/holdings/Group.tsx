@@ -13,9 +13,9 @@ export function HoldingHeader(props: { groupKey: string }): JSX.Element {
         <th>{props.groupKey}</th>
         <th align={"right"}>{translate("price")}</th>
         <th align={"right"}>{translate("quantity")}</th>
-        <th align={"right"}>{translate("cost.avg")}</th>
-        <th align={"right"}>{translate("cost")}</th>
         <th align={"right"}>{translate("value")}</th>
+        <th align={"right"}>{translate("cost")}</th>
+        <th align={"right"}>{translate("cost.avg")}</th>
         <th align={"right"}>{translate("dividends")}</th>
         <th align={"right"}>{translate("gain.realised")}</th>
         <th align={"right"}>{translate("gain.unrealised")}</th>
@@ -63,19 +63,17 @@ export function HoldingRows(props: {
           thousandSeparator={true}
         />
       </td>
-
       <FormatMoneyValue
         moneyValues={position.moneyValues[valueIn]}
-        moneyField={"averageCost"}
+        moneyField={"marketValue"}
       />
-
       <FormatMoneyValue
         moneyValues={position.moneyValues[valueIn]}
         moneyField={"costValue"}
       />
       <FormatMoneyValue
         moneyValues={position.moneyValues[valueIn]}
-        moneyField={"marketValue"}
+        moneyField={"averageCost"}
       />
       <FormatMoneyValue
         moneyValues={position.moneyValues[valueIn]}

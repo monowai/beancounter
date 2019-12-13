@@ -12,10 +12,10 @@ export default function StatsHeader(props: {
     <tbody key={props.portfolio.code}>
       <tr className={"stats-header"}>
         <th align={"left"}>Summary</th>
-        <th>{translate("value")}</th>
         <th>{translate("dividends")}</th>
         <th>{translate("purchases")}</th>
         <th>{translate("sales")}</th>
+        <th>{translate("value")}</th>
         <th>{translate("strategy")}</th>
       </tr>
     </tbody>
@@ -39,13 +39,13 @@ export function StatsRow(props: {
             {valueIn === ValueIn.TRADE ? "N/A" : moneyValues.currency.code}
           </div>
         </td>
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
+        <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
         <FormatMoneyValue
           moneyValues={moneyValues}
           moneyField={"marketValue"}
         />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
         <FormatMoneyValue moneyValues={moneyValues} moneyField={"totalGain"} />
       </tr>
     </tbody>

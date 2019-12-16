@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -118,10 +119,13 @@ class StubbedFxValuations {
         .constructCollectionType(Collection.class, Transaction.class);
 
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
+    PositionRequest positionRequest = PositionRequest.builder()
+        .portfolio("TEST")
+        .transactions(results).build();
 
     String json = mockMvc.perform(post("/")
         .contentType(MediaType.APPLICATION_JSON_VALUE)
-        .content(mapper.writeValueAsString(results))
+        .content(mapper.writeValueAsString(positionRequest))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
@@ -212,7 +216,7 @@ class StubbedFxValuations {
         .hasFieldOrProperty("asset");
 
     assertThat(position.getAsset().getMarket())
-        .hasNoNullFieldsOrPropertiesExcept("aliases","currencyId","timezoneId","currencyCode");
+        .hasNoNullFieldsOrPropertiesExcept("aliases", "currencyId", "timezoneId", "currencyCode");
 
     assertThat(position.getMoneyValues().get(Position.In.PORTFOLIO).getCurrency())
         .hasNoNullFieldsOrProperties();

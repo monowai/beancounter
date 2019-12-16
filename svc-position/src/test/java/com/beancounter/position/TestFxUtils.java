@@ -21,7 +21,7 @@ class TestFxUtils {
   void is_CurrencyPairResultsAsExpected() {
 
     Position inValidPosition = Position.builder().asset(
-        getAsset("Test", Market.builder().build())
+        getAsset("Test","TWEE")
     ).build();
 
     assertThat(fxUtils.getPair(null, inValidPosition))
@@ -29,7 +29,9 @@ class TestFxUtils {
 
     Position validPosition = Position.builder().asset(
         getAsset("Test",
-            Market.builder().currency(getCurrency("USD")).build()
+            Market.builder()
+                .code("USD")
+                .currency(getCurrency("USD")).build()
         )
     ).build();
 
@@ -49,19 +51,25 @@ class TestFxUtils {
     Currency usd = getCurrency("USD");
     Position gbpPosition = Position.builder().asset(
         getAsset("GBP Asset",
-            Market.builder().currency(getCurrency("GBP")).build()
+            Market.builder()
+                .code("GBP")
+                .currency(getCurrency("GBP")).build()
         )
     ).build();
 
     Position usdPosition = Position.builder().asset(
         getAsset("USD Asset",
-            Market.builder().currency(usd).build()
+            Market.builder()
+                .code("USD")
+                .currency(usd).build()
         )
     ).build();
 
     Position otherUsdPosition = Position.builder().asset(
         getAsset("USD Asset Other",
-            Market.builder().currency(usd).build()
+            Market.builder()
+                .code("USD")
+                .currency(usd).build()
         )
     ).build();
 

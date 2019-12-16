@@ -5,6 +5,7 @@ import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
@@ -15,21 +16,26 @@ import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestPositions {
+  private ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void is_PositionResponseChainSerializing() throws Exception {
     Map<Position.In, MoneyValues> moneyValuesMap = new HashMap<>();
     moneyValuesMap.put(Position.In.TRADE, MoneyValues.builder()
-        .dividends(new BigDecimal(100d))
+        .dividends(new BigDecimal("100"))
         .build());
 
     Positions positions = new Positions(Portfolio.builder()
@@ -57,7 +63,7 @@ class TestPositions {
     position.setDateValues(dateValues);
 
     PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
-    ObjectMapper mapper = new ObjectMapper();
+
     String json = mapper.writeValueAsString(positionResponse);
 
     PositionResponse fromJson = mapper.readValue(json, PositionResponse.class);
@@ -121,5 +127,24 @@ class TestPositions {
 
     assertThat(position.getMoneyValues(Position.In.TRADE, getCurrency("SGD")))
         .isNotNull();
+  }
+
+  @Test
+  void is_PositionRequestSerializing() throws Exception {
+    Collection<Transaction> transactions = new ArrayList<>();
+    transactions.add(Transaction.builder()
+        .asset(AssetUtils.getAsset("Blah", "Market"))
+        .portfolio(PortfolioUtils.getPortfolio("PCODE"))
+        .build());
+
+    PositionRequest positionRequest = PositionRequest.builder()
+        .portfolio("TWEE")
+        .transactions(transactions)
+        .build();
+    String json = mapper.writeValueAsString(positionRequest);
+
+    PositionRequest fromJson = mapper.readValue(json, PositionRequest.class);
+    assertThat(fromJson).isEqualToComparingFieldByField(positionRequest);
+
   }
 }

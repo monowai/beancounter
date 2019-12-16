@@ -27,7 +27,11 @@ public class AssetUtils {
    * @return string that can be used to pull the asset from a map
    */
   public String toKey(@NonNull Asset asset) {
-    return asset.getCode() + ":" + asset.getMarket().getCode();
+    return toKey(asset.getCode(), asset.getMarket().getCode());
+  }
+
+  public static String toKey(@NonNull String asset, @NonNull String market) {
+    return asset + ":" + market;
   }
 
   /**

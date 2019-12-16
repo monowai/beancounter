@@ -1,9 +1,9 @@
 package com.beancounter.position.service;
 
+import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
-import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,9 +34,9 @@ public class PositionService implements Position {
    *
    * @return
    */
-  public PositionResponse build(Collection<Transaction> transactions) {
+  public PositionResponse build(PositionRequest positionRequest) {
     Positions positions = null;
-    for (Transaction transaction : transactions) {
+    for (Transaction transaction : positionRequest.getTransactions()) {
       setObjects(transaction);
       if (positions == null) {
         positions = new Positions(transaction.getPortfolio());

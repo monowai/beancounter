@@ -1,5 +1,6 @@
 package com.beancounter.position.controller;
 
+import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.position.service.PositionService;
@@ -49,8 +50,8 @@ public class PositionController {
 
 
   @PostMapping
-  PositionResponse computePositions(@RequestBody Collection<Transaction> transactions) {
-    return positionService.build(transactions);
+  PositionResponse computePositions(@RequestBody PositionRequest positionRequest) {
+    return positionService.build(positionRequest);
   }
 
 
@@ -62,7 +63,11 @@ public class PositionController {
         .constructCollectionType(Collection.class, Transaction.class);
 
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
-    PositionResponse positionResponse = positionService.build(results);
+    PositionRequest positionRequest = PositionRequest.builder()
+        .portfolio(portfolioCode)
+        .transactions(results)
+        .build();
+    PositionResponse positionResponse = positionService.build(positionRequest);
     return valuationService.value(positionResponse.getData());
   }
 }

@@ -32,7 +32,7 @@ public class CurrencyService {
     this.currencyRepository = currencyRepository;
   }
 
-  public void loadDefaultCurrencies(Collection<Currency>currencies) {
+  public void loadDefaultCurrencies(Collection<Currency> currencies) {
     if (currencyRepository != null) {
       currencyRepository.saveAll(currencies);
     }

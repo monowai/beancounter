@@ -19,8 +19,7 @@ logging:
       netfix: ERROR
       beancounter: DEBUG
     org:
-      springframework:
-        test: trace
+      springframework: error
 
 spring:
   application:
@@ -41,7 +40,7 @@ spring:
       path: /h2
 
 beancounter:
-  baseCcy: US
+  baseCode: "USD"
 
   currencies:
     - code: "GBP"

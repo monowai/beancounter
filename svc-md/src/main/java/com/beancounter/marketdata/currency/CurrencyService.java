@@ -2,6 +2,7 @@ package com.beancounter.marketdata.currency;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.marketdata.config.StaticConfig;
+import java.util.Collection;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +32,9 @@ public class CurrencyService {
     this.currencyRepository = currencyRepository;
   }
 
-  public void loadDefaultCurrencies() {
+  public void loadDefaultCurrencies(Collection<Currency>currencies) {
     if (currencyRepository != null) {
-      currencyRepository.saveAll(staticConfig.getCurrencies());
+      currencyRepository.saveAll(currencies);
     }
   }
 

@@ -1,0 +1,63 @@
+version: '3.5'
+services:
+
+  postgres:
+    image: postgres:12-alpine
+    container_name: postgres
+    ports:
+      - 5432:5432
+
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: bc
+
+  data:
+    image: beancounter/svc-md
+    container_name: md
+    ports:
+      - 9610:9610
+      - 9611:9611
+    environment:
+      SERVER_PORT: 9610
+      MANAGEMENT_SERVER_PORT: 9611
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bc
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+
+    depends_on:
+      - postgres
+
+  ingest:
+    image: beancounter/svc-ingest
+    container_name: ingest
+    ports:
+      - 9600
+      - 9601
+    environment:
+      SERVER_PORT: 9600
+      MANAGEMENT_SERVER_PORT: 9601
+      MARKETDATA_URL: "http://md:9610"
+      PLT_SOLACE_MOCK: "true"
+      PLT_SESSION_ENABLED: "false"
+    depends_on:
+      - md
+
+  position:
+    image: beancounter/svc-position
+    container_name: position
+    ports:
+      - 9620
+      - 9621
+    environment:
+      MARKETDATA_URL: "http://md:9610"
+      SERVER_PORT: 9620
+      MANAGEMENT_SERVER_PORT: 9621
+    depends_on:
+      - md
+
+
+networks:
+  default:
+    # Use the overlay driver for multi-host communication
+    driver: bridge

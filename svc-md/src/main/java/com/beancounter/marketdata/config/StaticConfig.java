@@ -34,7 +34,8 @@ public class StaticConfig {
   private Map<String, Market> marketData = new HashMap<>();
   private Map<String, Currency> currencyByCode = new HashMap<>();
 
-  private Currency base;
+  private String baseCode; // System default
+  private Currency baseCurrency;
   private CurrencyService currencyService;
 
   /**
@@ -71,14 +72,14 @@ public class StaticConfig {
     for (Currency currency : currencies) {
       currencyByCode.put(currency.getCode(), currency);
     }
-    base = currencyByCode.get("USD"); // Default base currency
+    baseCurrency = currencyByCode.get(baseCode); // Default base currency
     if (currencyService != null) {
-      currencyService.loadDefaultCurrencies();
+      currencyService.loadDefaultCurrencies(currencies);
     }
   }
 
   public Currency getBase() {
-    return base;
+    return baseCurrency;
   }
 
 

@@ -6,9 +6,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
+import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdService;
-import com.beancounter.marketdata.service.CurrencyService;
 import com.beancounter.marketdata.service.MarketService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -53,11 +53,10 @@ class TestStaticData {
         .isNotNull()
         .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(UTC))
         .hasFieldOrProperty("currency")
-
     ;
 
     assertThat(market.getCurrency())
-        .hasFieldOrPropertyWithValue("id", "US");
+        .hasFieldOrPropertyWithValue("code", "USD");
 
   }
 
@@ -129,9 +128,6 @@ class TestStaticData {
   void is_CurrencyDataLoading() {
 
     assertThat(currencyService.getCode("USD"))
-        .isNotNull();
-
-    assertThat(currencyService.getId("US"))
         .isNotNull();
 
     assertThat(currencyService.getBase())

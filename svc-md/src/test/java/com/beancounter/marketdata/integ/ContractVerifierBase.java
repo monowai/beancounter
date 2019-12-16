@@ -9,10 +9,10 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.WtdMockUtils;
-import com.beancounter.marketdata.controller.CurrencyController;
 import com.beancounter.marketdata.controller.FxController;
 import com.beancounter.marketdata.controller.MarketController;
 import com.beancounter.marketdata.controller.PriceController;
+import com.beancounter.marketdata.currency.CurrencyController;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
 import com.beancounter.marketdata.providers.wtd.WtdGateway;
@@ -49,11 +49,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 public class ContractVerifierBase {
 
   static Asset aapl = getAsset("AAPL", "NASDAQ");
-  private static Asset ebay = getAsset("EBAY", "NASDAQ");
   static Asset msft = getAsset("MSFT", "NASDAQ");
   static Asset msftInvalid = getAsset("MSFTx", "NASDAQ");
   static Asset amp = getAsset("AMP", "ASX");
-
+  private static Asset ebay = getAsset("EBAY", "NASDAQ");
   @Autowired
   private FxController fxController;
   @Autowired

@@ -4,7 +4,6 @@
       "id": "NASDAQ",
       "code": "NASDAQ",
       "currency": {
-        "id": "US",
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
@@ -15,7 +14,6 @@
       "id": "AMEX",
       "code": "AMEX",
       "currency": {
-        "id": "US",
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
@@ -26,7 +24,6 @@
       "id": "SGX",
       "code": "SGX",
       "currency": {
-        "id": "SG",
         "code": "SGD",
         "name": "Dollar",
         "symbol": "$"
@@ -37,7 +34,6 @@
       "id": "ASX",
       "code": "ASX",
       "currency": {
-        "id": "AU",
         "code": "AUD",
         "name": "Dollar",
         "symbol": "$"
@@ -48,7 +44,6 @@
       "id": "NYSE",
       "code": "NYSE",
       "currency": {
-        "id": "US",
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"
@@ -59,7 +54,6 @@
       "id": "NZX",
       "code": "NZX",
       "currency": {
-        "id": "NZ",
         "code": "NZD",
         "name": "Dollar",
         "symbol": "$"
@@ -70,7 +64,6 @@
       "id": "MOCK",
       "code": "MOCK",
       "currency": {
-        "id": "US",
         "code": "USD",
         "name": "Dollar",
         "symbol": "$"

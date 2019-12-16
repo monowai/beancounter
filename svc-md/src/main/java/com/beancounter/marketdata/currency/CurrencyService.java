@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.service;
+package com.beancounter.marketdata.currency;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.marketdata.config.StaticConfig;
@@ -19,21 +19,22 @@ import org.springframework.stereotype.Service;
 public class CurrencyService {
 
   private StaticConfig staticConfig;
+  private CurrencyRepository currencyRepository;
 
   @Autowired
   void setMarkets(StaticConfig staticConfig) {
     this.staticConfig = staticConfig;
   }
 
-  /**
-   * Resolves a currency via its primary key.
-   *
-   * @param code non-null market
-   * @return resolved currency
-   */
-  public Currency getId(@NotNull String code) {
-    Objects.requireNonNull(code);
-    return staticConfig.getCurrencyById().get(code.toUpperCase());
+  @Autowired(required = false)
+  void setCurrencyRepository(CurrencyRepository currencyRepository) {
+    this.currencyRepository = currencyRepository;
+  }
+
+  public void loadDefaultCurrencies() {
+    if (currencyRepository != null) {
+      currencyRepository.saveAll(staticConfig.getCurrencies());
+    }
   }
 
   /**
@@ -50,7 +51,6 @@ public class CurrencyService {
   public Currency getBase() {
     return staticConfig.getBase();
   }
-
 
   public String delimited(String delimiter) {
     return String.join(delimiter, staticConfig.getCurrencyByCode().keySet());

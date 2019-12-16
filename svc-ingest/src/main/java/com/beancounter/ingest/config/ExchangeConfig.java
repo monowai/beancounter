@@ -27,7 +27,9 @@ public class ExchangeConfig {
 
   @PostConstruct
   public void logConfig() {
-    log.info("{} exchanges loaded", aliases.size());
+    if (aliases != null) {
+      log.info("{} exchanges loaded", aliases.size());
+    }
   }
 
   /**

@@ -1,8 +1,10 @@
-package com.beancounter.position.portfolio;
+package com.beancounter.marketdata.portfolio;
 
-import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfolioRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,9 +19,16 @@ public class PortfolioController {
   }
 
   @GetMapping
-  PortfolioResponse getPortfolios() {
-    return PortfolioResponse.builder()
+  PortfolioRequest getPortfolios() {
+    return PortfolioRequest.builder()
         .data(portfolioService.getPortfolios())
+        .build();
+  }
+
+  @PostMapping
+  PortfolioRequest savePortfolio(@RequestBody PortfolioRequest portfolio) {
+    return PortfolioRequest.builder()
+        .data(portfolioService.save(portfolio.getData()))
         .build();
   }
 }

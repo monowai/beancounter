@@ -7,6 +7,7 @@ import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.RateCalculator;
+import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.providers.fxrates.EcbService;
 import java.util.ArrayList;
 import java.util.Collection;

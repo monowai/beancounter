@@ -1,10 +1,12 @@
 buildscript {
     ext {
         openFeign = "10.7.0"
+        springBootVersion = "2.2.2.RELEASE"
         springWeb = "5.2.2.RELEASE"
         guava = "28.1-jre"
         jackson = "2.10.1"
         assertJ = "3.14.0"
+
     }
 }
 
@@ -13,10 +15,11 @@ apply from: '../buildtools/javaCommon.gradle'
 dependencies() {
 
     compileOnly(
+            "org.springframework:spring-web:${springWeb}",
+            "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}",
             "org.projectlombok:lombok:${lombokVersion}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson}",
             "io.github.openfeign:feign-core:${openFeign}",
-            "org.springframework:spring-web:${springWeb}",
             "com.google.guava:guava:${guava}"
     )
 

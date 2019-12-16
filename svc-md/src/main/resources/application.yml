@@ -3,15 +3,15 @@ server:
   servlet:
     context-path: '/api'
 
-#management:
-#  server:
-#    port: 9511
-#  endpoint:
-#    health.show-details: always
-#  endpoints:
-#    web:
-#      exposure.include: '*'
-#      base-path: "/"
+management:
+  server:
+    port: 9511
+  endpoint:
+    health.show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
+      base-path: "/"
 
 logging:
   level:
@@ -27,38 +27,44 @@ spring:
     name: bc-marketData
   cache:
     cache-names: asset.prices
+  jpa:
+    open-in-view: false
+    generate-ddl: true
+  datasource:
+    username: sa
+    password:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+
+  h2:
+    console:
+      enabled: true
+      path: /h2
 
 beancounter:
   baseCcy: US
 
   currencies:
     - code: "GBP"
-      id: "GB"
       name: "Pound"
       symbol: "￡"
 
     - code: USD
-      id: US
       name: Dollar
       symbol: $
 
     - code: NZD
-      id: NZ
       name: Dollar
       symbol: $
 
-    - id: AU
-      code: AUD
+    - code: AUD
       name: Dollar
       symbol: $
 
-    - id: EU
-      code: EUR
+    - code: EUR
       name: Euro
       symbol: €
 
-    - id: SG
-      code: SGD
+    - code: SGD
       name: Dollar
       symbol: $
 
@@ -70,36 +76,36 @@ beancounter:
     - code: NASDAQ
       id: NASDAQ
       timezoneId: US/Eastern
-      currencyId: US
+      currencyCode: USD
 
     - code: NYSE
       id: NYSE
       timezoneId: US/Eastern
-      currencyId: US
+      currencyCode: USD
 
     - code: AMEX
       id: AMEX
       timezoneId: US/Eastern
-      currencyId: US
+      currencyCode: USD
 
     - code: ASX
       id: ASX
       timezoneId: Australia/Sydney
-      currencyId: AU
+      currencyCode: AUD
       aliases:
         WTD: AX
 
     - code: NZX
       id: NZX
       timezoneId: Pacific/Auckland
-      currencyId: NZ
+      currencyCode: NZD
       aliases:
         WTD: NZ
         ALPHA: NZ
 
     - code: SGX
       id: SGX
-      currencyId: SG
+      currencyCode: SGD
       timezoneId: Asia/Singapore
 
 

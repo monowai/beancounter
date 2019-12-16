@@ -212,7 +212,7 @@ class StubbedFxValuations {
         .hasFieldOrProperty("asset");
 
     assertThat(position.getAsset().getMarket())
-        .hasNoNullFieldsOrPropertiesExcept("aliases","currencyId","timezoneId");
+        .hasNoNullFieldsOrPropertiesExcept("aliases","currencyId","timezoneId","currencyCode");
 
     assertThat(position.getMoneyValues().get(Position.In.PORTFOLIO).getCurrency())
         .hasNoNullFieldsOrProperties();

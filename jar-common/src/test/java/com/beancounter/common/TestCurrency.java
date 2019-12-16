@@ -20,7 +20,7 @@ class TestCurrency {
   void is_CurrencySerializing() throws Exception {
 
     Currency currency = Currency.builder()
-        .code("SomeId")
+        .code("SomeCode")
         .name("Some Name")
         .symbol("$")
         .build();

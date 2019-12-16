@@ -3,13 +3,11 @@
     "rates": {
       "USD:SGD": {
         "to": {
-          "id": "SG",
           "code": "SGD",
           "name": "Dollar",
           "symbol": "$"
         },
         "from": {
-          "id": "US",
           "code": "USD",
           "name": "Dollar",
           "symbol": "$"
@@ -19,13 +17,11 @@
       },
       "GBP:NZD": {
         "to": {
-          "id": "NZ",
           "code": "NZD",
           "name": "Dollar",
           "symbol": "$"
         },
         "from": {
-          "id": "GB",
           "code": "GBP",
           "name": "Pound",
           "symbol": "￡"

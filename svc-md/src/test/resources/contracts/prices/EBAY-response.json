@@ -8,7 +8,6 @@
           "id": "NASDAQ",
           "code": "NASDAQ",
           "currency": {
-            "id": "US",
             "code": "USD",
             "name": "Dollar",
             "symbol": "$"

@@ -24,8 +24,6 @@ public class ProviderArguments {
   private String delimiter = ",";
   private Map<Integer, BatchConfig> batchConfigs = new HashMap<>();
   private Map<String, Asset> dpToBc = new HashMap<>();
-//  private Map<String, String> bcToDp = new HashMap<>();
-//  private Map<String, Asset> assets = new HashMap<>();
   /**
    * How the MarketDataProvider wants the search key for all assets to be passed.
    */
@@ -92,7 +90,7 @@ public class ProviderArguments {
     if (searchKey == null) {
       searchKey = dpKey;
     } else {
-      searchKey = new StringBuilder().append(searchKey).append(delimiter).append(dpKey).toString();
+      searchKey = searchKey + delimiter + dpKey;
     }
     getBatch().put(currentBatch, searchKey);
     count++;

@@ -1,4 +1,4 @@
-Micro service to obtain market data from a variety of data providers.
+Data persistence and market data service to obtain market data from a variety of data providers.
 Currently offers support for: 
 
 *   [World Trading Data](https://www.worldtradingdata.com/pricing)    
@@ -59,6 +59,3 @@ Normally the service will compute the dataproviders date for which to retrieve "
 # Setting request date for the WTD provider
 beancounter.marketdata.provider.WTD.date=yyyy-MM-dd
 ``` 
-
-
-ToDo: DB for the prices and history to improve performance

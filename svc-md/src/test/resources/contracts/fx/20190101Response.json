@@ -3,13 +3,11 @@
     "rates": {
       "NZD:USD": {
         "from": {
-          "id": "NZ",
           "code": "NZD",
           "name": "Dollar",
           "symbol": "$"
         },
         "to": {
-          "id": "US",
           "code": "USD",
           "name": "Dollar",
           "symbol": "$"

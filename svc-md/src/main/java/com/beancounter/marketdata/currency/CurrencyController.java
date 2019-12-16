@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.controller;
+package com.beancounter.marketdata.currency;
 
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.marketdata.config.StaticConfig;

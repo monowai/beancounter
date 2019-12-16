@@ -2,7 +2,7 @@ package com.beancounter.marketdata.providers.fxrates;
 
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.service.CurrencyService;
+import com.beancounter.marketdata.currency.CurrencyService;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;

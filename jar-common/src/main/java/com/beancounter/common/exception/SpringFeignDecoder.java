@@ -8,6 +8,7 @@ import feign.Response;
 import feign.codec.ErrorDecoder;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Handle deserialization of errors into BusinessException and SystemExceptions.
@@ -48,7 +49,7 @@ public class SpringFeignDecoder implements ErrorDecoder {
       return exceptionMessage.getMessage();
     }
 
-    try (Reader reader = response.body().asReader()) {
+    try (Reader reader = response.body().asReader(StandardCharsets.UTF_8)) {
       String result = CharStreams.toString(reader);
 
       //init the Pojo

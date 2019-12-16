@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,9 +25,10 @@ import lombok.NoArgsConstructor;
 public class Market {
   private String id;
   private String code;
+  @Transient
   private Currency currency;
   @JsonIgnore
-  private String currencyId;
+  private String currencyCode;
   private TimeZone timezone;
   private String timezoneId;
 

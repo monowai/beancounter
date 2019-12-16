@@ -2,6 +2,7 @@ package com.beancounter.marketdata.config;
 
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
+import com.beancounter.marketdata.currency.CurrencyService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,8 +10,10 @@ import java.util.TimeZone;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,11 +32,10 @@ public class StaticConfig {
   private Collection<Market> markets;
 
   private Map<String, Market> marketData = new HashMap<>();
-
-  private Map<String, Currency> currencyById = new HashMap<>();
   private Map<String, Currency> currencyByCode = new HashMap<>();
 
   private Currency base;
+  private CurrencyService currencyService;
 
   /**
    * Convert from configured representation to Objects.
@@ -45,12 +47,18 @@ public class StaticConfig {
 
   }
 
+  @Autowired(required = false)
+  @DependsOn("currencyRepository")
+  private void setCurrencyService(CurrencyService currencyService) {
+    this.currencyService = currencyService;
+  }
+
   private void handleMarkets() {
     for (Market market : markets) {
-      String currencyId = market.getCurrencyId();
-      Currency currency = (currencyId == null
+      String currencyCode = market.getCurrencyCode();
+      Currency currency = (currencyCode == null
           ? getBase() :
-          this.currencyById.get(currencyId));
+          this.currencyByCode.get(currencyCode));
       market.setCurrency(currency);
       market.setTimezone(getTimeZone(market.getTimezoneId()));
 
@@ -61,10 +69,12 @@ public class StaticConfig {
 
   private void handleCurrencies() {
     for (Currency currency : currencies) {
-      currencyById.put(currency.getId(), currency);
       currencyByCode.put(currency.getCode(), currency);
     }
-    base = currencyById.get("US");
+    base = currencyByCode.get("USD"); // Default base currency
+    if (currencyService != null) {
+      currencyService.loadDefaultCurrencies();
+    }
   }
 
   public Currency getBase() {

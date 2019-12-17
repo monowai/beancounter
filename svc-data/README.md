@@ -1,5 +1,5 @@
-Data persistence and market data service to obtain market data from a variety of data providers.
-Currently offers support for: 
+Data persistence and market data retrieval service.
+In addition to persisting basic BeanCounter data, it will pull asset prices via: 
 
 *   [World Trading Data](https://www.worldtradingdata.com/pricing)    
 *   [Alpha Advantage](https://www.alphavantage.co/documentation/)

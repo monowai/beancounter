@@ -10,5 +10,5 @@ curl -H "Content-Type: application/json" \
 
 ```
 
-Once you have computed the positions you can request them to be [valued](../svc-md/README.md)
+Once you have computed the positions you can request them to be [valued](../svc-data/README.md)
 

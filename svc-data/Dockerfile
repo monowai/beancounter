@@ -1,5 +1,5 @@
 FROM openjdk:11-slim
-#docker build . --build-arg JAR_FILE=build/libs/svc-md -t beancounter/svc-md
+#docker build . --build-arg JAR_FILE=build/libs/svc-data -t beancounter/svc-data
 ARG JAR_FILE=build/libs/*.jar
 
 EXPOSE 9510 9511

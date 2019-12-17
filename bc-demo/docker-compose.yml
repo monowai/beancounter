@@ -13,8 +13,8 @@ services:
       POSTGRES_DB: bc
 
   data:
-    image: beancounter/svc-md
-    container_name: md
+    image: beancounter/svc-data
+    container_name: data
     ports:
       - 9610:9610
       - 9611:9611

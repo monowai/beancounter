@@ -49,7 +49,7 @@ dependencies {
             "org.junit.jupiter:junit-jupiter"
 
     )
-    testImplementation("org.beancounter:svc-md:0.1.1:stubs") {
+    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
 }

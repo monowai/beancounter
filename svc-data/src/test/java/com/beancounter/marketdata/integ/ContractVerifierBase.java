@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * and run as stubs in other services.  Any data required from an integration call in a
  * dependent service, should be mocked in this class.
  *
- * <p>WireMock is used within svc-md to test Feign based gateway integration.
+ * <p>WireMock is used within svc-data to test Feign based gateway integration.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

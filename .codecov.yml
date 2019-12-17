@@ -1,6 +1,6 @@
 ignore:
   - svc-position/src/main/java/com/beancounter/position/PositionBoot.java
-  - svc-md/src/main/java/com/beancounter/marketdata/MarketDataBoot.java
+  - svc-data/src/main/java/com/beancounter/marketdata/MarketDataBoot.java
   - svc-ingest/src/main/java/com/beancounter/ingest/IngestBoot.java
   - svc-ingest/src/main/java/com/beancounter/ingest/config/GoogleAuthConfig.java
   - svc-ingest/src/main/java/com/beancounter/ingest/reader/SheetReader.java

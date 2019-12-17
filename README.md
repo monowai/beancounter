@@ -7,10 +7,8 @@ Transform financial transaction data into portfolio positions which can then be 
     
 *   [Ingest transactions](svc-ingest/README.md) from a Google Docs sheet
 *   [Create positions](svc-position/README.md) from the transactions
-*   Value positions using [Asset Prices](svc-md/README.md) obtained from the Market Data service  
+*   Value positions with [Asset Prices](svc-data/README.md) from the BC Data service  
     
-No persistence exists so you need a connection to the Internet to read the trade file and value positions over the Internet    
-
 Put together, the flow looks like this
 
 ```bash

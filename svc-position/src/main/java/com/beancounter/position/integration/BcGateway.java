@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.MarketData;
@@ -43,5 +44,10 @@ public interface BcGateway {
   @GetMapping(value = "/markets", produces = {MediaType.APPLICATION_JSON_VALUE})
   MarketResponse getMarkets();
 
+  @GetMapping(value = "/portfolios/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+  PortfolioRequest getPortfolioById(@PathVariable String id);
+
+  @GetMapping(value = "/portfolios/{code}/code", produces = {MediaType.APPLICATION_JSON_VALUE})
+  PortfolioRequest getPortfolioByCode(@PathVariable String code);
 
 }

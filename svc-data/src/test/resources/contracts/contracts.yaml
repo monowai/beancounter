@@ -1,3 +1,26 @@
+
+---
+name: portfolioById
+priority: 1
+request:
+  method: GET
+  url: /portfolios/TEST
+response:
+  status: 200
+  bodyFromFile: "portfolio/TestResponse.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolioByCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/TEST/code
+response:
+  status: 200
+  bodyFromFile: "portfolio/TestResponse.json"
+  headers:
+    Content-Type: application/json
 ---
 name: currencies
 priority: 1

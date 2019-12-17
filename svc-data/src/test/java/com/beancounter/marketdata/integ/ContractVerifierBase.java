@@ -5,19 +5,25 @@ import static com.beancounter.marketdata.EcbMockUtils.get;
 import static com.beancounter.marketdata.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.WtdMockUtils;
 import com.beancounter.marketdata.controller.FxController;
 import com.beancounter.marketdata.controller.MarketController;
 import com.beancounter.marketdata.controller.PriceController;
 import com.beancounter.marketdata.currency.CurrencyController;
+import com.beancounter.marketdata.portfolio.PortfolioController;
+import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
 import com.beancounter.marketdata.providers.wtd.WtdGateway;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.verifier.messaging.boot.AutoConfigureMessageVerifier;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -61,6 +68,11 @@ public class ContractVerifierBase {
   private MarketController marketController;
   @Autowired
   private CurrencyController currencyController;
+  @Autowired
+  private PortfolioController portfolioController;
+
+  @MockBean
+  PortfolioService portfolioService;
 
   @MockBean
   private FxGateway fxGateway;
@@ -105,7 +117,11 @@ public class ContractVerifierBase {
     mockEcbRates(rates, get("1999-01-04", rates));
 
     RestAssuredMockMvc.standaloneSetup(MockMvcBuilders
-        .standaloneSetup(fxController, priceController, marketController, currencyController));
+        .standaloneSetup(fxController,
+            priceController,
+            marketController,
+            currencyController,
+            portfolioController));
 
   }
 
@@ -119,6 +135,20 @@ public class ContractVerifierBase {
     results.put("EBAY", WtdMockUtils.get(date, ebay,
         "39.21", "100.00", "39.35", "38.74", "6274307"));
     mockWtdResponse(String.join(",", results.keySet()), date, WtdMockUtils.get(date, results));
+
+  }
+
+  @Before
+  public void mockPortfolios() throws Exception {
+    File jsonFile = new ClassPathResource("contracts/portfolio/TestResponse.json").getFile();
+    PortfolioRequest portfolioRequest = new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
+    Portfolio portfolio = portfolioRequest.getData().iterator().next();
+    // For the sake of convenience when testing; id and code are the same
+    Mockito.when(portfolioService.find("TEST"))
+        .thenReturn(portfolio);
+
+    Mockito.when(portfolioService.findByCode("TEST"))
+        .thenReturn(portfolio);
 
   }
 

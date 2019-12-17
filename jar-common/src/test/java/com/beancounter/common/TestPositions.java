@@ -138,7 +138,7 @@ class TestPositions {
         .build());
 
     PositionRequest positionRequest = PositionRequest.builder()
-        .portfolio("TWEE")
+        .portfolioId("TWEE")
         .transactions(transactions)
         .build();
     String json = mapper.writeValueAsString(positionRequest);

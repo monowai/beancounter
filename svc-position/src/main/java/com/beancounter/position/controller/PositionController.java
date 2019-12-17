@@ -2,7 +2,9 @@ package com.beancounter.position.controller;
 
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.position.service.BcService;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,12 +37,14 @@ public class PositionController {
 
   private PositionService positionService;
   private Valuation valuationService;
+  private BcService bcService;
   private ObjectMapper mapper = new ObjectMapper();
 
 
   @Autowired
-  PositionController(PositionService positionService) {
+  PositionController(PositionService positionService, BcService bcService) {
     this.positionService = positionService;
+    this.bcService = bcService;
   }
 
   @Autowired
@@ -56,18 +60,19 @@ public class PositionController {
 
 
   @GetMapping(value = "/{portfolioCode}", produces = "application/json")
+  @Deprecated // Dev use
   PositionResponse get(@PathVariable String portfolioCode) throws IOException {
     // Currently no persistence. This is an emulated flow
     File tradeFile = new ClassPathResource(portfolioCode + ".json").getFile();
     CollectionType javaType = mapper.getTypeFactory()
         .constructCollectionType(Collection.class, Transaction.class);
-
+    Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
     PositionRequest positionRequest = PositionRequest.builder()
-        .portfolio(portfolioCode)
+        .portfolioId(portfolioCode)
         .transactions(results)
         .build();
-    PositionResponse positionResponse = positionService.build(positionRequest);
+    PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
     return valuationService.value(positionResponse.getData());
   }
 }

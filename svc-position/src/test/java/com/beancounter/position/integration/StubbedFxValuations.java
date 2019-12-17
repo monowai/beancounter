@@ -1,7 +1,6 @@
 package com.beancounter.position.integration;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
-import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -77,16 +76,15 @@ class StubbedFxValuations {
   }
 
   private Positions getPositions(Asset asset) {
-    // Changing the currency of the portfolio will mean having to regenerate contracts
-    Portfolio portfolio = getPortfolio("TEST");
+
     Transaction buy = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
-        .portfolio(portfolio)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    positionService.setObjects(buy);
+    Portfolio portfolio = bcService.getPortfolioByCode("TEST");
+    positionService.setObjects(portfolio, buy);
     Accumulator accumulator = new Accumulator();
     Positions positions = new Positions(portfolio);
     positions.setAsAt("2019-10-18");
@@ -120,7 +118,7 @@ class StubbedFxValuations {
 
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
     PositionRequest positionRequest = PositionRequest.builder()
-        .portfolio("TEST")
+        .portfolioId("TEST")
         .transactions(results).build();
 
     String json = mockMvc.perform(post("/")

@@ -28,7 +28,6 @@ public class Transaction {
   private TrnType trnType;
   @NonNull
   private Asset asset;
-  @NonNull
   private Portfolio portfolio;
   private Asset cashAsset;
   private Currency tradeCurrency;

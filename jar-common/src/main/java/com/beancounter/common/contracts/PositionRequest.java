@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PositionRequest {
-  private String portfolio;
+  private String portfolioId;
   private Collection<Transaction> transactions;
 }

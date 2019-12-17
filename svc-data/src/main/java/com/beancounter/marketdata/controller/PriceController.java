@@ -36,7 +36,7 @@ public class PriceController {
    * @param assetId Exchange:Code
    * @return Market Dat information for the supplied asset
    */
-  @GetMapping(value = "/{marketId}/{assetId}", produces = "application/json")
+  @GetMapping(value = "/{marketId}/{assetId}")
   PriceResponse getPrice(@PathVariable("marketId") String marketId,
                          @PathVariable("assetId") String assetId) {
     Asset testAsset = Asset.builder()

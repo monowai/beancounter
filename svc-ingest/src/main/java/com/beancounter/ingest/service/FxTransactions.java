@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
@@ -26,11 +27,11 @@ public class FxTransactions {
     this.fxRateService = fxRateService;
   }
 
-  public Transaction applyRates(Transaction transaction) {
-    return applyRates(Collections.singleton(transaction)).iterator().next();
+  public Transaction applyRates(Portfolio portfolio, Transaction transaction) {
+    return applyRates(portfolio, Collections.singleton(transaction)).iterator().next();
   }
 
-  public Collection<Transaction> applyRates(Collection<Transaction> transactions) {
+  public Collection<Transaction> applyRates(Portfolio portfolio, Collection<Transaction> transactions) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (Transaction transaction : transactions) {
       String tradeDate = DateUtils.getDate(transaction.getTradeDate());
@@ -40,14 +41,14 @@ public class FxTransactions {
       CurrencyPair tradePortfolio = CurrencyUtils.getCurrencyPair(
           transaction.getTradePortfolioRate(),
           transaction.getAsset().getMarket().getCurrency(),
-          transaction.getPortfolio().getCurrency());
+          portfolio.getCurrency());
 
       fxRequest.add(tradePortfolio);
 
       CurrencyPair tradeBase = CurrencyUtils.getCurrencyPair(
           transaction.getTradeBaseRate(),
           transaction.getAsset().getMarket().getCurrency(),
-          transaction.getPortfolio().getBase());
+          portfolio.getBase());
       fxRequest.add(tradeBase);
 
       CurrencyPair tradeCash = CurrencyUtils.getCurrencyPair(

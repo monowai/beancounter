@@ -79,14 +79,12 @@ class TestPositions {
     Date firstTradeDate = DateUtils.getDate("2018-12-01");
     Transaction firstTrade = Transaction.builder()
         .tradeDate(firstTradeDate)
-        .portfolio(getPortfolio("CODE"))
         .asset(asset)
         .build();
 
     Date secondTradeDate = DateUtils.getDate("2018-12-02");
     Transaction secondTrade = Transaction.builder()
         .tradeDate(secondTradeDate)
-        .portfolio(getPortfolio("CODE"))
         .asset(asset)
         .build();
 
@@ -134,6 +132,7 @@ class TestPositions {
     Collection<Transaction> transactions = new ArrayList<>();
     transactions.add(Transaction.builder()
         .asset(AssetUtils.getAsset("Blah", "Market"))
+        .portfolioId("PCODE")
         .portfolio(PortfolioUtils.getPortfolio("PCODE"))
         .build());
 

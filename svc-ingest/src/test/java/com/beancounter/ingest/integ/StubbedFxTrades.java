@@ -155,11 +155,11 @@ class StubbedFxTrades {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("TEST", getCurrency("NZD"));
 
     Transaction transaction = trades.from(row, portfolio);
 
-    transaction = fxTransactions.applyRates(transaction);
+    transaction = fxTransactions.applyRates(portfolio, transaction);
 
     assertTransaction(portfolio, transaction);
 
@@ -194,7 +194,7 @@ class StubbedFxTrades {
 
     Transaction transaction = trades.from(row, portfolio);
 
-    transaction = fxTransactions.applyRates(transaction);
+    transaction = fxTransactions.applyRates(portfolio, transaction);
 
     assertTransaction(portfolio, transaction);
 
@@ -226,7 +226,7 @@ class StubbedFxTrades {
 
     Transaction transaction = trades.from(row, portfolio);
 
-    transaction = fxTransactions.applyRates(transaction);
+    transaction = fxTransactions.applyRates(portfolio, transaction);
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
@@ -269,7 +269,7 @@ class StubbedFxTrades {
     Transaction transaction = trades.from(row, portfolio);
     transaction.setCashCurrency(null);
 
-    transaction = fxTransactions.applyRates(transaction);
+    transaction = fxTransactions.applyRates(portfolio, transaction);
     // No currencies are defined so rate defaults to 1
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))

@@ -72,7 +72,7 @@ class ShareSightServiceTest {
 
   @Test
   void is_ValidTradeRow() {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
     row.add(ShareSightTrades.market, "market"); // Header Row
     row.add(ShareSightTrades.code, "code");
     row.add(ShareSightTrades.name, "name");
@@ -89,7 +89,7 @@ class ShareSightServiceTest {
 
   @Test
   void is_ValidDividendRow() {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
     row.add(ShareSightDivis.code, "code"); // Header Row
     row.add(ShareSightDivis.name, "code");
     row.add(ShareSightDivis.date, "name");

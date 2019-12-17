@@ -4,6 +4,7 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.ingest.model.IngestionRequest;
+import com.beancounter.ingest.service.BcService;
 import com.beancounter.ingest.service.FxTransactions;
 import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.writer.IngestWriter;
@@ -36,12 +37,18 @@ public class SheetReader implements Ingester {
   private FxTransactions fxTransactions;
   private ShareSightService shareSightService;
   private RowProcessor rowProcessor;
+  private BcService bcService;
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   void setIngestWriter(IngestWriter ingestWriter) {
     this.ingestWriter = ingestWriter;
+  }
+
+  @Autowired
+  void setBcService(BcService bcService) {
+    this.bcService = bcService;
   }
 
   @Autowired
@@ -72,12 +79,15 @@ public class SheetReader implements Ingester {
    */
   public Collection<Transaction> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
-
-    Portfolio portfolio = Portfolio.builder()
-        .code(ingestionRequest.getPortfolio().getCode())
-        .currency(ingestionRequest.getPortfolio().getCurrency())
-        .base(ingestionRequest.getPortfolio().getBase())
-        .build();
+    Portfolio portfolio;
+    portfolio = bcService.getPortfolioByCode(ingestionRequest.getPortfolio().getCode());
+    if (portfolio == null) {
+      portfolio = Portfolio.builder()
+          .code(ingestionRequest.getPortfolio().getCode())
+          .currency(ingestionRequest.getPortfolio().getCurrency())
+          .base(ingestionRequest.getPortfolio().getBase())
+          .build();
+    }
 
     final NetHttpTransport httpTransport = googleTransport.getHttpTransport();
 
@@ -102,7 +112,7 @@ public class SheetReader implements Ingester {
       }
 
       log.info("Back filling FX rates...");
-      transactions = fxTransactions.applyRates(transactions);
+      transactions = fxTransactions.applyRates(portfolio, transactions);
 
       if (outputStream != null) {
         log.info("Writing output...");

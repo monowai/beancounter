@@ -48,7 +48,7 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public Transaction from(List row, Portfolio portfolio)
+  public Transaction from(List<String> row, Portfolio portfolio)
       throws ParseException {
     try {
       TrnType trnType = shareSightService.resolveType(row.get(type).toString());
@@ -111,12 +111,11 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public boolean isValid(List row) {
+  public boolean isValid(List<String> row) {
     if (row.size() > 6) {
       return !row.get(0).toString().equalsIgnoreCase("market");
     }
     return false;
   }
-
 
 }

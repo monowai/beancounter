@@ -51,21 +51,21 @@ public class ShareSightTrades implements Transformer {
   public Transaction from(List<String> row, Portfolio portfolio)
       throws ParseException {
     try {
-      TrnType trnType = shareSightService.resolveType(row.get(type).toString());
+      TrnType trnType = shareSightService.resolveType(row.get(type));
       if (trnType == null) {
         throw new BusinessException(String.format("Unsupported type %s",
-            row.get(type).toString()));
+            row.get(type)));
       }
       Asset asset = Asset.builder().code(
-          row.get(code).toString())
-          .name(row.get(name).toString())
+          row.get(code))
+          .name(row.get(name))
           .market(Market.builder()
-              .code(row.get(market).toString())
-              .currency(Currency.builder().code(row.get(currency).toString()).build())
+              .code(row.get(market))
+              .currency(Currency.builder().code(row.get(currency)).build())
               .build())
           .build();
 
-      String comment = (row.size() == 12 ? row.get(comments).toString() : null);
+      String comment = (row.size() == 12 ? row.get(comments) : null);
 
       BigDecimal tradeRate = null;
       BigDecimal fees = null;
@@ -81,15 +81,15 @@ public class ShareSightTrades implements Transformer {
       return Transaction.builder()
           .asset(asset)
           .trnType(trnType)
-          .quantity(shareSightService.parseDouble(row.get(quantity).toString()))
-          .price(shareSightService.parseDouble(row.get(price).toString()))
+          .quantity(shareSightService.parseDouble(row.get(quantity)))
+          .price(shareSightService.parseDouble(row.get(price)))
           .fees(shareSightService.safeDivide(
               fees, tradeRate))
           .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
-          .tradeDate(shareSightService.parseDate(row.get(date).toString()))
-          .portfolio(portfolio)
+          .tradeDate(shareSightService.parseDate(row.get(date)))
+          .portfolioId(portfolio.getId())
           .cashCurrency(portfolio.getCurrency())
-          .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
+          .tradeCurrency(Currency.builder().code(row.get(currency)).build())
           // Zero and null should be treated as "unknown"
           .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
               ? null : tradeRate)
@@ -113,7 +113,7 @@ public class ShareSightTrades implements Transformer {
   @Override
   public boolean isValid(List<String> row) {
     if (row.size() > 6) {
-      return !row.get(0).toString().equalsIgnoreCase("market");
+      return !row.get(0).equalsIgnoreCase("market");
     }
     return false;
   }

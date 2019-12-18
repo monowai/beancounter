@@ -3,7 +3,6 @@ package com.beancounter.common.model;
 import com.beancounter.common.identity.TransactionId;
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +17,6 @@ import lombok.ToString;
  * @author mikeh
  * @since 2019-02-07
  */
-@SuppressWarnings("UnusedAssignment")
 @Data
 @Builder
 @NoArgsConstructor
@@ -27,8 +25,6 @@ import lombok.ToString;
 public class Transaction {
   private TransactionId id;
   private TrnType trnType;
-  @Transient
-  private Portfolio portfolio;
   private String portfolioId;
   @NonNull
   private Asset asset;

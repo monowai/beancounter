@@ -69,7 +69,7 @@ public class PositionController {
     Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
     Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
     PositionRequest positionRequest = PositionRequest.builder()
-        .portfolioId(portfolioCode)
+        .portfolioId(portfolio.getId())
         .transactions(results)
         .build();
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);

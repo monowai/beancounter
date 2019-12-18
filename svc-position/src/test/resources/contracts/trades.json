@@ -10,15 +10,7 @@
       }
     }
   },
-  "portfolio" : {
-    "code" : "mike",
-    "currency" : {
-      "code" : "USD"
-    },
-    "base" : {
-      "code" : "NZD"
-    }
-  },
+  "portfolioId" : "MIKE",
   "cashAsset" : null,
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
@@ -55,15 +47,7 @@
       }
     }
   },
-  "portfolio" : {
-    "code" : "mike",
-    "currency" : {
-      "code" : "USD"
-    },
-    "base" : {
-      "code" : "NZD"
-    }
-  },
+  "portfolioId" : "MIKE",
   "cashAsset" : null,
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
@@ -99,15 +83,7 @@
       }
     }
   },
-  "portfolio" : {
-    "code" : "mike",
-    "currency" : {
-      "code" : "USD"
-    },
-    "base" : {
-      "code" : "NZD"
-    }
-  },
+  "portfolioId" : "MIKE",
   "cashAsset" : null,
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
@@ -141,15 +117,7 @@
       }
     }
   },
-  "portfolio" : {
-    "code" : "mike",
-    "currency" : {
-      "code" : "USD"
-    },
-    "base" : {
-      "code" : "NZD"
-    }
-  },
+  "portfolioId" : "MIKE",
   "cashAsset" : null,
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
@@ -183,15 +151,7 @@
       }
     }
   },
-  "portfolio" : {
-    "code" : "mike",
-    "currency" : {
-      "code" : "USD"
-    },
-    "base" : {
-      "code" : "NZD"
-    }
-  },
+  "portfolioId" : "MIKE",
   "cashAsset" : null,
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
@@ -225,15 +185,7 @@
       }
     }
   },
-  "portfolio" : {
-    "code" : "mike",
-    "currency" : {
-      "code" : "USD"
-    },
-    "base" : {
-      "code" : "NZD"
-    }
-  },
+  "portfolioId" : "MIKE",
   "cashAsset" : null,
   "id" : {
     "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",

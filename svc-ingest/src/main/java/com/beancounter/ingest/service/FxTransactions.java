@@ -31,7 +31,8 @@ public class FxTransactions {
     return applyRates(portfolio, Collections.singleton(transaction)).iterator().next();
   }
 
-  public Collection<Transaction> applyRates(Portfolio portfolio, Collection<Transaction> transactions) {
+  public Collection<Transaction> applyRates(Portfolio portfolio,
+                                            Collection<Transaction> transactions) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (Transaction transaction : transactions) {
       String tradeDate = DateUtils.getDate(transaction.getTradeDate());

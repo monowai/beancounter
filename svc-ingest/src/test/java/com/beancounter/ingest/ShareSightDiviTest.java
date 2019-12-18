@@ -73,7 +73,7 @@ class ShareSightDiviTest {
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
-        .hasFieldOrPropertyWithValue("portfolio", portfolio)
+        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
 
         .hasFieldOrProperty("tradeDate")
     ;

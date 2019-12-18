@@ -54,7 +54,7 @@ public class ShareSightDivis implements Transformer {
 
     return Transaction.builder()
         .asset(asset)
-        .portfolio(portfolio)
+        .portfolioId(portfolio.getId())
         .tradeCurrency(Currency.builder().code(row.get(currency)).build())
         .trnType(TrnType.DIVI)
         .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))

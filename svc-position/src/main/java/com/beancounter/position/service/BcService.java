@@ -74,10 +74,10 @@ public class BcService {
   }
 
   public Portfolio getPortfolioByCode(String portfolioCode) {
-    PortfolioRequest request = bcGateway.getPortfolioByCode(portfolioCode);
+    PortfolioRequest request = bcGateway.getPortfolioByCode(portfolioCode.toUpperCase());
     if (request == null || request.getData() == null) {
       throw new BusinessException(
-          String.format("Unable to locate portfolio code [%s]", portfolioCode));
+          String.format("Unable to locate portfolio code [%s]", portfolioCode.toUpperCase()));
     }
     return request.getData().iterator().next();
 

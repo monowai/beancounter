@@ -134,14 +134,16 @@ public class ContractVerifierBase {
 
     results.put("EBAY", WtdMockUtils.get(date, ebay,
         "39.21", "100.00", "39.35", "38.74", "6274307"));
-    mockWtdResponse(String.join(",", results.keySet()), date, WtdMockUtils.get(date, results));
+    mockWtdResponse(String.join(",", results.keySet()), date,
+        WtdMockUtils.get(date, results));
 
   }
 
   @Before
   public void mockPortfolios() throws Exception {
     File jsonFile = new ClassPathResource("contracts/portfolio/TestResponse.json").getFile();
-    PortfolioRequest portfolioRequest = new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
+    PortfolioRequest portfolioRequest =
+        new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
     Portfolio portfolio = portfolioRequest.getData().iterator().next();
     // For the sake of convenience when testing; id and code are the same
     Mockito.when(portfolioService.find("TEST"))

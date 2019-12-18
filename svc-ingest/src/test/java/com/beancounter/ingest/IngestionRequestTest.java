@@ -2,7 +2,6 @@ package com.beancounter.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.ingest.model.IngestionRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,7 @@ class IngestionRequestTest {
 
     IngestionRequest ingestionRequest = IngestionRequest.builder()
         .filter("TWEE")
-        .portfolio(PortfolioUtils.getPortfolio("Test"))
+        .portfolioCode("Test")
         .sheetId("123")
         .build();
 

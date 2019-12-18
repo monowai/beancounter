@@ -1,26 +1,20 @@
 package com.beancounter.ingest.model;
 
-import com.beancounter.common.model.Portfolio;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@JsonDeserialize(builder = IngestionRequest.IngestionRequestBuilder.class)
+@AllArgsConstructor
+@NoArgsConstructor
 public class IngestionRequest {
 
   private String sheetId;
   private String filter;
   @Builder.Default
   private boolean ratesIgnored = true;
-  private Portfolio portfolio;
-
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class IngestionRequestBuilder {
-  }
-
+  private String portfolioCode;
 
 }

@@ -1,6 +1,7 @@
 package com.beancounter.position.service;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Transaction;
@@ -14,7 +15,6 @@ import com.beancounter.position.accumulation.ValueTransaction;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 
@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class Accumulator {
 
-  @Value("${beancounter.positions.ordered:false}")
-  private boolean orderedTransactions = false;
+  //@Value("${beancounter.positions.ordered:false}")
+  //private boolean orderedTransactions = false;
 
   private Map<TrnType, ValueTransaction> logicMap = new HashMap<>();
 
@@ -41,7 +41,8 @@ public class Accumulator {
   }
 
   Position accumulate(Transaction transaction, Positions positions) {
-    return accumulate(transaction, positions.get(transaction));
+    return accumulate(transaction,positions.getPortfolio(),
+        positions.get(transaction.getAsset(), transaction.getTradeDate()));
   }
 
   /**
@@ -51,13 +52,13 @@ public class Accumulator {
    * @param position    Position to accumulate the transaction into
    * @return result object
    */
-  public Position accumulate(Transaction transaction, Position position) {
+  public Position accumulate(Transaction transaction, Portfolio portfolio, Position position) {
     boolean dateSensitive = (transaction.getTrnType() != TrnType.DIVI);
     if (dateSensitive) {
       isDateSequential(transaction, position);
     }
     ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
-    valueTransaction.value(transaction, position);
+    valueTransaction.value(transaction, portfolio, position);
     if (dateSensitive) {
       position.getDateValues().setLast(DateUtils.getDate(transaction.getTradeDate()));
     }

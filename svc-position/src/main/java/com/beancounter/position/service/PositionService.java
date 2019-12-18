@@ -44,7 +44,6 @@ public class PositionService implements Position {
 
     Positions positions = null;
     for (Transaction transaction : positionRequest.getTransactions()) {
-      setObjects(portfolio, transaction);
       if (positions == null) {
         positions = new Positions(portfolio);
       }
@@ -53,10 +52,4 @@ public class PositionService implements Position {
     return PositionResponse.builder().data(positions).build();
   }
 
-  public void setObjects(Portfolio portfolio, Transaction transaction) {
-    transaction.setCashCurrency(bcService.getCurrency(transaction.getCashCurrency()));
-    transaction.setTradeCurrency(
-        bcService.getCurrency(transaction.getAsset().getMarket().getCurrency()));
-    transaction.setPortfolio(portfolio);
-  }
 }

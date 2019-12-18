@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers.wtd;
 
 import com.beancounter.common.contracts.PriceRequest;
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -112,11 +111,9 @@ public class WtdService implements MarketDataProvider {
         // Ensure we return a MarketData result for each requested asset
         Asset bcAsset = providerArguments.getDpToBc().get(dpAsset);
         if (wtdResponse.getMessage() != null) {
-          // Entire call failed
-          log.error("{} - {}", wtdResponse.getMessage(), providerArguments.getAssets(batchId));
-          if (wtdResponse.getData() == null) {
-            throw new BusinessException(wtdResponse.getMessage());
-          }
+          // Issue with the data
+          // ToDo: subtract a day and try again?
+          log.warn("{} - {}", wtdResponse.getMessage(), providerArguments.getAssets(batchId));
         }
 
         MarketData marketData = null;

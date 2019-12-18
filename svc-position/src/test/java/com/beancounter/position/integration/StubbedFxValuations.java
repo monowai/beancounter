@@ -19,7 +19,6 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.BcService;
-import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -63,9 +62,6 @@ class StubbedFxValuations {
   private Valuation valuation;
 
   @Autowired
-  private PositionService positionService;
-
-  @Autowired
   private BcService bcService;
 
   private ObjectMapper mapper = new ObjectMapper();
@@ -77,18 +73,23 @@ class StubbedFxValuations {
 
   private Positions getPositions(Asset asset) {
 
-    Transaction buy = Transaction.builder()
+    Transaction transaction = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
     Portfolio portfolio = bcService.getPortfolioByCode("TEST");
-    positionService.setObjects(portfolio, buy);
+    transaction.setTradeCurrency(
+        bcService.getCurrency(asset.getMarket().getCurrency()));
+
     Accumulator accumulator = new Accumulator();
     Positions positions = new Positions(portfolio);
     positions.setAsAt("2019-10-18");
-    Position position = accumulator.accumulate(buy, Position.builder().asset(asset).build());
+
+    Position position = accumulator.accumulate(transaction, portfolio,
+        Position.builder().asset(asset).build());
+
     positions.add(position);
     return positions;
   }

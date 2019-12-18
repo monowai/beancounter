@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -46,7 +45,6 @@ class TestTransactionLogic {
     Transaction buyYesterday = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
-        .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
         .tradeDate(DateUtils.convert(yesterday))
         .quantity(new BigDecimal(100)).build();
@@ -54,16 +52,16 @@ class TestTransactionLogic {
     Transaction buyToday = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
-        .portfolio(getPortfolio("Test"))
         .tradeAmount(new BigDecimal(2000))
         .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal(100)).build();
 
     positions.add(position);
-    position = accumulator.accumulate(buyYesterday, position);
+    position = accumulator.accumulate(buyYesterday, positions.getPortfolio(), position);
 
     Position finalPosition = position;
-    assertThrows(BusinessException.class, () -> accumulator.accumulate(buyToday, finalPosition));
+    assertThrows(BusinessException.class, () ->
+        accumulator.accumulate(buyToday, positions.getPortfolio(), finalPosition));
 
 
   }

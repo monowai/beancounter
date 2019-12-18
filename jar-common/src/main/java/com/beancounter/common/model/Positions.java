@@ -3,6 +3,7 @@ package com.beancounter.common.model;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import lombok.Data;
@@ -54,11 +55,11 @@ public class Positions {
   }
 
   @JsonIgnore
-  public Position get(Transaction transaction) {
-    boolean firstTrade = !positions.containsKey(AssetUtils.toKey(transaction.getAsset()));
-    Position position = get(transaction.getAsset());
+  public Position get(Asset asset, Date tradeDate) {
+    boolean firstTrade = !positions.containsKey(AssetUtils.toKey(asset));
+    Position position = get(asset);
     if (firstTrade) {
-      position.getDateValues().setOpened(DateUtils.getDate(transaction.getTradeDate()));
+      position.getDateValues().setOpened(DateUtils.getDate(tradeDate));
     }
     return position;
   }

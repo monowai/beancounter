@@ -42,13 +42,12 @@ class TestStockSplits {
     Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
-        .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
         .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal("100")).build();
 
     Buy buy = new Buy();
-    buy.value(buyTrn, position);
+    buy.value(buyTrn, positions.getPortfolio(), position);
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100))
@@ -59,13 +58,12 @@ class TestStockSplits {
     Transaction stockSplit = Transaction.builder()
         .trnType(TrnType.SPLIT)
         .asset(apple)
-        .portfolio(getPortfolio("TEST"))
         .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal("7"))
         .build();
 
     Split split = new Split();
-    split.value(stockSplit, position);
+    split.value(stockSplit, positions.getPortfolio(), position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
@@ -75,7 +73,7 @@ class TestStockSplits {
         .hasFieldOrPropertyWithValue("costBasis", costBasis);
 
     // Another buy at the adjusted price
-    buy.value(buyTrn, position);
+    buy.value(buyTrn, positions.getPortfolio(), position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
@@ -84,20 +82,19 @@ class TestStockSplits {
     Transaction sell = Transaction.builder()
         .trnType(TrnType.SELL)
         .asset(apple)
-        .portfolio(getPortfolio("TEST"))
         .tradeAmount(new BigDecimal("2000"))
         .tradeDate(DateUtils.convert(today))
         .quantity(new BigDecimal("800")).build();
 
     // Sell the entire position
-    new Sell().value(sell, position);
+    new Sell().value(sell, positions.getPortfolio(), position);
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO)
     ;
 
     // Repurchase; total should be equal to the quantity we just purchased
-    buy.value(buyTrn, position);
+    buy.value(buyTrn, getPortfolio("TEST"), position);
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", buyTrn.getQuantity());
 

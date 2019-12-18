@@ -18,7 +18,6 @@ import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -89,10 +88,10 @@ class TestPositions {
         .build();
 
     Positions positions = new Positions(getPortfolio("Twee"));
-    Position position = positions.get(firstTrade);
+    Position position = positions.get(firstTrade.getAsset(), firstTradeDate);
     positions.add(position);
     // Calling this should not set the "first" trade date.
-    position = positions.get(secondTrade);
+    position = positions.get(secondTrade.getAsset(), secondTradeDate);
 
     assertThat(position.getDateValues())
         .hasFieldOrPropertyWithValue("opened", "2018-12-01")
@@ -133,7 +132,6 @@ class TestPositions {
     transactions.add(Transaction.builder()
         .asset(AssetUtils.getAsset("Blah", "Market"))
         .portfolioId("PCODE")
-        .portfolio(PortfolioUtils.getPortfolio("PCODE"))
         .build());
 
     PositionRequest positionRequest = PositionRequest.builder()

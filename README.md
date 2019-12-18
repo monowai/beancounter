@@ -12,6 +12,28 @@ Transform financial transaction data into portfolio positions which can then be 
 Put together, the flow looks like this
 
 ```bash
+# Create the portfolio
+curl -X POST \
+  http://localhost:9510/api/portfolios \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "data": [
+    {
+      "id": "FT-vUCChRwOXDP7itcp5Kw",
+      "code": "TEST",
+      "name": "NZD Portfolio",
+      "currency": {
+        "code": "NZD"
+      },
+      "base": {
+        "code": "USD"
+      }
+    }
+  ]
+}'
+
+# Portfolio Code to load the transactions against
+
 # Transform columnar data into transaction objects
 curl -X POST \
   http://localhost:9520/api/ \
@@ -19,11 +41,7 @@ curl -X POST \
   -d '{
   "sheetId":"1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
   "ratesIgnored": true,
-  "portfolio": {
-  	"code": "mike",
-  	"currency": { "code": "USD"},
-  	"base": { "code": "NZD"}
-  }
+  "portfolioCode": "TEST"
 }' -o trades.json 
 
 # Rollup transactions into positions

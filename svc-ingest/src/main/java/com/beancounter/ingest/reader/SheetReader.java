@@ -1,5 +1,6 @@
 package com.beancounter.ingest.reader;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
@@ -80,13 +81,16 @@ public class SheetReader implements Ingester {
   public Collection<Transaction> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
     Portfolio portfolio;
-    portfolio = bcService.getPortfolioByCode(ingestionRequest.getPortfolio().getCode());
+    portfolio = bcService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
     if (portfolio == null) {
-      portfolio = Portfolio.builder()
-          .code(ingestionRequest.getPortfolio().getCode())
-          .currency(ingestionRequest.getPortfolio().getCurrency())
-          .base(ingestionRequest.getPortfolio().getBase())
-          .build();
+      throw new BusinessException(String.format("Unknown portfolio code %s",
+          ingestionRequest.getPortfolioCode()));
+//      portfolio = Portfolio.builder()
+//          .code(ingestionRequest.getPortfolio().getCode())
+//          .currency(ingestionRequest.getPortfolio().getCurrency())
+//          .base(ingestionRequest.getPortfolio().getBase())
+//          .build();
+      //portfolio = bcService.save(portfolio);
     }
 
     final NetHttpTransport httpTransport = googleTransport.getHttpTransport();

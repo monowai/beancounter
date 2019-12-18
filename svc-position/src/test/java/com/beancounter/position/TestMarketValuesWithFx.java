@@ -37,7 +37,6 @@ class TestMarketValuesWithFx {
     Transaction buyTrn = Transaction.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
-        .portfolio(portfolio)
         .tradeAmount(new BigDecimal("2000.00"))
         .tradeCurrency(asset.getMarket().getCurrency())
         .tradePortfolioRate(simpleRate)
@@ -46,7 +45,7 @@ class TestMarketValuesWithFx {
     Buy buy = new Buy();
 
     Position position = Position.builder().asset(asset).build();
-    buy.value(buyTrn, position);
+    buy.value(buyTrn, portfolio, position);
 
     MarketData marketData = MarketData.builder()
         .close(new BigDecimal("10.00"))

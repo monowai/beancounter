@@ -1,7 +1,6 @@
 package com.beancounter.position;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
-import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -30,7 +29,6 @@ class TestPositions {
     Transaction transaction = Transaction.builder()
         .asset(asset)
         .trnType(TrnType.DIVI)
-        .portfolio(getPortfolio("Test"))
         .tradeCashRate(new BigDecimal("0.8988"))
         .tradeAmount(new BigDecimal("12.99"))
         .build();
@@ -39,7 +37,7 @@ class TestPositions {
 
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);
-    accumulator.accumulate(transaction, position);
+    accumulator.accumulate(transaction, positions.getPortfolio(), position);
     assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("dividends", transaction.getTradeAmount());
 

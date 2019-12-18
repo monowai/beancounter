@@ -11,11 +11,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.common.contracts.PriceRequest;
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.WtdMockUtils;
@@ -176,11 +174,19 @@ class TestWorldTradingDataApi {
 
     WtdMockUtils.mockWtdResponse(assets, mockInternet, "2019-11-15", true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").getFile());
-
-    assertThrows(BusinessException.class, () -> wtdService.getPrices(
+    Collection<MarketData> prices = wtdService.getPrices(
         PriceRequest.builder()
             .date("2019-11-15")
-            .assets(assets).build()));
+            .assets(assets).build());
+
+    assertThat(prices).hasSize(assets.size());
+    assertThat(
+        prices.iterator().next()).hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+    // Changed assumption from exception to no data
+    //    assertThrows(BusinessException.class, () -> wtdService.getPrices(
+    //        PriceRequest.builder()
+    //            .date("2019-11-15")
+    //            .assets(assets).build()));
   }
 
 }

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -137,11 +139,14 @@ class AssetMvcTests {
 
   @Test
   void is_MissingAssetBadRequest() throws Exception {
-    mockMvc.perform(
+    ResultActions result = mockMvc.perform(
         get("/assets/twee/blah")
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());
 
+    assertThat(result.andReturn().getResolvedException())
+        .isNotNull()
+        .isInstanceOfAny(BusinessException.class);
   }
 
 }

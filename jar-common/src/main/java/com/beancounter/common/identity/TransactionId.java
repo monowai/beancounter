@@ -1,7 +1,5 @@
 package com.beancounter.common.identity;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,16 +16,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonDeserialize(builder = TransactionId.TransactionIdBuilder.class)
 public class TransactionId implements Serializable {
   private String provider;
   private Integer batch;
   private Integer id;
-
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class TransactionIdBuilder {
-
-  }
 
 }

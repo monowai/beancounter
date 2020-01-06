@@ -4,17 +4,16 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ExchangeConfig;
 import com.google.api.client.util.Strings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import lombok.Data;
@@ -35,7 +34,6 @@ import org.springframework.stereotype.Service;
 public class ShareSightService {
 
   private final ExchangeConfig exchangeConfig;
-  private DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
   @Value("${out.file:#{null}}")
   private String outFile;
   @Value("${ratesIgnored:false}")
@@ -49,8 +47,8 @@ public class ShareSightService {
     this.exchangeConfig = exchangeConfig;
   }
 
-  Date parseDate(String date) throws ParseException {
-    return formatter.parse(date);
+  LocalDate parseDate(String date) {
+    return DateUtils.getDate(date, "dd/MM/yyyy");
   }
 
   public BigDecimal parseDouble(Object o) throws ParseException {

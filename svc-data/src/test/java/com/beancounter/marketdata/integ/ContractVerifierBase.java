@@ -153,7 +153,7 @@ public class ContractVerifierBase {
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates) {
-    mockEcbRates(rates, ecbRates, DateUtils.getDate(ecbRates.getDate()));
+    mockEcbRates(rates, ecbRates, DateUtils.getDateString(ecbRates.getDate()));
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates, String rateDate) {

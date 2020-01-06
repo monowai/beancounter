@@ -3,6 +3,7 @@ package com.beancounter.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Market;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.wtd.WtdConfig;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +11,6 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -36,7 +36,7 @@ class TestWtdSerialization {
 
     assertThat(response)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("date", Date.from(compareTo.toInstant()))
+        .hasFieldOrPropertyWithValue("date", DateUtils.getDateString(compareTo.toLocalDate()))
         .hasFieldOrProperty("data");
   }
 

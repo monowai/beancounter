@@ -15,7 +15,7 @@ import lombok.Data;
 @Data
 public class WtdResponse {
 
-  private Date date;
+  private String date;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonProperty("Message")

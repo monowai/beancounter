@@ -19,12 +19,13 @@ dependencies() {
             "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}",
             "org.projectlombok:lombok:${lombokVersion}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson}",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jackson}",
             "io.github.openfeign:feign-core:${openFeign}",
             "com.google.guava:guava:${guava}"
     )
 
     annotationProcessor(
-            "org.projectlombok:lombok:${lombokVersion}"
+            "org.projectlombok:lombok:${lombokVersion}",
     )
 
     testAnnotationProcessor(
@@ -33,6 +34,7 @@ dependencies() {
 
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:${jackson}",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jackson}",
             "org.projectlombok:lombok:${lombokVersion}",
             "org.assertj:assertj-core:${assertJ}",
             "io.github.openfeign:feign-core:${openFeign}",

@@ -9,6 +9,7 @@ import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 class TestTransaction {
@@ -28,6 +29,8 @@ class TestTransaction {
         .trnType(trnType)
         .id(TransactionId.builder().batch(10).id(10).provider("TEST").build())
         .portfolioId("TWEE")
+        .tradeDate(LocalDate.now())
+        .settleDate(LocalDate.now())
         .quantity(new BigDecimal("100.01"))
         .price(new BigDecimal("22.11"))
         .fees(new BigDecimal("10"))

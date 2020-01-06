@@ -15,10 +15,9 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,17 +30,14 @@ public class WtdMockUtils {
   public static final String WTD_PATH = "/contracts/wtd";
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  private static ZonedDateTime zonedDateTime = new Date()
-      .toInstant()
-      .atZone(ZoneId.systemDefault());
+  private static LocalDate zonedDateTime = LocalDate.now();
 
-  public static final String priceDate = DateUtils.getDate(
-      DateUtils.convert(
-          DateUtils.getLastMarketDate(zonedDateTime, ZoneId.systemDefault())));
+  public static final String priceDate =
+      DateUtils.getLastMarketDate(zonedDateTime, ZoneId.systemDefault()).toString();
 
   public static WtdResponse get(String date, Map<String, MarketData> prices) {
     WtdResponse response = new WtdResponse();
-    response.setDate(DateUtils.getDate(date));
+    response.setDate(date);
     response.setData(prices);
     return response;
   }

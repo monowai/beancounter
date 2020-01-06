@@ -7,7 +7,6 @@ import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.DataProviderConfig;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.TimeZone;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +59,7 @@ public class WtdConfig implements DataProviderConfig {
 
     // If startDate is not "TODAY", assume nothing, just discount the weekends
     LocalDate result = DateUtils.getLastMarketDate(
-        DateUtils.getDate(startDate == null ? DateUtils.today() : startDate)
-            .toInstant()
-            .atZone(ZoneId.systemDefault()),
+        DateUtils.getDate(startDate == null ? DateUtils.today() : startDate),
         timeZone.toZoneId(), daysToSubtract);
 
     return result.toString();

@@ -17,13 +17,12 @@ import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Transaction;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -76,13 +75,13 @@ class TestPositions {
 
     Asset asset = getAsset("Dates", "Code");
 
-    Date firstTradeDate = DateUtils.getDate("2018-12-01");
+    LocalDate firstTradeDate = DateUtils.getDate("2018-12-01");
     Transaction firstTrade = Transaction.builder()
         .tradeDate(firstTradeDate)
         .asset(asset)
         .build();
 
-    Date secondTradeDate = DateUtils.getDate("2018-12-02");
+    LocalDate secondTradeDate = DateUtils.getDate("2018-12-02");
     Transaction secondTrade = Transaction.builder()
         .tradeDate(secondTradeDate)
         .asset(asset)

@@ -35,7 +35,7 @@ public class FxTransactions {
                                             Collection<Transaction> transactions) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (Transaction transaction : transactions) {
-      String tradeDate = DateUtils.getDate(transaction.getTradeDate());
+      String tradeDate = DateUtils.getDateString(transaction.getTradeDate());
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 

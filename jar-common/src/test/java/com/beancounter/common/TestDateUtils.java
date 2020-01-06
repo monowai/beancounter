@@ -7,7 +7,6 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.utils.DateUtils;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,7 @@ class TestDateUtils {
     assertThat(now)
         .isNotNull()
         .startsWith(String.valueOf(calendar.get(Calendar.YEAR)))
-        .contains("-" + (calendar.get(Calendar.MONTH) + 1) + "-")
+        .contains("-" + (String.format("%02d", calendar.get(Calendar.MONTH) + 1)) + "-")
         .contains("-" + String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH)))
     ;
     assertThat(DateUtils.getDate("2019-11-29")).isNotNull();
@@ -52,40 +51,31 @@ class TestDateUtils {
 
   @Test
   void is_LocalDateEqualToToday() {
-    assertThat(DateUtils.convert(LocalDate.now())).isEqualTo(DateUtils.today());
+    String today = DateUtils.today();
+    LocalDate nowInTz = LocalDate.now(DateUtils.defaultZone);
+    assertThat(nowInTz.toString()).isEqualTo(today);
   }
 
   @Test
   void is_FridayFoundFromSundayInSystemDefaultTz() {
-    ZonedDateTime sunday = getSunday()
-        .toInstant()
-        .atZone(ZoneId.systemDefault());
-
+    LocalDate sunday = getSunday();
     LocalDate found = DateUtils.getLastMarketDate(sunday, ZoneId.systemDefault());
     assertThat(DateUtils.convert(found)).isEqualTo(getFriday());
   }
 
   @Test
   void is_WeekendFound() {
-    ZonedDateTime zonedDateTime = getSunday()
-        .toInstant()
-        .atZone(ZoneId.systemDefault());
+    LocalDate zonedDateTime = getSunday();
 
     assertThat(DateUtils.isWorkDay(zonedDateTime)).isFalse();// Sunday
 
-    zonedDateTime = getSaturday()
-        .toInstant()
-        .atZone(ZoneId.systemDefault());
+    zonedDateTime = getSaturday();
     assertThat(DateUtils.isWorkDay(zonedDateTime)).isFalse(); // Saturday
 
-    zonedDateTime = getFriday()
-        .toInstant()
-        .atZone(ZoneId.systemDefault());
+    zonedDateTime = getFriday();
     assertThat(DateUtils.isWorkDay(zonedDateTime)).isTrue(); // Friday
 
-    zonedDateTime = getMonday()
-        .toInstant()
-        .atZone(ZoneId.systemDefault());
+    zonedDateTime = getMonday();
     assertThat(DateUtils.isWorkDay(zonedDateTime)).isTrue(); // Monday
 
   }
@@ -93,34 +83,32 @@ class TestDateUtils {
   @Test
   void is_MarketDataPriceDateCalculated() {
     String sgToday = "2019-11-01"; // Friday in Singapore
-    ZonedDateTime sgDateTime = DateUtils.getDate(sgToday)
-        .toInstant()
-        .atZone(ZoneId.of("Asia/Singapore"));
+    LocalDate sgDateTime = DateUtils.getDate(sgToday);
+    //.atZone(ZoneId.of("Asia/Singapore"));
 
-    LocalDate marketDataDate = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"));
-    assertThat(DateUtils.getDate(
-        DateUtils.convert(marketDataDate))).isEqualTo("2019-10-31"); // Boo!
+    LocalDate dateResult = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"));
 
-    marketDataDate = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"), 2);
-    assertThat(DateUtils.getDate(
-        DateUtils.convert(marketDataDate))).isEqualTo("2019-10-30");
+    assertThat(dateResult.toString()).isEqualTo("2019-10-31"); // Boo!
+
+    dateResult = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"), 2);
+    assertThat(dateResult.toString()).isEqualTo("2019-10-30");
 
 
   }
 
-  private Date getMonday() {
+  private LocalDate getMonday() {
     return DateUtils.getDate("2019-10-21");
   }
 
-  private Date getSunday() {
+  private LocalDate getSunday() {
     return DateUtils.getDate("2019-10-20");
   }
 
-  private Date getSaturday() {
+  private LocalDate getSaturday() {
     return DateUtils.getDate("2019-10-19");
   }
 
-  private Date getFriday() {
+  private LocalDate getFriday() {
     return DateUtils.getDate("2019-10-18");
   }
 

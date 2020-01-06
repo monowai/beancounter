@@ -11,7 +11,6 @@ import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 import org.junit.jupiter.api.Test;
@@ -72,22 +71,18 @@ class TestStaticData {
     String dateInString = "2019-4-14 10:30:00 AM";
     // Users requested date "today in timezone"
 
-    LocalDateTime sunday = LocalDateTime
+    LocalDate sunday = LocalDate
         .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat));
 
-    Market sgMarket = marketService.getMarket("SGX");
-    Market nzMarket = marketService.getMarket("NZX");
     LocalDate resolvedDate = DateUtils.getLastMarketDate(
-        sunday
-            .atZone(sgMarket.getTimezone().toZoneId()),
+        sunday,
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)
         .isEqualTo(LocalDate.of(2019, 4, 12))
     ;
 
-    resolvedDate = DateUtils.getLastMarketDate(sunday
-            .atZone(nzMarket.getTimezone().toZoneId()),
+    resolvedDate = DateUtils.getLastMarketDate(sunday,
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)

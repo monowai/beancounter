@@ -12,7 +12,7 @@ import com.beancounter.position.accumulation.Dividend;
 import com.beancounter.position.accumulation.Sell;
 import com.beancounter.position.accumulation.Split;
 import com.beancounter.position.accumulation.ValueTransaction;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -60,7 +60,7 @@ public class Accumulator {
     ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
     valueTransaction.value(transaction, portfolio, position);
     if (dateSensitive) {
-      position.getDateValues().setLast(DateUtils.getDate(transaction.getTradeDate()));
+      position.getDateValues().setLast(DateUtils.getDateString(transaction.getTradeDate()));
     }
 
     return position;
@@ -70,8 +70,8 @@ public class Accumulator {
   private void isDateSequential(Transaction transaction, Position position) {
     boolean validDate = false;
 
-    Date tradeDate = transaction.getTradeDate();
-    Date positionDate = DateUtils.getDate(position.getDateValues().getLast());
+    LocalDate tradeDate = transaction.getTradeDate();
+    LocalDate positionDate = DateUtils.getDate(position.getDateValues().getLast());
 
     if (positionDate == null || (positionDate.compareTo(tradeDate) <= 0)) {
       validDate = true;

@@ -5,7 +5,6 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.BatchConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
@@ -127,7 +126,7 @@ public class WtdService implements MarketDataProvider {
         } else {
           marketData.setAsset(bcAsset);
         }
-        marketData.setDate(DateUtils.getDate(wtdResponse.getDate()));
+        marketData.setDate(wtdResponse.getDate());
         results.add(marketData);
       }
       return results;

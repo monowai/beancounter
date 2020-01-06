@@ -10,7 +10,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
-import java.util.TimeZone;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -22,9 +21,11 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class DateUtils {
 
-  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+  public ZoneId defaultZone = ZoneId.of("Asia/Singapore");
+  private String format = "yyyy-MM-dd";
+  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 
-  public LocalDate getLastMarketDate(ZonedDateTime seedDate, ZoneId targetZone) {
+  public LocalDate getLastMarketDate(LocalDate seedDate, ZoneId targetZone) {
     return getLastMarketDate(seedDate, targetZone, 1);
   }
 
@@ -37,27 +38,26 @@ public class DateUtils {
    * @param targetZone market to locate requestedDate on
    * @return resolved Date
    */
-  public LocalDate getLastMarketDate(ZonedDateTime seedDate, ZoneId targetZone, int days) {
+  public LocalDate getLastMarketDate(LocalDate seedDate, ZoneId targetZone, int days) {
     Objects.requireNonNull(seedDate);
     Objects.requireNonNull(targetZone);
 
-    ZonedDateTime result = seedDate.toLocalDateTime().atZone(targetZone).minusDays(days);
+    LocalDate result = seedDate.minusDays(days);
 
     while (!isWorkDay(result)) {
       result = result.minusDays(1);
     }
 
-    return result.toLocalDate();
+    return result;
   }
 
-  public Date convert(LocalDate localDate) {
-    return Date.from(localDate.atStartOfDay()
-        .atZone(ZoneId.systemDefault())
-        .toInstant());
+  public LocalDate convert(LocalDate localDate) {
+    ZonedDateTime zoned = localDate.atStartOfDay(defaultZone);
+    return getDate(zoned.toLocalDate().toString());
   }
 
 
-  public boolean isWorkDay(ZonedDateTime evaluate) {
+  public boolean isWorkDay(LocalDate evaluate) {
     // Naive implementation that is only aware of Western markets
     if (evaluate.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
       return false;
@@ -75,17 +75,17 @@ public class DateUtils {
     return simpleDateFormat.format(date);
   }
 
-  public Date getDate(String inDate) {
+  public LocalDate getDate(String inDate) {
     return getDate(inDate, "yyyy-MM-dd");
   }
 
-  public Date getDate(String inDate, String format) {
+  public LocalDate getDate(String inDate, String format) {
     if (inDate == null) {
       return null;
     }
-    return Date.from(
-        getLocalDate(inDate, format)
-            .atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant());
+    return getLocalDate(inDate, format)
+        .atStartOfDay(defaultZone).toLocalDate();
+
   }
 
   public LocalDate getLocalDate(String inDate, String dateFormat) {
@@ -96,7 +96,7 @@ public class DateUtils {
   }
 
   public String today() {
-    return getDate(new Date());
+    return LocalDate.now().toString();
   }
 
   public void isValid(String inDate) {
@@ -118,5 +118,9 @@ public class DateUtils {
     } catch (ParseException e) {
       throw new BusinessException(String.format("Unable to parse the date %s", inDate));
     }
+  }
+
+  public static String getDateString(LocalDate date) {
+    return (date == null ? null : date.toString());
   }
 }

@@ -38,7 +38,7 @@ public class EcbService {
               .from(currencyService.getBase())
               .to(currencyService.getCode(code))
               .rate(rates.getRates().get(code))
-              .date(DateUtils.getDate(rates.getDate()))
+              .date(DateUtils.getDateString(rates.getDate()))
               .build()
       );
     }

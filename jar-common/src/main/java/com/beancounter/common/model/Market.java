@@ -24,13 +24,12 @@ import lombok.NonNull;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Market {
-  private String id;
   @NonNull
   private String code;
   @Transient
   private Currency currency;
   @JsonIgnore
-  private String currencyCode;
+  private String currencyId;
   private TimeZone timezone;
   private String timezoneId;
 

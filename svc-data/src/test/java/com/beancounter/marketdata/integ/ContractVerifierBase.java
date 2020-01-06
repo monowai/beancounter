@@ -12,9 +12,9 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.WtdMockUtils;
 import com.beancounter.marketdata.controller.FxController;
-import com.beancounter.marketdata.controller.MarketController;
 import com.beancounter.marketdata.controller.PriceController;
 import com.beancounter.marketdata.currency.CurrencyController;
+import com.beancounter.marketdata.markets.MarketController;
 import com.beancounter.marketdata.portfolio.PortfolioController;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
@@ -60,6 +60,8 @@ public class ContractVerifierBase {
   static Asset msftInvalid = getAsset("MSFTx", "NASDAQ");
   static Asset amp = getAsset("AMP", "ASX");
   private static Asset ebay = getAsset("EBAY", "NASDAQ");
+  @MockBean
+  PortfolioService portfolioService;
   @Autowired
   private FxController fxController;
   @Autowired
@@ -70,10 +72,6 @@ public class ContractVerifierBase {
   private CurrencyController currencyController;
   @Autowired
   private PortfolioController portfolioController;
-
-  @MockBean
-  PortfolioService portfolioService;
-
   @MockBean
   private FxGateway fxGateway;
 

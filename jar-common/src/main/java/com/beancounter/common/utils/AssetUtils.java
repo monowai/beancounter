@@ -4,6 +4,8 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,6 +21,8 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class AssetUtils {
+
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Takes a valid asset and returns a key for it.
@@ -56,11 +60,12 @@ public class AssetUtils {
    * @return simple Asset.
    */
   public Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
-    return getAsset(assetCode, Market.builder()
-        .code(marketCode)
-        .id(marketCode)
-        .currency(Currency.builder().code("USD").build())
-        .build());
+    return getAsset(
+        assetCode,
+        Market.builder()
+            .code(marketCode.toUpperCase())
+            .currency(Currency.builder().code("USD").build())
+            .build());
   }
 
   /**
@@ -75,6 +80,7 @@ public class AssetUtils {
         .id(assetCode)
         .code(assetCode)
         .market(market)
+        .marketCode(market.getCode().toUpperCase())
         .build();
   }
 
@@ -87,5 +93,18 @@ public class AssetUtils {
       marketAssets.add(asset);
     }
     return results;
+  }
+
+  /**
+   * Helper for tests that returns the "serialized" view of an asset.
+   *
+   * @param code   assetCode
+   * @param market marketCode
+   * @return asset object with all @JsonIgnore fields applied
+   * @throws JsonProcessingException error
+   */
+  public static Asset getJsonAsset(String code, String market) throws JsonProcessingException {
+    Asset asset = getAsset(code, market);
+    return objectMapper.readValue(objectMapper.writeValueAsString(asset), Asset.class);
   }
 }

@@ -3,7 +3,6 @@ package com.beancounter.marketdata.providers.wtd;
 import com.beancounter.common.model.MarketData;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
 import java.util.Map;
 import lombok.Data;
 

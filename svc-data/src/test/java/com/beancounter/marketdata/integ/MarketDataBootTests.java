@@ -14,8 +14,9 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.MarketDataBoot;
+import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
-import com.beancounter.marketdata.service.MarketService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ import org.springframework.web.context.WebApplicationContext;
 class MarketDataBootTests {
 
   private final Asset dummy;
+  // Represents dummy after it has been Jackson'ized
+  private final Asset dummyJsonAsset;
   private WebApplicationContext wac;
   private MockProviderService mockProviderService;
   private MockMvc mockMvc;
@@ -49,12 +52,14 @@ class MarketDataBootTests {
   @Autowired
   private MarketDataBootTests(WebApplicationContext webApplicationContext,
                               MarketService marketService,
-                              MockProviderService mockProviderService) {
+                              MockProviderService mockProviderService)
+      throws JsonProcessingException {
     this.wac = webApplicationContext;
     this.mockProviderService = mockProviderService;
     dummy = AssetUtils.getAsset(
         "dummy",
         marketService.getMarket("mock"));
+    dummyJsonAsset = objectMapper.readValue(objectMapper.writeValueAsString(dummy), Asset.class);
   }
 
   @BeforeEach
@@ -95,7 +100,7 @@ class MarketDataBootTests {
 
     MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)
-        .hasFieldOrPropertyWithValue("asset", dummy)
+        .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());
 
@@ -129,18 +134,21 @@ class MarketDataBootTests {
   @Tag("slow")
   void is_ValuationRequestHydratingAssets() throws Exception {
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
-        dummy.getMarket().getCode(), dummy.getCode())
+        dummy.getMarket().getCode(),
+        dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_VALUE)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andReturn().getResponse().getContentAsString();
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
 
     PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
     assertThat(priceResponse.getData()).hasSize(1);
 
     MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)
-        .hasFieldOrPropertyWithValue("asset", dummy)
+        .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());
 

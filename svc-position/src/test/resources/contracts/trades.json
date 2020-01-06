@@ -1,211 +1,218 @@
-[ {
-  "trnType" : "BUY",
-  "asset" : {
-    "code" : "SLB",
-    "name" : "Schlumberger NV",
-    "market" : {
-      "code" : "AMEX",
-      "currency" : {
-        "code" : "USD"
+[
+  {
+    "trnType": "BUY",
+    "asset": {
+      "code": "SLB",
+      "name": "Schlumberger NV",
+      "market": {
+        "code": "AMEX",
+        "currency": {
+          "code": "USD"
+        }
       }
-    }
+    },
+    "portfolioId": "MIKE",
+    "cashAsset": null,
+    "id": {
+      "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+      "batch": 0,
+      "id": 1
+    },
+    "tradeCurrency": {
+      "code": "USD"
+    },
+    "cashCurrency": {
+      "code": "USD"
+    },
+    "tradeDate": "2019-01-20",
+    "settleDate": null,
+    "quantity": 45,
+    "price": 43.89,
+    "fees": 13.59,
+    "tax": 0,
+    "tradeAmount": 1985.14,
+    "cashAmount": null,
+    "tradeCashRate": 1,
+    "tradeBaseRate": 0.67250666,
+    "tradePortfolioRate": 1,
+    "comments": null
   },
-  "portfolioId" : "MIKE",
-  "cashAsset" : null,
-  "id" : {
-    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-    "batch" : 0,
-    "id" : 1
-  },
-  "tradeCurrency" : {
-    "code" : "USD"
-  },
-  "cashCurrency" : {
-    "code" : "USD"
-  },
-  "tradeDate" : "2019-01-20T16:00:00.000+0000",
-  "settleDate" : null,
-  "quantity" : 45,
-  "price" : 43.89,
-  "fees" : 13.59,
-  "tax" : 0,
-  "tradeAmount" : 1985.14,
-  "cashAmount" : null,
-  "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.67250666,
-  "tradePortfolioRate" : 1,
-  "comments" : null
-}, {
-  "trnType" : "BUY",
-  "asset" : {
-    "code" : "KMI",
-    "name" : "Kinder Morgan Inc",
-    "market" : {
-      "code" : "AMEX",
-      "currency" : {
-        "code" : "USD"
+  {
+    "trnType": "BUY",
+    "asset": {
+      "code": "KMI",
+      "name": "Kinder Morgan Inc",
+      "market": {
+        "code": "AMEX",
+        "currency": {
+          "code": "USD"
+        }
       }
-    }
+    },
+    "portfolioId": "MIKE",
+    "cashAsset": null,
+    "id": {
+      "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+      "batch": 0,
+      "id": 2
+    },
+    "tradeCurrency": {
+      "code": "USD"
+    },
+    "cashCurrency": {
+      "code": "USD"
+    },
+    "tradeDate": "2019-03-06",
+    "settleDate": null,
+    "quantity": 80,
+    "price": 19.98,
+    "fees": 4.08,
+    "tax": 0,
+    "tradeAmount": 1601.50,
+    "cashAmount": null,
+    "tradeCashRate": 1,
+    "tradeBaseRate": 0.67771030,
+    "tradePortfolioRate": 1,
+    "comments": null
   },
-  "portfolioId" : "MIKE",
-  "cashAsset" : null,
-  "id" : {
-    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-    "batch" : 0,
-    "id" : 2
-  },
-  "tradeCurrency" : {
-    "code" : "USD"
-  },
-  "cashCurrency" : {
-    "code" : "USD"
-  },
-  "tradeDate" : "2019-03-06T16:00:00.000+0000",
-  "settleDate" : null,
-  "quantity" : 80,
-  "price" : 19.98,
-  "fees" : 4.08,
-  "tax" : 0,
-  "tradeAmount" : 1601.50,
-  "cashAmount" : null,
-  "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.67771030,
-  "tradePortfolioRate" : 1,
-  "comments" : null
-}, {
-  "trnType" : "DIVI",
-  "asset" : {
-    "code" : "KMI",
-    "market" : {
-      "code" : "AMEX",
-      "currency" : {
-        "code" : "USD"
+  {
+    "trnType": "DIVI",
+    "asset": {
+      "code": "KMI",
+      "market": {
+        "code": "AMEX",
+        "currency": {
+          "code": "USD"
+        }
       }
-    }
+    },
+    "portfolioId": "MIKE",
+    "cashAsset": null,
+    "id": {
+      "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+      "batch": 0,
+      "id": 363
+    },
+    "tradeCurrency": {
+      "code": "USD"
+    },
+    "cashCurrency": null,
+    "tradeDate": "2019-05-14",
+    "settleDate": null,
+    "quantity": null,
+    "price": null,
+    "fees": 0,
+    "tax": 0.00,
+    "tradeAmount": 20.00,
+    "cashAmount": 20.00,
+    "tradeCashRate": 1,
+    "tradeBaseRate": 0.65524111,
+    "tradePortfolioRate": 1,
+    "comments": "Dividend of 25.0 cents per share"
   },
-  "portfolioId" : "MIKE",
-  "cashAsset" : null,
-  "id" : {
-    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-    "batch" : 0,
-    "id" : 363
-  },
-  "tradeCurrency" : {
-    "code" : "USD"
-  },
-  "cashCurrency" : null,
-  "tradeDate" : "2019-05-14T16:00:00.000+0000",
-  "settleDate" : null,
-  "quantity" : null,
-  "price" : null,
-  "fees" : 0,
-  "tax" : 0.00,
-  "tradeAmount" : 20.00,
-  "cashAmount" : 20.00,
-  "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.65524111,
-  "tradePortfolioRate" : 1,
-  "comments" : "Dividend of 25.0 cents per share"
-}, {
-  "trnType" : "DIVI",
-  "asset" : {
-    "code" : "KMI",
-    "market" : {
-      "code" : "AMEX",
-      "currency" : {
-        "code" : "USD"
+  {
+    "trnType": "DIVI",
+    "asset": {
+      "code": "KMI",
+      "market": {
+        "code": "AMEX",
+        "currency": {
+          "code": "USD"
+        }
       }
-    }
+    },
+    "portfolioId": "MIKE",
+    "cashAsset": null,
+    "id": {
+      "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+      "batch": 0,
+      "id": 364
+    },
+    "tradeCurrency": {
+      "code": "USD"
+    },
+    "cashCurrency": null,
+    "tradeDate": "2019-08-14",
+    "settleDate": null,
+    "quantity": null,
+    "price": null,
+    "fees": 0,
+    "tax": 0.00,
+    "tradeAmount": 20.00,
+    "cashAmount": 20.00,
+    "tradeCashRate": 1,
+    "tradeBaseRate": 0.64409913,
+    "tradePortfolioRate": 1,
+    "comments": "Dividend of 25.0 cents per share"
   },
-  "portfolioId" : "MIKE",
-  "cashAsset" : null,
-  "id" : {
-    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-    "batch" : 0,
-    "id" : 364
-  },
-  "tradeCurrency" : {
-    "code" : "USD"
-  },
-  "cashCurrency" : null,
-  "tradeDate" : "2019-08-14T16:00:00.000+0000",
-  "settleDate" : null,
-  "quantity" : null,
-  "price" : null,
-  "fees" : 0,
-  "tax" : 0.00,
-  "tradeAmount" : 20.00,
-  "cashAmount" : 20.00,
-  "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.64409913,
-  "tradePortfolioRate" : 1,
-  "comments" : "Dividend of 25.0 cents per share"
-}, {
-  "trnType" : "DIVI",
-  "asset" : {
-    "code" : "SLB",
-    "market" : {
-      "code" : "AMEX",
-      "currency" : {
-        "code" : "USD"
+  {
+    "trnType": "DIVI",
+    "asset": {
+      "code": "SLB",
+      "market": {
+        "code": "AMEX",
+        "currency": {
+          "code": "USD"
+        }
       }
-    }
+    },
+    "portfolioId": "MIKE",
+    "cashAsset": null,
+    "id": {
+      "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+      "batch": 0,
+      "id": 472
+    },
+    "tradeCurrency": {
+      "code": "USD"
+    },
+    "cashCurrency": null,
+    "tradeDate": "2019-04-11",
+    "settleDate": null,
+    "quantity": null,
+    "price": null,
+    "fees": 0,
+    "tax": 0.00,
+    "tradeAmount": 22.50,
+    "cashAmount": 22.50,
+    "tradeCashRate": 1,
+    "tradeBaseRate": 0.67596131,
+    "tradePortfolioRate": 1,
+    "comments": "Dividend of 50.0 cents per share"
   },
-  "portfolioId" : "MIKE",
-  "cashAsset" : null,
-  "id" : {
-    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-    "batch" : 0,
-    "id" : 472
-  },
-  "tradeCurrency" : {
-    "code" : "USD"
-  },
-  "cashCurrency" : null,
-  "tradeDate" : "2019-04-11T16:00:00.000+0000",
-  "settleDate" : null,
-  "quantity" : null,
-  "price" : null,
-  "fees" : 0,
-  "tax" : 0.00,
-  "tradeAmount" : 22.50,
-  "cashAmount" : 22.50,
-  "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.67596131,
-  "tradePortfolioRate" : 1,
-  "comments" : "Dividend of 50.0 cents per share"
-}, {
-  "trnType" : "DIVI",
-  "asset" : {
-    "code" : "SLB",
-    "market" : {
-      "code" : "AMEX",
-      "currency" : {
-        "code" : "USD"
+  {
+    "trnType": "DIVI",
+    "asset": {
+      "code": "SLB",
+      "market": {
+        "code": "AMEX",
+        "currency": {
+          "code": "USD"
+        }
       }
-    }
-  },
-  "portfolioId" : "MIKE",
-  "cashAsset" : null,
-  "id" : {
-    "provider" : "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-    "batch" : 0,
-    "id" : 473
-  },
-  "tradeCurrency" : {
-    "code" : "USD"
-  },
-  "cashCurrency" : null,
-  "tradeDate" : "2019-07-11T16:00:00.000+0000",
-  "settleDate" : null,
-  "quantity" : null,
-  "price" : null,
-  "fees" : 0,
-  "tax" : 0.00,
-  "tradeAmount" : 22.50,
-  "cashAmount" : 22.50,
-  "tradeCashRate" : 1,
-  "tradeBaseRate" : 0.66700255,
-  "tradePortfolioRate" : 1,
-  "comments" : "Dividend of 50.0 cents per share"
-} ]
+    },
+    "portfolioId": "MIKE",
+    "cashAsset": null,
+    "id": {
+      "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+      "batch": 0,
+      "id": 473
+    },
+    "tradeCurrency": {
+      "code": "USD"
+    },
+    "cashCurrency": null,
+    "tradeDate": "2019-07-11",
+    "settleDate": null,
+    "quantity": null,
+    "price": null,
+    "fees": 0,
+    "tax": 0.00,
+    "tradeAmount": 22.50,
+    "cashAmount": 22.50,
+    "tradeCashRate": 1,
+    "tradeBaseRate": 0.66700255,
+    "tradePortfolioRate": 1,
+    "comments": "Dividend of 50.0 cents per share"
+  }
+]

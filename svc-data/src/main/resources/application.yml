@@ -75,36 +75,36 @@ beancounter:
     - code: NASDAQ
       id: NASDAQ
       timezoneId: US/Eastern
-      currencyCode: USD
+      currencyId: USD
 
     - code: NYSE
       id: NYSE
       timezoneId: US/Eastern
-      currencyCode: USD
+      currencyId: USD
 
     - code: AMEX
       id: AMEX
       timezoneId: US/Eastern
-      currencyCode: USD
+      currencyId: USD
 
     - code: ASX
       id: ASX
       timezoneId: Australia/Sydney
-      currencyCode: AUD
+      currencyId: AUD
       aliases:
         WTD: AX
 
     - code: NZX
       id: NZX
       timezoneId: Pacific/Auckland
-      currencyCode: NZD
+      currencyId: NZD
       aliases:
         WTD: NZ
         ALPHA: NZ
 
     - code: SGX
       id: SGX
-      currencyCode: SGD
+      currencyId: SGD
       timezoneId: Asia/Singapore
 
 

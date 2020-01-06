@@ -1,10 +1,14 @@
-package com.beancounter.marketdata.controller;
+package com.beancounter.marketdata.markets;
 
 import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.marketdata.service.MarketService;
+import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.model.Market;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +33,17 @@ public class MarketController {
   @GetMapping
   MarketResponse getMarkets() {
     return marketService.getMarkets();
+  }
+
+  @GetMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
+  MarketResponse getMarket(@PathVariable String code) {
+    MarketResponse marketResponse = MarketResponse.builder().build();
+    Market market = marketService.getMarket(code);
+    if (market == null) {
+      throw new BusinessException(String.format("No market could be found for %s", code));
+    }
+    marketResponse.setData(Collections.singleton(market));
+    return marketResponse;
   }
 
 }

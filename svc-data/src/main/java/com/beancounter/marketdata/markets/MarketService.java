@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.service;
+package com.beancounter.marketdata.markets;
 
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;

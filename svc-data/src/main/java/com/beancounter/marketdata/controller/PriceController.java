@@ -43,7 +43,6 @@ public class PriceController {
         .code(assetId)
         .id(assetId)
         .market(Market.builder()
-            .id(marketId)
             .code(marketId).build())
         .build();
     return marketDataService.getPrice(testAsset);

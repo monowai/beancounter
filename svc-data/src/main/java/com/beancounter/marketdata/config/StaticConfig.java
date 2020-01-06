@@ -3,6 +3,7 @@ package com.beancounter.marketdata.config;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.currency.CurrencyService;
+import com.beancounter.marketdata.markets.MarketService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class StaticConfig {
   private String baseCode; // System default
   private Currency baseCurrency;
   private CurrencyService currencyService;
+  private MarketService marketService;
 
   /**
    * Convert from configured representation to Objects.
@@ -56,15 +58,13 @@ public class StaticConfig {
 
   private void handleMarkets() {
     for (Market market : markets) {
-      String currencyCode = market.getCurrencyCode();
+      String currencyCode = market.getCurrencyId();
       Currency currency = (currencyCode == null
           ? getBase() :
           this.currencyByCode.get(currencyCode));
       market.setCurrency(currency);
       market.setTimezone(getTimeZone(market.getTimezoneId()));
-
       this.marketData.put(market.getCode(), market);
-
     }
   }
 

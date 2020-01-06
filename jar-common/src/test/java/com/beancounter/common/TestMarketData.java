@@ -22,7 +22,7 @@ class TestMarketData {
 
     Collection<MarketData> marketDataCollection = new ArrayList<>();
     marketDataCollection.add(MarketData.builder()
-        .asset(AssetUtils.getAsset("Asset", "Market"))
+        .asset(AssetUtils.getJsonAsset("Asset", "Market"))
         .close(BigDecimal.TEN)
         .open(BigDecimal.ONE)
         .close(BigDecimal.TEN)
@@ -57,7 +57,7 @@ class TestMarketData {
   @Test
   void is_PriceRequestSerializing() throws Exception {
     Collection<Asset> assets = new ArrayList<>();
-    assets.add(AssetUtils.getAsset("ABC", "XYZ"));
+    assets.add(AssetUtils.getJsonAsset("ABC", "XYZ"));
     PriceRequest priceRequest = PriceRequest.builder()
         .date("2019-11-11")
         .assets(assets)

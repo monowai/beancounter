@@ -90,7 +90,7 @@ public class ShareSightTrades implements Transformer {
           .portfolioId(portfolio.getId())
           .cashCurrency(portfolio.getCurrency())
           .tradeCurrency(Currency.builder().code(row.get(currency)).build())
-          // Zero and null should be treated as "unknown"
+          // Zero and null are treated as "unknown"
           .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
               ? null : tradeRate)
           .comments(comment)

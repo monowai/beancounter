@@ -41,7 +41,7 @@ public class Accumulator {
   }
 
   Position accumulate(Transaction transaction, Positions positions) {
-    return accumulate(transaction,positions.getPortfolio(),
+    return accumulate(transaction, positions.getPortfolio(),
         positions.get(transaction.getAsset(), transaction.getTradeDate()));
   }
 

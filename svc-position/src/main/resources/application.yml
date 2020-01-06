@@ -14,7 +14,7 @@ management:
 #      base-path: "/"
 
 marketdata:
-    url: "http://localhost:9510/api"
+  url: "http://localhost:9510/api"
 
 spring:
   application:

@@ -1,7 +1,6 @@
 {
   "data": [
     {
-      "id": "NASDAQ",
       "code": "NASDAQ",
       "currency": {
         "code": "USD",
@@ -11,7 +10,6 @@
       "timezone": "US/Eastern"
     },
     {
-      "id": "AMEX",
       "code": "AMEX",
       "currency": {
         "code": "USD",
@@ -21,7 +19,6 @@
       "timezone": "US/Eastern"
     },
     {
-      "id": "SGX",
       "code": "SGX",
       "currency": {
         "code": "SGD",
@@ -31,7 +28,6 @@
       "timezone": "Asia/Singapore"
     },
     {
-      "id": "ASX",
       "code": "ASX",
       "currency": {
         "code": "AUD",
@@ -41,7 +37,6 @@
       "timezone": "Australia/Sydney"
     },
     {
-      "id": "NYSE",
       "code": "NYSE",
       "currency": {
         "code": "USD",
@@ -51,7 +46,6 @@
       "timezone": "US/Eastern"
     },
     {
-      "id": "NZX",
       "code": "NZX",
       "currency": {
         "code": "NZD",
@@ -61,7 +55,6 @@
       "timezone": "Pacific/Auckland"
     },
     {
-      "id": "MOCK",
       "code": "MOCK",
       "currency": {
         "code": "USD",

@@ -1,6 +1,7 @@
 package com.beancounter.common;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
+import static com.beancounter.common.utils.AssetUtils.getJsonAsset;
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +43,7 @@ class TestPositions {
         .currency(Currency.builder().code("SGD").build())
         .build());
 
-    Asset asset = getAsset("TEST", "TEST");
+    Asset asset = getJsonAsset("TEST", "TEST");
     positions.add(Position.builder()
         .asset(asset)
         .moneyValues(moneyValuesMap)
@@ -130,7 +131,7 @@ class TestPositions {
   void is_PositionRequestSerializing() throws Exception {
     Collection<Transaction> transactions = new ArrayList<>();
     transactions.add(Transaction.builder()
-        .asset(AssetUtils.getAsset("Blah", "Market"))
+        .asset(getJsonAsset("Blah", "Market"))
         .portfolioId("PCODE")
         .build());
 

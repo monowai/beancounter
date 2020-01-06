@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.markets.MarketService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,8 +84,6 @@ public class MarketDataService {
   private void hydrateAsset(Asset asset) {
     asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
   }
-
-
 
 
 }

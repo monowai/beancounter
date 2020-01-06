@@ -83,14 +83,8 @@ public class SheetReader implements Ingester {
     Portfolio portfolio;
     portfolio = bcService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
     if (portfolio == null) {
-      throw new BusinessException(String.format("Unknown portfolio code %s",
+      throw new BusinessException(String.format("Unknown portfolio code %s. Please create it.",
           ingestionRequest.getPortfolioCode()));
-//      portfolio = Portfolio.builder()
-//          .code(ingestionRequest.getPortfolio().getCode())
-//          .currency(ingestionRequest.getPortfolio().getCurrency())
-//          .base(ingestionRequest.getPortfolio().getBase())
-//          .build();
-      //portfolio = bcService.save(portfolio);
     }
 
     final NetHttpTransport httpTransport = googleTransport.getHttpTransport();

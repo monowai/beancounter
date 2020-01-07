@@ -2,7 +2,7 @@ group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
 
 tasks.withType(JavaCompile) {
-    options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:unchecked -parameters'
     options.deprecation = true
 }
 

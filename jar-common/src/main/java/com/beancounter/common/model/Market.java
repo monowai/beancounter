@@ -30,6 +30,7 @@ public class Market {
   private Currency currency;
   @JsonIgnore
   private String currencyId;
+  @JsonIgnore
   private TimeZone timezone;
   private String timezoneId;
 

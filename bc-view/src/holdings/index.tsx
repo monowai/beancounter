@@ -12,17 +12,17 @@ import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
 
 const ViewHoldings = (): JSX.Element => {
+  const [axiosResponse] = useAxios("http://localhost:9500/api/" + "test");
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio"
   });
-  // const [portfolioValueIn, setPortfolioValueIn] = useState<ValuationCcy>("BASE");
   const [hideEmpty, setHideEmpty] = useState<boolean>(true);
   const [groupBy, setGroupBy] = useState<GroupOption>({
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency"
   });
-  const [axiosResponse] = useAxios("http://localhost:9500/api/" + "test");
+
   if (axiosResponse.loading) {
     return <div id="root">Loading...</div>;
   }
@@ -90,7 +90,7 @@ const ViewHoldings = (): JSX.Element => {
             />
           </table>
         </div>
-        <div>
+        <div className={"all-holdings"}>
           <table className={"table is-striped is-hoverable"}>
             {Object.keys(holdings.holdingGroups)
               .sort()

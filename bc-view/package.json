@@ -80,6 +80,7 @@
     "postcss-flexbugs-fixes": "^4.1.0",
     "postcss-preset-env": "^6.7.0",
     "prettier": "^1.18.2",
+    "pretty-format": "^24.9.0",
     "ramda": "^0.26.1",
     "razzle": "^3.0.0",
     "razzle-plugin-scss": "^3.0.0",

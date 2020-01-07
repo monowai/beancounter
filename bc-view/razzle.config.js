@@ -9,6 +9,7 @@ module.exports = {
         dev: {
           sourceMap: true,
           ident: 'postcss',
+          exportOnlyLocals: true,
         },
         prod: {
           sourceMap: false,

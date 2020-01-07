@@ -54,16 +54,12 @@ feign:
     # http://localhost:9500/actuator/circuitbreaker-events/marketdata
 
 resilience4j.circuitbreaker:
-  backends:
-    marketdata:
-      ringBufferSizeInClosedState: 5
-      ringBufferSizeInHalfOpenState: 3
-      waitInterval: 3000
-      failureRateThreshold: 2
-      eventConsumerBufferSize: 10
+  configs:
+    default:
+      failureRateThreshold: 3
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: TIME_BASED
+      waitDurationInOpenState: 5s
       registerHealthIndicator: true
       recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
-#      recordExceptions:
-#        - org.springframework.web.client.HttpServerErrorException
-#      ignoreExceptions:
-#        - org.springframework.web.client.HttpClientErrorException

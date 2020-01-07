@@ -39,9 +39,9 @@ public interface BcGateway {
   MarketResponse getMarkets();
 
   @GetMapping(value = "/portfolios/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
-  PortfolioRequest getPortfolioById(@PathVariable String id);
+  PortfolioRequest getPortfolioById(@PathVariable("id") String id);
 
   @GetMapping(value = "/portfolios/{code}/code", produces = {MediaType.APPLICATION_JSON_VALUE})
-  PortfolioRequest getPortfolioByCode(@PathVariable String code);
+  PortfolioRequest getPortfolioByCode(@PathVariable("code") String code);
 
 }

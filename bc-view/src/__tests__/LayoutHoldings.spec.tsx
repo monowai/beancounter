@@ -5,6 +5,7 @@ import ViewHoldings from "../holdings";
 import nock from "nock";
 
 afterEach(cleanup);
+const container = render(<ViewHoldings />);
 
 nock("http://localhost:9500")
   .get("/api/test")
@@ -15,9 +16,7 @@ nock("http://localhost:9500")
 
 describe("<ViewHoldings />", () => {
   it("should match snapshot", async () => {
-    const container = render(<ViewHoldings />);
-
-    await waitForElement(() => container.getByText("NZD"));
-    expect(container).toMatchSnapshot();
+    await waitForElement(() => container.getByText("USD"));
+    expect(container.debug).toMatchSnapshot();
   });
 });

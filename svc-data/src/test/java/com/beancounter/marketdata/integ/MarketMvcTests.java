@@ -71,7 +71,7 @@ class MarketMvcTests {
     assertThat(marketResponse.getData()).hasSize(1);
 
     Market nzx = marketResponse.getData().iterator().next();
-    assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId");
+    assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId");
   }
 
   @Test

@@ -3,8 +3,8 @@ buildscript {
         openFeign = "10.7.0"
         springBootVersion = "2.2.2.RELEASE"
         springWeb = "5.2.2.RELEASE"
-        guava = "28.1-jre"
-        jackson = "2.10.1"
+        guava = "28.2-jre"
+        jackson = "2.10.2"
         assertJ = "3.14.0"
 
     }

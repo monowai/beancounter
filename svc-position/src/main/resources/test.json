@@ -27,7 +27,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-01-20T16:00:00.000+0000",
+    "tradeDate": "2019-01-20",
     "settleDate": null,
     "quantity": 45,
     "price": 43.89,
@@ -68,7 +68,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-03-06T16:00:00.000+0000",
+    "tradeDate": "2019-03-06",
     "settleDate": null,
     "quantity": 80,
     "price": 19.98,
@@ -109,7 +109,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "1997-04-19T16:00:00.000+0000",
+    "tradeDate": "1997-04-19",
     "settleDate": null,
     "quantity": 424,
     "price": 4.14,
@@ -150,7 +150,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2010-10-14T16:00:00.000+0000",
+    "tradeDate": "2010-10-14",
     "settleDate": null,
     "quantity": 13,
     "price": 5.01,
@@ -191,7 +191,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2011-08-03T16:00:00.000+0000",
+    "tradeDate": "2011-08-03",
     "settleDate": null,
     "quantity": 12,
     "price": 5.34,
@@ -232,7 +232,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2011-10-13T16:00:00.000+0000",
+    "tradeDate": "2011-10-13",
     "settleDate": null,
     "quantity": 17,
     "price": 3.91,
@@ -273,7 +273,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-04-04T16:00:00.000+0000",
+    "tradeDate": "2012-04-04",
     "settleDate": null,
     "quantity": 17,
     "price": 4.01,
@@ -314,7 +314,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-10-11T16:00:00.000+0000",
+    "tradeDate": "2012-10-11",
     "settleDate": null,
     "quantity": 14,
     "price": 4.35,
@@ -355,7 +355,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-09-04T16:00:00.000+0000",
+    "tradeDate": "2014-09-04",
     "settleDate": null,
     "quantity": 11,
     "price": 5.57,
@@ -396,7 +396,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-03-04T16:00:00.000+0000",
+    "tradeDate": "2015-03-04",
     "settleDate": null,
     "quantity": 10,
     "price": 6.57,
@@ -437,7 +437,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-09-02T16:00:00.000+0000",
+    "tradeDate": "2015-09-02",
     "settleDate": null,
     "quantity": 13,
     "price": 5.75,
@@ -478,7 +478,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-10-08T16:00:00.000+0000",
+    "tradeDate": "2015-10-08",
     "settleDate": null,
     "quantity": 12,
     "price": 5.75,
@@ -519,7 +519,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-04-07T16:00:00.000+0000",
+    "tradeDate": "2016-04-07",
     "settleDate": null,
     "quantity": 13,
     "price": 5.69,
@@ -560,7 +560,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-10-06T16:00:00.000+0000",
+    "tradeDate": "2016-10-06",
     "settleDate": null,
     "quantity": 14,
     "price": 5.35,
@@ -601,7 +601,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-03-30T16:00:00.000+0000",
+    "tradeDate": "2017-03-30",
     "settleDate": null,
     "quantity": 16,
     "price": 4.98,
@@ -642,7 +642,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-09-28T16:00:00.000+0000",
+    "tradeDate": "2017-09-28",
     "settleDate": null,
     "quantity": 17,
     "price": 5.02,
@@ -683,7 +683,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-03-27T16:00:00.000+0000",
+    "tradeDate": "2018-03-27",
     "settleDate": null,
     "quantity": 16,
     "price": 5.32,
@@ -724,7 +724,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-09-27T16:00:00.000+0000",
+    "tradeDate": "2018-09-27",
     "settleDate": null,
     "quantity": 18,
     "price": 3.35,
@@ -765,7 +765,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-05-29T16:00:00.000+0000",
+    "tradeDate": "2012-05-29",
     "settleDate": null,
     "quantity": 42,
     "price": 35.28,
@@ -806,7 +806,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-05-29T16:00:00.000+0000",
+    "tradeDate": "2012-05-29",
     "settleDate": null,
     "quantity": 80,
     "price": 25.83,
@@ -847,7 +847,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-06-12T16:00:00.000+0000",
+    "tradeDate": "2012-06-12",
     "settleDate": null,
     "quantity": 30,
     "price": 40.46,
@@ -888,7 +888,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-09-11T16:00:00.000+0000",
+    "tradeDate": "2012-09-11",
     "settleDate": null,
     "quantity": 75,
     "price": 19.11,
@@ -929,7 +929,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-09-20T16:00:00.000+0000",
+    "tradeDate": "2012-09-20",
     "settleDate": null,
     "quantity": -80,
     "price": 23.24,
@@ -970,7 +970,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-10-10T16:00:00.000+0000",
+    "tradeDate": "2012-10-10",
     "settleDate": null,
     "quantity": 60,
     "price": 21.7,
@@ -1011,7 +1011,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-02-11T16:00:00.000+0000",
+    "tradeDate": "2013-02-11",
     "settleDate": null,
     "quantity": 2,
     "price": 475,
@@ -1052,7 +1052,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-02-14T16:00:00.000+0000",
+    "tradeDate": "2013-02-14",
     "settleDate": null,
     "quantity": 1,
     "price": 460.04,
@@ -1093,7 +1093,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-09-05T16:00:00.000+0000",
+    "tradeDate": "2014-09-05",
     "settleDate": null,
     "quantity": 7,
     "price": 0,
@@ -1134,7 +1134,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-04-18T16:00:00.000+0000",
+    "tradeDate": "2013-04-18",
     "settleDate": null,
     "quantity": 23,
     "price": 53.84,
@@ -1175,7 +1175,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-04-21T16:00:00.000+0000",
+    "tradeDate": "2013-04-21",
     "settleDate": null,
     "quantity": -60,
     "price": 22.5,
@@ -1216,7 +1216,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-06-17T16:00:00.000+0000",
+    "tradeDate": "2013-06-17",
     "settleDate": null,
     "quantity": -30,
     "price": 52.72,
@@ -1257,7 +1257,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-07-15T16:00:00.000+0000",
+    "tradeDate": "2013-07-15",
     "settleDate": null,
     "quantity": 45,
     "price": 34.1,
@@ -1298,7 +1298,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-08-21T16:00:00.000+0000",
+    "tradeDate": "2013-08-21",
     "settleDate": null,
     "quantity": 15,
     "price": 31.55,
@@ -1339,7 +1339,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-10-23T16:00:00.000+0000",
+    "tradeDate": "2013-10-23",
     "settleDate": null,
     "quantity": -75,
     "price": 22.36,
@@ -1380,7 +1380,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-12-17T16:00:00.000+0000",
+    "tradeDate": "2013-12-17",
     "settleDate": null,
     "quantity": 8,
     "price": 168.01,
@@ -1421,7 +1421,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-03-23T16:00:00.000+0000",
+    "tradeDate": "2014-03-23",
     "settleDate": null,
     "quantity": 2,
     "price": 158.3,
@@ -1462,7 +1462,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-06-16T16:00:00.000+0000",
+    "tradeDate": "2014-06-16",
     "settleDate": null,
     "quantity": -8,
     "price": 83.27,
@@ -1503,7 +1503,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-07-13T16:00:00.000+0000",
+    "tradeDate": "2014-07-13",
     "settleDate": null,
     "quantity": -15,
     "price": 86.61,
@@ -1544,7 +1544,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-07-27T16:00:00.000+0000",
+    "tradeDate": "2014-07-27",
     "settleDate": null,
     "quantity": -3,
     "price": 226.7,
@@ -1585,7 +1585,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-08-24T16:00:00.000+0000",
+    "tradeDate": "2014-08-24",
     "settleDate": null,
     "quantity": -7,
     "price": 214.49,
@@ -1626,7 +1626,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-09-02T16:00:00.000+0000",
+    "tradeDate": "2014-09-02",
     "settleDate": null,
     "quantity": 14,
     "price": 108.75,
@@ -1667,7 +1667,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-01-14T16:00:00.000+0000",
+    "tradeDate": "2015-01-14",
     "settleDate": null,
     "quantity": 5,
     "price": 97.66,
@@ -1708,7 +1708,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-06-22T16:00:00.000+0000",
+    "tradeDate": "2015-06-22",
     "settleDate": null,
     "quantity": 2,
     "price": 1148,
@@ -1749,7 +1749,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-07-16T16:00:00.000+0000",
+    "tradeDate": "2015-07-16",
     "settleDate": null,
     "quantity": 44,
     "price": 22.01,
@@ -1790,7 +1790,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-07-16T16:00:00.000+0000",
+    "tradeDate": "2015-07-16",
     "settleDate": null,
     "quantity": 44,
     "price": 31.18,
@@ -1831,7 +1831,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-11-23T16:00:00.000+0000",
+    "tradeDate": "2015-11-23",
     "settleDate": null,
     "quantity": 55,
     "price": 27.13,
@@ -1872,7 +1872,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-12-23T16:00:00.000+0000",
+    "tradeDate": "2015-12-23",
     "settleDate": null,
     "quantity": -12,
     "price": 67.39,
@@ -1913,7 +1913,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-12-23T16:00:00.000+0000",
+    "tradeDate": "2015-12-23",
     "settleDate": null,
     "quantity": -20,
     "price": 58.35,
@@ -1954,7 +1954,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-06T16:00:00.000+0000",
+    "tradeDate": "2016-01-06",
     "settleDate": null,
     "quantity": -11,
     "price": 97.17,
@@ -1995,7 +1995,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-18T16:00:00.000+0000",
+    "tradeDate": "2016-01-18",
     "settleDate": null,
     "quantity": -10,
     "price": 95.8,
@@ -2036,7 +2036,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-28T16:00:00.000+0000",
+    "tradeDate": "2016-01-28",
     "settleDate": null,
     "quantity": 15,
     "price": 111.14,
@@ -2077,7 +2077,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-28T16:00:00.000+0000",
+    "tradeDate": "2016-01-28",
     "settleDate": null,
     "quantity": -44,
     "price": 23.3,
@@ -2118,7 +2118,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-02-04T16:00:00.000+0000",
+    "tradeDate": "2016-02-04",
     "settleDate": null,
     "quantity": 4,
     "price": 103.9,
@@ -2159,7 +2159,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-02-04T16:00:00.000+0000",
+    "tradeDate": "2016-02-04",
     "settleDate": null,
     "quantity": -19,
     "price": 84.75,
@@ -2200,7 +2200,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-07-19T16:00:00.000+0000",
+    "tradeDate": "2016-07-19",
     "settleDate": null,
     "quantity": 11,
     "price": 135.86,
@@ -2241,7 +2241,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-06-21T16:00:00.000+0000",
+    "tradeDate": "2017-06-21",
     "settleDate": null,
     "quantity": -11,
     "price": 133.65,
@@ -2282,7 +2282,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-07-20T16:00:00.000+0000",
+    "tradeDate": "2017-07-20",
     "settleDate": null,
     "quantity": 9,
     "price": 163.79,
@@ -2323,7 +2323,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-07-31T16:00:00.000+0000",
+    "tradeDate": "2017-07-31",
     "settleDate": null,
     "quantity": 11,
     "price": 76.09,
@@ -2364,7 +2364,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-08-20T16:00:00.000+0000",
+    "tradeDate": "2017-08-20",
     "settleDate": null,
     "quantity": -1,
     "price": 1810,
@@ -2405,7 +2405,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-09-21T16:00:00.000+0000",
+    "tradeDate": "2017-09-21",
     "settleDate": null,
     "quantity": -20,
     "price": 95,
@@ -2446,7 +2446,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-09-27T16:00:00.000+0000",
+    "tradeDate": "2017-09-27",
     "settleDate": null,
     "quantity": -15,
     "price": 76.86,
@@ -2487,7 +2487,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-03-21T16:00:00.000+0000",
+    "tradeDate": "2018-03-21",
     "settleDate": null,
     "quantity": 3,
     "price": 142.71,
@@ -2528,7 +2528,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-04-22T16:00:00.000+0000",
+    "tradeDate": "2018-04-22",
     "settleDate": null,
     "quantity": 12,
     "price": 166,
@@ -2569,7 +2569,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-07-17T16:00:00.000+0000",
+    "tradeDate": "2018-07-17",
     "settleDate": null,
     "quantity": 5,
     "price": 149.83,
@@ -2610,7 +2610,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-07-30T16:00:00.000+0000",
+    "tradeDate": "2018-07-30",
     "settleDate": null,
     "quantity": 8,
     "price": 96.9,
@@ -2651,7 +2651,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-11-22T16:00:00.000+0000",
+    "tradeDate": "2018-11-22",
     "settleDate": null,
     "quantity": -11,
     "price": 66.74,
@@ -2692,7 +2692,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-11-28T16:00:00.000+0000",
+    "tradeDate": "2018-11-28",
     "settleDate": null,
     "quantity": -14,
     "price": 136.76,
@@ -2733,7 +2733,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-01-17T16:00:00.000+0000",
+    "tradeDate": "2019-01-17",
     "settleDate": null,
     "quantity": 2,
     "price": 1080,
@@ -2774,7 +2774,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-02-11T16:00:00.000+0000",
+    "tradeDate": "2019-02-11",
     "settleDate": null,
     "quantity": -8,
     "price": 112.21,
@@ -2815,7 +2815,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-03-10T16:00:00.000+0000",
+    "tradeDate": "2019-03-10",
     "settleDate": null,
     "quantity": -10,
     "price": 87.22,
@@ -2856,7 +2856,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-08-14T16:00:00.000+0000",
+    "tradeDate": "2019-08-14",
     "settleDate": null,
     "quantity": -8,
     "price": 159.94,
@@ -2897,7 +2897,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-10-01T16:00:00.000+0000",
+    "tradeDate": "2019-10-01",
     "settleDate": null,
     "quantity": 15,
     "price": 136.34,
@@ -2938,7 +2938,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-05-29T16:00:00.000+0000",
+    "tradeDate": "2012-05-29",
     "settleDate": null,
     "quantity": 90,
     "price": 20.98,
@@ -2979,7 +2979,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-06-04T16:00:00.000+0000",
+    "tradeDate": "2012-06-04",
     "settleDate": null,
     "quantity": 45,
     "price": 25.75,
@@ -3020,7 +3020,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-08-14T16:00:00.000+0000",
+    "tradeDate": "2012-08-14",
     "settleDate": null,
     "quantity": 20,
     "price": 68.34,
@@ -3061,7 +3061,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2012-11-08T16:00:00.000+0000",
+    "tradeDate": "2012-11-08",
     "settleDate": null,
     "quantity": -45,
     "price": 26.79,
@@ -3102,7 +3102,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-01-08T16:00:00.000+0000",
+    "tradeDate": "2013-01-08",
     "settleDate": null,
     "quantity": 32,
     "price": 33.85,
@@ -3143,7 +3143,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-01-21T16:00:00.000+0000",
+    "tradeDate": "2013-01-21",
     "settleDate": null,
     "quantity": 45,
     "price": 33.07,
@@ -3184,7 +3184,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-04-03T16:00:00.000+0000",
+    "tradeDate": "2013-04-03",
     "settleDate": null,
     "quantity": 20,
     "price": 34.92,
@@ -3225,7 +3225,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-05-29T16:00:00.000+0000",
+    "tradeDate": "2013-05-29",
     "settleDate": null,
     "quantity": -40,
     "price": 32.1,
@@ -3266,7 +3266,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-09-02T16:00:00.000+0000",
+    "tradeDate": "2013-09-02",
     "settleDate": null,
     "quantity": 18,
     "price": 28.4,
@@ -3307,7 +3307,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2013-10-23T16:00:00.000+0000",
+    "tradeDate": "2013-10-23",
     "settleDate": null,
     "quantity": 60,
     "price": 25.7,
@@ -3348,7 +3348,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-03-11T16:00:00.000+0000",
+    "tradeDate": "2014-03-11",
     "settleDate": null,
     "quantity": 20,
     "price": 25.25,
@@ -3389,7 +3389,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-03-18T16:00:00.000+0000",
+    "tradeDate": "2014-03-18",
     "settleDate": null,
     "quantity": 40,
     "price": 41.1,
@@ -3430,7 +3430,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-09-21T16:00:00.000+0000",
+    "tradeDate": "2014-09-21",
     "settleDate": null,
     "quantity": 16,
     "price": 92.95,
@@ -3471,7 +3471,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-11-03T16:00:00.000+0000",
+    "tradeDate": "2014-11-03",
     "settleDate": null,
     "quantity": 21,
     "price": 33.1,
@@ -3512,7 +3512,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-05-03T16:00:00.000+0000",
+    "tradeDate": "2015-05-03",
     "settleDate": null,
     "quantity": -34,
     "price": 35.42,
@@ -3553,7 +3553,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-09-03T16:00:00.000+0000",
+    "tradeDate": "2015-09-03",
     "settleDate": null,
     "quantity": 30,
     "price": 32.88,
@@ -3594,7 +3594,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-10-06T16:00:00.000+0000",
+    "tradeDate": "2015-10-06",
     "settleDate": null,
     "quantity": 23,
     "price": 65.01,
@@ -3635,7 +3635,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-11-05T16:00:00.000+0000",
+    "tradeDate": "2015-11-05",
     "settleDate": null,
     "quantity": -32,
     "price": 57.93,
@@ -3676,7 +3676,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-06T16:00:00.000+0000",
+    "tradeDate": "2016-01-06",
     "settleDate": null,
     "quantity": -16,
     "price": 77.5,
@@ -3717,7 +3717,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-18T16:00:00.000+0000",
+    "tradeDate": "2016-01-18",
     "settleDate": null,
     "quantity": -32,
     "price": 54.54,
@@ -3758,7 +3758,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-01-18T16:00:00.000+0000",
+    "tradeDate": "2016-01-18",
     "settleDate": null,
     "quantity": -64,
     "price": 33.82,
@@ -3799,7 +3799,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-02-04T16:00:00.000+0000",
+    "tradeDate": "2016-02-04",
     "settleDate": null,
     "quantity": 5,
     "price": 100.01,
@@ -3840,7 +3840,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-04-26T16:00:00.000+0000",
+    "tradeDate": "2016-04-26",
     "settleDate": null,
     "quantity": 23,
     "price": 65.01,
@@ -3881,7 +3881,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-07-19T16:00:00.000+0000",
+    "tradeDate": "2016-07-19",
     "settleDate": null,
     "quantity": 5,
     "price": 125.26,
@@ -3922,7 +3922,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2016-10-04T16:00:00.000+0000",
+    "tradeDate": "2016-10-04",
     "settleDate": null,
     "quantity": 85,
     "price": 32.86,
@@ -3963,7 +3963,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-01-10T16:00:00.000+0000",
+    "tradeDate": "2017-01-10",
     "settleDate": null,
     "quantity": 24,
     "price": 82.06,
@@ -4004,7 +4004,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-01-26T16:00:00.000+0000",
+    "tradeDate": "2017-01-26",
     "settleDate": null,
     "quantity": 125,
     "price": 13.21,
@@ -4045,7 +4045,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-01-26T16:00:00.000+0000",
+    "tradeDate": "2017-01-26",
     "settleDate": null,
     "quantity": 10,
     "price": 169,
@@ -4086,7 +4086,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-05-07T16:00:00.000+0000",
+    "tradeDate": "2017-05-07",
     "settleDate": null,
     "quantity": -21,
     "price": 44.95,
@@ -4127,7 +4127,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-05-15T16:00:00.000+0000",
+    "tradeDate": "2017-05-15",
     "settleDate": null,
     "quantity": -80,
     "price": 28.25,
@@ -4168,7 +4168,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-06-21T16:00:00.000+0000",
+    "tradeDate": "2017-06-21",
     "settleDate": null,
     "quantity": -125,
     "price": 11.23,
@@ -4209,7 +4209,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-07-20T16:00:00.000+0000",
+    "tradeDate": "2017-07-20",
     "settleDate": null,
     "quantity": 17,
     "price": 85.12,
@@ -4250,7 +4250,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-07-31T16:00:00.000+0000",
+    "tradeDate": "2017-07-31",
     "settleDate": null,
     "quantity": -5,
     "price": 243.26,
@@ -4291,7 +4291,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-07-31T16:00:00.000+0000",
+    "tradeDate": "2017-07-31",
     "settleDate": null,
     "quantity": -13,
     "price": 65,
@@ -4332,7 +4332,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2017-12-31T16:00:00.000+0000",
+    "tradeDate": "2017-12-31",
     "settleDate": null,
     "quantity": -40,
     "price": 52.07,
@@ -4373,7 +4373,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-01-02T16:00:00.000+0000",
+    "tradeDate": "2018-01-02",
     "settleDate": null,
     "quantity": 50,
     "price": 34.14,
@@ -4414,7 +4414,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-01-02T16:00:00.000+0000",
+    "tradeDate": "2018-01-02",
     "settleDate": null,
     "quantity": 50,
     "price": 23.13,
@@ -4455,7 +4455,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-03-20T16:00:00.000+0000",
+    "tradeDate": "2018-03-20",
     "settleDate": null,
     "quantity": -5,
     "price": 337.63,
@@ -4496,7 +4496,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-04-08T16:00:00.000+0000",
+    "tradeDate": "2018-04-08",
     "settleDate": null,
     "quantity": 15,
     "price": 104.3,
@@ -4537,7 +4537,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-04-12T16:00:00.000+0000",
+    "tradeDate": "2018-04-12",
     "settleDate": null,
     "quantity": 26,
     "price": 45.61,
@@ -4578,7 +4578,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-11-22T16:00:00.000+0000",
+    "tradeDate": "2018-11-22",
     "settleDate": null,
     "quantity": -24,
     "price": 75.09,
@@ -4619,7 +4619,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-11-22T16:00:00.000+0000",
+    "tradeDate": "2018-11-22",
     "settleDate": null,
     "quantity": -85,
     "price": 36.28,
@@ -4660,7 +4660,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-11-22T16:00:00.000+0000",
+    "tradeDate": "2018-11-22",
     "settleDate": null,
     "quantity": -26,
     "price": 48.62,
@@ -4701,7 +4701,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-11-23T16:00:00.000+0000",
+    "tradeDate": "2018-11-23",
     "settleDate": null,
     "quantity": -50,
     "price": 22.65,
@@ -4742,7 +4742,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-12-11T16:00:00.000+0000",
+    "tradeDate": "2018-12-11",
     "settleDate": null,
     "quantity": 15,
     "price": 128.65,
@@ -4783,7 +4783,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2018-12-25T16:00:00.000+0000",
+    "tradeDate": "2018-12-25",
     "settleDate": null,
     "quantity": -20,
     "price": 47.5,
@@ -4824,7 +4824,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-02-18T16:00:00.000+0000",
+    "tradeDate": "2019-02-18",
     "settleDate": null,
     "quantity": 20,
     "price": 92.6,
@@ -4865,7 +4865,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-02-25T16:00:00.000+0000",
+    "tradeDate": "2019-02-25",
     "settleDate": null,
     "quantity": 58,
     "price": 26.23,
@@ -4906,7 +4906,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-03-11T16:00:00.000+0000",
+    "tradeDate": "2019-03-11",
     "settleDate": null,
     "quantity": 81,
     "price": 18.19,
@@ -4947,7 +4947,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-04-16T16:00:00.000+0000",
+    "tradeDate": "2019-04-16",
     "settleDate": null,
     "quantity": -17,
     "price": 78.99,
@@ -4988,7 +4988,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-07-07T16:00:00.000+0000",
+    "tradeDate": "2019-07-07",
     "settleDate": null,
     "quantity": -15,
     "price": 145.37,
@@ -5029,7 +5029,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-07-10T16:00:00.000+0000",
+    "tradeDate": "2019-07-10",
     "settleDate": null,
     "quantity": 165,
     "price": 10.75,
@@ -5070,7 +5070,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-08-04T16:00:00.000+0000",
+    "tradeDate": "2019-08-04",
     "settleDate": null,
     "quantity": 19,
     "price": 125.24,
@@ -5111,7 +5111,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-08-14T16:00:00.000+0000",
+    "tradeDate": "2019-08-14",
     "settleDate": null,
     "quantity": -23,
     "price": 56.33,
@@ -5152,7 +5152,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-08-14T16:00:00.000+0000",
+    "tradeDate": "2019-08-14",
     "settleDate": null,
     "quantity": -58,
     "price": 26.11,
@@ -5193,7 +5193,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2019-10-01T16:00:00.000+0000",
+    "tradeDate": "2019-10-01",
     "settleDate": null,
     "quantity": 25,
     "price": 81.32,
@@ -5234,7 +5234,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2005-08-24T16:00:00.000+0000",
+    "tradeDate": "2005-08-24",
     "settleDate": null,
     "quantity": 1322,
     "price": 2.38,
@@ -5275,7 +5275,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2014-04-15T16:00:00.000+0000",
+    "tradeDate": "2014-04-15",
     "settleDate": null,
     "quantity": 2414,
     "price": 1.55,
@@ -5316,7 +5316,7 @@
       "name": "Dollar",
       "symbol": "$"
     },
-    "tradeDate": "2015-04-22T16:00:00.000+0000",
+    "tradeDate": "2015-04-22",
     "settleDate": null,
     "quantity": 160,
     "price": 0,
@@ -5352,7 +5352,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-02-14T16:00:00.000+0000",
+    "tradeDate": "2017-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5388,7 +5388,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-05-16T16:00:00.000+0000",
+    "tradeDate": "2017-05-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5424,7 +5424,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-02-14T16:00:00.000+0000",
+    "tradeDate": "2013-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5460,7 +5460,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-05-14T16:00:00.000+0000",
+    "tradeDate": "2013-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5496,7 +5496,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-08-14T16:00:00.000+0000",
+    "tradeDate": "2013-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5532,7 +5532,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-11-14T16:00:00.000+0000",
+    "tradeDate": "2013-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5568,7 +5568,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-02-13T16:00:00.000+0000",
+    "tradeDate": "2014-02-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5604,7 +5604,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-05-14T16:00:00.000+0000",
+    "tradeDate": "2014-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5640,7 +5640,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-08-14T16:00:00.000+0000",
+    "tradeDate": "2014-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5676,7 +5676,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-11-16T16:00:00.000+0000",
+    "tradeDate": "2014-11-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5712,7 +5712,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-02-12T16:00:00.000+0000",
+    "tradeDate": "2015-02-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5748,7 +5748,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-05-14T16:00:00.000+0000",
+    "tradeDate": "2015-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5784,7 +5784,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-08-13T16:00:00.000+0000",
+    "tradeDate": "2015-08-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5820,7 +5820,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-11-13T16:00:00.000+0000",
+    "tradeDate": "2015-11-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5856,7 +5856,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-02-15T16:00:00.000+0000",
+    "tradeDate": "2016-02-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5892,7 +5892,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-04-09T16:00:00.000+0000",
+    "tradeDate": "2013-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5928,7 +5928,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-07-09T16:00:00.000+0000",
+    "tradeDate": "2013-07-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -5964,7 +5964,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-10-09T16:00:00.000+0000",
+    "tradeDate": "2013-10-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6000,7 +6000,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-01-09T16:00:00.000+0000",
+    "tradeDate": "2014-01-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6036,7 +6036,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-04-09T16:00:00.000+0000",
+    "tradeDate": "2014-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6072,7 +6072,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-07-09T16:00:00.000+0000",
+    "tradeDate": "2014-07-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6108,7 +6108,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-10-09T16:00:00.000+0000",
+    "tradeDate": "2014-10-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6144,7 +6144,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-01-08T16:00:00.000+0000",
+    "tradeDate": "2015-01-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6180,7 +6180,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-04-09T16:00:00.000+0000",
+    "tradeDate": "2015-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6216,7 +6216,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-07-09T16:00:00.000+0000",
+    "tradeDate": "2015-07-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6252,7 +6252,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-10-08T16:00:00.000+0000",
+    "tradeDate": "2015-10-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6288,7 +6288,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-01-10T16:00:00.000+0000",
+    "tradeDate": "2016-01-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6324,7 +6324,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-04-10T16:00:00.000+0000",
+    "tradeDate": "2016-04-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6360,7 +6360,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-07-10T16:00:00.000+0000",
+    "tradeDate": "2016-07-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6396,7 +6396,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-10-10T16:00:00.000+0000",
+    "tradeDate": "2016-10-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6432,7 +6432,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-01-09T16:00:00.000+0000",
+    "tradeDate": "2017-01-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6468,7 +6468,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-09T16:00:00.000+0000",
+    "tradeDate": "2017-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6504,7 +6504,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-07-09T16:00:00.000+0000",
+    "tradeDate": "2017-07-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6540,7 +6540,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-10-09T16:00:00.000+0000",
+    "tradeDate": "2017-10-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6576,7 +6576,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-01-09T16:00:00.000+0000",
+    "tradeDate": "2018-01-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6612,7 +6612,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-04-09T16:00:00.000+0000",
+    "tradeDate": "2018-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6648,7 +6648,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-07-09T16:00:00.000+0000",
+    "tradeDate": "2018-07-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6684,7 +6684,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-09T16:00:00.000+0000",
+    "tradeDate": "2018-10-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6720,7 +6720,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-01-09T16:00:00.000+0000",
+    "tradeDate": "2019-01-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6756,7 +6756,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-12-01T16:00:00.000+0000",
+    "tradeDate": "2019-12-01",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6792,7 +6792,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "1999-04-25T16:00:00.000+0000",
+    "tradeDate": "1999-04-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6828,7 +6828,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "1999-10-27T16:00:00.000+0000",
+    "tradeDate": "1999-10-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6864,7 +6864,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2000-04-10T16:00:00.000+0000",
+    "tradeDate": "2000-04-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6900,7 +6900,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2000-10-24T16:00:00.000+0000",
+    "tradeDate": "2000-10-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6936,7 +6936,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2001-04-19T16:00:00.000+0000",
+    "tradeDate": "2001-04-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -6972,7 +6972,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2001-10-29T16:00:00.000+0000",
+    "tradeDate": "2001-10-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7008,7 +7008,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2002-04-22T16:00:00.000+0000",
+    "tradeDate": "2002-04-22",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7044,7 +7044,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2002-10-28T16:00:00.000+0000",
+    "tradeDate": "2002-10-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7080,7 +7080,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2003-04-27T16:00:00.000+0000",
+    "tradeDate": "2003-04-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7116,7 +7116,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2003-10-27T16:00:00.000+0000",
+    "tradeDate": "2003-10-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7152,7 +7152,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2004-04-26T16:00:00.000+0000",
+    "tradeDate": "2004-04-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7188,7 +7188,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2004-10-25T16:00:00.000+0000",
+    "tradeDate": "2004-10-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7224,7 +7224,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2005-04-25T16:00:00.000+0000",
+    "tradeDate": "2005-04-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7260,7 +7260,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2005-10-24T16:00:00.000+0000",
+    "tradeDate": "2005-10-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7296,7 +7296,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2006-04-25T16:00:00.000+0000",
+    "tradeDate": "2006-04-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7332,7 +7332,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2006-10-23T16:00:00.000+0000",
+    "tradeDate": "2006-10-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7368,7 +7368,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2007-04-11T16:00:00.000+0000",
+    "tradeDate": "2007-04-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7404,7 +7404,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2007-10-11T16:00:00.000+0000",
+    "tradeDate": "2007-10-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7440,7 +7440,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2008-04-03T16:00:00.000+0000",
+    "tradeDate": "2008-04-03",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7476,7 +7476,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2008-10-16T16:00:00.000+0000",
+    "tradeDate": "2008-10-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7512,7 +7512,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2009-04-08T16:00:00.000+0000",
+    "tradeDate": "2009-04-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7548,7 +7548,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2009-10-15T16:00:00.000+0000",
+    "tradeDate": "2009-10-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7584,7 +7584,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2010-04-13T16:00:00.000+0000",
+    "tradeDate": "2010-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7620,7 +7620,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2010-10-14T16:00:00.000+0000",
+    "tradeDate": "2010-10-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7656,7 +7656,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2011-04-07T16:00:00.000+0000",
+    "tradeDate": "2011-04-07",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7692,7 +7692,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2011-10-13T16:00:00.000+0000",
+    "tradeDate": "2011-10-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7728,7 +7728,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-04-04T16:00:00.000+0000",
+    "tradeDate": "2012-04-04",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7764,7 +7764,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-10-11T16:00:00.000+0000",
+    "tradeDate": "2012-10-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7800,7 +7800,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-04-10T16:00:00.000+0000",
+    "tradeDate": "2013-04-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7836,7 +7836,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-10-10T16:00:00.000+0000",
+    "tradeDate": "2013-10-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7872,7 +7872,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-04-09T16:00:00.000+0000",
+    "tradeDate": "2014-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7908,7 +7908,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-10-09T16:00:00.000+0000",
+    "tradeDate": "2014-10-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7944,7 +7944,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-04-09T16:00:00.000+0000",
+    "tradeDate": "2015-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -7980,7 +7980,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-10-08T16:00:00.000+0000",
+    "tradeDate": "2015-10-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8016,7 +8016,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-04-07T16:00:00.000+0000",
+    "tradeDate": "2016-04-07",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8052,7 +8052,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-10-06T16:00:00.000+0000",
+    "tradeDate": "2016-10-06",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8088,7 +8088,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-30T16:00:00.000+0000",
+    "tradeDate": "2017-03-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8124,7 +8124,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-28T16:00:00.000+0000",
+    "tradeDate": "2017-09-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8160,7 +8160,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-27T16:00:00.000+0000",
+    "tradeDate": "2018-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8196,7 +8196,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-27T16:00:00.000+0000",
+    "tradeDate": "2018-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8232,7 +8232,7 @@
       "code": "AUD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-27T16:00:00.000+0000",
+    "tradeDate": "2019-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8268,7 +8268,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-05-15T16:00:00.000+0000",
+    "tradeDate": "2013-05-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8304,7 +8304,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-08-14T16:00:00.000+0000",
+    "tradeDate": "2013-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8340,7 +8340,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-11-13T16:00:00.000+0000",
+    "tradeDate": "2013-11-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8376,7 +8376,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-02-12T16:00:00.000+0000",
+    "tradeDate": "2014-02-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8412,7 +8412,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-05-14T16:00:00.000+0000",
+    "tradeDate": "2014-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8448,7 +8448,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-08-13T16:00:00.000+0000",
+    "tradeDate": "2014-08-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8484,7 +8484,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-11-12T16:00:00.000+0000",
+    "tradeDate": "2014-11-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8520,7 +8520,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-02-11T16:00:00.000+0000",
+    "tradeDate": "2015-02-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8556,7 +8556,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-05-13T16:00:00.000+0000",
+    "tradeDate": "2015-05-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8592,7 +8592,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-08-12T16:00:00.000+0000",
+    "tradeDate": "2015-08-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8628,7 +8628,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-11-11T16:00:00.000+0000",
+    "tradeDate": "2015-11-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8664,7 +8664,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-05-16T16:00:00.000+0000",
+    "tradeDate": "2018-05-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8700,7 +8700,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-08-15T16:00:00.000+0000",
+    "tradeDate": "2018-08-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8736,7 +8736,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-11-14T16:00:00.000+0000",
+    "tradeDate": "2018-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8772,7 +8772,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-02-13T16:00:00.000+0000",
+    "tradeDate": "2019-02-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8808,7 +8808,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-05-15T16:00:00.000+0000",
+    "tradeDate": "2019-05-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8844,7 +8844,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-08-14T16:00:00.000+0000",
+    "tradeDate": "2019-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8880,7 +8880,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-11-13T16:00:00.000+0000",
+    "tradeDate": "2019-11-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8916,7 +8916,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-02T16:00:00.000+0000",
+    "tradeDate": "2017-03-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8952,7 +8952,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-06-01T16:00:00.000+0000",
+    "tradeDate": "2017-06-01",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -8988,7 +8988,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-08-31T16:00:00.000+0000",
+    "tradeDate": "2017-08-31",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9024,7 +9024,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-11-30T16:00:00.000+0000",
+    "tradeDate": "2017-11-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9060,7 +9060,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-01T16:00:00.000+0000",
+    "tradeDate": "2018-03-01",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9096,7 +9096,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-02-01T16:00:00.000+0000",
+    "tradeDate": "2017-02-01",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9132,7 +9132,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-30T16:00:00.000+0000",
+    "tradeDate": "2017-04-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9168,7 +9168,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-08-02T16:00:00.000+0000",
+    "tradeDate": "2017-08-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9204,7 +9204,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-11-02T16:00:00.000+0000",
+    "tradeDate": "2017-11-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9240,7 +9240,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-02-01T16:00:00.000+0000",
+    "tradeDate": "2018-02-01",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9276,7 +9276,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-05-02T16:00:00.000+0000",
+    "tradeDate": "2018-05-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9312,7 +9312,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-07-31T16:00:00.000+0000",
+    "tradeDate": "2018-07-31",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9348,7 +9348,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-10-23T16:00:00.000+0000",
+    "tradeDate": "2012-10-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9384,7 +9384,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-12-18T16:00:00.000+0000",
+    "tradeDate": "2012-12-18",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9420,7 +9420,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-04-23T16:00:00.000+0000",
+    "tradeDate": "2013-04-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9456,7 +9456,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-07-23T16:00:00.000+0000",
+    "tradeDate": "2013-07-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9492,7 +9492,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-10-22T16:00:00.000+0000",
+    "tradeDate": "2013-10-22",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9528,7 +9528,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-01-19T16:00:00.000+0000",
+    "tradeDate": "2016-01-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9564,7 +9564,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-04-26T16:00:00.000+0000",
+    "tradeDate": "2016-04-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9600,7 +9600,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-07-26T16:00:00.000+0000",
+    "tradeDate": "2016-07-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9636,7 +9636,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-10-25T16:00:00.000+0000",
+    "tradeDate": "2016-10-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9672,7 +9672,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-01-24T16:00:00.000+0000",
+    "tradeDate": "2017-01-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9708,7 +9708,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-25T16:00:00.000+0000",
+    "tradeDate": "2017-04-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9744,7 +9744,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-07-25T16:00:00.000+0000",
+    "tradeDate": "2017-07-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9780,7 +9780,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-10-24T16:00:00.000+0000",
+    "tradeDate": "2017-10-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9816,7 +9816,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-01-23T16:00:00.000+0000",
+    "tradeDate": "2018-01-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9852,7 +9852,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-04-24T16:00:00.000+0000",
+    "tradeDate": "2018-04-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9888,7 +9888,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-07-24T16:00:00.000+0000",
+    "tradeDate": "2018-07-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9924,7 +9924,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-23T16:00:00.000+0000",
+    "tradeDate": "2018-10-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9960,7 +9960,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-01-22T16:00:00.000+0000",
+    "tradeDate": "2019-01-22",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -9996,7 +9996,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-23T16:00:00.000+0000",
+    "tradeDate": "2019-04-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10032,7 +10032,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-07-23T16:00:00.000+0000",
+    "tradeDate": "2019-07-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10068,7 +10068,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-10-22T16:00:00.000+0000",
+    "tradeDate": "2019-10-22",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10104,7 +10104,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-28T16:00:00.000+0000",
+    "tradeDate": "2018-06-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10140,7 +10140,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-27T16:00:00.000+0000",
+    "tradeDate": "2018-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10176,7 +10176,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-01-14T16:00:00.000+0000",
+    "tradeDate": "2019-01-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10212,7 +10212,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-28T16:00:00.000+0000",
+    "tradeDate": "2019-03-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10248,7 +10248,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-27T16:00:00.000+0000",
+    "tradeDate": "2019-06-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10284,7 +10284,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-29T16:00:00.000+0000",
+    "tradeDate": "2019-09-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10320,7 +10320,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-07-19T16:00:00.000+0000",
+    "tradeDate": "2015-07-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10356,7 +10356,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-01-26T16:00:00.000+0000",
+    "tradeDate": "2014-01-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10392,7 +10392,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-04-24T16:00:00.000+0000",
+    "tradeDate": "2014-04-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10428,7 +10428,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-07-24T16:00:00.000+0000",
+    "tradeDate": "2014-07-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10464,7 +10464,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-10-26T16:00:00.000+0000",
+    "tradeDate": "2014-10-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10500,7 +10500,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-01-25T16:00:00.000+0000",
+    "tradeDate": "2015-01-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10536,7 +10536,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-04-26T16:00:00.000+0000",
+    "tradeDate": "2015-04-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10572,7 +10572,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-07-26T16:00:00.000+0000",
+    "tradeDate": "2015-07-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10608,7 +10608,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-10-25T16:00:00.000+0000",
+    "tradeDate": "2015-10-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10644,7 +10644,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-01-24T16:00:00.000+0000",
+    "tradeDate": "2016-01-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10680,7 +10680,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-04-24T16:00:00.000+0000",
+    "tradeDate": "2016-04-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10716,7 +10716,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-07-24T16:00:00.000+0000",
+    "tradeDate": "2016-07-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10752,7 +10752,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-10-24T16:00:00.000+0000",
+    "tradeDate": "2016-10-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10788,7 +10788,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-01-24T16:00:00.000+0000",
+    "tradeDate": "2017-01-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10824,7 +10824,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-24T16:00:00.000+0000",
+    "tradeDate": "2017-04-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10860,7 +10860,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-10-16T16:00:00.000+0000",
+    "tradeDate": "2014-10-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10896,7 +10896,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-04-15T16:00:00.000+0000",
+    "tradeDate": "2015-04-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10932,7 +10932,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-10-15T16:00:00.000+0000",
+    "tradeDate": "2015-10-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -10968,7 +10968,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-04-14T16:00:00.000+0000",
+    "tradeDate": "2016-04-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11004,7 +11004,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-10-13T16:00:00.000+0000",
+    "tradeDate": "2016-10-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11040,7 +11040,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-12T16:00:00.000+0000",
+    "tradeDate": "2017-04-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11076,7 +11076,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-10-12T16:00:00.000+0000",
+    "tradeDate": "2017-10-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11112,7 +11112,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-04-19T16:00:00.000+0000",
+    "tradeDate": "2018-04-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11148,7 +11148,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-18T16:00:00.000+0000",
+    "tradeDate": "2018-10-18",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11184,7 +11184,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-18T16:00:00.000+0000",
+    "tradeDate": "2018-10-18",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11220,7 +11220,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-17T16:00:00.000+0000",
+    "tradeDate": "2019-04-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11256,7 +11256,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-17T16:00:00.000+0000",
+    "tradeDate": "2019-04-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11292,7 +11292,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-10-30T16:00:00.000+0000",
+    "tradeDate": "2019-10-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11328,7 +11328,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-10-30T16:00:00.000+0000",
+    "tradeDate": "2019-10-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11364,7 +11364,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-06-28T16:00:00.000+0000",
+    "tradeDate": "2015-06-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11400,7 +11400,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-09-28T16:00:00.000+0000",
+    "tradeDate": "2015-09-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11436,7 +11436,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-12-29T16:00:00.000+0000",
+    "tradeDate": "2015-12-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11472,7 +11472,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-27T16:00:00.000+0000",
+    "tradeDate": "2017-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11508,7 +11508,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-27T16:00:00.000+0000",
+    "tradeDate": "2017-12-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11544,7 +11544,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-28T16:00:00.000+0000",
+    "tradeDate": "2018-03-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11580,7 +11580,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-27T16:00:00.000+0000",
+    "tradeDate": "2018-06-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11616,7 +11616,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-26T16:00:00.000+0000",
+    "tradeDate": "2018-09-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11652,7 +11652,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-08-14T16:00:00.000+0000",
+    "tradeDate": "2012-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11688,7 +11688,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-11-14T16:00:00.000+0000",
+    "tradeDate": "2012-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11724,7 +11724,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-12-27T16:00:00.000+0000",
+    "tradeDate": "2012-12-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11760,7 +11760,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-05-14T16:00:00.000+0000",
+    "tradeDate": "2013-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11796,7 +11796,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-08-14T16:00:00.000+0000",
+    "tradeDate": "2013-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11832,7 +11832,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-11-14T16:00:00.000+0000",
+    "tradeDate": "2013-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11868,7 +11868,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-02-17T16:00:00.000+0000",
+    "tradeDate": "2014-02-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11904,7 +11904,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-05-14T16:00:00.000+0000",
+    "tradeDate": "2014-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11940,7 +11940,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-08-14T16:00:00.000+0000",
+    "tradeDate": "2014-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -11976,7 +11976,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-11-16T16:00:00.000+0000",
+    "tradeDate": "2014-11-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12012,7 +12012,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-02-16T16:00:00.000+0000",
+    "tradeDate": "2015-02-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12048,7 +12048,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-05-14T16:00:00.000+0000",
+    "tradeDate": "2015-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12084,7 +12084,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-08-16T16:00:00.000+0000",
+    "tradeDate": "2015-08-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12120,7 +12120,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-11-15T16:00:00.000+0000",
+    "tradeDate": "2015-11-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12156,7 +12156,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-02-15T16:00:00.000+0000",
+    "tradeDate": "2016-02-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12192,7 +12192,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-05-15T16:00:00.000+0000",
+    "tradeDate": "2016-05-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12228,7 +12228,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-08-14T16:00:00.000+0000",
+    "tradeDate": "2016-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12264,7 +12264,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-11-14T16:00:00.000+0000",
+    "tradeDate": "2016-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12300,7 +12300,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-02-14T16:00:00.000+0000",
+    "tradeDate": "2017-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12336,7 +12336,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-05-14T16:00:00.000+0000",
+    "tradeDate": "2017-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12372,7 +12372,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-08-14T16:00:00.000+0000",
+    "tradeDate": "2017-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12408,7 +12408,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-11-14T16:00:00.000+0000",
+    "tradeDate": "2017-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12444,7 +12444,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-02-14T16:00:00.000+0000",
+    "tradeDate": "2018-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12480,7 +12480,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-05-14T16:00:00.000+0000",
+    "tradeDate": "2018-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12516,7 +12516,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-08-14T16:00:00.000+0000",
+    "tradeDate": "2018-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12552,7 +12552,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-11-14T16:00:00.000+0000",
+    "tradeDate": "2018-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12588,7 +12588,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-02-14T16:00:00.000+0000",
+    "tradeDate": "2019-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12624,7 +12624,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-08-31T16:00:00.000+0000",
+    "tradeDate": "2012-08-31",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12660,7 +12660,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-11-30T16:00:00.000+0000",
+    "tradeDate": "2012-11-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12696,7 +12696,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-02-28T16:00:00.000+0000",
+    "tradeDate": "2013-02-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12732,7 +12732,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-28T16:00:00.000+0000",
+    "tradeDate": "2018-06-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12768,7 +12768,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-07-30T16:00:00.000+0000",
+    "tradeDate": "2018-07-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12804,7 +12804,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-08-30T16:00:00.000+0000",
+    "tradeDate": "2018-08-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12840,7 +12840,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-27T16:00:00.000+0000",
+    "tradeDate": "2018-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12876,7 +12876,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-30T16:00:00.000+0000",
+    "tradeDate": "2018-10-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12912,7 +12912,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-11-29T16:00:00.000+0000",
+    "tradeDate": "2018-11-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12948,7 +12948,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-09-10T16:00:00.000+0000",
+    "tradeDate": "2012-09-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -12984,7 +12984,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-12-10T16:00:00.000+0000",
+    "tradeDate": "2012-12-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13020,7 +13020,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-03-11T16:00:00.000+0000",
+    "tradeDate": "2013-03-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13056,7 +13056,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-06-10T16:00:00.000+0000",
+    "tradeDate": "2013-06-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13092,7 +13092,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-09-09T16:00:00.000+0000",
+    "tradeDate": "2013-09-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13128,7 +13128,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-12-09T16:00:00.000+0000",
+    "tradeDate": "2013-12-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13164,7 +13164,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-03-10T16:00:00.000+0000",
+    "tradeDate": "2014-03-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13200,7 +13200,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-06-09T16:00:00.000+0000",
+    "tradeDate": "2014-06-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13236,7 +13236,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-09-08T16:00:00.000+0000",
+    "tradeDate": "2014-09-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13272,7 +13272,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-12-08T16:00:00.000+0000",
+    "tradeDate": "2014-12-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13308,7 +13308,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-03-09T16:00:00.000+0000",
+    "tradeDate": "2015-03-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13344,7 +13344,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-06-08T16:00:00.000+0000",
+    "tradeDate": "2015-06-08",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13380,7 +13380,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-09-07T16:00:00.000+0000",
+    "tradeDate": "2015-09-07",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13416,7 +13416,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-12-07T16:00:00.000+0000",
+    "tradeDate": "2015-12-07",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13452,7 +13452,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-03-07T16:00:00.000+0000",
+    "tradeDate": "2016-03-07",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13488,7 +13488,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-06-06T16:00:00.000+0000",
+    "tradeDate": "2016-06-06",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13524,7 +13524,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-09-05T16:00:00.000+0000",
+    "tradeDate": "2016-09-05",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13560,7 +13560,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-12-05T16:00:00.000+0000",
+    "tradeDate": "2016-12-05",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13596,7 +13596,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-13T16:00:00.000+0000",
+    "tradeDate": "2017-03-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13632,7 +13632,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-06-12T16:00:00.000+0000",
+    "tradeDate": "2017-06-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13668,7 +13668,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-11T16:00:00.000+0000",
+    "tradeDate": "2017-09-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13704,7 +13704,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-11T16:00:00.000+0000",
+    "tradeDate": "2017-12-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13740,7 +13740,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-12T16:00:00.000+0000",
+    "tradeDate": "2018-03-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13776,7 +13776,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-11T16:00:00.000+0000",
+    "tradeDate": "2018-06-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13812,7 +13812,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-10T16:00:00.000+0000",
+    "tradeDate": "2018-09-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13848,7 +13848,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-12-10T16:00:00.000+0000",
+    "tradeDate": "2018-12-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13884,7 +13884,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-11T16:00:00.000+0000",
+    "tradeDate": "2019-03-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13920,7 +13920,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-10T16:00:00.000+0000",
+    "tradeDate": "2019-06-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13956,7 +13956,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-09T16:00:00.000+0000",
+    "tradeDate": "2019-09-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -13992,7 +13992,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-12-09T16:00:00.000+0000",
+    "tradeDate": "2019-12-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14028,7 +14028,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-05-14T16:00:00.000+0000",
+    "tradeDate": "2019-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14064,7 +14064,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-08-14T16:00:00.000+0000",
+    "tradeDate": "2019-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14100,7 +14100,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-11-14T16:00:00.000+0000",
+    "tradeDate": "2019-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14136,7 +14136,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-09-26T16:00:00.000+0000",
+    "tradeDate": "2013-09-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14172,7 +14172,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-12-26T16:00:00.000+0000",
+    "tradeDate": "2013-12-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14208,7 +14208,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-03-27T16:00:00.000+0000",
+    "tradeDate": "2014-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14244,7 +14244,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-06-26T16:00:00.000+0000",
+    "tradeDate": "2014-06-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14280,7 +14280,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-09-25T16:00:00.000+0000",
+    "tradeDate": "2014-09-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14316,7 +14316,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-12-25T16:00:00.000+0000",
+    "tradeDate": "2014-12-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14352,7 +14352,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-03-26T16:00:00.000+0000",
+    "tradeDate": "2015-03-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14388,7 +14388,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-06-25T16:00:00.000+0000",
+    "tradeDate": "2015-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14424,7 +14424,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-09-24T16:00:00.000+0000",
+    "tradeDate": "2015-09-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14460,7 +14460,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-12-27T16:00:00.000+0000",
+    "tradeDate": "2015-12-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14496,7 +14496,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-03-27T16:00:00.000+0000",
+    "tradeDate": "2016-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14532,7 +14532,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-06-23T16:00:00.000+0000",
+    "tradeDate": "2016-06-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14568,7 +14568,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-09-29T16:00:00.000+0000",
+    "tradeDate": "2016-09-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14604,7 +14604,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-12-29T16:00:00.000+0000",
+    "tradeDate": "2016-12-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14640,7 +14640,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-30T16:00:00.000+0000",
+    "tradeDate": "2017-03-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14676,7 +14676,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-06-29T16:00:00.000+0000",
+    "tradeDate": "2017-06-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14712,7 +14712,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-28T16:00:00.000+0000",
+    "tradeDate": "2017-09-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14748,7 +14748,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-28T16:00:00.000+0000",
+    "tradeDate": "2017-12-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14784,7 +14784,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-29T16:00:00.000+0000",
+    "tradeDate": "2018-03-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14820,7 +14820,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-28T16:00:00.000+0000",
+    "tradeDate": "2018-06-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14856,7 +14856,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-27T16:00:00.000+0000",
+    "tradeDate": "2018-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14892,7 +14892,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-12-27T16:00:00.000+0000",
+    "tradeDate": "2018-12-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14928,7 +14928,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-28T16:00:00.000+0000",
+    "tradeDate": "2019-03-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -14964,7 +14964,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-27T16:00:00.000+0000",
+    "tradeDate": "2019-06-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15000,7 +15000,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-26T16:00:00.000+0000",
+    "tradeDate": "2019-09-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15036,7 +15036,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-04-24T16:00:00.000+0000",
+    "tradeDate": "2018-04-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15072,7 +15072,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-12T16:00:00.000+0000",
+    "tradeDate": "2019-03-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15108,7 +15108,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-30T16:00:00.000+0000",
+    "tradeDate": "2019-09-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15144,7 +15144,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-08-14T16:00:00.000+0000",
+    "tradeDate": "2012-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15180,7 +15180,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-11-14T16:00:00.000+0000",
+    "tradeDate": "2012-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15216,7 +15216,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-02-14T16:00:00.000+0000",
+    "tradeDate": "2013-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15252,7 +15252,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-05-14T16:00:00.000+0000",
+    "tradeDate": "2013-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15288,7 +15288,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-08-14T16:00:00.000+0000",
+    "tradeDate": "2013-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15324,7 +15324,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-11-14T16:00:00.000+0000",
+    "tradeDate": "2013-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15360,7 +15360,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-02-16T16:00:00.000+0000",
+    "tradeDate": "2014-02-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15396,7 +15396,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-05-14T16:00:00.000+0000",
+    "tradeDate": "2014-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15432,7 +15432,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-08-14T16:00:00.000+0000",
+    "tradeDate": "2014-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15468,7 +15468,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-11-16T16:00:00.000+0000",
+    "tradeDate": "2014-11-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15504,7 +15504,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-02-15T16:00:00.000+0000",
+    "tradeDate": "2015-02-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15540,7 +15540,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-04-06T16:00:00.000+0000",
+    "tradeDate": "2015-04-06",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15576,7 +15576,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-05-14T16:00:00.000+0000",
+    "tradeDate": "2015-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15612,7 +15612,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-08-16T16:00:00.000+0000",
+    "tradeDate": "2015-08-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15648,7 +15648,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-11-15T16:00:00.000+0000",
+    "tradeDate": "2015-11-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15684,7 +15684,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-11-14T16:00:00.000+0000",
+    "tradeDate": "2016-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15720,7 +15720,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-02-14T16:00:00.000+0000",
+    "tradeDate": "2017-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15756,7 +15756,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-05-14T16:00:00.000+0000",
+    "tradeDate": "2017-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15792,7 +15792,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-08-14T16:00:00.000+0000",
+    "tradeDate": "2017-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15828,7 +15828,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-11-14T16:00:00.000+0000",
+    "tradeDate": "2017-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15864,7 +15864,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-02-14T16:00:00.000+0000",
+    "tradeDate": "2018-02-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15900,7 +15900,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-05-14T16:00:00.000+0000",
+    "tradeDate": "2018-05-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15936,7 +15936,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-08-14T16:00:00.000+0000",
+    "tradeDate": "2018-08-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -15972,7 +15972,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-11-14T16:00:00.000+0000",
+    "tradeDate": "2018-11-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16008,7 +16008,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-04-30T16:00:00.000+0000",
+    "tradeDate": "2018-04-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16044,7 +16044,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-07-30T16:00:00.000+0000",
+    "tradeDate": "2018-07-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16080,7 +16080,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-29T16:00:00.000+0000",
+    "tradeDate": "2018-10-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16116,7 +16116,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-17T16:00:00.000+0000",
+    "tradeDate": "2019-04-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16152,7 +16152,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-07-17T16:00:00.000+0000",
+    "tradeDate": "2019-07-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16188,7 +16188,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-10-17T16:00:00.000+0000",
+    "tradeDate": "2019-10-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16224,7 +16224,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-07-15T16:00:00.000+0000",
+    "tradeDate": "2012-07-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16260,7 +16260,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-10-14T16:00:00.000+0000",
+    "tradeDate": "2012-10-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16296,7 +16296,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-06-26T16:00:00.000+0000",
+    "tradeDate": "2016-06-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16332,7 +16332,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-09-25T16:00:00.000+0000",
+    "tradeDate": "2016-09-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16368,7 +16368,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-12-26T16:00:00.000+0000",
+    "tradeDate": "2016-12-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16404,7 +16404,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-26T16:00:00.000+0000",
+    "tradeDate": "2017-03-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16440,7 +16440,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-06-25T16:00:00.000+0000",
+    "tradeDate": "2017-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16476,7 +16476,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-24T16:00:00.000+0000",
+    "tradeDate": "2017-09-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16512,7 +16512,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-25T16:00:00.000+0000",
+    "tradeDate": "2017-12-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16548,7 +16548,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-25T16:00:00.000+0000",
+    "tradeDate": "2017-12-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16584,7 +16584,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-25T16:00:00.000+0000",
+    "tradeDate": "2017-12-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16620,7 +16620,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-20T16:00:00.000+0000",
+    "tradeDate": "2018-03-20",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16656,7 +16656,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-19T16:00:00.000+0000",
+    "tradeDate": "2018-06-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16692,7 +16692,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-25T16:00:00.000+0000",
+    "tradeDate": "2018-09-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16728,7 +16728,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-12-26T16:00:00.000+0000",
+    "tradeDate": "2018-12-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16764,7 +16764,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-19T16:00:00.000+0000",
+    "tradeDate": "2019-03-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16800,7 +16800,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-25T16:00:00.000+0000",
+    "tradeDate": "2019-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16836,7 +16836,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-24T16:00:00.000+0000",
+    "tradeDate": "2019-09-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16872,7 +16872,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-12-28T16:00:00.000+0000",
+    "tradeDate": "2015-12-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16908,7 +16908,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-03-28T16:00:00.000+0000",
+    "tradeDate": "2016-03-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16944,7 +16944,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-06-26T16:00:00.000+0000",
+    "tradeDate": "2016-06-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -16980,7 +16980,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-09-25T16:00:00.000+0000",
+    "tradeDate": "2016-09-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17016,7 +17016,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-12-26T16:00:00.000+0000",
+    "tradeDate": "2016-12-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17052,7 +17052,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-26T16:00:00.000+0000",
+    "tradeDate": "2017-03-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17088,7 +17088,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-06-25T16:00:00.000+0000",
+    "tradeDate": "2017-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17124,7 +17124,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-24T16:00:00.000+0000",
+    "tradeDate": "2017-09-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17160,7 +17160,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-25T16:00:00.000+0000",
+    "tradeDate": "2017-12-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17196,7 +17196,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-20T16:00:00.000+0000",
+    "tradeDate": "2018-03-20",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17232,7 +17232,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-19T16:00:00.000+0000",
+    "tradeDate": "2018-06-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17268,7 +17268,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-25T16:00:00.000+0000",
+    "tradeDate": "2018-09-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17304,7 +17304,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-12-26T16:00:00.000+0000",
+    "tradeDate": "2018-12-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17340,7 +17340,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-19T16:00:00.000+0000",
+    "tradeDate": "2019-03-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17376,7 +17376,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-25T16:00:00.000+0000",
+    "tradeDate": "2019-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17412,7 +17412,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-19T16:00:00.000+0000",
+    "tradeDate": "2019-03-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17448,7 +17448,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-25T16:00:00.000+0000",
+    "tradeDate": "2019-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17484,7 +17484,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-19T16:00:00.000+0000",
+    "tradeDate": "2019-03-19",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17520,7 +17520,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-25T16:00:00.000+0000",
+    "tradeDate": "2019-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17556,7 +17556,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-24T16:00:00.000+0000",
+    "tradeDate": "2019-09-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17592,7 +17592,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-03-30T16:00:00.000+0000",
+    "tradeDate": "2014-03-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17628,7 +17628,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-06-29T16:00:00.000+0000",
+    "tradeDate": "2014-06-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17664,7 +17664,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-09-28T16:00:00.000+0000",
+    "tradeDate": "2014-09-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17700,7 +17700,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-12-29T16:00:00.000+0000",
+    "tradeDate": "2014-12-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17736,7 +17736,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-03-29T16:00:00.000+0000",
+    "tradeDate": "2015-03-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17772,7 +17772,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-06-28T16:00:00.000+0000",
+    "tradeDate": "2015-06-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17808,7 +17808,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-09-27T16:00:00.000+0000",
+    "tradeDate": "2015-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17844,7 +17844,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-12-28T16:00:00.000+0000",
+    "tradeDate": "2015-12-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17880,7 +17880,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-03-28T16:00:00.000+0000",
+    "tradeDate": "2016-03-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17916,7 +17916,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-06-26T16:00:00.000+0000",
+    "tradeDate": "2016-06-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17952,7 +17952,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-09-25T16:00:00.000+0000",
+    "tradeDate": "2016-09-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -17988,7 +17988,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-12-26T16:00:00.000+0000",
+    "tradeDate": "2016-12-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18024,7 +18024,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-03-26T16:00:00.000+0000",
+    "tradeDate": "2017-03-26",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18060,7 +18060,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-06-25T16:00:00.000+0000",
+    "tradeDate": "2017-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18096,7 +18096,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-24T16:00:00.000+0000",
+    "tradeDate": "2017-09-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18132,7 +18132,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-12-25T16:00:00.000+0000",
+    "tradeDate": "2017-12-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18168,7 +18168,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-11T16:00:00.000+0000",
+    "tradeDate": "2019-04-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18204,7 +18204,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-07-11T16:00:00.000+0000",
+    "tradeDate": "2019-07-11",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18240,7 +18240,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-10-10T16:00:00.000+0000",
+    "tradeDate": "2019-10-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18276,7 +18276,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-12-28T16:00:00.000+0000",
+    "tradeDate": "2014-12-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18312,7 +18312,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-03-29T16:00:00.000+0000",
+    "tradeDate": "2015-03-29",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18348,7 +18348,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-06-28T16:00:00.000+0000",
+    "tradeDate": "2015-06-28",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18384,7 +18384,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-09-27T16:00:00.000+0000",
+    "tradeDate": "2015-09-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18420,7 +18420,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-12-27T16:00:00.000+0000",
+    "tradeDate": "2015-12-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18456,7 +18456,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-03-27T16:00:00.000+0000",
+    "tradeDate": "2016-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18492,7 +18492,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-07-04T16:00:00.000+0000",
+    "tradeDate": "2016-07-04",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18528,7 +18528,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-10-02T16:00:00.000+0000",
+    "tradeDate": "2016-10-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18564,7 +18564,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-01-02T16:00:00.000+0000",
+    "tradeDate": "2017-01-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18600,7 +18600,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-02T16:00:00.000+0000",
+    "tradeDate": "2017-04-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18636,7 +18636,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-07-02T16:00:00.000+0000",
+    "tradeDate": "2018-07-02",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18672,7 +18672,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-30T16:00:00.000+0000",
+    "tradeDate": "2018-09-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18708,7 +18708,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-12-17T16:00:00.000+0000",
+    "tradeDate": "2018-12-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18744,7 +18744,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-27T16:00:00.000+0000",
+    "tradeDate": "2019-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18780,7 +18780,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-25T16:00:00.000+0000",
+    "tradeDate": "2019-06-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18816,7 +18816,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2006-04-06T16:00:00.000+0000",
+    "tradeDate": "2006-04-06",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18852,7 +18852,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2006-04-06T16:00:00.000+0000",
+    "tradeDate": "2006-04-06",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18888,7 +18888,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2006-08-30T16:00:00.000+0000",
+    "tradeDate": "2006-08-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18924,7 +18924,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2006-08-30T16:00:00.000+0000",
+    "tradeDate": "2006-08-30",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18960,7 +18960,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2007-04-09T16:00:00.000+0000",
+    "tradeDate": "2007-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -18996,7 +18996,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2007-04-09T16:00:00.000+0000",
+    "tradeDate": "2007-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19032,7 +19032,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2007-09-03T16:00:00.000+0000",
+    "tradeDate": "2007-09-03",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19068,7 +19068,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2007-09-03T16:00:00.000+0000",
+    "tradeDate": "2007-09-03",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19104,7 +19104,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2008-04-09T16:00:00.000+0000",
+    "tradeDate": "2008-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19140,7 +19140,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2008-04-09T16:00:00.000+0000",
+    "tradeDate": "2008-04-09",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19176,7 +19176,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2008-09-17T16:00:00.000+0000",
+    "tradeDate": "2008-09-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19212,7 +19212,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2008-09-17T16:00:00.000+0000",
+    "tradeDate": "2008-09-17",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19248,7 +19248,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2009-04-13T16:00:00.000+0000",
+    "tradeDate": "2009-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19284,7 +19284,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2009-04-13T16:00:00.000+0000",
+    "tradeDate": "2009-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19320,7 +19320,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2009-09-14T16:00:00.000+0000",
+    "tradeDate": "2009-09-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19356,7 +19356,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2009-09-14T16:00:00.000+0000",
+    "tradeDate": "2009-09-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19392,7 +19392,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2010-04-13T16:00:00.000+0000",
+    "tradeDate": "2010-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19428,7 +19428,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2010-04-13T16:00:00.000+0000",
+    "tradeDate": "2010-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19464,7 +19464,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2010-09-12T16:00:00.000+0000",
+    "tradeDate": "2010-09-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19500,7 +19500,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2010-09-12T16:00:00.000+0000",
+    "tradeDate": "2010-09-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19536,7 +19536,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2011-04-13T16:00:00.000+0000",
+    "tradeDate": "2011-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19572,7 +19572,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2011-04-13T16:00:00.000+0000",
+    "tradeDate": "2011-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19608,7 +19608,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2011-09-18T16:00:00.000+0000",
+    "tradeDate": "2011-09-18",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19644,7 +19644,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2011-09-18T16:00:00.000+0000",
+    "tradeDate": "2011-09-18",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19680,7 +19680,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-04-15T16:00:00.000+0000",
+    "tradeDate": "2012-04-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19716,7 +19716,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-04-15T16:00:00.000+0000",
+    "tradeDate": "2012-04-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19752,7 +19752,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2012-09-16T16:00:00.000+0000",
+    "tradeDate": "2012-09-16",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19788,7 +19788,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-04-14T16:00:00.000+0000",
+    "tradeDate": "2013-04-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19824,7 +19824,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2013-09-12T16:00:00.000+0000",
+    "tradeDate": "2013-09-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19860,7 +19860,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-04-14T16:00:00.000+0000",
+    "tradeDate": "2014-04-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19896,7 +19896,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2014-09-14T16:00:00.000+0000",
+    "tradeDate": "2014-09-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19932,7 +19932,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-04-14T16:00:00.000+0000",
+    "tradeDate": "2015-04-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -19968,7 +19968,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2015-09-20T16:00:00.000+0000",
+    "tradeDate": "2015-09-20",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20004,7 +20004,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-04-13T16:00:00.000+0000",
+    "tradeDate": "2016-04-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20040,7 +20040,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2016-09-14T16:00:00.000+0000",
+    "tradeDate": "2016-09-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20076,7 +20076,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-04-12T16:00:00.000+0000",
+    "tradeDate": "2017-04-12",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20112,7 +20112,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2017-09-14T16:00:00.000+0000",
+    "tradeDate": "2017-09-14",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20148,7 +20148,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-04-10T16:00:00.000+0000",
+    "tradeDate": "2018-04-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20184,7 +20184,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-13T16:00:00.000+0000",
+    "tradeDate": "2018-09-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20220,7 +20220,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-09-13T16:00:00.000+0000",
+    "tradeDate": "2018-09-13",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20256,7 +20256,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-10T16:00:00.000+0000",
+    "tradeDate": "2019-04-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20292,7 +20292,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-04-10T16:00:00.000+0000",
+    "tradeDate": "2019-04-10",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20328,7 +20328,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-15T16:00:00.000+0000",
+    "tradeDate": "2019-09-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20364,7 +20364,7 @@
       "code": "NZD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-15T16:00:00.000+0000",
+    "tradeDate": "2019-09-15",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20400,7 +20400,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-03-27T16:00:00.000+0000",
+    "tradeDate": "2018-03-27",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20436,7 +20436,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-06-24T16:00:00.000+0000",
+    "tradeDate": "2018-06-24",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20472,7 +20472,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-10-01T16:00:00.000+0000",
+    "tradeDate": "2018-10-01",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20508,7 +20508,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2018-12-23T16:00:00.000+0000",
+    "tradeDate": "2018-12-23",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20544,7 +20544,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-03-25T16:00:00.000+0000",
+    "tradeDate": "2019-03-25",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20580,7 +20580,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-06-20T16:00:00.000+0000",
+    "tradeDate": "2019-06-20",
     "settleDate": null,
     "quantity": null,
     "price": null,
@@ -20616,7 +20616,7 @@
       "code": "USD"
     },
     "cashCurrency": null,
-    "tradeDate": "2019-09-29T16:00:00.000+0000",
+    "tradeDate": "2019-09-29",
     "settleDate": null,
     "quantity": null,
     "price": null,

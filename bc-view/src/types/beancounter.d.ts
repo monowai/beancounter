@@ -33,6 +33,7 @@ export interface Currency {
 }
 
 interface Asset {
+  id: string;
   code: string;
   name: string;
   market: Market;
@@ -76,6 +77,7 @@ interface Portfolio {
 // Server side contract
 interface HoldingContract {
   portfolio: Portfolio;
+  asAt: string;
   positions: Position[];
 }
 

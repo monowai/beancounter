@@ -31,6 +31,7 @@ public class Market {
   @JsonIgnore
   private String currencyId;
   private TimeZone timezone;
+  @JsonIgnore
   private String timezoneId;
 
   @Builder.Default

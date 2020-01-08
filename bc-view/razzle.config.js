@@ -9,7 +9,6 @@ module.exports = {
         dev: {
           sourceMap: true,
           ident: 'postcss',
-          exportOnlyLocals: true,
         },
         prod: {
           sourceMap: false,
@@ -38,8 +37,7 @@ module.exports = {
       }
     }
   ],
-  modify(config, { target, dev: IS_DEV }, webpack) {
-
+  modify(config, { target }) {
     const { module } = config;
     const { rules } = module;
     const fileLoaderIdx = findIndex(item => {

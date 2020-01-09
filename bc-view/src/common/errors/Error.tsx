@@ -15,9 +15,7 @@ const DevMessage = ({
   debug ? (
     <div className="rockstar">
       <h1 className="mono">Only for you Rock-Star Devs!</h1>
-      <p>
-        In case you&apos;re wondering, the Back button just works&trade;... :p
-      </p>
+      <p>In case you&apos;re wondering, the Back button just works&trade;... :p</p>
       <pre>
         <span>Your request failed with the following response:</span>
         {errorMessage}

@@ -5,17 +5,10 @@ import { ValueIn } from "../types/valueBy";
 function getPath(path: string, position: Position): string {
   return (path
     .split(".")
-    .reduce(
-      (p, c) => (p && p[c]) || "undefined",
-      position
-    ) as unknown) as string;
+    .reduce((p, c) => (p && p[c]) || "undefined", position) as unknown) as string;
 }
 
-function total(
-  total: MoneyValues,
-  position: Position,
-  valueIn: ValueIn
-): MoneyValues {
+function total(total: MoneyValues, position: Position, valueIn: ValueIn): MoneyValues {
   if (!total) {
     total = {
       costValue: 0,
@@ -45,11 +38,7 @@ function total(
   return total;
 }
 
-function totals(
-  totals: MoneyValues[],
-  position: Position,
-  valueIn: ValueIn
-): MoneyValues[] {
+function totals(totals: MoneyValues[], position: Position, valueIn: ValueIn): MoneyValues[] {
   if (!totals) {
     totals = [];
   }
@@ -65,9 +54,7 @@ export function calculate(
 ): Holdings {
   return Object.keys(contract.positions)
     .filter(positionKey =>
-      hideEmpty
-        ? contract.positions[positionKey].quantityValues.total !== 0
-        : true
+      hideEmpty ? contract.positions[positionKey].quantityValues.total !== 0 : true
     )
     .reduce(
       (results: Holdings, group) => {
@@ -85,11 +72,7 @@ export function calculate(
           position,
           ValueIn.PORTFOLIO
         );
-        results.totals["BASE"] = total(
-          results.totals["BASE"],
-          position,
-          ValueIn.BASE
-        );
+        results.totals["BASE"] = total(results.totals["BASE"], position, ValueIn.BASE);
         results.holdingGroups[groupKey].subTotals = totals(
           results.holdingGroups[groupKey].subTotals,
           position,

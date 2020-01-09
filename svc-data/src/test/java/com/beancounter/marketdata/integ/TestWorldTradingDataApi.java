@@ -51,7 +51,7 @@ class TestWorldTradingDataApi {
 
 
   @Autowired
-  private void mockServices() {
+  void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (mockInternet == null) {
       mockInternet = new WireMockRule(options().port(8888));

@@ -23,5 +23,8 @@ public class TestKeyGenUtils {
   void is_ArgumentExceptionsCorrect() {
     assertThrows(BusinessException.class, () -> KeyGenUtils.format(null));
     assertThrows(BusinessException.class, () -> KeyGenUtils.parse(null));
+    assertThrows(BusinessException.class, () -> KeyGenUtils.parse("ABC"));
+    assertThrows(BusinessException.class, () -> KeyGenUtils.parse("12345678901234567"));
+    assertThrows(BusinessException.class, () -> KeyGenUtils.parse(""));
   }
 }

@@ -24,7 +24,7 @@ public class KeyGenUtils {
    *
    * @param uuid a UUID instance.
    * @return a short string representation of the UUID.
-   * @throws NullPointerException     if the UUID instance is null.
+   * @throws BusinessException  if the UUID instance is null.
    * @throws IllegalArgumentException if the underlying UUID implementation is not 16 bytes.
    */
   public String format(UUID uuid) {
@@ -46,11 +46,11 @@ public class KeyGenUtils {
    * @param uuidString a string representation of a UUID.
    * @return a UUID instance
    * @throws IllegalArgumentException if the uuidString is not a valid UUID representation.
-   * @throws NullPointerException     if the uuidString is null.
+   * @throws BusinessException     if the uuidString is null.
    */
   public UUID parse(String uuidString) {
-    if (uuidString == null) {
-      throw new BusinessException("Null UUID string");
+    if (uuidString == null || uuidString.isEmpty()) {
+      throw new BusinessException("Invalid UUID string");
     }
 
     if (uuidString.length() > 24) {
@@ -58,7 +58,7 @@ public class KeyGenUtils {
     }
 
     if (uuidString.length() < 22) {
-      throw new IllegalArgumentException("Short UUID must be 22 characters: " + uuidString);
+      throw new BusinessException("Short UUID must be 22 characters: " + uuidString);
     }
 
     byte[] bytes = decodeBase64(uuidString);
@@ -94,12 +94,6 @@ public class KeyGenUtils {
    * @return a URL-safe base64-encoded string.
    */
   private String encodeBase64(byte[] bytes) {
-    if (bytes == null) {
-      throw new NullPointerException("Null UUID byte array");
-    }
-    if (bytes.length != 16) {
-      throw new IllegalArgumentException("UUID must be 16 bytes");
-    }
 
     // Output is always 22 characters.
     char[] chars = new char[22];
@@ -121,7 +115,7 @@ public class KeyGenUtils {
     // The last byte of the input gets put into two characters at the end of the string.
     int d = (bytes[i] & 0xff) << 10;
     chars[j++] = C64[d >> 12];
-    chars[j++] = C64[(d >>> 6) & 0x3f];
+    chars[j] = C64[(d >>> 6) & 0x3f];
     return new String(chars);
   }
 
@@ -137,12 +131,6 @@ public class KeyGenUtils {
    * @return bytes
    */
   private byte[] decodeBase64(String s) {
-    if (s == null) {
-      throw new NullPointerException("Cannot decode null string");
-    }
-    if (s.isEmpty() || (s.length() > 24)) {
-      throw new IllegalArgumentException("Invalid short UUID");
-    }
 
     // Output is always 16 bytes (UUID).
     byte[] bytes = new byte[16];
@@ -163,7 +151,7 @@ public class KeyGenUtils {
     }
 
     // Add the last two characters from the string into the last byte.
-    bytes[i] = (byte) ((I256[s.charAt(j++)] << 18 | I256[s.charAt(j++)] << 12) >> 16);
+    bytes[i] = (byte) ((I256[s.charAt(j++)] << 18 | I256[s.charAt(j)] << 12) >> 16);
     return bytes;
   }
 }

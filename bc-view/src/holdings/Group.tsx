@@ -25,17 +25,12 @@ export function HoldingHeader(props: { groupKey: string }): JSX.Element {
   );
 }
 
-export function HoldingRows(props: {
-  holdingGroup: HoldingGroup;
-  valueIn: ValueIn;
-}): JSX.Element {
+export function HoldingRows(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }): JSX.Element {
   const valueIn = props.valueIn;
   // eslint-disable-next-line complexity
   const holdings = props.holdingGroup.positions.map((position, index) => (
     <tr key={props.holdingGroup.group + index} className={"holding-row"}>
-      <td className={"asset"}>
-        {position.asset.code + ": " + position.asset.name}
-      </td>
+      <td className={"asset"}>{position.asset.code + ": " + position.asset.name}</td>
       <td>
         {!position.asset.market.currency ? (
           "-"
@@ -63,34 +58,13 @@ export function HoldingRows(props: {
           thousandSeparator={true}
         />
       </td>
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"marketValue"}
-      />
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"costValue"}
-      />
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"averageCost"}
-      />
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"dividends"}
-      />
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"realisedGain"}
-      />
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"unrealisedGain"}
-      />
-      <FormatMoneyValue
-        moneyValues={position.moneyValues[valueIn]}
-        moneyField={"totalGain"}
-      />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"marketValue"} />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"costValue"} />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"averageCost"} />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"dividends"} />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"realisedGain"} />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"unrealisedGain"} />
+      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"totalGain"} />
     </tr>
   ));
   return <tbody>{holdings}</tbody>;
@@ -108,18 +82,12 @@ export function HoldingFooter(props: {
         <td colSpan={4} align={"right"}>
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}
         </td>
-        <FormatMoneyValue
-          moneyValues={holdingGroup.subTotals[valueIn]}
-          moneyField={"costValue"}
-        />
+        <FormatMoneyValue moneyValues={holdingGroup.subTotals[valueIn]} moneyField={"costValue"} />
         <FormatMoneyValue
           moneyValues={holdingGroup.subTotals[valueIn]}
           moneyField={"marketValue"}
         />
-        <FormatMoneyValue
-          moneyValues={holdingGroup.subTotals[valueIn]}
-          moneyField={"dividends"}
-        />
+        <FormatMoneyValue moneyValues={holdingGroup.subTotals[valueIn]} moneyField={"dividends"} />
         <FormatMoneyValue
           moneyValues={holdingGroup.subTotals[valueIn]}
           moneyField={"realisedGain"}
@@ -128,10 +96,7 @@ export function HoldingFooter(props: {
           moneyValues={holdingGroup.subTotals[valueIn]}
           moneyField={"unrealisedGain"}
         />
-        <FormatMoneyValue
-          moneyValues={holdingGroup.subTotals[valueIn]}
-          moneyField={"totalGain"}
-        />
+        <FormatMoneyValue moneyValues={holdingGroup.subTotals[valueIn]} moneyField={"totalGain"} />
       </tr>
     </tbody>
   );

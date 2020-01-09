@@ -52,7 +52,7 @@ public class StaticConfig {
 
   @Autowired(required = false)
   @DependsOn("currencyRepository")
-  private void setCurrencyService(CurrencyService currencyService) {
+  void setCurrencyService(CurrencyService currencyService) {
     this.currencyService = currencyService;
   }
 

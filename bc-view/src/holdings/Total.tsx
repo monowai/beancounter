@@ -3,10 +3,7 @@ import React from "react";
 import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 
-export default function Total(props: {
-  holdings: Holdings;
-  valueIn: ValueIn;
-}): JSX.Element {
+export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): JSX.Element {
   // Transform the contract into the view the user requested
   const holdings = props.holdings;
   const valueIn = props.valueIn;
@@ -16,30 +13,12 @@ export default function Total(props: {
         <td colSpan={4} align={"right"}>
           Totals {valueIn}
         </td>
-        <FormatMoneyValue
-          moneyValues={holdings.totals[valueIn]}
-          moneyField={"costValue"}
-        />
-        <FormatMoneyValue
-          moneyValues={holdings.totals[valueIn]}
-          moneyField={"marketValue"}
-        />
-        <FormatMoneyValue
-          moneyValues={holdings.totals[valueIn]}
-          moneyField={"dividends"}
-        />
-        <FormatMoneyValue
-          moneyValues={holdings.totals[valueIn]}
-          moneyField={"realisedGain"}
-        />
-        <FormatMoneyValue
-          moneyValues={holdings.totals[valueIn]}
-          moneyField={"unrealisedGain"}
-        />
-        <FormatMoneyValue
-          moneyValues={holdings.totals[valueIn]}
-          moneyField={"totalGain"}
-        />
+        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
+        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />
+        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"dividends"} />
+        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"realisedGain"} />
+        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"unrealisedGain"} />
+        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"totalGain"} />
       </tr>
     </tbody>
   );

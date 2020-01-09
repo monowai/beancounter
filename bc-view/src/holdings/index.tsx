@@ -72,12 +72,7 @@ const ViewHoldings = (): JSX.Element => {
           </div>
           <div className="filter-label">Open Only</div>
           <div className="filter-column">
-            <Switch
-              className="react-switch"
-              onChange={setHideEmpty}
-              checked={hideEmpty}
-              required
-            />
+            <Switch className="react-switch" onChange={setHideEmpty} checked={hideEmpty} required />
           </div>
         </div>
         <div className={"stats-container"}>

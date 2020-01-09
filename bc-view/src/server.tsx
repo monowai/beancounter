@@ -14,8 +14,7 @@ import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./ConfigLogging";
 
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = (relativePath: string): string =>
-  path.resolve(appDirectory, relativePath);
+const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
 
 let assets: any;
 let publicDir = "./";
@@ -110,9 +109,7 @@ i18n
           }
           <script>
           window.initialLanguage = '${initialLanguage}';
-          window.initialI18nStore = ${JSON.stringify(
-            initialI18nStore
-          )}          
+          window.initialI18nStore = ${JSON.stringify(initialI18nStore)}          
         </script>          
     </head>
     <style>

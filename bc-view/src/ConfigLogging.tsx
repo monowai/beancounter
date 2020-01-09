@@ -9,8 +9,7 @@ const logger = winston.createLogger({
     winston.format.splat(),
     winston.format.align(),
     winston.format.printf(
-      (info: TransformableInfo) =>
-        `${info.timestamp} ${info.level}: ${info.message}`
+      (info: TransformableInfo) => `${info.timestamp} ${info.level}: ${info.message}`
     )
   ),
   transports: [

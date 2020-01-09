@@ -13,10 +13,7 @@ declare global {
 }
 
 const BaseApp = (): JSX.Element => {
-  useSSR(
-    (window as WindowI18n).initialI18nStore,
-    (window as WindowI18n).initialLanguage
-  );
+  useSSR((window as WindowI18n).initialI18nStore, (window as WindowI18n).initialLanguage);
 
   return (
     <Suspense fallback={<div>Loading ...</div>}>

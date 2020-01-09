@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class CloudConfig {
   @PostConstruct
-  private void loaded() {
+  void loaded() {
     log.info("Loaded");
   }
 }

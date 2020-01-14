@@ -1,12 +1,7 @@
 buildscript {
     ext {
-        springBootVersion = "2.2.2.RELEASE"
+
         // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html
-        verifierVersion = "2.2.0.RELEASE"
-        springCloudVersion = "Hoxton.RELEASE"
-        resilience4jVersion = "1.2.0"
-        junitVersion= "5.5.2"
-        lombokVersion= "1.18.10"
     }
     repositories {
         mavenLocal()

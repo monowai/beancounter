@@ -7,14 +7,14 @@ buildscript {
         verifierVersion = "2.2.0.RELEASE"
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:${verifierVersion}"
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:${springVerifierVersion}"
     }
 }
 
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
-    id "org.springframework.boot" version "${springBootVersion}"
+    id "org.springframework.boot" version "$springBootVersion"
     id "maven-publish"
 }
 apply plugin: 'spring-cloud-contract'

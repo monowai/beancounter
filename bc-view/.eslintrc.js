@@ -24,18 +24,11 @@ module.exports = {
     rules: {
         "strict": "error",
         "@typescript-eslint/explicit-member-accessibility": [1, { accessibility: 'no-public' }],
-        "complexity": ["error", 5],
-        "max-nested-callbacks": ["error", 3],
-        "max-params": ["error", 4],
-        "max-depth": ["error", 3],
         "react/jsx-sort-default-props": ["error", { "ignoreCase": false }],
         "max-len": [
             "error",
             {
-                "code": 100,
-                "ignoreStrings": true,
-                "ignoreComments": true,
-                "ignoreTemplateLiterals": true
+                "code": 100
             }
         ],
         "require-await": "error",
@@ -45,7 +38,6 @@ module.exports = {
             "methods",
             { "avoidExplicitReturnArrows": false }
         ],
-        "object-curly-spacing": ["error", "always"],
         "prefer-const": ["error", {
             "destructuring": "any",
             "ignoreReadBeforeAssign": false
@@ -59,8 +51,6 @@ module.exports = {
             allowTypedFunctionExpressions: true
         }],
         "@typescript-eslint/no-explicit-any": "off",
-        "jsx-quotes": "warn",
-        "react/jsx-pascal-case": "error",
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "warn"
     },

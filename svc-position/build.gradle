@@ -1,12 +1,7 @@
-buildscript {
-    ext {
-        springBootVersion = "2.2.2.RELEASE"
-    }
-}
 
 plugins {
-    id "io.spring.dependency-management" version "1.0.8.RELEASE"
-    id "org.springframework.boot" version "${springBootVersion}"
+    id "io.spring.dependency-management" version "$springDependencyManagement"
+    id "org.springframework.boot" version "$springBootVersion"
 }
 apply from: "../buildtools/javaCommon.gradle"
 repositories {
@@ -25,8 +20,8 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "org.springframework.boot:spring-boot-starter-actuator",
-            "io.github.resilience4j:resilience4j-spring-boot2:${resilience4jVersion}",
-            "io.github.resilience4j:resilience4j-reactor:${resilience4jVersion}"
+            "io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion"
     )
 
     compileOnly(
@@ -56,7 +51,7 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
     }
 }
 

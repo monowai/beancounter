@@ -1,9 +1,13 @@
 package com.beancounter.marketdata.assets;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.marketdata.markets.MarketService;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +28,7 @@ public class AssetService {
     this.marketService = marketService;
   }
 
-  public Asset create(Asset asset) {
+  public Asset upsert(Asset asset) {
     Asset foundAsset = find(
         asset.getMarket().getCode().toUpperCase(),
         asset.getCode().toUpperCase());
@@ -36,19 +40,20 @@ public class AssetService {
       asset.setMarketCode(market.getCode());
       foundAsset = assetRepository.save(asset);
       foundAsset.setMarket(market);
+      return foundAsset;
+    } else {
+      Asset updated = assetRepository.save(asset);
+      updated.setMarket(marketService.getMarket(asset.getMarket().getCode()));
+      return updated;
     }
-    return foundAsset;
   }
 
-  public Asset update(Asset asset) {
-    Optional<Asset> foundAsset = assetRepository.findById(asset.getId());
-    if (foundAsset.isEmpty()) {
-      return create(asset);
+  public AssetResponse process(AssetRequest asset) {
+    Map<String,Asset>assets = new HashMap<>();
+    for (String key : asset.getAssets().keySet()) {
+      assets.put(key, upsert(asset.getAssets().get(key)));
     }
-    Asset updated = assetRepository.save(asset);
-    updated.setMarket(marketService.getMarket(asset.getMarket().getCode()));
-    return updated;
-
+    return AssetResponse.builder().assets(assets).build();
   }
 
   public Asset find(String marketCode, String code) {

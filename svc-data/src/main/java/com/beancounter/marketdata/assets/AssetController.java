@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.assets;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +10,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,14 +41,10 @@ public class AssetController {
     return asset;
   }
 
-  @PutMapping
-  Asset create(@RequestBody Asset asset) {
-    return assetService.create(asset);
-  }
 
   @PostMapping
-  Asset update(@RequestBody Asset asset) {
-    return assetService.update(asset);
+  AssetResponse update(@RequestBody AssetRequest assetRequest) {
+    return assetService.process(assetRequest);
   }
 
 }

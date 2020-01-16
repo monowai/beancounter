@@ -3,6 +3,8 @@ package com.beancounter.common;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -16,23 +18,43 @@ import org.junit.jupiter.api.Test;
 
 class TestAsset {
   @Test
-  void is_Serializing() throws Exception {
+  void assetRequestSerializes() throws Exception {
+    Asset asset = AssetUtils.getJsonAsset("AAA", "BBB");
 
-    Asset asset = Asset.builder()
-        .code("SomeId")
-        .name("Some Name")
-        .category("Equity")
-        .market(Market.builder().code("NYSE").build())
+    AssetRequest assetRequest = AssetRequest
+        .builder()
+        .asset(AssetUtils.toKey(asset), asset)
+        .asset("second", AssetUtils.getJsonAsset("Twee", "Whee"))
         .build();
 
-    assertThat(asset).isNotNull();
+    assertThat(assetRequest.getAssets()).containsKeys(AssetUtils.toKey(asset));
 
     ObjectMapper om = new ObjectMapper();
-    String json = om.writeValueAsString(asset);
+    String json = om.writeValueAsString(assetRequest);
 
-    Asset fromJson = om.readValue(json, Asset.class);
+    AssetRequest fromJson = om.readValue(json, AssetRequest.class);
 
-    assertThat(fromJson).isEqualTo(asset);
+    assertThat(fromJson).isEqualTo(assetRequest);
+  }
+
+  @Test
+  void assetResponseSerializes() throws Exception {
+    Asset asset = AssetUtils.getJsonAsset("AAA", "BBB");
+
+    AssetResponse assetResponse = AssetResponse
+        .builder()
+        .asset(AssetUtils.toKey(asset), asset)
+        .asset("second", AssetUtils.getJsonAsset("Twee", "Whee"))
+        .build();
+
+    assertThat(assetResponse.getAssets()).containsKeys(AssetUtils.toKey(asset));
+
+    ObjectMapper om = new ObjectMapper();
+    String json = om.writeValueAsString(assetResponse);
+
+    AssetResponse fromJson = om.readValue(json, AssetResponse.class);
+
+    assertThat(fromJson).isEqualTo(assetResponse);
   }
 
   @Test

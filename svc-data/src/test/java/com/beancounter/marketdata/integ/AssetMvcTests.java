@@ -3,10 +3,11 @@ package com.beancounter.marketdata.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.utils.AssetUtils;
@@ -44,93 +45,97 @@ class AssetMvcTests {
   }
 
   @Test
-  void is_PutAssetCreating() throws Exception {
-    Asset asset = AssetUtils.getAsset("MyCode", "MOCK");
+  void is_PostAssetCollectionCreating() throws Exception {
+
+    Asset firstAsset = AssetUtils.getAsset("MyCode", "MOCK");
+    Asset secondAsset = AssetUtils.getAsset("Second", "MOCK");
+    AssetRequest assetRequest = AssetRequest.builder()
+        .asset(AssetUtils.toKey(firstAsset), firstAsset)
+        .asset(AssetUtils.toKey(secondAsset), secondAsset)
+        .build();
 
     MvcResult mvcResult = mockMvc.perform(
-        put("/assets/")
-            .content(objectMapper.writeValueAsBytes(asset))
+        post("/assets/")
+            .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    Asset putAsset = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), Asset.class);
+    AssetResponse assetResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    assertThat(assetResponse.getAssets()).hasSize(2);
+
 
     // marketCode is for persistence only,  Clients should rely on the
     //   hydrated Market object
-    assertThat(putAsset)
+
+    assertThat(assetResponse.getAssets().get(AssetUtils.toKey(firstAsset)))
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
-        .hasFieldOrPropertyWithValue("code", asset.getCode().toUpperCase())
-        .hasFieldOrPropertyWithValue("market.code", asset.getMarketCode().toUpperCase())
+        .hasFieldOrPropertyWithValue("code", firstAsset.getCode().toUpperCase())
+        .hasFieldOrPropertyWithValue("market.code", firstAsset.getMarketCode().toUpperCase())
         .hasFieldOrPropertyWithValue("marketCode", null)
-        .hasFieldOrProperty("id")
+        .hasFieldOrProperty("id");
 
-    ;
-    // Attempt to update the name
-    putAsset.setName("Other Name");
-
-    // Calling PUT the second time should not update and will return the same asset Id
-    mvcResult = mockMvc.perform(
-        put("/assets/")
-            .content(objectMapper.writeValueAsBytes(putAsset))
-            .contentType(MediaType.APPLICATION_JSON)
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andReturn();
-
-    Asset secondPut = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), Asset.class);
-
-    // Name should remain as null as can't PUT same value twice
-    assertThat(secondPut)
+    assertThat(assetResponse.getAssets().get(AssetUtils.toKey(secondAsset)))
         .isNotNull()
-        .hasFieldOrPropertyWithValue("name", null)
-        .isEqualToComparingOnlyGivenFields(putAsset,
-            "code", "market");
+        .hasFieldOrProperty("id")
+        .hasFieldOrProperty("market")
+        .hasFieldOrPropertyWithValue("code", secondAsset.getCode().toUpperCase())
+        .hasFieldOrPropertyWithValue("market.code", secondAsset.getMarketCode().toUpperCase())
+        .hasFieldOrPropertyWithValue("marketCode", null)
+        .hasFieldOrProperty("id");
+
+
   }
 
   @Test
-  void is_PutAndPostAsset() throws Exception {
+  void is_UpdateAssetWorking() throws Exception {
     Asset asset = AssetUtils.getAsset("MyCodeX", "MOCK");
+    AssetRequest assetRequest = AssetRequest.builder()
+        .asset(AssetUtils.toKey(asset), asset)
+        .build();
 
     MvcResult mvcResult = mockMvc.perform(
-        put("/assets/")
-            .content(objectMapper.writeValueAsBytes(asset))
+        post("/assets/")
+            .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    Asset putAsset = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), Asset.class);
+    AssetResponse assetResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
+    Asset putAsset = assetResponse.getAssets().get(AssetUtils.toKey(asset));
     assertThat(putAsset)
         .isNotNull()
         .hasFieldOrProperty("id")
-        .hasFieldOrProperty("market")
-
-    ;
+        .hasFieldOrProperty("market");
     // Attempt to change the name
     putAsset.setName("Other Name");
+
+    assetRequest = AssetRequest.builder()
+        .asset(AssetUtils.toKey(putAsset), putAsset)
+        .build();
 
     // Calling PUT the second time should not update and will return the same asset Id
     mvcResult = mockMvc.perform(
         post("/assets/")
-            .content(objectMapper.writeValueAsBytes(putAsset))
+            .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    Asset updatedAsset = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), Asset.class);
+    assetResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
     // Name should remain as null as can't PUT same value twice
-    assertThat(updatedAsset)
+    assertThat(assetResponse.getAssets().get(AssetUtils.toKey(putAsset)))
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "Other Name")
         .isEqualToComparingOnlyGivenFields(putAsset,

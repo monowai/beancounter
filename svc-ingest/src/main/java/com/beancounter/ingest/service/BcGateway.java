@@ -1,5 +1,7 @@
 package com.beancounter.ingest.service;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -31,6 +33,11 @@ public interface BcGateway {
       produces = {MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   FxResponse getRates(FxRequest fxRequest);
+
+  @PostMapping(value = "/assets",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
+      consumes = {MediaType.APPLICATION_JSON_VALUE})
+  AssetResponse assets(AssetRequest assetRequest);
 
   @GetMapping(value = "/currencies", produces = {MediaType.APPLICATION_JSON_VALUE})
   CurrencyResponse getCurrencies();

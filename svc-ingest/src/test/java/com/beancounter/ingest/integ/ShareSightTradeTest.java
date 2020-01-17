@@ -1,4 +1,4 @@
-package com.beancounter.ingest;
+package com.beancounter.ingest.integ;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
@@ -16,7 +16,6 @@ import com.beancounter.ingest.reader.RowProcessor;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Sharesight Transaction to BC model.Transaction.
@@ -33,6 +35,10 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @since 2019-02-12
  */
 @Slf4j
+@ActiveProfiles("test")
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class})
 class ShareSightTradeTest {
 
@@ -41,36 +47,6 @@ class ShareSightTradeTest {
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
-
-  @Test
-  void is_RowWithFxConverted() throws Exception {
-
-    List<Object> row = getRow("buy", "0.8988", "2097.85");
-    List<List<Object>> values = new ArrayList<>();
-    values.add(row);
-    // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-
-    // System base currency
-    Collection<Transaction> transactions = rowProcessor.process(portfolio, values, "Test");
-
-    Transaction transaction = transactions.iterator().next();
-    log.info(new ObjectMapper().writeValueAsString(transaction));
-    assertThat(transaction)
-        .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
-        .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
-        .hasFieldOrPropertyWithValue("fees", new BigDecimal("14.45"))
-        .hasFieldOrPropertyWithValue("tradeAmount",
-            MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
-        .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrProperty("tradeCurrency")
-        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
-        .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.8988"))
-        .hasFieldOrProperty("tradeDate")
-    ;
-
-  }
 
   @Test
   void is_SplitTransformerFoundForRow() {
@@ -144,7 +120,7 @@ class ShareSightTradeTest {
   void is_RowFilterWorking() {
 
     List<Object> inFilter = getRow("buy", "0.8988", "2097.85");
-    List<Object> outFilter = getRow("ABC", "ABC", "buy", "0.8988", "2097.85");
+    List<Object> outFilter = getRow("ABC", "MOCK", "buy", "0.8988", "2097.85");
     inFilter.remove(ShareSightTrades.comments);
     List<List<Object>> values = new ArrayList<>();
     values.add(inFilter);
@@ -217,12 +193,11 @@ class ShareSightTradeTest {
 
   }
 
-  private List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
-    return getRow("AMEX", "SLB", tranType, fxRate, tradeAmount);
+  static List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
+    return getRow("SLB", "ASX", tranType, fxRate, tradeAmount);
   }
 
-  private List<Object> getRow(String market,
-                              String code,
+  static List<Object> getRow(String code, String market,
                               String tranType,
                               String fxRate,
                               String tradeAmount) {

@@ -3,7 +3,6 @@ package com.beancounter.ingest.sharesight;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
 import com.beancounter.common.model.TrnType;
@@ -56,14 +55,11 @@ public class ShareSightTrades implements Transformer {
         throw new BusinessException(String.format("Unsupported type %s",
             row.get(type)));
       }
-      Asset asset = Asset.builder().code(
-          row.get(code))
-          .name(row.get(name))
-          .market(Market.builder()
-              .code(row.get(market))
-              .currency(Currency.builder().code(row.get(currency)).build())
-              .build())
-          .build();
+      String assetName = row.get(name);
+      String assetCode = row.get(code);
+      String marketCode = row.get(market);
+
+      Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
 
       String comment = (row.size() == 12 ? row.get(comments) : null);
 

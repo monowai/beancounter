@@ -19,6 +19,15 @@
       "timezone": "US/Eastern"
     },
     {
+      "code": "LSE",
+      "currency": {
+        "code": "GBP",
+        "name": "Pound",
+        "symbol": "￡"
+      },
+      "timezone": "Europe/London"
+    },
+    {
       "code": "SGX",
       "currency": {
         "code": "SGD",

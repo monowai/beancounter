@@ -3,7 +3,7 @@ package com.beancounter.ingest.service;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.exception.SystemException;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
@@ -61,7 +61,7 @@ public class FxTransactions {
 
       FxResponse fxResponse = fxRateService.getRates(fxRequest);
       if (fxResponse == null) {
-        throw new SystemException(String.format(
+        throw new BusinessException(String.format(
             "Unable to obtain rates %s", fxRequest.toString()));
       }
       applyRates(fxResponse.getData(),

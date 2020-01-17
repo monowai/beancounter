@@ -1,42 +1,61 @@
-package com.beancounter.ingest;
+package com.beancounter.ingest.integ;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
+import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
+import static com.beancounter.ingest.integ.ShareSightTradeTest.getRow;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ShareSightConfig;
+import com.beancounter.ingest.reader.RowProcessor;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
+import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.sharesight.ShareSightTransformers;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
+import org.springframework.test.context.ActiveProfiles;
 
-
-/**
- * Sharesight Dividend converter to BC model..
- *
- * @author mikeh
- * @since 2019-02-12
- */
 @Slf4j
+@ActiveProfiles("test-nobackfill")
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class})
-class ShareSightDiviTest {
+
+public class ShareSightRatesInTransaction {
+
+  @Autowired
+  private ShareSightService shareSightService;
 
   @Autowired
   private ShareSightTransformers shareSightTransformers;
 
+  @Autowired
+  private RowProcessor rowProcessor;
+
   @Test
-  void is_CurrencyResolvedForDividendInput() throws Exception {
+  void is_IgnoreRatesDefaultCorrect() {
+    assertThat(shareSightService.isRatesIgnored()).isFalse();
+  }
+
+  @Test
+  void is_DividendRowWithFxConverted() throws Exception {
     List<String> row = new ArrayList<>();
 
     // Portfolio is in NZD
@@ -79,4 +98,36 @@ class ShareSightDiviTest {
     ;
 
   }
+
+  @Test
+  void is_TradeRowWithFxConverted() throws Exception {
+
+    List<Object> row = getRow("buy", "0.8988", "2097.85");
+    List<List<Object>> values = new ArrayList<>();
+    values.add(row);
+    // Portfolio is in NZD
+    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
+
+    // System base currency
+    Collection<Transaction> transactions = rowProcessor.process(portfolio, values, "Test");
+
+    Transaction transaction = transactions.iterator().next();
+    log.info(new ObjectMapper().writeValueAsString(transaction));
+    assertThat(transaction)
+        .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
+        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
+        .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
+        .hasFieldOrPropertyWithValue("fees", new BigDecimal("14.45"))
+        .hasFieldOrPropertyWithValue("tradeAmount",
+            MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
+        .hasFieldOrPropertyWithValue("comments", "Test Comment")
+        .hasFieldOrProperty("tradeCurrency")
+        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
+        .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.8988"))
+        .hasFieldOrProperty("tradeDate")
+    ;
+
+  }
+
+
 }

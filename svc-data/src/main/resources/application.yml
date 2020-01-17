@@ -43,9 +43,9 @@ beancounter:
   baseCode: "USD"
 
   currencies:
-    - code: "GBP"
-      name: "Pound"
-      symbol: "￡"
+    - code: GBP
+      name: Pound
+      symbol: ￡
 
     - code: USD
       name: Dollar
@@ -107,6 +107,10 @@ beancounter:
       currencyId: SGD
       timezoneId: Asia/Singapore
 
+    - code: LSE
+      id: LSE
+      currencyId: GBP
+      timezoneId: Europe/London
 
   marketdata:
     provider:

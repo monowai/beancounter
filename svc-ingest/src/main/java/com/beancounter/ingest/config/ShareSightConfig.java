@@ -2,6 +2,8 @@ package com.beancounter.ingest.config;
 
 import com.beancounter.ingest.reader.Filter;
 import com.beancounter.ingest.reader.RowProcessor;
+import com.beancounter.ingest.service.AssetService;
+import com.beancounter.ingest.service.BcService;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
 import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
@@ -18,6 +20,8 @@ import org.springframework.context.annotation.Import;
     ShareSightDivis.class,
     ShareSightTrades.class,
     ShareSightTransformers.class,
+    AssetService.class,
+    BcService.class,
     Filter.class,
     RowProcessor.class,
     ExchangeConfig.class,

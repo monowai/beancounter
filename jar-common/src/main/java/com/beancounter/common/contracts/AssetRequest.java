@@ -14,6 +14,6 @@ import lombok.Singular;
 @NoArgsConstructor
 public class AssetRequest {
   @Singular
-  private Map<String, Asset> assets ;
+  private Map<String, Asset> assets;
 
 }

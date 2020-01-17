@@ -49,7 +49,7 @@ public class AssetService {
   }
 
   public AssetResponse process(AssetRequest asset) {
-    Map<String,Asset>assets = new HashMap<>();
+    Map<String, Asset> assets = new HashMap<>();
     for (String key : asset.getAssets().keySet()) {
       assets.put(key, upsert(asset.getAssets().get(key)));
     }

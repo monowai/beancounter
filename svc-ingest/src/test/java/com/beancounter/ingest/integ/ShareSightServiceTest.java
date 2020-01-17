@@ -1,4 +1,4 @@
-package com.beancounter.ingest;
+package com.beancounter.ingest.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,8 +18,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
+import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
+import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
+@ActiveProfiles("test")
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class})
 class ShareSightServiceTest {
 
@@ -47,27 +54,27 @@ class ShareSightServiceTest {
         .market(Market.builder().code("NYSE").build())
         .build();
 
-    verifyAsset("ABBV.NYSE", expectedAsset);
+    verifyMarketCode("ABBV.NYSE", expectedAsset);
 
     expectedAsset = Asset.builder()
         .code("AMP")
         .market(Market.builder().code("ASX").build())
         .build();
 
-    verifyAsset("AMP.AX", expectedAsset);
+    verifyMarketCode("AMP.AX", expectedAsset);
   }
 
   @Test
-  void is_IgnoreRatesDefaultCorrect() {
-    assertThat(shareSightService.isRatesIgnored()).isFalse();
+  void is_IgnoreRatesCorrect() {
+    assertThat(shareSightService.isRatesIgnored()).isTrue();
   }
 
-  private void verifyAsset(String code, Asset expectedAsset) {
+  private void verifyMarketCode(String code, Asset expectedAsset) {
 
     Asset asset = shareSightService.resolveAsset(code);
 
-    assertThat(asset)
-        .isEqualToComparingFieldByField(expectedAsset);
+    assertThat(asset.getMarket().getCode())
+        .isEqualTo(expectedAsset.getMarket().getCode());
   }
 
   @Test

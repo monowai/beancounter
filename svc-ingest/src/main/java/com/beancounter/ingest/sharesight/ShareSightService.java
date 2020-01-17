@@ -2,11 +2,10 @@ package com.beancounter.ingest.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.ingest.config.ExchangeConfig;
+import com.beancounter.ingest.service.AssetService;
 import com.google.api.client.util.Strings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -33,18 +32,19 @@ import org.springframework.stereotype.Service;
 @Data
 public class ShareSightService {
 
-  private final ExchangeConfig exchangeConfig;
   @Value("${out.file:#{null}}")
   private String outFile;
   @Value("${ratesIgnored:false}")
   private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
   @Value("${range:All Trades Report}")
   private String range;
+  private AssetService assetService;
+
   // retrieve rates from market data service
 
   @Autowired
-  public ShareSightService(ExchangeConfig exchangeConfig) {
-    this.exchangeConfig = exchangeConfig;
+  public ShareSightService(AssetService assetService) {
+    this.assetService = assetService;
   }
 
   LocalDate parseDate(String date) {
@@ -80,15 +80,11 @@ public class ShareSightService {
       throw new BusinessException(String.format("Unable to parse %s", input));
     }
 
-    return Asset.builder()
-        .code(values.get(0))
-        .market(resolveMarket(values.get(1)))
-        .build();
+    return resolveAsset(values.get(0), null, values.get(1));
   }
 
-  private Market resolveMarket(String market) {
-    return Market.builder()
-        .code(exchangeConfig.resolveAlias(market)).build();
+  public Asset resolveAsset(String assetCode, String assetName, String marketCode) {
+    return assetService.resolveAsset(assetCode, assetName, marketCode);
   }
 
   BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {

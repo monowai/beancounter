@@ -140,8 +140,8 @@ class StubbedFxTrades {
     // USD System Base
     // GBP Trade
 
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.market, "LSE");
+    row.add(ShareSightTrades.code, "LSE");
     row.add(ShareSightTrades.name, "Test Asset");
     row.add(ShareSightTrades.type, "buy");
     row.add(ShareSightTrades.date, testDate);
@@ -174,8 +174,8 @@ class StubbedFxTrades {
     // GBP Trade
     assertThat(shareSightService.isRatesIgnored()).isTrue();
 
-    row.add(ShareSightTrades.market, "AMEX");
-    row.add(ShareSightTrades.code, "SLB");
+    row.add(ShareSightTrades.market, "LSE");
+    row.add(ShareSightTrades.code, "LSE");
     row.add(ShareSightTrades.name, "Test Asset");
     row.add(ShareSightTrades.type, "buy");
     row.add(ShareSightTrades.date, "27/07/2019");

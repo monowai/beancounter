@@ -1,0 +1,10 @@
+{
+  "assets": {
+    "AMP:ASX": {
+      "code": "AMP",
+      "market": {
+        "code": "ASX"
+      }
+    }
+  }
+}

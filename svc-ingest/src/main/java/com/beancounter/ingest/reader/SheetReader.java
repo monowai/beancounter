@@ -99,7 +99,7 @@ public class SheetReader implements Ingester {
     try (OutputStream outputStream = ingestWriter.prepareFile(shareSightService.getOutFile())) {
 
       log.info("Processing {} {}", shareSightService.getRange(), sheetId);
-      Collection<Transaction> transactions = rowProcessor.process(
+      Collection<Transaction> transactions = rowProcessor.transform(
           portfolio,
           values,
           new Filter(ingestionRequest.getFilter()),
@@ -108,7 +108,6 @@ public class SheetReader implements Ingester {
       if (transactions.isEmpty()) {
         return new ArrayList<>();
       }
-
       log.info("Back filling FX rates...");
       transactions = fxTransactions.applyRates(portfolio, transactions);
 

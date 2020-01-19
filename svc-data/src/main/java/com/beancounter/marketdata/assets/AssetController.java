@@ -41,8 +41,7 @@ public class AssetController {
     return asset;
   }
 
-
-  @PostMapping
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   AssetResponse update(@RequestBody AssetRequest assetRequest) {
     return assetService.process(assetRequest);
   }

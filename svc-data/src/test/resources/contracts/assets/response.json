@@ -1,0 +1,30 @@
+{
+  "assets": {
+    "MSFT:NASDAQ": {
+      "id": "BguoVZpoRxWjWrITp7DEuw",
+      "code": "MSFT",
+      "market": {
+        "code": "NASDAQ",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "US/Eastern"
+      }
+    },
+    "BHP:ASX": {
+      "id": "0ozW7B4GSmOP0cKO9pl6ng",
+      "code": "BHP",
+      "market": {
+        "code": "ASX",
+        "currency": {
+          "code": "AUD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "Australia/Sydney"
+      }
+    }
+  }
+}

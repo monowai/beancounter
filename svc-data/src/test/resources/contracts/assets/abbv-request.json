@@ -1,0 +1,10 @@
+{
+  "assets": {
+    "ABBV:NYSE": {
+      "code": "ABBV",
+      "market": {
+        "code": "NYSE"
+      }
+    }
+  }
+}

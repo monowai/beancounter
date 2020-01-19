@@ -1,0 +1,17 @@
+{
+  "assets": {
+    "AMP:ASX": {
+      "id": "0ozX7B4GSmOP0cKO9pl6ng",
+      "code": "AMP",
+      "market": {
+        "code": "ASX",
+        "currency": {
+          "code": "AUD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "Australia/Sydney"
+      }
+    }
+  }
+}

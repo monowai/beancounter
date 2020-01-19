@@ -2,6 +2,7 @@ package com.beancounter.ingest.sharesight;
 
 import com.beancounter.ingest.reader.Transformer;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ShareSightTransformers {
 
+  private static final Set<String> TTYPES = Set.of("buy", "sell", "split");
   private ShareSightTrades shareSightTrades;
   private ShareSightDivis shareSightDivis;
 
@@ -31,13 +33,11 @@ public class ShareSightTransformers {
    * @return appropriate transformer
    */
   public Transformer transformer(List<String> row) {
-    if (row.size() == 9) {
-      if (row.get(ShareSightTrades.type).equalsIgnoreCase("split")) {
-        return shareSightTrades;
-      }
-      return shareSightDivis;
+    String ttype = row.get(ShareSightTrades.type).toLowerCase();
+    if (TTYPES.contains(ttype)) {
+      return shareSightTrades;
     }
-    return shareSightTrades;
+    return shareSightDivis;
   }
 
 }

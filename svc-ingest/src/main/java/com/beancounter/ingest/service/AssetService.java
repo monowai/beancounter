@@ -1,8 +1,11 @@
 package com.beancounter.ingest.service;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.ingest.config.ExchangeConfig;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,6 +19,7 @@ public class AssetService {
   private ExchangeConfig exchangeConfig;
   private BcService bcService;
   private Map<String, Market> marketMap = new HashMap<>();
+  private Map<String, Asset> resolvedAssets = new HashMap<>();
 
   @Autowired
   void setExchangeConfig(ExchangeConfig exchangeConfig) {
@@ -32,11 +36,31 @@ public class AssetService {
   }
 
   public Asset resolveAsset(String assetCode, String assetName, String marketCode) {
-    return Asset.builder()
-        .code(assetCode)
-        .name(assetName)
-        .market(resolveMarket(marketCode))
-        .build();
+    if (marketCode.equalsIgnoreCase("MOCK")) {
+      // Support unit testings where we don't really care about the asset
+      return AssetUtils.getAsset(assetCode, "MOCK");
+    }
+    Market resolvedMarket = resolveMarket(marketCode);
+    String callerKey = AssetUtils.toKey(assetCode, resolvedMarket.getCode());
+    Asset asset = resolvedAssets.get(callerKey);
+    if (asset == null) {
+      AssetRequest assetRequest = AssetRequest.builder()
+          .asset(callerKey, Asset.builder()
+              .code(assetCode)
+              .name(assetName)
+              .market(resolvedMarket)
+              .build())
+          .build();
+      AssetResponse assetResponse = bcService.getAssets(assetRequest);
+      if (assetResponse == null) {
+        throw new BusinessException(
+            String.format("No response returned for %s:%s", assetCode, marketCode));
+      }
+      asset = assetResponse.getAssets().get(callerKey);
+      resolvedAssets.put(callerKey, asset);
+    }
+
+    return asset;
 
   }
 
@@ -47,6 +71,5 @@ public class AssetService {
     }
     return market;
   }
-
 
 }

@@ -1,0 +1,16 @@
+{
+  "assets": {
+    "BHP:ASX": {
+      "code": "BHP",
+      "market": {
+        "code": "ASX"
+      }
+    },
+    "MSFT:NASDAQ": {
+      "code": "MSFT",
+      "market": {
+        "code": "NASDAQ"
+      }
+    }
+  }
+}

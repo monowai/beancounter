@@ -51,7 +51,7 @@ class ShareSightTradeTest {
   @Test
   void is_SplitTransformerFoundForRow() {
     List<String> row = new ArrayList<>();
-    row.add(ShareSightTrades.market, "AMEX");
+    row.add(ShareSightTrades.market, "ASX");
     row.add(ShareSightTrades.code, "SLB");
     row.add(ShareSightTrades.name, "Test Asset");
     row.add(ShareSightTrades.type, "split");
@@ -75,7 +75,7 @@ class ShareSightTradeTest {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
-    Transaction transaction = rowProcessor.process(portfolio, values, "Blah")
+    Transaction transaction = rowProcessor.transform(portfolio, values, "Blah")
         .iterator().next();
 
     assertThat(transaction)
@@ -104,7 +104,7 @@ class ShareSightTradeTest {
     values.add(row);
 
     Transaction transaction =
-        rowProcessor.process(getPortfolio("Test", getCurrency("NZD")), values, "twee")
+        rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")), values, "twee")
             .iterator().next();
 
     assertThat(transaction)
@@ -127,10 +127,10 @@ class ShareSightTradeTest {
     values.add(outFilter);
 
     Collection<Transaction> transactions =
-        rowProcessor.process(
+        rowProcessor.transform(
             getPortfolio("Test", getCurrency("NZD")),
             values,
-            new Filter("SLB"),
+            new Filter("AMP"),
             "twee");
 
     assertThat(transactions).hasSize(1);
@@ -153,7 +153,7 @@ class ShareSightTradeTest {
     values.add(row);
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     Transaction transaction = rowProcessor
-        .process(portfolio, values, "blah").iterator().next();
+        .transform(portfolio, values, "blah").iterator().next();
 
     assertThat(transaction)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -175,7 +175,7 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     assertThrows(BusinessException.class, () ->
-        rowProcessor.process(getPortfolio("Test", getCurrency("NZD")),
+        rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
             values, "twee"));
   }
 
@@ -187,14 +187,14 @@ class ShareSightTradeTest {
     values.add(row);
 
     assertThrows(BusinessException.class, () ->
-        rowProcessor.process(getPortfolio("Test", getCurrency("NZD")),
+        rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
             values, "twee"));
 
 
   }
 
   static List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
-    return getRow("SLB", "ASX", tranType, fxRate, tradeAmount);
+    return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
   }
 
   static List<Object> getRow(String code, String market,

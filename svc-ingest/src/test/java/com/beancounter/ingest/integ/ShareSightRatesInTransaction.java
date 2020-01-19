@@ -65,7 +65,7 @@ public class ShareSightRatesInTransaction {
         .build();
 
     // Trade is in USD
-    row.add(ShareSightDivis.code, "MO.NYS");
+    row.add(ShareSightDivis.code, "ABBV.NYS");
     row.add(ShareSightDivis.name, "Test Asset");
     row.add(ShareSightDivis.date, "21/01/2019");
     String rate = "0.8074"; // Sharesight Trade to Reference Rate
@@ -79,7 +79,7 @@ public class ShareSightRatesInTransaction {
     Transformer dividends = shareSightTransformers.transformer(row);
 
     Transaction transaction = dividends.from(row, portfolio);
-    Asset expectedAsset = AssetUtils.getAsset("MO", "NYSE");
+    Asset expectedAsset = AssetUtils.getAsset("ABBV", "NYSE");
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(transaction)
@@ -109,7 +109,7 @@ public class ShareSightRatesInTransaction {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     // System base currency
-    Collection<Transaction> transactions = rowProcessor.process(portfolio, values, "Test");
+    Collection<Transaction> transactions = rowProcessor.transform(portfolio, values, "Test");
 
     Transaction transaction = transactions.iterator().next();
     log.info(new ObjectMapper().writeValueAsString(transaction));

@@ -1,0 +1,17 @@
+{
+  "assets": {
+    "MSFT:NASDAQ": {
+      "id": "BguoVZpoRxWjWrITp7DEuw",
+      "code": "MSFT",
+      "market": {
+        "code": "NASDAQ",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "US/Eastern"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "assets": {
+    "ABBV:NYSE": {
+      "id": "BguoVZpoRxWeWrITp7DEuw",
+      "code": "ABBV",
+      "market": {
+        "code": "NYSE",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "US/Eastern"
+      }
+    }
+  }
+}

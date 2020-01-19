@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/fx")
+@CrossOrigin
 public class FxController {
 
   private FxService fxService;
@@ -28,7 +29,6 @@ public class FxController {
   }
 
   @PostMapping
-  @CrossOrigin
   FxResponse getRates(@RequestBody FxRequest fxRequest) {
     return fxService.getRates(fxRequest);
   }

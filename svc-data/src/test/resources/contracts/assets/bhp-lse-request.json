@@ -1,0 +1,10 @@
+{
+  "assets": {
+    "BHP:LSE": {
+      "code": "BHP",
+      "market": {
+        "code": "LSE"
+      }
+    }
+  }
+}

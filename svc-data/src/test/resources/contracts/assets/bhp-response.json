@@ -1,0 +1,17 @@
+{
+  "assets": {
+    "BHP:ASX": {
+      "id": "0ozW7B4GSmOP0cKO9pl6ng",
+      "code": "BHP",
+      "market": {
+        "code": "ASX",
+        "currency": {
+          "code": "AUD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "Australia/Sydney"
+      }
+    }
+  }
+}

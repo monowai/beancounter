@@ -1,5 +1,7 @@
 package com.beancounter.ingest.service;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
@@ -41,5 +43,9 @@ public class BcService {
     }
     return request.getData().iterator().next();
 
+  }
+
+  public AssetResponse getAssets(AssetRequest assetRequest) {
+    return bcGateway.assets(assetRequest);
   }
 }

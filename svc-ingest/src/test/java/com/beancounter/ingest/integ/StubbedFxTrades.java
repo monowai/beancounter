@@ -141,7 +141,7 @@ class StubbedFxTrades {
     // GBP Trade
 
     row.add(ShareSightTrades.market, "LSE");
-    row.add(ShareSightTrades.code, "LSE");
+    row.add(ShareSightTrades.code, "BHP");
     row.add(ShareSightTrades.name, "Test Asset");
     row.add(ShareSightTrades.type, "buy");
     row.add(ShareSightTrades.date, testDate);
@@ -175,7 +175,7 @@ class StubbedFxTrades {
     assertThat(shareSightService.isRatesIgnored()).isTrue();
 
     row.add(ShareSightTrades.market, "LSE");
-    row.add(ShareSightTrades.code, "LSE");
+    row.add(ShareSightTrades.code, "BHP");
     row.add(ShareSightTrades.name, "Test Asset");
     row.add(ShareSightTrades.type, "buy");
     row.add(ShareSightTrades.date, "27/07/2019");
@@ -207,8 +207,8 @@ class StubbedFxTrades {
 
     // Trade CCY USD
     row.add(ShareSightTrades.market, "NASDAQ");
-    row.add(ShareSightTrades.code, "EBAY");
-    row.add(ShareSightTrades.name, "EBAY");
+    row.add(ShareSightTrades.code, "MSFT");
+    row.add(ShareSightTrades.name, "MSFT");
     row.add(ShareSightTrades.type, "BUY");
     row.add(ShareSightTrades.date, "18/10/2019");
     row.add(ShareSightTrades.quantity, "10");
@@ -250,8 +250,8 @@ class StubbedFxTrades {
 
     // Trade CCY USD
     row.add(ShareSightTrades.market, "NASDAQ");
-    row.add(ShareSightTrades.code, "EBAY");
-    row.add(ShareSightTrades.name, "EBAY");
+    row.add(ShareSightTrades.code, "MSFT");
+    row.add(ShareSightTrades.name, "MSFT");
     row.add(ShareSightTrades.type, "BUY");
     row.add(ShareSightTrades.date, testDate);
     row.add(ShareSightTrades.quantity, "10");

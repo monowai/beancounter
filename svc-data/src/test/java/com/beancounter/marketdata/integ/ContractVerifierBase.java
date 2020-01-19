@@ -5,12 +5,16 @@ import static com.beancounter.marketdata.EcbMockUtils.get;
 import static com.beancounter.marketdata.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.WtdMockUtils;
+import com.beancounter.marketdata.assets.AssetController;
+import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.controller.FxController;
 import com.beancounter.marketdata.controller.PriceController;
 import com.beancounter.marketdata.currency.CurrencyController;
@@ -63,6 +67,14 @@ public class ContractVerifierBase {
   @MockBean
   PortfolioService portfolioService;
   @Autowired
+  private PortfolioController portfolioController;
+
+  @Autowired
+  private AssetController assetController;
+  @MockBean
+  private AssetService assetService;
+
+  @Autowired
   private FxController fxController;
   @Autowired
   private PriceController priceController;
@@ -70,13 +82,23 @@ public class ContractVerifierBase {
   private MarketController marketController;
   @Autowired
   private CurrencyController currencyController;
-  @Autowired
-  private PortfolioController portfolioController;
+
   @MockBean
   private FxGateway fxGateway;
 
   @MockBean
   private WtdGateway wtdGateway;
+
+  @Before
+  public void mockControllers() {
+    RestAssuredMockMvc.standaloneSetup(MockMvcBuilders
+        .standaloneSetup(fxController,
+            priceController,
+            marketController,
+            currencyController,
+            assetController,
+            portfolioController));
+  }
 
   @Before
   public void ecbRates() {
@@ -114,17 +136,10 @@ public class ContractVerifierBase {
         "1.8855712953", "1.6201543812");
     mockEcbRates(rates, get("1999-01-04", rates));
 
-    RestAssuredMockMvc.standaloneSetup(MockMvcBuilders
-        .standaloneSetup(fxController,
-            priceController,
-            marketController,
-            currencyController,
-            portfolioController));
-
   }
 
   @Before
-  public void mockWtd() {
+  public void wtdPrices() {
     // WTD Price Mocking
     // Ebay
     Map<String, MarketData> results = new HashMap<>();
@@ -152,6 +167,33 @@ public class ContractVerifierBase {
 
   }
 
+  @Before
+  public void mockAssets() throws Exception {
+    mockAssetResponse(new ClassPathResource("contracts/assets/request.json").getFile(),
+        new ClassPathResource("contracts/assets/response.json").getFile());
+    mockAssetResponse(new ClassPathResource("contracts/assets/msft-request.json").getFile(),
+        new ClassPathResource("contracts/assets/msft-response.json").getFile());
+    mockAssetResponse(new ClassPathResource("contracts/assets/bhp-request.json").getFile(),
+        new ClassPathResource("contracts/assets/bhp-response.json").getFile());
+    mockAssetResponse(new ClassPathResource("contracts/assets/bhp-lse-request.json").getFile(),
+        new ClassPathResource("contracts/assets/bhp-lse-response.json").getFile());
+    mockAssetResponse(new ClassPathResource("contracts/assets/abbv-request.json").getFile(),
+        new ClassPathResource("contracts/assets/abbv-response.json").getFile());
+    mockAssetResponse(new ClassPathResource("contracts/assets/amp-request.json").getFile(),
+        new ClassPathResource("contracts/assets/amp-response.json").getFile());
+
+  }
+
+  private void mockAssetResponse(File jsonRequest, File jsonResponse) throws java.io.IOException {
+    AssetRequest assetRequest =
+        new ObjectMapper().readValue(jsonRequest, AssetRequest.class);
+
+    AssetResponse assetResponse =
+        new ObjectMapper().readValue(jsonResponse, AssetResponse.class);
+
+    Mockito.when(assetService.process(assetRequest)).thenReturn(assetResponse);
+  }
+
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates) {
     mockEcbRates(rates, ecbRates, DateUtils.getDateString(ecbRates.getDate()));
   }
@@ -172,5 +214,6 @@ public class ContractVerifierBase {
     assertThat(fxController).isNotNull();
     assertThat(wtdGateway).isNotNull();
     assertThat(fxGateway).isNotNull();
+    assertThat(assetController).isNotNull();
   }
 }

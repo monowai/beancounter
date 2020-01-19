@@ -1,0 +1,10 @@
+{
+  "assets": {
+    "BHP:ASX": {
+      "code": "BHP",
+      "market": {
+        "code": "ASX"
+      }
+    }
+  }
+}

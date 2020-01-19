@@ -6,13 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.Transaction;
+import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.ingest.config.ShareSightConfig;
+import com.beancounter.ingest.reader.RowProcessor;
+import com.beancounter.ingest.service.AssetService;
 import com.beancounter.ingest.sharesight.ShareSightDivis;
 import com.beancounter.ingest.sharesight.ShareSightService;
 import com.beancounter.ingest.sharesight.ShareSightTrades;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,12 @@ class ShareSightServiceTest {
 
   @Autowired
   private ShareSightService shareSightService;
+
+  @Autowired
+  private RowProcessor rowProcessor;
+
+  @Autowired
+  private AssetService assetService;
 
   @Test
   void is_DoubleValueInputCorrect() throws ParseException {
@@ -117,5 +128,49 @@ class ShareSightServiceTest {
     row.remove(ShareSightTrades.code);
     row.add(ShareSightDivis.code, "some.code");
     assertThat(shareSightDivis.isValid(row)).isTrue();
+  }
+
+  @Test
+  void is_AssetsSetIntoTransaction() throws Exception {
+    List<Object> row = new ArrayList<>();
+    row.add(ShareSightTrades.market, "ASX");
+    row.add(ShareSightTrades.code, "BHP");
+    row.add(ShareSightTrades.name, "Test Asset");
+    row.add(ShareSightTrades.type, "buy");
+    row.add(ShareSightTrades.date, "21/01/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "AUD");
+    row.add(ShareSightTrades.fxRate, "99.99");
+    row.add(ShareSightTrades.value, "2097.85");
+
+    List<List<Object>> rows = new ArrayList<>();
+    rows.add(row);
+
+    row = new ArrayList<>();
+    row.add(ShareSightTrades.market, "NASDAQ");
+    row.add(ShareSightTrades.code, "MSFT");
+    row.add(ShareSightTrades.name, "Microsoft");
+    row.add(ShareSightTrades.type, "buy");
+    row.add(ShareSightTrades.date, "21/01/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "USD");
+    row.add(ShareSightTrades.fxRate, "99.99");
+    row.add(ShareSightTrades.value, "2097.85");
+
+    rows.add(row);
+
+    assertThat(rows).hasSize(2);
+
+    Collection<Transaction> transactions = rowProcessor
+        .transform(PortfolioUtils.getPortfolio("TEST"), rows, "Test");
+
+    for (Transaction transaction : transactions) {
+      assertThat(transaction.getAsset().getId()).isNotNull();
+    }
+
   }
 }

@@ -1,3 +1,87 @@
+---
+name: createAssets
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createAbbv
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/abbv-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/abbv-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createMsft
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/msft-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/msft-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createBhpAsx
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/bhp-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/bhp-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createBhpLse
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/bhp-lse-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/bhp-lse-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createAmp
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/amp-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/amp-response.json"
+  headers:
+    Content-Type: application/json
 
 ---
 name: portfolioById

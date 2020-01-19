@@ -24,16 +24,16 @@ public class RowProcessor {
     this.shareSightTransformers = shareSightTransformers;
   }
 
-  public Collection<Transaction> process(Portfolio portfolio,
-                                         List<List<Object>> values,
-                                         String provider) {
-    return process(portfolio, values, new Filter(null), provider);
+  public Collection<Transaction> transform(Portfolio portfolio,
+                                           List<List<Object>> values,
+                                           String provider) {
+    return transform(portfolio, values, new Filter(null), provider);
   }
 
-  public Collection<Transaction> process(Portfolio portfolio,
-                                         List<List<Object>> values,
-                                         Filter filter,
-                                         String provider) {
+  public Collection<Transaction> transform(Portfolio portfolio,
+                                           List<List<Object>> values,
+                                           Filter filter,
+                                           String provider) {
 
     Collection<Transaction> results = new ArrayList<>();
     if (filter.hasFilter()) {

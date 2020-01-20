@@ -42,11 +42,10 @@ public class AssetService {
       foundAsset.setMarket(market);
       return foundAsset;
     } else {
-      foundAsset.setName(asset.getName());
-      foundAsset.setCategory(asset.getCategory());
-      Asset updated = assetRepository.save(foundAsset);
-      updated.setMarket(marketService.getMarket(asset.getMarket().getCode()));
-      return updated;
+      asset.setId(foundAsset.getId());
+      assetRepository.save(asset);
+      asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
+      return asset;
     }
   }
 

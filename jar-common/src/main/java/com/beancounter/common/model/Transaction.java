@@ -8,11 +8,13 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.ToString;
 
 
@@ -27,14 +29,19 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(of = {"asset", "trnType", "id"})
+@Entity
 public class Transaction {
+  @Id
   private TransactionId id;
   private TrnType trnType;
   private String portfolioId;
-  @NonNull
+  @ManyToOne
   private Asset asset;
+  @ManyToOne
   private Asset cashAsset;
+  @ManyToOne
   private Currency tradeCurrency;
+  @ManyToOne
   private Currency cashCurrency;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

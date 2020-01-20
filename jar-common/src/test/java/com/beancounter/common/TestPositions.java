@@ -76,22 +76,13 @@ class TestPositions {
     Asset asset = getAsset("Dates", "Code");
 
     LocalDate firstTradeDate = DateUtils.getDate("2018-12-01");
-    Transaction firstTrade = Transaction.builder()
-        .tradeDate(firstTradeDate)
-        .asset(asset)
-        .build();
-
     LocalDate secondTradeDate = DateUtils.getDate("2018-12-02");
-    Transaction secondTrade = Transaction.builder()
-        .tradeDate(secondTradeDate)
-        .asset(asset)
-        .build();
 
     Positions positions = new Positions(getPortfolio("Twee"));
-    Position position = positions.get(firstTrade.getAsset(), firstTradeDate);
+    Position position = positions.get(asset, firstTradeDate);
     positions.add(position);
     // Calling this should not set the "first" trade date.
-    position = positions.get(secondTrade.getAsset(), secondTradeDate);
+    position = positions.get(asset, secondTradeDate);
 
     assertThat(position.getDateValues())
         .hasFieldOrPropertyWithValue("opened", "2018-12-01")

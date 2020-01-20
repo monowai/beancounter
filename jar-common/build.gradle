@@ -1,7 +1,7 @@
 buildscript {
     ext {
         openFeign = "10.7.0"
-        springBootVersion = "2.2.2.RELEASE"
+        springBootVersion = "2.2.4.RELEASE"
         springWeb = "5.2.2.RELEASE"
         guava = "28.2-jre"
         jackson = "2.10.2"

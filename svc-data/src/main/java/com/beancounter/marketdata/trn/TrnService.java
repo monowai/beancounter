@@ -7,10 +7,12 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.marketdata.assets.AssetService;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -44,15 +46,19 @@ public class TrnService {
   }
 
   public TrnResponse find(Portfolio portfolio) {
-    return getTrnResponse(portfolio, trnRepository.findByPortfolioId(portfolio.getId()));
+    Collection<Trn> results = trnRepository.findByPortfolioId(portfolio.getId(),
+        Sort.by("asset.code")
+            .and(Sort.by("tradeDate")));
+    log.debug("Found {} for portfolio {}", results.size(), portfolio.getCode());
+    return getTrnResponse(portfolio, results);
   }
 
-  private TrnResponse getTrnResponse(Portfolio portfolio, Iterable<Trn> saved) {
+  private TrnResponse getTrnResponse(Portfolio portfolio, Iterable<Trn> trns) {
     TrnResponse trnResponse = TrnResponse.builder()
         .build();
     trnResponse.addPortfolio(portfolio);
     Asset asset = null;
-    for (Trn trn : saved) {
+    for (Trn trn : trns) {
       if (asset == null || !trn.getAsset().getId().equals(asset.getId())) {
         asset = assetService.find(trn.getAsset().getId());
       }

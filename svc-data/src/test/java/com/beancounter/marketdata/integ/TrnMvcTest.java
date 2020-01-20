@@ -18,6 +18,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.CurrencyUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.markets.MarketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -53,7 +54,6 @@ public class TrnMvcTest {
   @Autowired
   void mockServices() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-
   }
 
   @Test
@@ -61,35 +61,73 @@ public class TrnMvcTest {
 
     Market nasdaq = marketService.getMarket("NASDAQ");
 
-    AssetRequest assetRequest = AssetRequest.builder()
+    Asset msft = asset(AssetRequest.builder()
         .asset("msft", AssetUtils.getAsset("MSFT", nasdaq))
-        .build();
+        .build());
 
-    Asset msft = asset(assetRequest);
+    Asset aapl = asset(AssetRequest.builder()
+        .asset("aapl", AssetUtils.getAsset("AAPL", nasdaq))
+        .build());
 
     Portfolio portfolio = portfolio(Portfolio.builder()
         .code("Twix")
         .name("NZD Portfolio")
         .currency(CurrencyUtils.getCurrency("NZD"))
         .build());
-
-    TrnId trnId = TrnId.builder()
-        .batch(999)
-        .provider("1a0OYzNj4Ru2zGS76EimzdjQm9URHQbuhwxvDLGJ8ur33")
-        .id(999).build();
-
-    Trn trn = Trn.builder()
-        .portfolioId(portfolio.getId())
-        .asset(msft)
-        .quantity(BigDecimal.TEN)
-        .price(BigDecimal.TEN)
-        .tradeCurrency(msft.getMarket().getCurrency())
-        .tradePortfolioRate(BigDecimal.ONE)
-        .id(trnId)
-        .build();
-
+    // Creating in random order and assert retrieved in Sort Order.
     TrnRequest trnRequest = TrnRequest.builder()
-        .trn(trn)
+        .trn(Trn.builder()
+            .id(TrnId.builder()
+                .batch(0)
+                .provider("test")
+                .id(1).build())
+            .portfolioId(portfolio.getId())
+            .asset(msft)
+            .tradeDate(DateUtils.getDate("2018-01-01"))
+            .quantity(BigDecimal.TEN)
+            .price(BigDecimal.TEN)
+            .tradeCurrency(msft.getMarket().getCurrency())
+            .tradePortfolioRate(BigDecimal.ONE)
+            .build())
+        .trn(Trn.builder()
+            .id(TrnId.builder()
+                .batch(0)
+                .provider("test")
+                .id(3).build())
+            .portfolioId(portfolio.getId())
+            .asset(aapl)
+            .tradeDate(DateUtils.getDate("2018-01-01"))
+            .quantity(BigDecimal.TEN)
+            .price(BigDecimal.TEN)
+            .tradeCurrency(msft.getMarket().getCurrency())
+            .tradePortfolioRate(BigDecimal.ONE)
+            .build())
+        .trn(Trn.builder()
+            .id(TrnId.builder()
+                .batch(0)
+                .provider("test")
+                .id(2).build())
+            .portfolioId(portfolio.getId())
+            .asset(msft)
+            .tradeDate(DateUtils.getDate("2017-01-01"))
+            .quantity(BigDecimal.TEN)
+            .price(BigDecimal.TEN)
+            .tradeCurrency(msft.getMarket().getCurrency())
+            .tradePortfolioRate(BigDecimal.ONE)
+            .build())
+        .trn(Trn.builder()
+            .id(TrnId.builder()
+                .batch(0)
+                .provider("test")
+                .id(4).build())
+            .portfolioId(portfolio.getId())
+            .asset(aapl)
+            .tradeDate(DateUtils.getDate("2017-01-01"))
+            .quantity(BigDecimal.TEN)
+            .price(BigDecimal.TEN)
+            .tradeCurrency(msft.getMarket().getCurrency())
+            .tradePortfolioRate(BigDecimal.ONE)
+            .build())
         .porfolioId(portfolio.getId())
         .build();
 
@@ -103,7 +141,7 @@ public class TrnMvcTest {
 
     TrnResponse trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTrns()).isNotEmpty();
+    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(4);
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
 
     String portfolioId = trnResponse.getTrns().iterator().next().getPortfolioId();
@@ -112,7 +150,7 @@ public class TrnMvcTest {
         .hasAtLeastOneElementOfType(Portfolio.class);
     assertThat(portfolio).isEqualTo(trnResponse.getPortfolios().iterator().next());
 
-    // Find by Portfolio
+    // Find by Portfolio, sorted by assetId and then Date
     mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}", portfolioId)
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
@@ -123,10 +161,16 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTrns()).isNotEmpty();
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
+    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(4);
 
+    int i = 4;
+    // Verify the sort order - asset.code, tradeDate
+    for (Trn trn : trnResponse.getTrns()) {
+      assertThat(trn.getId().getId()== i--);
+    }
 
+    TrnId trnId = trnResponse.getTrns().iterator().next().getId();
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}/{provider}/{batch}/{id}",
@@ -139,7 +183,7 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTrns()).isNotEmpty();
+    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(1);
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
 
   }

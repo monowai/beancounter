@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Buy;
@@ -39,7 +39,7 @@ class TestStockSplits {
 
     LocalDate today = LocalDate.now();
 
-    Transaction buyTrn = Transaction.builder()
+    Trn buyTrn = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal("2000"))
@@ -55,7 +55,7 @@ class TestStockSplits {
 
     BigDecimal costBasis = position.getMoneyValues(Position.In.TRADE).getCostBasis();
 
-    Transaction stockSplit = Transaction.builder()
+    Trn stockSplit = Trn.builder()
         .trnType(TrnType.SPLIT)
         .asset(apple)
         .tradeDate(DateUtils.convert(today))
@@ -79,7 +79,7 @@ class TestStockSplits {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(800));
 
-    Transaction sell = Transaction.builder()
+    Trn sell = Trn.builder()
         .trnType(TrnType.SELL)
         .asset(apple)
         .tradeAmount(new BigDecimal("2000"))

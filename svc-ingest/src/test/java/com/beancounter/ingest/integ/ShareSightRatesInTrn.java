@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -38,7 +38,7 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class})
 
-public class ShareSightRatesInTransaction {
+public class ShareSightRatesInTrn {
 
   @Autowired
   private ShareSightService shareSightService;
@@ -78,11 +78,11 @@ public class ShareSightRatesInTransaction {
 
     Transformer dividends = shareSightTransformers.transformer(row);
 
-    Transaction transaction = dividends.from(row, portfolio);
+    Trn trn = dividends.from(row, portfolio);
     Asset expectedAsset = AssetUtils.getAsset("ABBV", "NYSE");
 
     BigDecimal fxRate = new BigDecimal(rate);
-    assertThat(transaction)
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("asset.code", expectedAsset.getCode())
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
@@ -109,11 +109,11 @@ public class ShareSightRatesInTransaction {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     // System base currency
-    Collection<Transaction> transactions = rowProcessor.transform(portfolio, values, "Test");
+    Collection<Trn> trns = rowProcessor.transform(portfolio, values, "Test");
 
-    Transaction transaction = transactions.iterator().next();
-    log.info(new ObjectMapper().writeValueAsString(transaction));
-    assertThat(transaction)
+    Trn trn = trns.iterator().next();
+    log.info(new ObjectMapper().writeValueAsString(trn));
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))

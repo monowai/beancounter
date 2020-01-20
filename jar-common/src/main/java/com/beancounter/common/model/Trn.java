@@ -1,6 +1,6 @@
 package com.beancounter.common.model;
 
-import com.beancounter.common.identity.TransactionId;
+import com.beancounter.common.identity.TrnId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -30,9 +30,9 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString(of = {"asset", "trnType", "id"})
 @Entity
-public class Transaction {
+public class Trn {
   @Id
-  private TransactionId id;
+  private TrnId id;
   private TrnType trnType;
   private String portfolioId;
   @ManyToOne

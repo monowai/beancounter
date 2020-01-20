@@ -12,7 +12,7 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
 import com.beancounter.ingest.service.BcService;
@@ -157,11 +157,11 @@ class StubbedFxTrades {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("TEST", getCurrency("NZD"));
 
-    Transaction transaction = trades.from(row, portfolio);
+    Trn trn = trades.from(row, portfolio);
 
-    transaction = fxTransactions.applyRates(portfolio, transaction);
+    trn = fxTransactions.applyRates(portfolio, trn);
 
-    assertTransaction(portfolio, transaction);
+    assertTransaction(portfolio, trn);
 
   }
 
@@ -192,11 +192,11 @@ class StubbedFxTrades {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
-    Transaction transaction = trades.from(row, portfolio);
+    Trn trn = trades.from(row, portfolio);
 
-    transaction = fxTransactions.applyRates(portfolio, transaction);
+    trn = fxTransactions.applyRates(portfolio, trn);
 
-    assertTransaction(portfolio, transaction);
+    assertTransaction(portfolio, trn);
 
   }
 
@@ -224,11 +224,11 @@ class StubbedFxTrades {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     portfolio.setBase(getCurrency("GBP"));
 
-    Transaction transaction = trades.from(row, portfolio);
+    Trn trn = trades.from(row, portfolio);
 
-    transaction = fxTransactions.applyRates(portfolio, transaction);
+    trn = fxTransactions.applyRates(portfolio, trn);
 
-    assertThat(transaction)
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("1000"))
@@ -266,12 +266,12 @@ class StubbedFxTrades {
     // Testing all currency buckets
     Portfolio portfolio = Portfolio.builder().code("TEST").build();
 
-    Transaction transaction = trades.from(row, portfolio);
-    transaction.setCashCurrency(null);
+    Trn trn = trades.from(row, portfolio);
+    trn.setCashCurrency(null);
 
-    transaction = fxTransactions.applyRates(portfolio, transaction);
+    trn = fxTransactions.applyRates(portfolio, trn);
     // No currencies are defined so rate defaults to 1
-    assertThat(transaction)
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
         .hasFieldOrPropertyWithValue("tradeBaseRate", FxRate.ONE.getRate())
         .hasFieldOrPropertyWithValue("tradeCashRate", FxRate.ONE.getRate())
@@ -279,8 +279,8 @@ class StubbedFxTrades {
 
   }
 
-  private void assertTransaction(Portfolio portfolio, Transaction transaction) {
-    assertThat(transaction)
+  private void assertTransaction(Portfolio portfolio, Trn trn) {
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("GBP"))
         .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())

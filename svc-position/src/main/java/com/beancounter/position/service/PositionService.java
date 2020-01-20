@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,11 +43,11 @@ public class PositionService implements Position {
   public PositionResponse build(Portfolio portfolio, PositionRequest positionRequest) {
 
     Positions positions = null;
-    for (Transaction transaction : positionRequest.getTransactions()) {
+    for (Trn trn : positionRequest.getTrns()) {
       if (positions == null) {
         positions = new Positions(portfolio);
       }
-      positions.add(accumulator.accumulate(transaction, positions));
+      positions.add(accumulator.accumulate(trn, positions));
     }
     return PositionResponse.builder().data(positions).build();
   }

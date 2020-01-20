@@ -1,4 +1,4 @@
-package com.beancounter.marketdata;
+package com.beancounter.marketdata.utils;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;

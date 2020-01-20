@@ -4,7 +4,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.Buy;
@@ -40,37 +40,37 @@ public class Accumulator {
     logicMap.put(TrnType.SPLIT, new Split());
   }
 
-  Position accumulate(Transaction transaction, Positions positions) {
-    return accumulate(transaction, positions.getPortfolio(),
-        positions.get(transaction.getAsset(), transaction.getTradeDate()));
+  Position accumulate(Trn trn, Positions positions) {
+    return accumulate(trn, positions.getPortfolio(),
+        positions.get(trn.getAsset(), trn.getTradeDate()));
   }
 
   /**
    * Main calculation routine.
    *
-   * @param transaction Transaction to add
+   * @param trn Transaction to add
    * @param position    Position to accumulate the transaction into
    * @return result object
    */
-  public Position accumulate(Transaction transaction, Portfolio portfolio, Position position) {
-    boolean dateSensitive = (transaction.getTrnType() != TrnType.DIVI);
+  public Position accumulate(Trn trn, Portfolio portfolio, Position position) {
+    boolean dateSensitive = (trn.getTrnType() != TrnType.DIVI);
     if (dateSensitive) {
-      isDateSequential(transaction, position);
+      isDateSequential(trn, position);
     }
-    ValueTransaction valueTransaction = logicMap.get(transaction.getTrnType());
-    valueTransaction.value(transaction, portfolio, position);
+    ValueTransaction valueTransaction = logicMap.get(trn.getTrnType());
+    valueTransaction.value(trn, portfolio, position);
     if (dateSensitive) {
-      position.getDateValues().setLast(DateUtils.getDateString(transaction.getTradeDate()));
+      position.getDateValues().setLast(DateUtils.getDateString(trn.getTradeDate()));
     }
 
     return position;
   }
 
 
-  private void isDateSequential(Transaction transaction, Position position) {
+  private void isDateSequential(Trn trn, Position position) {
     boolean validDate = false;
 
-    LocalDate tradeDate = transaction.getTradeDate();
+    LocalDate tradeDate = trn.getTradeDate();
     LocalDate positionDate = DateUtils.getDate(position.getDateValues().getLast());
 
     if (positionDate == null || (positionDate.compareTo(tradeDate) <= 0)) {
@@ -79,7 +79,7 @@ public class Accumulator {
 
     if (!validDate) {
       throw new BusinessException(String.format("Date sequence problem %s",
-          transaction.toString()));
+          trn.toString()));
     }
   }
 

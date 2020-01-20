@@ -1,6 +1,6 @@
 package com.beancounter.ingest.reader;
 
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
 import java.util.ArrayList;
@@ -22,9 +22,9 @@ public class Filter {
     }
   }
 
-  public boolean inFilter(Transaction transaction) {
+  public boolean inFilter(Trn trn) {
     if (!filteredAssets.isEmpty()) {
-      return filteredAssets.contains(transaction.getAsset().getCode().toUpperCase());
+      return filteredAssets.contains(trn.getAsset().getCode().toUpperCase());
     }
     return true;
   }

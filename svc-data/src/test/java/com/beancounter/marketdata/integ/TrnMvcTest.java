@@ -11,11 +11,11 @@ import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TransactionId;
+import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.marketdata.markets.MarketService;
@@ -73,8 +73,8 @@ public class TrnMvcTest {
         .currency(CurrencyUtils.getCurrency("NZD"))
         .build());
 
-    TransactionId trnId = TransactionId.builder().batch(1).provider("unit").id(1).build();
-    Transaction trn = Transaction.builder()
+    TrnId trnId = TrnId.builder().batch(1).provider("unit").id(1).build();
+    Trn trn = Trn.builder()
         .portfolioId(portfolio.getId())
         .asset(msft)
         .quantity(BigDecimal.TEN)
@@ -85,7 +85,7 @@ public class TrnMvcTest {
         .build();
 
     TrnRequest trnRequest = TrnRequest.builder()
-        .transaction(trn)
+        .trn(trn)
         .porfolioId(portfolio.getId())
         .build();
 
@@ -99,10 +99,10 @@ public class TrnMvcTest {
 
     TrnResponse trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTransactions()).isNotEmpty();
+    assertThat(trnResponse.getTrns()).isNotEmpty();
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
 
-    String portfolioId = trnResponse.getTransactions().iterator().next().getPortfolioId();
+    String portfolioId = trnResponse.getTrns().iterator().next().getPortfolioId();
     assertThat(trnResponse.getPortfolios())
         .isNotEmpty()
         .hasAtLeastOneElementOfType(Portfolio.class);
@@ -119,7 +119,7 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTransactions()).isNotEmpty();
+    assertThat(trnResponse.getTrns()).isNotEmpty();
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
 
 
@@ -135,7 +135,7 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTransactions()).isNotEmpty();
+    assertThat(trnResponse.getTrns()).isNotEmpty();
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
 
   }

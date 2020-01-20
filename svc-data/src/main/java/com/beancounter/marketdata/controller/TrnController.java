@@ -2,7 +2,7 @@ package com.beancounter.marketdata.controller;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TransactionId;
+import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
@@ -44,7 +44,7 @@ public class TrnController {
   ) {
     Portfolio portfolio = portfolioService.find(portfolioId);
 
-    return trnService.find(portfolio, TransactionId.builder()
+    return trnService.find(portfolio, TrnId.builder()
         .provider(provider)
         .batch(batch)
         .id(id)

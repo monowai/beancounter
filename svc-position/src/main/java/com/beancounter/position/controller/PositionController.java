@@ -3,7 +3,7 @@ package com.beancounter.position.controller;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.position.service.BcService;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
@@ -65,12 +65,12 @@ public class PositionController {
     // Currently no persistence. This is an emulated flow
     File tradeFile = new ClassPathResource(portfolioCode + ".json").getFile();
     CollectionType javaType = mapper.getTypeFactory()
-        .constructCollectionType(Collection.class, Transaction.class);
+        .constructCollectionType(Collection.class, Trn.class);
     Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
-    Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
+    Collection<Trn> results = mapper.readValue(tradeFile, javaType);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
-        .transactions(results)
+        .trns(results)
         .build();
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
     return valuationService.value(positionResponse.getData());

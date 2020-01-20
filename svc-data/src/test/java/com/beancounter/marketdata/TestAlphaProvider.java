@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
+import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.math.BigDecimal;

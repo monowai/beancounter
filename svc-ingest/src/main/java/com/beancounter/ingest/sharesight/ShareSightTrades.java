@@ -4,7 +4,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.ingest.reader.Transformer;
 import java.math.BigDecimal;
@@ -47,7 +47,7 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public Transaction from(List<String> row, Portfolio portfolio)
+  public Trn from(List<String> row, Portfolio portfolio)
       throws ParseException {
     try {
       TrnType trnType = shareSightService.resolveType(row.get(type));
@@ -74,7 +74,7 @@ public class ShareSightTrades implements Transformer {
         tradeAmount = shareSightService.parseDouble(row.get(value));
       }
 
-      return Transaction.builder()
+      return Trn.builder()
           .asset(asset)
           .trnType(trnType)
           .quantity(shareSightService.parseDouble(row.get(quantity)))

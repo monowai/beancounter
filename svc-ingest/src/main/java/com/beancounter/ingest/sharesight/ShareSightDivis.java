@@ -3,7 +3,7 @@ package com.beancounter.ingest.sharesight;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.reader.Transformer;
@@ -45,14 +45,14 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public Transaction from(List<String> row, Portfolio portfolio)
+  public Trn from(List<String> row, Portfolio portfolio)
       throws ParseException {
 
     Asset asset = shareSightService.resolveAsset(row.get(code));
     asset.getMarket().setCurrency(Currency.builder().code(row.get(currency)).build());
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate));
 
-    return Transaction.builder()
+    return Trn.builder()
         .asset(asset)
         .portfolioId(portfolio.getId())
         .tradeCurrency(Currency.builder().code(row.get(currency)).build())

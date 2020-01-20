@@ -1,6 +1,6 @@
 package com.beancounter.ingest.controller;
 
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.ingest.model.IngestionRequest;
 import com.beancounter.ingest.reader.SheetReader;
 import java.util.Collection;
@@ -20,7 +20,7 @@ public class IngestionController {
   }
 
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  Collection<Transaction> ingest(@RequestBody IngestionRequest ingestionRequest) {
+  Collection<Trn> ingest(@RequestBody IngestionRequest ingestionRequest) {
     return sheetReader.ingest(ingestionRequest);
   }
 }

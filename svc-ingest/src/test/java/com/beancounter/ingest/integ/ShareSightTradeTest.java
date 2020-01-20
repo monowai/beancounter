@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.ingest.config.ShareSightConfig;
@@ -75,10 +75,10 @@ class ShareSightTradeTest {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
-    Transaction transaction = rowProcessor.transform(portfolio, values, "Blah")
+    Trn trn = rowProcessor.transform(portfolio, values, "Blah")
         .iterator().next();
 
-    assertThat(transaction)
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
@@ -103,11 +103,11 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
 
-    Transaction transaction =
+    Trn trn =
         rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")), values, "twee")
             .iterator().next();
 
-    assertThat(transaction)
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
@@ -126,16 +126,16 @@ class ShareSightTradeTest {
     values.add(inFilter);
     values.add(outFilter);
 
-    Collection<Transaction> transactions =
+    Collection<Trn> trns =
         rowProcessor.transform(
             getPortfolio("Test", getCurrency("NZD")),
             values,
             new Filter("AMP"),
             "twee");
 
-    assertThat(transactions).hasSize(1);
-    Transaction transaction = transactions.iterator().next();
-    assertThat(transaction)
+    assertThat(trns).hasSize(1);
+    Trn trn = trns.iterator().next();
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
@@ -152,10 +152,10 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    Transaction transaction = rowProcessor
+    Trn trn = rowProcessor
         .transform(portfolio, values, "blah").iterator().next();
 
-    assertThat(transaction)
+    assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal("10"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))

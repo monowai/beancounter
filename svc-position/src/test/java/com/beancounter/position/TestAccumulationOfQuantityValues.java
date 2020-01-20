@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.service.Accumulator;
 import java.math.BigDecimal;
@@ -17,7 +17,7 @@ class TestAccumulationOfQuantityValues {
   @Test
   void is_TotalQuantityCorrect() {
     Portfolio portfolio = getPortfolio("TEST");
-    Transaction buyTrn = Transaction.builder()
+    Trn buyTrn = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(getAsset("CODE", "marketCode"))
         .tradeAmount(new BigDecimal(2000))
@@ -44,7 +44,7 @@ class TestAccumulationOfQuantityValues {
         .hasFieldOrPropertyWithValue("total", new BigDecimal(200));
 
 
-    Transaction sell = Transaction.builder()
+    Trn sell = Trn.builder()
         .trnType(TrnType.SELL)
         .asset(buyTrn.getAsset())
         .quantity(new BigDecimal(100)).build();

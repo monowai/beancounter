@@ -16,7 +16,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.QuantityValues;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -119,15 +119,15 @@ class TestPositions {
 
   @Test
   void is_PositionRequestSerializing() throws Exception {
-    Collection<Transaction> transactions = new ArrayList<>();
-    transactions.add(Transaction.builder()
+    Collection<Trn> trns = new ArrayList<>();
+    trns.add(Trn.builder()
         .asset(getJsonAsset("Blah", "Market"))
         .portfolioId("PCODE")
         .build());
 
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId("TWEE")
-        .transactions(transactions)
+        .trns(trns)
         .build();
     String json = mapper.writeValueAsString(positionRequest);
 

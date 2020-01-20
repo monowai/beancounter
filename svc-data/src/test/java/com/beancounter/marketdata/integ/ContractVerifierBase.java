@@ -1,8 +1,8 @@
 package com.beancounter.marketdata.integ;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
-import static com.beancounter.marketdata.EcbMockUtils.get;
-import static com.beancounter.marketdata.EcbMockUtils.getRateMap;
+import static com.beancounter.marketdata.utils.EcbMockUtils.get;
+import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.AssetRequest;
@@ -12,7 +12,6 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.WtdMockUtils;
 import com.beancounter.marketdata.assets.AssetController;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.controller.FxController;
@@ -25,6 +24,7 @@ import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
 import com.beancounter.marketdata.providers.wtd.WtdGateway;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
+import com.beancounter.marketdata.utils.WtdMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import java.io.File;

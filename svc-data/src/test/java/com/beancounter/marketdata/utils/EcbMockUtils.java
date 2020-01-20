@@ -1,4 +1,4 @@
-package com.beancounter.marketdata;
+package com.beancounter.marketdata.utils;
 
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;

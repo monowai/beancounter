@@ -1,7 +1,7 @@
 package com.beancounter.common.contracts;
 
 
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +16,7 @@ import lombok.Singular;
 @NoArgsConstructor
 public class TrnRequest {
   @Singular
-  private Collection<Transaction> transactions;
+  private Collection<Trn> trns;
   @NonNull
   private String porfolioId;
 }

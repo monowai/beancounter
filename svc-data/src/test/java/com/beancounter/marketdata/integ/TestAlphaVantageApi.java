@@ -1,16 +1,16 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.AlphaMockUtils.alphaContracts;
+import static com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.AlphaMockUtils;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MdFactory;
+import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.math.BigDecimal;

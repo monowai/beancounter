@@ -7,7 +7,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -27,35 +27,35 @@ public class FxTransactions {
     this.fxRateService = fxRateService;
   }
 
-  public Transaction applyRates(Portfolio portfolio, Transaction transaction) {
-    return applyRates(portfolio, Collections.singleton(transaction)).iterator().next();
+  public Trn applyRates(Portfolio portfolio, Trn trn) {
+    return applyRates(portfolio, Collections.singleton(trn)).iterator().next();
   }
 
-  public Collection<Transaction> applyRates(Portfolio portfolio,
-                                            Collection<Transaction> transactions) {
+  public Collection<Trn> applyRates(Portfolio portfolio,
+                                    Collection<Trn> trns) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
-    for (Transaction transaction : transactions) {
-      String tradeDate = DateUtils.getDateString(transaction.getTradeDate());
+    for (Trn trn : trns) {
+      String tradeDate = DateUtils.getDateString(trn.getTradeDate());
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
       CurrencyPair tradePortfolio = CurrencyUtils.getCurrencyPair(
-          transaction.getTradePortfolioRate(),
-          transaction.getAsset().getMarket().getCurrency(),
+          trn.getTradePortfolioRate(),
+          trn.getAsset().getMarket().getCurrency(),
           portfolio.getCurrency());
 
       fxRequest.add(tradePortfolio);
 
       CurrencyPair tradeBase = CurrencyUtils.getCurrencyPair(
-          transaction.getTradeBaseRate(),
-          transaction.getAsset().getMarket().getCurrency(),
+          trn.getTradeBaseRate(),
+          trn.getAsset().getMarket().getCurrency(),
           portfolio.getBase());
       fxRequest.add(tradeBase);
 
       CurrencyPair tradeCash = CurrencyUtils.getCurrencyPair(
-          transaction.getTradeCashRate(),
-          transaction.getAsset().getMarket().getCurrency(),
-          transaction.getCashCurrency());
+          trn.getTradeCashRate(),
+          trn.getAsset().getMarket().getCurrency(),
+          trn.getCashCurrency());
 
       fxRequest.add(tradeCash);
 
@@ -68,31 +68,31 @@ public class FxTransactions {
           tradePortfolio,
           tradeBase,
           tradeCash,
-          transaction);
+          trn);
     }
-    return transactions;
+    return trns;
   }
 
   private void applyRates(FxPairResults rates,
                           CurrencyPair tradePortfolio,
                           CurrencyPair tradeBase,
                           CurrencyPair tradeCash,
-                          Transaction transaction) {
+                          Trn trn) {
 
-    if (tradePortfolio != null && MathUtils.isUnset(transaction.getTradePortfolioRate())) {
-      transaction.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
+    if (tradePortfolio != null && MathUtils.isUnset(trn.getTradePortfolioRate())) {
+      trn.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
     } else {
-      transaction.setTradePortfolioRate(FxRate.ONE.getRate());
+      trn.setTradePortfolioRate(FxRate.ONE.getRate());
     }
-    if (tradeBase != null && MathUtils.isUnset(transaction.getTradeBaseRate())) {
-      transaction.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
+    if (tradeBase != null && MathUtils.isUnset(trn.getTradeBaseRate())) {
+      trn.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
     } else {
-      transaction.setTradeBaseRate(FxRate.ONE.getRate());
+      trn.setTradeBaseRate(FxRate.ONE.getRate());
     }
-    if (tradeCash != null && MathUtils.isUnset(transaction.getTradeCashRate())) {
-      transaction.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
+    if (tradeCash != null && MathUtils.isUnset(trn.getTradeCashRate())) {
+      trn.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
     } else {
-      transaction.setTradeCashRate(FxRate.ONE.getRate());
+      trn.setTradeCashRate(FxRate.ONE.getRate());
     }
   }
 

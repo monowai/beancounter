@@ -8,7 +8,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test rules that would prevent a transaction from accumulating.
  */
-class TestTransactionLogic {
+class TestTrnLogic {
 
   /**
    * Transactions should be ordered.  If the date is ==, then it will be accepted but
@@ -42,14 +42,14 @@ class TestTransactionLogic {
 
     Accumulator accumulator = new Accumulator();
 
-    Transaction buyYesterday = Transaction.builder()
+    Trn buyYesterday = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal(2000))
         .tradeDate(DateUtils.convert(yesterday))
         .quantity(new BigDecimal(100)).build();
 
-    Transaction buyToday = Transaction.builder()
+    Trn buyToday = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal(2000))

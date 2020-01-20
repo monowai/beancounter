@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.ingest.config.ShareSightConfig;
 import com.beancounter.ingest.reader.RowProcessor;
@@ -165,11 +165,11 @@ class ShareSightServiceTest {
 
     assertThat(rows).hasSize(2);
 
-    Collection<Transaction> transactions = rowProcessor
+    Collection<Trn> trns = rowProcessor
         .transform(PortfolioUtils.getPortfolio("TEST"), rows, "Test");
 
-    for (Transaction transaction : transactions) {
-      assertThat(transaction.getAsset().getId()).isNotNull();
+    for (Trn trn : trns) {
+      assertThat(trn.getAsset().getId()).isNotNull();
     }
 
   }

@@ -14,7 +14,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
@@ -73,21 +73,21 @@ class StubbedFxValuations {
 
   private Positions getPositions(Asset asset) {
 
-    Transaction transaction = Transaction.builder()
+    Trn trn = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
     Portfolio portfolio = bcService.getPortfolioByCode("TEST");
-    transaction.setTradeCurrency(
+    trn.setTradeCurrency(
         bcService.getCurrency(asset.getMarket().getCurrency()));
 
     Accumulator accumulator = new Accumulator();
     Positions positions = new Positions(portfolio);
     positions.setAsAt("2019-10-18");
 
-    Position position = accumulator.accumulate(transaction, portfolio,
+    Position position = accumulator.accumulate(trn, portfolio,
         Position.builder().asset(asset).build());
 
     positions.add(position);
@@ -115,12 +115,12 @@ class StubbedFxValuations {
     File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
 
     CollectionType javaType = mapper.getTypeFactory()
-        .constructCollectionType(Collection.class, Transaction.class);
+        .constructCollectionType(Collection.class, Trn.class);
 
-    Collection<Transaction> results = mapper.readValue(tradeFile, javaType);
+    Collection<Trn> results = mapper.readValue(tradeFile, javaType);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId("TEST")
-        .transactions(results).build();
+        .trns(results).build();
 
     String json = mockMvc.perform(post("/")
         .contentType(MediaType.APPLICATION_JSON_VALUE)

@@ -10,7 +10,7 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -34,7 +34,7 @@ class TestMarketValuesWithFx {
     Asset asset = AssetUtils.getAsset("ABC", "Test");
     BigDecimal simpleRate = new BigDecimal("0.1");
 
-    Transaction buyTrn = Transaction.builder()
+    Trn buyTrn = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(asset)
         .tradeAmount(new BigDecimal("2000.00"))

@@ -2,7 +2,7 @@ package com.beancounter.common.contracts;
 
 
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TrnResponse {
   @Builder.Default
-  private Collection<Transaction> transactions = new ArrayList<>();
+  private Collection<Trn> trns = new ArrayList<>();
   @Builder.Default
   private Collection<Portfolio> portfolios = new ArrayList<>();
 

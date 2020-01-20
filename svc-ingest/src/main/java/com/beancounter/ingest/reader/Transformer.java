@@ -1,7 +1,7 @@
 package com.beancounter.ingest.reader;
 
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import java.text.ParseException;
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
  */
 public interface Transformer {
 
-  Transaction from(List<String> row, Portfolio portfolio) throws ParseException;
+  Trn from(List<String> row, Portfolio portfolio) throws ParseException;
 
   boolean isValid(List<String> row);
 

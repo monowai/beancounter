@@ -3,7 +3,7 @@ package com.beancounter.ingest.reader;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.ingest.model.IngestionRequest;
 import com.beancounter.ingest.service.BcService;
 import com.beancounter.ingest.service.FxTransactions;
@@ -78,7 +78,7 @@ public class SheetReader implements Ingester {
    * @param ingestionRequest parameters to run the import.
    * @return JSON transformation
    */
-  public Collection<Transaction> ingest(IngestionRequest ingestionRequest) {
+  public Collection<Trn> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
     Portfolio portfolio;
     portfolio = bcService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
@@ -99,29 +99,29 @@ public class SheetReader implements Ingester {
     try (OutputStream outputStream = ingestWriter.prepareFile(shareSightService.getOutFile())) {
 
       log.info("Processing {} {}", shareSightService.getRange(), sheetId);
-      Collection<Transaction> transactions = rowProcessor.transform(
+      Collection<Trn> trns = rowProcessor.transform(
           portfolio,
           values,
           new Filter(ingestionRequest.getFilter()),
           sheetId);
 
-      if (transactions.isEmpty()) {
+      if (trns.isEmpty()) {
         return new ArrayList<>();
       }
       log.info("Back filling FX rates...");
-      transactions = fxTransactions.applyRates(portfolio, transactions);
+      trns = fxTransactions.applyRates(portfolio, trns);
 
       if (outputStream != null) {
         log.info("Writing output...");
         outputStream.write(
             objectMapper.writerWithDefaultPrettyPrinter()
-                .writeValueAsBytes(transactions));
+                .writeValueAsBytes(trns));
 
-        log.info("Wrote {} transactions into file {}", transactions.size(),
+        log.info("Wrote {} transactions into file {}", trns.size(),
             shareSightService.getOutFile());
       }
       log.info("Complete!");
-      return transactions;
+      return trns;
 
     } catch (IOException e) {
       throw new SystemException(e.getMessage());

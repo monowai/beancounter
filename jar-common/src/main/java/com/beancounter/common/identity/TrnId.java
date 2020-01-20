@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionId implements Serializable {
+public class TrnId implements Serializable {
   private String provider;
   private Integer batch;
   private Integer id;

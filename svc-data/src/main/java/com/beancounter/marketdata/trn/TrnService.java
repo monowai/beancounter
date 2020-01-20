@@ -2,9 +2,9 @@ package com.beancounter.marketdata.trn;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TransactionId;
+import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import java.util.Collections;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +22,12 @@ public class TrnService {
   }
 
   public TrnResponse save(Portfolio portfolio, TrnRequest trnRequest) {
-    Iterable<Transaction> saved = trnRepository.saveAll(trnRequest.getTransactions());
+    Iterable<Trn> saved = trnRepository.saveAll(trnRequest.getTrns());
     return getTrnResponse(portfolio, saved);
   }
 
-  public TrnResponse find(Portfolio portfolio, TransactionId transactionId) {
-    Optional<Transaction> found = trnRepository.findById(transactionId);
+  public TrnResponse find(Portfolio portfolio, TrnId trnId) {
+    Optional<Trn> found = trnRepository.findById(trnId);
     return found.map(transaction -> getTrnResponse(portfolio, transaction))
         .orElseGet(() -> TrnResponse.builder().build());
   }
@@ -36,19 +36,19 @@ public class TrnService {
     return getTrnResponse(portfolio, trnRepository.findByPortfolioId(portfolio.getId()));
   }
 
-  private TrnResponse getTrnResponse(Portfolio portfolio, Iterable<Transaction> saved) {
+  private TrnResponse getTrnResponse(Portfolio portfolio, Iterable<Trn> saved) {
     TrnResponse trnResponse = TrnResponse.builder()
         .build();
     trnResponse.addPortfolio(portfolio);
-    for (Transaction transaction : saved) {
-      trnResponse.getTransactions().add(transaction);
+    for (Trn trn : saved) {
+      trnResponse.getTrns().add(trn);
     }
     return trnResponse;
   }
 
-  private TrnResponse getTrnResponse(Portfolio portfolio, Transaction trn) {
+  private TrnResponse getTrnResponse(Portfolio portfolio, Trn trn) {
     TrnResponse trnResponse = TrnResponse.builder()
-        .transactions(Collections.singleton(trn))
+        .trns(Collections.singleton(trn))
         .build();
     trnResponse.addPortfolio(portfolio);
     return trnResponse;

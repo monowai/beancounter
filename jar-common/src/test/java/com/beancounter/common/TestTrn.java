@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TransactionId;
+import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
 
-class TestTransaction {
+class TestTrn {
 
   @Test
   void is_TransactionRequestSerializing() throws Exception {
@@ -30,10 +30,10 @@ class TestTransaction {
         .market(Market.builder().code("NYSE").build())
         .build();
 
-    Transaction transaction = Transaction.builder()
+    Trn trn = Trn.builder()
         .asset(asset)
         .trnType(trnType)
-        .id(TransactionId.builder().batch(10).id(10).provider("TEST").build())
+        .id(TrnId.builder().batch(10).id(10).provider("TEST").build())
         .portfolioId("TWEE")
         .tradeDate(LocalDate.now())
         .settleDate(LocalDate.now())
@@ -44,8 +44,8 @@ class TestTransaction {
         .build();
 
     TrnRequest trnRequest = TrnRequest.builder()
-        .transaction(transaction)
-        .porfolioId(transaction.getPortfolioId())
+        .trn(trn)
+        .porfolioId(trn.getPortfolioId())
         .build();
     String json = mapper.writeValueAsString(trnRequest);
 
@@ -66,10 +66,10 @@ class TestTransaction {
         .market(Market.builder().code("NYSE").build())
         .build();
 
-    Transaction transaction = Transaction.builder()
+    Trn trn = Trn.builder()
         .asset(asset)
         .trnType(trnType)
-        .id(TransactionId.builder().batch(10).id(10).provider("TEST").build())
+        .id(TrnId.builder().batch(10).id(10).provider("TEST").build())
         .portfolioId("TWEE")
         .tradeDate(LocalDate.now())
         .settleDate(LocalDate.now())
@@ -78,10 +78,10 @@ class TestTransaction {
         .fees(new BigDecimal("10"))
         .tradeAmount(new BigDecimal("999.99"))
         .build();
-    Collection<Transaction>transactions = new ArrayList<>();
-    transactions.add(transaction);
+    Collection<Trn> trns = new ArrayList<>();
+    trns.add(trn);
     TrnResponse trnResponse = TrnResponse.builder()
-        .transactions(transactions)
+        .trns(trns)
         .build();
 
     trnResponse.addPortfolio(PortfolioUtils.getPortfolio("TWEE"));

@@ -1,11 +1,11 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.WtdMockUtils.getResponseMap;
-import static com.beancounter.marketdata.WtdMockUtils.priceDate;
 import static com.beancounter.marketdata.integ.ContractVerifierBase.aapl;
 import static com.beancounter.marketdata.integ.ContractVerifierBase.amp;
 import static com.beancounter.marketdata.integ.ContractVerifierBase.msft;
 import static com.beancounter.marketdata.integ.ContractVerifierBase.msftInvalid;
+import static com.beancounter.marketdata.utils.WtdMockUtils.getResponseMap;
+import static com.beancounter.marketdata.utils.WtdMockUtils.priceDate;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -16,8 +16,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.WtdMockUtils;
 import com.beancounter.marketdata.providers.wtd.WtdService;
+import com.beancounter.marketdata.utils.WtdMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.math.BigDecimal;

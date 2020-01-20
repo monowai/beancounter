@@ -8,7 +8,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
@@ -26,7 +26,7 @@ class TestPositions {
         .currency(getCurrency("AUD"))
         .build());
 
-    Transaction transaction = Transaction.builder()
+    Trn trn = Trn.builder()
         .asset(asset)
         .trnType(TrnType.DIVI)
         .tradeCashRate(new BigDecimal("0.8988"))
@@ -37,9 +37,9 @@ class TestPositions {
 
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);
-    accumulator.accumulate(transaction, positions.getPortfolio(), position);
+    accumulator.accumulate(trn, positions.getPortfolio(), position);
     assertThat(position.getMoneyValues(Position.In.TRADE))
-        .hasFieldOrPropertyWithValue("dividends", transaction.getTradeAmount());
+        .hasFieldOrPropertyWithValue("dividends", trn.getTradeAmount());
 
   }
 }

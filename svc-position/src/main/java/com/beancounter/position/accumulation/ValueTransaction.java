@@ -2,9 +2,9 @@ package com.beancounter.position.accumulation;
 
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Transaction;
+import com.beancounter.common.model.Trn;
 
 public interface ValueTransaction {
 
-  void value(Transaction transaction, Portfolio portfolio, Position position);
+  void value(Trn trn, Portfolio portfolio, Position position);
 }

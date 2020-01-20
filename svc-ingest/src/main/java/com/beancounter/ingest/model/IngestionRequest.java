@@ -13,6 +13,7 @@ public class IngestionRequest {
 
   private String sheetId;
   private String filter;
+  private String provider;
   @Builder.Default
   private boolean ratesIgnored = true;
   @Builder.Default

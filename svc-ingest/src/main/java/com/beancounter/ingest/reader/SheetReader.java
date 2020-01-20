@@ -104,7 +104,7 @@ public class SheetReader implements Ingester {
           portfolio,
           values,
           new Filter(ingestionRequest.getFilter()),
-          "SHEETS");
+          (ingestionRequest.getProvider() == null ? "SHEETS" : ingestionRequest.getProvider()));
 
       if (trns.isEmpty()) {
         return new ArrayList<>();

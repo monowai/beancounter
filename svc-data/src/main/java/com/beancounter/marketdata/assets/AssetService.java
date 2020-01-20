@@ -28,7 +28,7 @@ public class AssetService {
     this.marketService = marketService;
   }
 
-  public Asset upsert(Asset asset) {
+  public Asset create(Asset asset) {
     Asset foundAsset = find(
         asset.getMarket().getCode().toUpperCase(),
         asset.getCode().toUpperCase());
@@ -40,19 +40,15 @@ public class AssetService {
       asset.setMarketCode(market.getCode());
       foundAsset = assetRepository.save(asset);
       foundAsset.setMarket(market);
-      return foundAsset;
-    } else {
-      asset.setId(foundAsset.getId());
-      assetRepository.save(asset);
-      asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
-      return asset;
+
     }
+    return foundAsset;
   }
 
   public AssetResponse process(AssetRequest asset) {
     Map<String, Asset> assets = new HashMap<>();
     for (String key : asset.getAssets().keySet()) {
-      assets.put(key, upsert(asset.getAssets().get(key)));
+      assets.put(key, create(asset.getAssets().get(key)));
     }
     return AssetResponse.builder().assets(assets).build();
   }

@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.MarketData;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -37,6 +38,11 @@ public interface BcGateway {
       produces = {MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   FxResponse getRates(FxRequest fxRequest);
+
+  @GetMapping(value = "/trns/{portfolioId}",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
+      consumes = {MediaType.APPLICATION_JSON_VALUE})
+  TrnResponse read(@PathVariable("portfolioId") String portfolioId);
 
   @GetMapping(value = "/currencies", produces = {MediaType.APPLICATION_JSON_VALUE})
   CurrencyResponse getCurrencies();

@@ -41,6 +41,16 @@ public class AssetController {
     return asset;
   }
 
+  @GetMapping(value = "/{assetId}")
+  Asset getAsset(@PathVariable String assetId) {
+    Asset asset = assetService.find(assetId);
+    if (asset == null) {
+      throw new BusinessException(String.format("No asset found for %s", assetId));
+    }
+    return asset;
+
+  }
+
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   AssetResponse update(@RequestBody AssetRequest assetRequest) {
     return assetService.process(assetRequest);

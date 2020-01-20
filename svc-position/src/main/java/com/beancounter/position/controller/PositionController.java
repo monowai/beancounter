@@ -2,19 +2,13 @@ package com.beancounter.position.controller;
 
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.position.service.BcService;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,8 +32,6 @@ public class PositionController {
   private PositionService positionService;
   private Valuation valuationService;
   private BcService bcService;
-  private ObjectMapper mapper = new ObjectMapper();
-
 
   @Autowired
   PositionController(PositionService positionService, BcService bcService) {
@@ -60,17 +52,13 @@ public class PositionController {
 
 
   @GetMapping(value = "/{portfolioCode}", produces = "application/json")
-  @Deprecated // Dev use
-  PositionResponse get(@PathVariable String portfolioCode) throws IOException {
+  PositionResponse get(@PathVariable String portfolioCode) {
     // Currently no persistence. This is an emulated flow
-    File tradeFile = new ClassPathResource(portfolioCode + ".json").getFile();
-    CollectionType javaType = mapper.getTypeFactory()
-        .constructCollectionType(Collection.class, Trn.class);
     Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
-    Collection<Trn> results = mapper.readValue(tradeFile, javaType);
+    TrnResponse trnResponse = bcService.getTrn(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
-        .trns(results)
+        .trns(trnResponse.getTrns())
         .build();
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
     return valuationService.value(positionResponse.getData());

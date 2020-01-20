@@ -1,6 +1,7 @@
 package com.beancounter.common.identity;
 
 import java.io.Serializable;
+import javax.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Embeddable
 public class TrnId implements Serializable {
   private String provider;
   private Integer batch;

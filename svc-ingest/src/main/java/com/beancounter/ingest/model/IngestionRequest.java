@@ -15,6 +15,8 @@ public class IngestionRequest {
   private String filter;
   @Builder.Default
   private boolean ratesIgnored = true;
+  @Builder.Default
+  private boolean trnPersist = true;
   private String portfolioCode;
 
 }

@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
@@ -39,6 +40,10 @@ public class BcService {
   @Async
   public CompletableFuture<FxResponse> getFxData(FxRequest fxRequest) {
     return CompletableFuture.completedFuture(bcGateway.getRates(fxRequest));
+  }
+
+  public TrnResponse getTrn(Portfolio portfolio) {
+    return bcGateway.read(portfolio.getId());
   }
 
   private Map<String, Currency> getCurrencies() {

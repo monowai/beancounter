@@ -9,6 +9,8 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.contracts.TrnRequest;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.MarketData;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +35,11 @@ public interface BcGateway {
       produces = {MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   FxResponse getRates(FxRequest fxRequest);
+
+  @PostMapping(value = "/trns",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
+      consumes = {MediaType.APPLICATION_JSON_VALUE})
+  TrnResponse write(TrnRequest trnRequest);
 
   @PostMapping(value = "/assets",
       produces = {MediaType.APPLICATION_JSON_VALUE},

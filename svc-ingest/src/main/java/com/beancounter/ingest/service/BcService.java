@@ -5,6 +5,8 @@ import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.TrnRequest;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,5 +49,9 @@ public class BcService {
 
   public AssetResponse getAssets(AssetRequest assetRequest) {
     return bcGateway.assets(assetRequest);
+  }
+
+  public TrnResponse write(TrnRequest trnRequest) {
+    return bcGateway.write(trnRequest);
   }
 }

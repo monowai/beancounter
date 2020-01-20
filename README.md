@@ -40,7 +40,6 @@ curl -X POST \
   -H 'Content-Type: application/json' \
   -d '{
   "sheetId":"1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-  "ratesIgnored": true,
   "portfolioCode": "TEST"
 }' -o trades.json 
 

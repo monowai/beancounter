@@ -42,7 +42,9 @@ public class AssetService {
       foundAsset.setMarket(market);
       return foundAsset;
     } else {
-      Asset updated = assetRepository.save(asset);
+      foundAsset.setName(asset.getName());
+      foundAsset.setCategory(asset.getCategory());
+      Asset updated = assetRepository.save(foundAsset);
       updated.setMarket(marketService.getMarket(asset.getMarket().getCode()));
       return updated;
     }
@@ -57,13 +59,18 @@ public class AssetService {
   }
 
   public Asset find(String marketCode, String code) {
-    Asset asset = null;
-    Optional<Asset> foundAsset = assetRepository
+    Optional<Asset> optionalAsset = assetRepository
         .findByMarketCodeAndCode(marketCode.toUpperCase(), code.toUpperCase());
-    if (foundAsset.isPresent()) {
-      asset = foundAsset.get();
-      asset.setMarket(marketService.getMarket(asset.getMarketCode()));
-    }
+    return optionalAsset.map(this::hydrateAsset).orElse(null);
+  }
+
+  public Asset find(String id) {
+    return assetRepository.findById(id).map(this::hydrateAsset).orElse(null);
+  }
+
+  private Asset hydrateAsset(Asset asset) {
+
+    asset.setMarket(marketService.getMarket(asset.getMarketCode()));
     return asset;
   }
 }

@@ -1,5 +1,6 @@
 package com.beancounter.ingest.reader;
 
+import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
@@ -110,6 +111,14 @@ public class SheetReader implements Ingester {
       }
       log.info("Back filling FX rates...");
       trns = fxTransactions.applyRates(portfolio, trns);
+      if (ingestionRequest.isTrnPersist()) {
+        log.info("Received request to write {} transactions {}", trns.size(), portfolio.getCode());
+        TrnRequest trnRequest = TrnRequest.builder()
+            .porfolioId(portfolio.getId())
+            .trns(trns)
+            .build();
+        bcService.write(trnRequest);
+      }
 
       if (outputStream != null) {
         log.info("Writing output...");

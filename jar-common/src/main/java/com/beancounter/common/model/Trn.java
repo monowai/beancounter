@@ -8,8 +8,8 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +31,7 @@ import lombok.ToString;
 @ToString(of = {"asset", "trnType", "id"})
 @Entity
 public class Trn {
-  @Id
+  @EmbeddedId
   private TrnId id;
   private TrnType trnType;
   private String portfolioId;

@@ -73,7 +73,11 @@ public class TrnMvcTest {
         .currency(CurrencyUtils.getCurrency("NZD"))
         .build());
 
-    TrnId trnId = TrnId.builder().batch(1).provider("unit").id(1).build();
+    TrnId trnId = TrnId.builder()
+        .batch(999)
+        .provider("1a0OYzNj4Ru2zGS76EimzdjQm9URHQbuhwxvDLGJ8ur33")
+        .id(999).build();
+
     Trn trn = Trn.builder()
         .portfolioId(portfolio.getId())
         .asset(msft)

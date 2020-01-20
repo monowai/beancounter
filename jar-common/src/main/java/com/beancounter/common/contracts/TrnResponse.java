@@ -1,6 +1,5 @@
 package com.beancounter.common.contracts;
 
-
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.fasterxml.jackson.annotation.JsonIgnore;

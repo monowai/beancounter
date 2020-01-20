@@ -1,6 +1,5 @@
 package com.beancounter.common.contracts;
 
-
 import com.beancounter.common.model.Trn;
 import java.util.Collection;
 import lombok.AllArgsConstructor;

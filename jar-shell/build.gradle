@@ -32,7 +32,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion",
             "com.google.api-client:google-api-client:$googleClientVersion",
             "com.google.oauth-client:google-oauth-client-jetty:1.30.5",
-            "com.google.apis:google-api-services-sheets:v4-rev604-1.25.0"
+            "com.google.apis:google-api-services-sheets:v4-rev20191213-1.30.3"
 
     )
 

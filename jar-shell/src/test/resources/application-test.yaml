@@ -1,0 +1,10 @@
+marketdata:
+  url: http://localhost:10999
+ratesIgnored: true
+
+spring:
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false

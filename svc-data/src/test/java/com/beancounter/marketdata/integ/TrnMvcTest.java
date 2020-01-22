@@ -167,7 +167,7 @@ public class TrnMvcTest {
     int i = 4;
     // Verify the sort order - asset.code, tradeDate
     for (Trn trn : trnResponse.getTrns()) {
-      assertThat(trn.getId().getId()== i--);
+      assertThat(trn.getId().getId() == i--);
     }
 
     TrnId trnId = trnResponse.getTrns().iterator().next().getId();

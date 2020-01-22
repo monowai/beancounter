@@ -28,10 +28,11 @@ public class Asset {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String name;
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  private String category;
+  @Builder.Default
+  private String category = "Equity";
+  // Market is managed as static data; the code alone is persisted.
   @Transient
   private Market market;
-  // For persistence services
   @JsonIgnore
   private String marketCode;
 }

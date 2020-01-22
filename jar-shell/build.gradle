@@ -1,0 +1,72 @@
+plugins {
+    id "io.spring.dependency-management" version "$springDependencyManagement"
+    id "org.springframework.boot" version "$springBootVersion"
+}
+
+apply from: '../buildtools/javaCommon.gradle'
+
+repositories {
+    mavenLocal()
+    maven { url "https://repo.spring.io/milestone" }
+    mavenCentral()
+    gradlePluginPortal()
+}
+version = "0.1.1"
+
+dependencyManagement {
+    dependencies {
+        dependency "org.eclipse.jetty:jetty-server:8+"
+        dependency "org.eclipse.jetty:jetty-http:8+"
+        dependency "org.eclipse.jetty:jetty-util:8+"
+        dependency "org.eclipse.jetty:jetty-io:8+"
+    }
+}
+dependencies {
+    implementation(
+            project(":jar-common"),
+            "org.springframework.shell:spring-shell-starter:$springShellVersion",
+            "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.1.RELEASE",
+            "com.fasterxml.jackson.core:jackson-databind",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion",
+            "com.google.api-client:google-api-client:$googleClientVersion",
+            "com.google.oauth-client:google-oauth-client-jetty:1.30.5",
+            "com.google.apis:google-api-services-sheets:v4-rev604-1.25.0"
+
+    )
+
+    compileOnly(
+            "org.springframework.boot:spring-boot-configuration-processor",
+            "org.projectlombok:lombok"
+    )
+
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor "org.projectlombok:lombok"
+    testImplementation("io.rest-assured:rest-assured") {
+        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
+    }
+
+    testImplementation(
+            "org.projectlombok:lombok",
+            "org.assertj:assertj-core",
+            "io.rest-assured:json-schema-validator",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
+            "org.junit.jupiter:junit-jupiter"
+
+    )
+    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
+        transitive = false
+    }
+
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        downloadSources = true
+        outputDir = file("$buildDir/classes/main/")
+        testOutputDir = file("$buildDir/classes/main/")
+    }
+}

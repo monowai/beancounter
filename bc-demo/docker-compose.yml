@@ -5,59 +5,69 @@ services:
     image: postgres:12-alpine
     container_name: postgres
     ports:
-      - 5432:5432
+      - 5432
 
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
       POSTGRES_DB: bc
 
+    volumes:
+      - pg-data:/var/lib/backup/data
+
   data:
-    image: beancounter/svc-data
+    image: bc/svc-data
     container_name: data
     ports:
-      - 9610:9610
-      - 9611:9611
+      - 9610:9510
     environment:
-      SERVER_PORT: 9610
-      MANAGEMENT_SERVER_PORT: 9611
+      #SERVER_PORT: 9610
+      #MANAGEMENT_SERVER_PORT: 9611
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bc
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
+      BEANCOUNTER_MARKETDATA_PROVIDER_WTD_KEY: Set-your-key-here
 
-    depends_on:
+
+    links:
       - postgres
 
-  ingest:
-    image: beancounter/svc-ingest
-    container_name: ingest
-    ports:
-      - 9600
-      - 9601
-    environment:
-      SERVER_PORT: 9600
-      MANAGEMENT_SERVER_PORT: 9601
-      MARKETDATA_URL: "http://md:9610"
-      PLT_SOLACE_MOCK: "true"
-      PLT_SESSION_ENABLED: "false"
-    depends_on:
-      - md
-
   position:
-    image: beancounter/svc-position
+    image: bc/svc-position
     container_name: position
+
     ports:
-      - 9620
-      - 9621
+      - 9600:9500
+
     environment:
-      MARKETDATA_URL: "http://md:9610"
-      SERVER_PORT: 9620
+      MARKETDATA_URL: "http://data:9510/api"
+      # SERVER_PORT: 9600
       MANAGEMENT_SERVER_PORT: 9621
     depends_on:
-      - md
+      - data
 
+  shell:
+    # Create a symbolic link to where your secrets are stored
+    #  ln -s ../secrets/ ./secrets
+    # docker-compose run --rm shell
 
-networks:
-  default:
-    # Use the overlay driver for multi-host communication
-    driver: bridge
+    image: bc/shell
+    container_name: shell
+    #stdin_open: true
+    #tty: true
+    ports:
+      - 9690:9690
+
+    environment:
+      MARKETDATA_URL: "http://data:9510/api"
+      API_PATH: "/secrets/google-api/"
+      API_PORT: 9690
+
+    command: ["./wait-for-it.sh", "data:9611"]
+    depends_on:
+      - data
+    volumes:
+      - ../secrets:/secrets
+
+volumes:
+  pg-data:

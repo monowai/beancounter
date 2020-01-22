@@ -5,7 +5,7 @@
 
 Transform financial transaction data into portfolio positions which can then be valued against market data 
     
-*   [Ingest transactions](svc-ingest/README.md) from a Google Docs sheet
+*   [Ingest transactions](jar-shell/README.md) from a Google Docs sheet
 *   [Create positions](svc-position/README.md) from the transactions
 *   Value positions with [Asset Prices](svc-data/README.md) from the BC Data service  
     

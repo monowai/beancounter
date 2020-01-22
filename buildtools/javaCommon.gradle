@@ -1,8 +1,4 @@
 buildscript {
-    ext {
-
-        // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html
-    }
     repositories {
         mavenLocal()
         mavenCentral()

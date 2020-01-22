@@ -1,0 +1,62 @@
+spring:
+  main:
+    banner-mode: "off"
+    web-application-type: none
+
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+beancounter:
+  exchanges:
+    aliases:
+      NYS: NYSE
+      NAS: NASDAQ
+      AX: ASX
+      NZ: NZX
+
+logging:
+  level:
+    root: debug
+    org: error
+    com: error
+    com.beancounter.shell.IngestBoot: error
+    com.beancounter: debug
+    org.springframework.web.servlet: fatal
+    sun: error
+    jdk: error
+    javax: error
+    io: error
+    feign.template: error
+    io.github.resilience4j: fatal
+  pattern:
+    console: "%d - %m%n"
+
+feign:
+  client:
+    config:
+      default:
+        errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
+
+    # http://localhost:9500/actuator/circuitbreaker-events/marketdata
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxRetryAttempts: 10
+        waitDuration: 700
+        ignoreExceptions:
+          - com.beancounter.common.exception.BusinessException
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 3
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: TIME_BASED
+        waitDurationInOpenState: 5s
+        registerHealthIndicator: true
+        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate

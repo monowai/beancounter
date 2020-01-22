@@ -9,5 +9,5 @@ pluginManagement {
 }
 
 rootProject.name = 'beancounter'
-include 'jar-common', 'svc-data', 'svc-position', 'svc-ingest'
+include 'jar-common', 'svc-data', 'svc-position', 'jar-shell'
 

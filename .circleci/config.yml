@@ -2,16 +2,6 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@1.0.5
 jobs:
-#  checkout-code:
-#    machine:
-#      enabled: true
-#    steps:
-#      - checkout
-#      - save_cache:
-#          key: org-bc-common-{{ .Environment.CIRCLE_SHA1 }}
-#          paths:
-#            - ~/beancounter
-
   build-app:
     docker:
       - image: circleci/node
@@ -39,7 +29,7 @@ jobs:
       - store_artifacts:
           path: bc-view/reports/junit
 
-  build-md:
+  build-data:
     docker:
       - image: circleci/openjdk:11
     environment:
@@ -49,7 +39,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+            - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - run: 'pwd'
       - run: './gradlew jar-common:build svc-data:build'
@@ -64,7 +54,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/svc-ingest/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+          key: v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - save_cache:
           paths:
@@ -80,12 +70,11 @@ jobs:
       - store_artifacts:
           path: ~/project/jar-common/build/libs
 
-  build-ingest:
+  build-shell:
     docker:
       - image: circleci/openjdk:11
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
     steps:
       - add_ssh_keys:
@@ -95,21 +84,20 @@ jobs:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
-      - run: './gradlew svc-ingest:build --info'
+      - run: './gradlew jar-shell:build'
 
       - store_test_results:
-          path: ~/project/svc-ingest/build/test-results/test
+          path: ~/project/jar-shell/build/test-results/test
 
       - codecov/upload:
-          file: ~/project/svc-ingest/build/reports/jacoco/test/*.xml
+          file: ~/project/jar-shell/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
-          path: ~/project/svc-ingest/build/libs
+          path: ~/project/jar-shell/build/libs
 
   build-position:
     docker:
       - image: circleci/openjdk:11
-#      - image: circleci/openjdk:13.0-buster
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
@@ -139,10 +127,10 @@ workflows:
   build_and_stage:
     jobs:
       - build-app
-      - build-md
-      - build-ingest:
+      - build-data
+      - build-shell:
           requires:
-            - build-md
+            - build-data
       - build-position:
           requires:
-            - build-md
+            - build-data

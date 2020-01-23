@@ -46,7 +46,7 @@ public class GoogleAuthConfig {
   private LocalServerReceiver receiver;
 
   @Bean
-  LocalServerReceiver receiver() {
+  public LocalServerReceiver receiver() {
     log.info("Callback port {}", port);
     receiver = new LocalServerReceiver.Builder()
         .setPort(getPort())

@@ -5,15 +5,10 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import org.springframework.stereotype.Service;
 
 /**
@@ -62,9 +57,7 @@ public class MockProviderService implements MarketDataProvider {
   }
 
   public String getPriceDate() {
-    return DateUtils.getDate(Date.from(
-        ZonedDateTime.of(LocalDate.parse("2019-11-21").atStartOfDay(), ZoneId.of("UTC"))
-            .toInstant()));
+    return "2019-11-21";
   }
 
 

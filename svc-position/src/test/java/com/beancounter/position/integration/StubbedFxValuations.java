@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -21,10 +20,7 @@ import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.BcService;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import java.io.File;
 import java.math.BigDecimal;
-import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.context.ActiveProfiles;
@@ -51,7 +46,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 @Tag("slow")
 @Slf4j
-@SpringBootTest(properties = "stubrunner.cloud.enabled=false")
+@SpringBootTest
 class StubbedFxValuations {
 
   @Autowired
@@ -109,33 +104,6 @@ class StubbedFxValuations {
     assertThat(markets.getData()).isNotEmpty();
   }
 
-  @Test
-  void is_MvcTradesToPositions() throws Exception {
-
-    File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
-
-    CollectionType javaType = mapper.getTypeFactory()
-        .constructCollectionType(Collection.class, Trn.class);
-
-    Collection<Trn> results = mapper.readValue(tradeFile, javaType);
-    PositionRequest positionRequest = PositionRequest.builder()
-        .portfolioId("TEST")
-        .trns(results).build();
-
-    String json = mockMvc.perform(post("/")
-        .contentType(MediaType.APPLICATION_JSON_VALUE)
-        .content(mapper.writeValueAsString(positionRequest))
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andReturn().getResponse().getContentAsString();
-
-    PositionResponse positionResponse = new ObjectMapper().readValue(json, PositionResponse.class);
-    assertThat(positionResponse).hasFieldOrProperty("data");
-    Positions positions = positionResponse.getData();
-
-    assertThat(positions).isNotNull();
-    assertThat(positions.getPositions()).isNotNull().hasSize(2);
-  }
 
   @Test
   void is_MvcValuingPositions() throws Exception {

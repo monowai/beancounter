@@ -42,11 +42,8 @@ class TestDateUtils {
 
   @Test
   void is_NullIsoDate() {
-    String nullString = null;
-    assertThat(DateUtils.getDate(nullString)).isNull();
-    assertThat(DateUtils.getLocalDate(nullString, "yyyy-MM-dd")).isNull();
-    Date nullDate = null;
-    assertThat(DateUtils.getDate(nullDate)).isNull();
+    assertThat(DateUtils.getDate(null)).isNull();
+    assertThat(DateUtils.getLocalDate(null, "yyyy-MM-dd")).isNull();
   }
 
   @Test
@@ -84,7 +81,6 @@ class TestDateUtils {
   void is_MarketDataPriceDateCalculated() {
     String sgToday = "2019-11-01"; // Friday in Singapore
     LocalDate sgDateTime = DateUtils.getDate(sgToday);
-    //.atZone(ZoneId.of("Asia/Singapore"));
 
     LocalDate dateResult = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"));
 
@@ -92,8 +88,19 @@ class TestDateUtils {
 
     dateResult = DateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"), 2);
     assertThat(dateResult.toString()).isEqualTo("2019-10-30");
+  }
 
+  @Test
+  void is_DateString() {
+    //noinspection ConstantConditions
+    assertThat(DateUtils.getDateString(null)).isNull();
+    assertThat(DateUtils.getDateString(getMonday())).isEqualTo("2019-10-21");
 
+  }
+
+  @Test
+  void is_ParseException() {
+    assertThrows(BusinessException.class, () -> DateUtils.isToday("ABC-MM-11"));
   }
 
   private LocalDate getMonday() {

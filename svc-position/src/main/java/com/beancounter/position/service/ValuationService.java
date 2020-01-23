@@ -94,6 +94,11 @@ public class ValuationService implements Valuation {
     }
     Map<CurrencyPair, FxRate> rates = valuationData.getFxResponse().getData().getRates();
 
+    if (valuationData.getPriceResponse() == null) {
+      log.info("No prices found on date {}", positions.getAsAt());
+      return positions; // Prevent NPE
+    }
+
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
       Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {

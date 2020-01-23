@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -82,6 +83,20 @@ class TestCurrency {
     assertThat(byCode).isEqualToComparingFieldByField(byCurrency);
 
   }
+
+  @SuppressWarnings("ConstantConditions")
+  @Test
+  void is_NullCurrencyAssertions() {
+
+    assertThat(CurrencyPair.from(getCurrency("USD"), null)).isNull();
+    assertThat(CurrencyPair.from(null, getCurrency("USD"))).isNull();
+    assertThat(CurrencyUtils
+        .getCurrencyPair(BigDecimal.ONE, getCurrency("USD"), null)).isNull();
+    assertThat(CurrencyUtils
+        .getCurrencyPair(BigDecimal.ONE, null, getCurrency("USD"))).isNull();
+
+  }
+
 
   @Test
   void is_CorrectCurrencyPair() {

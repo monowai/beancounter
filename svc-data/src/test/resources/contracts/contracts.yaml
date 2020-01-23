@@ -82,6 +82,17 @@ response:
   bodyFromFile: "assets/amp-response.json"
   headers:
     Content-Type: application/json
+---
+name: transactionsForPortfolio
+priority: 1
+request:
+  method: GET
+  url: /trns/TEST
+response:
+  status: 200
+  bodyFromFile: "trn/test-response.json"
+  headers:
+    Content-Type: application/json
 
 ---
 name: portfolioById

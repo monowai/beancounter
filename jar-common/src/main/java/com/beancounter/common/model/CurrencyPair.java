@@ -18,6 +18,9 @@ public class CurrencyPair {
 
   @JsonIgnore
   public static CurrencyPair from(Currency reporting, Currency trade) {
+    if (trade == null || reporting == null) {
+      return null;
+    }
     return CurrencyPair.builder()
         .from(reporting.getCode())
         .to(trade.getCode())

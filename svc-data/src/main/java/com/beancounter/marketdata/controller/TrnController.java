@@ -7,6 +7,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +30,9 @@ public class TrnController {
     this.portfolioService = portfolioService;
   }
 
-  @PostMapping
+  @PostMapping(
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse update(@RequestBody TrnRequest trnRequest) {
     Portfolio portfolio = portfolioService.find(trnRequest.getPorfolioId());
     return trnService.save(portfolio, trnRequest);
@@ -51,7 +54,7 @@ public class TrnController {
         .build());
   }
 
-  @GetMapping(value = "/{portfolioId}")
+  @GetMapping(value = "/{portfolioId}", produces = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse find(@PathVariable("portfolioId") String portfolioId) {
     Portfolio portfolio = portfolioService.find(portfolioId);
 

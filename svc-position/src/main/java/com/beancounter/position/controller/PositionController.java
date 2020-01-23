@@ -51,9 +51,11 @@ public class PositionController {
   }
 
 
-  @GetMapping(value = "/{portfolioCode}", produces = "application/json")
-  PositionResponse get(@PathVariable String portfolioCode) {
-    // Currently no persistence. This is an emulated flow
+  @GetMapping(value = "/{portfolioCode}/{valuationDate}", produces = "application/json")
+  PositionResponse get(
+      @PathVariable String portfolioCode,
+      @PathVariable(required = false) String valuationDate) {
+
     Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
     TrnResponse trnResponse = bcService.getTrn(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
@@ -61,6 +63,7 @@ public class PositionController {
         .trns(trnResponse.getTrns())
         .build();
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
+    positionResponse.getData().setAsAt(valuationDate);
     return valuationService.value(positionResponse.getData());
   }
 }

@@ -13,8 +13,6 @@ import com.fasterxml.jackson.databind.type.MapType;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -60,10 +58,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
     if (firstKey.isPresent()) {
       LocalDate localDateTime = DateUtils.getLocalDate(
           firstKey.get().getKey().toString(), "yyyy-M-dd");
-      Date priceDate = Date.from(
-          localDateTime.atStartOfDay(ZoneId.of(timeZone)).toInstant());
-
-      marketData = getMarketData(asset, priceDate, firstKey.get().getValue());
+      marketData = getMarketData(asset, localDateTime, firstKey.get().getValue());
     }
     return marketData;
   }
@@ -72,7 +67,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
     return nodeValue.get("5. Time Zone").asText();
   }
 
-  private MarketData getMarketData(Asset asset, Date priceDate, Map<String, Object> data) {
+  private MarketData getMarketData(Asset asset, LocalDate priceDate, Map<String, Object> data) {
     MarketData marketData = null;
     if (data != null) {
       BigDecimal open = new BigDecimal(data.get("1. open").toString());
@@ -81,7 +76,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
       BigDecimal close = new BigDecimal(data.get("4. close").toString());
       marketData = MarketData.builder()
           .asset(asset)
-          .date(DateUtils.getDate(priceDate))
+          .date(DateUtils.getDateString(priceDate))
           .open(open)
           .close(close)
           .high(high)

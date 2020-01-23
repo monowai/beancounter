@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
@@ -16,6 +17,7 @@ import com.beancounter.marketdata.assets.AssetController;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.controller.FxController;
 import com.beancounter.marketdata.controller.PriceController;
+import com.beancounter.marketdata.controller.TrnController;
 import com.beancounter.marketdata.currency.CurrencyController;
 import com.beancounter.marketdata.markets.MarketController;
 import com.beancounter.marketdata.portfolio.PortfolioController;
@@ -24,10 +26,12 @@ import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
 import com.beancounter.marketdata.providers.wtd.WtdGateway;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
+import com.beancounter.marketdata.trn.TrnService;
 import com.beancounter.marketdata.utils.WtdMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,6 +70,9 @@ public class ContractVerifierBase {
   private static Asset ebay = getAsset("EBAY", "NASDAQ");
   @MockBean
   PortfolioService portfolioService;
+  @MockBean
+  TrnService trnService;
+
   @Autowired
   private PortfolioController portfolioController;
 
@@ -82,6 +89,8 @@ public class ContractVerifierBase {
   private MarketController marketController;
   @Autowired
   private CurrencyController currencyController;
+  @Autowired
+  private TrnController trnController;
 
   @MockBean
   private FxGateway fxGateway;
@@ -97,6 +106,7 @@ public class ContractVerifierBase {
             marketController,
             currencyController,
             assetController,
+            trnController,
             portfolioController));
   }
 
@@ -153,11 +163,18 @@ public class ContractVerifierBase {
   }
 
   @Before
+  public void mockTrnResponse() throws Exception {
+    File jsonFile = new ClassPathResource("contracts/trn/test-response.json").getFile();
+    TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
+    // For the sake of convenience when testing; id and code are the same
+    Mockito.when(trnService.find(getTestPortfolio()))
+        .thenReturn(trnResponse);
+
+  }
+
+  @Before
   public void mockPortfolios() throws Exception {
-    File jsonFile = new ClassPathResource("contracts/portfolio/TestResponse.json").getFile();
-    PortfolioRequest portfolioRequest =
-        new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
-    Portfolio portfolio = portfolioRequest.getData().iterator().next();
+    Portfolio portfolio = getTestPortfolio();
     // For the sake of convenience when testing; id and code are the same
     Mockito.when(portfolioService.find("TEST"))
         .thenReturn(portfolio);
@@ -165,6 +182,13 @@ public class ContractVerifierBase {
     Mockito.when(portfolioService.findByCode("TEST"))
         .thenReturn(portfolio);
 
+  }
+
+  private Portfolio getTestPortfolio() throws IOException {
+    File jsonFile = new ClassPathResource("contracts/portfolio/TestResponse.json").getFile();
+    PortfolioRequest portfolioRequest =
+        new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
+    return portfolioRequest.getData().iterator().next();
   }
 
   @Before

@@ -14,6 +14,7 @@ import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.reader.Filter;
 import com.beancounter.shell.reader.RowProcessor;
 import com.beancounter.shell.reader.Transformer;
+import com.beancounter.shell.service.BcService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
 import java.math.BigDecimal;
@@ -46,7 +47,35 @@ class ShareSightTradeTest {
   private RowProcessor rowProcessor;
 
   @Autowired
+  private BcService bcService;
+
+  @Autowired
   private ShareSightTransformers shareSightTransformers;
+
+  static List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
+    return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
+  }
+
+  static List<Object> getRow(String code, String market,
+                             String tranType,
+                             String fxRate,
+                             String tradeAmount) {
+    List<Object> row = new ArrayList<>();
+
+    row.add(ShareSightTrades.market, market);
+    row.add(ShareSightTrades.code, code);
+    row.add(ShareSightTrades.name, "Test Asset");
+    row.add(ShareSightTrades.type, tranType);
+    row.add(ShareSightTrades.date, "21/01/2019");
+    row.add(ShareSightTrades.quantity, "10");
+    row.add(ShareSightTrades.price, "12.23");
+    row.add(ShareSightTrades.brokerage, "12.99");
+    row.add(ShareSightTrades.currency, "AUD");
+    row.add(ShareSightTrades.fxRate, fxRate);
+    row.add(ShareSightTrades.value, tradeAmount);
+    row.add(ShareSightTrades.comments, "Test Comment");
+    return row;
+  }
 
   @Test
   void is_SplitTransformerFoundForRow() {
@@ -73,7 +102,7 @@ class ShareSightTradeTest {
     values.add(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
+    Portfolio portfolio = bcService.getPortfolioByCode("TEST");
 
     Trn trn = rowProcessor.transform(portfolio, values, "Blah")
         .iterator().next();
@@ -191,31 +220,6 @@ class ShareSightTradeTest {
             values, "twee"));
 
 
-  }
-
-  static List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
-    return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
-  }
-
-  static List<Object> getRow(String code, String market,
-                              String tranType,
-                              String fxRate,
-                              String tradeAmount) {
-    List<Object> row = new ArrayList<>();
-
-    row.add(ShareSightTrades.market, market);
-    row.add(ShareSightTrades.code, code);
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, tranType);
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, fxRate);
-    row.add(ShareSightTrades.value, tradeAmount);
-    row.add(ShareSightTrades.comments, "Test Comment");
-    return row;
   }
 
 }

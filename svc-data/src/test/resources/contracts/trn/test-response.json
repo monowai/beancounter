@@ -1,0 +1,111 @@
+{
+  "trns": [
+    {
+      "id": {
+        "provider": "SHEETS",
+        "batch": 0,
+        "id": 25
+      },
+      "trnType": "BUY",
+      "portfolioId": "FT-vUCChRwOXDP7itcp5Kw",
+      "asset": {
+        "id": "6VjYIJFKSCu7BtphC2GVSw",
+        "code": "AAPL",
+        "name": "Apple Inc",
+        "category": "Equity",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "cashAsset": null,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashCurrency": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "tradeDate": "2013-02-12",
+      "settleDate": null,
+      "quantity": 2.00,
+      "price": 475.00,
+      "fees": 3.10,
+      "tax": 0.00,
+      "tradeAmount": 952.50,
+      "cashAmount": null,
+      "tradeCashRate": 1.00,
+      "tradeBaseRate": 1.00,
+      "tradePortfolioRate": 0.84,
+      "comments": null
+    },
+    {
+      "id": {
+        "provider": "SHEETS",
+        "batch": 0,
+        "id": 470
+      },
+      "trnType": "DIVI",
+      "portfolioId": "FT-vUCChRwOXDP7itcp5Kw",
+      "asset": {
+        "id": "6VjYIJFKSCu7BtphC2GVSw",
+        "code": "AAPL",
+        "name": "Apple Inc",
+        "category": "Equity",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "cashAsset": null,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashCurrency": null,
+      "tradeDate": "2019-09-25",
+      "settleDate": null,
+      "quantity": null,
+      "price": null,
+      "fees": 0.00,
+      "tax": 0.00,
+      "tradeAmount": 7.59,
+      "cashAmount": 7.59,
+      "tradeCashRate": 1.00,
+      "tradeBaseRate": 1.00,
+      "tradePortfolioRate": 0.63,
+      "comments": "Dividend of 37.95 cents per share"
+    }
+  ],
+  "portfolios": [
+    {
+      "id": "FT-vUCChRwOXDP7itcp5Kw",
+      "code": "TEST",
+      "name": "NZD Portfolio",
+      "currency": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "base": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      }
+    }
+  ]
+}

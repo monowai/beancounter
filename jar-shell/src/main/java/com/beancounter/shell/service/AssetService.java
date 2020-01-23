@@ -63,6 +63,9 @@ public class AssetService {
   }
 
   public Market resolveMarket(String marketCode) {
+    if (marketCode == null) {
+      throw new BusinessException("Null Market Code");
+    }
     Market market = marketMap.get(exchangeConfig.resolveAlias(marketCode.toUpperCase()));
     if (market == null) {
       throw new BusinessException(String.format("Unable to resolve market code %s", marketCode));

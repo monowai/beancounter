@@ -67,12 +67,30 @@ class TestAsset {
 
   }
 
+  @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
   @Test
   void is_AssetKeyExceptionsBeingThrown() {
-    assertThrows(NullPointerException.class, () -> AssetUtils.toKey(null));
-    assertThrows(NullPointerException.class, () -> AssetUtils.getAsset("CodeWithNoMarket",
-        (Market) null));
-    assertThrows(BusinessException.class, () -> AssetUtils.fromKey("CodeWithNoMarket"));
+
+    assertThrows(BusinessException.class,
+        () -> AssetUtils.fromKey("CodeWithNoMarket"));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.fromKey(null));
+
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.getAsset(null, (Market) null));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.getAsset("Twee", (Market) null));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.getAsset("Twee", (String) null));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.getAsset(null, (String) null));
+
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.toKey(null));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.toKey("Twee", null));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.toKey(null, null));
   }
 
   @Test
@@ -90,4 +108,5 @@ class TestAsset {
     assertThat(results.get("CCC")).hasSize(1);
 
   }
+
 }

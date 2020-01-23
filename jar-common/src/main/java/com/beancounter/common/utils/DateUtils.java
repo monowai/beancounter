@@ -68,13 +68,6 @@ public class DateUtils {
     // ToDo: market holidays...
   }
 
-  public String getDate(Date date) {
-    if (date == null) {
-      return null;
-    }
-    return simpleDateFormat.format(date);
-  }
-
   public LocalDate getDate(String inDate) {
     return getDate(inDate, "yyyy-MM-dd");
   }

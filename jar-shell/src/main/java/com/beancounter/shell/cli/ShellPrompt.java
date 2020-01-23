@@ -15,7 +15,7 @@ public class ShellPrompt implements PromptProvider {
   public AttributedString getPrompt() {
     AttributedStringBuilder builder = new AttributedStringBuilder();
 
-    builder.append("bc-shell$ ", AttributedStyle.BOLD);
+    builder.append("bc-shell$ ", AttributedStyle.DEFAULT);
     return builder.toAttributedString();
   }
 }

@@ -1,13 +1,13 @@
 package com.beancounter.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
@@ -18,8 +18,15 @@ import lombok.NonNull;
  */
 @Data
 @Builder
-@JsonDeserialize(builder = Position.PositionBuilder.class)
+@AllArgsConstructor
+@NoArgsConstructor
 public class Position {
+
+  public enum In {
+    TRADE,
+    PORTFOLIO,
+    BASE
+  }
 
   @NonNull
   private Asset asset;
@@ -57,19 +64,6 @@ public class Position {
       moneyValues.put(reportCurrency, result);
     }
     return result;
-  }
-
-  public enum In {
-    TRADE,
-    PORTFOLIO,
-    BASE
-
-  }
-
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class PositionBuilder {
-
   }
 
 }

@@ -1,19 +1,16 @@
 package com.beancounter.common.contracts;
 
 import com.beancounter.common.model.Positions;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@JsonDeserialize(builder = PositionResponse.PositionResponseBuilder.class)
+@AllArgsConstructor
+@NoArgsConstructor
 public class PositionResponse {
   private Positions data;
-
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class PositionResponseBuilder {
-  }
 
 }

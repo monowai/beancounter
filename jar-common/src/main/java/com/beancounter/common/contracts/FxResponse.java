@@ -1,19 +1,16 @@
 package com.beancounter.common.contracts;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@JsonDeserialize(builder = FxResponse.FxResponseBuilder.class)
+@NoArgsConstructor
+@AllArgsConstructor
 public class FxResponse {
 
   private FxPairResults data;
-
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class FxResponseBuilder {
-  }
 
 }

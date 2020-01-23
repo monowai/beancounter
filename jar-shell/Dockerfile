@@ -2,7 +2,7 @@ FROM openjdk:11-slim
 #docker build . --build-arg JAR_FILE=build/libs/jar-shell-0.1.1.jar  -t bc/shell
 #docker build . -t bc/shell
 
-ARG JAR_FILE=build/libs/svc-shell-0.1.1.jar
+ARG JAR_FILE=build/libs/jar-shell-0.1.1.jar
 ARG GIT_COMMIT
 ARG VERSION
 

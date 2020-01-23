@@ -13,6 +13,6 @@ EXPOSE 9510 9511
 RUN mkdir /app
 
 WORKDIR /app
-COPY wait-for-it.sh .
+
 COPY ${JAR_FILE} app.jar
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

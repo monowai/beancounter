@@ -1,11 +1,16 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven { url "http://repo.spring.io/libs-milestone" }
-    }
+// Common config for a Java build
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal()
+    maven { url "http://repo.spring.io/libs-milestone" }
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs.addAll('-Xlint:unchecked','-parameters')
+    options.deprecation = true
+}
 
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -16,9 +21,8 @@ sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
 checkstyle {
-    toolVersion = '8.23'
+    toolVersion = '8.29'
     configFile = project.file('../checkstyle.xml')
-//    configFile = file("$rootProject.projectDir/buildtools/checkstyle.xml")
     configDirectory = file("$rootProject.projectDir/buildtools")
 
     configProperties = [
@@ -26,11 +30,6 @@ checkstyle {
     ]
     ignoreFailures = true
     showViolations = true
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
 }
 
 test {

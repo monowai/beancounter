@@ -16,12 +16,6 @@ plugins {
 }
 apply plugin: 'spring-cloud-contract'
 apply from: "../buildtools/javaCommon.gradle"
-repositories {
-    mavenLocal()
-    maven { url "https://repo.spring.io/milestone" }
-    mavenCentral()
-    gradlePluginPortal()
-}
 
 version = "0.1.1"
 

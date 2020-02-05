@@ -1,0 +1,21 @@
+{
+  "data": {
+    "portfolio": {
+      "id": "ZERO",
+      "code": "ZERO",
+      "name": "NZD Portfolio",
+      "currency": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "base": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      }
+    },
+    "asAt": null,
+    "positions": {}
+  }
+}

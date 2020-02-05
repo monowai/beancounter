@@ -11,7 +11,7 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
     <tbody className={"totals-row"} key={holdings.portfolio.code + "totals"}>
       <tr key={valueIn}>
         <td colSpan={4} align={"right"}>
-          Totals {valueIn}
+          Totals in {valueIn} currency
         </td>
         <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
         <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />

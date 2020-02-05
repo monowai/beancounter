@@ -59,6 +59,11 @@ public class ValuationService implements Valuation {
 
   @Override
   public PositionResponse value(Positions positions) {
+    if (positions == null) {
+      return PositionResponse.builder()
+          .data(positions)
+          .build();
+    }
     if (positions.getAsAt() != null) {
       DateUtils.isValid(positions.getAsAt());
     }

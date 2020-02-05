@@ -1,5 +1,5 @@
 import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../App.css";
 import { calculate } from "./calculate";
 import { GroupBy, groupOptions } from "../types/groupBy";
@@ -10,9 +10,21 @@ import StatsHeader, { StatsRow } from "../portfolio/Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
+import { getApiUrl } from "../common/api";
 
-const ViewHoldings = (): JSX.Element => {
-  const [axiosResponse] = useAxios("http://localhost:9500/api/" + "test");
+export default function ViewHoldings(portfolioId: string | undefined): JSX.Element {
+  const [getPortfolio] = useState(portfolioId);
+  const [{ data: getData, loading: getLoading, error: getError }, getHoldings] = useAxios(
+    {
+      url: getApiUrl() + "/" + portfolioId + "/today",
+      method: "GET"
+    },
+    { manual: true }
+  );
+
+  useEffect(() => {
+    getHoldings();
+  }, [getPortfolio]);
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio"
@@ -23,19 +35,14 @@ const ViewHoldings = (): JSX.Element => {
     label: "Currency"
   });
 
-  if (axiosResponse.loading) {
+  if (getLoading) {
     return <div id="root">Loading...</div>;
   }
-  if (axiosResponse.error) {
-    return <div id="root">${axiosResponse.error.message}</div>;
+  if (getError) {
+    return <div id="root">${getError.message}</div>;
   }
-  if (axiosResponse.data) {
-    const holdings = calculate(
-      axiosResponse.data.data,
-      hideEmpty,
-      valueIn.value,
-      groupBy.value
-    ) as Holdings;
+  if (getData) {
+    const holdings = calculate(getData.data, hideEmpty, valueIn.value, groupBy.value) as Holdings;
 
     return (
       <div className="page-box">
@@ -77,9 +84,9 @@ const ViewHoldings = (): JSX.Element => {
         </div>
         <div className={"stats-container"}>
           <table>
-            <StatsHeader portfolio={axiosResponse.data.data.portfolio} />
+            <StatsHeader portfolio={getData.data.portfolio} />
             <StatsRow
-              portfolio={axiosResponse.data.data.portfolio}
+              portfolio={getData.data.portfolio}
               moneyValues={holdings.totals}
               valueIn={valueIn.value}
             />
@@ -111,6 +118,4 @@ const ViewHoldings = (): JSX.Element => {
     );
   }
   return <div id="root">No Holdings to display</div>;
-};
-
-export default ViewHoldings;
+}

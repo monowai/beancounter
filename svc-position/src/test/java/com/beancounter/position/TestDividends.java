@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 
-class TestPositions {
+class TestDividends {
 
   @Test
   void is_CashDividendAccumulated() {

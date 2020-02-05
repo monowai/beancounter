@@ -90,32 +90,65 @@ request:
   url: /trns/TEST
 response:
   status: 200
-  bodyFromFile: "trn/test-response.json"
+  bodyFromFile: "trn/TEST-response.json"
   headers:
     Content-Type: application/json
-
 ---
-name: portfolioById
+name: noTransactionsForPortfolio
+priority: 1
+request:
+  method: GET
+  url: /trns/EMPTY
+response:
+  status: 200
+  bodyFromFile: "trn/EMPTY-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: testPortfolioId
 priority: 1
 request:
   method: GET
   url: /portfolios/TEST
 response:
   status: 200
-  bodyFromFile: "portfolio/TestResponse.json"
+  bodyFromFile: "portfolio/TEST-response.json"
   headers:
     Content-Type: application/json
 ---
-name: portfolioByCode
+name: emptyPortfolioId
+priority: 1
+request:
+  method: GET
+  url: /portfolios/EMPTY
+response:
+  status: 200
+  bodyFromFile: "portfolio/EMPTY-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: testPortfolioCode
 priority: 1
 request:
   method: GET
   url: /portfolios/TEST/code
 response:
   status: 200
-  bodyFromFile: "portfolio/TestResponse.json"
+  bodyFromFile: "portfolio/TEST-response.json"
   headers:
     Content-Type: application/json
+---
+name: emptyPortfolioCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/EMPTY/code
+response:
+  status: 200
+  bodyFromFile: "portfolio/EMPTY-response.json"
+  headers:
+    Content-Type: application/json
+
 ---
 name: currencies
 priority: 1

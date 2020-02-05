@@ -14,7 +14,7 @@ if (module.hot) {
       logger.error(error);
     }
   });
-  logger.info("✅  Server-side HMR Enabled!");
+  logger.info("✅  Server-side HMR is Enabled!");
 }
 
 const port = process.env.PORT || 3000;

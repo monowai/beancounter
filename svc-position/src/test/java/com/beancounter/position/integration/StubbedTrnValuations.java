@@ -104,5 +104,31 @@ class StubbedTrnValuations {
 
   }
 
+  @Test
+  void is_EmptyPortfolioPositionsReturned() throws Exception {
+
+    String json = mockMvc.perform(get("/{portfolioCode}/today", "EMPTY")
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+    ).andExpect(
+        status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andReturn().getResponse().getContentAsString();
+
+    PositionResponse positionResponse = mapper.readValue(json, PositionResponse.class);
+
+    assertThat(positionResponse).isNotNull();
+
+    assertThat(positionResponse.getData().getPortfolio())
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("code", "EMPTY");
+
+    assertThat(positionResponse.getData())
+        .isNotNull();
+
+    assertThat(positionResponse.getData().getPositions())
+        .isNotNull()
+        .isEmpty();
+  }
+
 
 }

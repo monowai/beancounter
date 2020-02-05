@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -164,32 +165,47 @@ public class ContractVerifierBase {
 
   @Before
   public void mockTrnResponse() throws Exception {
-    File jsonFile = new ClassPathResource("contracts/trn/test-response.json").getFile();
-    TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
-    // For the sake of convenience when testing; id and code are the same
-    Mockito.when(trnService.find(getTestPortfolio()))
-        .thenReturn(trnResponse);
+    mockTrnResponse(getTestPortfolio(), "contracts/trn/TEST-response.json");
+    mockTrnResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
+  }
 
+  @SneakyThrows
+  void mockTrnResponse(Portfolio portfolio, String trnFile) {
+    File jsonFile = new ClassPathResource(trnFile).getFile();
+    TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
+    Mockito.when(trnService.find(portfolio))
+        .thenReturn(trnResponse);
   }
 
   @Before
   public void mockPortfolios() throws Exception {
-    Portfolio portfolio = getTestPortfolio();
-    // For the sake of convenience when testing; id and code are the same
-    Mockito.when(portfolioService.find("TEST"))
-        .thenReturn(portfolio);
-
-    Mockito.when(portfolioService.findByCode("TEST"))
-        .thenReturn(portfolio);
-
+    mockPortfolio(getEmptyPortfolio());
+    mockPortfolio(getTestPortfolio());
   }
 
   private Portfolio getTestPortfolio() throws IOException {
-    File jsonFile = new ClassPathResource("contracts/portfolio/TestResponse.json").getFile();
+    File jsonFile = new ClassPathResource("contracts/portfolio/TEST-response.json").getFile();
     PortfolioRequest portfolioRequest =
         new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
     return portfolioRequest.getData().iterator().next();
   }
+
+  private Portfolio getEmptyPortfolio() throws IOException {
+    File jsonFile = new ClassPathResource("contracts/portfolio/EMPTY-response.json").getFile();
+    PortfolioRequest portfolioRequest =
+        new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
+    return portfolioRequest.getData().iterator().next();
+  }
+
+  private void mockPortfolio(Portfolio portfolio) {
+    // For the sake of convenience when testing; id and code are the same
+    Mockito.when(portfolioService.find(portfolio.getId()))
+        .thenReturn(portfolio);
+
+    Mockito.when(portfolioService.findByCode(portfolio.getCode()))
+        .thenReturn(portfolio);
+  }
+
 
   @Before
   public void mockAssets() throws Exception {

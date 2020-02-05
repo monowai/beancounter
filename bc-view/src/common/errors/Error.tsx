@@ -1,9 +1,7 @@
 import React from "react";
 import "./Error.scss";
 import { RouteComponentProps } from "react-router-dom";
-import { getEnv } from "../Utils";
-// import { getEnv } from "../../components/utils/utils";
-// import { useTranslation } from "react-i18next";
+import { getEnv } from "../api";
 
 const DevMessage = ({
   debug,

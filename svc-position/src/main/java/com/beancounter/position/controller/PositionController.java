@@ -51,19 +51,21 @@ public class PositionController {
   }
 
 
-  @GetMapping(value = "/{portfolioCode}/{valuationDate}", produces = "application/json")
+  @GetMapping(value = "/{portfolioId}/{valuationDate}", produces = "application/json")
   PositionResponse get(
-      @PathVariable String portfolioCode,
+      @PathVariable String portfolioId,
       @PathVariable(required = false) String valuationDate) {
 
-    Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
+    Portfolio portfolio = bcService.getPortfolioById(portfolioId);
     TrnResponse trnResponse = bcService.getTrn(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
         .trns(trnResponse.getTrns())
         .build();
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
-    positionResponse.getData().setAsAt(valuationDate);
+    if (valuationDate != null && !valuationDate.equalsIgnoreCase("today")) {
+      positionResponse.getData().setAsAt(valuationDate);
+    }
     return valuationService.value(positionResponse.getData());
   }
 }

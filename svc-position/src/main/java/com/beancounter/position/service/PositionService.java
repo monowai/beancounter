@@ -42,11 +42,8 @@ public class PositionService implements Position {
    */
   public PositionResponse build(Portfolio portfolio, PositionRequest positionRequest) {
 
-    Positions positions = null;
+    Positions positions = new Positions(portfolio);
     for (Trn trn : positionRequest.getTrns()) {
-      if (positions == null) {
-        positions = new Positions(portfolio);
-      }
       positions.add(accumulator.accumulate(trn, positions));
     }
     return PositionResponse.builder().data(positions).build();

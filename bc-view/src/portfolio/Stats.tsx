@@ -34,7 +34,7 @@ export function StatsRow(props: {
         <td>
           <div className="left-cell">
             {portfolio.code.toUpperCase()}:{" "}
-            {valueIn === ValueIn.TRADE ? "N/A" : moneyValues.currency.code}
+            {!moneyValues || valueIn === ValueIn.TRADE ? "N/A" : moneyValues.currency.code}
           </div>
         </td>
         <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />

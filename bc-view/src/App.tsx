@@ -1,8 +1,13 @@
 import Home from "./Home";
 import React from "react";
 import "./i18nConfig";
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, useParams } from "react-router-dom";
 import ViewHoldings from "./holdings";
+
+const Holdings = (): JSX.Element => {
+  const { portfolioId } = useParams();
+  return ViewHoldings(portfolioId);
+};
 
 const App = (): JSX.Element => (
   <div>
@@ -11,7 +16,7 @@ const App = (): JSX.Element => (
     </div>
     <Switch>
       <Route exact={true} path="/" component={Home} />
-      <Route exact={true} path="/holdings" component={ViewHoldings} />
+      <Route path="/holdings/:portfolioId" component={Holdings} />
     </Switch>
   </div>
 );

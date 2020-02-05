@@ -25,6 +25,7 @@ Default is to look for google credentials `../secrets/credentials.json`
 passing `ratesIgnored`, the transformer will normalise the fees into trade currency terms using the input rate, but will re-retrieve the trade rate from the market data service.  Default is false, use the rate supplied by SS
 ```bash
  java -jar jar-shell/build/lib/jar-shell-0.1.1.jar
+ ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio TEST
 ```
 
 You can pass an optional case sensitive filter property `"filter": "MSFT,"APPL"` which will only include the transactions where the Asset codes match those in the filter

@@ -10,7 +10,9 @@ const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
       BeanCounter Functions.
       <ul className="Home-resources">
         <li>
-          <Link to={"/holdings/FT-vUCChRwOXDP7itcp5Kw"}>MKH</Link>
+          <Link onClick={() => history.push("/")} to={"/view/holdings/FT-vUCChRwOXDP7itcp5Kw"}>
+            MKH
+          </Link>
         </li>
       </ul>
     </div>

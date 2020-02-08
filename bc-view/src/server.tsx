@@ -1,5 +1,4 @@
 //import App from "./App";
-import ClientSSR from "./clientSSR";
 import React from "react";
 import { StaticRouter } from "react-router-dom";
 import express from "express";
@@ -12,6 +11,7 @@ import * as path from "path";
 import fs from "fs";
 import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./ConfigLogging";
+import App from "./App";
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
@@ -51,7 +51,7 @@ i18n
       defaultNS: "translations",
       nonExplicitWhitelist: true,
       ns: ["translations"],
-      preload: ["en", "th"]
+      preload: ["en"]
     },
     () => {
       server
@@ -67,7 +67,7 @@ i18n
           const markup = renderToString(
             <I18nextProvider i18n={req.i18n}>
               <StaticRouter context={context} location={req.url}>
-                <ClientSSR />
+                <App />
               </StaticRouter>
             </I18nextProvider>
           );
@@ -77,7 +77,7 @@ i18n
           // otherwise context won't be populated by App
           const { url } = context;
 
-          if (url && req.url !== "/prumum/step-8") {
+          if (url && req.url !== "/") {
             res.redirect(url);
           } else {
             const initialI18nStore = {};
@@ -87,8 +87,9 @@ i18n
             const initialLanguage = req.i18n.language;
             res.status(200).send(
               `<!doctype html>
-    <html lang="th">
+    <html lang="en">
     <head>
+        <title/>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta charSet="utf-8" />
         ${helmet.title.toString()}
@@ -103,13 +104,13 @@ i18n
         }
           ${
             process.env.NODE_ENV === "production"
-              ? `<link rel="preload" as="script" href="${assets.client.js}" defer>
+              ? `<link rel="preload" as="script" href="${assets.client.js}">
                 <script src="${assets.client.js}" defer></script>`
               : `<script src="${assets.client.js}" defer crossorigin></script>`
           }
           <script>
           window.initialLanguage = '${initialLanguage}';
-          window.initialI18nStore = ${JSON.stringify(initialI18nStore)}          
+          window.initialI18nStore = ${JSON.stringify(initialI18nStore)}
         </script>          
     </head>
     <style>

@@ -94,7 +94,7 @@
     "remark-preset-lint-recommended": "^3.0.3",
     "ts-jest": "^24.1.0",
     "typescript": "^3.4.5",
-    "webpack": "^4.41.3"
+    "webpack": "^4.41.5"
   },
   "pkg": {
     "scripts": "build/public/static2/**/*.js",

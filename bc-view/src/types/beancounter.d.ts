@@ -5,6 +5,7 @@ declare global {
   interface Window {
     initialI18nStore: any;
     initialLanguage: any;
+    env: any;
   }
 }
 
@@ -104,4 +105,8 @@ interface GroupOption {
 interface ValuationOption {
   label: string;
   value: ValuationCcy;
+}
+
+interface BcOptions {
+  bcService: string;
 }

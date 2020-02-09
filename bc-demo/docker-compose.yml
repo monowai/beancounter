@@ -18,33 +18,41 @@ services:
   data:
     image: bc/svc-data
     container_name: data
+    expose:
+      - 9610
     ports:
       - 9610:9510
     environment:
-      #SERVER_PORT: 9610
-      #MANAGEMENT_SERVER_PORT: 9611
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bc
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
-      BEANCOUNTER_MARKETDATA_PROVIDER_WTD_KEY: Set-your-key-here
-
-
+      BEANCOUNTER_MARKETDATA_PROVIDER_WTD_KEY: Set-Key-Here
     links:
       - postgres
 
   position:
     image: bc/svc-position
     container_name: position
-
     ports:
       - 9600:9500
 
     environment:
       MARKETDATA_URL: "http://data:9510/api"
-      # SERVER_PORT: 9600
       MANAGEMENT_SERVER_PORT: 9621
     depends_on:
       - data
+
+  app:
+    image: bc/app
+    ports:
+      - 4000:3000
+
+    container_name: app
+    environment:
+      BC_SERVICE: "http://localhost:9600/api"
+      RAZZLE_PUBLIC_DIR: "http://localhost:4000"
+    depends_on:
+      - position
 
   shell:
     # Create a symbolic link to where your secrets are stored

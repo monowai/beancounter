@@ -10,13 +10,14 @@ import StatsHeader, { StatsRow } from "../portfolio/Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
-import { getApiUrl } from "../common/api";
+import { runtimeConfig } from "../config";
 
 export default function ViewHoldings(portfolioId: string | undefined): JSX.Element {
   const [getPortfolio] = useState(portfolioId);
+
   const [{ data: getData, loading: getLoading, error: getError }, getHoldings] = useAxios(
     {
-      url: getApiUrl() + "/" + portfolioId + "/today",
+      url: runtimeConfig().bcService + "/" + portfolioId + "/today",
       method: "GET"
     },
     { manual: true }

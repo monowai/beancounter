@@ -12,6 +12,7 @@ import fs from "fs";
 import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./ConfigLogging";
 import App from "./App";
+import { runtimeConfig } from "./config";
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
@@ -37,7 +38,7 @@ let staticDir = "./";
 if (process.env.RAZZLE_PUBLIC_DIR) {
   staticDir = process.env.RAZZLE_PUBLIC_DIR;
 }
-
+logger.info("bcConfig @ %s", JSON.stringify(runtimeConfig()));
 i18n
   .use(Backend)
   .use(i18nextMiddleware.LanguageDetector)
@@ -109,8 +110,9 @@ i18n
               : `<script src="${assets.client.js}" defer crossorigin></script>`
           }
           <script>
-          window.initialLanguage = '${initialLanguage}';
-          window.initialI18nStore = ${JSON.stringify(initialI18nStore)}
+            window.initialLanguage = '${initialLanguage}';
+            window.initialI18nStore = ${JSON.stringify(initialI18nStore)};
+            window.env = ${JSON.stringify(runtimeConfig())};  
         </script>          
     </head>
     <style>

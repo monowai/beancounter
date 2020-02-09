@@ -21,13 +21,14 @@ RUN yarn build --frozen-lockfile --force
 # Runtime version of Node
 FROM node:12-slim
 RUN echo "Building Runtime Container"
-USER node
 
 ENV NODE_ENV production
 ENV HOST 0.0.0.0
 ENV PORT 3000
-ENV RAZZLE_PUBLIC_DIR build/public
+ENV RAZZLE_PUBLIC_DIR /app/build/public
+ENV RAZZLE_SERVICE http://localhost:9600/api
 
+RUN mkdir /app
 WORKDIR /app
 RUN chown node:node /app
 COPY --chown=node:node --from=builder /app/build /app/build
@@ -40,4 +41,6 @@ RUN yarn install --frozen-lockfile && \
     yarn cache clean --force && \
     rm yarn.lock
 
-CMD ["node", "build/server.js"]
+USER node
+
+CMD ["yarn", "start:prod"]

@@ -1,0 +1,3 @@
+interface BcOptions {
+  bcService: string;
+}

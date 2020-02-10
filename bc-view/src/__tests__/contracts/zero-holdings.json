@@ -1,8 +1,8 @@
 {
   "data": {
     "portfolio": {
-      "id": "ZERO",
-      "code": "ZERO",
+      "id": "zero",
+      "code": "zero",
       "name": "NZD Portfolio",
       "currency": {
         "code": "NZD",

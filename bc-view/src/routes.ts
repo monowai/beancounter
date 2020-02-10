@@ -4,17 +4,18 @@ import { useParams } from "react-router-dom";
 
 const RouteHoldings = (): JSX.Element => {
   const { portfolioId } = useParams();
-  return ViewHoldings(portfolioId);
+  if (portfolioId) return ViewHoldings(portfolioId);
+  return ViewHoldings('portfolioId');
 };
 
 const Routes = [
   {
-    path: "/",
+    path: '/',
     exact: true,
     component: Home
   },
   {
-    path: "/view/holdings/:portfolioId",
+    path: '/holdings/:portfolioId',
     component: RouteHoldings
   }
 ];

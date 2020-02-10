@@ -10,17 +10,17 @@ declare global {
 }
 
 export type MoneyFields =
-  | "dividends"
-  | "price"
-  | "costValue"
-  | "averageCost"
-  | "realisedGain"
-  | "unrealisedGain"
-  | "totalGain"
-  | "sales"
-  | "purchases"
-  | "marketValue"
-  | "investmentGain";
+  | 'dividends'
+  | 'price'
+  | 'costValue'
+  | 'averageCost'
+  | 'realisedGain'
+  | 'unrealisedGain'
+  | 'totalGain'
+  | 'sales'
+  | 'purchases'
+  | 'marketValue'
+  | 'investmentGain';
 
 export interface Market {
   code: string;
@@ -105,8 +105,4 @@ interface GroupOption {
 interface ValuationOption {
   label: string;
   value: ValuationCcy;
-}
-
-interface BcOptions {
-  bcService: string;
 }

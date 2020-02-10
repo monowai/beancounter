@@ -22,16 +22,16 @@ const DevMessage = ({
   ) : null;
 
 export default function Error(props: RouteComponentProps): JSX.Element | null {
-  const debug = serverEnv("NODE_ENV", "development") !== "production";
+  const debug = serverEnv('NODE_ENV', 'development') !== 'production';
   // const { t } = useTranslation();
   const { location = { state: props } } = props;
-  const errorMessage = debug ? JSON.stringify(location, null, 2) : "";
+  const errorMessage = debug ? JSON.stringify(location, null, 2) : '';
 
   return (
     <div className="centered">
       <img src="/assets/error-global-icon.svg" />
-      <h1>{"error-global-oops"}</h1>
-      <p>{"error-global"}</p>
+      <h1>{'error-global-oops'}</h1>
+      <p>{'error-global'}</p>
       <button
         className="bc-button active rounded"
         onClick={(e: React.MouseEvent) => {
@@ -39,7 +39,7 @@ export default function Error(props: RouteComponentProps): JSX.Element | null {
           props.history.goBack();
         }}
       >
-        {"error-tryagain"}
+        {'error-tryagain'}
       </button>
       <DevMessage debug={debug} errorMessage={errorMessage} />
     </div>

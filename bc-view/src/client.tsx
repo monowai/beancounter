@@ -26,7 +26,7 @@ const BaseApp = (): JSX.Element => {
   );
 };
 
-hydrate(<BaseApp />, document.getElementById("root"));
+hydrate(<BaseApp />, document.getElementById('root'));
 
 if (module.hot) {
   module.hot.accept();

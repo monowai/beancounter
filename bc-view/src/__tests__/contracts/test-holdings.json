@@ -1,9 +1,9 @@
 {
   "data": {
     "portfolio": {
-      "id": "FT-vUCChRwOXDP7itcp5Kw",
-      "code": "TEST",
-      "name": "NZD Portfolio",
+      "id": "test",
+      "code": "test",
+      "name": "Test Portfolio",
       "currency": {
         "code": "NZD",
         "name": "Dollar",
@@ -15,13 +15,14 @@
         "symbol": "$"
       }
     },
-    "asAt": "2020-01-07",
+    "asAt": "2020-02-10",
     "positions": {
       "AAPL:NASDAQ": {
         "asset": {
-          "id": null,
+          "id": "pw1dIdlhSx2x8tnlA2qNhw",
           "code": "AAPL",
           "name": "Apple Inc",
+          "category": "Equity",
           "market": {
             "code": "NASDAQ",
             "currency": {
@@ -29,60 +30,21 @@
               "name": "Dollar",
               "symbol": "$"
             },
-            "timezone": "US/Eastern",
-            "timezoneId": "US/Eastern"
+            "timezone": "US/Eastern"
           }
         },
         "quantityValues": {
-          "sold": -21,
-          "purchased": 15,
-          "adjustment": 18,
-          "total": 12
+          "sold": -21.0,
+          "purchased": 15.0,
+          "adjustment": 18.0,
+          "total": 12.0
         },
         "dateValues": {
-          "opened": "2013-02-11",
-          "last": "2018-04-22",
+          "opened": "2013-02-12",
+          "last": "2018-04-23",
           "closed": null
         },
         "moneyValues": {
-          "BASE": {
-            "dividends": 171.6,
-            "costValue": 1995.06,
-            "costBasis": 1995.06,
-            "fees": 0,
-            "purchases": 3408.75,
-            "sales": 2020.87,
-            "price": 299.8,
-            "marketValue": 3597.6,
-            "averageCost": 166.255,
-            "realisedGain": 607.18,
-            "unrealisedGain": 1602.54,
-            "totalGain": 2381.32,
-            "currency": {
-              "code": "USD",
-              "name": "Dollar",
-              "symbol": "$"
-            }
-          },
-          "PORTFOLIO": {
-            "dividends": 126.22,
-            "costValue": 1431.83,
-            "costBasis": 1431.83,
-            "fees": 0,
-            "purchases": 2619.13,
-            "sales": 1322.75,
-            "price": 449.62,
-            "marketValue": 5395.44,
-            "averageCost": 119.3191667,
-            "realisedGain": 135.45,
-            "unrealisedGain": 3963.61,
-            "totalGain": 4225.28,
-            "currency": {
-              "code": "NZD",
-              "name": "Dollar",
-              "symbol": "$"
-            }
-          },
           "TRADE": {
             "dividends": 171.6,
             "costValue": 1995.06,
@@ -90,53 +52,97 @@
             "fees": 0,
             "purchases": 3408.75,
             "sales": 2020.87,
-            "price": 299.8,
-            "marketValue": 3597.6,
+            "price": 0,
+            "marketValue": 0,
             "averageCost": 166.255,
             "realisedGain": 607.18,
-            "unrealisedGain": 1602.54,
-            "totalGain": 2381.32,
+            "unrealisedGain": 0,
+            "totalGain": 0,
             "currency": {
-              "code": "USD"
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "PORTFOLIO": {
+            "dividends": 126.33,
+            "costValue": 1436.44,
+            "costBasis": 1436.44,
+            "fees": 0,
+            "purchases": 2628.55,
+            "sales": 1324.22,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 119.7033333,
+            "realisedGain": 132.11,
+            "unrealisedGain": -1436.44,
+            "totalGain": -1178.0,
+            "currency": {
+              "code": "NZD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "BASE": {
+            "dividends": 171.6,
+            "costValue": 1995.06,
+            "costBasis": 1995.06,
+            "fees": 0,
+            "purchases": 3408.75,
+            "sales": 2020.87,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 166.255,
+            "realisedGain": 607.18,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
             }
           }
         }
       },
-      "ABBV:NYSE": {
+      "ABC:NYSE": {
         "asset": {
-          "id": null,
-          "code": "ABBV",
-          "name": "Abbvie Inc",
+          "id": "QyZk-QioSRqyq1alwSf5Tw",
+          "code": "ABC",
+          "name": "Amerisource Bergen Corp.",
+          "category": "Equity",
           "market": {
             "code": "NYSE",
             "currency": {
-              "code": "USD"
-            }
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "timezone": "US/Eastern"
           }
         },
         "quantityValues": {
-          "sold": -32,
-          "purchased": 32,
+          "sold": 0,
+          "purchased": 25.0,
           "adjustment": 0,
-          "total": 0
+          "total": 25.0
         },
         "dateValues": {
-          "opened": "2013-01-08",
-          "last": "2016-01-18",
+          "opened": "2019-10-02",
+          "last": "2019-10-02",
           "closed": null
         },
         "moneyValues": {
-          "BASE": {
-            "dividends": 187.2,
-            "costValue": 0,
-            "costBasis": 0,
+          "TRADE": {
+            "dividends": 10.0,
+            "costValue": 2037.1,
+            "costBasis": 2037.1,
             "fees": 0,
-            "purchases": 1085.91,
-            "sales": 1742.28,
+            "purchases": 2037.1,
+            "sales": 0,
             "price": 0,
             "marketValue": 0,
-            "averageCost": 0,
-            "realisedGain": 656.37,
+            "averageCost": 81.484,
+            "realisedGain": 0,
             "unrealisedGain": 0,
             "totalGain": 0,
             "currency": {
@@ -146,48 +152,51 @@
             }
           },
           "PORTFOLIO": {
-            "dividends": 143.9,
-            "costValue": 0,
-            "costBasis": 0,
+            "dividends": 6.5,
+            "costValue": 1263.0,
+            "costBasis": 1263.0,
             "fees": 0,
-            "purchases": 910.05,
-            "sales": 1129.58,
+            "purchases": 1263.0,
+            "sales": 0,
             "price": 0,
             "marketValue": 0,
-            "averageCost": 0,
-            "realisedGain": 219.53,
-            "unrealisedGain": 0,
-            "totalGain": 363.43,
+            "averageCost": 50.52,
+            "realisedGain": 0,
+            "unrealisedGain": -1263.0,
+            "totalGain": -1256.5,
             "currency": {
               "code": "NZD",
               "name": "Dollar",
               "symbol": "$"
             }
           },
-          "TRADE": {
-            "dividends": 187.2,
-            "costValue": 0,
-            "costBasis": 0,
+          "BASE": {
+            "dividends": 10.0,
+            "costValue": 2037.1,
+            "costBasis": 2037.1,
             "fees": 0,
-            "purchases": 1085.91,
-            "sales": 1742.28,
+            "purchases": 2037.1,
+            "sales": 0,
             "price": 0,
             "marketValue": 0,
-            "averageCost": 0,
-            "realisedGain": 656.37,
+            "averageCost": 81.484,
+            "realisedGain": 0,
             "unrealisedGain": 0,
             "totalGain": 0,
             "currency": {
-              "code": "USD"
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
             }
           }
         }
       },
       "AMP:ASX": {
         "asset": {
-          "id": null,
+          "id": "0OKznUxcT9WlNWIAp2dn2Q",
           "code": "AMP",
           "name": "Amp Limited",
+          "category": "Equity",
           "market": {
             "code": "ASX",
             "currency": {
@@ -195,60 +204,21 @@
               "name": "Dollar",
               "symbol": "$"
             },
-            "timezone": "Australia/Sydney",
-            "timezoneId": "Australia/Sydney"
+            "timezone": "Australia/Sydney"
           }
         },
         "quantityValues": {
           "sold": 0,
-          "purchased": 637,
+          "purchased": 637.0,
           "adjustment": 0,
-          "total": 637
+          "total": 637.0
         },
         "dateValues": {
-          "opened": "1997-04-19",
-          "last": "2018-09-27",
+          "opened": "1997-04-20",
+          "last": "2018-09-28",
           "closed": null
         },
         "moneyValues": {
-          "BASE": {
-            "dividends": 4158.17,
-            "costValue": 4115.76,
-            "costBasis": 4115.76,
-            "fees": 0,
-            "purchases": 4115.76,
-            "sales": 0,
-            "price": 1.33,
-            "marketValue": 847.21,
-            "averageCost": 6.461161695,
-            "realisedGain": 0,
-            "unrealisedGain": -3268.55,
-            "totalGain": 889.62,
-            "currency": {
-              "code": "USD",
-              "name": "Dollar",
-              "symbol": "$"
-            }
-          },
-          "PORTFOLIO": {
-            "dividends": 2599.94,
-            "costValue": 2436.5,
-            "costBasis": 2436.5,
-            "fees": 0,
-            "purchases": 2436.5,
-            "sales": 0,
-            "price": 1.99,
-            "marketValue": 1267.63,
-            "averageCost": 3.824960754,
-            "realisedGain": 0,
-            "unrealisedGain": -1168.87,
-            "totalGain": 1431.07,
-            "currency": {
-              "code": "NZD",
-              "name": "Dollar",
-              "symbol": "$"
-            }
-          },
           "TRADE": {
             "dividends": 3024.78,
             "costValue": 2810.19,
@@ -256,53 +226,97 @@
             "fees": 0,
             "purchases": 2810.19,
             "sales": 0,
-            "price": 1.91,
-            "marketValue": 1216.67,
+            "price": 0,
+            "marketValue": 0,
             "averageCost": 4.411601256,
             "realisedGain": 0,
-            "unrealisedGain": -1593.52,
-            "totalGain": 1431.26,
+            "unrealisedGain": 0,
+            "totalGain": 0,
             "currency": {
-              "code": "AUD"
+              "code": "AUD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "PORTFOLIO": {
+            "dividends": 2598.62,
+            "costValue": 2436.73,
+            "costBasis": 2436.73,
+            "fees": 0,
+            "purchases": 2436.73,
+            "sales": 0,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 3.825321821,
+            "realisedGain": 0,
+            "unrealisedGain": -2436.73,
+            "totalGain": 161.89,
+            "currency": {
+              "code": "NZD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "BASE": {
+            "dividends": 4158.67,
+            "costValue": 4116.42,
+            "costBasis": 4116.42,
+            "fees": 0,
+            "purchases": 4116.42,
+            "sales": 0,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 6.462197802,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
             }
           }
         }
       },
-      "BABA:NYSE": {
+      "BA:NYSE": {
         "asset": {
-          "id": null,
-          "code": "BABA",
-          "name": "Alibaba Group Holding Ltd - ADR",
+          "id": "Dg7AMlijQaK9AOVu5Ym1cQ",
+          "code": "BA",
+          "name": "Boeing Co.",
+          "category": "Equity",
           "market": {
             "code": "NYSE",
             "currency": {
-              "code": "USD"
-            }
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "timezone": "US/Eastern"
           }
         },
         "quantityValues": {
-          "sold": -16,
-          "purchased": 16,
+          "sold": -10.0,
+          "purchased": 10.0,
           "adjustment": 0,
-          "total": 0
+          "total": 0.0
         },
         "dateValues": {
-          "opened": "2014-09-21",
-          "last": "2016-01-06",
+          "opened": "2017-01-27",
+          "last": "2018-03-21",
           "closed": null
         },
         "moneyValues": {
-          "BASE": {
-            "dividends": 0,
+          "TRADE": {
+            "dividends": 51.15,
             "costValue": 0,
             "costBasis": 0,
             "fees": 0,
-            "purchases": 1490.2,
-            "sales": 1237,
+            "purchases": 1702.5,
+            "sales": 2879.01,
             "price": 0,
             "marketValue": 0,
             "averageCost": 0,
-            "realisedGain": -253.2,
+            "realisedGain": 1176.51,
             "unrealisedGain": 0,
             "totalGain": 0,
             "currency": {
@@ -312,84 +326,86 @@
             }
           },
           "PORTFOLIO": {
-            "dividends": 0,
+            "dividends": 36.19,
             "costValue": 0,
             "costBasis": 0,
             "fees": 0,
-            "purchases": 1209.5,
-            "sales": 816.55,
+            "purchases": 1242.83,
+            "sales": 2108.97,
             "price": 0,
             "marketValue": 0,
             "averageCost": 0,
-            "realisedGain": -392.95,
+            "realisedGain": 866.15,
             "unrealisedGain": 0,
-            "totalGain": -392.95,
+            "totalGain": 902.34,
             "currency": {
               "code": "NZD",
               "name": "Dollar",
               "symbol": "$"
             }
           },
-          "TRADE": {
-            "dividends": 0,
+          "BASE": {
+            "dividends": 51.15,
             "costValue": 0,
             "costBasis": 0,
             "fees": 0,
-            "purchases": 1490.2,
-            "sales": 1237,
+            "purchases": 1702.5,
+            "sales": 2879.01,
             "price": 0,
             "marketValue": 0,
             "averageCost": 0,
-            "realisedGain": -253.2,
+            "realisedGain": 1176.51,
             "unrealisedGain": 0,
             "totalGain": 0,
             "currency": {
-              "code": "USD"
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
             }
           }
         }
       },
-      "GNE:NZX": {
+      "CSCO:NASDAQ": {
         "asset": {
-          "id": null,
-          "code": "GNE",
-          "name": "Genesis Energy Limited (NS)",
+          "id": "HQuFW0B9RUW9bML5r2x0pA",
+          "code": "CSCO",
+          "name": "Cisco Systems, Inc.",
+          "category": "Equity",
           "market": {
-            "code": "NZX",
+            "code": "NASDAQ",
             "currency": {
-              "code": "NZD",
+              "code": "USD",
               "name": "Dollar",
               "symbol": "$"
             },
-            "timezone": "Pacific/Auckland",
-            "timezoneId": "Pacific/Auckland"
+            "timezone": "US/Eastern"
           }
         },
         "quantityValues": {
-          "sold": 0,
-          "purchased": 2574,
+          "sold": -75.0,
+          "purchased": 130.0,
           "adjustment": 0,
-          "total": 2574
+          "total": 55.0
         },
         "dateValues": {
-          "opened": "2014-04-15",
-          "last": "2015-04-22",
+          "opened": "2012-09-12",
+          "last": "2015-11-24",
           "closed": null
         },
         "moneyValues": {
-          "BASE": {
-            "dividends": 3406.87,
-            "costValue": 4352.16,
-            "costBasis": 4352.16,
+          "TRADE": {
+            "dividends": 322.15,
+            "costValue": 1494.65,
+            "costBasis": 1494.65,
             "fees": 0,
-            "purchases": 4352.16,
-            "sales": 0,
-            "price": 2.01,
-            "marketValue": 5173.74,
-            "averageCost": 1.690815851,
-            "realisedGain": 0,
-            "unrealisedGain": 821.58,
-            "totalGain": 4228.45,
+            "purchases": 2931.48,
+            "sales": 1673.2,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 27.17545455,
+            "realisedGain": 236.37,
+            "unrealisedGain": 0,
+            "totalGain": 0,
             "currency": {
               "code": "USD",
               "name": "Dollar",
@@ -397,39 +413,128 @@
             }
           },
           "PORTFOLIO": {
-            "dividends": 2374.86,
-            "costValue": 3741.7,
-            "costBasis": 3741.7,
+            "dividends": 229.86,
+            "costValue": 971.52,
+            "costBasis": 971.52,
             "fees": 0,
-            "purchases": 3741.7,
-            "sales": 0,
-            "price": 3.02,
-            "marketValue": 7773.48,
-            "averageCost": 1.453651904,
-            "realisedGain": 0,
-            "unrealisedGain": 4031.78,
-            "totalGain": 6406.64,
+            "purchases": 2149.72,
+            "sales": 1405.49,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 17.664,
+            "realisedGain": 227.29,
+            "unrealisedGain": -971.52,
+            "totalGain": -514.37,
             "currency": {
               "code": "NZD",
               "name": "Dollar",
               "symbol": "$"
             }
           },
-          "TRADE": {
-            "dividends": 2374.86,
-            "costValue": 3741.7,
-            "costBasis": 3741.7,
+          "BASE": {
+            "dividends": 322.15,
+            "costValue": 1494.65,
+            "costBasis": 1494.65,
             "fees": 0,
-            "purchases": 3741.7,
-            "sales": 0,
-            "price": 3.02,
-            "marketValue": 7773.48,
-            "averageCost": 1.453651904,
-            "realisedGain": 0,
-            "unrealisedGain": 4031.78,
-            "totalGain": 6406.64,
+            "purchases": 2931.48,
+            "sales": 1673.2,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 27.17545455,
+            "realisedGain": 236.37,
+            "unrealisedGain": 0,
+            "totalGain": 0,
             "currency": {
-              "code": "NZD"
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          }
+        }
+      },
+      "INTC:NASDAQ": {
+        "asset": {
+          "id": "BFopIvYwSIWPwsrWEedYQg",
+          "code": "INTC",
+          "name": "Intel Corp.",
+          "category": "Equity",
+          "market": {
+            "code": "NASDAQ",
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "timezone": "US/Eastern"
+          }
+        },
+        "quantityValues": {
+          "sold": -140.0,
+          "purchased": 140.0,
+          "adjustment": 0,
+          "total": 0.0
+        },
+        "dateValues": {
+          "opened": "2012-05-30",
+          "last": "2013-04-22",
+          "closed": null
+        },
+        "moneyValues": {
+          "TRADE": {
+            "dividends": 45.0,
+            "costValue": 0,
+            "costBasis": 0,
+            "fees": 0,
+            "purchases": 3376.08,
+            "sales": 3201.64,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 0,
+            "realisedGain": -174.44,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "PORTFOLIO": {
+            "dividends": 36.54,
+            "costValue": 0,
+            "costBasis": 0,
+            "fees": 0,
+            "purchases": 2644.13,
+            "sales": 2670.83,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 0,
+            "realisedGain": 26.7,
+            "unrealisedGain": 0,
+            "totalGain": 63.24,
+            "currency": {
+              "code": "NZD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "BASE": {
+            "dividends": 45.0,
+            "costValue": 0,
+            "costBasis": 0,
+            "fees": 0,
+            "purchases": 3376.08,
+            "sales": 3201.64,
+            "price": 0,
+            "marketValue": 0,
+            "averageCost": 0,
+            "realisedGain": -174.44,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
             }
           }
         }

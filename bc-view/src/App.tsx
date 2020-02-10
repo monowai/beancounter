@@ -6,8 +6,8 @@ import Routes from "./routes";
 
 const App = (): JSX.Element => (
   <div>
-    <div className={"columns"}>
-      <div className={"column is-centered"}>Welcome to Bean Counter</div>
+    <div className={'columns'}>
+      <div className={'column is-centered'}>Welcome to Bean Counter</div>
     </div>
     <Switch>{renderRoutes(Routes)}</Switch>
   </div>

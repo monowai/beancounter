@@ -4,8 +4,8 @@ import { ValueIn } from "../types/valueBy";
 
 function getPath(path: string, position: Position): string {
   return (path
-    .split(".")
-    .reduce((p, c) => (p && p[c]) || "undefined", position) as unknown) as string;
+    .split('.')
+    .reduce((p, c) => (p && p[c]) || 'undefined', position) as unknown) as string;
 }
 
 function total(total: MoneyValues, position: Position, valueIn: ValueIn): MoneyValues {
@@ -67,12 +67,12 @@ export function calculate(
           totals: []
         };
         results.holdingGroups[groupKey].positions.push(position);
-        results.totals["PORTFOLIO"] = total(
-          results.totals["PORTFOLIO"],
+        results.totals['PORTFOLIO'] = total(
+          results.totals['PORTFOLIO'],
           position,
           ValueIn.PORTFOLIO
         );
-        results.totals["BASE"] = total(results.totals["BASE"], position, ValueIn.BASE);
+        results.totals['BASE'] = total(results.totals['BASE'], position, ValueIn.BASE);
         results.holdingGroups[groupKey].subTotals = totals(
           results.holdingGroups[groupKey].subTotals,
           position,

@@ -1,474 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`<ViewHoldings /> matches snapshot for zero holdings 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": .emotion-8 {
-  position: relative;
-  box-sizing: border-box;
-}
-
-.emotion-7 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-color: hsl(0,0%,100%);
-  border-color: hsl(0,0%,80%);
-  border-radius: 4px;
-  border-style: solid;
-  border-width: 1px;
-  cursor: default;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  min-height: 38px;
-  outline: 0 !important;
-  position: relative;
-  -webkit-transition: all 100ms;
-  transition: all 100ms;
-  box-sizing: border-box;
-}
-
-.emotion-7:hover {
-  border-color: hsl(0,0%,70%);
-}
-
-.emotion-2 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-  padding: 2px 8px;
-  -webkit-overflow-scrolling: touch;
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.emotion-0 {
-  color: hsl(0,0%,20%);
-  margin-left: 2px;
-  margin-right: 2px;
-  max-width: calc(100% - 8px);
-  overflow: hidden;
-  position: absolute;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  top: 50%;
-  -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
-  box-sizing: border-box;
-}
-
-.emotion-1 {
-  background: 0;
-  border: 0;
-  font-size: inherit;
-  outline: 0;
-  padding: 0;
-  width: 1px;
-  color: transparent;
-  left: -100px;
-  opacity: 0;
-  position: relative;
-  -webkit-transform: scale(0);
-  -ms-transform: scale(0);
-  transform: scale(0);
-}
-
-.emotion-6 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-align-self: stretch;
-  -ms-flex-item-align: stretch;
-  align-self: stretch;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-shrink: 0;
-  -ms-flex-negative: 0;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.emotion-3 {
-  -webkit-align-self: stretch;
-  -ms-flex-item-align: stretch;
-  align-self: stretch;
-  background-color: hsl(0,0%,80%);
-  margin-bottom: 8px;
-  margin-top: 8px;
-  width: 1px;
-  box-sizing: border-box;
-}
-
-.emotion-5 {
-  color: hsl(0,0%,80%);
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  padding: 8px;
-  -webkit-transition: color 150ms;
-  transition: color 150ms;
-  box-sizing: border-box;
-}
-
-.emotion-5:hover {
-  color: hsl(0,0%,60%);
-}
-
-.emotion-4 {
-  display: inline-block;
-  fill: currentColor;
-  line-height: 1;
-  stroke: currentColor;
-  stroke-width: 0;
-}
-
-<body>
-    <div>
-      <div
-        class="page-box"
-      >
-        <div
-          class="filter-columns"
-        >
-          <div
-            class="filter-label"
-          />
-          <div
-            class="filter-label"
-          />
-          <div
-            class="filter-label"
-          >
-            Value In
-          </div>
-          <div
-            class="filter-column"
-          >
-            <div
-              class=" emotion-8"
-            >
-              <div
-                class=" emotion-7"
-              >
-                <div
-                  class=" emotion-2"
-                >
-                  <div
-                    class=" emotion-0"
-                  >
-                    Portfolio
-                  </div>
-                  <input
-                    class="emotion-1"
-                    id="react-select-4-input"
-                    readonly=""
-                    tabindex="0"
-                    value=""
-                  />
-                </div>
-                <div
-                  class=" emotion-6"
-                >
-                  <span
-                    class=" emotion-3"
-                  />
-                  <div
-                    aria-hidden="true"
-                    class=" emotion-5"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="emotion-4"
-                      focusable="false"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      width="20"
-                    >
-                      <path
-                        d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="filter-label"
-          >
-            Group By
-          </div>
-          <div
-            class="filter-column"
-          >
-            <div
-              class=" emotion-8"
-            >
-              <div
-                class=" emotion-7"
-              >
-                <div
-                  class=" emotion-2"
-                >
-                  <div
-                    class=" emotion-0"
-                  >
-                    Currency
-                  </div>
-                  <input
-                    class="emotion-1"
-                    id="react-select-5-input"
-                    readonly=""
-                    tabindex="0"
-                    value=""
-                  />
-                </div>
-                <div
-                  class=" emotion-6"
-                >
-                  <span
-                    class=" emotion-3"
-                  />
-                  <div
-                    aria-hidden="true"
-                    class=" emotion-5"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="emotion-4"
-                      focusable="false"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      width="20"
-                    >
-                      <path
-                        d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="filter-label"
-          >
-            Open Only
-          </div>
-          <div
-            class="filter-column"
-          >
-            <div
-              class="react-switch"
-              style="position: relative; display: inline-block; text-align: left; opacity: 1; direction: ltr; border-radius: 14px; transition: opacity 0.25s; user-select: none;"
-            >
-              <div
-                class="react-switch-bg"
-                style="height: 28px; width: 56px; margin: 0px; position: relative; background: rgb(0, 136, 0); border-radius: 14px; cursor: pointer; transition: background 0.25s;"
-              >
-                <div
-                  style="height: 28px; width: 30px; position: relative; opacity: 1; pointer-events: none; transition: opacity 0.25s;"
-                >
-                  <svg
-                    height="100%"
-                    style="position: absolute; top: 0px;"
-                    viewBox="-2 -5 17 21"
-                    width="100%"
-                  >
-                    <path
-                      d="M11.264 0L5.26 6.004 2.103 2.847 0 4.95l5.26 5.26 8.108-8.107L11.264 0"
-                      fill="#fff"
-                      fill-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div
-                  style="height: 28px; width: 30px; position: absolute; opacity: 0; right: 0px; top: 0px; pointer-events: none; transition: opacity 0.25s;"
-                >
-                  <svg
-                    height="100%"
-                    style="position: absolute; top: 0px;"
-                    viewBox="-2 -5 14 20"
-                    width="100%"
-                  >
-                    <path
-                      d="M9.9 2.12L7.78 0 4.95 2.828 2.12 0 0 2.12l2.83 2.83L0 7.776 2.123 9.9 4.95 7.07 7.78 9.9 9.9 7.776 7.072 4.95 9.9 2.12"
-                      fill="#fff"
-                      fill-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div
-                class="react-switch-handle"
-                style="height: 26px; width: 26px; background: rgb(255, 255, 255); display: inline-block; cursor: pointer; border-radius: 50%; position: absolute; transform: translateX(29px); top: 1px; outline: 0; border: 0px; transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;"
-              />
-              <input
-                checked=""
-                required=""
-                role="switch"
-                style="border: 0px; height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px;"
-                type="checkbox"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          class="stats-container"
-        >
-          <table>
-            <tbody>
-              <tr
-                class="stats-header"
-              >
-                <th
-                  align="left"
-                >
-                  Summary
-                </th>
-                <th>
-                  dividends
-                </th>
-                <th>
-                  purchases
-                </th>
-                <th>
-                  sales
-                </th>
-                <th>
-                  value
-                </th>
-                <th>
-                  strategy
-                </th>
-              </tr>
-            </tbody>
-            <tbody>
-              <tr
-                class="stats-row"
-              >
-                <td>
-                  <div
-                    class="left-cell"
-                  >
-                    ZERO
-                    :
-                     
-                    N/A
-                  </div>
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div
-          class="all-holdings"
-        >
-          <table
-            class="table is-striped is-hoverable"
-          >
-            <tbody
-              class="totals-row"
-            >
-              <tr>
-                <td
-                  align="right"
-                  colspan="4"
-                >
-                  Totals in 
-                  PORTFOLIO
-                   currency
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-                <td
-                  align="center"
-                >
-                  -
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": .emotion-8 {
+.emotion-8 {
   position: relative;
   box-sizing: border-box;
 }
@@ -615,1497 +148,326 @@ Object {
 }
 
 <div>
+  <div
+    class="page-box"
+  >
     <div
-      class="page-box"
+      class="filter-columns"
     >
       <div
-        class="filter-columns"
+        class="filter-label"
+      />
+      <div
+        class="filter-label"
+      />
+      <div
+        class="filter-label"
+      >
+        Value In
+      </div>
+      <div
+        class="filter-column"
       >
         <div
-          class="filter-label"
-        />
-        <div
-          class="filter-label"
-        />
-        <div
-          class="filter-label"
-        >
-          Value In
-        </div>
-        <div
-          class="filter-column"
+          class=" emotion-8"
         >
           <div
-            class=" emotion-8"
+            class=" emotion-7"
           >
             <div
-              class=" emotion-7"
+              class=" emotion-2"
             >
               <div
-                class=" emotion-2"
+                class=" emotion-0"
               >
-                <div
-                  class=" emotion-0"
-                >
-                  Portfolio
-                </div>
-                <input
-                  class="emotion-1"
-                  id="react-select-4-input"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
+                Portfolio
               </div>
-              <div
-                class=" emotion-6"
-              >
-                <span
-                  class=" emotion-3"
-                />
-                <div
-                  aria-hidden="true"
-                  class=" emotion-5"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="emotion-4"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
+              <input
+                class="emotion-1"
+                id="react-select-4-input"
+                readonly=""
+                tabindex="0"
+                value=""
+              />
             </div>
-          </div>
-        </div>
-        <div
-          class="filter-label"
-        >
-          Group By
-        </div>
-        <div
-          class="filter-column"
-        >
-          <div
-            class=" emotion-8"
-          >
             <div
-              class=" emotion-7"
+              class=" emotion-6"
             >
+              <span
+                class=" emotion-3"
+              />
               <div
-                class=" emotion-2"
-              >
-                <div
-                  class=" emotion-0"
-                >
-                  Currency
-                </div>
-                <input
-                  class="emotion-1"
-                  id="react-select-5-input"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
-              </div>
-              <div
-                class=" emotion-6"
-              >
-                <span
-                  class=" emotion-3"
-                />
-                <div
-                  aria-hidden="true"
-                  class=" emotion-5"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="emotion-4"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="filter-label"
-        >
-          Open Only
-        </div>
-        <div
-          class="filter-column"
-        >
-          <div
-            class="react-switch"
-            style="position: relative; display: inline-block; text-align: left; opacity: 1; direction: ltr; border-radius: 14px; transition: opacity 0.25s; user-select: none;"
-          >
-            <div
-              class="react-switch-bg"
-              style="height: 28px; width: 56px; margin: 0px; position: relative; background: rgb(0, 136, 0); border-radius: 14px; cursor: pointer; transition: background 0.25s;"
-            >
-              <div
-                style="height: 28px; width: 30px; position: relative; opacity: 1; pointer-events: none; transition: opacity 0.25s;"
+                aria-hidden="true"
+                class=" emotion-5"
               >
                 <svg
-                  height="100%"
-                  style="position: absolute; top: 0px;"
-                  viewBox="-2 -5 17 21"
-                  width="100%"
+                  aria-hidden="true"
+                  class="emotion-4"
+                  focusable="false"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  width="20"
                 >
                   <path
-                    d="M11.264 0L5.26 6.004 2.103 2.847 0 4.95l5.26 5.26 8.108-8.107L11.264 0"
-                    fill="#fff"
-                    fill-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div
-                style="height: 28px; width: 30px; position: absolute; opacity: 0; right: 0px; top: 0px; pointer-events: none; transition: opacity 0.25s;"
-              >
-                <svg
-                  height="100%"
-                  style="position: absolute; top: 0px;"
-                  viewBox="-2 -5 14 20"
-                  width="100%"
-                >
-                  <path
-                    d="M9.9 2.12L7.78 0 4.95 2.828 2.12 0 0 2.12l2.83 2.83L0 7.776 2.123 9.9 4.95 7.07 7.78 9.9 9.9 7.776 7.072 4.95 9.9 2.12"
-                    fill="#fff"
-                    fill-rule="evenodd"
+                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
                   />
                 </svg>
               </div>
             </div>
-            <div
-              class="react-switch-handle"
-              style="height: 26px; width: 26px; background: rgb(255, 255, 255); display: inline-block; cursor: pointer; border-radius: 50%; position: absolute; transform: translateX(29px); top: 1px; outline: 0; border: 0px; transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;"
-            />
-            <input
-              checked=""
-              required=""
-              role="switch"
-              style="border: 0px; height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px;"
-              type="checkbox"
-            />
           </div>
         </div>
       </div>
       <div
-        class="stats-container"
+        class="filter-label"
       >
-        <table>
-          <tbody>
-            <tr
-              class="stats-header"
-            >
-              <th
-                align="left"
-              >
-                Summary
-              </th>
-              <th>
-                dividends
-              </th>
-              <th>
-                purchases
-              </th>
-              <th>
-                sales
-              </th>
-              <th>
-                value
-              </th>
-              <th>
-                strategy
-              </th>
-            </tr>
-          </tbody>
-          <tbody>
-            <tr
-              class="stats-row"
-            >
-              <td>
-                <div
-                  class="left-cell"
-                >
-                  ZERO
-                  :
-                   
-                  N/A
-                </div>
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        Group By
       </div>
       <div
-        class="all-holdings"
+        class="filter-column"
       >
-        <table
-          class="table is-striped is-hoverable"
+        <div
+          class=" emotion-8"
         >
-          <tbody
-            class="totals-row"
+          <div
+            class=" emotion-7"
           >
-            <tr>
-              <td
-                align="right"
-                colspan="4"
+            <div
+              class=" emotion-2"
+            >
+              <div
+                class=" emotion-0"
               >
-                Totals in 
-                PORTFOLIO
-                 currency
-              </td>
-              <td
-                align="center"
+                Currency
+              </div>
+              <input
+                class="emotion-1"
+                id="react-select-5-input"
+                readonly=""
+                tabindex="0"
+                value=""
+              />
+            </div>
+            <div
+              class=" emotion-6"
+            >
+              <span
+                class=" emotion-3"
+              />
+              <div
+                aria-hidden="true"
+                class=" emotion-5"
               >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-              <td
-                align="center"
-              >
-                -
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <svg
+                  aria-hidden="true"
+                  class="emotion-4"
+                  focusable="false"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  width="20"
+                >
+                  <path
+                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`<ViewHoldings /> matches snapshot for zero holdings 2`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
       <div
-        id="root"
+        class="filter-label"
       >
-        $
-        Network Error
+        Open Only
+      </div>
+      <div
+        class="filter-column"
+      >
+        <div
+          class="react-switch"
+          style="position: relative; display: inline-block; text-align: left; opacity: 1; direction: ltr; border-radius: 14px; transition: opacity 0.25s; user-select: none;"
+        >
+          <div
+            class="react-switch-bg"
+            style="height: 28px; width: 56px; margin: 0px; position: relative; background: rgb(0, 136, 0); border-radius: 14px; cursor: pointer; transition: background 0.25s;"
+          >
+            <div
+              style="height: 28px; width: 30px; position: relative; opacity: 1; pointer-events: none; transition: opacity 0.25s;"
+            >
+              <svg
+                height="100%"
+                style="position: absolute; top: 0px;"
+                viewBox="-2 -5 17 21"
+                width="100%"
+              >
+                <path
+                  d="M11.264 0L5.26 6.004 2.103 2.847 0 4.95l5.26 5.26 8.108-8.107L11.264 0"
+                  fill="#fff"
+                  fill-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div
+              style="height: 28px; width: 30px; position: absolute; opacity: 0; right: 0px; top: 0px; pointer-events: none; transition: opacity 0.25s;"
+            >
+              <svg
+                height="100%"
+                style="position: absolute; top: 0px;"
+                viewBox="-2 -5 14 20"
+                width="100%"
+              >
+                <path
+                  d="M9.9 2.12L7.78 0 4.95 2.828 2.12 0 0 2.12l2.83 2.83L0 7.776 2.123 9.9 4.95 7.07 7.78 9.9 9.9 7.776 7.072 4.95 9.9 2.12"
+                  fill="#fff"
+                  fill-rule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
+          <div
+            class="react-switch-handle"
+            style="height: 26px; width: 26px; background: rgb(255, 255, 255); display: inline-block; cursor: pointer; border-radius: 50%; position: absolute; transform: translateX(29px); top: 1px; outline: 0; border: 0px; transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;"
+          />
+          <input
+            checked=""
+            required=""
+            role="switch"
+            style="border: 0px; height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px;"
+            type="checkbox"
+          />
+        </div>
       </div>
     </div>
-  </body>,
-  "container": <div>
     <div
-      id="root"
+      class="stats-container"
     >
-      $
-      Network Error
+      <table>
+        <tbody>
+          <tr
+            class="stats-header"
+          >
+            <th
+              align="left"
+            >
+              Summary
+            </th>
+            <th>
+              dividends
+            </th>
+            <th>
+              purchases
+            </th>
+            <th>
+              sales
+            </th>
+            <th>
+              value
+            </th>
+            <th>
+              strategy
+            </th>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr
+            class="stats-row"
+          >
+            <td>
+              <div
+                class="left-cell"
+              >
+                ZERO
+                :
+                 
+                N/A
+              </div>
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+    <div
+      class="all-holdings"
+    >
+      <table
+        class="table is-striped is-hoverable"
+      >
+        <tbody
+          class="totals-row"
+        >
+          <tr>
+            <td
+              align="right"
+              colspan="4"
+            >
+              Totals in 
+              PORTFOLIO
+               currency
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+            <td
+              align="center"
+            >
+              -
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`<ViewHoldings /> matches snapshot when holdings present 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": .emotion-8 {
-  position: relative;
-  box-sizing: border-box;
-}
-
-.emotion-7 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-color: hsl(0,0%,100%);
-  border-color: hsl(0,0%,80%);
-  border-radius: 4px;
-  border-style: solid;
-  border-width: 1px;
-  cursor: default;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  min-height: 38px;
-  outline: 0 !important;
-  position: relative;
-  -webkit-transition: all 100ms;
-  transition: all 100ms;
-  box-sizing: border-box;
-}
-
-.emotion-7:hover {
-  border-color: hsl(0,0%,70%);
-}
-
-.emotion-2 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-  padding: 2px 8px;
-  -webkit-overflow-scrolling: touch;
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.emotion-0 {
-  color: hsl(0,0%,20%);
-  margin-left: 2px;
-  margin-right: 2px;
-  max-width: calc(100% - 8px);
-  overflow: hidden;
-  position: absolute;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  top: 50%;
-  -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
-  box-sizing: border-box;
-}
-
-.emotion-1 {
-  background: 0;
-  border: 0;
-  font-size: inherit;
-  outline: 0;
-  padding: 0;
-  width: 1px;
-  color: transparent;
-  left: -100px;
-  opacity: 0;
-  position: relative;
-  -webkit-transform: scale(0);
-  -ms-transform: scale(0);
-  transform: scale(0);
-}
-
-.emotion-6 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-align-self: stretch;
-  -ms-flex-item-align: stretch;
-  align-self: stretch;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-shrink: 0;
-  -ms-flex-negative: 0;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.emotion-3 {
-  -webkit-align-self: stretch;
-  -ms-flex-item-align: stretch;
-  align-self: stretch;
-  background-color: hsl(0,0%,80%);
-  margin-bottom: 8px;
-  margin-top: 8px;
-  width: 1px;
-  box-sizing: border-box;
-}
-
-.emotion-5 {
-  color: hsl(0,0%,80%);
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  padding: 8px;
-  -webkit-transition: color 150ms;
-  transition: color 150ms;
-  box-sizing: border-box;
-}
-
-.emotion-5:hover {
-  color: hsl(0,0%,60%);
-}
-
-.emotion-4 {
-  display: inline-block;
-  fill: currentColor;
-  line-height: 1;
-  stroke: currentColor;
-  stroke-width: 0;
-}
-
-<body>
-    <div>
-      <div
-        class="page-box"
-      >
-        <div
-          class="filter-columns"
-        >
-          <div
-            class="filter-label"
-          />
-          <div
-            class="filter-label"
-          />
-          <div
-            class="filter-label"
-          >
-            Value In
-          </div>
-          <div
-            class="filter-column"
-          >
-            <div
-              class=" emotion-8"
-            >
-              <div
-                class=" emotion-7"
-              >
-                <div
-                  class=" emotion-2"
-                >
-                  <div
-                    class=" emotion-0"
-                  >
-                    Portfolio
-                  </div>
-                  <input
-                    class="emotion-1"
-                    id="react-select-2-input"
-                    readonly=""
-                    tabindex="0"
-                    value=""
-                  />
-                </div>
-                <div
-                  class=" emotion-6"
-                >
-                  <span
-                    class=" emotion-3"
-                  />
-                  <div
-                    aria-hidden="true"
-                    class=" emotion-5"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="emotion-4"
-                      focusable="false"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      width="20"
-                    >
-                      <path
-                        d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="filter-label"
-          >
-            Group By
-          </div>
-          <div
-            class="filter-column"
-          >
-            <div
-              class=" emotion-8"
-            >
-              <div
-                class=" emotion-7"
-              >
-                <div
-                  class=" emotion-2"
-                >
-                  <div
-                    class=" emotion-0"
-                  >
-                    Currency
-                  </div>
-                  <input
-                    class="emotion-1"
-                    id="react-select-3-input"
-                    readonly=""
-                    tabindex="0"
-                    value=""
-                  />
-                </div>
-                <div
-                  class=" emotion-6"
-                >
-                  <span
-                    class=" emotion-3"
-                  />
-                  <div
-                    aria-hidden="true"
-                    class=" emotion-5"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="emotion-4"
-                      focusable="false"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      width="20"
-                    >
-                      <path
-                        d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="filter-label"
-          >
-            Open Only
-          </div>
-          <div
-            class="filter-column"
-          >
-            <div
-              class="react-switch"
-              style="position: relative; display: inline-block; text-align: left; opacity: 1; direction: ltr; border-radius: 14px; transition: opacity 0.25s; user-select: none;"
-            >
-              <div
-                class="react-switch-bg"
-                style="height: 28px; width: 56px; margin: 0px; position: relative; background: rgb(0, 136, 0); border-radius: 14px; cursor: pointer; transition: background 0.25s;"
-              >
-                <div
-                  style="height: 28px; width: 30px; position: relative; opacity: 1; pointer-events: none; transition: opacity 0.25s;"
-                >
-                  <svg
-                    height="100%"
-                    style="position: absolute; top: 0px;"
-                    viewBox="-2 -5 17 21"
-                    width="100%"
-                  >
-                    <path
-                      d="M11.264 0L5.26 6.004 2.103 2.847 0 4.95l5.26 5.26 8.108-8.107L11.264 0"
-                      fill="#fff"
-                      fill-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div
-                  style="height: 28px; width: 30px; position: absolute; opacity: 0; right: 0px; top: 0px; pointer-events: none; transition: opacity 0.25s;"
-                >
-                  <svg
-                    height="100%"
-                    style="position: absolute; top: 0px;"
-                    viewBox="-2 -5 14 20"
-                    width="100%"
-                  >
-                    <path
-                      d="M9.9 2.12L7.78 0 4.95 2.828 2.12 0 0 2.12l2.83 2.83L0 7.776 2.123 9.9 4.95 7.07 7.78 9.9 9.9 7.776 7.072 4.95 9.9 2.12"
-                      fill="#fff"
-                      fill-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div
-                class="react-switch-handle"
-                style="height: 26px; width: 26px; background: rgb(255, 255, 255); display: inline-block; cursor: pointer; border-radius: 50%; position: absolute; transform: translateX(29px); top: 1px; outline: 0; border: 0px; transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;"
-              />
-              <input
-                checked=""
-                required=""
-                role="switch"
-                style="border: 0px; height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px;"
-                type="checkbox"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          class="stats-container"
-        >
-          <table>
-            <tbody>
-              <tr
-                class="stats-header"
-              >
-                <th
-                  align="left"
-                >
-                  Summary
-                </th>
-                <th>
-                  dividends
-                </th>
-                <th>
-                  purchases
-                </th>
-                <th>
-                  sales
-                </th>
-                <th>
-                  value
-                </th>
-                <th>
-                  strategy
-                </th>
-              </tr>
-            </tbody>
-            <tbody>
-              <tr
-                class="stats-row"
-              >
-                <td>
-                  <div
-                    class="left-cell"
-                  >
-                    TEST
-                    :
-                     
-                    NZD
-                  </div>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    5,101.02
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    8,797.33
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,322.75
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    14,436.55
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    12,062.99
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div
-          class="all-holdings"
-        >
-          <table
-            class="table is-striped is-hoverable"
-          >
-            <tbody
-              class="table-header"
-            >
-              <tr>
-                <th>
-                  AUD
-                </th>
-                <th
-                  align="right"
-                >
-                  price
-                </th>
-                <th
-                  align="right"
-                >
-                  quantity
-                </th>
-                <th
-                  align="right"
-                >
-                  value
-                </th>
-                <th
-                  align="right"
-                >
-                  cost
-                </th>
-                <th
-                  align="right"
-                >
-                  cost.avg
-                </th>
-                <th
-                  align="right"
-                >
-                  dividends
-                </th>
-                <th
-                  align="right"
-                >
-                  gain.realised
-                </th>
-                <th
-                  align="right"
-                >
-                  gain.unrealised
-                </th>
-                <th
-                  align="right"
-                >
-                  gain
-                </th>
-              </tr>
-            </tbody>
-            <tbody>
-              <tr
-                class="holding-row"
-              >
-                <td
-                  class="asset"
-                >
-                  AMP: Amp Limited
-                </td>
-                <td>
-                  <label>
-                    $
-                     
-                    <span>
-                      1.99
-                    </span>
-                  </label>
-                </td>
-                <td>
-                  <span>
-                    637
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,267.63
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    2,436.50
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    3.82
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    2,599.94
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    0.00
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    -1,168.87
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,431.07
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tbody
-              class="holding-totals-row"
-            >
-              <tr
-                class="holding-footer"
-              >
-                <td
-                  align="right"
-                  colspan="4"
-                >
-                  Sub-Total - 
-                  NZD
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    2,436.50
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,267.63
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    2,599.94
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    0.00
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    -1,168.87
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,431.07
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tbody
-              class="table-header"
-            >
-              <tr>
-                <th>
-                  NZD
-                </th>
-                <th
-                  align="right"
-                >
-                  price
-                </th>
-                <th
-                  align="right"
-                >
-                  quantity
-                </th>
-                <th
-                  align="right"
-                >
-                  value
-                </th>
-                <th
-                  align="right"
-                >
-                  cost
-                </th>
-                <th
-                  align="right"
-                >
-                  cost.avg
-                </th>
-                <th
-                  align="right"
-                >
-                  dividends
-                </th>
-                <th
-                  align="right"
-                >
-                  gain.realised
-                </th>
-                <th
-                  align="right"
-                >
-                  gain.unrealised
-                </th>
-                <th
-                  align="right"
-                >
-                  gain
-                </th>
-              </tr>
-            </tbody>
-            <tbody>
-              <tr
-                class="holding-row"
-              >
-                <td
-                  class="asset"
-                >
-                  GNE: Genesis Energy Limited (NS)
-                </td>
-                <td>
-                  <label>
-                    $
-                     
-                    <span>
-                      3.02
-                    </span>
-                  </label>
-                </td>
-                <td>
-                  <span>
-                    2,574
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    7,773.48
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    3,741.70
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1.45
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    2,374.86
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    0.00
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    4,031.78
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    6,406.64
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tbody
-              class="holding-totals-row"
-            >
-              <tr
-                class="holding-footer"
-              >
-                <td
-                  align="right"
-                  colspan="4"
-                >
-                  Sub-Total - 
-                  NZD
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    3,741.70
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    7,773.48
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    2,374.86
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    0.00
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    4,031.78
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    6,406.64
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tbody
-              class="table-header"
-            >
-              <tr>
-                <th>
-                  USD
-                </th>
-                <th
-                  align="right"
-                >
-                  price
-                </th>
-                <th
-                  align="right"
-                >
-                  quantity
-                </th>
-                <th
-                  align="right"
-                >
-                  value
-                </th>
-                <th
-                  align="right"
-                >
-                  cost
-                </th>
-                <th
-                  align="right"
-                >
-                  cost.avg
-                </th>
-                <th
-                  align="right"
-                >
-                  dividends
-                </th>
-                <th
-                  align="right"
-                >
-                  gain.realised
-                </th>
-                <th
-                  align="right"
-                >
-                  gain.unrealised
-                </th>
-                <th
-                  align="right"
-                >
-                  gain
-                </th>
-              </tr>
-            </tbody>
-            <tbody>
-              <tr
-                class="holding-row"
-              >
-                <td
-                  class="asset"
-                >
-                  AAPL: Apple Inc
-                </td>
-                <td>
-                  <label>
-                    $
-                     
-                    <span>
-                      449.62
-                    </span>
-                  </label>
-                </td>
-                <td>
-                  <span>
-                    12
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    5,395.44
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,431.83
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    119.32
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    126.22
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    135.45
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    3,963.61
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    4,225.28
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tbody
-              class="holding-totals-row"
-            >
-              <tr
-                class="holding-footer"
-              >
-                <td
-                  align="right"
-                  colspan="4"
-                >
-                  Sub-Total - 
-                  NZD
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    1,431.83
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    5,395.44
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    126.22
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    135.45
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    3,963.61
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    4,225.28
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-            <tbody
-              class="totals-row"
-            >
-              <tr>
-                <td
-                  align="right"
-                  colspan="4"
-                >
-                  Totals in 
-                  PORTFOLIO
-                   currency
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    7,610.03
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    14,436.55
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    5,101.02
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    135.45
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    6,826.52
-                  </span>
-                </td>
-                <td
-                  align="right"
-                >
-                  <span>
-                    12,062.99
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": .emotion-8 {
+.emotion-8 {
   position: relative;
   box-sizing: border-box;
 }
@@ -2252,949 +614,856 @@ Object {
 }
 
 <div>
+  <div
+    class="page-box"
+  >
     <div
-      class="page-box"
+      class="filter-columns"
     >
       <div
-        class="filter-columns"
+        class="filter-label"
+      />
+      <div
+        class="filter-label"
+      />
+      <div
+        class="filter-label"
+      >
+        Value In
+      </div>
+      <div
+        class="filter-column"
       >
         <div
-          class="filter-label"
-        />
-        <div
-          class="filter-label"
-        />
-        <div
-          class="filter-label"
-        >
-          Value In
-        </div>
-        <div
-          class="filter-column"
+          class=" emotion-8"
         >
           <div
-            class=" emotion-8"
+            class=" emotion-7"
           >
             <div
-              class=" emotion-7"
+              class=" emotion-2"
             >
               <div
-                class=" emotion-2"
+                class=" emotion-0"
               >
-                <div
-                  class=" emotion-0"
-                >
-                  Portfolio
-                </div>
-                <input
-                  class="emotion-1"
-                  id="react-select-2-input"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
+                Portfolio
               </div>
-              <div
-                class=" emotion-6"
-              >
-                <span
-                  class=" emotion-3"
-                />
-                <div
-                  aria-hidden="true"
-                  class=" emotion-5"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="emotion-4"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
+              <input
+                class="emotion-1"
+                id="react-select-2-input"
+                readonly=""
+                tabindex="0"
+                value=""
+              />
             </div>
-          </div>
-        </div>
-        <div
-          class="filter-label"
-        >
-          Group By
-        </div>
-        <div
-          class="filter-column"
-        >
-          <div
-            class=" emotion-8"
-          >
             <div
-              class=" emotion-7"
+              class=" emotion-6"
             >
+              <span
+                class=" emotion-3"
+              />
               <div
-                class=" emotion-2"
-              >
-                <div
-                  class=" emotion-0"
-                >
-                  Currency
-                </div>
-                <input
-                  class="emotion-1"
-                  id="react-select-3-input"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
-              </div>
-              <div
-                class=" emotion-6"
-              >
-                <span
-                  class=" emotion-3"
-                />
-                <div
-                  aria-hidden="true"
-                  class=" emotion-5"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="emotion-4"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="filter-label"
-        >
-          Open Only
-        </div>
-        <div
-          class="filter-column"
-        >
-          <div
-            class="react-switch"
-            style="position: relative; display: inline-block; text-align: left; opacity: 1; direction: ltr; border-radius: 14px; transition: opacity 0.25s; user-select: none;"
-          >
-            <div
-              class="react-switch-bg"
-              style="height: 28px; width: 56px; margin: 0px; position: relative; background: rgb(0, 136, 0); border-radius: 14px; cursor: pointer; transition: background 0.25s;"
-            >
-              <div
-                style="height: 28px; width: 30px; position: relative; opacity: 1; pointer-events: none; transition: opacity 0.25s;"
+                aria-hidden="true"
+                class=" emotion-5"
               >
                 <svg
-                  height="100%"
-                  style="position: absolute; top: 0px;"
-                  viewBox="-2 -5 17 21"
-                  width="100%"
+                  aria-hidden="true"
+                  class="emotion-4"
+                  focusable="false"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  width="20"
                 >
                   <path
-                    d="M11.264 0L5.26 6.004 2.103 2.847 0 4.95l5.26 5.26 8.108-8.107L11.264 0"
-                    fill="#fff"
-                    fill-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div
-                style="height: 28px; width: 30px; position: absolute; opacity: 0; right: 0px; top: 0px; pointer-events: none; transition: opacity 0.25s;"
-              >
-                <svg
-                  height="100%"
-                  style="position: absolute; top: 0px;"
-                  viewBox="-2 -5 14 20"
-                  width="100%"
-                >
-                  <path
-                    d="M9.9 2.12L7.78 0 4.95 2.828 2.12 0 0 2.12l2.83 2.83L0 7.776 2.123 9.9 4.95 7.07 7.78 9.9 9.9 7.776 7.072 4.95 9.9 2.12"
-                    fill="#fff"
-                    fill-rule="evenodd"
+                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
                   />
                 </svg>
               </div>
             </div>
-            <div
-              class="react-switch-handle"
-              style="height: 26px; width: 26px; background: rgb(255, 255, 255); display: inline-block; cursor: pointer; border-radius: 50%; position: absolute; transform: translateX(29px); top: 1px; outline: 0; border: 0px; transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;"
-            />
-            <input
-              checked=""
-              required=""
-              role="switch"
-              style="border: 0px; height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px;"
-              type="checkbox"
-            />
           </div>
         </div>
       </div>
       <div
-        class="stats-container"
+        class="filter-label"
       >
-        <table>
-          <tbody>
-            <tr
-              class="stats-header"
-            >
-              <th
-                align="left"
-              >
-                Summary
-              </th>
-              <th>
-                dividends
-              </th>
-              <th>
-                purchases
-              </th>
-              <th>
-                sales
-              </th>
-              <th>
-                value
-              </th>
-              <th>
-                strategy
-              </th>
-            </tr>
-          </tbody>
-          <tbody>
-            <tr
-              class="stats-row"
-            >
-              <td>
-                <div
-                  class="left-cell"
-                >
-                  TEST
-                  :
-                   
-                  NZD
-                </div>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  5,101.02
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  8,797.33
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,322.75
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  14,436.55
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  12,062.99
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        Group By
       </div>
       <div
-        class="all-holdings"
+        class="filter-column"
       >
-        <table
-          class="table is-striped is-hoverable"
+        <div
+          class=" emotion-8"
         >
-          <tbody
-            class="table-header"
+          <div
+            class=" emotion-7"
           >
-            <tr>
-              <th>
-                AUD
-              </th>
-              <th
-                align="right"
-              >
-                price
-              </th>
-              <th
-                align="right"
-              >
-                quantity
-              </th>
-              <th
-                align="right"
-              >
-                value
-              </th>
-              <th
-                align="right"
-              >
-                cost
-              </th>
-              <th
-                align="right"
-              >
-                cost.avg
-              </th>
-              <th
-                align="right"
-              >
-                dividends
-              </th>
-              <th
-                align="right"
-              >
-                gain.realised
-              </th>
-              <th
-                align="right"
-              >
-                gain.unrealised
-              </th>
-              <th
-                align="right"
-              >
-                gain
-              </th>
-            </tr>
-          </tbody>
-          <tbody>
-            <tr
-              class="holding-row"
+            <div
+              class=" emotion-2"
             >
-              <td
-                class="asset"
+              <div
+                class=" emotion-0"
               >
-                AMP: Amp Limited
-              </td>
-              <td>
-                <label>
-                  $
-                   
-                  <span>
-                    1.99
-                  </span>
-                </label>
-              </td>
-              <td>
-                <span>
-                  637
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,267.63
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,436.50
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  3.82
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,599.94
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  0.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  -1,168.87
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,431.07
-                </span>
-              </td>
-            </tr>
-          </tbody>
-          <tbody
-            class="holding-totals-row"
-          >
-            <tr
-              class="holding-footer"
+                Currency
+              </div>
+              <input
+                class="emotion-1"
+                id="react-select-3-input"
+                readonly=""
+                tabindex="0"
+                value=""
+              />
+            </div>
+            <div
+              class=" emotion-6"
             >
-              <td
-                align="right"
-                colspan="4"
+              <span
+                class=" emotion-3"
+              />
+              <div
+                aria-hidden="true"
+                class=" emotion-5"
               >
-                Sub-Total - 
-                NZD
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,436.50
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,267.63
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,599.94
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  0.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  -1,168.87
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,431.07
-                </span>
-              </td>
-            </tr>
-          </tbody>
-          <tbody
-            class="table-header"
+                <svg
+                  aria-hidden="true"
+                  class="emotion-4"
+                  focusable="false"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  width="20"
+                >
+                  <path
+                    d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="filter-label"
+      >
+        Open Only
+      </div>
+      <div
+        class="filter-column"
+      >
+        <div
+          class="react-switch"
+          style="position: relative; display: inline-block; text-align: left; opacity: 1; direction: ltr; border-radius: 14px; transition: opacity 0.25s; user-select: none;"
+        >
+          <div
+            class="react-switch-bg"
+            style="height: 28px; width: 56px; margin: 0px; position: relative; background: rgb(0, 136, 0); border-radius: 14px; cursor: pointer; transition: background 0.25s;"
           >
-            <tr>
-              <th>
-                NZD
-              </th>
-              <th
-                align="right"
-              >
-                price
-              </th>
-              <th
-                align="right"
-              >
-                quantity
-              </th>
-              <th
-                align="right"
-              >
-                value
-              </th>
-              <th
-                align="right"
-              >
-                cost
-              </th>
-              <th
-                align="right"
-              >
-                cost.avg
-              </th>
-              <th
-                align="right"
-              >
-                dividends
-              </th>
-              <th
-                align="right"
-              >
-                gain.realised
-              </th>
-              <th
-                align="right"
-              >
-                gain.unrealised
-              </th>
-              <th
-                align="right"
-              >
-                gain
-              </th>
-            </tr>
-          </tbody>
-          <tbody>
-            <tr
-              class="holding-row"
+            <div
+              style="height: 28px; width: 30px; position: relative; opacity: 1; pointer-events: none; transition: opacity 0.25s;"
             >
-              <td
-                class="asset"
+              <svg
+                height="100%"
+                style="position: absolute; top: 0px;"
+                viewBox="-2 -5 17 21"
+                width="100%"
               >
-                GNE: Genesis Energy Limited (NS)
-              </td>
-              <td>
-                <label>
-                  $
-                   
-                  <span>
-                    3.02
-                  </span>
-                </label>
-              </td>
-              <td>
-                <span>
-                  2,574
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  7,773.48
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  3,741.70
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1.45
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,374.86
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  0.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  4,031.78
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  6,406.64
-                </span>
-              </td>
-            </tr>
-          </tbody>
-          <tbody
-            class="holding-totals-row"
-          >
-            <tr
-              class="holding-footer"
+                <path
+                  d="M11.264 0L5.26 6.004 2.103 2.847 0 4.95l5.26 5.26 8.108-8.107L11.264 0"
+                  fill="#fff"
+                  fill-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div
+              style="height: 28px; width: 30px; position: absolute; opacity: 0; right: 0px; top: 0px; pointer-events: none; transition: opacity 0.25s;"
             >
-              <td
-                align="right"
-                colspan="4"
+              <svg
+                height="100%"
+                style="position: absolute; top: 0px;"
+                viewBox="-2 -5 14 20"
+                width="100%"
               >
-                Sub-Total - 
-                NZD
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  3,741.70
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  7,773.48
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,374.86
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  0.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  4,031.78
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  6,406.64
-                </span>
-              </td>
-            </tr>
-          </tbody>
-          <tbody
-            class="table-header"
-          >
-            <tr>
-              <th>
-                USD
-              </th>
-              <th
-                align="right"
-              >
-                price
-              </th>
-              <th
-                align="right"
-              >
-                quantity
-              </th>
-              <th
-                align="right"
-              >
-                value
-              </th>
-              <th
-                align="right"
-              >
-                cost
-              </th>
-              <th
-                align="right"
-              >
-                cost.avg
-              </th>
-              <th
-                align="right"
-              >
-                dividends
-              </th>
-              <th
-                align="right"
-              >
-                gain.realised
-              </th>
-              <th
-                align="right"
-              >
-                gain.unrealised
-              </th>
-              <th
-                align="right"
-              >
-                gain
-              </th>
-            </tr>
-          </tbody>
-          <tbody>
-            <tr
-              class="holding-row"
-            >
-              <td
-                class="asset"
-              >
-                AAPL: Apple Inc
-              </td>
-              <td>
-                <label>
-                  $
-                   
-                  <span>
-                    449.62
-                  </span>
-                </label>
-              </td>
-              <td>
-                <span>
-                  12
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  5,395.44
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,431.83
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  119.32
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  126.22
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  135.45
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  3,963.61
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  4,225.28
-                </span>
-              </td>
-            </tr>
-          </tbody>
-          <tbody
-            class="holding-totals-row"
-          >
-            <tr
-              class="holding-footer"
-            >
-              <td
-                align="right"
-                colspan="4"
-              >
-                Sub-Total - 
-                NZD
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  1,431.83
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  5,395.44
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  126.22
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  135.45
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  3,963.61
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  4,225.28
-                </span>
-              </td>
-            </tr>
-          </tbody>
-          <tbody
-            class="totals-row"
-          >
-            <tr>
-              <td
-                align="right"
-                colspan="4"
-              >
-                Totals in 
-                PORTFOLIO
-                 currency
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  7,610.03
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  14,436.55
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  5,101.02
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  135.45
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  6,826.52
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  12,062.99
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <path
+                  d="M9.9 2.12L7.78 0 4.95 2.828 2.12 0 0 2.12l2.83 2.83L0 7.776 2.123 9.9 4.95 7.07 7.78 9.9 9.9 7.776 7.072 4.95 9.9 2.12"
+                  fill="#fff"
+                  fill-rule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
+          <div
+            class="react-switch-handle"
+            style="height: 26px; width: 26px; background: rgb(255, 255, 255); display: inline-block; cursor: pointer; border-radius: 50%; position: absolute; transform: translateX(29px); top: 1px; outline: 0; border: 0px; transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;"
+          />
+          <input
+            checked=""
+            required=""
+            role="switch"
+            style="border: 0px; height: 1px; margin: -1px; overflow: hidden; padding: 0px; position: absolute; width: 1px;"
+            type="checkbox"
+          />
+        </div>
       </div>
     </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
+    <div
+      class="stats-container"
+    >
+      <table>
+        <tbody>
+          <tr
+            class="stats-header"
+          >
+            <th
+              align="left"
+            >
+              Summary
+            </th>
+            <th>
+              dividends
+            </th>
+            <th>
+              purchases
+            </th>
+            <th>
+              sales
+            </th>
+            <th>
+              value
+            </th>
+            <th>
+              strategy
+            </th>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr
+            class="stats-row"
+          >
+            <td>
+              <div
+                class="left-cell"
+              >
+                TEST
+                :
+                 
+                NZD
+              </div>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,961.31
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                8,478.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,729.71
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -2,786.98
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div
+      class="all-holdings"
+    >
+      <table
+        class="table is-striped is-hoverable"
+      >
+        <tbody
+          class="table-header"
+        >
+          <tr>
+            <th>
+              AUD
+            </th>
+            <th
+              align="right"
+            >
+              price
+            </th>
+            <th
+              align="right"
+            >
+              quantity
+            </th>
+            <th
+              align="right"
+            >
+              value
+            </th>
+            <th
+              align="right"
+            >
+              cost
+            </th>
+            <th
+              align="right"
+            >
+              cost.avg
+            </th>
+            <th
+              align="right"
+            >
+              dividends
+            </th>
+            <th
+              align="right"
+            >
+              gain.realised
+            </th>
+            <th
+              align="right"
+            >
+              gain.unrealised
+            </th>
+            <th
+              align="right"
+            >
+              gain
+            </th>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr
+            class="holding-row"
+          >
+            <td
+              class="asset"
+            >
+              AMP: Amp Limited
+            </td>
+            <td>
+              <label>
+                $
+                 
+                <span>
+                  0.00
+                </span>
+              </label>
+            </td>
+            <td>
+              <span>
+                637
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,436.73
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                3.83
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,598.62
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -2,436.73
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                161.89
+              </span>
+            </td>
+          </tr>
+        </tbody>
+        <tbody
+          class="holding-totals-row"
+        >
+          <tr
+            class="holding-footer"
+          >
+            <td
+              align="right"
+              colspan="4"
+            >
+              Sub-Total - 
+              NZD
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,436.73
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,598.62
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -2,436.73
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                161.89
+              </span>
+            </td>
+          </tr>
+        </tbody>
+        <tbody
+          class="table-header"
+        >
+          <tr>
+            <th>
+              USD
+            </th>
+            <th
+              align="right"
+            >
+              price
+            </th>
+            <th
+              align="right"
+            >
+              quantity
+            </th>
+            <th
+              align="right"
+            >
+              value
+            </th>
+            <th
+              align="right"
+            >
+              cost
+            </th>
+            <th
+              align="right"
+            >
+              cost.avg
+            </th>
+            <th
+              align="right"
+            >
+              dividends
+            </th>
+            <th
+              align="right"
+            >
+              gain.realised
+            </th>
+            <th
+              align="right"
+            >
+              gain.unrealised
+            </th>
+            <th
+              align="right"
+            >
+              gain
+            </th>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr
+            class="holding-row"
+          >
+            <td
+              class="asset"
+            >
+              AAPL: Apple Inc
+            </td>
+            <td>
+              <label>
+                $
+                 
+                <span>
+                  0.00
+                </span>
+              </label>
+            </td>
+            <td>
+              <span>
+                12
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                1,436.44
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                119.70
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                126.33
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                132.11
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -1,436.44
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -1,178.00
+              </span>
+            </td>
+          </tr>
+          <tr
+            class="holding-row"
+          >
+            <td
+              class="asset"
+            >
+              ABC: Amerisource Bergen Corp.
+            </td>
+            <td>
+              <label>
+                $
+                 
+                <span>
+                  0.00
+                </span>
+              </label>
+            </td>
+            <td>
+              <span>
+                25
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                1,263.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                50.52
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                6.50
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -1,263.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -1,256.50
+              </span>
+            </td>
+          </tr>
+          <tr
+            class="holding-row"
+          >
+            <td
+              class="asset"
+            >
+              CSCO: Cisco Systems, Inc.
+            </td>
+            <td>
+              <label>
+                $
+                 
+                <span>
+                  0.00
+                </span>
+              </label>
+            </td>
+            <td>
+              <span>
+                55
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                971.52
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                17.66
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                229.86
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                227.29
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -971.52
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -514.37
+              </span>
+            </td>
+          </tr>
+        </tbody>
+        <tbody
+          class="holding-totals-row"
+        >
+          <tr
+            class="holding-footer"
+          >
+            <td
+              align="right"
+              colspan="4"
+            >
+              Sub-Total - 
+              NZD
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                3,670.96
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                362.69
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                359.40
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -3,670.96
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -2,948.87
+              </span>
+            </td>
+          </tr>
+        </tbody>
+        <tbody
+          class="totals-row"
+        >
+          <tr>
+            <td
+              align="right"
+              colspan="4"
+            >
+              Totals in 
+              PORTFOLIO
+               currency
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                6,107.69
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                0.00
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                2,961.31
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                359.40
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -6,107.69
+              </span>
+            </td>
+            <td
+              align="right"
+            >
+              <span>
+                -2,786.98
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 `;

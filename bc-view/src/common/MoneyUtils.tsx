@@ -7,13 +7,13 @@ export function FormatMoneyValue(props: {
   moneyField: MoneyFields;
 }): JSX.Element {
   if (!props.moneyValues || !props.moneyValues[props.moneyField] == undefined) {
-    return <td align={"center"}>-</td>;
+    return <td align={'center'}>-</td>;
   }
   return (
-    <td align={"right"}>
+    <td align={'right'}>
       <NumberFormat
         value={props.moneyValues[props.moneyField]}
-        displayType={"text"}
+        displayType={'text'}
         decimalScale={2}
         fixedDecimalScale={true}
         thousandSeparator={true}

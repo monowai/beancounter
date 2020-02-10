@@ -18,14 +18,14 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
 
 let assets: any;
-let publicDir = "./";
+let publicDir = './';
 
 if (process.env.RAZZLE_PUBLIC_DIR) {
   publicDir = process.env.RAZZLE_PUBLIC_DIR;
 }
 
 const syncLoadAssets = (): any => {
-  logger.log("info", "Static Dir %s", `${resolveApp(publicDir)}`);
+  logger.log('info', 'Static Dir %s', `${resolveApp(publicDir)}`);
   if (process.env.RAZZLE_ASSETS_MANIFEST) {
     assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
   }
@@ -33,12 +33,12 @@ const syncLoadAssets = (): any => {
 syncLoadAssets();
 
 const server = express();
-let staticDir = "./";
+let staticDir = './';
 
 if (process.env.RAZZLE_PUBLIC_DIR) {
   staticDir = process.env.RAZZLE_PUBLIC_DIR;
 }
-logger.info("bcConfig @ %s", JSON.stringify(runtimeConfig()));
+logger.info('bcConfig @ %s', JSON.stringify(runtimeConfig()));
 i18n
   .use(Backend)
   .use(i18nextMiddleware.LanguageDetector)
@@ -49,21 +49,21 @@ i18n
         loadPath: `${resolveApp(staticDir)}/locales/{{lng}}/{{ns}}.json`
       },
       debug: false,
-      defaultNS: "translations",
+      defaultNS: 'translations',
       nonExplicitWhitelist: true,
-      ns: ["translations"],
-      preload: ["en"]
+      ns: ['translations'],
+      preload: ['en']
     },
     () => {
       server
-        .disable("x-powered-by")
-        .use("/locales", express.static(`${resolveApp(staticDir)}/locales`))
+        .disable('x-powered-by')
+        .use('/locales', express.static(`${resolveApp(staticDir)}/locales`))
         .use(i18nextMiddleware.handle(i18n))
         .use(express.urlencoded({ extended: true }))
         .use(express.static(staticDir))
         .use(express.json())
-        .get("/*", (req: express.Request, res: express.Response) => {
-          logger.debug(" Get for url %s", req.url);
+        .get('/*', (req: express.Request, res: express.Response) => {
+          logger.debug(' Get for url %s', req.url);
           const context: any = {};
           const markup = renderToString(
             <I18nextProvider i18n={req.i18n}>
@@ -78,7 +78,7 @@ i18n
           // otherwise context won't be populated by App
           const { url } = context;
 
-          if (url && req.url !== "/") {
+          if (url && req.url !== '/') {
             res.redirect(url);
           } else {
             const initialI18nStore = {};
@@ -101,10 +101,10 @@ i18n
           assets.client.css
             ? `<link rel="preload" as="style" href="${assets.client.css}">
               <link rel="stylesheet" href="${assets.client.css}">`
-            : ""
+            : ''
         }
           ${
-            process.env.NODE_ENV === "production"
+            process.env.NODE_ENV === 'production'
               ? `<link rel="preload" as="script" href="${assets.client.js}">
                 <script src="${assets.client.js}" defer></script>`
               : `<script src="${assets.client.js}" defer crossorigin></script>`

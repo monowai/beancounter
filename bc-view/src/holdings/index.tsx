@@ -4,47 +4,55 @@ import "../App.css";
 import { calculate } from "./calculate";
 import { GroupBy, groupOptions } from "../types/groupBy";
 import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
-import useAxios from "axios-hooks";
 import Total from "./Total";
 import StatsHeader, { StatsRow } from "../portfolio/Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
-import { runtimeConfig } from "../config";
+import { getHoldings } from "../bcApi";
+import logger from "../ConfigLogging";
 
-export default function ViewHoldings(portfolioId: string | undefined): JSX.Element {
-  const [getPortfolio] = useState(portfolioId);
-
-  const [{ data: getData, loading: getLoading, error: getError }, getHoldings] = useAxios(
-    {
-      url: runtimeConfig().bcService + "/" + portfolioId + "/today",
-      method: "GET"
-    },
-    { manual: true }
-  );
+export default function ViewHoldings(portfolioId: string): React.ReactElement {
+  const [data, setData] = useState();
+  const [loading, setLoading] = useState(false);
+  const [errorState, setErrorState] = useState();
 
   useEffect(() => {
-    getHoldings();
-  }, [getPortfolio]);
+    const fetchHoldings = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        logger.debug('>>fetch %s', portfolioId);
+        const result = await getHoldings(portfolioId);
+        logger.debug('<<fetch %s', portfolioId);
+        setData(result);
+      } catch (error) {
+        logger.error(error);
+        setErrorState(error);
+      }
+      setLoading(false);
+    };
+
+    fetchHoldings();
+  }, [portfolioId]);
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
-    label: "Portfolio"
+    label: 'Portfolio'
   });
   const [hideEmpty, setHideEmpty] = useState<boolean>(true);
   const [groupBy, setGroupBy] = useState<GroupOption>({
     value: GroupBy.MARKET_CURRENCY,
-    label: "Currency"
+    label: 'Currency'
   });
 
-  if (getLoading) {
+  if (loading) {
     return <div id="root">Loading...</div>;
   }
-  if (getError) {
-    return <div id="root">${getError.message}</div>;
+  if (errorState) {
+    logger.error('Error: %s', errorState.message);
+    return <div id="root">${errorState.message}</div>;
   }
-  if (getData) {
-    const holdings = calculate(getData.data, hideEmpty, valueIn.value, groupBy.value) as Holdings;
-
+  if (data) {
+    const holdings = calculate(data, hideEmpty, valueIn.value, groupBy.value) as Holdings;
     return (
       <div className="page-box">
         <div className="filter-columns">
@@ -83,18 +91,18 @@ export default function ViewHoldings(portfolioId: string | undefined): JSX.Eleme
             <Switch className="react-switch" onChange={setHideEmpty} checked={hideEmpty} required />
           </div>
         </div>
-        <div className={"stats-container"}>
+        <div className={'stats-container'}>
           <table>
-            <StatsHeader portfolio={getData.data.portfolio} />
+            <StatsHeader portfolio={data.portfolio} />
             <StatsRow
-              portfolio={getData.data.portfolio}
+              portfolio={data.portfolio}
               moneyValues={holdings.totals}
               valueIn={valueIn.value}
             />
           </table>
         </div>
-        <div className={"all-holdings"}>
-          <table className={"table is-striped is-hoverable"}>
+        <div className={'all-holdings'}>
+          <table className={'table is-striped is-hoverable'}>
             {Object.keys(holdings.holdingGroups)
               .sort()
               .map(groupKey => {

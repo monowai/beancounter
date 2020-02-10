@@ -1,40 +1,41 @@
 import React from "react";
-import { cleanup, render, waitForElement } from "@testing-library/react";
+import { render, waitForElement } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
-import { renderHook } from "@testing-library/react-hooks";
 import ViewHoldings from "../holdings";
 import nock from "nock";
 import { runtimeConfig } from "../config";
 
-afterEach(cleanup);
 nock(runtimeConfig().bcService)
-  .get("/api/test/today")
-  .replyWithFile(200, __dirname + "/contracts/test-holdings.json", {
-    "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
-  });
+  .get('/test/today')
+  .replyWithFile(200, __dirname + '/contracts/test-holdings.json', {
+    'Access-Control-Allow-Origin': '*',
+    'Content-type': 'application/json'
+  })
+  .get('/zero/today')
+  .replyWithFile(200, __dirname + '/contracts/zero-holdings.json', {
+    'Access-Control-Allow-Origin': '*',
+    'Content-type': 'application/json'
+  })
+  .log(console.log);
 
-nock(runtimeConfig().bcService)
-  .get("/api/zero/today")
-  .replyWithFile(200, __dirname + "/contracts/zero-holdings.json", {
-    "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
-  });
-
-describe("<ViewHoldings />", () => {
-  it("matches snapshot when holdings present", async () => {
-    const { result, waitForNextUpdate } = renderHook(() => ViewHoldings("test"));
-    const container = render(result.current);
-    await waitForNextUpdate();
-    waitForElement(() => container.getByText("USD"));
+describe('<ViewHoldings />', () => {
+  it('matches snapshot when holdings present', async () => {
+    const TestHoldings = (): JSX.Element => {
+      return ViewHoldings('test');
+    };
+    const { getByText, container } = render(<TestHoldings />);
+    await waitForElement(() => getByText('USD'));
+    expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });
 
-  // it("matches snapshot for zero holdings", async () => {
-  //   const { result, waitForNextUpdate } = renderHook(() => ViewHoldings("zero"));
-  //   const container = render(result.current);
-  //   await waitForNextUpdate();
-  //   waitForElement(() => container.getByText("USD"));
-  //   expect(container).toMatchSnapshot();
-  // });
+  it('matches snapshot for zero holdings', async () => {
+    const ZeroHoldings = (): JSX.Element => {
+      return ViewHoldings('zero');
+    };
+    const { getByText, container } = render(<ZeroHoldings />);
+    await waitForElement(() => getByText('Value In'));
+    expect(nock.isDone());
+    expect(container).toMatchSnapshot();
+  });
 });

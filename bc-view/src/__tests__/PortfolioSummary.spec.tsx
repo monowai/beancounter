@@ -6,11 +6,11 @@ import { Currency, Portfolio } from "../types/beancounter";
 
 afterEach(cleanup);
 
-const usd: Currency = { id: "us", code: "USD", symbol: "$" };
+const usd: Currency = { id: 'us', code: 'USD', symbol: '$' };
 
-describe("<PortfolioStats />", () => {
-  it("should match snapshot", () => {
-    const portfolio: Portfolio = { code: "mike", currency: usd, base: usd };
+describe('<PortfolioStats />', () => {
+  it('should match snapshot', () => {
+    const portfolio: Portfolio = { code: 'mike', currency: usd, base: usd };
     const container = render(
       <table>
         <PortfolioStats portfolio={portfolio} />

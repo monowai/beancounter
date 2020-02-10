@@ -16,13 +16,13 @@ if (!i18n.isInitialized) {
   i18n.init(
     {
       debug: false,
-      defaultNS: "translations",
-      fallbackLng: "en",
+      defaultNS: 'translations',
+      fallbackLng: 'en',
       nonExplicitWhitelist: true,
-      whitelist: ["en"],
+      whitelist: ['en'],
       interpolation: {
         escapeValue: false, // react already safes from xss
-        formatSeparator: ",",
+        formatSeparator: ',',
         format: (value, format, lng) => {
           if (!format || !lng || !value) {
             return value;
@@ -31,21 +31,21 @@ if (!i18n.isInitialized) {
         }
       },
       keySeparator: false, // we do not use keys in form messages.welcome
-      lng: "en",
-      load: "languageOnly",
-      ns: ["translations"],
+      lng: 'en',
+      load: 'languageOnly',
+      ns: ['translations'],
       backend: {
         // for all available options read the backend's repository readme file
-        loadPath: "/locales/{{lng}}/{{ns}}.json"
+        loadPath: '/locales/{{lng}}/{{ns}}.json'
       },
       react: {
-        transKeepBasicHtmlNodesFor: ["br", "strong", "i", "p", "\n"],
+        transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p', '\n'],
         transSupportBasicHtmlNodes: true
       }
     },
     function(err, t) {
       // initialized and ready to go!
-      logger.info("i18n " + t("app") + " initialised");
+      logger.info('i18n ' + t('app') + ' initialised');
     }
   );
 }

@@ -39,7 +39,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-actuator",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2",
-            "org.postgresql:postgresql:42.2.9",
+            "org.postgresql:postgresql:42.2.10",
             "org.projectlombok:lombok"
     )
 

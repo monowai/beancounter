@@ -1,5 +1,5 @@
-import winston from "winston";
-import { TransformableInfo } from "logform";
+import winston from 'winston';
+import {TransformableInfo} from 'logform';
 
 const logger = winston.createLogger({
   level: 'info',
@@ -18,7 +18,7 @@ const logger = winston.createLogger({
     // - Write all logs error (and below) to `error.log`.
     //
     // new winston.transports.File({ filename: 'combined.log' }),
-    new winston.transports.Console({ level: 'debug' })
+    new winston.transports.Console({level: 'debug'})
   ]
   //exceptionHandlers: [new transports.File({ filename: "exceptions.log" })]
 });

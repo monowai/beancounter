@@ -1,5 +1,5 @@
-import { GroupBy } from "./groupBy";
-import { ValuationCcy } from "./valueBy";
+import {GroupBy} from './groupBy';
+import {ValuationCcy} from './valueBy';
 
 declare global {
   interface Window {

@@ -1,4 +1,4 @@
-import { serverEnv } from "./common/utils";
+import {serverEnv} from './common/utils';
 
 export function runtimeConfig(): BcOptions {
   return typeof window !== 'undefined' && window.env !== 'undefined'

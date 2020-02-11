@@ -1,11 +1,11 @@
-import React from "react";
-import "../assets/styles.sass";
-import { translate } from "../i18nConfig";
-import { MoneyValues, Portfolio } from "../types/beancounter";
-import { FormatMoneyValue } from "../common/MoneyUtils";
-import { ValueIn } from "../types/valueBy";
+import React from 'react';
+import '../assets/styles.sass';
+import {translate} from '../i18nConfig';
+import {MoneyValues, Portfolio} from '../types/beancounter';
+import {FormatMoneyValue} from '../common/MoneyUtils';
+import {ValueIn} from '../types/valueBy';
 
-export default function StatsHeader(props: { portfolio: Portfolio }): JSX.Element {
+export default function StatsHeader(props: {portfolio: Portfolio}): JSX.Element {
   return (
     <tbody key={props.portfolio.code}>
       <tr className={'stats-header'}>

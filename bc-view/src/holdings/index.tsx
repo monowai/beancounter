@@ -1,16 +1,16 @@
-import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
-import React, { useEffect, useState } from "react";
-import "../App.css";
-import { calculate } from "./calculate";
-import { GroupBy, groupOptions } from "../types/groupBy";
-import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
-import Total from "./Total";
-import StatsHeader, { StatsRow } from "../portfolio/Stats";
-import Switch from "react-switch";
-import Select, { ValueType } from "react-select";
-import { valuationOptions, ValueIn } from "../types/valueBy";
-import { getHoldings } from "../bcApi";
-import logger from "../ConfigLogging";
+import {HoldingFooter, HoldingHeader, HoldingRows} from './Group';
+import React, {useEffect, useState} from 'react';
+import '../App.css';
+import {calculate} from './calculate';
+import {GroupBy, groupOptions} from '../types/groupBy';
+import {GroupOption, Holdings, ValuationOption} from '../types/beancounter';
+import Total from './Total';
+import StatsHeader, {StatsRow} from '../portfolio/Stats';
+import Switch from 'react-switch';
+import Select, {ValueType} from 'react-select';
+import {valuationOptions, ValueIn} from '../types/valueBy';
+import {getHoldings} from '../bcApi';
+import logger from '../ConfigLogging';
 
 export default function ViewHoldings(portfolioId: string): React.ReactElement {
   const [data, setData] = useState();

@@ -1,7 +1,7 @@
-import React from "react";
-import "./Error.scss";
-import { RouteComponentProps } from "react-router-dom";
-import { serverEnv } from "../utils";
+import React from 'react';
+import './Error.scss';
+import {RouteComponentProps} from 'react-router-dom';
+import {serverEnv} from '../utils';
 
 const DevMessage = ({
   debug,
@@ -24,7 +24,7 @@ const DevMessage = ({
 export default function Error(props: RouteComponentProps): JSX.Element | null {
   const debug = serverEnv('NODE_ENV', 'development') !== 'production';
   // const { t } = useTranslation();
-  const { location = { state: props } } = props;
+  const {location = {state: props}} = props;
   const errorMessage = debug ? JSON.stringify(location, null, 2) : '';
 
   return (

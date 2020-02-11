@@ -1,5 +1,5 @@
-import { translate } from "../i18nConfig";
-import { GroupOption } from "./beancounter";
+import {translate} from '../i18nConfig';
+import {GroupOption} from './beancounter';
 
 // Enum is a path to a property in the holding contract
 export enum GroupBy {
@@ -23,6 +23,6 @@ export function groupOptions(): GroupOption[] {
       value: GroupBy.MARKET_CURRENCY,
       label: description(GroupBy.MARKET_CURRENCY)
     },
-    { value: GroupBy.MARKET, label: description(GroupBy.MARKET) }
+    {value: GroupBy.MARKET, label: description(GroupBy.MARKET)}
   ];
 }

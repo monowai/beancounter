@@ -1,6 +1,6 @@
-import { HoldingContract, Holdings, MoneyValues, Position } from "../types/beancounter";
-import { GroupBy } from "../types/groupBy";
-import { ValueIn } from "../types/valueBy";
+import {HoldingContract, Holdings, MoneyValues, Position} from '../types/beancounter';
+import {GroupBy} from '../types/groupBy';
+import {ValueIn} from '../types/valueBy';
 
 function getPath(path: string, position: Position): string {
   return (path

@@ -1,18 +1,18 @@
 //import App from "./App";
-import React from "react";
-import { StaticRouter } from "react-router-dom";
-import express from "express";
-import { renderToString } from "react-dom/server";
-import { Helmet } from "react-helmet";
-import i18n from "./i18nConfig";
-import Backend from "i18next-node-fs-backend";
-import { I18nextProvider } from "react-i18next"; // has no proper import yet
-import * as path from "path";
-import fs from "fs";
-import i18nextMiddleware from "i18next-express-middleware";
-import logger from "./ConfigLogging";
-import App from "./App";
-import { runtimeConfig } from "./config";
+import React from 'react';
+import {StaticRouter} from 'react-router-dom';
+import express from 'express';
+import {renderToString} from 'react-dom/server';
+import {Helmet} from 'react-helmet';
+import i18n from './i18nConfig';
+import Backend from 'i18next-node-fs-backend';
+import {I18nextProvider} from 'react-i18next'; // has no proper import yet
+import * as path from 'path';
+import fs from 'fs';
+import i18nextMiddleware from 'i18next-express-middleware';
+import logger from './ConfigLogging';
+import App from './App';
+import {runtimeConfig} from './config';
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
@@ -59,7 +59,7 @@ i18n
         .disable('x-powered-by')
         .use('/locales', express.static(`${resolveApp(staticDir)}/locales`))
         .use(i18nextMiddleware.handle(i18n))
-        .use(express.urlencoded({ extended: true }))
+        .use(express.urlencoded({extended: true}))
         .use(express.static(staticDir))
         .use(express.json())
         .get('/*', (req: express.Request, res: express.Response) => {
@@ -76,7 +76,7 @@ i18n
           const helmet = Helmet.renderStatic();
           // This line must be placed after renderToString method
           // otherwise context won't be populated by App
-          const { url } = context;
+          const {url} = context;
 
           if (url && req.url !== '/') {
             res.redirect(url);

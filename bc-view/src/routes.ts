@@ -1,9 +1,9 @@
-import Home from "./Home";
-import ViewHoldings from "./holdings";
-import { useParams } from "react-router-dom";
+import Home from './Home';
+import ViewHoldings from './holdings';
+import {useParams} from 'react-router-dom';
 
 const RouteHoldings = (): JSX.Element => {
-  const { portfolioId } = useParams();
+  const {portfolioId} = useParams();
   if (portfolioId) return ViewHoldings(portfolioId);
   return ViewHoldings('portfolioId');
 };

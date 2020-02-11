@@ -1,12 +1,12 @@
-import React from "react";
-import NumberFormat from "react-number-format";
-import { HoldingGroup } from "../types/beancounter";
+import React from 'react';
+import NumberFormat from 'react-number-format';
+import {HoldingGroup} from '../types/beancounter';
 
-import { translate } from "../i18nConfig";
-import { FormatMoneyValue } from "../common/MoneyUtils";
-import { ValueIn } from "../types/valueBy";
+import {translate} from '../i18nConfig';
+import {FormatMoneyValue} from '../common/MoneyUtils';
+import {ValueIn} from '../types/valueBy';
 
-export function HoldingHeader(props: { groupKey: string }): JSX.Element {
+export function HoldingHeader(props: {groupKey: string}): JSX.Element {
   return (
     <tbody className={'table-header'}>
       <tr>
@@ -25,7 +25,7 @@ export function HoldingHeader(props: { groupKey: string }): JSX.Element {
   );
 }
 
-export function HoldingRows(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }): JSX.Element {
+export function HoldingRows(props: {holdingGroup: HoldingGroup; valueIn: ValueIn}): JSX.Element {
   const valueIn = props.valueIn;
   // eslint-disable-next-line complexity
   const holdings = props.holdingGroup.positions.map((position, index) => (
@@ -70,10 +70,7 @@ export function HoldingRows(props: { holdingGroup: HoldingGroup; valueIn: ValueI
   return <tbody>{holdings}</tbody>;
 }
 
-export function HoldingFooter(props: {
-  holdingGroup: HoldingGroup;
-  valueIn: ValueIn;
-}): JSX.Element {
+export function HoldingFooter(props: {holdingGroup: HoldingGroup; valueIn: ValueIn}): JSX.Element {
   const valueIn = props.valueIn;
   const holdingGroup = props.holdingGroup;
   return (

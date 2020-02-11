@@ -1,8 +1,8 @@
-import i18n from "i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
-import { initReactI18next } from "react-i18next";
-import XHR from "i18next-xhr-backend";
-import logger from "./ConfigLogging";
+import i18n from 'i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import {initReactI18next} from 'react-i18next';
+import XHR from 'i18next-xhr-backend';
+import logger from './ConfigLogging';
 
 if (process && !process.release) {
   i18n

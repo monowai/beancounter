@@ -1,7 +1,7 @@
-import axios, { AxiosResponse } from "axios";
-import { runtimeConfig } from "./config";
-import { HoldingContract } from "./types/beancounter";
-import logger from "./ConfigLogging";
+import axios, {AxiosResponse} from 'axios';
+import {runtimeConfig} from './config';
+import {HoldingContract} from './types/beancounter';
+import logger from './ConfigLogging';
 
 const server = axios.create({
   baseURL: runtimeConfig().bcService

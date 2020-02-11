@@ -1,6 +1,6 @@
-import NumberFormat from "react-number-format";
-import React from "react";
-import { MoneyFields, MoneyValues } from "../types/beancounter";
+import NumberFormat from 'react-number-format';
+import React from 'react';
+import {MoneyFields, MoneyValues} from '../types/beancounter';
 
 export function FormatMoneyValue(props: {
   moneyValues: MoneyValues;

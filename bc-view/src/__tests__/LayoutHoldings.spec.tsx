@@ -1,9 +1,9 @@
-import React from "react";
-import { render, waitForElement } from "@testing-library/react";
-import "@testing-library/jest-dom/extend-expect";
-import ViewHoldings from "../holdings";
-import nock from "nock";
-import { runtimeConfig } from "../config";
+import React from 'react';
+import {render, waitForElement} from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import ViewHoldings from '../holdings';
+import nock from 'nock';
+import {runtimeConfig} from '../config';
 
 nock(runtimeConfig().bcService)
   .get('/test/today')
@@ -23,7 +23,7 @@ describe('<ViewHoldings />', () => {
     const TestHoldings = (): JSX.Element => {
       return ViewHoldings('test');
     };
-    const { getByText, container } = render(<TestHoldings />);
+    const {getByText, container} = render(<TestHoldings />);
     await waitForElement(() => getByText('USD'));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
@@ -33,7 +33,7 @@ describe('<ViewHoldings />', () => {
     const ZeroHoldings = (): JSX.Element => {
       return ViewHoldings('zero');
     };
-    const { getByText, container } = render(<ZeroHoldings />);
+    const {getByText, container} = render(<ZeroHoldings />);
     await waitForElement(() => getByText('Value In'));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();

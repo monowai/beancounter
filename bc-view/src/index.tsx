@@ -1,5 +1,5 @@
-import express from "express";
-import logger from "./ConfigLogging";
+import express from 'express';
+import logger from './ConfigLogging';
 
 // this require is necessary for server HMR to recover from error
 // tslint:disable-next-line:no-var-requires

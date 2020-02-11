@@ -1,9 +1,9 @@
-import React, { Suspense } from "react";
-import { hydrate } from "react-dom";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
-import { useSSR } from "react-i18next";
+import React, {Suspense} from 'react';
+import {hydrate} from 'react-dom';
+import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import {useSSR} from 'react-i18next';
 
-import App from "./App";
+import App from './App';
 
 declare global {
   interface WindowI18n extends Window {

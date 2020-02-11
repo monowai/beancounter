@@ -24,7 +24,7 @@ class TestAlphaProvider {
   void is_NullAsset() throws Exception {
     ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/alphavantage-EMPTY-response.json").getFile();
+        + "/alphavantage-empty-response.json").getFile();
     assertThat(mapper.readValue(jsonFile, MarketData.class)).isNull();
   }
 

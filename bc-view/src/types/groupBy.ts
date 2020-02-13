@@ -1,20 +1,20 @@
-import {translate} from '../i18nConfig';
-import {GroupOption} from './beancounter';
+import { translate } from "../i18nConfig";
+import { GroupOption } from "./beancounter";
 
 // Enum is a path to a property in the holding contract
 export enum GroupBy {
-  MARKET_CURRENCY = 'asset.market.currency.code',
-  MARKET = 'asset.market.code'
+  MARKET_CURRENCY = "asset.market.currency.code",
+  MARKET = "asset.market.code"
 }
 
 export function description(groupBy: GroupBy): string {
   if (groupBy === GroupBy.MARKET_CURRENCY) {
-    return translate('groupby.currency');
+    return translate("groupby.currency");
   }
   if (groupBy === GroupBy.MARKET) {
-    return translate('groupby.market');
+    return translate("groupby.market");
   }
-  return translate('groupby.unknown');
+  return translate("groupby.unknown");
 }
 
 export function groupOptions(): GroupOption[] {
@@ -23,6 +23,6 @@ export function groupOptions(): GroupOption[] {
       value: GroupBy.MARKET_CURRENCY,
       label: description(GroupBy.MARKET_CURRENCY)
     },
-    {value: GroupBy.MARKET, label: description(GroupBy.MARKET)}
+    { value: GroupBy.MARKET, label: description(GroupBy.MARKET) }
   ];
 }

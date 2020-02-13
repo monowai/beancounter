@@ -1,8 +1,8 @@
-import axios, {AxiosRequestConfig} from 'axios';
-import {runtimeConfig} from './config';
-import logger from './ConfigLogging';
-import express from 'express';
-import {URL} from 'url';
+import axios, { AxiosRequestConfig } from "axios";
+import { runtimeConfig } from "./config";
+import logger from "./ConfigLogging";
+import express from "express";
+import { URL } from "url";
 
 const svcPosition = (req: any): URL => {
   return new URL(req.originalUrl, runtimeConfig().bcPositions);
@@ -27,12 +27,12 @@ const svcPosition = (req: any): URL => {
 
 export const handleGetApi = async (req: express.Request, res: express.Response): Promise<any> => {
   try {
-    logger.debug('api url %s', svcPosition(req));
+    logger.debug("api url %s", svcPosition(req));
 
     const opts = {
       url: svcPosition(req).toString(),
       body: req.body,
-      method: 'GET'
+      method: "GET"
     } as AxiosRequestConfig;
 
     const response = await axios(opts);

@@ -1,21 +1,21 @@
-import Home from './Home';
-import ViewHoldings from './holdings';
-import {useParams} from 'react-router-dom';
+import Home from "./Home";
+import ViewHoldings from "./holdings";
+import { useParams } from "react-router-dom";
 
 const RouteHoldings = (): JSX.Element => {
-  const {portfolioId} = useParams();
+  const { portfolioId } = useParams();
   if (portfolioId) return ViewHoldings(portfolioId);
-  return ViewHoldings('portfolioId');
+  return ViewHoldings("portfolioId");
 };
 
 const Routes = [
   {
-    path: '/',
+    path: "/",
     exact: true,
     component: Home
   },
   {
-    path: '/holdings/:portfolioId',
+    path: "/holdings/:portfolioId",
     component: RouteHoldings
   }
 ];

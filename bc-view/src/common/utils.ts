@@ -1,5 +1,5 @@
-import {propOr} from 'ramda';
-import axios, {AxiosInstance} from 'axios';
+import { propOr } from "ramda";
+import axios, { AxiosInstance } from "axios";
 
 export const serverEnv = (key: string, def: string): string => propOr(def, key, process.env);
 

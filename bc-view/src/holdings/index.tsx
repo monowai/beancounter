@@ -1,16 +1,16 @@
-import {HoldingFooter, HoldingHeader, HoldingRows} from './Group';
-import React, {useEffect, useState} from 'react';
-import '../App.css';
-import {calculate} from './calculate';
-import {GroupBy, groupOptions} from '../types/groupBy';
-import {GroupOption, HoldingContract, Holdings, ValuationOption} from '../types/beancounter';
-import Total from './Total';
-import StatsHeader, {StatsRow} from '../portfolio/Stats';
-import Switch from 'react-switch';
-import Select, {ValueType} from 'react-select';
-import {valuationOptions, ValueIn} from '../types/valueBy';
-import logger from '../ConfigLogging';
-import {axiosBff} from '../common/utils';
+import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
+import React, { useEffect, useState } from "react";
+import "../App.css";
+import { calculate } from "./calculate";
+import { GroupBy, groupOptions } from "../types/groupBy";
+import { GroupOption, HoldingContract, Holdings, ValuationOption } from "../types/beancounter";
+import Total from "./Total";
+import StatsHeader, { StatsRow } from "../portfolio/Stats";
+import Switch from "react-switch";
+import Select, { ValueType } from "react-select";
+import { valuationOptions, ValueIn } from "../types/valueBy";
+import logger from "../ConfigLogging";
+import { axiosBff } from "../common/utils";
 
 export default function ViewHoldings(portfolioId: string): React.ReactElement {
   const [data, setData] = useState();
@@ -21,10 +21,10 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
     const fetchHoldings = async (): Promise<void> => {
       try {
         setLoading(true);
-        logger.debug('>>fetch %s', portfolioId);
+        logger.debug(">>fetch %s", portfolioId);
 
         const result = await axiosBff().get<HoldingContract>(`/api/${portfolioId}/today`);
-        logger.debug('<<fetch %s %s', portfolioId, result);
+        logger.debug("<<fetch %s %s", portfolioId, result);
         setData(result.data);
       } catch (error) {
         logger.error(error);
@@ -37,19 +37,19 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
   }, [portfolioId]);
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
-    label: 'Portfolio'
+    label: "Portfolio"
   });
   const [hideEmpty, setHideEmpty] = useState<boolean>(true);
   const [groupBy, setGroupBy] = useState<GroupOption>({
     value: GroupBy.MARKET_CURRENCY,
-    label: 'Currency'
+    label: "Currency"
   });
 
   if (loading) {
     return <div id="root">Loading...</div>;
   }
   if (errorState) {
-    logger.error('Error: %s', errorState.message);
+    logger.error("Error: %s", errorState.message);
     return <div id="root">${errorState.message}</div>;
   }
   if (data) {
@@ -92,7 +92,7 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
             <Switch className="react-switch" onChange={setHideEmpty} checked={hideEmpty} required />
           </div>
         </div>
-        <div className={'stats-container'}>
+        <div className={"stats-container"}>
           <table>
             <StatsHeader portfolio={data.portfolio} />
             <StatsRow
@@ -102,8 +102,8 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
             />
           </table>
         </div>
-        <div className={'all-holdings'}>
-          <table className={'table is-striped is-hoverable'}>
+        <div className={"all-holdings"}>
+          <table className={"table is-striped is-hoverable"}>
             {Object.keys(holdings.holdingGroups)
               .sort()
               .map(groupKey => {

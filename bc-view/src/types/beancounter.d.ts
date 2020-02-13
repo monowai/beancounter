@@ -1,5 +1,5 @@
-import {GroupBy} from './groupBy';
-import {ValuationCcy} from './valueBy';
+import { GroupBy } from "./groupBy";
+import { ValuationCcy } from "./valueBy";
 
 declare global {
   interface Window {
@@ -10,17 +10,17 @@ declare global {
 }
 
 export type MoneyFields =
-  | 'dividends'
-  | 'price'
-  | 'costValue'
-  | 'averageCost'
-  | 'realisedGain'
-  | 'unrealisedGain'
-  | 'totalGain'
-  | 'sales'
-  | 'purchases'
-  | 'marketValue'
-  | 'investmentGain';
+  | "dividends"
+  | "price"
+  | "costValue"
+  | "averageCost"
+  | "realisedGain"
+  | "unrealisedGain"
+  | "totalGain"
+  | "sales"
+  | "purchases"
+  | "marketValue"
+  | "investmentGain";
 
 export interface Market {
   code: string;

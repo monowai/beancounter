@@ -27,7 +27,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bc
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
-      BEANCOUNTER_MARKETDATA_PROVIDER_WTD_KEY: Set-Key-Here
+      BEANCOUNTER_MARKETDATA_PROVIDER_WTD_KEY: [Register with WTD and get a key]
     links:
       - postgres
 

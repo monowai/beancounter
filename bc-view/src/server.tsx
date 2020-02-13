@@ -13,6 +13,7 @@ import i18nextMiddleware from 'i18next-express-middleware';
 import logger from './ConfigLogging';
 import App from './App';
 import {runtimeConfig} from './config';
+import {handleGetApi} from './bcApi';
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
@@ -62,6 +63,7 @@ i18n
         .use(express.urlencoded({extended: true}))
         .use(express.static(staticDir))
         .use(express.json())
+        .get('/api/*', handleGetApi)
         .get('/*', (req: express.Request, res: express.Response) => {
           logger.debug(' Get for url %s', req.url);
           const context: any = {};

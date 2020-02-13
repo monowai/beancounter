@@ -19,10 +19,11 @@ services:
     image: bc/svc-data
     container_name: data
     expose:
-      - 9610
+      - 9510
     ports:
       - 9610:9510
     environment:
+      SERVER_PORT: 9510
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bc
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
@@ -33,10 +34,13 @@ services:
   position:
     image: bc/svc-position
     container_name: position
+    expose:
+      - 9500
     ports:
       - 9600:9500
 
     environment:
+      SERVER_PORT: 9500
       MARKETDATA_URL: "http://data:9510/api"
       MANAGEMENT_SERVER_PORT: 9621
     depends_on:
@@ -49,7 +53,8 @@ services:
 
     container_name: app
     environment:
-      BC_SERVICE: "http://localhost:9600/api"
+      SVC_POSITION: "http://position:9500"
+      SVC_DATA: "http://data:9600"
       RAZZLE_PUBLIC_DIR: "http://localhost:4000"
     depends_on:
       - position

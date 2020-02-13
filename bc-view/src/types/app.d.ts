@@ -1,3 +1,4 @@
 interface BcOptions {
-  bcService: string;
+  bcPositions: string;
+  bcData: string;
 }

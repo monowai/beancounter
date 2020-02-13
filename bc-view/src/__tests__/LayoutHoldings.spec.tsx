@@ -3,15 +3,16 @@ import {render, waitForElement} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import ViewHoldings from '../holdings';
 import nock from 'nock';
-import {runtimeConfig} from '../config';
 
-nock(runtimeConfig().bcService)
-  .get('/test/today')
+const bff = 'http://localhost';
+
+nock(bff)
+  .get('/api/test/today')
   .replyWithFile(200, __dirname + '/contracts/test-holdings.json', {
     'Access-Control-Allow-Origin': '*',
     'Content-type': 'application/json'
   })
-  .get('/zero/today')
+  .get('/api/zero/today')
   .replyWithFile(200, __dirname + '/contracts/zero-holdings.json', {
     'Access-Control-Allow-Origin': '*',
     'Content-type': 'application/json'

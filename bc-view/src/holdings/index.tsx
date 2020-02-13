@@ -3,14 +3,14 @@ import React, {useEffect, useState} from 'react';
 import '../App.css';
 import {calculate} from './calculate';
 import {GroupBy, groupOptions} from '../types/groupBy';
-import {GroupOption, Holdings, ValuationOption} from '../types/beancounter';
+import {GroupOption, HoldingContract, Holdings, ValuationOption} from '../types/beancounter';
 import Total from './Total';
 import StatsHeader, {StatsRow} from '../portfolio/Stats';
 import Switch from 'react-switch';
 import Select, {ValueType} from 'react-select';
 import {valuationOptions, ValueIn} from '../types/valueBy';
-import {getHoldings} from '../bcApi';
 import logger from '../ConfigLogging';
+import {axiosBff} from '../common/utils';
 
 export default function ViewHoldings(portfolioId: string): React.ReactElement {
   const [data, setData] = useState();
@@ -22,9 +22,10 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
       try {
         setLoading(true);
         logger.debug('>>fetch %s', portfolioId);
-        const result = await getHoldings(portfolioId);
-        logger.debug('<<fetch %s', portfolioId);
-        setData(result);
+
+        const result = await axiosBff().get<HoldingContract>(`/api/${portfolioId}/today`);
+        logger.debug('<<fetch %s %s', portfolioId, result);
+        setData(result.data);
       } catch (error) {
         logger.error(error);
         setErrorState(error);

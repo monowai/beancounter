@@ -1,21 +1,19 @@
 {
-  "data": {
-    "portfolio": {
-      "id": "zero",
-      "code": "zero",
-      "name": "NZD Portfolio",
-      "currency": {
-        "code": "NZD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "base": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      }
+  "portfolio": {
+    "id": "zero",
+    "code": "zero",
+    "name": "NZD Portfolio",
+    "currency": {
+      "code": "NZD",
+      "name": "Dollar",
+      "symbol": "$"
     },
-    "asAt": null,
-    "positions": {}
-  }
+    "base": {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    }
+  },
+  "asAt": null,
+  "positions": {}
 }

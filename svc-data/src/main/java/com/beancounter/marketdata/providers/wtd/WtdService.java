@@ -137,8 +137,8 @@ public class WtdService implements MarketDataProvider {
 
 
   private MarketData getDefault(Asset asset, String dpAsset, BatchConfig batchConfig) {
-    log.warn("Unable to locate a price on {} for {} using code {}. Returning a default",
-        batchConfig.getDate(), asset, dpAsset);
+    log.warn("{}/{} - unable to locate a price on {}",
+        dpAsset, asset.getName(), batchConfig.getDate());
 
     return MarketData.builder()
         .asset(asset)

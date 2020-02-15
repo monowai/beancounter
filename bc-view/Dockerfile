@@ -4,11 +4,11 @@ FROM node:12-alpine as builder
 
 WORKDIR /app
 
-RUN apk --no-cache --virtual build-dependencies add \
-    python \
-    make \
-    g++ \
-    && apk del build-dependencies
+#RUN apk --no-cache --virtual build-dependencies add \
+#    python \
+#    make \
+#    g++ \
+#    && apk del build-dependencies
 
 # Node dev dependency  for building other dependencies
 #RUN npm install -g node-gyp && npm info node-gyp | grep version
@@ -26,7 +26,7 @@ ENV NODE_ENV production
 ENV HOST 0.0.0.0
 ENV PORT 3000
 ENV RAZZLE_PUBLIC_DIR /app/build/public
-ENV RAZZLE_SERVICE http://localhost:9600/api
+ENV SVC_POSITION http://localhost:9500/api
 
 RUN mkdir /app
 WORKDIR /app

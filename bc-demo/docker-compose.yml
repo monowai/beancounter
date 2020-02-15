@@ -20,6 +20,7 @@ services:
     container_name: data
     expose:
       - 9510
+    # Publish this if you are running local:bc-view against docker services
     ports:
       - 9610:9510
     environment:
@@ -36,6 +37,7 @@ services:
     container_name: position
     expose:
       - 9500
+    # Publish this if you are running local:bc-view against docker services
     ports:
       - 9600:9500
 

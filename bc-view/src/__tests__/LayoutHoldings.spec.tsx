@@ -7,12 +7,12 @@ import nock from "nock";
 const bff = "http://localhost";
 
 nock(bff)
-  .get("/api/test/today")
+  .get("/bff/test/today")
   .replyWithFile(200, __dirname + "/contracts/test-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })
-  .get("/api/zero/today")
+  .get("/bff/zero/today")
   .replyWithFile(200, __dirname + "/contracts/zero-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"

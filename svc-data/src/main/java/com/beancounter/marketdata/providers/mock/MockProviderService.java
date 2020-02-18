@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
 
-  public MarketData getPrices(Asset asset) {
+  public MarketData getMarketData(Asset asset) {
     if (asset.getCode().equalsIgnoreCase("123")) {
       throw new BusinessException(
           String.format("Invalid asset code [%s]", asset.getCode()));
@@ -37,10 +37,10 @@ public class MockProviderService implements MarketDataProvider {
   }
 
   @Override
-  public Collection<MarketData> getPrices(PriceRequest priceRequest) {
+  public Collection<MarketData> getMarketData(PriceRequest priceRequest) {
     Collection<MarketData> results = new ArrayList<>(priceRequest.getAssets().size());
     for (Asset asset : priceRequest.getAssets()) {
-      results.add(getPrices(asset));
+      results.add(getMarketData(asset));
     }
     return results;
   }

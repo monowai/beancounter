@@ -13,9 +13,9 @@ import java.util.Collection;
  * @since 2019-01-27
  */
 public interface MarketDataProvider {
-  MarketData getPrices(Asset asset);
+  MarketData getMarketData(Asset asset);
 
-  Collection<MarketData> getPrices(PriceRequest priceRequest);
+  Collection<MarketData> getMarketData(PriceRequest priceRequest);
 
   /**
    * Convenience function to return the ID.

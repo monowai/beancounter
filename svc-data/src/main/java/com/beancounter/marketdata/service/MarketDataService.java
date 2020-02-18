@@ -61,7 +61,7 @@ public class MarketDataService {
 
     for (String dpId : factories.keySet()) {
       results.addAll(mdFactory.getMarketDataProvider(dpId)
-          .getPrices(priceRequest));
+          .getMarketData(priceRequest));
     }
     return PriceResponse.builder().data(results).build();
   }

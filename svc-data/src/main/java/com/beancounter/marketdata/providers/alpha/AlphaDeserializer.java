@@ -32,35 +32,30 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
 
   @Override
   public MarketData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    MarketData result = null;
     JsonNode source = p.getCodec().readTree(p);
 
     JsonNode nodeValue = source.get("Meta Data");
     Asset asset = getAsset(nodeValue);
-    if (asset == null) {
-      return null;
+    if (asset != null) {
+      String timeZone = getTimeZone(nodeValue);
+      nodeValue = source.get("Time Series (Daily)");
+      MapType mapType = mapper.getTypeFactory()
+          .constructMapType(LinkedHashMap.class, String.class, HashMap.class);
+      LinkedHashMap<?, ? extends LinkedHashMap<String, Object>>
+          allValues = mapper.readValue(nodeValue.toString(), mapType);
+      MarketData marketData = null;
+      Optional<? extends Map.Entry<?, ? extends LinkedHashMap<String, Object>>>
+          firstKey = allValues.entrySet().stream().findFirst();
+      if (firstKey.isPresent()) {
+        LocalDate localDateTime = DateUtils.getLocalDate(
+            firstKey.get().getKey().toString(), "yyyy-M-dd");
+        marketData = getMarketData(asset, localDateTime, firstKey.get().getValue());
+      }
+      result = marketData;
     }
-    String timeZone = getTimeZone(nodeValue);
 
-    nodeValue = source.get("Time Series (Daily)");
-
-    MapType mapType = mapper.getTypeFactory()
-        .constructMapType(LinkedHashMap.class, String.class, HashMap.class);
-
-
-    LinkedHashMap<?, ? extends LinkedHashMap<String, Object>>
-        allValues = mapper.readValue(nodeValue.toString(), mapType);
-
-    MarketData marketData = null;
-
-    Optional<? extends Map.Entry<?, ? extends LinkedHashMap<String, Object>>>
-        firstKey = allValues.entrySet().stream().findFirst();
-
-    if (firstKey.isPresent()) {
-      LocalDate localDateTime = DateUtils.getLocalDate(
-          firstKey.get().getKey().toString(), "yyyy-M-dd");
-      marketData = getMarketData(asset, localDateTime, firstKey.get().getValue());
-    }
-    return marketData;
+    return result;
   }
 
   private String getTimeZone(JsonNode nodeValue) {

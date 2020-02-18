@@ -3,7 +3,7 @@ package com.beancounter.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.providers.alpha.AlphaService;
+import com.beancounter.marketdata.providers.alpha.AlphaResponseHandler;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -18,11 +18,10 @@ import org.springframework.core.io.ClassPathResource;
  * @since 2019-03-03
  */
 class TestAlphaProvider {
-  private ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
+  private ObjectMapper mapper = new AlphaResponseHandler().getAlphaObjectMapper();
 
   @Test
   void is_NullAsset() throws Exception {
-    ObjectMapper mapper = new AlphaService().getAlphaObjectMapper();
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/alphavantage-empty-response.json").getFile();
     assertThat(mapper.readValue(jsonFile, MarketData.class)).isNull();

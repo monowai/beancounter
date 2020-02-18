@@ -79,7 +79,7 @@ class TestWorldTradingDataApi {
                     .withBody(new ObjectMapper().writeValueAsString(response))
                     .withStatus(200)));
 
-    Collection<MarketData> mdResult = wtdService.getPrices(PriceRequest.builder()
+    Collection<MarketData> mdResult = wtdService.getMarketData(PriceRequest.builder()
         .date("2019-11-15")
         .assets(assets).build()
     );
@@ -105,7 +105,7 @@ class TestWorldTradingDataApi {
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").getFile());
 
     Collection<MarketData> mdResult =
-        wtdService.getPrices(PriceRequest.builder()
+        wtdService.getMarketData(PriceRequest.builder()
             .date("2019-11-15")
             .assets(assets).build());
 
@@ -143,7 +143,7 @@ class TestWorldTradingDataApi {
     WtdMockUtils.mockWtdResponse(assets, mockInternet, priceDate, true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/APPL.json").getFile());
 
-    Collection<MarketData> mdResult = wtdService.getPrices(
+    Collection<MarketData> mdResult = wtdService.getMarketData(
         PriceRequest.builder().assets(assets).build());
 
     assertThat(mdResult)
@@ -174,7 +174,7 @@ class TestWorldTradingDataApi {
 
     WtdMockUtils.mockWtdResponse(assets, mockInternet, "2019-11-15", true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").getFile());
-    Collection<MarketData> prices = wtdService.getPrices(
+    Collection<MarketData> prices = wtdService.getMarketData(
         PriceRequest.builder()
             .date("2019-11-15")
             .assets(assets).build());

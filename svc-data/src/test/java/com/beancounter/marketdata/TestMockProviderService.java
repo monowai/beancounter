@@ -25,7 +25,7 @@ class TestMockProviderService {
   void is_MockProviderReturningValues() {
     Asset asset = AssetUtils.getAsset("Anything", "MOCK");
     MarketDataProvider provider = new MockProviderService();
-    MarketData result = provider.getPrices(asset);
+    MarketData result = provider.getMarketData(asset);
     assertThat(result)
         .isNotNull()
         .hasFieldOrPropertyWithValue("close", new BigDecimal("999.99"));
@@ -36,7 +36,7 @@ class TestMockProviderService {
     // Hard coded asset exception
     Asset asset = AssetUtils.getAsset("123", "MOCK");
     MarketDataProvider provider = new MockProviderService();
-    assertThrows(BusinessException.class, () -> provider.getPrices(asset));
+    assertThrows(BusinessException.class, () -> provider.getMarketData(asset));
   }
 
 }

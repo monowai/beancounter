@@ -23,13 +23,12 @@ public class MdFactory {
 
   private Map<String, MarketDataProvider> providers = new HashMap<>();
 
-  @Autowired
   MdFactory(MockProviderService mockProviderService,
             AlphaService alphaService,
             WtdService wtdService) {
     providers.put(mockProviderService.getId().toUpperCase(), mockProviderService);
-    providers.put(alphaService.getId().toUpperCase(), alphaService);
     providers.put(wtdService.getId().toUpperCase(), wtdService);
+    providers.put(alphaService.getId().toUpperCase(), alphaService);
   }
 
   /**
@@ -53,14 +52,10 @@ public class MdFactory {
 
   private MarketDataProvider resolveProvider(Market market) {
     // ToDo: Map Market to Provider
-    if (providers.get(MockProviderService.ID).isMarketSupported(market)) {
-      return providers.get(MockProviderService.ID);
-    }
-    if (providers.get(AlphaService.ID).isMarketSupported(market)) {
-      return providers.get(AlphaService.ID);
-    }
-    if (providers.get(WtdService.ID).isMarketSupported(market)) {
-      return providers.get(WtdService.ID);
+    for (String key : providers.keySet()) {
+      if (providers.get(key).isMarketSupported(market)) {
+        return providers.get(key);
+      }
     }
     log.error("Unable to identify a provider for {}", market);
     return null;

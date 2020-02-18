@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({WtdService.class, StaticConfig.class, WtdRequester.class})
+@Import({WtdService.class, StaticConfig.class, WtdRequester.class, WtdResponseHandler.class})
 @Data
 public class WtdConfig implements DataProviderConfig {
 

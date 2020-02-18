@@ -1,17 +1,15 @@
 package com.beancounter.shell.cli;
 
 import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.service.AssetService;
-import com.beancounter.shell.service.BcService;
+import com.beancounter.shell.service.PortfolioService;
+import com.beancounter.shell.service.StaticService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -20,15 +18,18 @@ import org.springframework.shell.standard.ShellOption;
 @Slf4j
 public class DataCommands {
 
-  private BcService bcService;
   private AssetService assetService;
+  private PortfolioService portfolioService;
+  private StaticService staticService;
   private ObjectMapper objectMapper = new ObjectMapper();
   private ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
 
-  @Autowired
-  void setAssetService(AssetService assetService, BcService bcService) {
+  DataCommands(AssetService assetService,
+               PortfolioService portfolioService,
+               StaticService staticService) {
     this.assetService = assetService;
-    this.bcService = bcService;
+    this.portfolioService = portfolioService;
+    this.staticService = staticService;
   }
 
   @ShellMethod("Supported markets")
@@ -39,13 +40,16 @@ public class DataCommands {
   ) throws JsonProcessingException {
     if (marketCode != null) {
       MarketResponse marketResponse = MarketResponse.builder().build();
-      Market market = assetService.resolveMarket(marketCode);
+      Market market = staticService.resolveMarket(
+          marketCode, assetService, assetService.staticService
+      );
+
       if (market != null) {
         marketResponse.getData().add(market);
       }
       return writer.writeValueAsString(marketResponse);
     } else {
-      return writer.writeValueAsString(bcService.getMarkets());
+      return writer.writeValueAsString(staticService.getMarkets());
     }
 
   }
@@ -54,22 +58,16 @@ public class DataCommands {
   public String portfolio(
       @ShellOption(help = "By Code")
           String portfolioCode) throws JsonProcessingException {
-    Portfolio portfolio = bcService.getPortfolioByCode(portfolioCode);
-    PortfolioRequest portfolioRequest = PortfolioRequest.builder()
-        .data(Collections.singleton(portfolio))
-        .build();
-    return writer.writeValueAsString(portfolioRequest);
+    Portfolio portfolio = portfolioService.getPortfolioByCode(portfolioCode);
+    return writer.writeValueAsString(portfolio);
   }
 
   @ShellMethod("Find portfolio by id")
   public String portfolioId(
       @ShellOption(help = "By Code")
           String portfolioId) throws JsonProcessingException {
-    Portfolio portfolio = bcService.getPortfolioById(portfolioId);
-    PortfolioRequest portfolioRequest = PortfolioRequest.builder()
-        .data(Collections.singleton(portfolio))
-        .build();
-    return writer.writeValueAsString(portfolioRequest);
+    Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
+    return writer.writeValueAsString(portfolio);
   }
 
 }

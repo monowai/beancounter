@@ -7,7 +7,8 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.service.AssetService;
-import com.beancounter.shell.service.BcService;
+import com.beancounter.shell.service.PortfolioService;
+import com.beancounter.shell.service.StaticService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,31 +23,39 @@ import org.springframework.test.context.ActiveProfiles;
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class})
-public class BcServiceTest {
+public class StaticServiceTest {
   @Autowired
-  private BcService bcService;
+  private StaticService staticService;
+
+  @Autowired
+  private PortfolioService portfolioService;
 
   @Autowired
   private AssetService assetService;
 
   @Test
   void is_PortfolioFinders() {
-    Portfolio portfolioByCode = bcService.getPortfolioByCode("TEST");
-    Portfolio portfolioById = bcService.getPortfolioById("TEST");
+    Portfolio portfolioByCode = portfolioService.getPortfolioByCode("TEST");
+    Portfolio portfolioById = portfolioService.getPortfolioById("TEST");
 
     assertThat(portfolioByCode).isEqualToComparingFieldByField(portfolioById);
   }
 
   @Test
   void is_PortfolioIllegalArgumentsThrowing() {
-    assertThrows(BusinessException.class, () -> bcService.getPortfolioByCode(null));
-    assertThrows(BusinessException.class, () -> bcService.getPortfolioByCode("IA"));
-    assertThrows(BusinessException.class, () -> bcService.getPortfolioById(null));
+    assertThrows(BusinessException.class, () ->
+        portfolioService.getPortfolioByCode(null));
+    assertThrows(BusinessException.class, () ->
+        portfolioService.getPortfolioByCode("IA"));
+    assertThrows(BusinessException.class, () ->
+        portfolioService.getPortfolioById(null));
   }
 
   @Test
   void is_MarketIllegalArgumentsThrowing() {
-    assertThrows(BusinessException.class, () -> assetService.resolveMarket(null));
-    assertThrows(BusinessException.class, () -> assetService.resolveMarket("ERR"));
+    assertThrows(BusinessException.class, () ->
+        staticService.resolveMarket(null, assetService, assetService.staticService));
+    assertThrows(BusinessException.class, () ->
+        staticService.resolveMarket("ERR", assetService, assetService.staticService));
   }
 }

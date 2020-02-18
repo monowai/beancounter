@@ -3,9 +3,10 @@ package com.beancounter.shell.config;
 import com.beancounter.shell.reader.Filter;
 import com.beancounter.shell.reader.RowProcessor;
 import com.beancounter.shell.service.AssetService;
-import com.beancounter.shell.service.BcService;
 import com.beancounter.shell.service.FxRateService;
 import com.beancounter.shell.service.FxTransactions;
+import com.beancounter.shell.service.PortfolioService;
+import com.beancounter.shell.service.StaticService;
 import com.beancounter.shell.sharesight.ShareSightDivis;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
@@ -25,7 +26,9 @@ import org.springframework.context.annotation.Import;
     AssetService.class,
     FxTransactions.class,
     FxRateService.class,
-    BcService.class,
+    StaticService.class,
+    PortfolioService.class,
+    AssetService.class,
     Filter.class,
     RowProcessor.class,
     ExchangeConfig.class,

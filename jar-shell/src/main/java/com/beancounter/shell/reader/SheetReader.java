@@ -1,13 +1,15 @@
 package com.beancounter.shell.reader;
 
+import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.shell.model.IngestionRequest;
-import com.beancounter.shell.service.BcService;
 import com.beancounter.shell.service.FxTransactions;
+import com.beancounter.shell.service.PortfolioService;
+import com.beancounter.shell.service.TrnService;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,18 +40,19 @@ public class SheetReader implements Ingester {
   private FxTransactions fxTransactions;
   private ShareSightService shareSightService;
   private RowProcessor rowProcessor;
-  private BcService bcService;
+  private PortfolioService portfolioService;
+  private TrnService trnService;
 
   private ObjectMapper objectMapper = new ObjectMapper();
+
+  SheetReader(PortfolioService portfolioService,TrnService trnService) {
+    this.portfolioService = portfolioService;
+    this.trnService = trnService;
+  }
 
   @Autowired
   void setIngestWriter(IngestWriter ingestWriter) {
     this.ingestWriter = ingestWriter;
-  }
-
-  @Autowired
-  void setBcService(BcService bcService) {
-    this.bcService = bcService;
   }
 
   @Autowired
@@ -80,8 +83,8 @@ public class SheetReader implements Ingester {
    */
   public Collection<Trn> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
-    Portfolio portfolio;
-    portfolio = bcService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
+
+    Portfolio portfolio = portfolioService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
     if (portfolio == null) {
       throw new BusinessException(String.format("Unknown portfolio code %s. Please create it.",
           ingestionRequest.getPortfolioCode()));
@@ -116,7 +119,7 @@ public class SheetReader implements Ingester {
             .porfolioId(portfolio.getId())
             .trns(trns)
             .build();
-        bcService.write(trnRequest);
+        trnService.write(trnRequest);
       }
 
       if (outputStream != null) {

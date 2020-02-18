@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,8 +20,7 @@ public class GoogleTransport {
 
   private GoogleAuthConfig googleAuthConfig;
 
-  @Autowired
-  void setGoogleAuthConfig(GoogleAuthConfig googleAuthConfig) {
+  GoogleTransport(GoogleAuthConfig googleAuthConfig) {
     this.googleAuthConfig = googleAuthConfig;
   }
 

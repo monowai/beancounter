@@ -26,11 +26,13 @@ public class PortfolioService {
     this.portfolioRepository = portfolioRepository;
   }
 
-  public Iterable<Portfolio> save(Iterable<Portfolio> portfolios) {
-    return portfolioRepository.saveAll(prepare(portfolios));
+  public Collection<Portfolio> save(Collection<Portfolio> portfolios) {
+    Collection<Portfolio> results = new ArrayList<>();
+    portfolioRepository.saveAll(prepare(portfolios)).forEach(results::add);
+    return results;
   }
 
-  private Iterable<Portfolio> prepare(Iterable<Portfolio> portfolios) {
+  private Collection<Portfolio> prepare(Collection<Portfolio> portfolios) {
     for (Portfolio portfolio : portfolios) {
       portfolio.setCode(portfolio.getCode().toUpperCase());
     }

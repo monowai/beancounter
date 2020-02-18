@@ -4,13 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.cli.DataCommands;
 import com.beancounter.shell.cli.ShellPrompt;
 import com.beancounter.shell.cli.UtilCommands;
 import com.beancounter.shell.config.GoogleAuthConfig;
 import com.beancounter.shell.config.ShareSightConfig;
+import com.beancounter.shell.service.PortfolioService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(classes = {
     ShareSightConfig.class,
     DataCommands.class,
+    PortfolioService.class,
     ShellPrompt.class,
     GoogleAuthConfig.class,
     UtilCommands.class})
@@ -59,8 +61,8 @@ public class CommandTest {
   @Test
   void is_PortfolioByCode() throws Exception {
     String json = dataCommands.portfolio("TEST");
-    PortfolioRequest portfolioRequest = objectMapper.readValue(json, PortfolioRequest.class);
-    assertThat(portfolioRequest.getData()).hasSize(1);
+    Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
+    assertThat(portfolio).isNotNull();
 
     assertThrows(BusinessException.class, () -> dataCommands.portfolio("ILLEGAL"));
   }
@@ -68,8 +70,8 @@ public class CommandTest {
   @Test
   void is_PortfolioById() throws Exception {
     String json = dataCommands.portfolioId("TEST");
-    PortfolioRequest portfolioRequest = objectMapper.readValue(json, PortfolioRequest.class);
-    assertThat(portfolioRequest.getData()).hasSize(1);
+    Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
+    assertThat(portfolio).isNotNull();
 
     assertThrows(BusinessException.class, () -> dataCommands.portfolio("ILLEGAL"));
   }

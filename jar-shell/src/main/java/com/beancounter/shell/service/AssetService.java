@@ -2,40 +2,32 @@ package com.beancounter.shell.service;
 
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.shell.config.ExchangeConfig;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Service
 @Slf4j
 public class AssetService {
 
-  private ExchangeConfig exchangeConfig;
-  private BcService bcService;
-  private Map<String, Market> marketMap = new HashMap<>();
+  private AssetGateway assetGateway;
+  public StaticService staticService;
 
-  @Autowired
-  void setExchangeConfig(ExchangeConfig exchangeConfig) {
-    this.exchangeConfig = exchangeConfig;
-  }
-
-  @Autowired
-  void setBcService(BcService bcService) {
-    log.info("Connecting to the data service...");
-    this.bcService = bcService;
-    Collection<Market> markets = bcService.getMarkets().getData();
-    for (Market market : markets) {
-      marketMap.put(market.getCode(), market);
-    }
-    log.info("Connection to the data service is successful");
+  AssetService(AssetGateway assetGateway,
+               StaticService staticService) {
+    this.assetGateway = assetGateway;
+    this.staticService = staticService;
   }
 
   public Asset resolveAsset(String assetCode, String assetName, String marketCode) {
@@ -43,7 +35,7 @@ public class AssetService {
       // Support unit testings where we don't really care about the asset
       return AssetUtils.getAsset(assetCode, "MOCK");
     }
-    Market resolvedMarket = resolveMarket(marketCode);
+    Market resolvedMarket = staticService.resolveMarket(marketCode, this, staticService);
     String callerKey = AssetUtils.toKey(assetCode, resolvedMarket.getCode());
     AssetRequest assetRequest = AssetRequest.builder()
         .asset(callerKey, Asset.builder()
@@ -52,7 +44,7 @@ public class AssetService {
             .market(resolvedMarket)
             .build())
         .build();
-    AssetResponse assetResponse = bcService.getAssets(assetRequest);
+    AssetResponse assetResponse = assetGateway.assets(assetRequest);
     if (assetResponse == null) {
       throw new BusinessException(
           String.format("No response returned for %s:%s", assetCode, marketCode));
@@ -62,15 +54,18 @@ public class AssetService {
 
   }
 
-  public Market resolveMarket(String marketCode) {
-    if (marketCode == null) {
-      throw new BusinessException("Null Market Code");
-    }
-    Market market = marketMap.get(exchangeConfig.resolveAlias(marketCode.toUpperCase()));
-    if (market == null) {
-      throw new BusinessException(String.format("Unable to resolve market code %s", marketCode));
-    }
-    return market;
-  }
+  @FeignClient(name = "assets",
+      url = "${marketdata.url:http://localhost:9510/api}")
+  public interface AssetGateway {
+    @GetMapping(value = "/prices/{assetId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    MarketData getPrices(@PathVariable("assetId") String assetId);
 
+    @GetMapping(value = "/prices", produces = {MediaType.APPLICATION_JSON_VALUE})
+    PriceResponse getPrices(PriceRequest priceRequest);
+
+    @PostMapping(value = "/assets",
+        produces = {MediaType.APPLICATION_JSON_VALUE},
+        consumes = {MediaType.APPLICATION_JSON_VALUE})
+    AssetResponse assets(AssetRequest assetRequest);
+  }
 }

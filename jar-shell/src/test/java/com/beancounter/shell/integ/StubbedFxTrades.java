@@ -16,9 +16,9 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.reader.Transformer;
-import com.beancounter.shell.service.BcService;
 import com.beancounter.shell.service.FxRateService;
 import com.beancounter.shell.service.FxTransactions;
+import com.beancounter.shell.service.StaticService;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
@@ -58,18 +58,18 @@ class StubbedFxTrades {
   private FxRateService fxRateService;
 
   @Autowired
-  private BcService bcService;
+  private StaticService staticService;
 
   @Test
   void are_MarketsFound() {
-    MarketResponse markets = bcService.getMarkets();
+    MarketResponse markets = staticService.getMarkets();
     assertThat(markets).isNotNull();
     assertThat(markets.getData()).isNotEmpty();
   }
 
   @Test
   void are_CurrenciesFound() {
-    CurrencyResponse currencies = bcService.getCurrencies();
+    CurrencyResponse currencies = staticService.getCurrencies();
     assertThat(currencies).isNotNull();
     assertThat(currencies.getData()).isNotEmpty();
   }

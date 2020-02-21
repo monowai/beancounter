@@ -6,21 +6,41 @@ services:
     container_name: postgres
     ports:
       - 5432
-
     environment:
-      POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: bc
-
     volumes:
       - pg-data:/var/lib/backup/data
+
+  keycloak:
+    # https://ordina-jworks.github.io/security/2019/08/22/Securing-Web-Applications-With-Keycloak.htm
+    image: jboss/keycloak
+    container_name: keycloak
+    #    entrypoint: /opt/jboss/tools/docker-entrypoint.sh -Dkeycloak.profile.feature.token_exchange=enabled
+    expose:
+      - 8080
+    ports:
+      - 9620:8080
+    environment:
+      # https://ultimatesecurity.pro/post/okta-oidc/
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: beancounter
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: bc
+      DB_SCHEMA: public
+      DB_USER: postgres
+      DB_PASSWORD: password
+    depends_on:
+      - postgres
 
   data:
     image: bc/svc-data
     container_name: data
     expose:
       - 9510
-    # Publish this if you are running local:bc-view against docker services
+    # Ports should be published if you are running local:bc-view against this stack
     ports:
       - 9610:9510
     environment:
@@ -30,6 +50,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       # https://docs.docker.com/compose/environment-variables/
       BEANCOUNTER_MARKETDATA_PROVIDER_WTD_KEY: ${WTD}
+      AUTH_URI: "http://keycloak:8080"
+      AUTH_REALM: "bc-dev"
     links:
       - postgres
 
@@ -46,6 +68,8 @@ services:
       SERVER_PORT: 9500
       MARKETDATA_URL: "http://data:9510/api"
       MANAGEMENT_SERVER_PORT: 9621
+      AUTH_URI: "http://keycloak:8080"
+      AUTH_REALM: "bc-dev"
     depends_on:
       - data
 
@@ -61,29 +85,6 @@ services:
       RAZZLE_PUBLIC_DIR: "http://localhost:4000"
     depends_on:
       - position
-
-  shell:
-    # Create a symbolic link to where your secrets are stored
-    #  ln -s ../secrets/ ./secrets
-    # docker-compose run --rm shell
-
-    image: bc/shell
-    container_name: shell
-    #stdin_open: true
-    #tty: true
-    ports:
-      - 9690:9690
-
-    environment:
-      MARKETDATA_URL: "http://data:9510/api"
-      API_PATH: "/secrets/google-api/"
-      API_PORT: 9690
-
-    command: ["./wait-for-it.sh", "data:9611"]
-    depends_on:
-      - data
-    volumes:
-      - ../secrets:/secrets
 
 volumes:
   pg-data:

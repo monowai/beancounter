@@ -32,6 +32,7 @@ buildtools/hooks/pre-commit.d/in_place_prettier_eslint
 build/
 out/
 bin/
+codemr/
 
 # JetBrains
 .idea/

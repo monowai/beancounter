@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * Obtains market data objects from the Market Data service.
@@ -28,10 +29,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 @FeignClient(name = "marketdata", url = "${marketdata.url:http://localhost:9510/api}")
 public interface BcGateway {
 
-  @GetMapping(value = "/prices/{assetId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+  @GetMapping(
+      value = "/prices/{assetId}",
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   MarketData getPrices(@PathVariable("assetId") String assetId);
 
-  @GetMapping(value = "/prices", produces = {MediaType.APPLICATION_JSON_VALUE})
+  @GetMapping(
+      value = "/prices",
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   PriceResponse getPrices(PriceRequest priceRequest);
 
   @PostMapping(value = "/fx",
@@ -51,7 +56,9 @@ public interface BcGateway {
   MarketResponse getMarkets();
 
   @GetMapping(value = "/portfolios/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
-  PortfolioRequest getPortfolioById(@PathVariable String id);
+  PortfolioRequest getPortfolioById(
+      @RequestHeader("Authorization") String bearerToken,
+      @PathVariable String id);
 
   @GetMapping(value = "/portfolios/{code}/code", produces = {MediaType.APPLICATION_JSON_VALUE})
   PortfolioRequest getPortfolioByCode(@PathVariable String code);

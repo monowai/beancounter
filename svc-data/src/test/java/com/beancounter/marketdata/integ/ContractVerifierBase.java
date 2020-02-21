@@ -3,6 +3,8 @@ package com.beancounter.marketdata.integ;
 import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.marketdata.utils.EcbMockUtils.get;
 import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.config;
+import static io.restassured.module.mockmvc.config.MockMvcConfig.mockMvcConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.AssetRequest;
@@ -48,39 +50,42 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * Spring Contract base class.  Mocks out calls to various gateways that can be imported
  * and run as stubs in other services.  Any data required from an integration call in a
  * dependent service, should be mocked in this class.
- *
- * <p>WireMock is used within svc-data to test Feign based gateway integration.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext
 @AutoConfigureMessageVerifier
 @AutoConfigureWireMock(port = 0)
 public class ContractVerifierBase {
 
-  static Asset aapl = getAsset("AAPL", "NASDAQ");
-  static Asset msft = getAsset("MSFT", "NASDAQ");
-  static Asset msftInvalid = getAsset("MSFTx", "NASDAQ");
-  static Asset amp = getAsset("AMP", "ASX");
-  private static Asset ebay = getAsset("EBAY", "NASDAQ");
+  static final Asset AAPL = getAsset("AAPL", "NASDAQ");
+  static final Asset MSFT = getAsset("MSFT", "NASDAQ");
+  static final Asset MSFT_INVALID = getAsset("MSFTx", "NASDAQ");
+  static final Asset AMP = getAsset("AMP", "ASX");
+  private static Asset EBAY = getAsset("EBAY", "NASDAQ");
   @MockBean
-  PortfolioService portfolioService;
+  private PortfolioService portfolioService;
   @MockBean
-  TrnService trnService;
+  private TrnService trnService;
+  @MockBean
+  private AssetService assetService;
+  @MockBean
+  private FxGateway fxGateway;
+  @MockBean
+  private WtdGateway wtdGateway;
 
   @Autowired
   private PortfolioController portfolioController;
-
   @Autowired
   private AssetController assetController;
-  @MockBean
-  private AssetService assetService;
 
   @Autowired
   private FxController fxController;
@@ -93,22 +98,29 @@ public class ContractVerifierBase {
   @Autowired
   private TrnController trnController;
 
-  @MockBean
-  private FxGateway fxGateway;
-
-  @MockBean
-  private WtdGateway wtdGateway;
+  private String contractPath = "contracts";
 
   @Before
-  public void mockControllers() {
-    RestAssuredMockMvc.standaloneSetup(MockMvcBuilders
-        .standaloneSetup(fxController,
+  public void setup() {
+    MockMvc mockMvc = MockMvcBuilders
+        .standaloneSetup(
+            fxController,
             priceController,
             marketController,
             currencyController,
             assetController,
             trnController,
-            portfolioController));
+            portfolioController
+        ).build();
+
+    config().mockMvcConfig(
+        mockMvcConfig()
+            .dontAutomaticallyApplySpringSecurityMockMvcConfigurer()
+    );
+
+    RestAssuredMockMvc
+        .mockMvc(mockMvc);
+
   }
 
   @Before
@@ -156,7 +168,7 @@ public class ContractVerifierBase {
     Map<String, MarketData> results = new HashMap<>();
     String date = "2019-10-18";
 
-    results.put("EBAY", WtdMockUtils.get(date, ebay,
+    results.put("EBAY", WtdMockUtils.get(date, EBAY,
         "39.21", "100.00", "39.35", "38.74", "6274307"));
     mockWtdResponse(String.join(",", results.keySet()), date,
         WtdMockUtils.get(date, results));
@@ -165,8 +177,8 @@ public class ContractVerifierBase {
 
   @Before
   public void mockTrnResponse() throws Exception {
-    mockTrnResponse(getTestPortfolio(), "contracts/trn/TEST-response.json");
-    mockTrnResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
+    mockTrnResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
+    mockTrnResponse(getEmptyPortfolio(), contractPath + "/trn/EMPTY-response.json");
   }
 
   @SneakyThrows
@@ -184,14 +196,18 @@ public class ContractVerifierBase {
   }
 
   private Portfolio getTestPortfolio() throws IOException {
-    File jsonFile = new ClassPathResource("contracts/portfolio/TEST-response.json").getFile();
+    File jsonFile =
+        new ClassPathResource(contractPath + "/portfolio/TEST-response.json").getFile();
+
     PortfolioRequest portfolioRequest =
         new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
     return portfolioRequest.getData().iterator().next();
   }
 
   private Portfolio getEmptyPortfolio() throws IOException {
-    File jsonFile = new ClassPathResource("contracts/portfolio/EMPTY-response.json").getFile();
+    File jsonFile =
+        new ClassPathResource(contractPath + "/portfolio/EMPTY-response.json").getFile();
+
     PortfolioRequest portfolioRequest =
         new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
     return portfolioRequest.getData().iterator().next();
@@ -206,21 +222,26 @@ public class ContractVerifierBase {
         .thenReturn(portfolio);
   }
 
-
   @Before
   public void mockAssets() throws Exception {
-    mockAssetResponse(new ClassPathResource("contracts/assets/request.json").getFile(),
-        new ClassPathResource("contracts/assets/response.json").getFile());
-    mockAssetResponse(new ClassPathResource("contracts/assets/msft-request.json").getFile(),
-        new ClassPathResource("contracts/assets/msft-response.json").getFile());
-    mockAssetResponse(new ClassPathResource("contracts/assets/bhp-request.json").getFile(),
-        new ClassPathResource("contracts/assets/bhp-response.json").getFile());
-    mockAssetResponse(new ClassPathResource("contracts/assets/bhp-lse-request.json").getFile(),
-        new ClassPathResource("contracts/assets/bhp-lse-response.json").getFile());
-    mockAssetResponse(new ClassPathResource("contracts/assets/abbv-request.json").getFile(),
-        new ClassPathResource("contracts/assets/abbv-response.json").getFile());
-    mockAssetResponse(new ClassPathResource("contracts/assets/amp-request.json").getFile(),
-        new ClassPathResource("contracts/assets/amp-response.json").getFile());
+    mockAssetResponse(
+        new ClassPathResource(contractPath + "/assets/request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/response.json").getFile());
+    mockAssetResponse(
+        new ClassPathResource(contractPath + "/assets/msft-request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/msft-response.json").getFile());
+    mockAssetResponse(
+        new ClassPathResource(contractPath + "/assets/bhp-request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/bhp-response.json").getFile());
+    mockAssetResponse(
+        new ClassPathResource(contractPath + "/assets/bhp-lse-request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/bhp-lse-response.json").getFile());
+    mockAssetResponse(
+        new ClassPathResource(contractPath + "/assets/abbv-request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/abbv-response.json").getFile());
+    mockAssetResponse(
+        new ClassPathResource(contractPath + "/assets/amp-request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/amp-response.json").getFile());
 
   }
 

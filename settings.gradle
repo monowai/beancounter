@@ -1,4 +1,3 @@
-
 pluginManagement {
     repositories {
         mavenLocal()
@@ -9,5 +8,5 @@ pluginManagement {
 }
 
 rootProject.name = 'beancounter'
-include 'jar-common', 'svc-data', 'svc-position', 'jar-shell'
+include 'jar-common', 'jar-auth', 'svc-data', 'svc-position', 'jar-shell'
 

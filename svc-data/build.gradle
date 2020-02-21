@@ -32,10 +32,14 @@ publishing {
 dependencies {
     implementation(
             project(":jar-common"),
+            project(":jar-auth"),
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
+            "org.springframework.boot:spring-boot-starter-security",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2",
@@ -50,21 +54,22 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured") {
         exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
     }
-
     testImplementation(
             "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
             "com.h2database:h2",
             "io.rest-assured:json-schema-validator",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.security:spring-security-test",
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             // Not needed, but pulling into build cache
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             // End not needed
-            "org.springframework.boot:spring-boot-starter-test",
             "org.junit.jupiter:junit-jupiter"
     )
+
 }
 
 dependencyManagement {

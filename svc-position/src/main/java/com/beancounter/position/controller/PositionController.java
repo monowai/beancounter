@@ -1,5 +1,6 @@
 package com.beancounter.position.controller;
 
+import com.beancounter.auth.AppRoles;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.contracts.TrnResponse;
@@ -9,6 +10,9 @@ import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping
 @Slf4j
-@CrossOrigin
+@CrossOrigin("*")
 public class PositionController {
 
   private PositionService positionService;
@@ -52,10 +56,10 @@ public class PositionController {
 
 
   @GetMapping(value = "/{portfolioId}/{valuationDate}", produces = "application/json")
-  PositionResponse get(
-      @PathVariable String portfolioId,
-      @PathVariable(required = false) String valuationDate) {
-
+  @Secured(AppRoles.ROLE_USER)
+  PositionResponse get(final @AuthenticationPrincipal Jwt jwt,
+                       @PathVariable String portfolioId,
+                       @PathVariable(required = false) String valuationDate) {
     Portfolio portfolio = bcService.getPortfolioById(portfolioId);
     TrnResponse trnResponse = bcService.getTrn(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()

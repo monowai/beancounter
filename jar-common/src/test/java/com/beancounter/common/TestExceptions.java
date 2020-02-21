@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.exception.ForbiddenException;
 import com.beancounter.common.exception.RecordFailurePredicate;
 import com.beancounter.common.exception.SpringExceptionMessage;
 import com.beancounter.common.exception.SpringFeignDecoder;
 import com.beancounter.common.exception.SystemException;
+import com.beancounter.common.exception.UnauthorizedException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
@@ -74,8 +76,44 @@ class TestExceptions {
       assertThat(e.getMessage()).contains("101 Integration Error");
       throw e;
     });
+  }
 
+  @Test
+  void is_AuthExceptionThrown() {
+    SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
+    String reason = "Unauthorized";
+    Response response = Response.builder()
+        .reason(reason)
+        .status(HttpStatus.UNAUTHORIZED.value())
+        .request(Request.create(
+            Request.HttpMethod.GET, "/test", new HashMap<>(),
+            Request.Body.empty(), requestTemplate))
+        .build();
 
+    assertThrows(UnauthorizedException.class, () -> {
+      Exception e = springFeignDecoder.decode("test", response);
+      assertThat(e.getMessage()).contains(reason);
+      throw (e);
+    });
+  }
+
+  @Test
+  void is_ForbiddenExceptionThrown() {
+    SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
+    String reason = "Forbidden";
+    Response response = Response.builder()
+        .reason(reason)
+        .status(HttpStatus.FORBIDDEN.value())
+        .request(Request.create(
+            Request.HttpMethod.GET, "/test", new HashMap<>(),
+            Request.Body.empty(), requestTemplate))
+        .build();
+
+    assertThrows(ForbiddenException.class, () -> {
+      Exception e = springFeignDecoder.decode("test", response);
+      assertThat(e.getMessage()).contains(reason);
+      throw (e);
+    });
   }
 
   private void validSystemException(Exception e) throws Exception {

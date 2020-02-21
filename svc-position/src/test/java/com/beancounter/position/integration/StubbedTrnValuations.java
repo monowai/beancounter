@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.OauthRoles;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Positions;
@@ -14,7 +15,9 @@ import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -25,6 +28,7 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,6 +47,7 @@ class StubbedTrnValuations {
 
   @Autowired
   private WebApplicationContext wac;
+
   private MockMvc mockMvc;
 
   private ObjectMapper mapper = new ObjectMapper();
@@ -52,12 +57,14 @@ class StubbedTrnValuations {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
   }
 
-
+  @SneakyThrows
   @Test
-  void is_MvcTradesToPositions() throws Exception {
+  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  void is_MvcTradesToPositions() {
 
     File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
-
+    ArrayList list = new ArrayList();
+    Boolean iss = "abc" instanceof String;
     CollectionType javaType = mapper.getTypeFactory()
         .constructCollectionType(Collection.class, Trn.class);
 
@@ -82,7 +89,9 @@ class StubbedTrnValuations {
   }
 
   @Test
-  void is_PositionRequestFromTransactions() throws Exception {
+  @SneakyThrows
+  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  void is_PositionRequestFromTransactions() {
 
     String json = mockMvc.perform(get("/{portfolioCode}/2019-10-18", "TEST")
         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -104,8 +113,10 @@ class StubbedTrnValuations {
 
   }
 
+  @SneakyThrows
   @Test
-  void is_EmptyPortfolioPositionsReturned() throws Exception {
+  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  void is_EmptyPortfolioPositionsReturned() {
 
     String json = mockMvc.perform(get("/{portfolioCode}/today", "EMPTY")
         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -129,6 +140,4 @@ class StubbedTrnValuations {
         .isNotNull()
         .isEmpty();
   }
-
-
 }

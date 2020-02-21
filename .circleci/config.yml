@@ -42,7 +42,7 @@ jobs:
             - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - run: 'pwd'
-      - run: './gradlew jar-common:build svc-data:build'
+      - run: './gradlew jar-common:build ./gradlew jar-auth:build svc-data:build'
       - run: './gradlew svc-data:publishToMavenLocal'
 
       - store_test_results:

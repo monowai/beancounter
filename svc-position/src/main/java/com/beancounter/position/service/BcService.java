@@ -1,5 +1,6 @@
 package com.beancounter.position.service;
 
+import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -71,7 +72,7 @@ public class BcService {
   }
 
   public Portfolio getPortfolioById(String portfolioId) {
-    PortfolioRequest request = bcGateway.getPortfolioById(portfolioId);
+    PortfolioRequest request = bcGateway.getPortfolioById(TokenHelper.getToken(), portfolioId);
     if (request == null || request.getData() == null) {
       throw new BusinessException(String.format("Unable to locate portfolio id [%s]", portfolioId));
     }

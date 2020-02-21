@@ -1,9 +1,9 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.integ.ContractVerifierBase.aapl;
-import static com.beancounter.marketdata.integ.ContractVerifierBase.amp;
-import static com.beancounter.marketdata.integ.ContractVerifierBase.msft;
-import static com.beancounter.marketdata.integ.ContractVerifierBase.msftInvalid;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.AAPL;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.AMP;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.MSFT;
+import static com.beancounter.marketdata.integ.ContractVerifierBase.MSFT_INVALID;
 import static com.beancounter.marketdata.utils.WtdMockUtils.getResponseMap;
 import static com.beancounter.marketdata.utils.WtdMockUtils.priceDate;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -66,7 +66,7 @@ class TestWorldTradingDataApi {
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/AMP-ASX.json").getFile());
 
     Collection<Asset> assets = new ArrayList<>();
-    assets.add(amp);
+    assets.add(AMP);
 
     mockInternet
         .stubFor(
@@ -93,8 +93,8 @@ class TestWorldTradingDataApi {
   void is_MarketDataDateOverridingRequestDate() throws Exception {
 
     Collection<Asset> assets = new ArrayList<>();
-    assets.add(aapl);
-    assets.add(msft);
+    assets.add(AAPL);
+    assets.add(MSFT);
 
     // While the request date is relative to "Today", we are testing that we get back
     //  the date as set in the response from the provider.
@@ -115,16 +115,16 @@ class TestWorldTradingDataApi {
         .hasSize(2);
 
     for (MarketData marketData : mdResult) {
-      if (marketData.getAsset().equals(msft)) {
+      if (marketData.getAsset().equals(MSFT)) {
         assertThat(marketData)
             .hasFieldOrPropertyWithValue("date", "2019-03-08")
-            .hasFieldOrPropertyWithValue("asset", msft)
+            .hasFieldOrPropertyWithValue("asset", MSFT)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("109.16"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("110.51"));
-      } else if (marketData.getAsset().equals(aapl)) {
+      } else if (marketData.getAsset().equals(AAPL)) {
         assertThat(marketData)
             .hasFieldOrPropertyWithValue("date", "2019-03-08")
-            .hasFieldOrPropertyWithValue("asset", aapl)
+            .hasFieldOrPropertyWithValue("asset", AAPL)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("170.32"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("172.91"));
       }
@@ -136,8 +136,8 @@ class TestWorldTradingDataApi {
   void is_WtdInvalidAssetPriceDefaulting() throws Exception {
     Collection<Asset> assets = new ArrayList<>();
 
-    assets.add(aapl);
-    assets.add(msftInvalid);
+    assets.add(AAPL);
+    assets.add(MSFT_INVALID);
 
     // Prices are at T-1. configured date set in -test.yaml
     WtdMockUtils.mockWtdResponse(assets, mockInternet, priceDate, true,
@@ -152,11 +152,11 @@ class TestWorldTradingDataApi {
 
     // If an invalid asset, then we have a ZERO price
     for (MarketData marketData : mdResult) {
-      if (marketData.getAsset().equals(msft)) {
+      if (marketData.getAsset().equals(MSFT)) {
         assertThat(marketData)
             .hasFieldOrProperty("date")
             .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
-      } else if (marketData.getAsset().equals(aapl)) {
+      } else if (marketData.getAsset().equals(AAPL)) {
         assertThat(marketData)
             .hasFieldOrProperty("date")
             .hasFieldOrPropertyWithValue("open", new BigDecimal("170.32"))
@@ -170,7 +170,7 @@ class TestWorldTradingDataApi {
   void is_NoDataReturned() throws Exception {
 
     Collection<Asset> assets = new ArrayList<>();
-    assets.add(msft);
+    assets.add(MSFT);
 
     WtdMockUtils.mockWtdResponse(assets, mockInternet, "2019-11-15", true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").getFile());

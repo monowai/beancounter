@@ -1,4 +1,3 @@
-
 plugins {
     id "io.spring.dependency-management" version "$springDependencyManagement"
     id "org.springframework.boot" version "$springBootVersion"
@@ -11,9 +10,13 @@ version = '0.0.1'
 dependencies {
     implementation(
             project(":jar-common"),
+            project(":jar-auth"),
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
+            "org.springframework.boot:spring-boot-starter-security",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
             "io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion"
@@ -34,6 +37,7 @@ dependencies {
             "org.assertj:assertj-core",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.junit.jupiter:junit-jupiter"
@@ -47,6 +51,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+//        mavenBom "org.keycloak.bom:keycloak-adapter-bom:3.0.0.CR1"
     }
 }
 

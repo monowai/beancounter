@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/prices")
+//@Secured(AppRoles.ROLE_USER)
 public class PriceController {
 
   private MarketDataService marketDataService;

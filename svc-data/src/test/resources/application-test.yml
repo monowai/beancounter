@@ -1,6 +1,8 @@
 server:
   port: 0
 
+spring:
+  security.
 beancounter:
   marketdata:
     provider:

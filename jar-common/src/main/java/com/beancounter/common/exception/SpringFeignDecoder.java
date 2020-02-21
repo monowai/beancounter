@@ -9,6 +9,7 @@ import feign.codec.ErrorDecoder;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpStatus;
 
 /**
  * Handle deserialization of errors into BusinessException and SystemExceptions.
@@ -29,6 +30,14 @@ public class SpringFeignDecoder implements ErrorDecoder {
   @Override
   public Exception decode(String methodKey, Response response) {
     String reason = getMessage(response);
+    if (response.status() == HttpStatus.UNAUTHORIZED.value()) {
+      // Clearly communicate an authentication issue
+      return new UnauthorizedException(reason);
+    }
+    if (response.status() == HttpStatus.FORBIDDEN.value()) {
+      // You can't touch this
+      return new ForbiddenException(reason);
+    }
 
     if (response.status() >= 400 && response.status() <= 499) {
       // We don't want business logic exceptions to flip circuit breakers

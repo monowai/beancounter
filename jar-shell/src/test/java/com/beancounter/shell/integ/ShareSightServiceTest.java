@@ -10,7 +10,6 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.reader.RowProcessor;
-import com.beancounter.shell.service.AssetService;
 import com.beancounter.shell.sharesight.ShareSightDivis;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
@@ -40,9 +39,6 @@ class ShareSightServiceTest {
 
   @Autowired
   private RowProcessor rowProcessor;
-
-  @Autowired
-  private AssetService assetService;
 
   @Test
   void is_DoubleValueInputCorrect() throws ParseException {
@@ -131,7 +127,7 @@ class ShareSightServiceTest {
   }
 
   @Test
-  void is_AssetsSetIntoTransaction() throws Exception {
+  void is_AssetsSetIntoTransaction()  {
     List<Object> row = new ArrayList<>();
     row.add(ShareSightTrades.market, "ASX");
     row.add(ShareSightTrades.code, "BHP");

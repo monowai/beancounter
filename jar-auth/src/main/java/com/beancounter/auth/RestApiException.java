@@ -1,4 +1,4 @@
-package com.beancounter.position.integration;
+package com.beancounter.auth;
 
 import com.beancounter.common.exception.SpringExceptionMessage;
 import javax.servlet.http.HttpServletRequest;

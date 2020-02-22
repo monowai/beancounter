@@ -5,7 +5,7 @@ import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.client.PortfolioService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
@@ -15,7 +15,6 @@ import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.reader.Filter;
 import com.beancounter.shell.reader.RowProcessor;
 import com.beancounter.shell.reader.Transformer;
-import com.beancounter.shell.service.PortfolioService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
 import java.math.BigDecimal;

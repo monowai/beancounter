@@ -15,6 +15,7 @@ version = '0.0.1'
 
 dependencies {
     implementation(
+            project(":jar-common"),
             "javax.servlet:javax.servlet-api:4.0.1",
             "org.springframework:spring-webmvc:$springWebVersion",
             "org.springframework.security:spring-security-config:$springSecurityVersion",

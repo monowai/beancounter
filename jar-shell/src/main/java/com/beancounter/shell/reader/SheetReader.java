@@ -1,16 +1,15 @@
 package com.beancounter.shell.reader;
 
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.client.PortfolioService;
+import com.beancounter.client.TrnService;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.shell.model.IngestionRequest;
-import com.beancounter.shell.service.FxTransactions;
-import com.beancounter.shell.service.PortfolioService;
-import com.beancounter.shell.service.TrnService;
 import com.beancounter.shell.sharesight.ShareSightService;
+import com.beancounter.shell.writer.FxTransactions;
 import com.beancounter.shell.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -45,7 +44,7 @@ public class SheetReader implements Ingester {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
-  SheetReader(PortfolioService portfolioService,TrnService trnService) {
+  SheetReader(PortfolioService portfolioService, TrnService trnService) {
     this.portfolioService = portfolioService;
     this.trnService = trnService;
   }

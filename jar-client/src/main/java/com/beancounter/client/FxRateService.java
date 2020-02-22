@@ -1,16 +1,13 @@
-package com.beancounter.shell.service;
+package com.beancounter.client;
 
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.contracts.PortfolioRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Service
@@ -20,7 +17,7 @@ public class FxRateService {
   private FxGateway fxGateway;
 
   @Autowired
-   FxRateService(FxGateway bcGateway) {
+  FxRateService(FxGateway bcGateway) {
     this.fxGateway = bcGateway;
   }
 

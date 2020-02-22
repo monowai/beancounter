@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author mikeh
  * @since 2019-02-08
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.beancounter.shell", "com.beancounter.client"})
 public class ShellRunner {
   public static void main(String[] args) {
     SpringApplication.run(ShellRunner.class, args);

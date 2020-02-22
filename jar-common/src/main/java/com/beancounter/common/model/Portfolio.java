@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-//@Table(uniqueConstraints={@UniqueConstraint(columnNames={"CODE", "OWNER_ID"})})
 public class Portfolio {
   @Builder.Default
   @Getter
@@ -35,7 +34,6 @@ public class Portfolio {
   @Builder.Default
   @ManyToOne
   private Currency base = Currency.builder().code("USD").build();
-
-//  @ManyToOne
-//  private SystemUser owner;
+  @ManyToOne
+  private SystemUser owner;
 }

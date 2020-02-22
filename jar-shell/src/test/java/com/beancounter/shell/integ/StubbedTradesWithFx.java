@@ -4,28 +4,19 @@ import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.contracts.CurrencyResponse;
-import com.beancounter.common.contracts.FxPairResults;
-import com.beancounter.common.contracts.FxRequest;
-import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.reader.Transformer;
-import com.beancounter.shell.service.FxRateService;
-import com.beancounter.shell.service.FxTransactions;
-import com.beancounter.shell.service.StaticService;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
+import com.beancounter.shell.writer.FxTransactions;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;
@@ -43,7 +34,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @Slf4j
 @SpringBootTest(classes = {ShareSightConfig.class})
-class StubbedFxTrades {
+class StubbedTradesWithFx {
 
   @Autowired
   private FxTransactions fxTransactions;
@@ -53,70 +44,6 @@ class StubbedFxTrades {
 
   @Autowired
   private ShareSightService shareSightService;
-
-  @Autowired
-  private FxRateService fxRateService;
-
-  @Autowired
-  private StaticService staticService;
-
-  @Test
-  void are_MarketsFound() {
-    MarketResponse markets = staticService.getMarkets();
-    assertThat(markets).isNotNull();
-    assertThat(markets.getData()).isNotEmpty();
-  }
-
-  @Test
-  void are_CurrenciesFound() {
-    CurrencyResponse currencies = staticService.getCurrencies();
-    assertThat(currencies).isNotNull();
-    assertThat(currencies.getData()).isNotEmpty();
-  }
-
-
-  @Test
-  void is_FxContractHonoured() {
-    Collection<CurrencyPair> currencyPairs = new ArrayList<>();
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("EUR").build());
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("GBP").build());
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("NZD").build());
-
-    String testDate = "2019-11-12";
-    FxResponse fxResponse = fxRateService.getRates(FxRequest.builder()
-        .rateDate(testDate)
-        .pairs(currencyPairs)
-        .build());
-    assertThat(fxResponse).isNotNull().hasNoNullFieldsOrProperties();
-    FxPairResults fxPairResults = fxResponse.getData();
-    assertThat(fxPairResults.getRates().size()).isEqualTo(currencyPairs.size());
-
-    for (CurrencyPair currencyPair : currencyPairs) {
-      assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
-      assertThat(fxPairResults.getRates().get(currencyPair))
-          .hasFieldOrPropertyWithValue("date", testDate);
-    }
-  }
-
-  @Test
-  void is_EarlyDateWorking() {
-    Collection<CurrencyPair> currencyPairs = new ArrayList<>();
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("SGD").build());
-    currencyPairs.add(CurrencyPair.builder().from("GBP").to("NZD").build());
-
-    String testDate = "1996-07-27"; // Earlier than when ECB started recording rates
-    FxResponse fxResponse = fxRateService.getRates(FxRequest.builder()
-        .rateDate(testDate)
-        .pairs(currencyPairs)
-        .build());
-    assertThat(fxResponse).isNotNull().hasNoNullFieldsOrProperties();
-    FxPairResults fxPairResults = fxResponse.getData();
-    for (CurrencyPair currencyPair : currencyPairs) {
-      assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
-      assertThat(fxPairResults.getRates().get(currencyPair))
-          .hasFieldOrPropertyWithValue("date", "1999-01-04");
-    }
-  }
 
   @Test
   void is_FxRatesSetFromCurrencies() throws Exception {

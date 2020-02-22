@@ -1,11 +1,13 @@
 package com.beancounter.position.controller;
 
 import com.beancounter.auth.AppRoles;
+import com.beancounter.auth.TokenHelper;
+import com.beancounter.client.PortfolioService;
+import com.beancounter.client.TrnService;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.position.service.BcService;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import lombok.extern.slf4j.Slf4j;
@@ -35,12 +37,16 @@ public class PositionController {
 
   private PositionService positionService;
   private Valuation valuationService;
-  private BcService bcService;
+  private PortfolioService portfolioService;
+  private TrnService trnService;
 
   @Autowired
-  PositionController(PositionService positionService, BcService bcService) {
+  PositionController(PositionService positionService,
+                     PortfolioService portfolioService,
+                     TrnService trnService) {
     this.positionService = positionService;
-    this.bcService = bcService;
+    this.portfolioService = portfolioService;
+    this.trnService = trnService;
   }
 
   @Autowired
@@ -60,8 +66,8 @@ public class PositionController {
   PositionResponse get(final @AuthenticationPrincipal Jwt jwt,
                        @PathVariable String portfolioId,
                        @PathVariable(required = false) String valuationDate) {
-    Portfolio portfolio = bcService.getPortfolioById(portfolioId);
-    TrnResponse trnResponse = bcService.getTrn(portfolio);
+    Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
+    TrnResponse trnResponse = trnService.read(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
         .trns(trnResponse.getTrns())

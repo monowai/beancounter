@@ -42,7 +42,7 @@ jobs:
             - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
 
       - run: 'pwd'
-      - run: './gradlew jar-common:build ./gradlew jar-auth:build svc-data:build'
+      - run: './gradlew jar-common:build jar-auth:build svc-data:build'
       - run: './gradlew svc-data:publishToMavenLocal'
 
       - store_test_results:
@@ -69,6 +69,31 @@ jobs:
 
       - store_artifacts:
           path: ~/project/jar-common/build/libs
+
+  build-client:
+    docker:
+      - image: circleci/openjdk:11
+    environment:
+      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+      - restore_cache:
+          keys:
+            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+
+      - run: './gradlew jar-client:build'
+
+      - store_test_results:
+          path: ~/project/jar-client/build/test-results/test
+
+      - codecov/upload:
+          file: ~/project/jar-client/build/reports/jacoco/test/*.xml
+
+      - store_artifacts:
+          path: ~/project/jar-client/build/libs
 
   build-shell:
     docker:
@@ -131,6 +156,8 @@ workflows:
       - build-shell:
           requires:
             - build-data
+            - build-client
       - build-position:
           requires:
             - build-data
+            - build-client

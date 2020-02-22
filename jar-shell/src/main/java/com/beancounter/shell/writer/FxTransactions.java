@@ -1,5 +1,6 @@
-package com.beancounter.shell.service;
+package com.beancounter.shell.writer;
 
+import com.beancounter.client.FxRateService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;

@@ -1,11 +1,11 @@
 package com.beancounter.shell.sharesight;
 
+import com.beancounter.client.AssetService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.shell.service.AssetService;
 import com.google.api.client.util.Strings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;

@@ -1,8 +1,7 @@
-package com.beancounter.shell;
+package com.beancounter.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.shell.config.ExchangeConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +15,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @since 2019-02-13
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = ExchangeConfig.class)
+@SpringBootTest(classes = ExchangeService.class)
 class ExchangeAliasTest {
 
   @Autowired
-  private ExchangeConfig exchangeConfig;
+  private ExchangeService exchangeService;
 
   @Test
   void is_ExchangeConfigWired() {
-    assertThat(exchangeConfig).isNotNull();
-    assertThat(exchangeConfig.getAliases()).isNotEmpty();
+    assertThat(exchangeService).isNotNull();
+    assertThat(exchangeService.getAliases()).isNotEmpty();
 
   }
 

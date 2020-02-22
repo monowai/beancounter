@@ -1,11 +1,11 @@
 package com.beancounter.shell.cli;
 
+import com.beancounter.client.AssetService;
+import com.beancounter.client.PortfolioService;
+import com.beancounter.client.StaticService;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.shell.service.AssetService;
-import com.beancounter.shell.service.PortfolioService;
-import com.beancounter.shell.service.StaticService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -41,7 +41,7 @@ public class DataCommands {
     if (marketCode != null) {
       MarketResponse marketResponse = MarketResponse.builder().build();
       Market market = staticService.resolveMarket(
-          marketCode, assetService, assetService.staticService
+          marketCode
       );
 
       if (market != null) {

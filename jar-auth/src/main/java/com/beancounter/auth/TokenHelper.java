@@ -14,11 +14,14 @@ public class TokenHelper {
     }
     if (isTokenBased(authentication)) {
       JwtAuthenticationToken jwt = (JwtAuthenticationToken) authentication;
-      return "Bearer " + jwt.getToken().getTokenValue();
+      return jwt.getToken().getTokenValue();
     } else {
-      return null;
+      return "unknown";
     }
+  }
 
+  public String getBearerToken() {
+    return "Bearer " + getToken();
   }
 
   private static boolean isTokenBased(Authentication authentication) {

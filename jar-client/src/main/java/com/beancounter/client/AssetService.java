@@ -1,4 +1,4 @@
-package com.beancounter.shell.service;
+package com.beancounter.client;
 
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Slf4j
 public class AssetService {
 
-  private AssetGateway assetGateway;
   public StaticService staticService;
+  private AssetGateway assetGateway;
 
   AssetService(AssetGateway assetGateway,
                StaticService staticService) {
@@ -35,7 +35,7 @@ public class AssetService {
       // Support unit testings where we don't really care about the asset
       return AssetUtils.getAsset(assetCode, "MOCK");
     }
-    Market resolvedMarket = staticService.resolveMarket(marketCode, this, staticService);
+    Market resolvedMarket = staticService.resolveMarket(marketCode);
     String callerKey = AssetUtils.toKey(assetCode, resolvedMarket.getCode());
     AssetRequest assetRequest = AssetRequest.builder()
         .asset(callerKey, Asset.builder()

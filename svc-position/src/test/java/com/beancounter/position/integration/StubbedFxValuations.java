@@ -6,7 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.beancounter.common.contracts.MarketResponse;
+import com.beancounter.client.PortfolioService;
+import com.beancounter.client.StaticService;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -17,7 +18,6 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
-import com.beancounter.position.service.BcService;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -57,7 +57,10 @@ class StubbedFxValuations {
   private Valuation valuation;
 
   @Autowired
-  private BcService bcService;
+  private StaticService staticService;
+
+  @Autowired
+  private PortfolioService portfolioService;
 
   private ObjectMapper mapper = new ObjectMapper();
 
@@ -74,9 +77,9 @@ class StubbedFxValuations {
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Portfolio portfolio = bcService.getPortfolioByCode("TEST");
+    Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
     trn.setTradeCurrency(
-        bcService.getCurrency(asset.getMarket().getCurrency()));
+        staticService.getCurrency(asset.getMarket().getCurrency()));
 
     Accumulator accumulator = new Accumulator();
     Positions positions = new Positions(portfolio);
@@ -95,13 +98,6 @@ class StubbedFxValuations {
     assertThat(valuation).isNotNull();
     valuation.value(positions);
     return positions;
-  }
-
-  @Test
-  void are_MarketsFound() {
-    MarketResponse markets = bcService.getMarkets();
-    assertThat(markets).isNotNull();
-    assertThat(markets.getData()).isNotEmpty();
   }
 
 

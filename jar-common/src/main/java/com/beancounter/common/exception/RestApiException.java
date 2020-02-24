@@ -1,4 +1,4 @@
-package com.beancounter.auth;
+package com.beancounter.common.exception;
 
 import com.beancounter.common.exception.SpringExceptionMessage;
 import javax.servlet.http.HttpServletRequest;

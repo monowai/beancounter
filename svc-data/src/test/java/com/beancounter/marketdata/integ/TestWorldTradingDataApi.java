@@ -1,9 +1,9 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.integ.ContractVerifierBase.AAPL;
-import static com.beancounter.marketdata.integ.ContractVerifierBase.AMP;
-import static com.beancounter.marketdata.integ.ContractVerifierBase.MSFT;
-import static com.beancounter.marketdata.integ.ContractVerifierBase.MSFT_INVALID;
+import static com.beancounter.marketdata.contracts.ContractVerifierBase.AAPL;
+import static com.beancounter.marketdata.contracts.ContractVerifierBase.AMP;
+import static com.beancounter.marketdata.contracts.ContractVerifierBase.MSFT;
+import static com.beancounter.marketdata.contracts.ContractVerifierBase.MSFT_INVALID;
 import static com.beancounter.marketdata.utils.WtdMockUtils.getResponseMap;
 import static com.beancounter.marketdata.utils.WtdMockUtils.priceDate;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;

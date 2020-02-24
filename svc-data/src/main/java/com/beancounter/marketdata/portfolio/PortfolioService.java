@@ -2,12 +2,12 @@ package com.beancounter.marketdata.portfolio;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.marketdata.currency.CurrencyService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,25 +16,34 @@ public class PortfolioService {
   private CurrencyService currencyService;
   private PortfolioRepository portfolioRepository;
 
-  @Autowired
-  void setCurrencyService(CurrencyService currencyService) {
+  PortfolioService(
+      CurrencyService currencyService,
+      PortfolioRepository portfolioRepository
+  ) {
     this.currencyService = currencyService;
-  }
-
-  @Autowired
-  void setPortfolioRepo(PortfolioRepository portfolioRepository) {
     this.portfolioRepository = portfolioRepository;
   }
 
-  public Collection<Portfolio> save(Collection<Portfolio> portfolios) {
+  public Collection<Portfolio> save(SystemUser owner, Collection<Portfolio> portfolios) {
+    verifyOwner(owner);
     Collection<Portfolio> results = new ArrayList<>();
-    portfolioRepository.saveAll(prepare(portfolios)).forEach(results::add);
+    portfolioRepository.saveAll(prepare(owner, portfolios)).forEach(results::add);
     return results;
   }
 
-  private Collection<Portfolio> prepare(Collection<Portfolio> portfolios) {
+  private void verifyOwner(SystemUser owner) {
+    if (owner == null) {
+      throw new BusinessException("Unable to identify the owner");
+    }
+    if (!owner.getActive()) {
+      throw new BusinessException("User is not active");
+    }
+  }
+
+  private Collection<Portfolio> prepare(SystemUser owner, Collection<Portfolio> portfolios) {
     for (Portfolio portfolio : portfolios) {
       portfolio.setCode(portfolio.getCode().toUpperCase());
+      portfolio.setOwner(owner);
     }
     return portfolios;
   }

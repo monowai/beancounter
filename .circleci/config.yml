@@ -29,7 +29,7 @@ jobs:
       - store_artifacts:
           path: bc-view/reports/junit
 
-  build-data:
+  build-common:
     docker:
       - image: circleci/openjdk:11
     environment:
@@ -152,12 +152,15 @@ workflows:
   build_and_stage:
     jobs:
       - build-app
-      - build-data
+      - build-common
+      - build-client:
+          requires:
+            - build-common
       - build-shell:
           requires:
-            - build-data
+            - build-common
             - build-client
       - build-position:
           requires:
-            - build-data
+            - build-common
             - build-client

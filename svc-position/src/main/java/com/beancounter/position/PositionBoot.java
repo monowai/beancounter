@@ -8,12 +8,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @SpringBootApplication(scanBasePackages = "com.beancounter")
 @EnableFeignClients
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class PositionBoot {
   public static void main(String[] args) {
     SpringApplication.run(PositionBoot.class, args);
   }
 
 }
-

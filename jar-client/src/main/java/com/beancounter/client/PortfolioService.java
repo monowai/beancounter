@@ -1,6 +1,6 @@
 package com.beancounter.client;
 
-import com.beancounter.auth.TokenHelper;
+import com.beancounter.auth.AuthHelper;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
@@ -26,7 +26,7 @@ public class PortfolioService {
   public Portfolio getPortfolioByCode(String portfolioCode) {
     PortfolioRequest response = null;
     if (portfolioCode != null) {
-      response = portfolioGw.getPortfolioByCode(TokenHelper.getBearerToken(), portfolioCode);
+      response = portfolioGw.getPortfolioByCode(AuthHelper.getBearerToken(), portfolioCode);
     }
     return getOrThrow(portfolioCode, response);
   }
@@ -34,7 +34,7 @@ public class PortfolioService {
   public Portfolio getPortfolioById(String portfolioId) {
     PortfolioRequest response = null;
     if (portfolioId != null) {
-      response = portfolioGw.getPortfolioById(TokenHelper.getBearerToken(), portfolioId);
+      response = portfolioGw.getPortfolioById(AuthHelper.getBearerToken(), portfolioId);
     }
     return getOrThrow(portfolioId, response);
   }

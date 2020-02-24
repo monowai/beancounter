@@ -40,6 +40,10 @@ dependencies {
     )
 }
 
+task testJar(type: Jar) {
+    from sourceSets.test.output.classesDirs
+}
+
 test {
     useJUnitPlatform()
     testLogging {

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.controller;
 
+import com.beancounter.auth.OauthRoles;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
@@ -8,6 +9,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/trns")
 @CrossOrigin
+@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
 public class TrnController {
 
   private TrnService trnService;

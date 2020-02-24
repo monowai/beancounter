@@ -1,31 +1,36 @@
 package com.beancounter.auth;
 
+import com.beancounter.common.model.SystemUser;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.experimental.UtilityClass;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 
+/**
+ * TestHelper class that generates JWT tokens you can test with.
+ */
 @UtilityClass
 public class TokenHelper {
-  public String getToken() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null) {
-      return null;
-    }
-    if (isTokenBased(authentication)) {
-      JwtAuthenticationToken jwt = (JwtAuthenticationToken) authentication;
-      return jwt.getToken().getTokenValue();
-    } else {
-      return "unknown";
-    }
-  }
 
-  public String getBearerToken() {
-    return "Bearer " + getToken();
-  }
+  public static final String SCOPE = "beancounter profile email";
 
-  private static boolean isTokenBased(Authentication authentication) {
-    return authentication instanceof JwtAuthenticationToken;
-  }
+  public Jwt getUserToken(SystemUser systemUser) {
+    Collection<String> roles = new ArrayList<>();
+    roles.add("user");
+    Map<String, Collection<String>> realmAccess = new HashMap<>();
+    realmAccess.put("roles", roles);
 
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .subject(systemUser.getId())
+        .claim("email", systemUser.getEmail())
+        .claim("realm_access", realmAccess)
+        .claim("scope", SCOPE)
+        .expiresAt(new Date(System.currentTimeMillis() + 60000).toInstant())
+        .build();
+
+  }
 }

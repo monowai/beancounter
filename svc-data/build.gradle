@@ -56,6 +56,7 @@ dependencies {
     }
     testImplementation(
             "org.projectlombok:lombok",
+            "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
             "com.h2database:h2",
@@ -64,10 +65,10 @@ dependencies {
             "org.springframework.security:spring-security-test",
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            // Not needed, but pulling into build cache
-            "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            // End not needed
-            "org.junit.jupiter:junit-jupiter"
+            // Not strictly needed, but pulling into build cache
+            "org.springframework.cloud:spring-cloud-contract-stub-runner"
+            // End not strictly needed
+
     )
 
 }
@@ -78,8 +79,12 @@ dependencyManagement {
 
 contracts {
     // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html#gradle-default-setup
-//    testFramework ='JUNIT5'
-    packageWithBaseClasses = 'com.beancounter.marketdata.integ'
+    testFramework = "JUNIT5"
+    testMode = "MockMvc"
+    packageWithBaseClasses = "com.beancounter.marketdata.contracts"
+    baseClassMappings {
+        baseClassMapping(".*contract.*", "com.beancounter.marketdata.contracts.ContractVerifierBase")
+    }
 }
 
 idea {

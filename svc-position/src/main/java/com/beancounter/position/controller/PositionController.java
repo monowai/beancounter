@@ -1,7 +1,6 @@
 package com.beancounter.position.controller;
 
-import com.beancounter.auth.AppRoles;
-import com.beancounter.auth.TokenHelper;
+import com.beancounter.auth.OauthRoles;
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.TrnService;
 import com.beancounter.common.contracts.PositionRequest;
@@ -12,7 +11,7 @@ import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping
 @Slf4j
 @CrossOrigin("*")
+@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
 public class PositionController {
 
   private PositionService positionService;
@@ -62,7 +62,6 @@ public class PositionController {
 
 
   @GetMapping(value = "/{portfolioId}/{valuationDate}", produces = "application/json")
-  @Secured(AppRoles.ROLE_USER)
   PositionResponse get(final @AuthenticationPrincipal Jwt jwt,
                        @PathVariable String portfolioId,
                        @PathVariable(required = false) String valuationDate) {

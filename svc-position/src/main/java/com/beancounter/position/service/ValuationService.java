@@ -30,10 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -49,23 +46,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class ValuationService implements Valuation {
 
-  private BcService bcService;
-
-  @Value("${marketdata.url}")
-  private String mdUrl;
+  private AsyncMdService asyncMdService;
 
   @Autowired
-  ValuationService(BcService bcService) {
-    this.bcService = bcService;
+  ValuationService(AsyncMdService asyncMdService) {
+    this.asyncMdService = asyncMdService;
   }
 
   @Override
   public PositionResponse value(Positions positions) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (positions == null) {
       return PositionResponse.builder()
-          .data(positions)
+          .data(null)
           .build();
     }
     if (positions.getAsAt() != null) {
@@ -78,9 +71,10 @@ public class ValuationService implements Valuation {
         assets.add(position.getAsset());
       }
     }
-    Positions valuedPositions = value(positions, assets);
 
-    return PositionResponse.builder().data(valuedPositions).build();
+    return PositionResponse.builder()
+        .data(value(positions, assets))
+        .build();
   }
 
   private Positions value(Positions positions, Collection<Asset> assets) {
@@ -88,7 +82,7 @@ public class ValuationService implements Valuation {
     if (assets.isEmpty()) {
       return positions;
     }
-    log.debug("Valuing {} positions against : {}", positions.getPositions().size(), mdUrl);
+    log.debug("Valuing {} positions...", positions.getPositions().size());
 
     FxReport fxReport = FxReport.builder()
         .base(positions.getPortfolio().getBase())
@@ -120,7 +114,7 @@ public class ValuationService implements Valuation {
 
   private ValuationData getValuationData(Positions positions, Collection<Asset> assets) {
     CompletableFuture<PriceResponse> futurePriceResponse =
-        bcService.getMarketData(
+        asyncMdService.getMarketData(
             PriceRequest.builder()
                 .date(positions.getAsAt())
                 .assets(assets).build()
@@ -130,7 +124,7 @@ public class ValuationService implements Valuation {
         positions.getPortfolio().getBase(),
         positions);
     log.debug("Value request {}", fxRequest);
-    CompletableFuture<FxResponse> futureFxResponse = bcService.getFxData(fxRequest);
+    CompletableFuture<FxResponse> futureFxResponse = asyncMdService.getFxData(fxRequest);
 
     return getValuationData(futurePriceResponse, futureFxResponse);
 

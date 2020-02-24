@@ -1,10 +1,8 @@
-package com.beancounter.marketdata.integ;
+package com.beancounter.marketdata.contracts;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.marketdata.utils.EcbMockUtils.get;
 import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.config;
-import static io.restassured.module.mockmvc.config.MockMvcConfig.mockMvcConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.AssetRequest;
@@ -15,14 +13,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.assets.AssetController;
 import com.beancounter.marketdata.assets.AssetService;
-import com.beancounter.marketdata.controller.FxController;
-import com.beancounter.marketdata.controller.PriceController;
-import com.beancounter.marketdata.controller.TrnController;
-import com.beancounter.marketdata.currency.CurrencyController;
-import com.beancounter.marketdata.markets.MarketController;
-import com.beancounter.marketdata.portfolio.PortfolioController;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
@@ -38,9 +29,9 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,81 +40,61 @@ import org.springframework.cloud.contract.verifier.messaging.boot.AutoConfigureM
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Spring Contract base class.  Mocks out calls to various gateways that can be imported
  * and run as stubs in other services.  Any data required from an integration call in a
  * dependent service, should be mocked in this class.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext
 @AutoConfigureMessageVerifier
 @AutoConfigureWireMock(port = 0)
+@WebAppConfiguration
+@ActiveProfiles("nosecurity")
 public class ContractVerifierBase {
 
-  static final Asset AAPL = getAsset("AAPL", "NASDAQ");
-  static final Asset MSFT = getAsset("MSFT", "NASDAQ");
-  static final Asset MSFT_INVALID = getAsset("MSFTx", "NASDAQ");
-  static final Asset AMP = getAsset("AMP", "ASX");
-  private static Asset EBAY = getAsset("EBAY", "NASDAQ");
+  public static final Asset AAPL = getAsset("AAPL", "NASDAQ");
+  public static final Asset MSFT = getAsset("MSFT", "NASDAQ");
+  public static final Asset MSFT_INVALID = getAsset("MSFTx", "NASDAQ");
+  public static final Asset AMP = getAsset("AMP", "ASX");
+  public static final Asset EBAY = getAsset("EBAY", "NASDAQ");
+  @MockBean
+  private FxGateway fxGateway;
+  @MockBean
+  private WtdGateway wtdGateway;
   @MockBean
   private PortfolioService portfolioService;
   @MockBean
   private TrnService trnService;
   @MockBean
   private AssetService assetService;
-  @MockBean
-  private FxGateway fxGateway;
-  @MockBean
-  private WtdGateway wtdGateway;
 
   @Autowired
-  private PortfolioController portfolioController;
-  @Autowired
-  private AssetController assetController;
-
-  @Autowired
-  private FxController fxController;
-  @Autowired
-  private PriceController priceController;
-  @Autowired
-  private MarketController marketController;
-  @Autowired
-  private CurrencyController currencyController;
-  @Autowired
-  private TrnController trnController;
+  private WebApplicationContext context;
 
   private String contractPath = "contracts";
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockMvc mockMvc = MockMvcBuilders
-        .standaloneSetup(
-            fxController,
-            priceController,
-            marketController,
-            currencyController,
-            assetController,
-            trnController,
-            portfolioController
-        ).build();
-
-    config().mockMvcConfig(
-        mockMvcConfig()
-            .dontAutomaticallyApplySpringSecurityMockMvcConfigurer()
-    );
+        .webAppContextSetup(context)
+        .build();
 
     RestAssuredMockMvc
         .mockMvc(mockMvc);
 
   }
 
-  @Before
+  @BeforeEach
   public void ecbRates() {
     Map<String, BigDecimal> rates;
     rates = getRateMap("0.8973438622", "1.3652189519", "0.7756191673",
@@ -161,7 +132,7 @@ public class ContractVerifierBase {
 
   }
 
-  @Before
+  @BeforeEach
   public void wtdPrices() {
     // WTD Price Mocking
     // Ebay
@@ -175,7 +146,7 @@ public class ContractVerifierBase {
 
   }
 
-  @Before
+  @BeforeEach
   public void mockTrnResponse() throws Exception {
     mockTrnResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
     mockTrnResponse(getEmptyPortfolio(), contractPath + "/trn/EMPTY-response.json");
@@ -189,7 +160,7 @@ public class ContractVerifierBase {
         .thenReturn(trnResponse);
   }
 
-  @Before
+  @BeforeEach
   public void mockPortfolios() throws Exception {
     mockPortfolio(getEmptyPortfolio());
     mockPortfolio(getTestPortfolio());
@@ -222,7 +193,7 @@ public class ContractVerifierBase {
         .thenReturn(portfolio);
   }
 
-  @Before
+  @BeforeEach
   public void mockAssets() throws Exception {
     mockAssetResponse(
         new ClassPathResource(contractPath + "/assets/request.json").getFile(),
@@ -272,9 +243,10 @@ public class ContractVerifierBase {
 
   @Test
   public void is_Started() {
-    assertThat(fxController).isNotNull();
     assertThat(wtdGateway).isNotNull();
     assertThat(fxGateway).isNotNull();
-    assertThat(assetController).isNotNull();
+    assertThat(assetService).isNotNull();
+    assertThat(trnService).isNotNull();
+    assertThat(portfolioService).isNotNull();
   }
 }

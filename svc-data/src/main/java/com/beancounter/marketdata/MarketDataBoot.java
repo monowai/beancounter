@@ -8,8 +8,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @SpringBootApplication(scanBasePackages = "com.beancounter")
 @EntityScan("com.beancounter.common.model")
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class MarketDataBoot {
   public static void main(String[] args) {
     SpringApplication.run(MarketDataBoot.class, args);

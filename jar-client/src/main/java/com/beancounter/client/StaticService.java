@@ -46,7 +46,7 @@ public class StaticService {
 
   public Market get(String key) {
     // ToDo: getMarket by Code and add @Cache
-    if ( marketMap == null ) {
+    if (marketMap  == null || marketMap.isEmpty()) {
       Collection<Market> markets = staticGateway.getMarkets().getData();
       for (Market market : markets) {
         marketMap.put(market.getCode(), market);

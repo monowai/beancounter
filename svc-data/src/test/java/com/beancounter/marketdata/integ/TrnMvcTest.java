@@ -1,11 +1,17 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.marketdata.integ.TestRegistrationMvc.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.AuthorityRoleConverter;
+import com.beancounter.auth.JwtRoleConverter;
+import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PortfolioRequest;
@@ -15,6 +21,7 @@ import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.CurrencyUtils;
@@ -29,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,9 +59,24 @@ public class TrnMvcTest {
 
   private MockMvc mockMvc;
 
+  private Jwt token;
+
+  private AuthorityRoleConverter authorityRoleConverter
+      = new AuthorityRoleConverter(new JwtRoleConverter());
+
   @Autowired
   void mockServices() {
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
+        .apply(springSecurity())
+        .build();
+    SystemUser user = SystemUser.builder()
+        .id("TrnMvcTest")
+        .email("user@testing.com")
+        .build();
+
+    token = TokenHelper.getUserToken(user);
+    registerUser(mockMvc, token, user);
+
   }
 
   @Test
@@ -133,6 +156,7 @@ public class TrnMvcTest {
 
     MvcResult mvcResult = mockMvc.perform(
         post("/trns")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -153,6 +177,7 @@ public class TrnMvcTest {
     // Find by Portfolio, sorted by assetId and then Date
     mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}", portfolioId)
+            .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -174,9 +199,11 @@ public class TrnMvcTest {
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}/{provider}/{batch}/{id}",
+
             portfolioId, trnId.getProvider(), trnId.getBatch(), trnId.getId())
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
+            .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -196,6 +223,7 @@ public class TrnMvcTest {
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -210,6 +238,7 @@ public class TrnMvcTest {
   private Asset asset(AssetRequest assetRequest) throws Exception {
     MvcResult mvcResult = mockMvc.perform(
         post("/assets/")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())

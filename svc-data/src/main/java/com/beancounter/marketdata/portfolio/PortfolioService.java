@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.portfolio;
 
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.marketdata.currency.CurrencyService;
@@ -36,6 +35,18 @@ public class PortfolioService {
     return results;
   }
 
+  private Collection<Portfolio> prepare(SystemUser owner, Collection<Portfolio> portfolios) {
+    Collection<Portfolio>results = new ArrayList<>();
+    for (Portfolio portfolio : portfolios) {
+      if ( portfolio.getId() == null )
+        portfolio.setCode(portfolio.getCode().toUpperCase());
+        portfolio.setOwner(owner);
+        results.add(portfolio);
+      }
+
+    return results;
+  }
+
   private void verifyOwner(SystemUser owner) {
     if (owner == null) {
       throw new BusinessException("Unable to identify the owner");
@@ -45,19 +56,9 @@ public class PortfolioService {
     }
   }
 
-  private Collection<Portfolio> prepare(SystemUser owner, Collection<Portfolio> portfolios) {
-    for (Portfolio portfolio : portfolios) {
-      portfolio.setCode(portfolio.getCode().toUpperCase());
-      portfolio.setOwner(owner);
-    }
-    return portfolios;
-  }
-
   private SystemUser getOrThrow() {
     SystemUser systemUser = systemUserService.getActiveUser();
-    if (systemUser == null) {
-      throw new UnauthorizedException("You are not authorized to perform this action");
-    }
+    verifyOwner(systemUser);
     return systemUser;
 
   }

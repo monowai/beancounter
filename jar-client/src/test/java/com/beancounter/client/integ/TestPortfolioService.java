@@ -19,7 +19,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ImportAutoConfiguration(ClientConfig.class)
 @SpringBootTest(classes = ClientConfig.class)
-public class PortfolioServiceTest {
+public class TestPortfolioService {
   @Autowired
   private PortfolioService portfolioService;
 

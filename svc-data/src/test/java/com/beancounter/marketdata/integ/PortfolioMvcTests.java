@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -325,6 +326,43 @@ class PortfolioMvcTests {
     assertThat(objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
         .hasSize(0);
+
+  }
+
+  @SneakyThrows
+  @Test
+  void is_UniqueConstraintInPlace() {
+    SystemUser userA = SystemUser.builder()
+        .id("user")
+        .email("user@testing.com")
+        .build();
+
+
+    Portfolio portfolio = Portfolio.builder()
+        .code("AAAA")
+        .name("NZD Portfolio")
+        .currency(CurrencyUtils.getCurrency("NZD"))
+        .owner(userA)
+        .build();
+
+    Collection<Portfolio>portfolios = new ArrayList<>();
+    portfolios.add(portfolio);
+    portfolios.add(portfolio); // Code and Owner are the same so, reject
+
+    Jwt token = TokenHelper.getUserToken(userA);
+    // Can't create two portfolios with the same code
+    mockMvc.perform(
+        post("/portfolios")
+            .with(jwt(token).authorities(authorityRoleConverter))
+            .content(new ObjectMapper()
+                .writeValueAsBytes(PortfolioRequest.builder()
+                    .data(portfolios)
+                    .build()))
+            .contentType(MediaType.APPLICATION_JSON)
+
+    ).andExpect(status().isBadRequest())
+        .andReturn();
+
 
   }
 }

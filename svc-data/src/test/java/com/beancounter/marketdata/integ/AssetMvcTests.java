@@ -1,15 +1,21 @@
 package com.beancounter.marketdata.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.AuthorityRoleConverter;
+import com.beancounter.auth.JwtRoleConverter;
+import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
@@ -18,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,12 +42,26 @@ class AssetMvcTests {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  private WebApplicationContext wac;
+  private WebApplicationContext context;
   private MockMvc mockMvc;
+
+  private AuthorityRoleConverter authorityRoleConverter
+      = new AuthorityRoleConverter(new JwtRoleConverter());
+  private Jwt token;
 
   @Autowired
   void mockServices() {
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        .apply(springSecurity())
+        .build();
+
+    // Setup a user account
+    SystemUser user = SystemUser.builder()
+        .id("user")
+        .email("user@testing.com")
+        .build();
+    token = TokenHelper.getUserToken(user);
+    TestRegistrationMvc.registerUser(mockMvc, token, user);
 
   }
 
@@ -56,6 +77,7 @@ class AssetMvcTests {
 
     MvcResult mvcResult = mockMvc.perform(
         post("/assets/")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -101,6 +123,7 @@ class AssetMvcTests {
 
     MvcResult mvcResult = mockMvc.perform(
         post("/assets/")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -115,39 +138,13 @@ class AssetMvcTests {
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market");
-    // Attempt to change the name
-
-    //ToDo: Update assets
-    //    putAsset.setName("Other Name");
-    //
-    //    assetRequest = AssetRequest.builder()
-    //        .asset(AssetUtils.toKey(putAsset), putAsset)
-    //        .build();
-    //
-    //    // Calling PUT the second time should not update and will return the same asset Id
-    //    mvcResult = mockMvc.perform(
-    //        post("/assets/")
-    //            .content(objectMapper.writeValueAsBytes(assetRequest))
-    //            .contentType(MediaType.APPLICATION_JSON)
-    //    ).andExpect(status().isOk())
-    //        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-    //        .andReturn();
-    //
-    //    assetResponse = objectMapper
-    //        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
-    //
-    //    // Name should remain as null as can't PUT same value twice
-    //    assertThat(assetResponse.getAssets().get(AssetUtils.toKey(putAsset)))
-    //        .isNotNull()
-    //        .hasFieldOrPropertyWithValue("name", "Other Name")
-    //        .isEqualToComparingOnlyGivenFields(putAsset,
-    //            "code", "market");
   }
 
   @Test
   void is_MissingAssetBadRequest() throws Exception {
     ResultActions result = mockMvc.perform(
         get("/assets/twee/blah")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());
 

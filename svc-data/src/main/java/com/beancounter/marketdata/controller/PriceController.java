@@ -1,11 +1,13 @@
 package com.beancounter.marketdata.controller;
 
+import com.beancounter.auth.OauthRoles;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.service.MarketDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/prices")
-//@Secured(AppRoles.ROLE_USER)
+@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
 public class PriceController {
 
   private MarketDataService marketDataService;

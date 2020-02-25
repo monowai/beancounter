@@ -1,11 +1,13 @@
 package com.beancounter.marketdata.assets;
 
+import com.beancounter.auth.OauthRoles;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/assets")
 @CrossOrigin
+@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
 public class AssetController {
 
   private AssetService assetService;

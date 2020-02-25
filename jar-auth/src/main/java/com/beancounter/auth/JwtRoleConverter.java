@@ -23,9 +23,10 @@ public final class JwtRoleConverter implements Converter<Jwt, AbstractAuthentica
   private String resourceId;
   private String realmClaim;
 
-  public JwtRoleConverter () {
-    this ("realm_access", "roles");
+  public JwtRoleConverter() {
+    this("realm_access", "roles");
   }
+
   public JwtRoleConverter(@Value("${auth.realm.claim:realm_access}") String realmClaim,
                           @Value("${auth.realm.roles:roles}") String resourceId) {
     this.realmClaim = realmClaim;

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
+import com.beancounter.auth.JwtRoleConverter;
 import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Portfolio;
@@ -43,8 +44,9 @@ class PortfolioMvcTests {
 
   @Autowired
   private WebApplicationContext context;
-  @Autowired
-  private AuthorityRoleConverter authorityRoleConverter;
+
+  private AuthorityRoleConverter authorityRoleConverter
+      = new AuthorityRoleConverter(new JwtRoleConverter());
 
   @BeforeEach
   void mockServices() {
@@ -203,5 +205,127 @@ class PortfolioMvcTests {
 
   }
 
+  @Test
+  void is_OwnerHonoured() throws Exception {
+    SystemUser userA = SystemUser.builder()
+        .id("user1")
+        .email("user1@testing.com")
+        .build();
+
+    Portfolio portfolio = Portfolio.builder()
+        .code("Twix")
+        .name("NZD Portfolio")
+        .currency(CurrencyUtils.getCurrency("NZD"))
+        .owner(userA)
+        .build();
+
+    mockMvc.perform(
+        post("/portfolios")
+            // No Token
+            .content(new ObjectMapper()
+                .writeValueAsBytes(PortfolioRequest.builder()
+                    .data(Collections.singleton(portfolio))
+                    .build()))
+            .contentType(MediaType.APPLICATION_JSON)
+
+    ).andExpect(status().isForbidden())
+        .andReturn();
+
+    // Add a token and repeat the call
+    Jwt tokenA = TokenHelper.getUserToken(userA);
+    registerUser(mockMvc, tokenA, userA);
+
+    MvcResult mvcResult = mockMvc.perform(
+        post("/portfolios")
+            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .content(new ObjectMapper()
+                .writeValueAsBytes(PortfolioRequest.builder()
+                    .data(Collections.singleton(portfolio))
+                    .build()))
+            .contentType(MediaType.APPLICATION_JSON)
+
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    // Logged in user created a Portfolio
+    assertThat(objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .hasSize(1);
+
+    // User A can see the portfolio they created
+    mvcResult = mockMvc.perform(
+        get("/portfolios/{id}", portfolio.getId())
+            .with(jwt(tokenA).authorities(authorityRoleConverter))
+
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    assertThat(objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .hasSize(1);
+    // By code, also can
+    mvcResult = mockMvc.perform(
+        get("/portfolios/{code}/code", portfolio.getCode())
+            .with(jwt(tokenA).authorities(authorityRoleConverter))
+
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    assertThat(objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .hasSize(1);
+
+    // All users portfolios
+    mvcResult = mockMvc.perform(
+        get("/portfolios")
+            .with(jwt(tokenA).authorities(authorityRoleConverter))
+
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    assertThat(objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .hasSize(1);
+
+    // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
+    SystemUser userB = SystemUser.builder()
+        .id("user2")
+        .email("user2@testing.com")
+        .build();
+
+    Jwt tokenB = TokenHelper.getUserToken(userB);
+    registerUser(mockMvc, tokenB, userB);
+
+    mockMvc.perform(
+        get("/portfolios/{id}", portfolio.getId())
+            .with(jwt(tokenB).authorities(authorityRoleConverter))
+
+    ).andExpect(status().isBadRequest())
+        .andReturn();
+
+    mockMvc.perform(
+        get("/portfolios/{code}/code", portfolio.getCode())
+            .with(jwt(tokenB).authorities(authorityRoleConverter))
+
+    ).andExpect(status().isBadRequest())
+        .andReturn();
+
+    // All portfolios
+    mvcResult = mockMvc.perform(
+        get("/portfolios/")
+            .with(jwt(tokenB).authorities(authorityRoleConverter))
+
+    ).andExpect(status().isOk())
+        .andReturn();
+
+    assertThat(objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .hasSize(0);
+
+  }
 }
 

@@ -2,16 +2,22 @@ package com.beancounter.marketdata.integ;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.AuthorityRoleConverter;
+import com.beancounter.auth.JwtRoleConverter;
+import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbDate;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
@@ -27,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,8 +51,12 @@ class FxMvcTests {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  private WebApplicationContext wac;
+  private WebApplicationContext context;
   private MockMvc mockMvc;
+
+  private AuthorityRoleConverter authorityRoleConverter
+      = new AuthorityRoleConverter(new JwtRoleConverter());
+  private Jwt token;
 
   @Autowired
   void mockServices() {
@@ -54,7 +65,17 @@ class FxMvcTests {
       mockInternet = new WireMockRule(options().port(7777));
       mockInternet.start();
     }
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        .apply(springSecurity())
+        .build();
+
+    SystemUser user = SystemUser.builder()
+        .id("user")
+        .email("user@testing.com")
+        .build();
+    token = TokenHelper.getUserToken(user);
+    TestRegistrationMvc.registerUser(mockMvc, token, user);
 
   }
 
@@ -76,6 +97,7 @@ class FxMvcTests {
     fxRequest.add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(fxRequest)
             )
@@ -117,6 +139,7 @@ class FxMvcTests {
     fxRequest.add(nzdUsd);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(fxRequest)
             )
@@ -155,6 +178,7 @@ class FxMvcTests {
     fxRequest.add(invalid);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
+            .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(fxRequest)
             )

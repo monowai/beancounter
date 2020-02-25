@@ -2,10 +2,15 @@ package com.beancounter.position.integration;
 
 import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.AuthorityRoleConverter;
+import com.beancounter.auth.JwtRoleConverter;
+import com.beancounter.auth.TokenHelper;
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.StaticService;
 import com.beancounter.common.contracts.PositionResponse;
@@ -14,6 +19,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
@@ -23,7 +29,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +37,7 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -50,7 +56,7 @@ import org.springframework.web.context.WebApplicationContext;
 class StubbedFxValuations {
 
   @Autowired
-  private WebApplicationContext wac;
+  private WebApplicationContext context;
   private MockMvc mockMvc;
 
   @Autowired
@@ -62,11 +68,25 @@ class StubbedFxValuations {
   @Autowired
   private PortfolioService portfolioService;
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private AuthorityRoleConverter authorityRoleConverter
+      = new AuthorityRoleConverter(new JwtRoleConverter());
 
-  @BeforeEach
-  void setUp() {
-    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+  private ObjectMapper mapper = new ObjectMapper();
+  private Jwt token;
+
+  @Autowired
+  void mockServices() {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        .apply(springSecurity())
+        .build();
+
+    // Setup a user account
+    SystemUser user = SystemUser.builder()
+        .id("user")
+        .email("user@testing.com")
+        .build();
+    token = TokenHelper.getUserToken(user);
+
   }
 
   private Positions getPositions(Asset asset) {
@@ -109,6 +129,7 @@ class StubbedFxValuations {
 
     assertThat(mockMvc).isNotNull();
     String json = mockMvc.perform(post("/value")
+        .with(jwt(token).authorities(authorityRoleConverter))
         .contentType(MediaType.APPLICATION_JSON_VALUE)
         .content(mapper.writeValueAsString(positionResponse))
     ).andExpect(status().isOk())
@@ -128,6 +149,7 @@ class StubbedFxValuations {
   void is_MvcRestException() throws Exception {
 
     MvcResult result = mockMvc.perform(post("/value")
+        .with(jwt(token).authorities(authorityRoleConverter))
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString("{asdf}"))
     ).andExpect(status().is4xxClientError()).andReturn();

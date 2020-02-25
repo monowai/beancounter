@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 @UtilityClass
 public class AuthHelper {
 
-  private JwtAuthenticationToken getJwtToken() {
+  public JwtAuthenticationToken getJwtToken() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null) {
       return null;
@@ -34,7 +34,7 @@ public class AuthHelper {
   }
 
   private static boolean isTokenBased(Authentication authentication) {
-    return authentication instanceof JwtAuthenticationToken;
+    return authentication.getClass().isAssignableFrom(JwtAuthenticationToken.class);
   }
 
 }

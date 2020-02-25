@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * <p>{@code MvcResult registrationResult = mockMvc.perform(
  * post("/")
  * .with(jwt(TokenHelper.getUserToken(user))
- *    .authorities(new AuthorityRoleConverter(new JwtRoleConverter())))
+ * .authorities(new AuthorityRoleConverter(new JwtRoleConverter())))
  * ...}
  */
 
@@ -28,6 +28,10 @@ public class AuthorityRoleConverter implements Converter<Jwt, Collection<Granted
   private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter
       = new JwtGrantedAuthoritiesConverter();
   private JwtRoleConverter jwtRoleConverter;
+
+  public AuthorityRoleConverter() {
+    this(new JwtRoleConverter());
+  }
 
   public AuthorityRoleConverter(JwtRoleConverter jwtRoleConverter) {
     this.jwtRoleConverter = jwtRoleConverter;

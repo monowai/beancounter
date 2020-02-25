@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.JwtRoleConverter;
 import com.beancounter.auth.TokenHelper;
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.StaticService;
@@ -68,8 +67,7 @@ class StubbedFxValuations {
   @Autowired
   private PortfolioService portfolioService;
 
-  private AuthorityRoleConverter authorityRoleConverter
-      = new AuthorityRoleConverter(new JwtRoleConverter());
+  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   private ObjectMapper mapper = new ObjectMapper();
   private Jwt token;

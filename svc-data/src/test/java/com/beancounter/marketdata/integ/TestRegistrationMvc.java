@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.JwtRoleConverter;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.model.SystemUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,17 +14,15 @@ import lombok.SneakyThrows;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 public class TestRegistrationMvc {
 
-  private static AuthorityRoleConverter authorityRoleConverter =
-      new AuthorityRoleConverter(new JwtRoleConverter("realm_access", "roles"));
+  private static AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @SneakyThrows
   public static void registerUser(MockMvc mockMvc, Jwt token, SystemUser user) {
 
-    MvcResult registrationResult = mockMvc.perform(
+    mockMvc.perform(
         post("/register")
             .with(
                 jwt(token)

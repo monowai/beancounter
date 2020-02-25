@@ -22,7 +22,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
     http.cors().and()
         .authorizeRequests()
         // Scope permits access to the API - basically, "caller is authorised"
-        .mvcMatchers(authPattern).hasAuthority("SCOPE_beancounter")
+        .mvcMatchers(authPattern).hasAuthority(AppRoles.SCOPE_BC)
         .anyRequest().permitAll()
         .and()
         .oauth2ResourceServer()

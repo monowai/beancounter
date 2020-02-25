@@ -36,13 +36,12 @@ public class PortfolioService {
   }
 
   private Collection<Portfolio> prepare(SystemUser owner, Collection<Portfolio> portfolios) {
-    Collection<Portfolio>results = new ArrayList<>();
+    Collection<Portfolio> results = new ArrayList<>();
     for (Portfolio portfolio : portfolios) {
-      if ( portfolio.getId() == null )
-        portfolio.setCode(portfolio.getCode().toUpperCase());
-        portfolio.setOwner(owner);
-        results.add(portfolio);
-      }
+      portfolio.setCode(portfolio.getCode().toUpperCase());
+      portfolio.setOwner(owner);
+      results.add(portfolio);
+    }
 
     return results;
   }

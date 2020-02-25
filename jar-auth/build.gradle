@@ -33,6 +33,7 @@ dependencies {
             "org.assertj:assertj-core:$assertJ",
             "io.rest-assured:spring-mock-mvc:4.2.0",
             "org.springframework.boot:spring-boot-starter:$springBootVersion",
+            "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",
             "org.springframework.boot:spring-boot-test:$springBootVersion",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion"

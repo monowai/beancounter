@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.JwtRoleConverter;
 import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Portfolio;
@@ -21,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -46,8 +46,7 @@ class PortfolioMvcTests {
   @Autowired
   private WebApplicationContext context;
 
-  private AuthorityRoleConverter authorityRoleConverter
-      = new AuthorityRoleConverter(new JwtRoleConverter());
+  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
   void mockServices() {
@@ -59,12 +58,10 @@ class PortfolioMvcTests {
   @Test
   void is_findingByIdCode() throws Exception {
     SystemUser user = SystemUser.builder()
-        .id("portfolioB")
-        .email("portfolioB@testing.com")
         .build();
 
     Portfolio portfolio = Portfolio.builder()
-        .code("Twix")
+        .code(UUID.randomUUID().toString().toUpperCase())
         .name("NZD Portfolio")
         .currency(CurrencyUtils.getCurrency("NZD"))
         .owner(user)
@@ -97,21 +94,18 @@ class PortfolioMvcTests {
     assertThat(portfolioRequest.getData())
         .hasSize(1);
 
-    String code = portfolioRequest.getData().iterator().next().getCode();
     String id = portfolioRequest.getData().iterator().next().getId();
 
     mockMvc.perform(
-        get("/portfolios/{code}/code", "abc")
+        get("/portfolios/{code}/code", "does not exist")
             .with(jwt(token).authorities(authorityRoleConverter))
-            .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError())
         .andReturn();
 
     mockMvc.perform(
-        get("/portfolios/{code}/code", code)
+        get("/portfolios/{code}/code", portfolio.getCode())
             .with(jwt(token).authorities(authorityRoleConverter))
-            .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -120,8 +114,6 @@ class PortfolioMvcTests {
     mockMvc.perform(
         get("/portfolios/{id}", id)
             .with(jwt(token).authorities(authorityRoleConverter))
-            .with(csrf())
-
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -155,13 +147,10 @@ class PortfolioMvcTests {
   @Test
   void is_persistAndFindPortfoliosWorking() throws Exception {
     SystemUser user = SystemUser.builder()
-        .id("portfolioA")
-        .email("portfolioA@testing.com")
         .build();
 
-
     Portfolio portfolio = Portfolio.builder()
-        .code("TWEE")
+        .code(UUID.randomUUID().toString().toUpperCase())
         .name("NZD Portfolio")
         .currency(CurrencyUtils.getCurrency("NZD"))
         .owner(user)
@@ -209,12 +198,10 @@ class PortfolioMvcTests {
   @Test
   void is_OwnerHonoured() throws Exception {
     SystemUser userA = SystemUser.builder()
-        .id("user1")
-        .email("user1@testing.com")
         .build();
 
     Portfolio portfolio = Portfolio.builder()
-        .code("Twix")
+        .code(UUID.randomUUID().toString().toUpperCase())
         .name("NZD Portfolio")
         .currency(CurrencyUtils.getCurrency("NZD"))
         .owner(userA)
@@ -333,19 +320,16 @@ class PortfolioMvcTests {
   @Test
   void is_UniqueConstraintInPlace() {
     SystemUser userA = SystemUser.builder()
-        .id("user")
-        .email("user@testing.com")
         .build();
 
-
     Portfolio portfolio = Portfolio.builder()
-        .code("AAAA")
+        .code(UUID.randomUUID().toString().toUpperCase())
         .name("NZD Portfolio")
         .currency(CurrencyUtils.getCurrency("NZD"))
         .owner(userA)
         .build();
 
-    Collection<Portfolio>portfolios = new ArrayList<>();
+    Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(portfolio);
     portfolios.add(portfolio); // Code and Owner are the same so, reject
 

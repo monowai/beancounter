@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(uniqueConstraints={@UniqueConstraint(columnNames={"code", "owner_id"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"code", "owner_id"})})
 public class Portfolio {
   @Builder.Default
   @Getter

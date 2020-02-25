@@ -3,6 +3,7 @@ package com.beancounter.auth;
 import com.beancounter.common.model.SystemUser;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +19,10 @@ public class TokenHelper {
   public static final String SCOPE = "beancounter profile email";
 
   public Jwt getUserToken(SystemUser systemUser) {
-    Collection<String> roles = new ArrayList<>();
-    roles.add("user");
-    Map<String, Collection<String>> realmAccess = new HashMap<>();
-    realmAccess.put("roles", roles);
+    return getUserToken(systemUser, getDefaultRoles());
+  }
+
+  public Jwt getUserToken(SystemUser systemUser, Map<String, Collection<String>> realmAccess) {
 
     return Jwt.withTokenValue("token")
         .header("alg", "none")
@@ -31,6 +32,19 @@ public class TokenHelper {
         .claim("scope", SCOPE)
         .expiresAt(new Date(System.currentTimeMillis() + 60000).toInstant())
         .build();
+  }
+
+  public Map<String, Collection<String>> getDefaultRoles() {
+    return getRoles("user");
+  }
+
+  public Map<String, Collection<String>> getRoles(String... roles) {
+    Collection<String> userRoles = new ArrayList<>();
+    Collections.addAll(userRoles, roles);
+
+    Map<String, Collection<String>> realmAccess = new HashMap<>();
+    realmAccess.put("roles", userRoles);
+    return realmAccess;
 
   }
 }

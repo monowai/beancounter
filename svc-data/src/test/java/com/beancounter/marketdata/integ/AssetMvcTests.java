@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.JwtRoleConverter;
 import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
@@ -45,8 +44,7 @@ class AssetMvcTests {
   private WebApplicationContext context;
   private MockMvc mockMvc;
 
-  private AuthorityRoleConverter authorityRoleConverter
-      = new AuthorityRoleConverter(new JwtRoleConverter());
+  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private Jwt token;
 
   @Autowired

@@ -17,6 +17,8 @@ dependencies {
     implementation(
             project(":jar-common"),
             "javax.servlet:javax.servlet-api:4.0.1",
+            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework:spring-webmvc:$springWebVersion",
             "org.springframework.security:spring-security-config:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
@@ -32,17 +34,12 @@ dependencies {
             "org.junit.jupiter:junit-jupiter:$junitVersion",
             "org.assertj:assertj-core:$assertJ",
             "io.rest-assured:spring-mock-mvc:4.2.0",
-            "org.springframework.boot:spring-boot-starter:$springBootVersion",
             "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",
             "org.springframework.boot:spring-boot-test:$springBootVersion",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion"
 
     )
-}
-
-task testJar(type: Jar) {
-    from sourceSets.test.output.classesDirs
 }
 
 test {

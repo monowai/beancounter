@@ -11,7 +11,7 @@ import lombok.experimental.UtilityClass;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
- * TestHelper class that generates JWT tokens you can test with.
+ * TestHelper class to generate JWT tokens you can test with.
  */
 @UtilityClass
 public class TokenHelper {
@@ -39,10 +39,9 @@ public class TokenHelper {
   }
 
   public Map<String, Collection<String>> getRoles(String... roles) {
+    Map<String, Collection<String>> realmAccess = new HashMap<>();
     Collection<String> userRoles = new ArrayList<>();
     Collections.addAll(userRoles, roles);
-
-    Map<String, Collection<String>> realmAccess = new HashMap<>();
     realmAccess.put("roles", userRoles);
     return realmAccess;
 

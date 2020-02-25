@@ -173,6 +173,7 @@ public class AuthTest {
     @GetMapping("/me")
     @PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
     String me() {
+      assert AuthHelper.getToken() != null;
       return Objects.requireNonNull(AuthHelper.getJwtToken()).getName();
     }
 

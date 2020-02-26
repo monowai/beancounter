@@ -97,7 +97,7 @@ class StubbedFxValuations {
 
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
     trn.setTradeCurrency(
-        staticService.getCurrency(asset.getMarket().getCurrency()));
+        staticService.getCurrency(asset.getMarket().getCurrency().getCode()));
 
     Accumulator accumulator = new Accumulator();
     Positions positions = new Positions(portfolio);

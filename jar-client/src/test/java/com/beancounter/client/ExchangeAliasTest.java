@@ -28,4 +28,9 @@ class ExchangeAliasTest {
 
   }
 
+  @Test
+  void is_FoundForAlias() {
+    assertThat(exchangeService.resolveAlias("NZ")).isEqualTo("NZX");
+  }
+
 }

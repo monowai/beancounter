@@ -21,19 +21,28 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Slf4j
 public class AssetService {
 
-  public StaticService staticService;
+  private StaticService staticService;
   private AssetGateway assetGateway;
 
-  AssetService(AssetGateway assetGateway,
-               StaticService staticService) {
+  AssetService(AssetGateway assetGateway, StaticService staticService) {
     this.assetGateway = assetGateway;
     this.staticService = staticService;
   }
 
+  /**
+   * Ccreate the assets, if necessary, and return the hydrated assets.
+   *
+   * @param assetCode  Code on the exchange
+   * @param assetName  Name to set the asset to
+   * @param marketCode exchange code
+   * @return hydrated asset with a primary key.
+   */
   public Asset resolveAsset(String assetCode, String assetName, String marketCode) {
     if (marketCode.equalsIgnoreCase("MOCK")) {
       // Support unit testings where we don't really care about the asset
-      return AssetUtils.getAsset(assetCode, "MOCK");
+      Asset asset = AssetUtils.getAsset(assetCode, "MOCK");
+      asset.setName(assetName);
+      return asset;
     }
     Market resolvedMarket = staticService.resolveMarket(marketCode);
     String callerKey = AssetUtils.toKey(assetCode, resolvedMarket.getCode());

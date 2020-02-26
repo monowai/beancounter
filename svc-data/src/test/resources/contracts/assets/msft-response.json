@@ -3,6 +3,7 @@
     "MSFT:NASDAQ": {
       "id": "BguoVZpoRxWjWrITp7DEuw",
       "code": "MSFT",
+      "name": "Microsoft",
       "market": {
         "code": "NASDAQ",
         "currency": {

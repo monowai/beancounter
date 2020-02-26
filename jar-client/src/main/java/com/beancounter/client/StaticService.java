@@ -37,16 +37,16 @@ public class StaticService {
     return staticGateway.getCurrencies();
   }
 
-  public Currency getCurrency(Currency currency) {
+  public Currency getCurrency(String currency) {
     if (currency == null) {
       return null;
     }
-    return getCurrencies().getData().get(currency.getCode());
+    return getCurrencies().getData().get(currency);
   }
 
   public Market get(String key) {
     // ToDo: getMarket by Code and add @Cache
-    if (marketMap  == null || marketMap.isEmpty()) {
+    if (marketMap.isEmpty()) {
       Collection<Market> markets = staticGateway.getMarkets().getData();
       for (Market market : markets) {
         marketMap.put(market.getCode(), market);

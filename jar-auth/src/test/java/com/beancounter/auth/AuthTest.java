@@ -36,6 +36,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     MockServletContext.class,
+    TokenService.class,
     NimbusJwtDecoder.class,
     DefaultJWTProcessor.class,
     ResourceServerConfig.class})
@@ -46,6 +47,9 @@ public class AuthTest {
 
   @Autowired
   private WebApplicationContext context;
+
+  @Autowired
+  private TokenService tokenService;
 
   private MockMvc mockMvc;
 
@@ -158,12 +162,15 @@ public class AuthTest {
 
   @Test
   void is_BearerTokenBearing() {
-    assertThat(AuthHelper.getBearerToken())
-        .isEqualTo("Bearer " + AuthHelper.getToken());
+    assertThat(tokenService.getBearerToken())
+        .isEqualTo("Bearer " + tokenService.getToken());
   }
 
   @RestController
   static class SimpleController {
+    @Autowired
+    private TokenService tokenService;
+
     @GetMapping("/hello")
     @PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
     String sayHello() {
@@ -173,8 +180,8 @@ public class AuthTest {
     @GetMapping("/me")
     @PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
     String me() {
-      assert AuthHelper.getToken() != null;
-      return Objects.requireNonNull(AuthHelper.getJwtToken()).getName();
+      assert tokenService.getToken() != null;
+      return Objects.requireNonNull(tokenService.getJwtToken()).getName();
     }
 
 

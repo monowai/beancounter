@@ -1,11 +1,10 @@
 package com.beancounter.client;
 
-import com.beancounter.auth.AuthHelper;
+import com.beancounter.auth.TokenService;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -17,16 +16,17 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @Service
 public class PortfolioService {
   private PortfolioGw portfolioGw;
+  private TokenService tokenService;
 
-  @Autowired
-  void setPortfolioGw(PortfolioGw portfolioGw) {
+  PortfolioService(PortfolioGw portfolioGw, TokenService tokenService) {
     this.portfolioGw = portfolioGw;
+    this.tokenService = tokenService;
   }
 
   public Portfolio getPortfolioByCode(String portfolioCode) {
     PortfolioRequest response = null;
     if (portfolioCode != null) {
-      response = portfolioGw.getPortfolioByCode(AuthHelper.getBearerToken(), portfolioCode);
+      response = portfolioGw.getPortfolioByCode(tokenService.getBearerToken(), portfolioCode);
     }
     return getOrThrow(portfolioCode, response);
   }
@@ -34,7 +34,7 @@ public class PortfolioService {
   public Portfolio getPortfolioById(String portfolioId) {
     PortfolioRequest response = null;
     if (portfolioId != null) {
-      response = portfolioGw.getPortfolioById(AuthHelper.getBearerToken(), portfolioId);
+      response = portfolioGw.getPortfolioById(tokenService.getBearerToken(), portfolioId);
     }
     return getOrThrow(portfolioId, response);
   }

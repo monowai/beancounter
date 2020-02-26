@@ -1,5 +1,6 @@
 package com.beancounter.client;
 
+import com.beancounter.auth.TokenService;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
@@ -14,27 +15,32 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @Slf4j
 @Service
 public class StaticService {
   public StaticGateway staticGateway;
   private ExchangeService exchangeService;
+  private TokenService tokenService;
 
   private Map<String, Market> marketMap = new HashMap<>();
 
-  StaticService(StaticGateway staticGateway, ExchangeService exchangeService) {
+  StaticService(StaticGateway staticGateway,
+                ExchangeService exchangeService,
+                TokenService tokenService) {
     this.staticGateway = staticGateway;
     this.exchangeService = exchangeService;
+    this.tokenService = tokenService;
   }
 
   @Retry(name = "data")
   public MarketResponse getMarkets() {
-    return staticGateway.getMarkets();
+    return staticGateway.getMarkets(tokenService.getBearerToken());
   }
 
   public CurrencyResponse getCurrencies() {
-    return staticGateway.getCurrencies();
+    return staticGateway.getCurrencies(tokenService.getBearerToken());
   }
 
   public Currency getCurrency(String currency) {
@@ -47,7 +53,8 @@ public class StaticService {
   public Market get(String key) {
     // ToDo: getMarket by Code and add @Cache
     if (marketMap.isEmpty()) {
-      Collection<Market> markets = staticGateway.getMarkets().getData();
+      Collection<Market> markets = staticGateway.getMarkets(tokenService.getBearerToken())
+          .getData();
       for (Market market : markets) {
         marketMap.put(market.getCode(), market);
       }
@@ -70,10 +77,10 @@ public class StaticService {
       url = "${marketdata.url:http://localhost:9510/api}")
   public interface StaticGateway {
     @GetMapping(value = "/markets", produces = {MediaType.APPLICATION_JSON_VALUE})
-    MarketResponse getMarkets();
+    MarketResponse getMarkets(@RequestHeader("Authorization") String bearerToken);
 
     @GetMapping(value = "/currencies", produces = {MediaType.APPLICATION_JSON_VALUE})
-    CurrencyResponse getCurrencies();
+    CurrencyResponse getCurrencies(@RequestHeader("Authorization") String bearerToken);
 
   }
 

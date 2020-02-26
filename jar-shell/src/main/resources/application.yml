@@ -2,10 +2,20 @@ spring:
   main:
     banner-mode: "off"
     web-application-type: none
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "${auth.uri}/auth/realms/${auth.realm}/protocol/openid-connect/certs"
 
   jackson:
     serialization:
       INDENT_OUTPUT: true
+
+auth:
+  uri: "http://keycloak:9620"
+  realm: "bc-dev"
+  client: "bc-app"
 
 beancounter:
   exchanges:
@@ -22,12 +32,12 @@ logging:
     com: error
     com.beancounter.shell.IngestBoot: error
     com.beancounter: debug
-    org.springframework.web.servlet: fatal
+    org.springframework.web.servlet: info
+    feign: debug
     sun: error
     jdk: error
     javax: error
     io: error
-    feign.template: error
     io.github.resilience4j: fatal
   pattern:
     console: "%d - %m%n"

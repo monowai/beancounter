@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.registration;
 
-import com.beancounter.auth.AuthHelper;
+import com.beancounter.auth.TokenService;
 import com.beancounter.common.model.SystemUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class SystemUserService {
   private SystemUserRepository systemUserRepository;
+  private TokenService tokenService;
 
-  SystemUserService(SystemUserRepository systemUserRepository) {
+  SystemUserService(SystemUserRepository systemUserRepository, TokenService tokenService) {
     this.systemUserRepository = systemUserRepository;
+    this.tokenService = tokenService;
   }
 
   public SystemUser save(SystemUser systemUser) {
@@ -21,10 +23,6 @@ public class SystemUserService {
 
   public SystemUser find(String id) {
     return (systemUserRepository.findById(id).orElse(null));
-  }
-
-  public SystemUser findByEmail(String email) {
-    return (systemUserRepository.findByEmail(email.toUpperCase()).orElse(null));
   }
 
   public SystemUser register(SystemUser systemUser) {
@@ -38,7 +36,7 @@ public class SystemUserService {
   }
 
   public SystemUser getActiveUser() {
-    JwtAuthenticationToken token = AuthHelper.getJwtToken();
+    JwtAuthenticationToken token = tokenService.getJwtToken();
     if (token == null) {
       return null;
     }

@@ -19,10 +19,15 @@ dependencies {
     implementation(
             project(":jar-common"),
             project(":jar-client"),
+            project(":jar-auth"),
             "org.springframework.shell:spring-shell-starter:$springShellVersion",
             "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.1.RELEASE",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "org.springframework.security:spring-security-config:$springSecurityVersion",
+            "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
+            "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion",
+            "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
             "com.google.api-client:google-api-client:$googleClientVersion",
             "com.google.oauth-client:google-oauth-client-jetty:1.30.5",
             "com.google.apis:google-api-services-sheets:v4-rev604-1.25.0"

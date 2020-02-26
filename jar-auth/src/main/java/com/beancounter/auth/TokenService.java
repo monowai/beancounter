@@ -1,12 +1,12 @@
 package com.beancounter.auth;
 
-import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Service;
 
-@UtilityClass
-public class AuthHelper {
+@Service
+public class TokenService {
 
   public JwtAuthenticationToken getJwtToken() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

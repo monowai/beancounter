@@ -3,15 +3,14 @@ package com.beancounter.shell.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.PortfolioService;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.cli.DataCommands;
-import com.beancounter.shell.cli.ShellPrompt;
 import com.beancounter.shell.cli.UtilCommands;
 import com.beancounter.shell.config.GoogleAuthConfig;
 import com.beancounter.shell.config.ShareSightConfig;
+import com.beancounter.shell.config.ShellConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -28,12 +27,9 @@ import org.springframework.test.context.ActiveProfiles;
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {
-    ShareSightConfig.class,
-    DataCommands.class,
-    PortfolioService.class,
-    ShellPrompt.class,
+    ShellConfig.class,
     GoogleAuthConfig.class,
-    UtilCommands.class})
+    ShareSightConfig.class})
 public class CommandTest {
   @Autowired
   private DataCommands dataCommands;

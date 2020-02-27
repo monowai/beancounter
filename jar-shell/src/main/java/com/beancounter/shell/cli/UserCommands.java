@@ -3,8 +3,7 @@ package com.beancounter.shell.cli;
 import com.beancounter.auth.TokenService;
 import com.beancounter.client.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
-import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.shell.auth.LoginService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -63,16 +62,17 @@ public class UserCommands {
   public String register() {
     JwtAuthenticationToken token = tokenService.getJwtToken();
     if (token == null) {
-      throw new BusinessException("Please login");
+      throw new UnauthorizedException("Please login");
     }
-    Object email = token.getTokenAttributes().get("email");
-    if (email == null) {
-      throw new BusinessException("No email address");
-    }
-    RegistrationRequest registrationRequest = RegistrationRequest.builder()
-        .email(email.toString())
-        .build();
-    return objectMapper.writeValueAsString(this.registrationService.register(registrationRequest));
+    // Not yet sure what my requirements are here.
+    //    Object email = token.getTokenAttributes().get("email");
+    //    if (email == null) {
+    //      throw new BusinessException("No email address");
+    //    }
+    return objectMapper
+        .writeValueAsString(
+            this.registrationService.register(RegistrationRequest.builder().build())
+        );
 
 
   }

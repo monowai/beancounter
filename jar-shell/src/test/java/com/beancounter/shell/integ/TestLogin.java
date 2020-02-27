@@ -1,4 +1,4 @@
-package com.beancounter.shell;
+package com.beancounter.shell.integ;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -27,11 +27,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("auth")
 public class TestLogin {
 
+  private static WireMockRule mockInternet;
   @Autowired
   private LoginService loginService;
-
-  private static WireMockRule mockInternet;
-
   private ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
@@ -53,11 +51,6 @@ public class TestLogin {
                             .getFile(), HashMap.class))
                     )
                     .withStatus(200)));
-    // ToDo: Figure out how to return a token that can be decoded
-    //    Jwt jwt = TokenHelper.getUserToken(SystemUser.builder().build());
-    //    OAuth2Response oAuth2Response = new OAuth2Response();
-    //    oAuth2Response.setExpiry(jwt.getExpiresAt().toEpochMilli());
-    //    oAuth2Response.setToken(jwt.getTokenValue());
 
     mockInternet
         .stubFor(
@@ -74,8 +67,7 @@ public class TestLogin {
   }
 
   @Test
-  void is_LoginAuthenticationSetting() {
-    // Static expired token; for the time being this is as far as I'm taking it.
+  void is_TokenExpiredThrowing() {
     assertThrows(JwtValidationException.class, () ->
         loginService.login("demo", "test")
     );

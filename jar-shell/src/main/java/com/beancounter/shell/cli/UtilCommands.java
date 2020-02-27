@@ -1,17 +1,14 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.shell.config.GoogleAuthConfig;
 import java.nio.file.FileSystems;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
 @ShellComponent
 public class UtilCommands {
-  private GoogleAuthConfig googleAuthConfig;
-
-  UtilCommands(GoogleAuthConfig googleAuthConfig) {
-    this.googleAuthConfig = googleAuthConfig;
-  }
+  @Value("${api.path:../secrets/google-api/}")
+  private String apiPath;
 
   @ShellMethod("working dir")
   public String pwd() {
@@ -20,7 +17,7 @@ public class UtilCommands {
 
   @ShellMethod("Secrets")
   public String api() {
-    return googleAuthConfig.getApiPath();
+    return apiPath;
   }
 
 

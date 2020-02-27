@@ -39,6 +39,7 @@ public class LoginService {
         .client_id(client)
         .build();
     OAuth2Response response = authGateway.login(login);
+    assert response != null;
     SecurityContextHolder.getContext().setAuthentication(
         new JwtAuthenticationToken(jwtDecoder.decode(response.getToken())));
     log.info("Logged in as {}", user);

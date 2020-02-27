@@ -2,6 +2,7 @@ package com.beancounter.client;
 
 import com.beancounter.auth.TokenService;
 import com.beancounter.common.contracts.RegistrationRequest;
+import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.common.model.SystemUser;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -12,25 +13,29 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
 public class RegistrationService {
-  private RegistrationGw registrationGw;
+  private RegistrationGateway registrationGateway;
   private TokenService tokenService;
 
-  RegistrationService(RegistrationGw registrationGw, TokenService tokenService) {
-    this.registrationGw = registrationGw;
+  RegistrationService(RegistrationGateway registrationGateway, TokenService tokenService) {
+    this.registrationGateway = registrationGateway;
     this.tokenService = tokenService;
   }
 
   public SystemUser register(RegistrationRequest registrationRequest) {
-    return registrationGw.register(tokenService.getBearerToken(), registrationRequest);
+    return registrationGateway.register(tokenService.getBearerToken(), registrationRequest);
   }
 
   public SystemUser me() {
-    return registrationGw.me(tokenService.getBearerToken());
+    SystemUser result = registrationGateway.me(tokenService.getBearerToken());
+    if (result == null) {
+      throw new UnauthorizedException("Not logged in");
+    }
+    return result;
   }
 
   @FeignClient(name = "registrationGw",
       url = "${marketdata.url:http://localhost:9510/api}")
-  public interface RegistrationGw {
+  public interface RegistrationGateway {
     @PostMapping(value = "/register",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})

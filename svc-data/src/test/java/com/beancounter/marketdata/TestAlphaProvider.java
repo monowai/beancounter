@@ -2,8 +2,11 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaResponseHandler;
+import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -62,5 +65,27 @@ class TestAlphaProvider {
         .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
         .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"));
     return marketData;
+  }
+
+
+  @Test
+  void is_KnownMarketVariancesHandled() {
+    AlphaConfig alphaConfig = new AlphaConfig();
+    AlphaService alphaService = new AlphaService(alphaConfig);
+    // No configured support to handle the market
+    assertThat(alphaService.isMarketSupported(Market.builder().code("NZX").build())).isFalse();
+
+    assertThat(alphaConfig.translateMarketCode(
+        Market.builder().code("NASDAQ").build())).isNull();
+
+    assertThat(alphaConfig.translateMarketCode(
+        Market.builder().code("NYSE").build())).isNull();
+
+    assertThat(alphaConfig.translateMarketCode(
+        Market.builder().code("AMEX").build())).isNull();
+
+    assertThat(alphaConfig.translateMarketCode(
+        Market.builder().code("NZX").build())).isNotNull();
+
   }
 }

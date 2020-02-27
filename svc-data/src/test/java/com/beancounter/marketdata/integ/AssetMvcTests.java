@@ -136,7 +136,7 @@ class AssetMvcTests {
   }
 
   @Test
-  void is_UpdateAssetWorking() throws Exception {
+  void is_PostSameAssetTwiceBehaving() throws Exception {
     Asset asset = AssetUtils.getAsset("MyCodeX", "MOCK");
     AssetRequest assetRequest = AssetRequest.builder()
         .asset(AssetUtils.toKey(asset), asset)
@@ -154,17 +154,49 @@ class AssetMvcTests {
     AssetResponse assetResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
-    Asset putAsset = assetResponse.getAssets().get(AssetUtils.toKey(asset));
-    assertThat(putAsset)
+    Asset createdAsset = assetResponse.getAssets().get(AssetUtils.toKey(asset));
+    assertThat(createdAsset)
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market");
+
+    // Send it a second time, should not change
+    asset.setName("Random Change");
+    asset.setId(null);
+    assetRequest = AssetRequest.builder()
+        .asset(AssetUtils.toKey(asset), asset)
+        .build();
+
+    mvcResult = mockMvc.perform(
+        post("/assets/")
+            .with(jwt(token).authorities(authorityRoleConverter))
+            .content(objectMapper.writeValueAsBytes(assetRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    assetResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    Asset updatedAsset = assetResponse.getAssets().get(AssetUtils.toKey(asset));
+    assertThat(updatedAsset).isEqualToComparingFieldByField(createdAsset);
   }
 
   @Test
   void is_MissingAssetBadRequest() throws Exception {
     ResultActions result = mockMvc.perform(
         get("/assets/twee/blah")
+            .with(jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is4xxClientError());
+
+    assertThat(result.andReturn().getResolvedException())
+        .isNotNull()
+        .isInstanceOfAny(BusinessException.class);
+
+    result = mockMvc.perform(
+        get("/assets/{assetId}", "doesn't exist")
             .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());

@@ -182,11 +182,6 @@ class TestWorldTradingDataApi {
     assertThat(prices).hasSize(assets.size());
     assertThat(
         prices.iterator().next()).hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
-    // Changed assumption from exception to no data
-    //    assertThrows(BusinessException.class, () -> wtdService.getPrices(
-    //        PriceRequest.builder()
-    //            .date("2019-11-15")
-    //            .assets(assets).build()));
   }
 
 }

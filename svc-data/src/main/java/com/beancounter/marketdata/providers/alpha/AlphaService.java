@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -34,19 +35,20 @@ public class AlphaService implements MarketDataProvider {
   private AlphaConfig alphaConfig;
   private AlphaResponseHandler alphaResponseHandler;
 
-  AlphaService(AlphaRequester alphaRequester,
-               AlphaConfig alphaConfig,
-               AlphaResponseHandler alphaResponseHandler) {
-    this.alphaRequester = alphaRequester;
+  public AlphaService(AlphaConfig alphaConfig) {
     this.alphaConfig = alphaConfig;
-    this.alphaResponseHandler = alphaResponseHandler;
+  }
 
+  @Autowired
+  void setAlphaHelpers(AlphaRequester alphaRequester, AlphaResponseHandler alphaResponseHandler) {
+    this.alphaRequester = alphaRequester;
+    this.alphaResponseHandler = alphaResponseHandler;
   }
 
   @PostConstruct
   void logStatus() {
-    log.info("Running with apiKey {}{}", apiKey.substring(0, 4).toUpperCase(),
-        apiKey.equalsIgnoreCase("demo") ? "" : "***");
+    Boolean isDemo = apiKey.substring(0, 4).toUpperCase().equalsIgnoreCase("demo");
+    log.info("DEMO key is {}", isDemo);
   }
 
   @Override

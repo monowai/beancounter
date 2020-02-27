@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class RealmTest {
   @Test
-  void is_RoleCnnverterValid() {
+  void is_RoleConverterValid() {
     JwtRoleConverter jwtRoleConverter =
         new JwtRoleConverter("empty", "nothing");
 

@@ -64,7 +64,7 @@ class AssetMvcTests {
   }
 
   @Test
-  void is_PostAssetCollectionCreating() throws Exception {
+  void is_AssetCreationAndFindByWorking() throws Exception {
 
     Asset firstAsset = AssetUtils.getAsset("MyCode", "MOCK");
     Asset secondAsset = AssetUtils.getAsset("Second", "MOCK");
@@ -109,6 +109,29 @@ class AssetMvcTests {
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 
+    Asset asset = assetResponse.getAssets().get(AssetUtils.toKey(secondAsset));
+    mvcResult = mockMvc.perform(
+        get("/assets/{assetId}", asset.getId())
+            .with(jwt(token).authorities(authorityRoleConverter))
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    // Find by Primary Key
+    assertThat(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Asset.class))
+        .isEqualToComparingFieldByField(asset);
+
+    // By Market/Asset
+    mvcResult = mockMvc.perform(
+        get("/assets/{marketCode}/{assetCode}",
+            asset.getMarket().getCode(), asset.getCode())
+            .with(jwt(token).authorities(authorityRoleConverter))
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    assertThat(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Asset.class))
+        .isEqualToComparingFieldByField(asset);
 
   }
 

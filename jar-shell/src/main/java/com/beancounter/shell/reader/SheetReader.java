@@ -4,7 +4,6 @@ import com.beancounter.client.PortfolioService;
 import com.beancounter.client.TrnService;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.shell.model.IngestionRequest;
@@ -14,11 +13,11 @@ import com.beancounter.shell.writer.IngestWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.sheets.v4.Sheets;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +79,7 @@ public class SheetReader implements Ingester {
    * @param ingestionRequest parameters to run the import.
    * @return JSON transformation
    */
+  @SneakyThrows
   public Collection<Trn> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
 
@@ -133,8 +133,6 @@ public class SheetReader implements Ingester {
       log.info("Complete!");
       return trns;
 
-    } catch (IOException e) {
-      throw new SystemException(e.getMessage());
     }
   }
 

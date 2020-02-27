@@ -6,9 +6,9 @@ import com.google.common.io.CharStreams;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -49,6 +49,7 @@ public class SpringFeignDecoder implements ErrorDecoder {
     return FeignException.errorStatus(methodKey, response);
   }
 
+  @SneakyThrows
   private String getMessage(Response response) {
     if (response.body() == null) {
       SpringExceptionMessage exceptionMessage = SpringExceptionMessage.builder()
@@ -65,8 +66,6 @@ public class SpringFeignDecoder implements ErrorDecoder {
       SpringExceptionMessage exceptionMessage = mapper.readValue(result,
           SpringExceptionMessage.class);
       return exceptionMessage.getMessage();
-    } catch (IOException e) {
-      return "Unexpected: " + e.getMessage();
     }
 
   }

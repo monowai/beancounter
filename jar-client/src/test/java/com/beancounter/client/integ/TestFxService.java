@@ -69,4 +69,11 @@ public class TestFxService {
           .hasFieldOrPropertyWithValue("date", "1999-01-04");
     }
   }
+
+  @Test
+  void is_EmptyResponseReturning() {
+    FxResponse fxResponse = fxRateService.getRates(FxRequest.builder().build());
+    assertThat(fxResponse).isNotNull();
+    assertThat(fxResponse.getData().getRates()).isEmpty();
+  }
 }

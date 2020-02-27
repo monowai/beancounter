@@ -4,10 +4,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.shell.auth.LoginService;
+import com.beancounter.shell.auth.OAuth2Response;
 import com.beancounter.shell.config.AuthConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -16,6 +18,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -30,6 +33,12 @@ public class TestLogin {
   private static WireMockRule mockInternet;
   @Autowired
   private LoginService loginService;
+  @Autowired
+  private LoginService.AuthGateway authGateway;
+
+  @Value("${auth.client}")
+  private String client;
+
   private ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
@@ -52,6 +61,7 @@ public class TestLogin {
                     )
                     .withStatus(200)));
 
+    // Mock expired token response
     mockInternet
         .stubFor(
             post("/auth/realms/bc-test/protocol/openid-connect/token")
@@ -64,6 +74,20 @@ public class TestLogin {
 
                     .withStatus(200)));
 
+  }
+
+  @Test
+  void is_ResponseSerializing() {
+    LoginService.Login login = LoginService.Login.builder()
+        .username("demo")
+        .password("test")
+        .client_id(client)
+        .build();
+
+    OAuth2Response oAuth2Response = authGateway.login(login);
+    assertThat(oAuth2Response)
+        .isNotNull()
+        .hasNoNullFieldsOrProperties();
   }
 
   @Test

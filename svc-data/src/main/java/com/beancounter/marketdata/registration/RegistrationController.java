@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.registration;
 
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.model.SystemUser;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/")
-@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class RegistrationController {
 
   private SystemUserService systemUserService;

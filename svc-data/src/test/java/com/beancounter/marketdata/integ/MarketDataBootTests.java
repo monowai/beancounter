@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
@@ -75,7 +75,7 @@ class MarketDataBootTests {
   }
 
   @Test
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_MarketsReturned() throws Exception {
     String json = mockMvc.perform(get("/markets")
         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -88,7 +88,7 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_PriceFormMarketAssetFound() throws Exception {
 
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
@@ -113,7 +113,7 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_MdCollectionReturnedForAssets() throws Exception {
     Collection<Asset> assets = new ArrayList<>();
     Asset asset = Asset.builder().code("assetCode")
@@ -137,7 +137,7 @@ class MarketDataBootTests {
 
   @Test
   @Tag("slow")
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_ValuationRequestHydratingAssets() throws Exception {
     String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
         dummy.getMarket().getCode(),

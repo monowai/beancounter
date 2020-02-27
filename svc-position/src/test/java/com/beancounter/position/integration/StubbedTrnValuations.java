@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Positions;
@@ -15,7 +15,6 @@ import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -59,12 +58,10 @@ class StubbedTrnValuations {
 
   @SneakyThrows
   @Test
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_MvcTradesToPositions() {
 
     File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
-    ArrayList list = new ArrayList();
-    Boolean iss = "abc" instanceof String;
     CollectionType javaType = mapper.getTypeFactory()
         .constructCollectionType(Collection.class, Trn.class);
 
@@ -90,7 +87,7 @@ class StubbedTrnValuations {
 
   @Test
   @SneakyThrows
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_PositionRequestFromTransactions() {
 
     String json = mockMvc.perform(get("/{portfolioCode}/2019-10-18", "TEST")
@@ -115,7 +112,7 @@ class StubbedTrnValuations {
 
   @SneakyThrows
   @Test
-  @WithMockUser(username = "test-user", roles = {OauthRoles.ROLE_USER})
+  @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_EmptyPortfolioPositionsReturned() {
 
     String json = mockMvc.perform(get("/{portfolioCode}/today", "EMPTY")

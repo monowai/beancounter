@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.controller;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.marketdata.service.FxService;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/fx")
 @CrossOrigin
-@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class FxController {
 
   private FxService fxService;

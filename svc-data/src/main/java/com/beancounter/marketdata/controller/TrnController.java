@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.controller;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/trns")
 @CrossOrigin
-@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class TrnController {
 
   private TrnService trnService;

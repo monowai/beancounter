@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenHelper;
 import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.CurrencyUtils;
@@ -335,7 +336,7 @@ class PortfolioMvcTests {
 
     Jwt token = TokenHelper.getUserToken(userA);
     // Can't create two portfolios with the same code
-    mockMvc.perform(
+    MvcResult result = mockMvc.perform(
         post("/portfolios")
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
@@ -347,6 +348,10 @@ class PortfolioMvcTests {
     ).andExpect(status().isBadRequest())
         .andReturn();
 
+    assertThat(result.getResolvedException())
+        .isNotNull()
+        .isInstanceOfAny(BusinessException.class)
+    ;
 
   }
 }

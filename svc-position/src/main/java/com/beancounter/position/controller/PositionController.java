@@ -1,6 +1,6 @@
 package com.beancounter.position.controller;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.TrnService;
 import com.beancounter.common.contracts.PositionRequest;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping
 @Slf4j
 @CrossOrigin("*")
-@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class PositionController {
 
   private PositionService positionService;

@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.portfolio;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/portfolios")
-@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class PortfolioController {
   private PortfolioService portfolioService;
   private SystemUserService systemUserService;

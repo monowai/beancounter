@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,7 +57,7 @@ public class AuthTest {
   private AuthorityRoleConverter roleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
-  void setup() {
+  void setupMockMvc() {
     mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
         .apply(springSecurity())
@@ -74,24 +75,26 @@ public class AuthTest {
 
     Collection<GrantedAuthority> defaultGrants = jwtRoleConverter.convert(token).getAuthorities();
     assertThat(defaultGrants)
-        .contains(new SimpleGrantedAuthority(AppRoles.ROLE_USER))
-        .contains(new SimpleGrantedAuthority(AppRoles.SCOPE_BC));
+        .contains(new SimpleGrantedAuthority(RoleHelper.ROLE_USER))
+        .contains(new SimpleGrantedAuthority(RoleHelper.SCOPE_BC));
   }
 
   @Test
   public void has_NoTokenAndIsUnauthorized() throws Exception {
-    mockMvc.perform(
+    MvcResult result = mockMvc.perform(
         get("/hello")
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isUnauthorized())
         .andReturn();
+    assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
 
-    mockMvc.perform(
+    result = mockMvc.perform(
         get("/what")
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isUnauthorized())
         .andReturn();
 
+    assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
   }
 
   @Test
@@ -108,13 +111,14 @@ public class AuthTest {
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andReturn();
-    mockMvc.perform(
+
+    MvcResult result = mockMvc.perform(
         get("/what")
             .with(jwt(token).authorities(roleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isForbidden())
         .andReturn();
-
+    assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
   }
 
   @Test
@@ -125,20 +129,21 @@ public class AuthTest {
 
     Jwt token = TokenHelper.getUserToken(user, TokenHelper.getRoles("blah"));
 
-    mockMvc.perform(
+    MvcResult result = mockMvc.perform(
         get("/hello")
             .with(jwt(token).authorities(roleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isForbidden())
         .andReturn();
+    assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
 
-    mockMvc.perform(
+    result = mockMvc.perform(
         get("/what")
             .with(jwt(token).authorities(roleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isForbidden())
         .andReturn();
-
+    assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
   }
 
   @Test
@@ -172,13 +177,13 @@ public class AuthTest {
     private TokenService tokenService;
 
     @GetMapping("/hello")
-    @PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+    @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
     String sayHello() {
       return "hello";
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+    @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
     String me() {
       assert tokenService.getToken() != null;
       return Objects.requireNonNull(tokenService.getJwtToken()).getName();
@@ -186,7 +191,7 @@ public class AuthTest {
 
 
     @GetMapping("/what")
-    @PreAuthorize("hasRole('noone')")
+    @PreAuthorize("hasRole('no-one')")
     String sayWhat() {
       return "no one can call this";
     }

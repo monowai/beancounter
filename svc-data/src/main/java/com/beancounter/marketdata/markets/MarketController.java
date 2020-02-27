@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.markets;
 
-import com.beancounter.auth.OauthRoles;
+import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/markets")
 @CrossOrigin
-@PreAuthorize("hasRole('" + OauthRoles.ROLE_USER + "')")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class MarketController {
 
   private MarketService marketService;

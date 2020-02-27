@@ -3,7 +3,6 @@ package com.beancounter.marketdata.providers.alpha;
 import static com.beancounter.marketdata.providers.ProviderArguments.getInstance;
 
 import com.beancounter.common.contracts.PriceRequest;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
@@ -48,14 +47,6 @@ public class AlphaService implements MarketDataProvider {
   void logStatus() {
     log.info("Running with apiKey {}{}", apiKey.substring(0, 4).toUpperCase(),
         apiKey.equalsIgnoreCase("demo") ? "" : "***");
-  }
-
-  @Override
-  public MarketData getMarketData(Asset asset) {
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(asset);
-
-    return getMarketData(PriceRequest.builder().assets(assets).build()).iterator().next();
   }
 
   @Override

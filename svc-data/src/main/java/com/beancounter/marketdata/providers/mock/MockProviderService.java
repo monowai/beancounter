@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
 
-  public MarketData getMarketData(Asset asset) {
+  private MarketData getMarketData(Asset asset) {
     if (asset.getCode().equalsIgnoreCase("123")) {
       throw new BusinessException(
           String.format("Invalid asset code [%s]", asset.getCode()));

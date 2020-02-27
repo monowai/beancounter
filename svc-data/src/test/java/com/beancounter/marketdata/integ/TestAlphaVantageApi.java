@@ -4,6 +4,7 @@ import static com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -14,6 +15,7 @@ import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.Collection;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,9 +61,12 @@ class TestAlphaVantageApi {
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    MarketData mdResult = alphaProvider.getMarketData(asset);
-    assertThat(mdResult)
+    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset));
+    assertThat(results)
         .isNotNull()
+        .hasSize(1);
+
+    assertThat(results.iterator().next())
         .hasFieldOrPropertyWithValue("asset", asset)
         .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
   }
@@ -76,11 +81,15 @@ class TestAlphaVantageApi {
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    MarketData mdResult = alphaProvider.getMarketData(asset);
-    assertThat(mdResult)
+    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset));
+    assertThat(results)
         .isNotNull()
+        .hasSize(1);
+
+    assertThat(results.iterator().next())
         .hasFieldOrPropertyWithValue("asset", asset)
         .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+
   }
 
   @Test
@@ -92,11 +101,14 @@ class TestAlphaVantageApi {
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
-    MarketData mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(asset);
+    Collection<MarketData> results = mdFactory.getMarketDataProvider(AlphaService.ID)
+        .getMarketData(PriceRequest.of(asset));
 
-    assertThat(mdResult)
+    assertThat(results)
         .isNotNull()
+        .hasSize(1);
+
+    assertThat(results.iterator().next())
         .hasFieldOrPropertyWithValue("asset", asset)
         .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
   }
@@ -110,10 +122,11 @@ class TestAlphaVantageApi {
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
-    MarketData mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(asset);
+    Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
+        .getMarketData(PriceRequest.of(asset));
 
-    assertThat(mdResult)
+    MarketData marketData = mdResult.iterator().next();
+    assertThat(marketData)
         .isNotNull()
         .hasFieldOrPropertyWithValue("asset", asset)
         .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"))

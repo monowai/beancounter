@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers.wtd;
 
 import com.beancounter.common.contracts.PriceRequest;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
@@ -45,16 +44,6 @@ public class WtdService implements MarketDataProvider {
   @PostConstruct
   public void logStatus() {
     log.info("APIKey is [{}}", (apiKey.equalsIgnoreCase("DEMO") ? "DEMO" : "DEFINED"));
-  }
-
-  @Override
-  public MarketData getMarketData(Asset asset) {
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(asset);
-
-    Collection<MarketData> response = getMarketData(PriceRequest.builder().assets(assets).build());
-
-    return response.iterator().next();
   }
 
   @Override

@@ -10,7 +10,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.shell.auth.LoginService;
 import com.beancounter.shell.auth.OAuth2Response;
-import com.beancounter.shell.config.AuthConfig;
+import com.beancounter.shell.config.AuthTokenConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = {
-    AuthConfig.class})
+    AuthTokenConfig.class})
 @ActiveProfiles("auth")
 public class TestLogin {
 
@@ -84,8 +84,8 @@ public class TestLogin {
         .client_id(client)
         .build();
 
-    OAuth2Response oAuth2Response = authGateway.login(login);
-    assertThat(oAuth2Response)
+    OAuth2Response authResponse = authGateway.login(login);
+    assertThat(authResponse)
         .isNotNull()
         .hasNoNullFieldsOrProperties();
   }

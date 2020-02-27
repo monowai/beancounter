@@ -15,7 +15,6 @@ class TestPortfolio {
   void is_PortfolioResultsSerializing() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
     Portfolio portfolio = PortfolioUtils.getPortfolio("Test");
-    assertThat(portfolio.getId()).isNotNull();
     Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(portfolio);
     PortfolioRequest portfolioRequest = PortfolioRequest.builder().data(portfolios).build();

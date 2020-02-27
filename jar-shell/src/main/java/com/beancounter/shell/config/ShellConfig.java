@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import;
     UserCommands.class,
     ShellPrompt.class,
     DataCommands.class,
-    ClientConfig.class,
-    AuthConfig.class})
+    ClientConfig.class})
 public class ShellConfig {
 }

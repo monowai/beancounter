@@ -92,10 +92,10 @@ public class TestUserCommands {
             .email("someone@nowhere.com")
             .build());
 
-    OAuth2Response oAuth2Response = new OAuth2Response();
-    oAuth2Response.setToken("token");
-    Mockito.when(authGateway.login(login)).thenReturn(oAuth2Response);
-    Mockito.when(jwtDecoder.decode(oAuth2Response.getToken())).thenReturn(jwt);
+    OAuth2Response authResponse = new OAuth2Response();
+    authResponse.setToken("token");
+    Mockito.when(authGateway.login(login)).thenReturn(authResponse);
+    Mockito.when(jwtDecoder.decode(authResponse.getToken())).thenReturn(jwt);
     // Can I login?
     userCommands.login(user);
 
@@ -108,7 +108,7 @@ public class TestUserCommands {
     SystemUser me = new ObjectMapper().readValue(userCommands.me(), SystemUser.class);
     assertThat(me).isNotNull();
 
-    assertThat(userCommands.token()).isEqualTo(oAuth2Response.getToken());
+    assertThat(userCommands.token()).isEqualTo(authResponse.getToken());
 
     Mockito.when(registrationGateway.register(tokenService.getBearerToken(),
         RegistrationRequest.builder().build()))

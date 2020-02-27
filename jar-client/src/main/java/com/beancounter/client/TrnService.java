@@ -36,12 +36,16 @@ public class TrnService {
     @PostMapping(value = "/trns",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
-    TrnResponse write(@RequestHeader("Authorization") String bearerToken, TrnRequest trnRequest);
+    TrnResponse write(
+        @RequestHeader("Authorization") String bearerToken,
+        TrnRequest trnRequest);
 
     @GetMapping(value = "/trns/{portfolioId}",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
-    TrnResponse read(@RequestHeader("Authorization") String bearerToken, @PathVariable("portfolioId") String portfolioId);
+    TrnResponse read(
+        @RequestHeader("Authorization") String bearerToken,
+        @PathVariable("portfolioId") String portfolioId);
 
 
   }

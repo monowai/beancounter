@@ -238,9 +238,13 @@ class PortfolioMvcTests {
         .andReturn();
 
     // Logged in user created a Portfolio
-    assertThat(objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+    PortfolioRequest portfolioResult = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class);
+    assertThat(portfolioResult.getData())
         .hasSize(1);
+
+    portfolio = portfolioResult.getData().iterator().next();
+    assertThat(portfolio).hasNoNullFieldsOrProperties();
 
     // User A can see the portfolio they created
     mvcResult = mockMvc.perform(
@@ -292,7 +296,6 @@ class PortfolioMvcTests {
     mockMvc.perform(
         get("/portfolios/{id}", portfolio.getId())
             .with(jwt(tokenB).authorities(authorityRoleConverter))
-
     ).andExpect(status().isBadRequest())
         .andReturn();
 

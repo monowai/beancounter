@@ -1,7 +1,5 @@
 package com.beancounter.common.model;
 
-import com.beancounter.common.utils.KeyGenUtils;
-import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -26,10 +24,9 @@ import lombok.RequiredArgsConstructor;
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"code", "owner_id"})})
 public class Portfolio {
-  @Builder.Default
   @Getter
   @Id
-  private String id = KeyGenUtils.format(UUID.randomUUID());
+  private String id;
   private String code;
   private String name;
   @ManyToOne

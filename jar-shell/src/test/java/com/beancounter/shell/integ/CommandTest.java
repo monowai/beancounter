@@ -8,6 +8,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.cli.DataCommands;
 import com.beancounter.shell.cli.UtilCommands;
+import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.GoogleAuthConfig;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.config.ShellConfig;
@@ -28,6 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {
     ShellConfig.class,
+    AuthConfig.class,
     GoogleAuthConfig.class,
     ShareSightConfig.class})
 public class CommandTest {

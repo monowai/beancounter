@@ -1,6 +1,5 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.client.AssetService;
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.RegistrationService;
 import com.beancounter.client.StaticService;
@@ -24,18 +23,15 @@ import org.springframework.shell.standard.ShellOption;
 @Slf4j
 public class DataCommands {
 
-  private AssetService assetService;
   private PortfolioService portfolioService;
   private StaticService staticService;
   private RegistrationService registrationService;
   private ObjectMapper objectMapper = new ObjectMapper();
   private ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
 
-  DataCommands(AssetService assetService,
-               PortfolioService portfolioService,
+  DataCommands(PortfolioService portfolioService,
                StaticService staticService,
                RegistrationService registrationService) {
-    this.assetService = assetService;
     this.portfolioService = portfolioService;
     this.staticService = staticService;
     this.registrationService = registrationService;
@@ -86,13 +82,12 @@ public class DataCommands {
       @ShellOption(help = "Reference currency") String currencyCode,
       @ShellOption(help = "Base currency") String baseCurrency
   ) {
-    Portfolio portfolio = null;
+    Portfolio portfolio;
     try {
       portfolio = portfolioService.getPortfolioByCode(code);
       return writer.writeValueAsString(portfolio);
     } catch (BusinessException e) {
       log.info("Creating portfolio {}", code);
-      // Portfolio does not exist.
     }
 
     SystemUser systemUser = registrationService.me();
@@ -111,7 +106,7 @@ public class DataCommands {
         ))
         .build();
     PortfolioRequest result = portfolioService.add(portfolioRequest);
-
+    assert result != null;
     return writer.writeValueAsString(result.getData().iterator().next());
   }
 

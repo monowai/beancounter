@@ -3,11 +3,13 @@ package com.beancounter.marketdata.portfolio;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.registration.SystemUserService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,7 @@ public class PortfolioService {
   private Collection<Portfolio> prepare(SystemUser owner, Collection<Portfolio> portfolios) {
     Collection<Portfolio> results = new ArrayList<>();
     for (Portfolio portfolio : portfolios) {
+      portfolio.setId(KeyGenUtils.format(UUID.randomUUID()));
       portfolio.setCode(portfolio.getCode().toUpperCase());
       portfolio.setOwner(owner);
       results.add(portfolio);

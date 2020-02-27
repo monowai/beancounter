@@ -21,11 +21,16 @@ ABBV.NYS    AbbVie Inc      15/02/2013	0.8074  USD	        15.85	    0.00	      
 It is assumed that you are running all commands from the root of the `BeanCounter` project
 Default is to look for google credentials `../secrets/credentials.json`  
 
-## ShareSight transformer
-passing `ratesIgnored`, the transformer will normalise the fees into trade currency terms using the input rate, but will re-retrieve the trade rate from the market data service.  Default is false, use the rate supplied by SS
+## General import flow from a google sheet
+Note that at this point, callbacks don't work when running the shell in Docker.
+The general flow
 ```bash
  java -jar jar-shell/build/lib/jar-shell-0.1.1.jar
- ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio TEST
+ bc-shell$ login demo
+ password: ********
+ bc-shell$ register
+ bc-shell$ add-portfolio TEST "Test Portfolio" "SGD" "USD 
+ bc-shell$ ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio TEST
 ```
 
-You can pass an optional case sensitive filter property `"filter": "MSFT,"APPL"` which will only include the transactions where the Asset codes match those in the filter
+Supports an optional case sensitive filter property `"filter": "MSFT,"APPL"` to include only transactions where the Asset codes match those in the filter

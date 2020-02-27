@@ -1,5 +1,6 @@
 package com.beancounter.shell.config;
 
+import com.beancounter.auth.TokenHelper;
 import com.beancounter.client.ClientConfig;
 import com.beancounter.shell.cli.DataCommands;
 import com.beancounter.shell.cli.ShellPrompt;

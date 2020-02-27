@@ -7,6 +7,7 @@ import com.beancounter.common.model.SystemUser;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,11 @@ public class RegistrationController {
 
   RegistrationController(SystemUserService systemUserService) {
     this.systemUserService = systemUserService;
+  }
+
+  @GetMapping("/me")
+  SystemUser getMe(final @AuthenticationPrincipal Jwt jwt) {
+    return systemUserService.find(jwt.getSubject());
   }
 
   @PostMapping(value = "/register")

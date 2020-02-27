@@ -1,5 +1,6 @@
 package com.beancounter.client;
 
+import com.beancounter.auth.TokenService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -9,23 +10,26 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
 @Slf4j
 public class FxRateService {
 
   private FxGateway fxGateway;
+  private TokenService tokenService;
 
   @Autowired
-  FxRateService(FxGateway bcGateway) {
+  FxRateService(FxGateway bcGateway, TokenService tokenService) {
     this.fxGateway = bcGateway;
+    this.tokenService = tokenService;
   }
 
   public FxResponse getRates(FxRequest fxRequest) {
     if (fxRequest.getPairs() == null || fxRequest.getPairs().isEmpty()) {
       return FxResponse.builder().data(new FxPairResults()).build();
     }
-    return fxGateway.getRates(fxRequest);
+    return fxGateway.getRates(tokenService.getBearerToken(), fxRequest);
   }
 
   @FeignClient(name = "fxrates",
@@ -34,7 +38,8 @@ public class FxRateService {
     @PostMapping(value = "/fx",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
-    FxResponse getRates(FxRequest fxRequest);
+    FxResponse getRates(@RequestHeader("Authorization") String bearerToken,
+                        FxRequest fxRequest);
 
   }
 

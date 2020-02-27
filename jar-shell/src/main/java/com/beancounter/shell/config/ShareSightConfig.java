@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
     FxTransactions.class,
     Filter.class,
     RowProcessor.class
-    })
+})
 public class ShareSightConfig {
 
 }

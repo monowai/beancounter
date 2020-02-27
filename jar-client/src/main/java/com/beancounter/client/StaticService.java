@@ -47,7 +47,12 @@ public class StaticService {
     if (currency == null) {
       return null;
     }
-    return getCurrencies().getData().get(currency);
+
+    Currency result = getCurrencies().getData().get(currency);
+    if (result == null) {
+      throw new BusinessException(String.format("Unable to resolve the currency {}", currency));
+    }
+    return result;
   }
 
   public Market get(String key) {

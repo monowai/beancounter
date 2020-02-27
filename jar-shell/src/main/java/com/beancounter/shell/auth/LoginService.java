@@ -1,6 +1,5 @@
 package com.beancounter.shell.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -45,17 +44,6 @@ public class LoginService {
     log.info("Logged in as {}", user);
   }
 
-  @Data
-  @Builder
-  @SuppressWarnings("checkstyle:MemberName")
-  public static class Login {
-    private String username;
-    private String password;
-    private String client_id;
-    @Builder.Default
-    private String grant_type = "password";
-  }
-
   @FeignClient(name = "oauth",
       url = "${auth.uri:http://keycloak:9620}", configuration = AuthBeans.class)
   public interface AuthGateway {
@@ -65,6 +53,17 @@ public class LoginService {
     OAuth2Response login(Login login);
 
 
+  }
+
+  @Data
+  @Builder
+  @SuppressWarnings("checkstyle:MemberName")
+  public static class Login {
+    private String username;
+    private String password;
+    private String client_id;
+    @Builder.Default
+    private String grant_type = "password";
   }
 
 }

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>{@code MvcResult registrationResult = mockMvc.perform(
  * post("/")
- * .with(jwt(TokenHelper.getUserToken(user))
+ * .with(jwt(TokenUtils.getUserToken(user))
  * .authorities(new AuthorityRoleConverter(new JwtRoleConverter())))
  * ...}
  */

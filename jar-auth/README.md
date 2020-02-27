@@ -21,7 +21,7 @@ The easiest way to see how things work is to check out the `AuthTest` class whic
 
 `TokenService` Handy dandy means of extracting the `AuthenticationToken` from the `SecurityContext`
 
-`TokenHelper` Utility class that returns JWT tokens that can be used for testing purposes
+`TokenUtils` Utility class that returns JWT tokens that can be used for testing purposes
 
 `AuthorityRoleConverter` Used by `MockMvc` to extract realm claims from the JWT   
 

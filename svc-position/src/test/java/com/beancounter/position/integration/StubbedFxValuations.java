@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.TokenHelper;
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.StaticService;
 import com.beancounter.common.contracts.PositionResponse;
@@ -83,7 +83,7 @@ class StubbedFxValuations {
         .id("user")
         .email("user@testing.com")
         .build();
-    token = TokenHelper.getUserToken(user);
+    token = TokenUtils.getUserToken(user);
 
   }
 

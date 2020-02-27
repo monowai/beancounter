@@ -4,8 +4,8 @@ package com.beancounter.shell.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.auth.TokenHelper;
 import com.beancounter.auth.TokenService;
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.client.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.exception.UnauthorizedException;
@@ -86,7 +86,7 @@ public class TestUserCommands {
         .client_id(client)
         .build();
 
-    Jwt jwt = TokenHelper.getUserToken(
+    Jwt jwt = TokenUtils.getUserToken(
         SystemUser.builder()
             .id(user)
             .email("someone@nowhere.com")

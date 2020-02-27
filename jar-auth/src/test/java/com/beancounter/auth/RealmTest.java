@@ -13,7 +13,7 @@ public class RealmTest {
         new JwtRoleConverter("empty", "nothing");
 
     assertThat(jwtRoleConverter.getAuthorities(
-        TokenHelper.getUserToken(
+        TokenUtils.getUserToken(
             SystemUser.builder()
                 .build())))
         .hasSize(3)

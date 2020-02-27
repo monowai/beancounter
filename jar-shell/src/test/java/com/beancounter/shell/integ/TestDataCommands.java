@@ -2,8 +2,8 @@ package com.beancounter.shell.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.auth.TokenHelper;
 import com.beancounter.auth.TokenService;
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.client.PortfolioService.PortfolioGw;
 import com.beancounter.client.RegistrationService;
 import com.beancounter.client.StaticService;
@@ -59,7 +59,7 @@ public class TestDataCommands {
   @SneakyThrows
   void createPortfolio() {
 
-    Jwt jwt = TokenHelper.getUserToken(SystemUser.builder().build());
+    Jwt jwt = TokenUtils.getUserToken(SystemUser.builder().build());
     Mockito.when(jwtDecoder.decode("token")).thenReturn(jwt);
     SystemUser owner = SystemUser.builder().build();
     Mockito.when(registrationService.me()).thenReturn(owner);

@@ -7,4 +7,5 @@ public class RoleHelper {
 
   public static final String OAUTH_USER = "user";
   public static final String OAUTH_ADMIN = "admin";
+  public static final String SCOPE = "beancounter profile email";
 }

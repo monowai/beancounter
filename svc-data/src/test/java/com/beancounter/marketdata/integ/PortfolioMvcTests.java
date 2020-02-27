@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.TokenHelper;
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
@@ -68,7 +68,7 @@ class PortfolioMvcTests {
         .owner(user)
         .build();
 
-    Jwt token = TokenHelper.getUserToken(user);
+    Jwt token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token, user);
 
     MvcResult portfolioResult = mockMvc.perform(
@@ -157,7 +157,7 @@ class PortfolioMvcTests {
         .owner(user)
         .build();
 
-    Jwt token = TokenHelper.getUserToken(user);
+    Jwt token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token, user);
 
     Collection<Portfolio> portfolios = new ArrayList<>();
@@ -221,7 +221,7 @@ class PortfolioMvcTests {
         .andReturn();
 
     // Add a token and repeat the call
-    Jwt tokenA = TokenHelper.getUserToken(userA);
+    Jwt tokenA = TokenUtils.getUserToken(userA);
     registerUser(mockMvc, tokenA, userA);
 
     MvcResult mvcResult = mockMvc.perform(
@@ -290,7 +290,7 @@ class PortfolioMvcTests {
         .email("user2@testing.com")
         .build();
 
-    Jwt tokenB = TokenHelper.getUserToken(userB);
+    Jwt tokenB = TokenUtils.getUserToken(userB);
     registerUser(mockMvc, tokenB, userB);
 
     mockMvc.perform(
@@ -337,7 +337,7 @@ class PortfolioMvcTests {
     portfolios.add(portfolio);
     portfolios.add(portfolio); // Code and Owner are the same so, reject
 
-    Jwt token = TokenHelper.getUserToken(userA);
+    Jwt token = TokenUtils.getUserToken(userA);
     // Can't create two portfolios with the same code
     MvcResult result = mockMvc.perform(
         post("/portfolios")

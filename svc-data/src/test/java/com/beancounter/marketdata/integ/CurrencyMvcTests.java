@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.TokenHelper;
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.SystemUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +47,7 @@ class CurrencyMvcTests {
 
   @Test
   void is_CurrencyDataReturning() throws Exception {
-    Jwt token = TokenHelper.getUserToken(
+    Jwt token = TokenUtils.getUserToken(
         SystemUser.builder().id("currencies").build());
 
     MvcResult mvcResult = mockMvc.perform(

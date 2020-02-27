@@ -71,7 +71,7 @@ public class AuthTest {
         .id("user")
         .build();
 
-    Jwt token = TokenHelper.getUserToken(user);
+    Jwt token = TokenUtils.getUserToken(user);
 
     Collection<GrantedAuthority> defaultGrants = jwtRoleConverter.convert(token).getAuthorities();
     assertThat(defaultGrants)
@@ -103,7 +103,7 @@ public class AuthTest {
         .id("user")
         .build();
 
-    Jwt token = TokenHelper.getUserToken(user);
+    Jwt token = TokenUtils.getUserToken(user);
 
     mockMvc.perform(
         get("/hello")
@@ -127,7 +127,7 @@ public class AuthTest {
         .id("user")
         .build();
 
-    Jwt token = TokenHelper.getUserToken(user, TokenHelper.getRoles("blah"));
+    Jwt token = TokenUtils.getUserToken(user, TokenUtils.getRoles("blah"));
 
     MvcResult result = mockMvc.perform(
         get("/hello")
@@ -152,7 +152,7 @@ public class AuthTest {
         .id("user")
         .build();
 
-    Jwt token = TokenHelper.getUserToken(user);
+    Jwt token = TokenUtils.getUserToken(user);
 
     MvcResult result = mockMvc.perform(
         get("/me")

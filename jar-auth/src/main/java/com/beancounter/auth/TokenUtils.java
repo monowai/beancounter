@@ -14,9 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
  * TestHelper class to generate JWT tokens you can test with.
  */
 @UtilityClass
-public class TokenHelper {
-
-  public static final String SCOPE = "beancounter profile email";
+public class TokenUtils {
 
   public Jwt getUserToken(SystemUser systemUser) {
     return getUserToken(systemUser, getDefaultRoles());
@@ -29,7 +27,7 @@ public class TokenHelper {
         .subject(systemUser.getId())
         .claim("email", systemUser.getEmail())
         .claim("realm_access", realmAccess)
-        .claim("scope", SCOPE)
+        .claim("scope", RoleHelper.SCOPE)
         .expiresAt(new Date(System.currentTimeMillis() + 60000).toInstant())
         .build();
   }

@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.AuthorityRoleConverter;
-import com.beancounter.auth.TokenHelper;
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
@@ -57,7 +57,7 @@ class MarketMvcTests {
         .email("MarketMvcTests@testing.com")
         .build();
 
-    token = TokenHelper.getUserToken(user);
+    token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token, user);
 
   }

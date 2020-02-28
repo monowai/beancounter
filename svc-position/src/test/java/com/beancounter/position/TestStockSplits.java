@@ -43,7 +43,7 @@ class TestStockSplits {
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(DateUtils.convert(today))
+        .tradeDate(new DateUtils().convert(today))
         .quantity(new BigDecimal("100")).build();
 
     Buy buy = new Buy();
@@ -58,7 +58,7 @@ class TestStockSplits {
     Trn stockSplit = Trn.builder()
         .trnType(TrnType.SPLIT)
         .asset(apple)
-        .tradeDate(DateUtils.convert(today))
+        .tradeDate(new DateUtils().convert(today))
         .quantity(new BigDecimal("7"))
         .build();
 
@@ -83,7 +83,7 @@ class TestStockSplits {
         .trnType(TrnType.SELL)
         .asset(apple)
         .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(DateUtils.convert(today))
+        .tradeDate(new DateUtils().convert(today))
         .quantity(new BigDecimal("800")).build();
 
     // Sell the entire position

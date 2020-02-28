@@ -31,6 +31,13 @@ public class WtdConfig implements DataProviderConfig {
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
   private StaticConfig staticConfig;
 
+  private DateUtils dateUtils = new DateUtils();
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
+  }
+
   @Autowired
   void setStaticConfig(StaticConfig staticConfig) {
     this.staticConfig = staticConfig;
@@ -44,12 +51,12 @@ public class WtdConfig implements DataProviderConfig {
   // For testing purposes - allows us to setup a static base date for which Market Prices Dates
   // can reliably computed from.
   public String getDate() {
-    return (date == null ? DateUtils.today() : date);
+    return (date == null ? dateUtils.today() : date);
   }
 
   public String getMarketDate(Market market, String startDate) {
     int daysToSubtract = 0;
-    if (DateUtils.isToday(startDate)) {
+    if (dateUtils.isToday(startDate)) {
       // If Current, price date is T-daysToSubtract
       daysToSubtract = 1;
       if (market.getCode().equalsIgnoreCase("NZX")) {
@@ -58,8 +65,8 @@ public class WtdConfig implements DataProviderConfig {
     }
 
     // If startDate is not "TODAY", assume nothing, just discount the weekends
-    LocalDate result = DateUtils.getLastMarketDate(
-        DateUtils.getDate(startDate == null ? DateUtils.today() : startDate),
+    LocalDate result = dateUtils.getLastMarketDate(
+        dateUtils.getDate(startDate == null ? dateUtils.today() : startDate),
         timeZone.toZoneId(), daysToSubtract);
 
     return result.toString();

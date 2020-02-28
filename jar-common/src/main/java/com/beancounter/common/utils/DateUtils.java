@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
-import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Component;
 
 /**
  * Date based helper functions.
@@ -18,7 +18,7 @@ import lombok.experimental.UtilityClass;
  * @author mikeh
  * @since 2019-03-12
  */
-@UtilityClass
+@Component
 public class DateUtils {
 
   public ZoneId defaultZone = ZoneId.of("Asia/Singapore");
@@ -89,7 +89,7 @@ public class DateUtils {
   }
 
   public String today() {
-    return LocalDate.now().toString();
+    return LocalDate.now(defaultZone).toString();
   }
 
   public void isValid(String inDate) {
@@ -100,7 +100,7 @@ public class DateUtils {
     }
   }
 
-  public static boolean isToday(String inDate) {
+  public boolean isToday(String inDate) {
     if (inDate == null) {
       return true; // Null date is BC is "today"
     }
@@ -113,7 +113,7 @@ public class DateUtils {
     }
   }
 
-  public static String getDateString(LocalDate date) {
+  public String getDateString(LocalDate date) {
     return (date == null ? null : date.toString());
   }
 }

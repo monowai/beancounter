@@ -110,7 +110,7 @@ public class ContractVerifierBase {
     mockEcbRates(rates, get("2019-10-18", rates));
 
     // Current
-    mockEcbRates(rates, get(DateUtils.today(), rates));
+    mockEcbRates(rates, get(new DateUtils().today(), rates));
 
     rates = getRateMap("0.897827258", "1.3684683067", "0.8047495062",
         "1.5053869635", "1.4438857964");
@@ -227,7 +227,7 @@ public class ContractVerifierBase {
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates) {
-    mockEcbRates(rates, ecbRates, DateUtils.getDateString(ecbRates.getDate()));
+    mockEcbRates(rates, ecbRates, new DateUtils().getDateString(ecbRates.getDate()));
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates, String rateDate) {

@@ -46,14 +46,14 @@ class TestTrnLogic {
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal(2000))
-        .tradeDate(DateUtils.convert(yesterday))
+        .tradeDate(new DateUtils().convert(yesterday))
         .quantity(new BigDecimal(100)).build();
 
     Trn buyToday = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(apple)
         .tradeAmount(new BigDecimal(2000))
-        .tradeDate(DateUtils.convert(today))
+        .tradeDate(new DateUtils().convert(today))
         .quantity(new BigDecimal(100)).build();
 
     positions.add(position);

@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.UtilConfig;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.markets.MarketService;
@@ -24,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @since 2019-03-19
  */
 @SpringBootTest(classes = {
+    UtilConfig.class,
     CurrencyService.class,
     MarketService.class,
     StaticConfig.class})
@@ -32,6 +34,7 @@ class TestStaticData {
   private StaticConfig staticConfig;
   private MarketService marketService;
   private CurrencyService currencyService;
+  private DateUtils dateUtils;
 
   @Autowired
   TestStaticData(StaticConfig staticConfig,
@@ -41,6 +44,11 @@ class TestStaticData {
     this.marketService = marketService;
     this.staticConfig = staticConfig;
     this.currencyService = currencyService;
+  }
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
   }
 
   @Test
@@ -74,7 +82,7 @@ class TestStaticData {
     LocalDate sunday = LocalDate
         .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat));
 
-    LocalDate resolvedDate = DateUtils.getLastMarketDate(
+    LocalDate resolvedDate = dateUtils.getLastMarketDate(
         sunday,
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 
@@ -82,7 +90,7 @@ class TestStaticData {
         .isEqualTo(LocalDate.of(2019, 4, 12))
     ;
 
-    resolvedDate = DateUtils.getLastMarketDate(sunday,
+    resolvedDate = dateUtils.getLastMarketDate(sunday,
         marketService.getMarket("NYSE").getTimezone().toZoneId());
 
     assertThat(resolvedDate)

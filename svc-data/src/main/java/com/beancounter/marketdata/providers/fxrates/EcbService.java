@@ -16,6 +16,8 @@ public class EcbService {
   private CurrencyService currencyService;
   private String currencies;
   private EcbDate ecbDate = new EcbDate();
+  private DateUtils dateUtils = new DateUtils();
+
 
   @Autowired
   EcbService(FxGateway fxGateway, CurrencyService currencyService) {
@@ -23,6 +25,11 @@ public class EcbService {
     this.currencyService = currencyService;
     // comma separated list of supported currencies
     currencies = currencyService.delimited(",");
+  }
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
   }
 
   public Collection<FxRate> getRates(String asAt) {
@@ -38,7 +45,7 @@ public class EcbService {
               .from(currencyService.getBase())
               .to(currencyService.getCode(code))
               .rate(rates.getRates().get(code))
-              .date(DateUtils.getDateString(rates.getDate()))
+              .date(dateUtils.getDateString(rates.getDate()))
               .build()
       );
     }

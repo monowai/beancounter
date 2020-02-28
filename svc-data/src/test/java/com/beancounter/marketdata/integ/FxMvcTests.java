@@ -54,6 +54,7 @@ class FxMvcTests {
   private MockMvc mockMvc;
   private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private Jwt token;
+  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   void mockServices() {
@@ -121,7 +122,7 @@ class FxMvcTests {
   void is_NullDateReturningCurrent() throws Exception {
 
     File rateResponse = new ClassPathResource("contracts/ecb/fx-current-rates.json").getFile();
-    String today = DateUtils.today();
+    String today = dateUtils.today();
     AlphaMockUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies

@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class Accumulator {
-
+  DateUtils dateUtils = new DateUtils();
   //@Value("${beancounter.positions.ordered:false}")
   //private boolean orderedTransactions = false;
 
@@ -48,8 +48,8 @@ public class Accumulator {
   /**
    * Main calculation routine.
    *
-   * @param trn Transaction to add
-   * @param position    Position to accumulate the transaction into
+   * @param trn      Transaction to add
+   * @param position Position to accumulate the transaction into
    * @return result object
    */
   public Position accumulate(Trn trn, Portfolio portfolio, Position position) {
@@ -60,7 +60,7 @@ public class Accumulator {
     ValueTransaction valueTransaction = logicMap.get(trn.getTrnType());
     valueTransaction.value(trn, portfolio, position);
     if (dateSensitive) {
-      position.getDateValues().setLast(DateUtils.getDateString(trn.getTradeDate()));
+      position.getDateValues().setLast(dateUtils.getDateString(trn.getTradeDate()));
     }
 
     return position;
@@ -71,7 +71,7 @@ public class Accumulator {
     boolean validDate = false;
 
     LocalDate tradeDate = trn.getTradeDate();
-    LocalDate positionDate = DateUtils.getDate(position.getDateValues().getLast());
+    LocalDate positionDate = dateUtils.getDate(position.getDateValues().getLast());
 
     if (positionDate == null || (positionDate.compareTo(tradeDate) <= 0)) {
       validDate = true;

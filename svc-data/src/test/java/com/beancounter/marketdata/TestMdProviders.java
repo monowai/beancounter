@@ -7,6 +7,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.UtilConfig;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
@@ -29,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @SpringBootTest(classes = {
     AlphaConfig.class,
+    UtilConfig.class,
     WtdConfig.class,
     MockConfig.class,
     MdFactory.class,

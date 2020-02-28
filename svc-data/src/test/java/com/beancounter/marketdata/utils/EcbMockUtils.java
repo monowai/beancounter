@@ -7,10 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EcbMockUtils {
+  private static final DateUtils dateUtils = new DateUtils();
 
   public static EcbRates get(String date, Map<String, BigDecimal> rates) {
     EcbRates ecbRates = new EcbRates();
-    ecbRates.setDate(DateUtils.getDate(date));
+    ecbRates.setDate(dateUtils.getDate(date));
     ecbRates.setRates(rates);
     return ecbRates;
   }

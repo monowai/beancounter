@@ -33,7 +33,7 @@ public class WtdMockUtils {
   private static LocalDate zonedDateTime = LocalDate.now();
 
   public static final String priceDate =
-      DateUtils.getLastMarketDate(zonedDateTime, ZoneId.systemDefault()).toString();
+      new DateUtils().getLastMarketDate(zonedDateTime, ZoneId.systemDefault()).toString();
 
   public static WtdResponse get(String date, Map<String, MarketData> prices) {
     WtdResponse response = new WtdResponse();

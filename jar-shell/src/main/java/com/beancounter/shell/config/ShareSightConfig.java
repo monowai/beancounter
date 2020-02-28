@@ -1,6 +1,7 @@
 package com.beancounter.shell.config;
 
 import com.beancounter.client.ClientConfig;
+import com.beancounter.common.utils.UtilConfig;
 import com.beancounter.shell.reader.Filter;
 import com.beancounter.shell.reader.RowProcessor;
 import com.beancounter.shell.sharesight.ShareSightDivis;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({
     ClientConfig.class,
+    UtilConfig.class,
     ShareSightDivis.class,
     ShareSightTrades.class,
     ShareSightTransformers.class,

@@ -28,10 +28,16 @@ import org.springframework.stereotype.Service;
 public class ValuationService implements Valuation {
 
   private PositionValuationService positionValuationService;
+  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   ValuationService(PositionValuationService positionValuationService) {
     this.positionValuationService = positionValuationService;
+  }
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
   }
 
   @Override
@@ -43,7 +49,7 @@ public class ValuationService implements Valuation {
           .build();
     }
     if (positions.getAsAt() != null) {
-      DateUtils.isValid(positions.getAsAt());
+      dateUtils.isValid(positions.getAsAt());
     }
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {

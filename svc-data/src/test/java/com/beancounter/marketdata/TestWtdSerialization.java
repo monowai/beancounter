@@ -37,7 +37,8 @@ class TestWtdSerialization {
 
     assertThat(response)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("date", DateUtils.getDateString(compareTo.toLocalDate()))
+        .hasFieldOrPropertyWithValue("date", new DateUtils()
+            .getDateString(compareTo.toLocalDate()))
         .hasFieldOrProperty("data");
   }
 

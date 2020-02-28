@@ -39,16 +39,22 @@ public class ShareSightService {
   @Value("${range:All Trades Report}")
   private String range;
   private AssetService assetService;
+  private DateUtils dateUtils = new DateUtils();
 
   // retrieve rates from market data service
-
   @Autowired
   public ShareSightService(AssetService assetService) {
     this.assetService = assetService;
   }
 
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
+  }
+
+
   LocalDate parseDate(String date) {
-    return DateUtils.getDate(date, "dd/MM/yyyy");
+    return dateUtils.getDate(date, "dd/MM/yyyy");
   }
 
   public BigDecimal parseDouble(Object o) throws ParseException {

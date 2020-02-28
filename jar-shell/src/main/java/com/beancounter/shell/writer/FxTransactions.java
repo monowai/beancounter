@@ -22,6 +22,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class FxTransactions {
   private FxRateService fxRateService;
+  private DateUtils dateUtils;
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
+  }
 
   @Autowired
   void setFxRateService(FxRateService fxRateService) {
@@ -36,7 +42,7 @@ public class FxTransactions {
                                     Collection<Trn> trns) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (Trn trn : trns) {
-      String tradeDate = DateUtils.getDateString(trn.getTradeDate());
+      String tradeDate = dateUtils.getDateString(trn.getTradeDate());
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 

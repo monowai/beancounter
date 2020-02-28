@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Deserialize a BC MarketData object from a AlphaVantage result.
@@ -29,6 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AlphaDeserializer extends JsonDeserializer<MarketData> {
   private static final ObjectMapper mapper = new ObjectMapper();
+  private DateUtils dateUtils = new DateUtils();
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
+  }
 
   @Override
   public MarketData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -48,7 +55,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
       Optional<? extends Map.Entry<?, ? extends LinkedHashMap<String, Object>>>
           firstKey = allValues.entrySet().stream().findFirst();
       if (firstKey.isPresent()) {
-        LocalDate localDateTime = DateUtils.getLocalDate(
+        LocalDate localDateTime = dateUtils.getLocalDate(
             firstKey.get().getKey().toString(), "yyyy-M-dd");
         marketData = getMarketData(asset, localDateTime, firstKey.get().getValue());
       }
@@ -71,7 +78,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
       BigDecimal close = new BigDecimal(data.get("4. close").toString());
       marketData = MarketData.builder()
           .asset(asset)
-          .date(DateUtils.getDateString(priceDate))
+          .date(dateUtils.getDateString(priceDate))
           .open(open)
           .close(close)
           .high(high)

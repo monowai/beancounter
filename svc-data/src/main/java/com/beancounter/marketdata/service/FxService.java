@@ -20,11 +20,17 @@ import org.springframework.stereotype.Service;
 public class FxService {
   private CurrencyService currencyService;
   private EcbService ecbService;
+  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   FxService(EcbService ecbService, CurrencyService currencyService) {
     this.ecbService = ecbService;
     this.currencyService = currencyService;
+  }
+
+  @Autowired
+  void setDateUtils(DateUtils dateUtils) {
+    this.dateUtils = dateUtils;
   }
 
   public FxResponse getRates(FxRequest fxRequest) {
@@ -34,7 +40,7 @@ public class FxService {
     String rateDate;
     if (fxRequest.getRateDate() == null) {
       // Looking for current
-      rateDate = DateUtils.today();
+      rateDate = dateUtils.today();
     } else {
       rateDate = fxRequest.getRateDate();
     }

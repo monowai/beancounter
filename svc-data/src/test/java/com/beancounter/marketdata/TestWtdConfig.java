@@ -10,6 +10,8 @@ import java.util.TimeZone;
 import org.junit.jupiter.api.Test;
 
 public class TestWtdConfig {
+  private DateUtils dateUtils = new DateUtils();
+
   @Test
   void is_DateAssumptionsValid() {
     WtdConfig wtdConfig = new WtdConfig();
@@ -17,7 +19,7 @@ public class TestWtdConfig {
     wtdConfig.setDate(date);
     assertThat(wtdConfig.getDate()).isEqualTo(date);
 
-    String today = DateUtils.today();
+    String today = dateUtils.today();
     wtdConfig.setDate(today);
     assertThat(wtdConfig.getDate()).isEqualTo(today);
 
@@ -31,8 +33,8 @@ public class TestWtdConfig {
         .isEqualTo(date);
 
     // On Today, it should subtract 2 days
-    LocalDate expectedDate = DateUtils.getLastMarketDate(
-        DateUtils.getDate(today), TimeZone.getTimeZone("US/Eastern").toZoneId(), 2);
+    LocalDate expectedDate = dateUtils.getLastMarketDate(
+        dateUtils.getDate(today), TimeZone.getTimeZone("US/Eastern").toZoneId(), 2);
     wtdConfig.setDate(today);
     assertThat(wtdConfig.getMarketDate(nzx, today)).isEqualTo(expectedDate.toString());
 

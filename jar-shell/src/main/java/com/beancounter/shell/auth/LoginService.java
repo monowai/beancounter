@@ -16,12 +16,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Service
 @Configuration
 @Slf4j
+@Data
 public class LoginService {
   private AuthGateway authGateway;
   @Value("${auth.realm}")
   private String realm;
   @Value("${auth.client}")
   private String client;
+  @Value("${auth.client}")
+  private String uri;
   @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
   private String certPath;
 
@@ -46,9 +49,9 @@ public class LoginService {
   }
 
   @FeignClient(name = "oauth",
-      url = "${auth.uri:http://keycloak:9620}", configuration = AuthBeans.class)
+      url = "${auth.uri:http://keycloak:9620/auth}", configuration = AuthBeans.class)
   public interface AuthGateway {
-    @PostMapping(value = "/auth/realms/${auth.realm:bc-dev}/protocol/openid-connect/token",
+    @PostMapping(value = "/realms/${auth.realm:bc-dev}/protocol/openid-connect/token",
         consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
         produces = {MediaType.APPLICATION_JSON_VALUE})
     OAuth2Response login(Login login);

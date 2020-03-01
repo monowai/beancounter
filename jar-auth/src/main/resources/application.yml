@@ -1,5 +1,5 @@
 auth:
-  uri: "http://keycloak:9620"
+  uri: "http://keycloak:9620/auth"
   realm: "bc-dev"
 
 spring:
@@ -7,4 +7,4 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: "${auth.uri}/auth/realms/${auth.realm}/protocol/openid-connect/certs"
+          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"

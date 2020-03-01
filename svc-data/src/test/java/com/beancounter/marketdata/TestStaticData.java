@@ -34,7 +34,7 @@ class TestStaticData {
   private StaticConfig staticConfig;
   private MarketService marketService;
   private CurrencyService currencyService;
-  private DateUtils dateUtils;
+  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   TestStaticData(StaticConfig staticConfig,
@@ -44,11 +44,6 @@ class TestStaticData {
     this.marketService = marketService;
     this.staticConfig = staticConfig;
     this.currencyService = currencyService;
-  }
-
-  @Autowired
-  void setDateUtils(DateUtils dateUtils) {
-    this.dateUtils = dateUtils;
   }
 
   @Test
@@ -75,8 +70,8 @@ class TestStaticData {
     //  But, if you print the Date object directly, it is always printed with the default
     //  system time zone.
 
-    String dateFormat = "yyyy-M-dd hh:mm:ss a";
-    String dateInString = "2019-4-14 10:30:00 AM";
+    String dateFormat = "yyyy-MM-dd hh:mm:ss";
+    String dateInString = "2019-04-14 10:30:00";
     // Users requested date "today in timezone"
 
     LocalDate sunday = LocalDate

@@ -6,16 +6,16 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: "${auth.uri}/auth/realms/${auth.realm}/protocol/openid-connect/certs"
+          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
 
   jackson:
     serialization:
       INDENT_OUTPUT: true
 
 auth:
-  uri: "http://keycloak:9620"
+  uri: "http://keycloak:9620/auth"
   realm: "bc-dev"
-  client: "bc-app"
+  client: "bc-dev"
 
 beancounter:
   exchanges:

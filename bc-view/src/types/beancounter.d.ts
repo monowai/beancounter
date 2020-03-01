@@ -106,3 +106,8 @@ interface ValuationOption {
   label: string;
   value: ValuationCcy;
 }
+
+interface SystemUser {
+  active: boolean;
+  email: string;
+}

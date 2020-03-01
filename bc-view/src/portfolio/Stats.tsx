@@ -1,6 +1,6 @@
 import React from "react";
 import "../assets/styles.sass";
-import { translate } from "../i18nConfig";
+import { translate } from "../common/i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";

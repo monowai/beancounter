@@ -2,7 +2,7 @@ import React from "react";
 import NumberFormat from "react-number-format";
 import { HoldingGroup } from "../types/beancounter";
 
-import { translate } from "../i18nConfig";
+import { translate } from "../common/i18nConfig";
 import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 

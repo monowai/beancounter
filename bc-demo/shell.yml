@@ -15,7 +15,7 @@ services:
 
     environment:
       MARKETDATA_URL: "http://data:9510/api"
-      AUTH_URI: "http://keycloak:8080"
+      AUTH_URI: "http://keycloak:8080/auth"
       API_PATH: "/secrets/google-api/"
       API_PORT: 9690
 

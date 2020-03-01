@@ -6,7 +6,11 @@ import nock from "nock";
 
 const bff = "http://localhost";
 
-nock(bff)
+nock(bff, {
+  reqheaders: {
+    authorization: "Bearer undefined"
+  }
+})
   .get("/bff/test/today")
   .replyWithFile(200, __dirname + "/contracts/test-holdings.json", {
     "Access-Control-Allow-Origin": "*",

@@ -4,16 +4,17 @@ import { StaticRouter } from "react-router-dom";
 import express from "express";
 import { renderToString } from "react-dom/server";
 import { Helmet } from "react-helmet";
-import i18n from "./i18nConfig";
+import i18n from "./common/i18nConfig";
 import Backend from "i18next-node-fs-backend";
 import { I18nextProvider } from "react-i18next"; // has no proper import yet
 import * as path from "path";
 import fs from "fs";
+import cors from "cors";
 import i18nextMiddleware from "i18next-express-middleware";
-import logger from "./ConfigLogging";
+import logger from "./common/ConfigLogging";
 import App from "./App";
 import { runtimeConfig } from "./config";
-import { holdings } from "./bcApi";
+import { holdings, register } from "./bcApi";
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
@@ -60,10 +61,12 @@ i18n
         .disable("x-powered-by")
         .use("/locales", express.static(`${resolveApp(staticDir)}/locales`))
         .use(i18nextMiddleware.handle(i18n))
+        .use(cors())
         .use(express.urlencoded({ extended: true }))
         .use(express.static(staticDir))
         .use(express.json())
         .get("/bff/*/today", holdings)
+        .post("/bff/register", register)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);
           const context: any = {};

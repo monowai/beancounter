@@ -1,15 +1,15 @@
 import express from "express";
-import logger from "./ConfigLogging";
+import logger from "./common/ConfigLogging";
 
 // this require is necessary for server HMR to recover from error
 // tslint:disable-next-line:no-var-requires
-let app = require("./server").default;
+let server = require("./server").default;
 
 if (module.hot) {
   module.hot.accept("./server", () => {
     logger.info("🔁  HMR Reloading `./server`...");
     try {
-      app = require("./server").default;
+      server = require("./server").default;
     } catch (error) {
       logger.error(error);
     }
@@ -20,7 +20,7 @@ if (module.hot) {
 const port = process.env.PORT || 3000;
 
 export default express()
-  .use((req, res) => app.handle(req, res))
+  .use((req, res) => server.handle(req, res))
   .listen(port, () => {
     logger.info("> Started on port %s", port);
   })

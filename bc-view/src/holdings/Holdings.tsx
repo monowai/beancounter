@@ -9,34 +9,14 @@ import StatsHeader, { StatsRow } from "../portfolio/Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
-import logger from "../ConfigLogging";
 import { axiosBff } from "../common/utils";
 import { AxiosError } from "axios";
+import { useKeycloak } from "@react-keycloak/web";
+import logger from "../common/ConfigLogging";
+import { getBearerToken } from "../keycloak/utils";
+import { LoginRedirect } from "../common/auth/Login";
 
 export default function ViewHoldings(portfolioId: string): React.ReactElement {
-  const [data, setData] = useState<HoldingContract>();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<AxiosError>();
-
-  useEffect(() => {
-    const fetchHoldings = async (): Promise<void> => {
-      setLoading(true);
-      logger.debug(">>fetch %s", portfolioId);
-      await axiosBff()
-        .get<HoldingContract>(`/bff/${portfolioId}/today`)
-        .then(result => {
-          logger.debug("<<fetch %s %s", portfolioId, result);
-          setData(result.data);
-        })
-        .catch(err => {
-          setError(err.response.data);
-          logger.error("bff error [%s]", err.response.data.message);
-        });
-      setLoading(false);
-    };
-
-    fetchHoldings();
-  }, [portfolioId]);
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio"
@@ -46,13 +26,45 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency"
   });
-
+  const [data, setData] = useState<HoldingContract>();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<AxiosError>();
+  const [keycloak] = useKeycloak();
+  useEffect(() => {
+    const fetchHoldings = async (config: { headers: { Authorization: string } }): Promise<void> => {
+      setLoading(true);
+      logger.debug(">>fetch %s %s", portfolioId, JSON.stringify(config));
+      await axiosBff()
+        .get<HoldingContract>(`/bff/${portfolioId}/today`, config)
+        .then(result => {
+          logger.debug("<<fetch %s", portfolioId);
+          setData(result.data);
+        })
+        .catch(err => {
+          setError(err);
+          if (err.response) {
+            logger.error("bff error [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+        });
+    };
+    fetchHoldings({
+      headers: getBearerToken(keycloak)
+    }).finally(() => setLoading(false));
+  }, [keycloak, portfolioId]);
+  // Render where we are in the initialization process
   if (loading) {
     return <div id="root">Loading...</div>;
   }
   if (error) {
-    logger.error("Error: %s", error.message);
-    return <div id="root">{error.message}</div>;
+    if (error.response) {
+      const { data: errData, status } = error.response;
+      if (status === 401) {
+        return <LoginRedirect />;
+      }
+      logger.error("Error: %s", errData.message);
+      return <div>{errData.message}</div>;
+    }
+    return <div>Unknown error</div>;
   }
   if (data) {
     const holdings = calculate(data, hideEmpty, valueIn.value, groupBy.value) as Holdings;

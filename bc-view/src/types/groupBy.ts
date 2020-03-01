@@ -1,4 +1,4 @@
-import { translate } from "../i18nConfig";
+import { translate } from "../common/i18nConfig";
 import { GroupOption } from "./beancounter";
 
 // Enum is a path to a property in the holding contract

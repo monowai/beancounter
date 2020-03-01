@@ -1,6 +1,6 @@
 // export type ValueIn = "TRADE" | "BASE" | "PORTFOLIO";
 
-import { translate } from "../i18nConfig";
+import { translate } from "../common/i18nConfig";
 import { ValuationOption } from "./beancounter";
 
 // Enum is pointer to a collection of values in the holding contract

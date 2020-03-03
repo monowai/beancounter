@@ -22,14 +22,19 @@ It is assumed that you are running all commands from the root of the `BeanCounte
 Default is to look for google credentials `../secrets/credentials.json`  
 
 ## General import flow from a google sheet
-Note that at this point, callbacks don't work when running the shell in Docker.
+Currently callbacks don't work when running the shell in Docker
 The general flow
 ```bash
- java -jar jar-shell/build/lib/jar-shell-0.1.1.jar
- bc-shell$ login demo
+ # running the shell in DEV mode against the bc-demo stack
+ # Assumes you've already registered you account via the UI or KeyCloak
+ $ MARKETDATA_URL=http://localhost:9610/api java -jar jar-shell/build/libs/jar-shell-0.1.1.jar
+
+ bc-shell$ login user@somewhere.com
  password: ********
  bc-shell$ register
- bc-shell$ add-portfolio TEST "Test Portfolio" "SGD" "USD 
+ bc-shell$ add-portfolio TEST "Test Portfolio" "SGD" "USD
+ # This command will not work for you, so you need to setup your google access and a sheet before calling it
+ # If you don't ingest transacitons, then you will just see an empty portfolio in the viewer 
  bc-shell$ ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio TEST
 ```
 

@@ -12,7 +12,11 @@ import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.GoogleAuthConfig;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.config.ShellConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +82,17 @@ public class CommandTest {
   void is_UtilCommands() {
     assertThat(utilCommands.api()).isNotNull().isNotBlank();
     assertThat(utilCommands.pwd()).isNotNull().isNotBlank();
+  }
+
+  @Test
+  @SneakyThrows
+  void is_ConfigReturned() {
+    String config = utilCommands.config();
+    assertThat(config).isNotNull();
+    TypeReference<HashMap<String, String>> typeRef = new TypeReference<>() {
+    };
+    Map<String, String> configMap = new ObjectMapper().readValue(config, typeRef);
+    assertThat(configMap).isNotEmpty();
   }
 
   @Test

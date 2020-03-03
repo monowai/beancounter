@@ -1,5 +1,5 @@
 FROM openjdk:11-slim
-#docker build . --build-arg JAR_FILE=build/libs/svc-position-0.0.1.jar -t bc/svc-position
+#docker build . --build-arg JAR_FILE=build/libs/svc-position-0.0.1.jar -t monowai/bc-position
 
 ARG JAR_FILE=build/libs/svc-position-0.0.1.jar
 ARG GIT_COMMIT

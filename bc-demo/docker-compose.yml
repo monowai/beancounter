@@ -42,7 +42,7 @@ services:
       - ./keycloak:/data
 
   data:
-    image: bc/svc-data
+    image: monowai/bc-data
     container_name: data
     expose:
       - 9510
@@ -62,7 +62,7 @@ services:
       - postgres
 
   position:
-    image: bc/svc-position
+    image: monowai/bc-position
     container_name: position
     expose:
       - 9500
@@ -80,7 +80,7 @@ services:
       - data
 
   app:
-    image: bc/app
+    image: monowai/bc-app
     ports:
       - 4000:3000
 

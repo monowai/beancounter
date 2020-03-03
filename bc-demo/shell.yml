@@ -6,7 +6,7 @@ services:
     #  ln -s ../secrets/ ./secrets
     # docker-compose -f shell.yml run --rm shell
 
-    image: bc/shell
+    image: monowai/bc-shell
     container_name: shell
     #stdin_open: true
     #tty: true

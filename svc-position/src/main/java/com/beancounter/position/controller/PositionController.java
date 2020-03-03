@@ -61,11 +61,11 @@ public class PositionController {
   }
 
 
-  @GetMapping(value = "/{portfolioId}/{valuationDate}", produces = "application/json")
+  @GetMapping(value = "/{code}/{valuationDate}", produces = "application/json")
   PositionResponse get(final @AuthenticationPrincipal Jwt jwt,
-                       @PathVariable String portfolioId,
+                       @PathVariable String code,
                        @PathVariable(required = false) String valuationDate) {
-    Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
+    Portfolio portfolio = portfolioService.getPortfolioByCode(code);
     TrnResponse trnResponse = trnService.read(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())

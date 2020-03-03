@@ -3,15 +3,11 @@ All of Beancounter Demo is orchestrated with Docker Compose.
 ```shell script
 # Start just KeyCloak and Postgres (prerequisites for auth to work)
 docker-compose start postgres keycloak
-
 ```
 
-If you've already built the services, you can create the containers using
+Running the CLI shell
 
 ```shell script
-./build-containers.sh
-# Entire stack
-docker-compose up -d
 # CLI shell
 docker-compose -f shell.yml run --rm shell
 ```
@@ -33,9 +29,20 @@ You can test the above by logging into the [Keycloak](http://keycloak:9620) admi
 With the stack running, simply access a secured endpoint and register your account.  
  * Access (http://localhost:4000/login) 
  * Choose "register"
+ * Supply all the details
+
+```shell script
+bc-shell$ login [registered@user.com]
+Password: ********
+2020-03-03 06:51:37,289 - Logged in as registered@user.com
+bc-shell$ register
+{"id":"0221ba90-3481-40a9-9efa-41301d43e710","email":"mike@monowai.com","active":true,"since":"2020-03-03"}
+bc-shell$ add-portfolio --code "TEST" --name "Test Portfolio" --base-currency USD --currency-code EUR
+2020-03-03 06:52:29,694 - Creating portfolio TEST
+``` 
  
-That's it. You can change your password and explore Keycloak user and BC roles via the [KC admin](http://keycloak:9620) interface
- 
+You can change your password and explore Keycloak user and BC roles via the [KC admin](http://keycloak:9620) interface
+
 ### Verify your user
 Only the `username` and `password` properties need to be set.
 ```shell script
@@ -59,25 +66,4 @@ curl --location --request POST 'http://keycloak:9620/auth/realms/bc-dev/protocol
 }
 
 ``` 
-
-## Shell
-You can also test your user account from the CLI.
-```shell script
-docker-compose -f shell.yml run --rm shell
-...
-bc-shell$ login demo@somewhere.com
-Password: ********
-Logged in as demo
-bc-shell$ register
-bc-shell$ markets
-{
-  "data" : [ {
-    "code" : "NASDAQ",
-    "currency" : {
-      "code" : "USD",
-      "name" : "Dollar",
-....
-```
-
-
    

@@ -16,7 +16,7 @@ import logger from "../common/ConfigLogging";
 import { getBearerToken } from "../keycloak/utils";
 import { LoginRedirect } from "../common/auth/Login";
 
-export default function ViewHoldings(portfolioId: string): React.ReactElement {
+export default function ViewHoldings(code: string): React.ReactElement {
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio"
@@ -33,11 +33,11 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
   useEffect(() => {
     const fetchHoldings = async (config: { headers: { Authorization: string } }): Promise<void> => {
       setLoading(true);
-      logger.debug(">>fetch %s %s", portfolioId, JSON.stringify(config));
+      logger.debug(">>fetch %s %s", code, JSON.stringify(config));
       await axiosBff()
-        .get<HoldingContract>(`/bff/${portfolioId}/today`, config)
+        .get<HoldingContract>(`/bff/${code}/today`, config)
         .then(result => {
-          logger.debug("<<fetch %s", portfolioId);
+          logger.debug("<<fetch %s", code);
           setData(result.data);
         })
         .catch(err => {
@@ -50,7 +50,7 @@ export default function ViewHoldings(portfolioId: string): React.ReactElement {
     fetchHoldings({
       headers: getBearerToken(keycloak)
     }).finally(() => setLoading(false));
-  }, [keycloak, portfolioId]);
+  }, [keycloak, code]);
   // Render where we are in the initialization process
   if (loading) {
     return <div id="root">Loading...</div>;

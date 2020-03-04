@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { RouteComponentProps, withRouter } from "react-router";
 import { useKeycloak } from "@react-keycloak/web";
-
+//
 const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
   const { history } = props;
   const { keycloak } = useKeycloak();
@@ -17,7 +17,7 @@ const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
 
     return (
       <div className="Home">
-        Functions - {authState}
+        Functions ({authState})
         <ul className="Home-resources">
           <li>
             <Link onClick={() => history.push("/")} to={"/login"}>
@@ -30,9 +30,7 @@ const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
             </Link>
           </li>
           <li>
-            <Link onClick={() => history.push("/")} to={"/holdings/TEST"}>
-              TEST Portfolio
-            </Link>
+            <Portfolios />
           </li>
         </ul>
       </div>

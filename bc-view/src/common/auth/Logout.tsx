@@ -1,6 +1,6 @@
 import React from "react";
 import { Redirect, useLocation, withRouter } from "react-router";
-import { useKeycloak } from "@react-keycloak/web";
+import { useKeycloak } from "@react-keycloak/nextjs";
 import logger from "../ConfigLogging";
 
 const Logout = (): JSX.Element => {

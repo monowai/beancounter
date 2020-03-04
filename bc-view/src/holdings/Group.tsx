@@ -58,13 +58,30 @@ export function HoldingRows(props: { holdingGroup: HoldingGroup; valueIn: ValueI
           thousandSeparator={true}
         />
       </td>
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"marketValue"} />
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"costValue"} />
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"averageCost"} />
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"dividends"} />
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"realisedGain"} />
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"unrealisedGain"} />
-      <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"totalGain"} />
+      <td align={"right"}>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"marketValue"} />
+      </td>
+      <td align={"right"}>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"costValue"} />
+      </td>
+      <td align={"right"}>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"averageCost"} />
+      </td>
+      <td align={"right"}>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"dividends"} />
+      </td>
+      <td align={"right"}>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"realisedGain"} />
+      </td>
+      <td align={"right"}>
+        <FormatMoneyValue
+          moneyValues={position.moneyValues[valueIn]}
+          moneyField={"unrealisedGain"}
+        />
+      </td>
+      <td align={"right"}>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"totalGain"} />
+      </td>
     </tr>
   ));
   return <tbody>{holdings}</tbody>;
@@ -82,21 +99,42 @@ export function HoldingFooter(props: {
         <td colSpan={4} align={"right"}>
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}
         </td>
-        <FormatMoneyValue moneyValues={holdingGroup.subTotals[valueIn]} moneyField={"costValue"} />
-        <FormatMoneyValue
-          moneyValues={holdingGroup.subTotals[valueIn]}
-          moneyField={"marketValue"}
-        />
-        <FormatMoneyValue moneyValues={holdingGroup.subTotals[valueIn]} moneyField={"dividends"} />
-        <FormatMoneyValue
-          moneyValues={holdingGroup.subTotals[valueIn]}
-          moneyField={"realisedGain"}
-        />
-        <FormatMoneyValue
-          moneyValues={holdingGroup.subTotals[valueIn]}
-          moneyField={"unrealisedGain"}
-        />
-        <FormatMoneyValue moneyValues={holdingGroup.subTotals[valueIn]} moneyField={"totalGain"} />
+        <td align={"right"}>
+          <FormatMoneyValue
+            moneyValues={holdingGroup.subTotals[valueIn]}
+            moneyField={"costValue"}
+          />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue
+            moneyValues={holdingGroup.subTotals[valueIn]}
+            moneyField={"marketValue"}
+          />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue
+            moneyValues={holdingGroup.subTotals[valueIn]}
+            moneyField={"dividends"}
+          />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue
+            moneyValues={holdingGroup.subTotals[valueIn]}
+            moneyField={"realisedGain"}
+          />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue
+            moneyValues={holdingGroup.subTotals[valueIn]}
+            moneyField={"unrealisedGain"}
+          />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue
+            moneyValues={holdingGroup.subTotals[valueIn]}
+            moneyField={"totalGain"}
+          />
+        </td>
       </tr>
     </tbody>
   );

@@ -10,7 +10,7 @@ const usd: Currency = { id: "us", code: "USD", symbol: "$" };
 
 describe("<PortfolioStats />", () => {
   it("should match snapshot", () => {
-    const portfolio: Portfolio = { code: "mike", currency: usd, base: usd };
+    const portfolio: Portfolio = { code: "mike", name: "", currency: usd, base: usd };
     const container = render(
       <table>
         <PortfolioStats portfolio={portfolio} />

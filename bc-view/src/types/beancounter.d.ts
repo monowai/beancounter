@@ -71,10 +71,14 @@ export interface Position {
 }
 
 interface Portfolio {
+  id: string;
   code: string;
+  name: string;
   currency: Currency;
   base: Currency;
+  owner: SystemUser;
 }
+
 // Server side contract
 interface HoldingContract {
   portfolio: Portfolio;

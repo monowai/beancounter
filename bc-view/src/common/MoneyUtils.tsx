@@ -10,14 +10,12 @@ export function FormatMoneyValue(props: {
     return <td align={"center"}>-</td>;
   }
   return (
-    <td align={"right"}>
-      <NumberFormat
-        value={props.moneyValues[props.moneyField]}
-        displayType={"text"}
-        decimalScale={2}
-        fixedDecimalScale={true}
-        thousandSeparator={true}
-      />
-    </td>
+    <NumberFormat
+      value={props.moneyValues[props.moneyField]}
+      displayType={"text"}
+      decimalScale={2}
+      fixedDecimalScale={true}
+      thousandSeparator={true}
+    />
   );
 }

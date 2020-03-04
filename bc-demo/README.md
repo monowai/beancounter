@@ -32,11 +32,11 @@ With the stack running, simply access a secured endpoint and register your accou
  * Supply all the details
 
 ```shell script
-bc-shell$ login [registered@user.com]
+$ docker-compose -f shell.yml run --rm shell
+bc-shell$ login {registered@user.com}
 Password: ********
 2020-03-03 06:51:37,289 - Logged in as registered@user.com
 bc-shell$ register
-{"id":"0221ba90-3481-40a9-9efa-41301d43e710","email":"mike@monowai.com","active":true,"since":"2020-03-03"}
 bc-shell$ add-portfolio --code "TEST" --name "Test Portfolio" --base-currency USD --currency-code EUR
 2020-03-03 06:52:29,694 - Creating portfolio TEST
 ``` 

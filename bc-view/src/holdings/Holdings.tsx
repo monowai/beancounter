@@ -11,10 +11,10 @@ import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
 import { axiosBff } from "../common/utils";
 import { AxiosError } from "axios";
-import { useKeycloak } from "@react-keycloak/web";
 import logger from "../common/ConfigLogging";
 import { getBearerToken } from "../keycloak/utils";
 import { LoginRedirect } from "../common/auth/Login";
+import { useKeycloak } from "@react-keycloak/web";
 
 export default function ViewHoldings(code: string): React.ReactElement {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -26,19 +26,19 @@ export default function ViewHoldings(code: string): React.ReactElement {
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency"
   });
-  const [data, setData] = useState<HoldingContract>();
+  const [holdingContract, setHoldingContract] = useState<HoldingContract>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
   useEffect(() => {
     const fetchHoldings = async (config: { headers: { Authorization: string } }): Promise<void> => {
       setLoading(true);
-      logger.debug(">>fetch %s %s", code, JSON.stringify(config));
+      logger.debug(">>fetch %s", code);
       await axiosBff()
         .get<HoldingContract>(`/bff/${code}/today`, config)
         .then(result => {
           logger.debug("<<fetch %s", code);
-          setData(result.data);
+          setHoldingContract(result.data);
         })
         .catch(err => {
           setError(err);
@@ -66,8 +66,13 @@ export default function ViewHoldings(code: string): React.ReactElement {
     }
     return <div>Unknown error</div>;
   }
-  if (data) {
-    const holdings = calculate(data, hideEmpty, valueIn.value, groupBy.value) as Holdings;
+  if (holdingContract) {
+    const holdings = calculate(
+      holdingContract,
+      hideEmpty,
+      valueIn.value,
+      groupBy.value
+    ) as Holdings;
     return (
       <div className="page-box">
         <div className="filter-columns">
@@ -108,15 +113,15 @@ export default function ViewHoldings(code: string): React.ReactElement {
         </div>
         <div className={"stats-container"}>
           <table>
-            <StatsHeader portfolio={data.portfolio} />
+            <StatsHeader portfolio={holdingContract.portfolio} />
             <StatsRow
-              portfolio={data.portfolio}
+              portfolio={holdingContract.portfolio}
               moneyValues={holdings.totals}
               valueIn={valueIn.value}
             />
           </table>
         </div>
-        <div className={"all-holdings"}>
+        <div className={"all-apiHoldings"}>
           <table className={"table is-striped is-hoverable"}>
             {Object.keys(holdings.holdingGroups)
               .sort()

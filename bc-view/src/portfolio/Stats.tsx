@@ -37,11 +37,21 @@ export function StatsRow(props: {
             {!moneyValues || valueIn === ValueIn.TRADE ? "N/A" : moneyValues.currency.code}
           </div>
         </td>
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"marketValue"} />
-        <FormatMoneyValue moneyValues={moneyValues} moneyField={"totalGain"} />
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"marketValue"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"totalGain"} />
+        </td>
       </tr>
     </tbody>
   );

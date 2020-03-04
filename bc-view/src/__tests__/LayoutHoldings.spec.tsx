@@ -12,19 +12,19 @@ nock(bff, {
   }
 })
   .get("/bff/test/today")
-  .replyWithFile(200, __dirname + "/contracts/test-holdings.json", {
+  .replyWithFile(200, __dirname + "/contracts/test-apiHoldings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })
   .get("/bff/zero/today")
-  .replyWithFile(200, __dirname + "/contracts/zero-holdings.json", {
+  .replyWithFile(200, __dirname + "/contracts/zero-apiHoldings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })
   .log(console.log);
 
 describe("<ViewHoldings />", () => {
-  it("matches snapshot when holdings present", async () => {
+  it("matches snapshot when apiHoldings present", async () => {
     const TestHoldings = (): JSX.Element => {
       return ViewHoldings("test");
     };
@@ -34,7 +34,7 @@ describe("<ViewHoldings />", () => {
     expect(container).toMatchSnapshot();
   });
 
-  it("matches snapshot for zero holdings", async () => {
+  it("matches snapshot for zero apiHoldings", async () => {
     const ZeroHoldings = (): JSX.Element => {
       return ViewHoldings("zero");
     };

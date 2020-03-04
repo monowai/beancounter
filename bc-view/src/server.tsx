@@ -14,10 +14,7 @@ import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./common/ConfigLogging";
 import App from "./App";
 import { runtimeConfig } from "./config";
-import { holdings, register } from "./bcApi";
-
-const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = (relativePath: string): string => path.resolve(appDirectory, relativePath);
+import { apiHoldings, apiPortfolios, apiRegister } from "./bcApi";
 
 let assets: any;
 let publicDir = "./";
@@ -25,6 +22,9 @@ let publicDir = "./";
 if (process.env.RAZZLE_PUBLIC_DIR) {
   publicDir = process.env.RAZZLE_PUBLIC_DIR;
 }
+
+const resolveApp = (relativePath: string): string =>
+  path.resolve(fs.realpathSync(process.cwd()), relativePath);
 
 const syncLoadAssets = (): any => {
   logger.log("info", "Static Dir %s", `${resolveApp(publicDir)}`);
@@ -65,8 +65,9 @@ i18n
         .use(express.urlencoded({ extended: true }))
         .use(express.static(staticDir))
         .use(express.json())
-        .get("/bff/*/today", holdings)
-        .post("/bff/register", register)
+        .get("/bff/*/today", apiHoldings)
+        .get("/bff/portfolios", apiPortfolios)
+        .post("/bff/apiRegister", apiRegister)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);
           const context: any = {};

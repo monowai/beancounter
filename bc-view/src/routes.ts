@@ -3,6 +3,7 @@ import ViewHoldings from "./holdings";
 import { useParams } from "react-router-dom";
 import Login from "./common/auth/Login";
 import Logout from "./common/auth/Logout";
+import Portfolios from "./portfolio/Portfolios";
 
 const RouteHoldings = (): JSX.Element => {
   const { portfolioId } = useParams();
@@ -24,6 +25,11 @@ const Routes = [
     path: "/logout",
     component: Logout
   },
+  {
+    path: "/portfolios",
+    component: Portfolios
+  },
+
   {
     path: "/holdings/:portfolioId",
     component: RouteHoldings

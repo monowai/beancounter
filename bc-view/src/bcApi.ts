@@ -17,7 +17,7 @@ const makeRequest = async (
   opts: AxiosRequestConfig,
   res: express.Response
 ): Promise<any> => {
-  logger.debug("%s --> %s", req.url, svcPosition(req));
+  logger.debug("%s", req.url);
   await axios(opts)
     .then(response => res.json(response.data.data))
     .catch(err => {
@@ -26,7 +26,7 @@ const makeRequest = async (
     });
 };
 
-export const holdings = async (req: express.Request, res: express.Response): Promise<any> => {
+export const apiHoldings = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
     url: svcPosition(req).toString(),
     headers: req.headers,
@@ -35,12 +35,21 @@ export const holdings = async (req: express.Request, res: express.Response): Pro
   await makeRequest(req, opts, res);
 };
 
-export const register = async (req: express.Request, res: express.Response): Promise<any> => {
+export const apiRegister = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
     url: svcData(req).toString(),
     body: req.body,
     headers: req.headers,
     method: "POST"
+  } as AxiosRequestConfig;
+  await makeRequest(req, opts, res);
+};
+
+export const apiPortfolios = async (req: express.Request, res: express.Response): Promise<any> => {
+  const opts = {
+    url: svcData(req).toString(),
+    headers: req.headers,
+    method: "GET"
   } as AxiosRequestConfig;
   await makeRequest(req, opts, res);
 };

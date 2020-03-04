@@ -19,14 +19,14 @@ const BaseApp = (): JSX.Element => {
     <Suspense fallback={<div>Loading ...</div>}>
       <BrowserRouter>
         <Switch>
-          <Route path="*" component={App} />
+          <Route path="*" component={App}/>
         </Switch>
       </BrowserRouter>
     </Suspense>
   );
 };
 
-hydrate(<BaseApp />, document.getElementById("root"));
+hydrate(<BaseApp/>, document.getElementById("root"));
 
 if (module.hot) {
   module.hot.accept();

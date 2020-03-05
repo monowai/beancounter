@@ -9,12 +9,12 @@ import StatsHeader, { StatsRow } from "../portfolio/Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
-import { axiosBff } from "../common/utils";
 import { AxiosError } from "axios";
 import logger from "../common/ConfigLogging";
 import { getBearerToken } from "../keycloak/utils";
-import { LoginRedirect } from "../common/auth/Login";
 import { useKeycloak } from "@react-keycloak/web";
+import handleError from "../common/errors/UserError";
+import { _axios } from "../common/axiosUtils";
 
 export default function ViewHoldings(code: string): React.ReactElement {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -34,7 +34,7 @@ export default function ViewHoldings(code: string): React.ReactElement {
     const fetchHoldings = async (config: { headers: { Authorization: string } }): Promise<void> => {
       setLoading(true);
       logger.debug(">>fetch %s", code);
-      await axiosBff()
+      await _axios
         .get<HoldingContract>(`/bff/${code}/today`, config)
         .then(result => {
           logger.debug("<<fetch %s", code);
@@ -43,7 +43,7 @@ export default function ViewHoldings(code: string): React.ReactElement {
         .catch(err => {
           setError(err);
           if (err.response) {
-            logger.error("bff error [%s]: [%s]", err.response.status, err.response.data.message);
+            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     };
@@ -56,15 +56,7 @@ export default function ViewHoldings(code: string): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (error) {
-    if (error.response) {
-      const { data: errData, status } = error.response;
-      if (status === 401) {
-        return <LoginRedirect />;
-      }
-      logger.error("Error: %s", errData.message);
-      return <div>{errData.message}</div>;
-    }
-    return <div>Unknown error</div>;
+    return handleError(error, true);
   }
   if (holdingContract) {
     const holdings = calculate(

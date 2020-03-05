@@ -12,7 +12,7 @@ import lombok.Singular;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AssetResponse {
-  @Singular
-  private Map<String, Asset> assets;
+public class AssetResponse implements Payload<Map<String, Asset>> {
+  @Singular("data")
+  private Map<String, Asset> data;
 }

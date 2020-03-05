@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MarketResponse {
+public class MarketResponse implements Payload<Collection<Market>> {
   @Builder.Default
   private Collection<Market> data = new ArrayList<>();
 }

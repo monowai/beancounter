@@ -3,6 +3,7 @@ package com.beancounter.marketdata.registration;
 
 import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.RegistrationRequest;
+import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.model.SystemUser;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,13 +26,14 @@ public class RegistrationController {
   }
 
   @GetMapping("/me")
-  SystemUser getMe(final @AuthenticationPrincipal Jwt jwt) {
-    return systemUserService.find(jwt.getSubject());
+  RegistrationResponse getMe(final @AuthenticationPrincipal Jwt jwt) {
+    return RegistrationResponse.builder().data(systemUserService.find(jwt.getSubject())).build();
   }
 
   @PostMapping(value = "/register")
-  SystemUser register(
-      final @AuthenticationPrincipal Jwt jwt, @RequestBody RegistrationRequest registrationRequest
+  RegistrationResponse register(
+      final @AuthenticationPrincipal Jwt jwt,
+      @RequestBody(required = false) RegistrationRequest registrationRequest
   ) {
     return systemUserService.register(SystemUser.builder()
         .id(jwt.getSubject())

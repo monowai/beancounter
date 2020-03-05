@@ -13,12 +13,24 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
         <td colSpan={4} align={"right"}>
           Totals in {valueIn} currency
         </td>
-        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
-        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />
-        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"dividends"} />
-        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"realisedGain"} />
-        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"unrealisedGain"} />
-        <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"totalGain"} />
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"dividends"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"realisedGain"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"unrealisedGain"} />
+        </td>
+        <td align={"right"}>
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"totalGain"} />
+        </td>
       </tr>
     </tbody>
   );

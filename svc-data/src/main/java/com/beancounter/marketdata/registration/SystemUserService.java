@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.registration;
 
 import com.beancounter.auth.TokenService;
+import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.model.SystemUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -25,13 +26,13 @@ public class SystemUserService {
     return (systemUserRepository.findById(id).orElse(null));
   }
 
-  public SystemUser register(SystemUser systemUser) {
+  public RegistrationResponse register(SystemUser systemUser) {
     // ToDo: Find by email
     SystemUser result = find(systemUser.getId());
     if (result == null) {
       result = save(systemUser);
     }
-    return result;
+    return RegistrationResponse.builder().data(result).build();
 
   }
 

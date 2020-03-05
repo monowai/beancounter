@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
-    "start": "razzle start --inspect=51079",
+    "start": "razzle start --inspect=51089",
     "start:demo": "SVC_POSITION=http://localhost:9600 SVC_DATA=http://localhost:9610 razzle start --inspect=51089",
     "build": "razzle build",
     "start:prod": "NODE_ENV=production node build/server.js",

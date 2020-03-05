@@ -2,15 +2,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { runtimeConfig } from "./config";
 import logger from "./common/ConfigLogging";
 import express from "express";
-import { URL } from "url";
-
-const svcPosition = (req: express.Request): URL => {
-  return new URL(req.originalUrl.replace("/bff/", "/api/"), runtimeConfig().bcPositions);
-};
-
-const svcData = (req: express.Request): URL => {
-  return new URL(req.originalUrl.replace("/bff/", "/api/"), runtimeConfig().bcData);
-};
+import { svcUrl } from "./common/axiosUtils";
 
 const makeRequest = async (
   req: express.Request,
@@ -21,14 +13,14 @@ const makeRequest = async (
   await axios(opts)
     .then(response => res.json(response.data.data))
     .catch(err => {
-      logger.error("api - %s", err);
+      logger.error("api - %s", err.response.data);
       res.status(err.response.status || 500).send(err);
     });
 };
 
 export const apiHoldings = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcPosition(req).toString(),
+    url: svcUrl(req, runtimeConfig().bcPositions).toString(),
     headers: req.headers,
     method: "GET"
   } as AxiosRequestConfig;
@@ -37,17 +29,18 @@ export const apiHoldings = async (req: express.Request, res: express.Response): 
 
 export const apiRegister = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcData(req).toString(),
-    body: req.body,
+    url: svcUrl(req, runtimeConfig().bcData).toString(),
     headers: req.headers,
+    data: {},
     method: "POST"
   } as AxiosRequestConfig;
+  //logger.debug("calling %s %s", opts.url, req.headers);
   await makeRequest(req, opts, res);
 };
 
 export const apiPortfolios = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcData(req).toString(),
+    url: svcUrl(req, runtimeConfig().bcData).toString(),
     headers: req.headers,
     method: "GET"
   } as AxiosRequestConfig;

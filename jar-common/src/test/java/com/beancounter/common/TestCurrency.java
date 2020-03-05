@@ -84,7 +84,6 @@ class TestCurrency {
 
   }
 
-  @SuppressWarnings("ConstantConditions")
   @Test
   void is_NullCurrencyAssertions() {
 

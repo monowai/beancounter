@@ -11,6 +11,6 @@ import lombok.RequiredArgsConstructor;
 @Builder
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class CurrencyResponse {
+public class CurrencyResponse implements Payload<Map<String, Currency>> {
   private Map<String, Currency> data;
 }

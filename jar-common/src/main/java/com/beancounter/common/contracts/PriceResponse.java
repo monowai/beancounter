@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PriceResponse {
+public class PriceResponse implements Payload<Collection<MarketData>> {
 
   private Collection<MarketData> data;
 

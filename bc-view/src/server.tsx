@@ -67,7 +67,7 @@ i18n
         .use(express.json())
         .get("/bff/*/today", apiHoldings)
         .get("/bff/portfolios", apiPortfolios)
-        .post("/bff/apiRegister", apiRegister)
+        .post("/bff/register", apiRegister)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);
           const context: any = {};

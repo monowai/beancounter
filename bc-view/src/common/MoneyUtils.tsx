@@ -7,7 +7,7 @@ export function FormatMoneyValue(props: {
   moneyField: MoneyFields;
 }): JSX.Element {
   if (!props.moneyValues || !props.moneyValues[props.moneyField] == undefined) {
-    return <td align={"center"}>-</td>;
+    return <div>-</div>;
   }
   return (
     <NumberFormat

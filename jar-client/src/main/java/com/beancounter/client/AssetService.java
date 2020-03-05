@@ -46,7 +46,7 @@ public class AssetService {
     Market resolvedMarket = staticService.resolveMarket(marketCode);
     String callerKey = AssetUtils.toKey(assetCode, resolvedMarket.getCode());
     AssetRequest assetRequest = AssetRequest.builder()
-        .asset(callerKey, Asset.builder()
+        .data(callerKey, Asset.builder()
             .code(assetCode)
             .name(assetName)
             .market(resolvedMarket)
@@ -58,7 +58,7 @@ public class AssetService {
           String.format("No response returned for %s:%s", assetCode, marketCode));
     }
 
-    return assetResponse.getAssets().values().iterator().next();
+    return assetResponse.getData().values().iterator().next();
 
   }
 

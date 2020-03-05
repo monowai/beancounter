@@ -69,8 +69,8 @@ class AssetMvcTests {
     Asset firstAsset = AssetUtils.getAsset("MyCode", "MOCK");
     Asset secondAsset = AssetUtils.getAsset("Second", "MOCK");
     AssetRequest assetRequest = AssetRequest.builder()
-        .asset(AssetUtils.toKey(firstAsset), firstAsset)
-        .asset(AssetUtils.toKey(secondAsset), secondAsset)
+        .data(AssetUtils.toKey(firstAsset), firstAsset)
+        .data(AssetUtils.toKey(secondAsset), secondAsset)
         .build();
 
     MvcResult mvcResult = mockMvc.perform(
@@ -85,13 +85,13 @@ class AssetMvcTests {
     AssetResponse assetResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
-    assertThat(assetResponse.getAssets()).hasSize(2);
+    assertThat(assetResponse.getData()).hasSize(2);
 
 
     // marketCode is for persistence only,  Clients should rely on the
     //   hydrated Market object
 
-    assertThat(assetResponse.getAssets().get(AssetUtils.toKey(firstAsset)))
+    assertThat(assetResponse.getData().get(AssetUtils.toKey(firstAsset)))
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
@@ -100,7 +100,7 @@ class AssetMvcTests {
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 
-    assertThat(assetResponse.getAssets().get(AssetUtils.toKey(secondAsset)))
+    assertThat(assetResponse.getData().get(AssetUtils.toKey(secondAsset)))
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
@@ -109,7 +109,7 @@ class AssetMvcTests {
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 
-    Asset asset = assetResponse.getAssets().get(AssetUtils.toKey(secondAsset));
+    Asset asset = assetResponse.getData().get(AssetUtils.toKey(secondAsset));
     mvcResult = mockMvc.perform(
         get("/assets/{assetId}", asset.getId())
             .with(jwt(token).authorities(authorityRoleConverter))
@@ -139,7 +139,7 @@ class AssetMvcTests {
   void is_PostSameAssetTwiceBehaving() throws Exception {
     Asset asset = AssetUtils.getAsset("MyCodeX", "MOCK");
     AssetRequest assetRequest = AssetRequest.builder()
-        .asset(AssetUtils.toKey(asset), asset)
+        .data(AssetUtils.toKey(asset), asset)
         .build();
 
     MvcResult mvcResult = mockMvc.perform(
@@ -154,7 +154,7 @@ class AssetMvcTests {
     AssetResponse assetResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
-    Asset createdAsset = assetResponse.getAssets().get(AssetUtils.toKey(asset));
+    Asset createdAsset = assetResponse.getData().get(AssetUtils.toKey(asset));
     assertThat(createdAsset)
         .isNotNull()
         .hasFieldOrProperty("id")
@@ -164,7 +164,7 @@ class AssetMvcTests {
     asset.setName("Random Change");
     asset.setId(null);
     assetRequest = AssetRequest.builder()
-        .asset(AssetUtils.toKey(asset), asset)
+        .data(AssetUtils.toKey(asset), asset)
         .build();
 
     mvcResult = mockMvc.perform(
@@ -179,7 +179,7 @@ class AssetMvcTests {
     assetResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
-    Asset updatedAsset = assetResponse.getAssets().get(AssetUtils.toKey(asset));
+    Asset updatedAsset = assetResponse.getData().get(AssetUtils.toKey(asset));
     assertThat(updatedAsset).isEqualToComparingFieldByField(createdAsset);
   }
 

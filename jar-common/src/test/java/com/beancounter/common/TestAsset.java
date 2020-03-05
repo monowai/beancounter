@@ -23,11 +23,11 @@ class TestAsset {
 
     AssetRequest assetRequest = AssetRequest
         .builder()
-        .asset(AssetUtils.toKey(asset), asset)
-        .asset("second", AssetUtils.getJsonAsset("Twee", "Whee"))
+        .data(AssetUtils.toKey(asset), asset)
+        .data("second", AssetUtils.getJsonAsset("Twee", "Whee"))
         .build();
 
-    assertThat(assetRequest.getAssets()).containsKeys(AssetUtils.toKey(asset));
+    assertThat(assetRequest.getData()).containsKeys(AssetUtils.toKey(asset));
 
     ObjectMapper om = new ObjectMapper();
     String json = om.writeValueAsString(assetRequest);
@@ -43,11 +43,11 @@ class TestAsset {
 
     AssetResponse assetResponse = AssetResponse
         .builder()
-        .asset(AssetUtils.toKey(asset), asset)
-        .asset("second", AssetUtils.getJsonAsset("Twee", "Whee"))
+        .data(AssetUtils.toKey(asset), asset)
+        .data("second", AssetUtils.getJsonAsset("Twee", "Whee"))
         .build();
 
-    assertThat(assetResponse.getAssets()).containsKeys(AssetUtils.toKey(asset));
+    assertThat(assetResponse.getData()).containsKeys(AssetUtils.toKey(asset));
 
     ObjectMapper om = new ObjectMapper();
     String json = om.writeValueAsString(assetResponse);

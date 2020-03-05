@@ -25,6 +25,11 @@ const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
             </Link>
           </li>
           <li>
+            <Link onClick={() => history.push("/")} to={"/register"}>
+              Register
+            </Link>
+          </li>
+          <li>
             <Link onClick={() => history.push("/")} to={"/logout"}>
               Logout
             </Link>

@@ -12,12 +12,12 @@ nock(bff, {
   }
 })
   .get("/bff/test/today")
-  .replyWithFile(200, __dirname + "/contracts/test-apiHoldings.json", {
+  .replyWithFile(200, __dirname + "/contracts/test-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })
   .get("/bff/zero/today")
-  .replyWithFile(200, __dirname + "/contracts/zero-apiHoldings.json", {
+  .replyWithFile(200, __dirname + "/contracts/zero-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })

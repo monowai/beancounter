@@ -1,5 +1,5 @@
 import React from "react";
-import { Redirect, useLocation, withRouter } from "react-router";
+import { Redirect, useLocation } from "react-router";
 import { useKeycloak } from "@react-keycloak/web";
 import logger from "../ConfigLogging";
 
@@ -19,4 +19,4 @@ const Logout = (): JSX.Element => {
   );
 };
 
-export default withRouter(Logout);
+export default Logout;

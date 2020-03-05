@@ -82,11 +82,11 @@ public class TrnMvcTest {
     Market nasdaq = marketService.getMarket("NASDAQ");
 
     Asset msft = asset(AssetRequest.builder()
-        .asset("msft", AssetUtils.getAsset("MSFT", nasdaq))
+        .data("msft", AssetUtils.getAsset("MSFT", nasdaq))
         .build());
 
     Asset aapl = asset(AssetRequest.builder()
-        .asset("aapl", AssetUtils.getAsset("AAPL", nasdaq))
+        .data("aapl", AssetUtils.getAsset("AAPL", nasdaq))
         .build());
 
     Portfolio portfolio = portfolio(Portfolio.builder()
@@ -245,6 +245,6 @@ public class TrnMvcTest {
     AssetResponse assetResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
 
-    return assetResponse.getAssets().values().iterator().next();
+    return assetResponse.getData().values().iterator().next();
   }
 }

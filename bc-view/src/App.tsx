@@ -1,7 +1,7 @@
 import React from "react";
 import "./common/i18nConfig";
-import { Switch } from "react-router";
-import Routes from "./routes";
+import { Switch, withRouter } from "react-router";
+import ClientRoutes from "./clientRoutes";
 import { renderRoutes } from "react-router-config";
 import { Link } from "react-router-dom";
 
@@ -13,9 +13,9 @@ const App = (): JSX.Element => {
           Welcome to <Link to={"/"}>Bean Counter</Link>
         </div>
       </div>
-      <Switch>{renderRoutes(Routes)}</Switch>
+      <Switch>{renderRoutes(ClientRoutes)}</Switch>
     </div>
   );
 };
 
-export default App;
+export default withRouter(App);

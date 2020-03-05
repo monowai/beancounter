@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FxResponse {
+public class FxResponse implements Payload<FxPairResults> {
 
   private FxPairResults data;
 

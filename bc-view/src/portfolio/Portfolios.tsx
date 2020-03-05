@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Portfolio } from "../types/beancounter";
 import { AxiosError } from "axios";
 import logger from "../common/ConfigLogging";
-import { axiosBff } from "../common/utils";
 import { getBearerToken } from "../keycloak/utils";
 import { useKeycloak } from "@react-keycloak/web";
 import { Link } from "react-router-dom";
+import handleError from "../common/errors/UserError";
+import { _axios } from "../common/axiosUtils";
 
 export default function Portfolios(): React.ReactElement {
   const [portfolios, setPortfolios] = useState<Portfolio[]>();
@@ -18,7 +19,7 @@ export default function Portfolios(): React.ReactElement {
     }): Promise<void> => {
       setLoading(true);
       logger.debug(">>fetch apiPortfolios");
-      await axiosBff()
+      await _axios
         .get<Portfolio[]>("/bff/portfolios", config)
         .then(result => {
           logger.debug("<<fetched apiPortfolios");
@@ -27,7 +28,7 @@ export default function Portfolios(): React.ReactElement {
         .catch(err => {
           setError(err);
           if (err.response) {
-            logger.error("bff error [%s]: [%s]", err.response.status, err.response.data.message);
+            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     };
@@ -40,42 +41,35 @@ export default function Portfolios(): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (error) {
-    const { response } = error;
-    if (response) {
-      const { data: errData, status } = response;
-      if (status === 401) {
-        return <div>Please log in</div>;
-      }
-      logger.error("Error: %s", errData.message);
-      return <div>{errData.message}</div>;
-    }
-    return <div>Unknown error</div>;
+    return handleError(error, true);
   }
   if (portfolios) {
-    return (
-      <div className="page-box">
-        <table className={"table is-striped is-hoverable"}>
-          <tbody>
-            {portfolios.map(portfolio => (
-              <tr key={portfolio.id}>
-                <td align={"left"}>
-                  <Link to={`/holdings/${portfolio.code}`}>{portfolio.code}</Link>
-                </td>
-                <td align={"left"}>{portfolio.name}</td>
-                <td>
-                  {portfolio.currency.symbol}
-                  {portfolio.currency.code}
-                </td>
-                <td>
-                  {portfolio.base.symbol}
-                  {portfolio.base.code}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
+    if (portfolios.length > 0) {
+      return (
+        <div className="page-box">
+          <table className={"table is-striped is-hoverable"}>
+            <tbody>
+              {portfolios.map(portfolio => (
+                <tr key={portfolio.id}>
+                  <td align={"left"}>
+                    <Link to={`/holdings/${portfolio.code}`}>{portfolio.code}</Link>
+                  </td>
+                  <td align={"left"}>{portfolio.name}</td>
+                  <td>
+                    {portfolio.currency.symbol}
+                    {portfolio.currency.code}
+                  </td>
+                  <td>
+                    {portfolio.base.symbol}
+                    {portfolio.base.code}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
   }
   return <div id="root">You have no portfolios - create one?</div>;
 }

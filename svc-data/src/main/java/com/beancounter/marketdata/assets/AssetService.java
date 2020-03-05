@@ -47,10 +47,10 @@ public class AssetService {
 
   public AssetResponse process(AssetRequest asset) {
     Map<String, Asset> assets = new HashMap<>();
-    for (String key : asset.getAssets().keySet()) {
-      assets.put(key, create(asset.getAssets().get(key)));
+    for (String key : asset.getData().keySet()) {
+      assets.put(key, create(asset.getData().get(key)));
     }
-    return AssetResponse.builder().assets(assets).build();
+    return AssetResponse.builder().data(assets).build();
   }
 
   public Asset find(String marketCode, String code) {

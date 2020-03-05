@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<ViewHoldings /> matches snapshot for zero holdings 1`] = `
+exports[`<ViewHoldings /> matches snapshot for zero apiHoldings 1`] = `
 .emotion-8 {
   position: relative;
   box-sizing: border-box;
@@ -382,36 +382,46 @@ exports[`<ViewHoldings /> matches snapshot for zero holdings 1`] = `
               </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <div
-      class="all-holdings"
+      class="all-apiHoldings"
     >
       <table
         class="table is-striped is-hoverable"
@@ -429,34 +439,46 @@ exports[`<ViewHoldings /> matches snapshot for zero holdings 1`] = `
                currency
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
             <td
-              align="center"
+              align="right"
             >
-              -
+              <div>
+                -
+              </div>
             </td>
           </tr>
         </tbody>
@@ -466,7 +488,7 @@ exports[`<ViewHoldings /> matches snapshot for zero holdings 1`] = `
 </div>
 `;
 
-exports[`<ViewHoldings /> matches snapshot when holdings present 1`] = `
+exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
 .emotion-8 {
   position: relative;
   box-sizing: border-box;
@@ -887,7 +909,7 @@ exports[`<ViewHoldings /> matches snapshot when holdings present 1`] = `
       </table>
     </div>
     <div
-      class="all-holdings"
+      class="all-apiHoldings"
     >
       <table
         class="table is-striped is-hoverable"

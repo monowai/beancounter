@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Redirect, useLocation, withRouter } from "react-router";
+import { Redirect, useLocation } from "react-router";
 import { useKeycloak } from "@react-keycloak/web";
 import logger from "../ConfigLogging";
-import { registerUser } from "./api";
-import { getBearerToken } from "../../keycloak/utils";
 
 const Login = (): JSX.Element => {
   const location = useLocation();
@@ -13,10 +11,12 @@ const Login = (): JSX.Element => {
     // Object destructuring
     const { authenticated } = keycloak;
     if (authenticated) {
+      let path;
+      location.pathname === "/login" ? (path = "/") : (path = location.pathname);
       return (
         <Redirect
           to={{
-            pathname: "/",
+            pathname: path,
             state: { from: location }
           }}
         />
@@ -28,18 +28,12 @@ const Login = (): JSX.Element => {
         .login()
         .then(() => {
           logger.debug("Logged in");
-          if (keycloak.authenticated) {
-            registerUser({
-              headers: getBearerToken(keycloak)
-            }).then(() => {
-              logger.info("Registered user");
-            });
-          }
         })
         .finally(() => setLoggingIn(false));
+      //
     }
 
-    return <div>KeyCloak is intializing...</div>;
+    return <div>KeyCloak is initializing...</div>;
   }
   return <div>KeyCloak is not initialized...</div>;
 };
@@ -55,4 +49,4 @@ export const LoginRedirect = (): JSX.Element => {
     />
   );
 };
-export default withRouter(Login);
+export default Login;

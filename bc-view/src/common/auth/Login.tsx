@@ -28,6 +28,10 @@ const Login = (): JSX.Element => {
         .login()
         .then(() => {
           logger.debug("Logged in");
+          if (keycloak.token) {
+            logger.debug("Setting token on login");
+            localStorage.setItem("token", keycloak.token);
+          }
         })
         .finally(() => setLoggingIn(false));
       //

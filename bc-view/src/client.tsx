@@ -5,7 +5,7 @@ import { useSSR } from "react-i18next";
 
 import App from "./App";
 import { KeycloakProvider } from "@react-keycloak/web";
-import { getKeycloakInstance, keycloakProviderInitConfig } from "./keycloak/keycloak";
+import { Factory } from "./keycloak/keycloak";
 
 declare global {
   interface WindowI18n extends Window {
@@ -18,7 +18,7 @@ const BaseApp = (): JSX.Element => {
   useSSR((window as WindowI18n).initialI18nStore, (window as WindowI18n).initialLanguage);
 
   return (
-    <KeycloakProvider keycloak={getKeycloakInstance} initConfig={keycloakProviderInitConfig}>
+    <KeycloakProvider keycloak={Factory.kc}>
       <Suspense fallback={<div>Loading ...</div>}>
         <BrowserRouter>
           <Switch>

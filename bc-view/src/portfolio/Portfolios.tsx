@@ -2,17 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Portfolio } from "../types/beancounter";
 import { AxiosError } from "axios";
 import logger from "../common/ConfigLogging";
-import { getBearerToken } from "../keycloak/utils";
-import { useKeycloak } from "@react-keycloak/web";
 import { Link } from "react-router-dom";
 import handleError from "../common/errors/UserError";
-import { _axios } from "../common/axiosUtils";
+import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
+import { useKeycloak } from "@react-keycloak/web";
 
 export default function Portfolios(): React.ReactElement {
   const [portfolios, setPortfolios] = useState<Portfolio[]>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
+
   useEffect(() => {
     const fetchPortfolios = async (config: {
       headers: { Authorization: string };
@@ -32,8 +32,9 @@ export default function Portfolios(): React.ReactElement {
           }
         });
     };
+    setToken(keycloak);
     fetchPortfolios({
-      headers: getBearerToken(keycloak)
+      headers: getBearerToken()
     }).finally(() => setLoading(false));
   }, [keycloak]);
   // Render where we are in the initialization process

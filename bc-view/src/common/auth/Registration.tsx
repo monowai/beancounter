@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/web";
 import logger from "../ConfigLogging";
-import { getBearerToken } from "../../keycloak/utils";
 import { AxiosError } from "axios";
 import { SystemUser } from "../../types/beancounter";
 import handleError from "../errors/UserError";
-import { _axios } from "../axiosUtils";
+import { _axios, getBearerToken, setToken } from "../axiosUtils";
 
 const Registration = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,8 +29,9 @@ const Registration = (): JSX.Element => {
           }
         });
     };
+    setToken(keycloak);
     register({
-      headers: getBearerToken(keycloak)
+      headers: getBearerToken()
     }).finally(() => setLoading(false));
   }, [keycloak]);
 

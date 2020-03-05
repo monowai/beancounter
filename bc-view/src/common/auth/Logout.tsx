@@ -9,6 +9,8 @@ const Logout = (): JSX.Element => {
   if (keycloak) {
     keycloak.logout({ redirectUri: window.location.origin }).then(() => logger.debug("logged out"));
   }
+  localStorage.removeItem("token");
+
   return (
     <Redirect
       to={{

@@ -11,10 +11,9 @@ import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
 import { AxiosError } from "axios";
 import logger from "../common/ConfigLogging";
-import { getBearerToken } from "../keycloak/utils";
 import { useKeycloak } from "@react-keycloak/web";
 import handleError from "../common/errors/UserError";
-import { _axios } from "../common/axiosUtils";
+import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
 
 export default function ViewHoldings(code: string): React.ReactElement {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -47,8 +46,9 @@ export default function ViewHoldings(code: string): React.ReactElement {
           }
         });
     };
+    setToken(keycloak);
     fetchHoldings({
-      headers: getBearerToken(keycloak)
+      headers: getBearerToken()
     }).finally(() => setLoading(false));
   }, [keycloak, code]);
   // Render where we are in the initialization process

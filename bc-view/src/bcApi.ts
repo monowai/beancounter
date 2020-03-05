@@ -13,7 +13,7 @@ const makeRequest = async (
   await axios(opts)
     .then(response => res.json(response.data.data))
     .catch(err => {
-      logger.error("api - %s", err.response.data);
+      logger.error("api - %s %s", err.response.status, err.response.data);
       res.status(err.response.status || 500).send(err);
     });
 };

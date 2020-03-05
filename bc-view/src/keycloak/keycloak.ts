@@ -1,6 +1,7 @@
-import { KeycloakConfig, KeycloakInitOptions } from "keycloak-js";
+import { KeycloakConfig, KeycloakInitOptions, KeycloakInstance } from "keycloak-js";
 import { runtimeConfig } from "../config";
 import { KeycloakStub } from "./defaults";
+import logger from "../common/ConfigLogging";
 
 export const Keycloak = typeof window !== "undefined" ? require("keycloak-js") : null;
 
@@ -10,10 +11,25 @@ const keycloakConfig: KeycloakConfig = {
   clientId: runtimeConfig().kcClient
 };
 
-export const getKeycloakInstance =
-  typeof window === "undefined" ? KeycloakStub : new Keycloak(keycloakConfig);
-
 export const keycloakProviderInitConfig: KeycloakInitOptions = {
   checkLoginIframe: false
   // onLoad: "login-required"
 };
+
+export class Factory {
+  static get kc(): KeycloakInstance {
+    return this._kc;
+  }
+
+  private static makeKeycloakInstance(): KeycloakInstance {
+    logger.debug("making keycloak instance");
+
+    if (this._kc) {
+      return this._kc;
+    }
+    return new Keycloak(keycloakConfig);
+  }
+
+  private static _kc =
+    typeof window === "undefined" ? KeycloakStub : Factory.makeKeycloakInstance();
+}

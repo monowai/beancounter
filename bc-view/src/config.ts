@@ -1,4 +1,5 @@
 import { serverEnv } from "./common/utils";
+import { BcOptions } from "./types/app";
 
 // ENV keys
 const SVC_POSITION = "SVC_POSITION";

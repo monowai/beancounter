@@ -4,6 +4,8 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import { useSSR } from "react-i18next";
 
 import App from "./App";
+import { KeycloakProvider } from "@react-keycloak/web";
+import { getKeycloakInstance, keycloakProviderInitConfig } from "./keycloak/keycloak";
 
 declare global {
   interface WindowI18n extends Window {
@@ -16,17 +18,19 @@ const BaseApp = (): JSX.Element => {
   useSSR((window as WindowI18n).initialI18nStore, (window as WindowI18n).initialLanguage);
 
   return (
-    <Suspense fallback={<div>Loading ...</div>}>
-      <BrowserRouter>
-        <Switch>
-          <Route path="*" component={App}/>
-        </Switch>
-      </BrowserRouter>
-    </Suspense>
+    <KeycloakProvider keycloak={getKeycloakInstance} initConfig={keycloakProviderInitConfig}>
+      <Suspense fallback={<div>Loading ...</div>}>
+        <BrowserRouter>
+          <Switch>
+            <Route path="*" component={App} />
+          </Switch>
+        </BrowserRouter>
+      </Suspense>
+    </KeycloakProvider>
   );
 };
 
-hydrate(<BaseApp/>, document.getElementById("root"));
+hydrate(<BaseApp />, document.getElementById("root"));
 
 if (module.hot) {
   module.hot.accept();

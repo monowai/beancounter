@@ -30,7 +30,9 @@ const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
             </Link>
           </li>
           <li>
-            <Portfolios />
+            <Link onClick={() => history.push("/")} to={"/portfolios"}>
+              Portfolios
+            </Link>
           </li>
         </ul>
       </div>

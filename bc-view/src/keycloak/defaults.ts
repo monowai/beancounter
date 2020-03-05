@@ -17,7 +17,7 @@ const myPromise: KeycloakPromise<any, any> = {
 
 // this is a fake Keycloak instance we use to initialize Keycloak on the server.
 // This gets over-written as soon as Keycloak is initialized on the client.
-export const keycloakDefault: KeycloakInstance = {
+export const KeycloakStub: KeycloakInstance = {
   login: options => {
     return myPromise;
   },

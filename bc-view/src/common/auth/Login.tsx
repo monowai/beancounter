@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Redirect, useLocation, withRouter } from "react-router";
-import { useKeycloak } from "@react-keycloak/nextjs";
+import { useKeycloak } from "@react-keycloak/web";
 import logger from "../ConfigLogging";
 import { registerUser } from "./api";
 import { getBearerToken } from "../../keycloak/utils";

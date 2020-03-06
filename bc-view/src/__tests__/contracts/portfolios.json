@@ -1,0 +1,23 @@
+[
+  {
+    "id": "Kdf3jfUfSYqXV_S4Myc2wA",
+    "code": "TEST",
+    "name": "Test Portfolio",
+    "currency": {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€"
+    },
+    "base": {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "owner": {
+      "id": "0853b13f-debc-444a-9517-474e152241f4",
+      "email": "mike@bc.com",
+      "active": true,
+      "since": "2020-03-03"
+    }
+  }
+]

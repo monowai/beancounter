@@ -19,3 +19,7 @@ export const setToken = (keycloak: KeycloakInstance<"native">): void => {
     localStorage.setItem("token", keycloak.token);
   }
 };
+
+export const resetToken = (): void => {
+  localStorage.removeItem("token");
+};

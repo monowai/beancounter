@@ -6,8 +6,9 @@ import { Link } from "react-router-dom";
 import handleError from "../common/errors/UserError";
 import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/web";
+import { withRouter } from "react-router";
 
-export default function Portfolios(): React.ReactElement {
+export function Portfolios(): React.ReactElement {
   const [portfolios, setPortfolios] = useState<Portfolio[]>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<AxiosError>();
@@ -74,3 +75,5 @@ export default function Portfolios(): React.ReactElement {
   }
   return <div id="root">You have no portfolios - create one?</div>;
 }
+
+export default withRouter(Portfolios);

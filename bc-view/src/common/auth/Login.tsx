@@ -23,15 +23,10 @@ const Login = (): JSX.Element => {
       );
     } else if (initialized && !loggingIn) {
       setLoggingIn(true);
-      logger.debug("About to login");
       keycloak
         .login()
         .then(() => {
-          logger.debug("Logged in");
-          if (keycloak.token) {
-            logger.debug("Setting token on login");
-            localStorage.setItem("token", keycloak.token);
-          }
+          logger.debug("Logging in");
         })
         .finally(() => setLoggingIn(false));
       //

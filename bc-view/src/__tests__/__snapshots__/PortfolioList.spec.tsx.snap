@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<Portfolios /> should match snapshot 1`] = `
+<div>
+  <div
+    class="page-box"
+  >
+    <table
+      class="table is-striped is-hoverable"
+    >
+      <tbody>
+        <tr>
+          <td
+            align="left"
+          >
+            <a
+              href="/holdings/TEST"
+            >
+              TEST
+            </a>
+          </td>
+          <td
+            align="left"
+          >
+            Test Portfolio
+          </td>
+          <td>
+            €
+            EUR
+          </td>
+          <td>
+            $
+            USD
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;

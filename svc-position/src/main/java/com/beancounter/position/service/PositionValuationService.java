@@ -9,10 +9,10 @@ import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Positions;
-import com.beancounter.position.accumulation.MarketValue;
 import com.beancounter.position.model.FxReport;
 import com.beancounter.position.model.ValuationData;
 import com.beancounter.position.utils.FxUtils;
+import com.beancounter.position.valuation.MarketValue;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
@@ -24,9 +24,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class PositionValuationService {
   private AsyncMdService asyncMdService;
+  private MarketValue marketValue;
 
-  PositionValuationService(AsyncMdService asyncMdService) {
+  PositionValuationService(AsyncMdService asyncMdService, MarketValue marketValue) {
     this.asyncMdService = asyncMdService;
+    this.marketValue = marketValue;
   }
 
   public Positions value(Positions positions, Collection<Asset> assets) {
@@ -56,7 +58,7 @@ public class PositionValuationService {
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
       com.beancounter.common.model.Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        MarketValue.value(position, fxReport, marketData, rates);
+        marketValue.value(position, fxReport, marketData, rates);
         position.setAsset(marketData.getAsset());
       }
     }

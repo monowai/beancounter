@@ -11,23 +11,29 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.position.accumulation.Buy;
-import com.beancounter.position.accumulation.Dividend;
-import com.beancounter.position.accumulation.Sell;
-import com.beancounter.position.accumulation.Split;
+import com.beancounter.position.accumulation.BuyBehaviour;
+import com.beancounter.position.accumulation.DividendBehaviour;
+import com.beancounter.position.accumulation.SellBehaviour;
+import com.beancounter.position.accumulation.SplitBehaviour;
 import com.beancounter.position.service.Accumulator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 
+@SpringBootTest(classes = Accumulator.class)
 class TestMoneyValues {
   private static final BigDecimal TRADE_PORTFOLIO_RATE = new BigDecimal("100");
   private Asset microsoft = AssetUtils.getAsset("MSFT", "NYSE");
   private Asset intel = AssetUtils.getAsset("INTC", "NYSE");
   private Asset bidu = AssetUtils.getAsset("BIDU", "NYSE");
+
+  @Autowired
+  private Accumulator accumulator;
 
   /**
    * Tests the lifecycle of a transaction over all supported transaction types and verifies
@@ -52,8 +58,8 @@ class TestMoneyValues {
         .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
         .build();
 
-    Buy buy = new Buy();
-    buy.value(buyTrn, positions.getPortfolio(), position);
+    BuyBehaviour buyBehaviour = new BuyBehaviour();
+    buyBehaviour.accumulate(buyTrn, positions.getPortfolio(), position);
     assertThat(position.getQuantityValues().getTotal())
         .isEqualTo(new BigDecimal("100"));
 
@@ -82,8 +88,8 @@ class TestMoneyValues {
         .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
         .build();
 
-    Dividend dividend = new Dividend();
-    dividend.value(diviTrn, positions.getPortfolio(), position);
+    DividendBehaviour dividendBehaviour = new DividendBehaviour();
+    dividendBehaviour.accumulate(diviTrn, positions.getPortfolio(), position);
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal("100"));
 
     assertThat(position.getMoneyValues(Position.In.TRADE).getDividends())
@@ -99,7 +105,7 @@ class TestMoneyValues {
     String bytes = objectMapper.writeValueAsString(position);
     Position deepCopy = objectMapper.readValue(bytes, Position.class);
 
-    Split split = new Split();
+    SplitBehaviour splitBehaviour = new SplitBehaviour();
     Trn splitTrn = Trn.builder()
         .trnType(TrnType.DIVI)
         .asset(microsoft)
@@ -110,7 +116,7 @@ class TestMoneyValues {
         .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
         .build();
 
-    split.value(splitTrn, positions.getPortfolio(), position);
+    splitBehaviour.accumulate(splitTrn, positions.getPortfolio(), position);
 
     MoneyValues tradeValues = position.getMoneyValues(Position.In.TRADE);
     assertThat(tradeValues.getCostBasis())
@@ -134,8 +140,8 @@ class TestMoneyValues {
         .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
         .build();
 
-    Sell sell = new Sell();
-    sell.value(sellTrn, positions.getPortfolio(), position);
+    SellBehaviour sellBehaviour = new SellBehaviour();
+    sellBehaviour.accumulate(sellTrn, positions.getPortfolio(), position);
 
     assertThat(position.getMoneyValues(Position.In.TRADE).getSales())
         .isEqualTo(new BigDecimal("4000.00"));
@@ -170,7 +176,6 @@ class TestMoneyValues {
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator();
     Portfolio portfolio = getPortfolio("TEST");
     position = accumulator.accumulate(buy, portfolio, position);
     positions.add(position);
@@ -199,7 +204,6 @@ class TestMoneyValues {
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 
-    Accumulator accumulator = new Accumulator();
     position = accumulator.accumulate(buy, positions.getPortfolio(), position);
     positions.add(position);
 
@@ -237,7 +241,6 @@ class TestMoneyValues {
         .quantity(new BigDecimal("8"))
         .build();
 
-    Accumulator accumulator = new Accumulator();
     Portfolio portfolio = getPortfolio("TEST");
     position = accumulator.accumulate(buy, portfolio, position);
     positions.add(position);
@@ -312,7 +315,6 @@ class TestMoneyValues {
         .tradeAmount(new BigDecimal("1695.02"))
         .quantity(new BigDecimal("8")).build();
 
-    Accumulator accumulator = new Accumulator();
     position = accumulator.accumulate(buy, positions.getPortfolio(), position);
     positions.add(position);
 
@@ -380,8 +382,6 @@ class TestMoneyValues {
         .asset(intel)
         .tradeAmount(new BigDecimal("2646.08"))
         .quantity(new BigDecimal("80")).build();
-
-    Accumulator accumulator = new Accumulator();
 
     position = accumulator.accumulate(buy, positions.getPortfolio(), position);
     positions.add(position);

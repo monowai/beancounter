@@ -17,11 +17,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Test rules that would prevent a transaction from accumulating.
  */
+@SpringBootTest(classes = Accumulator.class)
 class TestTrnLogic {
+  @Autowired
+  private Accumulator accumulator;
 
   /**
    * Transactions should be ordered.  If the date is ==, then it will be accepted but
@@ -39,8 +44,6 @@ class TestTrnLogic {
 
     LocalDate today = LocalDate.now();
     LocalDate yesterday = today.minus(-1, ChronoUnit.DAYS);
-
-    Accumulator accumulator = new Accumulator();
 
     Trn buyYesterday = Trn.builder()
         .trnType(TrnType.BUY)

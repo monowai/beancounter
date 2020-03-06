@@ -56,6 +56,9 @@ class StubbedFxValuations {
 
   @Autowired
   private WebApplicationContext context;
+  @Autowired
+  private Accumulator accumulator;
+
   private MockMvc mockMvc;
 
   @Autowired
@@ -99,7 +102,6 @@ class StubbedFxValuations {
     trn.setTradeCurrency(
         staticService.getCurrency(asset.getMarket().getCurrency().getCode()));
 
-    Accumulator accumulator = new Accumulator();
     Positions positions = new Positions(portfolio);
     positions.setAsAt("2019-10-18");
 

@@ -10,9 +10,9 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.position.accumulation.Buy;
-import com.beancounter.position.accumulation.Sell;
-import com.beancounter.position.accumulation.Split;
+import com.beancounter.position.accumulation.BuyBehaviour;
+import com.beancounter.position.accumulation.SellBehaviour;
+import com.beancounter.position.accumulation.SplitBehaviour;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -46,8 +46,8 @@ class TestStockSplits {
         .tradeDate(new DateUtils().convert(today))
         .quantity(new BigDecimal("100")).build();
 
-    Buy buy = new Buy();
-    buy.value(buyTrn, positions.getPortfolio(), position);
+    BuyBehaviour buyBehaviour = new BuyBehaviour();
+    buyBehaviour.accumulate(buyTrn, positions.getPortfolio(), position);
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(100))
@@ -62,8 +62,8 @@ class TestStockSplits {
         .quantity(new BigDecimal("7"))
         .build();
 
-    Split split = new Split();
-    split.value(stockSplit, positions.getPortfolio(), position);
+    SplitBehaviour splitBehaviour = new SplitBehaviour();
+    splitBehaviour.accumulate(stockSplit, positions.getPortfolio(), position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
@@ -73,7 +73,7 @@ class TestStockSplits {
         .hasFieldOrPropertyWithValue("costBasis", costBasis);
 
     // Another buy at the adjusted price
-    buy.value(buyTrn, positions.getPortfolio(), position);
+    buyBehaviour.accumulate(buyTrn, positions.getPortfolio(), position);
 
     // 7 for one split
     assertThat(position.getQuantityValues())
@@ -87,14 +87,14 @@ class TestStockSplits {
         .quantity(new BigDecimal("800")).build();
 
     // Sell the entire position
-    new Sell().value(sell, positions.getPortfolio(), position);
+    new SellBehaviour().accumulate(sell, positions.getPortfolio(), position);
 
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO)
     ;
 
     // Repurchase; total should be equal to the quantity we just purchased
-    buy.value(buyTrn, getPortfolio("TEST"), position);
+    buyBehaviour.accumulate(buyTrn, getPortfolio("TEST"), position);
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", buyTrn.getQuantity());
 

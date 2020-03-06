@@ -7,14 +7,14 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.position.accumulation.Buy;
-import com.beancounter.position.accumulation.Dividend;
-import com.beancounter.position.accumulation.Sell;
-import com.beancounter.position.accumulation.Split;
-import com.beancounter.position.accumulation.ValueTransaction;
+import com.beancounter.position.accumulation.AccumulationStrategy;
+import com.beancounter.position.accumulation.BuyBehaviour;
+import com.beancounter.position.accumulation.DividendBehaviour;
+import com.beancounter.position.accumulation.SellBehaviour;
+import com.beancounter.position.accumulation.SplitBehaviour;
+import com.beancounter.position.accumulation.TrnBehaviourFactory;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 
 
@@ -26,23 +26,27 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-07
  */
 @Service
+@Import({
+    DateUtils.class,
+    TrnBehaviourFactory.class,
+    BuyBehaviour.class,
+    SellBehaviour.class,
+    DividendBehaviour.class,
+    SplitBehaviour.class})
 public class Accumulator {
   DateUtils dateUtils = new DateUtils();
-  //@Value("${beancounter.positions.ordered:false}")
-  //private boolean orderedTransactions = false;
+  private TrnBehaviourFactory trnBehaviourFactory;
 
-  private Map<TrnType, ValueTransaction> logicMap = new HashMap<>();
-
-  public Accumulator() {
-    logicMap.put(TrnType.BUY, new Buy());
-    logicMap.put(TrnType.SELL, new Sell());
-    logicMap.put(TrnType.DIVI, new Dividend());
-    logicMap.put(TrnType.SPLIT, new Split());
+  public Accumulator(TrnBehaviourFactory trnBehaviourFactory) {
+    this.trnBehaviourFactory = trnBehaviourFactory;
   }
 
   Position accumulate(Trn trn, Positions positions) {
     return accumulate(trn, positions.getPortfolio(),
-        positions.get(trn.getAsset(), trn.getTradeDate()));
+        positions.get(
+            trn.getAsset(),
+            trn.getTradeDate())
+    );
   }
 
   /**
@@ -57,8 +61,8 @@ public class Accumulator {
     if (dateSensitive) {
       isDateSequential(trn, position);
     }
-    ValueTransaction valueTransaction = logicMap.get(trn.getTrnType());
-    valueTransaction.value(trn, portfolio, position);
+    AccumulationStrategy accumulationStrategy = trnBehaviourFactory.get(trn.getTrnType());
+    accumulationStrategy.accumulate(trn, portfolio, position);
     if (dateSensitive) {
       position.getDateValues().setLast(dateUtils.getDateString(trn.getTradeDate()));
     }

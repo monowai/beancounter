@@ -1,11 +1,11 @@
-package com.beancounter.position.accumulation;
+package com.beancounter.position.valuation;
 
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Position;
 import java.math.BigDecimal;
-import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Service;
 
-@UtilityClass
+@Service
 public class Gains {
 
   public void value(Position position, Position.In in) {

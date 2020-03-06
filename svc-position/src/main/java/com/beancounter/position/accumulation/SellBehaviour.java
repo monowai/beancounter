@@ -1,20 +1,22 @@
 package com.beancounter.position.accumulation;
 
-import static com.beancounter.position.utils.PositionUtils.getCurrency;
-
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.MathUtils;
+import com.beancounter.position.utils.CurrencyResolver;
+import com.beancounter.position.valuation.AverageCost;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 
 @Service
-public class Sell implements ValueTransaction {
+public class SellBehaviour implements AccumulationStrategy {
+  private CurrencyResolver currencyResolver = new CurrencyResolver();
+  private AverageCost averageCost = new AverageCost();
 
-  public void value(Trn trn, Portfolio portfolio, Position position) {
+  public void accumulate(Trn trn, Portfolio portfolio, Position position) {
     BigDecimal soldQuantity = trn.getQuantity();
     if (soldQuantity.doubleValue() > 0) {
       // Sign the quantities
@@ -36,7 +38,9 @@ public class Sell implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValues(in, getCurrency(in, portfolio, trn));
+    MoneyValues moneyValues = position.getMoneyValues(
+        in,
+        currencyResolver.resolve(in, portfolio, trn));
     moneyValues.setSales(
         moneyValues.getSales().add(
             MathUtils.multiply(trn.getTradeAmount(), rate))
@@ -56,6 +60,6 @@ public class Sell implements ValueTransaction {
       moneyValues.setAverageCost(BigDecimal.ZERO);
     }
     // If quantity changes, we need to update the cost Value
-    Cost.setCostValue(position, moneyValues);
+    averageCost.setCostValue(position, moneyValues);
   }
 }

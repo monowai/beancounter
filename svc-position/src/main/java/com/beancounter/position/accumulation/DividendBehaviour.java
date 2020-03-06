@@ -1,17 +1,19 @@
 package com.beancounter.position.accumulation;
 
-import static com.beancounter.position.utils.PositionUtils.getCurrency;
-
 import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.MathUtils;
+import com.beancounter.position.utils.CurrencyResolver;
 import java.math.BigDecimal;
+import org.springframework.stereotype.Service;
 
-public class Dividend implements ValueTransaction {
+@Service
+public class DividendBehaviour implements AccumulationStrategy {
+  private CurrencyResolver currencyResolver = new CurrencyResolver();
 
-  public void value(Trn trn, Portfolio portfolio, Position position) {
+  public void accumulate(Trn trn, Portfolio portfolio, Position position) {
     value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE);
     value(trn, portfolio, position, Position.In.BASE, trn.getTradeBaseRate());
     value(trn, portfolio, position, Position.In.PORTFOLIO,
@@ -23,7 +25,10 @@ public class Dividend implements ValueTransaction {
                      Position.In in,
                      BigDecimal rate) {
 
-    MoneyValues moneyValues = position.getMoneyValues(in, getCurrency(in, portfolio, trn));
+    MoneyValues moneyValues = position.getMoneyValues(
+        in,
+        currencyResolver.resolve(in, portfolio, trn)
+    );
     moneyValues.setDividends(
         MathUtils.add(moneyValues.getDividends(),
             MathUtils.multiply(trn.getTradeAmount(), rate)));

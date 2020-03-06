@@ -14,9 +14,14 @@ import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.position.service.Accumulator;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-
+@SpringBootTest(classes = Accumulator.class)
 class TestDividends {
+
+  @Autowired
+  private Accumulator accumulator;
 
   @Test
   void is_CashDividendAccumulated() {
@@ -32,8 +37,6 @@ class TestDividends {
         .tradeCashRate(new BigDecimal("0.8988"))
         .tradeAmount(new BigDecimal("12.99"))
         .build();
-
-    Accumulator accumulator = new Accumulator();
 
     Positions positions = new Positions(Portfolio.builder().code("test").build());
     Position position = positions.get(asset);

@@ -4,7 +4,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Trn;
 
-public interface ValueTransaction {
+public interface AccumulationStrategy {
 
-  void value(Trn trn, Portfolio portfolio, Position position);
+  void accumulate(Trn trn, Portfolio portfolio, Position position);
 }

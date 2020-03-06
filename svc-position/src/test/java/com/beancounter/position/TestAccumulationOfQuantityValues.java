@@ -11,8 +11,13 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.position.service.Accumulator;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest(classes = Accumulator.class)
 class TestAccumulationOfQuantityValues {
+  @Autowired
+  private Accumulator accumulator;
 
   @Test
   void is_TotalQuantityCorrect() {
@@ -22,8 +27,6 @@ class TestAccumulationOfQuantityValues {
         .asset(getAsset("CODE", "marketCode"))
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
-
-    Accumulator accumulator = new Accumulator();
 
     Position position = Position.builder()
         .asset(buyTrn.getAsset())

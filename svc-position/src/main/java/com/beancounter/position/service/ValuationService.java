@@ -5,7 +5,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.position.accumulation.Gains;
+import com.beancounter.position.valuation.Gains;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,12 +27,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class ValuationService implements Valuation {
 
+  private Gains gains;
   private PositionValuationService positionValuationService;
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired
-  ValuationService(PositionValuationService positionValuationService) {
+  ValuationService(PositionValuationService positionValuationService, Gains gains) {
     this.positionValuationService = positionValuationService;
+    this.gains = gains;
   }
 
   @Autowired
@@ -53,7 +55,7 @@ public class ValuationService implements Valuation {
     }
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
-      Gains.value(position, Position.In.PORTFOLIO);
+      gains.value(position, Position.In.PORTFOLIO);
       if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
         assets.add(position.getAsset());
       }

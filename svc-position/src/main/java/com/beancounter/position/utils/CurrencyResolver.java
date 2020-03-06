@@ -4,11 +4,9 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Trn;
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
-public class PositionUtils {
-  public static Currency getCurrency(Position.In in, Portfolio portfolio, Trn trn) {
+public class CurrencyResolver {
+  public Currency resolve(Position.In in, Portfolio portfolio, Trn trn) {
 
     if (in.equals(Position.In.TRADE)) {
       return trn.getTradeCurrency();

@@ -14,9 +14,9 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.position.accumulation.Buy;
-import com.beancounter.position.accumulation.MarketValue;
+import com.beancounter.position.accumulation.BuyBehaviour;
 import com.beancounter.position.model.FxReport;
+import com.beancounter.position.valuation.MarketValue;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,10 +42,10 @@ class TestMarketValuesWithFx {
         .tradePortfolioRate(simpleRate)
         .quantity(new BigDecimal("100")).build();
 
-    Buy buy = new Buy();
+    BuyBehaviour buyBehaviour = new BuyBehaviour();
 
     Position position = Position.builder().asset(asset).build();
-    buy.value(buyTrn, portfolio, position);
+    buyBehaviour.accumulate(buyTrn, portfolio, position);
 
     MarketData marketData = MarketData.builder()
         .close(new BigDecimal("10.00"))
@@ -65,7 +65,7 @@ class TestMarketValuesWithFx {
         FxRate.builder().rate(simpleRate).build());
 
     // Revalue based on marketData prices
-    MarketValue.value(position, fxReport, marketData, fxRateMap);
+    new MarketValue().value(position, fxReport, marketData, fxRateMap);
 
     assertThat(position.getMoneyValues(Position.In.TRADE))
         .isEqualToComparingFieldByField(MoneyValues.builder()

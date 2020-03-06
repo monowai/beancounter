@@ -1,4 +1,4 @@
-package com.beancounter.position.accumulation;
+package com.beancounter.position.valuation;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
@@ -11,10 +11,19 @@ import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.FxReport;
 import java.math.BigDecimal;
 import java.util.Map;
-import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Service;
 
-@UtilityClass
+@Service
 public class MarketValue {
+  private Gains gains;
+
+  public MarketValue() {
+    this(new Gains());
+  }
+
+  MarketValue(Gains gains) {
+    this.gains = gains;
+  }
 
   public void value(Position position,
                     FxReport fxReport,
@@ -33,7 +42,7 @@ public class MarketValue {
     MoneyValues moneyValues = position.getMoneyValues(in);
     moneyValues.setPrice(MathUtils.multiply(marketData.getClose(), rate.getRate()));
     moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));
-    Gains.value(position, in);
+    gains.value(position, in);
   }
 
   private FxRate rate(Currency report, Currency trade, Map<CurrencyPair, FxRate> rates) {

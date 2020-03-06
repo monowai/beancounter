@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class FxRateService {
     this.tokenService = tokenService;
   }
 
+  @Cacheable("fx-request")
   public FxResponse getRates(FxRequest fxRequest) {
     if (fxRequest.getPairs() == null || fxRequest.getPairs().isEmpty()) {
       return FxResponse.builder().data(new FxPairResults()).build();

@@ -1,7 +1,7 @@
 package com.beancounter.common.utils;
 
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.IsoCurrencyPair;
 import java.math.BigDecimal;
 import lombok.experimental.UtilityClass;
 
@@ -11,18 +11,18 @@ public class CurrencyUtils {
     return Currency.builder().code(isoCode).build();
   }
 
-  public CurrencyPair getCurrencyPair(BigDecimal rate, Currency from, Currency to) {
-    CurrencyPair currencyPair = null;
+  public IsoCurrencyPair getCurrencyPair(BigDecimal rate, Currency from, Currency to) {
+    IsoCurrencyPair isoCurrencyPair = null;
     if (from == null || to == null) {
       return null;
     }
 
     if (rate == null && !from.getCode().equalsIgnoreCase(to.getCode())) {
-      currencyPair = CurrencyPair.builder()
+      isoCurrencyPair = IsoCurrencyPair.builder()
           .from(from.getCode())
           .to(to.getCode())
           .build();
     }
-    return currencyPair;
+    return isoCurrencyPair;
   }
 }

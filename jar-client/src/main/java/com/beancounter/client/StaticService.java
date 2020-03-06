@@ -50,12 +50,12 @@ public class StaticService {
 
     Currency result = getCurrencies().getData().get(currency);
     if (result == null) {
-      throw new BusinessException(String.format("Unable to resolve the currency {}", currency));
+      throw new BusinessException(String.format("Unable to resolve the currency %s", currency));
     }
     return result;
   }
 
-  public Market get(String key) {
+  private Market get(String key) {
     // ToDo: getMarket by Code and add @Cache
     if (marketMap.isEmpty()) {
       Collection<Market> markets = staticGateway.getMarkets(tokenService.getBearerToken())

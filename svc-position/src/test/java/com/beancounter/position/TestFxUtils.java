@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
@@ -23,8 +23,8 @@ class TestFxUtils {
     Position inValidPosition = Position.builder().asset(
         getAsset("Test","TWEE")
     ).build();
-
-    assertThat(fxUtils.getPair(null, inValidPosition))
+    Currency invalidCurrency = inValidPosition.getAsset().getMarket().getCurrency();
+    assertThat(IsoCurrencyPair.from(null, invalidCurrency))
         .isNull(); // No currency in market
 
     Position validPosition = Position.builder().asset(
@@ -34,15 +34,16 @@ class TestFxUtils {
                 .currency(getCurrency("USD")).build()
         )
     ).build();
+    Currency validCurrency = validPosition.getAsset().getMarket().getCurrency();
 
-    assertThat(fxUtils.getPair(null, validPosition))
+    assertThat(IsoCurrencyPair.from(null, validCurrency))
         .isNull(); // From == null
 
     Currency usd = getCurrency("USD");
-    assertThat(fxUtils.getPair(usd, validPosition))
+    assertThat(IsoCurrencyPair.from(usd, validCurrency))
         .isNull();// From == To
 
-    assertThat(fxUtils.getPair(getCurrency("NZD"), validPosition))
+    assertThat(IsoCurrencyPair.from(getCurrency("NZD"), validCurrency))
         .isNotNull();// From != To
   }
 
@@ -79,11 +80,11 @@ class TestFxUtils {
     positions.add(usdPosition);
     positions.add(otherUsdPosition);
 
-    FxRequest fxRequest = fxUtils.getFxRequest(usd, positions);
+    FxRequest fxRequest = fxUtils.buildRequest(usd, positions);
     assertThat(fxRequest.getPairs()).hasSize(3)
         .containsOnly(
-            CurrencyPair.builder().from("SGD").to("USD").build(), // PF:TRADE
-            CurrencyPair.builder().from("SGD").to("GBP").build(), // PF:TRADE
-            CurrencyPair.builder().from("USD").to("GBP").build());  // BASE:TRADE
+            IsoCurrencyPair.builder().from("SGD").to("USD").build(), // PF:TRADE
+            IsoCurrencyPair.builder().from("SGD").to("GBP").build(), // PF:TRADE
+            IsoCurrencyPair.builder().from("USD").to("GBP").build());  // BASE:TRADE
   }
 }

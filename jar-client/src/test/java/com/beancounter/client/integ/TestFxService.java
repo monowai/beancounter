@@ -7,7 +7,7 @@ import com.beancounter.client.FxRateService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.IsoCurrencyPair;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
@@ -29,43 +29,43 @@ public class TestFxService {
 
   @Test
   void is_FxContractHonoured() {
-    Collection<CurrencyPair> currencyPairs = new ArrayList<>();
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("EUR").build());
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("GBP").build());
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("NZD").build());
+    Collection<IsoCurrencyPair> isoCurrencyPairs = new ArrayList<>();
+    isoCurrencyPairs.add(IsoCurrencyPair.builder().from("USD").to("EUR").build());
+    isoCurrencyPairs.add(IsoCurrencyPair.builder().from("USD").to("GBP").build());
+    isoCurrencyPairs.add(IsoCurrencyPair.builder().from("USD").to("NZD").build());
 
     String testDate = "2019-11-12";
     FxResponse fxResponse = fxRateService.getRates(FxRequest.builder()
         .rateDate(testDate)
-        .pairs(currencyPairs)
+        .pairs(isoCurrencyPairs)
         .build());
     assertThat(fxResponse).isNotNull().hasNoNullFieldsOrProperties();
     FxPairResults fxPairResults = fxResponse.getData();
-    assertThat(fxPairResults.getRates().size()).isEqualTo(currencyPairs.size());
+    assertThat(fxPairResults.getRates().size()).isEqualTo(isoCurrencyPairs.size());
 
-    for (CurrencyPair currencyPair : currencyPairs) {
-      assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
-      assertThat(fxPairResults.getRates().get(currencyPair))
+    for (IsoCurrencyPair isoCurrencyPair : isoCurrencyPairs) {
+      assertThat(fxPairResults.getRates()).containsKeys(isoCurrencyPair);
+      assertThat(fxPairResults.getRates().get(isoCurrencyPair))
           .hasFieldOrPropertyWithValue("date", testDate);
     }
   }
 
   @Test
   void is_EarlyDateWorking() {
-    Collection<CurrencyPair> currencyPairs = new ArrayList<>();
-    currencyPairs.add(CurrencyPair.builder().from("USD").to("SGD").build());
-    currencyPairs.add(CurrencyPair.builder().from("GBP").to("NZD").build());
+    Collection<IsoCurrencyPair> isoCurrencyPairs = new ArrayList<>();
+    isoCurrencyPairs.add(IsoCurrencyPair.builder().from("USD").to("SGD").build());
+    isoCurrencyPairs.add(IsoCurrencyPair.builder().from("GBP").to("NZD").build());
 
     String testDate = "1996-07-27"; // Earlier than when ECB started recording rates
     FxResponse fxResponse = fxRateService.getRates(FxRequest.builder()
         .rateDate(testDate)
-        .pairs(currencyPairs)
+        .pairs(isoCurrencyPairs)
         .build());
     assertThat(fxResponse).isNotNull().hasNoNullFieldsOrProperties();
     FxPairResults fxPairResults = fxResponse.getData();
-    for (CurrencyPair currencyPair : currencyPairs) {
-      assertThat(fxPairResults.getRates()).containsKeys(currencyPair);
-      assertThat(fxPairResults.getRates().get(currencyPair))
+    for (IsoCurrencyPair isoCurrencyPair : isoCurrencyPairs) {
+      assertThat(fxPairResults.getRates()).containsKeys(isoCurrencyPair);
+      assertThat(fxPairResults.getRates().get(isoCurrencyPair))
           .hasFieldOrPropertyWithValue("date", "1999-01-04");
     }
   }

@@ -1,6 +1,7 @@
 package com.beancounter.shell.sharesight;
 
 import com.beancounter.client.AssetService;
+import com.beancounter.client.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.TrnType;
@@ -40,11 +41,13 @@ public class ShareSightService {
   private String range;
   private AssetService assetService;
   private DateUtils dateUtils = new DateUtils();
+  private StaticService staticService;
 
   // retrieve rates from market data service
   @Autowired
-  public ShareSightService(AssetService assetService) {
+  public ShareSightService(AssetService assetService, StaticService staticService) {
     this.assetService = assetService;
+    this.staticService = staticService;
   }
 
   @Autowired
@@ -90,7 +93,7 @@ public class ShareSightService {
   }
 
   public Asset resolveAsset(String assetCode, String assetName, String marketCode) {
-    return assetService.resolveAsset(assetCode, assetName, marketCode);
+    return assetService.resolveAsset(assetCode, assetName, staticService.resolveMarket(marketCode));
   }
 
   BigDecimal safeDivide(BigDecimal money, BigDecimal rate) {

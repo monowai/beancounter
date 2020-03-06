@@ -18,13 +18,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @Slf4j
 public class AssetService {
 
-  private StaticService staticService;
   private AssetGateway assetGateway;
   private TokenService tokenService;
 
-  AssetService(AssetGateway assetGateway, StaticService staticService, TokenService tokenService) {
+  AssetService(AssetGateway assetGateway, TokenService tokenService) {
     this.assetGateway = assetGateway;
-    this.staticService = staticService;
     this.tokenService = tokenService;
   }
 
@@ -33,29 +31,28 @@ public class AssetService {
    *
    * @param assetCode  Code on the exchange
    * @param assetName  Name to set the asset to
-   * @param marketCode exchange code
+   * @param market exchange code
    * @return hydrated asset with a primary key.
    */
-  public Asset resolveAsset(String assetCode, String assetName, String marketCode) {
-    if (marketCode.equalsIgnoreCase("MOCK")) {
+  public Asset resolveAsset(String assetCode, String assetName, Market market) {
+    if (market.getCode().equalsIgnoreCase("MOCK")) {
       // Support unit testings where we don't really care about the asset
       Asset asset = AssetUtils.getAsset(assetCode, "MOCK");
       asset.setName(assetName);
       return asset;
     }
-    Market resolvedMarket = staticService.resolveMarket(marketCode);
-    String callerKey = AssetUtils.toKey(assetCode, resolvedMarket.getCode());
+    String callerKey = AssetUtils.toKey(assetCode, market.getCode());
     AssetRequest assetRequest = AssetRequest.builder()
         .data(callerKey, Asset.builder()
             .code(assetCode)
             .name(assetName)
-            .market(resolvedMarket)
+            .market(market)
             .build())
         .build();
     AssetResponse assetResponse = assetGateway.assets(tokenService.getBearerToken(), assetRequest);
     if (assetResponse == null) {
       throw new BusinessException(
-          String.format("No response returned for %s:%s", assetCode, marketCode));
+          String.format("No response returned for %s:%s", assetCode, market.getCode()));
     }
 
     return assetResponse.getData().values().iterator().next();

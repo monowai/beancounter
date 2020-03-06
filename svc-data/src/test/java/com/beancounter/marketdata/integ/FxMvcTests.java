@@ -14,8 +14,8 @@ import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbDate;
@@ -86,10 +86,10 @@ class FxMvcTests {
         "/2019-08-27?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
         rateResponse);
     String date = "2019-08-27";
-    CurrencyPair nzdUsd = CurrencyPair.builder().from("NZD").to("USD").build();
-    CurrencyPair usdNzd = CurrencyPair.builder().from("USD").to("NZD").build();
-    CurrencyPair usdUsd = CurrencyPair.builder().from("USD").to("USD").build();
-    CurrencyPair nzdNzd = CurrencyPair.builder().from("NZD").to("NZD").build();
+    IsoCurrencyPair nzdUsd = IsoCurrencyPair.builder().from("NZD").to("USD").build();
+    IsoCurrencyPair usdNzd = IsoCurrencyPair.builder().from("USD").to("NZD").build();
+    IsoCurrencyPair usdUsd = IsoCurrencyPair.builder().from("USD").to("USD").build();
+    IsoCurrencyPair nzdNzd = IsoCurrencyPair.builder().from("NZD").to("NZD").build();
 
     FxRequest fxRequest = FxRequest.builder().rateDate(date).build();
     fxRequest.add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd);
@@ -108,12 +108,12 @@ class FxMvcTests {
 
     FxPairResults results = fxResponse.getData();
     assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
-    Map<CurrencyPair, FxRate> theRates = results.getRates();
+    Map<IsoCurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)
         .containsKeys(nzdUsd, usdNzd);
 
-    for (CurrencyPair currencyPair : theRates.keySet()) {
-      assertThat(results.getRates().get(currencyPair).getDate()).isNotNull();
+    for (IsoCurrencyPair isoCurrencyPair : theRates.keySet()) {
+      assertThat(results.getRates().get(isoCurrencyPair).getDate()).isNotNull();
     }
 
   }
@@ -129,7 +129,7 @@ class FxMvcTests {
         "/" + today + "?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
         rateResponse);
 
-    CurrencyPair nzdUsd = CurrencyPair.builder().from("USD").to("NZD").build();
+    IsoCurrencyPair nzdUsd = IsoCurrencyPair.builder().from("USD").to("NZD").build();
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -150,12 +150,12 @@ class FxMvcTests {
 
     FxPairResults results = fxResponse.getData();
     assertThat(results.getRates()).isNotNull().hasSize(fxRequest.getPairs().size());
-    Map<CurrencyPair, FxRate> theRates = results.getRates();
+    Map<IsoCurrencyPair, FxRate> theRates = results.getRates();
     assertThat(theRates)
         .containsKeys(nzdUsd);
 
-    for (CurrencyPair currencyPair : theRates.keySet()) {
-      assertThat(results.getRates().get(currencyPair).getDate()).isNotNull();
+    for (IsoCurrencyPair isoCurrencyPair : theRates.keySet()) {
+      assertThat(results.getRates().get(isoCurrencyPair).getDate()).isNotNull();
     }
 
   }
@@ -170,7 +170,7 @@ class FxMvcTests {
   @Test
   void is_InvalidCurrenciesReturned() throws Exception {
     String date = "2019-08-27";
-    CurrencyPair invalid = CurrencyPair.builder().from("ANC").to("SDF").build();
+    IsoCurrencyPair invalid = IsoCurrencyPair.builder().from("ANC").to("SDF").build();
 
     FxRequest fxRequest = FxRequest.builder().rateDate(date).build();
     fxRequest.add(invalid);

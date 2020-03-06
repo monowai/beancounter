@@ -12,16 +12,21 @@ import lombok.RequiredArgsConstructor;
 @EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class CurrencyPair {
+public class IsoCurrencyPair {
   private String from;
   private String to;
 
   @JsonIgnore
-  public static CurrencyPair from(Currency reporting, Currency trade) {
+  public static IsoCurrencyPair from(Currency reporting, Currency trade) {
     if (trade == null || reporting == null) {
       return null;
+
     }
-    return CurrencyPair.builder()
+    if (trade.getCode().equalsIgnoreCase(reporting.getCode())) {
+      return null;
+    }
+
+    return IsoCurrencyPair.builder()
         .from(reporting.getCode())
         .to(trade.getCode())
         .build();

@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,11 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class FxRateTests {
-  private static CurrencyPair USD_USD = CurrencyPair.builder().from("USD").to("USD").build();
-  private static CurrencyPair AUD_NZD = CurrencyPair.builder().from("AUD").to("NZD").build();
-  private static CurrencyPair NZD_AUD = CurrencyPair.builder().from("NZD").to("AUD").build();
-  private static CurrencyPair AUD_USD = CurrencyPair.builder().from("AUD").to("USD").build();
-  private static CurrencyPair USD_AUD = CurrencyPair.builder().from("USD").to("AUD").build();
+  private static IsoCurrencyPair USD_USD = IsoCurrencyPair.builder().from("USD").to("USD").build();
+  private static IsoCurrencyPair AUD_NZD = IsoCurrencyPair.builder().from("AUD").to("NZD").build();
+  private static IsoCurrencyPair NZD_AUD = IsoCurrencyPair.builder().from("NZD").to("AUD").build();
+  private static IsoCurrencyPair AUD_USD = IsoCurrencyPair.builder().from("AUD").to("USD").build();
+  private static IsoCurrencyPair USD_AUD = IsoCurrencyPair.builder().from("USD").to("AUD").build();
 
   @Test
   void is_FxRateResponseSerializing() throws Exception {
@@ -41,7 +41,7 @@ class FxRateTests {
   @Test
   void is_RateCalculatorComputing() {
 
-    Collection<CurrencyPair> pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);
+    Collection<IsoCurrencyPair> pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);
 
     Map<String, FxRate> rates = getRateTable();
     String asAt = "2019-11-21";
@@ -56,8 +56,8 @@ class FxRateTests {
 
   }
 
-  private Collection<CurrencyPair> getCurrencyPairs(CurrencyPair... pairs) {
-    Collection<CurrencyPair> results = new ArrayList<>();
+  private Collection<IsoCurrencyPair> getCurrencyPairs(IsoCurrencyPair... pairs) {
+    Collection<IsoCurrencyPair> results = new ArrayList<>();
     Collections.addAll(results, pairs);
     return results;
   }

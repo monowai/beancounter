@@ -6,8 +6,8 @@ import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.utils.RateCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ class TestFx {
 
   @Test
   void is_RateRequestSerializing() throws Exception {
-    CurrencyPair pair = CurrencyPair.builder().from("THIS").to("THAT").build();
+    IsoCurrencyPair pair = IsoCurrencyPair.builder().from("THIS").to("THAT").build();
 
     FxRequest fxRequest = FxRequest.builder().build();
     fxRequest.add(pair);
@@ -39,7 +39,7 @@ class TestFx {
 
   @Test
   void is_FxRequestPairsIgnoringDuplicates() {
-    CurrencyPair pair = CurrencyPair.builder().from("THIS").to("THAT").build();
+    IsoCurrencyPair pair = IsoCurrencyPair.builder().from("THIS").to("THAT").build();
     FxRequest fxRequest = FxRequest.builder().build();
     fxRequest.add(pair);
     fxRequest.add(pair);
@@ -48,10 +48,10 @@ class TestFx {
 
   @Test
   void is_FxResultSerializing() throws Exception {
-    CurrencyPair nzdUsd = CurrencyPair.builder().from("NZD").to("USD").build();
-    CurrencyPair usdUsd = CurrencyPair.builder().from("USD").to("USD").build();
+    IsoCurrencyPair nzdUsd = IsoCurrencyPair.builder().from("NZD").to("USD").build();
+    IsoCurrencyPair usdUsd = IsoCurrencyPair.builder().from("USD").to("USD").build();
 
-    Collection<CurrencyPair> pairs = new ArrayList<>();
+    Collection<IsoCurrencyPair> pairs = new ArrayList<>();
     pairs.add(nzdUsd);
     pairs.add(usdUsd);
     Map<String, FxRate> rateMap = new HashMap<>();

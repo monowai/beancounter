@@ -2,15 +2,17 @@ package com.beancounter.position.utils;
 
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FxUtils {
   private DateUtils dateUtils = new DateUtils();
 
-  public FxRequest getFxRequest(Currency base, Positions positions) {
+  public FxRequest buildRequest(Currency base, Positions positions) {
     if (positions.getAsAt() == null) {
       positions.setAsAt(dateUtils.today());
     }
@@ -21,23 +23,10 @@ public class FxUtils {
 
     Currency portfolio = positions.getPortfolio().getCurrency();
     for (Position position : positions.getPositions().values()) {
-      fxRequest.add(getPair(base, position));
-      fxRequest.add(getPair(portfolio, position));
+      fxRequest.add(IsoCurrencyPair.from(base, position.getAsset().getMarket().getCurrency()));
+      fxRequest.add(IsoCurrencyPair.from(portfolio, position.getAsset().getMarket().getCurrency()));
     }
     return fxRequest;
   }
 
-  public CurrencyPair getPair(Currency from, Position position) {
-    Currency to = position.getAsset().getMarket().getCurrency();
-    if (from == null || to == null) {
-      return null;
-    }
-    if (from.getCode().equalsIgnoreCase(to.getCode())) {
-      return null;
-    }
-    return CurrencyPair.builder()
-        .from(from.getCode())
-        .to(to.getCode())
-        .build();
-  }
 }

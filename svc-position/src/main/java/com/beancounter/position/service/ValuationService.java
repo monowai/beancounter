@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 
 
 /**
- * Integrations with MarketData providers to obtain prices
- * and value Positions.
+ * Values requested positions against market prices.
  *
  * @author mikeh
  * @since 2019-02-24
@@ -47,7 +46,6 @@ public class ValuationService implements Valuation {
 
     if (positions == null) {
       return PositionResponse.builder()
-          .data(null)
           .build();
     }
     if (positions.getAsAt() != null) {
@@ -60,9 +58,9 @@ public class ValuationService implements Valuation {
         assets.add(position.getAsset());
       }
     }
-
+    Positions valuedPositions = positionValuationService.value(positions, assets);
     return PositionResponse.builder()
-        .data(positionValuationService.value(positions, assets))
+        .data(valuedPositions)
         .build();
   }
 

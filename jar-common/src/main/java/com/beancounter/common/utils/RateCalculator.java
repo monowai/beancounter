@@ -1,8 +1,8 @@
 package com.beancounter.common.utils;
 
 import com.beancounter.common.contracts.FxPairResults;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
@@ -22,11 +22,11 @@ public class RateCalculator {
    * @param rateMap Base->Target  (by default, USD->ISO)
    * @return rates for the requested pairs on the requested date.
    */
-  public FxPairResults compute(String asAt, Collection<CurrencyPair> pairs,
+  public FxPairResults compute(String asAt, Collection<IsoCurrencyPair> pairs,
                                Map<String, FxRate> rateMap) {
 
     FxPairResults cache = new FxPairResults();
-    for (CurrencyPair pair : pairs) { // For all requested pairings
+    for (IsoCurrencyPair pair : pairs) { // For all requested pairings
       if (!pair.getFrom().equalsIgnoreCase(pair.getTo())) { // Is the answer one?
         FxRate from = rateMap.get(pair.getFrom().toUpperCase());
         FxRate to = rateMap.get(pair.getTo().toUpperCase());

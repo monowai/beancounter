@@ -3,8 +3,8 @@ package com.beancounter.marketdata.service;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.RateCalculator;
 import com.beancounter.marketdata.currency.CurrencyService;
@@ -56,14 +56,14 @@ public class FxService {
         .build();
   }
 
-  private void verify(Collection<CurrencyPair> currencyPairs) {
+  private void verify(Collection<IsoCurrencyPair> isoCurrencyPairs) {
     Collection<String> invalid = new ArrayList<>();
-    for (CurrencyPair currencyPair : currencyPairs) {
-      if (currencyService.getCode(currencyPair.getFrom()) == null) {
-        invalid.add(currencyPair.getFrom());
+    for (IsoCurrencyPair isoCurrencyPair : isoCurrencyPairs) {
+      if (currencyService.getCode(isoCurrencyPair.getFrom()) == null) {
+        invalid.add(isoCurrencyPair.getFrom());
       }
-      if (currencyService.getCode(currencyPair.getTo()) == null) {
-        invalid.add(currencyPair.getTo());
+      if (currencyService.getCode(isoCurrencyPair.getTo()) == null) {
+        invalid.add(isoCurrencyPair.getTo());
       }
 
     }

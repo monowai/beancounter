@@ -5,8 +5,8 @@ import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.CurrencyUtils;
@@ -46,20 +46,20 @@ public class FxTransactions {
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
-      CurrencyPair tradePortfolio = CurrencyUtils.getCurrencyPair(
+      IsoCurrencyPair tradePortfolio = CurrencyUtils.getCurrencyPair(
           trn.getTradePortfolioRate(),
           trn.getAsset().getMarket().getCurrency(),
           portfolio.getCurrency());
 
       fxRequest.add(tradePortfolio);
 
-      CurrencyPair tradeBase = CurrencyUtils.getCurrencyPair(
+      IsoCurrencyPair tradeBase = CurrencyUtils.getCurrencyPair(
           trn.getTradeBaseRate(),
           trn.getAsset().getMarket().getCurrency(),
           portfolio.getBase());
       fxRequest.add(tradeBase);
 
-      CurrencyPair tradeCash = CurrencyUtils.getCurrencyPair(
+      IsoCurrencyPair tradeCash = CurrencyUtils.getCurrencyPair(
           trn.getTradeCashRate(),
           trn.getAsset().getMarket().getCurrency(),
           trn.getCashCurrency());
@@ -81,9 +81,9 @@ public class FxTransactions {
   }
 
   private void applyRates(FxPairResults rates,
-                          CurrencyPair tradePortfolio,
-                          CurrencyPair tradeBase,
-                          CurrencyPair tradeCash,
+                          IsoCurrencyPair tradePortfolio,
+                          IsoCurrencyPair tradeBase,
+                          IsoCurrencyPair tradeCash,
                           Trn trn) {
 
     if (tradePortfolio != null && MathUtils.isUnset(trn.getTradePortfolioRate())) {

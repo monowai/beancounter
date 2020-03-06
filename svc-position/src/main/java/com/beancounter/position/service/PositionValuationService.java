@@ -5,11 +5,10 @@ import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.CurrencyPair;
 import com.beancounter.common.model.FxRate;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Positions;
-import com.beancounter.position.model.FxReport;
 import com.beancounter.position.model.ValuationData;
 import com.beancounter.position.utils.FxUtils;
 import com.beancounter.position.valuation.MarketValue;
@@ -25,10 +24,15 @@ import org.springframework.stereotype.Service;
 public class PositionValuationService {
   private AsyncMdService asyncMdService;
   private MarketValue marketValue;
+  private FxUtils fxUtils;
 
-  PositionValuationService(AsyncMdService asyncMdService, MarketValue marketValue) {
+  PositionValuationService(
+      AsyncMdService asyncMdService,
+      MarketValue marketValue,
+      FxUtils fxUtils) {
     this.asyncMdService = asyncMdService;
     this.marketValue = marketValue;
+    this.fxUtils = fxUtils;
   }
 
   public Positions value(Positions positions, Collection<Asset> assets) {
@@ -37,29 +41,26 @@ public class PositionValuationService {
     }
     log.debug("Valuing {} positions...", positions.getPositions().size());
 
-    FxReport fxReport = FxReport.builder()
-        .base(positions.getPortfolio().getBase())
-        .portfolio(positions.getPortfolio().getCurrency())
-        .build();
-
     // Set market data into the positions
     ValuationData valuationData = getValuationData(positions, assets);
-    FxResponse fxResponse = valuationData.getFxResponse();
-    if (fxResponse == null) {
-      throw new BusinessException("Unable to obtain FX Rates ");
-    }
-    Map<CurrencyPair, FxRate> rates = valuationData.getFxResponse().getData().getRates();
-
     if (valuationData.getPriceResponse() == null) {
       log.info("No prices found on date {}", positions.getAsAt());
       return positions; // Prevent NPE
     }
 
+    FxResponse fxResponse = valuationData.getFxResponse();
+    if (fxResponse == null) {
+      throw new BusinessException("Unable to obtain FX Rates ");
+    }
+
+    Map<IsoCurrencyPair, FxRate> rates = fxResponse.getData().getRates();
+
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
-      com.beancounter.common.model.Position position = positions.get(marketData.getAsset());
       if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        marketValue.value(position, fxReport, marketData, rates);
-        position.setAsset(marketData.getAsset());
+        marketValue.value(
+            positions,
+            marketData,
+            rates);
       }
     }
     return positions;
@@ -74,7 +75,7 @@ public class PositionValuationService {
         );
 
     CompletableFuture<FxResponse> futureFxResponse =
-        asyncMdService.getFxData(new FxUtils().getFxRequest(
+        asyncMdService.getFxData(fxUtils.buildRequest(
             positions.getPortfolio().getBase(),
             positions));
 

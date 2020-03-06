@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.AssetService;
 import com.beancounter.client.ClientConfig;
+import com.beancounter.client.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.junit.jupiter.api.Test;
@@ -24,10 +25,13 @@ public class TestAssetService {
   @Autowired
   private AssetService assetService;
 
+  @Autowired
+  private StaticService staticService;
+
   @Test
   void is_HydratedAssetFound() {
     Asset asset = assetService
-        .resolveAsset("MSFT", "Microsoft", "NASDAQ");
+        .resolveAsset("MSFT", "Microsoft", staticService.resolveMarket("NASDAQ"));
 
     assertThat(asset).isNotNull();
     assertThat(asset.getId()).isNotNull();
@@ -38,7 +42,7 @@ public class TestAssetService {
   @Test
   void is_MockAssetFound() {
     Asset asset = assetService
-        .resolveAsset("MSFT", "Microsoftie", "MOCK");
+        .resolveAsset("MSFT", "Microsoftie", staticService.resolveMarket("MOCK"));
     assertThat(asset).isNotNull();
     assertThat(asset).isNotNull().hasFieldOrPropertyWithValue("name", "Microsoftie");
   }
@@ -47,6 +51,6 @@ public class TestAssetService {
   void is_NotFound() {
     assertThrows(BusinessException.class, () ->
         assetService
-            .resolveAsset("ABC", "Microsoft", "NASDAQ"));
+            .resolveAsset("ABC", "Microsoft", staticService.resolveMarket("NASDAQ")));
   }
 }

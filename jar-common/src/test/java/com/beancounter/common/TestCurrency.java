@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.CurrencyPair;
+import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -74,12 +74,12 @@ class TestCurrency {
   void is_CurrencyPairConsistent() {
     String trade = "NZD";
     String report = "USD";
-    CurrencyPair byCode = CurrencyPair.builder()
+    IsoCurrencyPair byCode = IsoCurrencyPair.builder()
         .from(report)
         .to(trade)
         .build();
 
-    CurrencyPair byCurrency = CurrencyPair.from(getCurrency(report), getCurrency(trade));
+    IsoCurrencyPair byCurrency = IsoCurrencyPair.from(getCurrency(report), getCurrency(trade));
     assertThat(byCode).isEqualToComparingFieldByField(byCurrency);
 
   }
@@ -87,8 +87,8 @@ class TestCurrency {
   @Test
   void is_NullCurrencyAssertions() {
 
-    assertThat(CurrencyPair.from(getCurrency("USD"), null)).isNull();
-    assertThat(CurrencyPair.from(null, getCurrency("USD"))).isNull();
+    assertThat(IsoCurrencyPair.from(getCurrency("USD"), null)).isNull();
+    assertThat(IsoCurrencyPair.from(null, getCurrency("USD"))).isNull();
     assertThat(CurrencyUtils
         .getCurrencyPair(BigDecimal.ONE, getCurrency("USD"), null)).isNull();
     assertThat(CurrencyUtils

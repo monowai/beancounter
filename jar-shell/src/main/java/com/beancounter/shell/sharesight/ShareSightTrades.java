@@ -47,21 +47,21 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public Trn from(List<String> row, Portfolio portfolio)
+  public Trn from(List<Object> row, Portfolio portfolio)
       throws ParseException {
     try {
-      TrnType trnType = shareSightService.resolveType(row.get(type));
+      TrnType trnType = shareSightService.resolveType(row.get(type).toString());
       if (trnType == null) {
         throw new BusinessException(String.format("Unsupported type %s",
             row.get(type)));
       }
-      String assetName = row.get(name);
-      String assetCode = row.get(code);
-      String marketCode = row.get(market);
+      String assetName = row.get(name).toString();
+      String assetCode = row.get(code).toString();
+      String marketCode = row.get(market).toString();
 
       Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
 
-      String comment = (row.size() == 12 ? row.get(comments) : null);
+      String comment = (row.size() == 12 ? nullSafe(row.get(comments)) : null);
 
       BigDecimal tradeRate = null;
       BigDecimal fees = null;
@@ -85,7 +85,7 @@ public class ShareSightTrades implements Transformer {
           .tradeDate(shareSightService.parseDate(row.get(date)))
           .portfolioId(portfolio.getId())
           .cashCurrency(portfolio.getCurrency())
-          .tradeCurrency(Currency.builder().code(row.get(currency)).build())
+          .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
           // Zero and null are treated as "unknown"
           .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
               ? null : tradeRate)
@@ -99,6 +99,10 @@ public class ShareSightTrades implements Transformer {
 
   }
 
+  private String nullSafe(Object o) {
+    return o == null ? null : o.toString();
+  }
+
   private BigDecimal getBigDecimal(Object rate) {
     if (rate != null) {
       return new BigDecimal(rate.toString());
@@ -107,9 +111,9 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public boolean isValid(List<String> row) {
+  public boolean isValid(List<Object> row) {
     if (row.size() > 6) {
-      return !row.get(0).equalsIgnoreCase("market");
+      return !row.get(0).toString().equalsIgnoreCase("market");
     }
     return false;
   }

@@ -13,6 +13,7 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.shell.auth.LoginService;
 import com.beancounter.shell.auth.OAuth2Response;
 import com.beancounter.shell.cli.UserCommands;
+import com.beancounter.shell.config.ShellConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.jline.reader.LineReader;
@@ -29,6 +30,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @SpringBootTest(classes = {
     UserCommands.class,
+    ShellConfig.class,
     RegistrationService.class,
     TokenService.class,
     RegistrationService.RegistrationGateway.class,

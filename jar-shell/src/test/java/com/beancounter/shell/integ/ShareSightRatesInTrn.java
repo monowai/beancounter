@@ -55,7 +55,7 @@ public class ShareSightRatesInTrn {
 
   @Test
   void is_DividendRowWithFxConverted() throws Exception {
-    List<String> row = new ArrayList<>();
+    List<Object> row = new ArrayList<>();
 
     // Portfolio is in NZD
     Portfolio portfolio = Portfolio.builder()

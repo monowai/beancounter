@@ -13,8 +13,8 @@ import java.util.List;
  */
 public interface Transformer {
 
-  Trn from(List<String> row, Portfolio portfolio) throws ParseException;
+  Trn from(List<Object> row, Portfolio portfolio) throws ParseException;
 
-  boolean isValid(List<String> row);
+  boolean isValid(List<Object> row);
 
 }

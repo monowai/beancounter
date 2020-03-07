@@ -1,26 +1,20 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.shell.auth.LoginService;
+import com.beancounter.shell.config.EnvConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.FileSystems;
 import java.util.Map;
 import java.util.TreeMap;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
 @ShellComponent
 public class UtilCommands {
-  private final LoginService loginService;
-  @Value("${api.path:../secrets/google-api/}")
-  private String apiPath;
+  private final EnvConfig envConfig;
 
-  @Value("${marketdata.url:http://localhost:9510/api}")
-  private String marketDataUrl;
-
-  UtilCommands(LoginService loginService) {
-    this.loginService = loginService;
+  public UtilCommands(EnvConfig envConfig) {
+    this.envConfig = envConfig;
   }
 
   @ShellMethod("Current working directory")
@@ -30,18 +24,18 @@ public class UtilCommands {
 
   @ShellMethod("Secrets")
   public String api() {
-    return apiPath;
+    return envConfig.getApiPath();
   }
 
   @ShellMethod("Shell configuration")
   @SneakyThrows
   public String config() {
     Map<String, String> config = new TreeMap<>();
-    config.put("AUTH_REALM", loginService.getRealm());
-    config.put("AUTH_CLIENT", loginService.getClient());
-    config.put("AUTH_URI", loginService.getUri());
-    config.put("API_PATH", apiPath);
-    config.put("MARKETDATA_URL", marketDataUrl);
+    config.put("AUTH_REALM", envConfig.getRealm());
+    config.put("AUTH_CLIENT", envConfig.getClient());
+    config.put("AUTH_URI", envConfig.getUri());
+    config.put("API_PATH", envConfig.getApiPath());
+    config.put("MARKETDATA_URL", envConfig.getMarketDataUrl());
 
     return new ObjectMapper().writerWithDefaultPrettyPrinter()
         .writeValueAsString(config);

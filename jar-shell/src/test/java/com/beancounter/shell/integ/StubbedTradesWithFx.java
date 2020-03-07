@@ -48,7 +48,7 @@ class StubbedTradesWithFx {
   @Test
   void is_FxRatesSetFromCurrencies() throws Exception {
 
-    List<String> row = new ArrayList<>();
+    List<Object> row = new ArrayList<>();
 
     String testDate = "27/07/2019"; // Sharesight format
 
@@ -84,7 +84,7 @@ class StubbedTradesWithFx {
   @Test
   void is_FxRateOverridenFromSourceData() throws Exception {
 
-    List<String> row = new ArrayList<>();
+    List<Object> row = new ArrayList<>();
     // NZD Portfolio
     // USD System Base
     // GBP Trade
@@ -119,7 +119,7 @@ class StubbedTradesWithFx {
   @Test
   void is_FxRatesSetToTransaction() throws Exception {
 
-    List<String> row = new ArrayList<>();
+    List<Object> row = new ArrayList<>();
 
     // Trade CCY USD
     row.add(ShareSightTrades.market, "NASDAQ");
@@ -160,7 +160,7 @@ class StubbedTradesWithFx {
   @Test
   void is_RateOfOneSetForUndefinedCurrencies() throws ParseException {
 
-    List<String> row = new ArrayList<>();
+    List<Object> row = new ArrayList<>();
 
     String testDate = "27/07/2019";
 

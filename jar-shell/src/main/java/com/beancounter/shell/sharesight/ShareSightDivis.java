@@ -45,23 +45,23 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public Trn from(List<String> row, Portfolio portfolio)
+  public Trn from(List<Object> row, Portfolio portfolio)
       throws ParseException {
 
-    Asset asset = shareSightService.resolveAsset(row.get(code));
-    asset.getMarket().setCurrency(Currency.builder().code(row.get(currency)).build());
-    BigDecimal tradeRate = new BigDecimal(row.get(fxRate));
+    Asset asset = shareSightService.resolveAsset(row.get(code).toString());
+    asset.getMarket().setCurrency(Currency.builder().code(row.get(currency).toString()).build());
+    BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
     return Trn.builder()
         .asset(asset)
         .portfolioId(portfolio.getId())
-        .tradeCurrency(Currency.builder().code(row.get(currency)).build())
+        .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
         .trnType(TrnType.DIVI)
-        .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
+        .tax(MathUtils.multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
         .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
         .cashAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
         .tradeDate(shareSightService.parseDate(row.get(date)))
-        .comments(row.get(comments))
+        .comments(row.get(comments).toString())
         .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
             ? null : tradeRate)
         .build()
@@ -70,13 +70,13 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public boolean isValid(List<String> row) {
+  public boolean isValid(List<Object> row) {
     if (row.size() == 9) {
-      if (row.get(0).contains(".")) {
+      if (row.get(0).toString().contains(".")) {
         return true;
       }
-      return !row.get(0).equalsIgnoreCase("code")
-          && !row.get(0).equalsIgnoreCase("total");
+      return !row.get(0).toString().equalsIgnoreCase("code")
+          && !row.get(0).toString().equalsIgnoreCase("total");
     }
     return false;
   }

@@ -56,6 +56,13 @@ public class ShareSightService {
   }
 
 
+  LocalDate parseDate(Object date) {
+    if (date == null) {
+      return null;
+    }
+    return dateUtils.getDate(date.toString(), "dd/MM/yyyy");
+  }
+
   LocalDate parseDate(String date) {
     return dateUtils.getDate(date, "dd/MM/yyyy");
   }

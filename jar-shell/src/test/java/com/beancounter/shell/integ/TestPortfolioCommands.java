@@ -11,7 +11,7 @@ import com.beancounter.common.contracts.PortfolioRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.PortfolioUtils;
-import com.beancounter.shell.cli.DataCommands;
+import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.ShellConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,9 +37,9 @@ import org.springframework.test.context.ActiveProfiles;
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ActiveProfiles("test")
-public class TestDataCommands {
+public class TestPortfolioCommands {
   @Autowired
-  private DataCommands dataCommands;
+  private PortfolioCommands portfolioCommands;
   @Autowired
   private StaticService staticService;
   @Autowired
@@ -54,11 +54,43 @@ public class TestDataCommands {
   @MockBean
   private JwtDecoder jwtDecoder;
 
-
   @Test
   @SneakyThrows
   void createPortfolio() {
 
+    SystemUser owner = getSystemUser();
+
+    PortfolioRequest response = getPortfolioResponse("ABC", owner);
+    Mockito.when(portfolioGw.addPortfolios(
+        Mockito.eq(tokenService.getBearerToken()),
+        Mockito.isA(PortfolioRequest.class)))
+        .thenReturn(response);
+
+    String result = portfolioCommands
+        .addPortfolio("ABC", "ABC", "NZD", "USD");
+    assertThat(result).isNotNull();
+    Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
+    assertThat(portfolio).isEqualTo(response.getData().iterator().next());
+  }
+
+  @Test
+  @SneakyThrows
+  void is_AddPortfolioThatExists() {
+
+    SystemUser owner = getSystemUser();
+    PortfolioRequest response = getPortfolioResponse("ZZZ", owner);
+
+    Mockito.when(portfolioGw.getPortfolioByCode(tokenService.getBearerToken(), "ZZZ"))
+        .thenReturn(response); // Portfolio exists
+
+    String result = portfolioCommands
+        .addPortfolio("ZZZ", "ABC", "NZD", "USD");
+    assertThat(result).isNotNull();
+    Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
+    assertThat(portfolio).isEqualTo(response.getData().iterator().next());
+  }
+
+  private SystemUser getSystemUser() {
     Jwt jwt = TokenUtils.getUserToken(SystemUser.builder().build());
     Mockito.when(jwtDecoder.decode("token")).thenReturn(jwt);
     SystemUser owner = SystemUser.builder().build();
@@ -66,39 +98,12 @@ public class TestDataCommands {
 
     SecurityContextHolder.getContext().setAuthentication(
         new JwtAuthenticationToken(jwtDecoder.decode("token")));
-
-    PortfolioRequest portfolioRequest = getPortfolioRequest(owner);
-
-    PortfolioRequest response = getPortfolioResponse(owner);
-    Mockito.when(portfolioGw.addPortfolios(
-        Mockito.eq(tokenService.getBearerToken()),
-        Mockito.isA(PortfolioRequest.class)))
-        .thenReturn(response);
-
-    String result = dataCommands
-        .addPortfolio("ABC", "ABC", "NZD", "USD");
-    assertThat(result).isNotNull();
-    Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
-    assertThat(portfolio).isEqualTo(response.getData().iterator().next());
+    return owner;
   }
 
-  private PortfolioRequest getPortfolioRequest(SystemUser owner) {
+  private PortfolioRequest getPortfolioResponse(String code, SystemUser owner) {
 
-    Portfolio toCreate = PortfolioUtils.getPortfolio("ABC");
-    toCreate.setId(null);
-    toCreate.setName(toCreate.getCode());
-    toCreate.setOwner(owner);
-    toCreate.setCurrency(staticService.getCurrency("NZD"));
-    toCreate.setBase(staticService.getCurrency("USD"));
-
-    PortfolioRequest portfolioRequest = PortfolioRequest.builder().build();
-    portfolioRequest.setData(Collections.singletonList(toCreate));
-    return portfolioRequest;
-  }
-
-  private PortfolioRequest getPortfolioResponse(SystemUser owner) {
-
-    Portfolio toReturn = PortfolioUtils.getPortfolio("ABC");
+    Portfolio toReturn = PortfolioUtils.getPortfolio(code);
     toReturn.setId("createdId");
     toReturn.setName(toReturn.getCode());
     toReturn.setOwner(owner);

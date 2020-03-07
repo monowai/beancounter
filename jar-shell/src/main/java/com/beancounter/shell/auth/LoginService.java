@@ -1,9 +1,9 @@
 package com.beancounter.shell.auth;
 
+import com.beancounter.shell.config.EnvConfig;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -18,28 +18,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Slf4j
 @Data
 public class LoginService {
+  private EnvConfig envConfig;
   private AuthGateway authGateway;
-  @Value("${auth.realm}")
-  private String realm;
-  @Value("${auth.client}")
-  private String client;
-  @Value("${auth.client}")
-  private String uri;
-  @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
-  private String certPath;
 
   private JwtDecoder jwtDecoder;
 
-  LoginService(AuthGateway authGateway, JwtDecoder jwtDecoder) {
+  LoginService(AuthGateway authGateway, JwtDecoder jwtDecoder, EnvConfig envConfig) {
     this.authGateway = authGateway;
     this.jwtDecoder = jwtDecoder;
+    this.envConfig = envConfig;
   }
 
   public void login(String user, String password) {
     Login login = Login.builder()
         .username(user)
         .password(password)
-        .client_id(client)
+        .client_id(envConfig.getClient())
         .build();
     OAuth2Response response = authGateway.login(login);
     assert response != null;
@@ -55,7 +49,6 @@ public class LoginService {
         consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
         produces = {MediaType.APPLICATION_JSON_VALUE})
     OAuth2Response login(Login login);
-
 
   }
 

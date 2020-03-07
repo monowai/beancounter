@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
+import com.beancounter.client.ClientConfig;
 import com.beancounter.shell.auth.LoginService;
 import com.beancounter.shell.auth.OAuth2Response;
 import com.beancounter.shell.config.AuthTokenConfig;
@@ -26,7 +27,7 @@ import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = {
-    AuthTokenConfig.class})
+    AuthTokenConfig.class, ClientConfig.class})
 @ActiveProfiles("auth")
 public class TestLogin {
 

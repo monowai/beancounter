@@ -32,8 +32,8 @@ public class ShareSightTransformers {
    * @param row analyze this
    * @return appropriate transformer
    */
-  public Transformer transformer(List<String> row) {
-    String ttype = row.get(ShareSightTrades.type).toLowerCase();
+  public Transformer transformer(List<Object> row) {
+    String ttype = row.get(ShareSightTrades.type).toString().toLowerCase();
     if (TTYPES.contains(ttype)) {
       return shareSightTrades;
     }

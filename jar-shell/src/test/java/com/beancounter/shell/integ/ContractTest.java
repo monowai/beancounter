@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.cli.DataCommands;
+import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.cli.UtilCommands;
 import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.GoogleAuthConfig;
@@ -36,12 +37,15 @@ import org.springframework.test.context.ActiveProfiles;
     AuthConfig.class,
     GoogleAuthConfig.class,
     ShareSightConfig.class})
-public class CommandTest {
+public class ContractTest {
   @Autowired
   private DataCommands dataCommands;
 
   @Autowired
   private UtilCommands utilCommands;
+
+  @Autowired
+  private PortfolioCommands portfolioCommands;
 
   @Autowired
   private PromptProvider promptProvider;
@@ -62,20 +66,20 @@ public class CommandTest {
 
   @Test
   void is_PortfolioByCode() throws Exception {
-    String json = dataCommands.portfolio("TEST");
+    String json = portfolioCommands.portfolio("TEST");
     Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
     assertThat(portfolio).isNotNull();
 
-    assertThrows(BusinessException.class, () -> dataCommands.portfolio("ILLEGAL"));
+    assertThrows(BusinessException.class, () -> portfolioCommands.portfolio("ILLEGAL"));
   }
 
   @Test
   void is_PortfolioById() throws Exception {
-    String json = dataCommands.portfolioId("TEST");
+    String json = portfolioCommands.portfolioId("TEST");
     Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
     assertThat(portfolio).isNotNull();
 
-    assertThrows(BusinessException.class, () -> dataCommands.portfolio("ILLEGAL"));
+    assertThrows(BusinessException.class, () -> portfolioCommands.portfolio("ILLEGAL"));
   }
 
   @Test

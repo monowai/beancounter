@@ -79,7 +79,7 @@ class ShareSightTradeTest {
 
   @Test
   void is_SplitTransformerFoundForRow() {
-    List<String> row = new ArrayList<>();
+    List<Object> row = new ArrayList<>();
     row.add(ShareSightTrades.market, "ASX");
     row.add(ShareSightTrades.code, "SLB");
     row.add(ShareSightTrades.name, "Test Asset");

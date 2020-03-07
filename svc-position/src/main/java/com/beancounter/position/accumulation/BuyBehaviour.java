@@ -23,9 +23,7 @@ public class BuyBehaviour implements AccumulationStrategy {
 
     value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE);
     value(trn, portfolio, position, Position.In.BASE, trn.getTradeBaseRate());
-    value(trn, portfolio, position, Position.In.PORTFOLIO,
-        trn.getTradePortfolioRate());
-
+    value(trn, portfolio, position, Position.In.PORTFOLIO, trn.getTradePortfolioRate());
   }
 
   private void value(Trn trn,
@@ -48,7 +46,6 @@ public class BuyBehaviour implements AccumulationStrategy {
     );
 
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {
-
       moneyValues.setAverageCost(
           averageCost.value(moneyValues.getCostBasis(), position.getQuantityValues().getTotal())
       );

@@ -41,7 +41,7 @@ public class RowProcessor {
     }
 
     int trnId = 1;
-    for (List row : values) {
+    for (List<Object> row : values) {
       Transformer transformer = shareSightTransformers.transformer(row);
 
       try {

@@ -32,10 +32,10 @@ The general flow
  bc-shell$ login user@somewhere.com
  password: ********
  bc-shell$ register
- bc-shell$ add-portfolio TEST "Test Portfolio" SGD USD
+ bc-shell$ add SGD "SGD Domiciled" SGD USD
  # This command will not work for you, so you need to setup your google access and a sheet before calling it
  # If you don't ingest transacitons, then you will just see an empty portfolio in the viewer 
- bc-shell$ ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio TEST
+ bc-shell$ ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio SGD
 ```
 
 Supports an optional case sensitive filter property `"filter": "MSFT,"APPL"` to include only transactions where the Asset codes match those in the filter

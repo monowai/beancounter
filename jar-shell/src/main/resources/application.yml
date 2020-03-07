@@ -27,7 +27,7 @@ beancounter:
 
 logging:
   level:
-    root: debug
+    root: error
     org: error
     com: error
     com.beancounter.shell.IngestBoot: error

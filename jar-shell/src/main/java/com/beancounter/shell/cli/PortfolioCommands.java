@@ -44,7 +44,7 @@ public class PortfolioCommands {
     return writer.writeValueAsString(portfolio);
   }
 
-  @ShellMethod("Add portfolio")
+  @ShellMethod(key = "add", value="Add portfolio")
   @SneakyThrows
   public String add(
       @ShellOption(help = "Unique Code") String code,

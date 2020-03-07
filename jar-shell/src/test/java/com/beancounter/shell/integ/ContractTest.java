@@ -66,20 +66,20 @@ public class ContractTest {
 
   @Test
   void is_PortfolioByCode() throws Exception {
-    String json = portfolioCommands.portfolio("TEST");
+    String json = portfolioCommands.code("TEST");
     Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
     assertThat(portfolio).isNotNull();
 
-    assertThrows(BusinessException.class, () -> portfolioCommands.portfolio("ILLEGAL"));
+    assertThrows(BusinessException.class, () -> portfolioCommands.code("ILLEGAL"));
   }
 
   @Test
   void is_PortfolioById() throws Exception {
-    String json = portfolioCommands.portfolioId("TEST");
+    String json = portfolioCommands.id("TEST");
     Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
     assertThat(portfolio).isNotNull();
 
-    assertThrows(BusinessException.class, () -> portfolioCommands.portfolio("ILLEGAL"));
+    assertThrows(BusinessException.class, () -> portfolioCommands.code("ILLEGAL"));
   }
 
   @Test

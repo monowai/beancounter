@@ -30,7 +30,7 @@ public class PortfolioCommands {
 
   @ShellMethod("Find portfolio by code")
   @SneakyThrows
-  public String portfolio(
+  public String code(
       @ShellOption(help = "Code - case insensitive") String portfolioCode) {
     Portfolio portfolio = portfolioService.getPortfolioByCode(portfolioCode);
     return writer.writeValueAsString(portfolio);
@@ -38,7 +38,7 @@ public class PortfolioCommands {
 
   @ShellMethod("Find by id")
   @SneakyThrows
-  public String portfolioId(
+  public String id(
       @ShellOption(help = "Primary key - case sensitive") String portfolioId) {
     Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
     return writer.writeValueAsString(portfolio);
@@ -46,7 +46,7 @@ public class PortfolioCommands {
 
   @ShellMethod("Add portfolio")
   @SneakyThrows
-  public String addPortfolio(
+  public String add(
       @ShellOption(help = "Unique Code") String code,
       @ShellOption(help = "Name") String name,
       @ShellOption(help = "Reference currency") String currencyCode,

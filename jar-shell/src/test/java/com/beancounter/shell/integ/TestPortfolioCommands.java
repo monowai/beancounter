@@ -67,7 +67,7 @@ public class TestPortfolioCommands {
         .thenReturn(response);
 
     String result = portfolioCommands
-        .addPortfolio("ABC", "ABC", "NZD", "USD");
+        .add("ABC", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
     Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
     assertThat(portfolio).isEqualTo(response.getData().iterator().next());
@@ -84,7 +84,7 @@ public class TestPortfolioCommands {
         .thenReturn(response); // Portfolio exists
 
     String result = portfolioCommands
-        .addPortfolio("ZZZ", "ABC", "NZD", "USD");
+        .add("ZZZ", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
     Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
     assertThat(portfolio).isEqualTo(response.getData().iterator().next());

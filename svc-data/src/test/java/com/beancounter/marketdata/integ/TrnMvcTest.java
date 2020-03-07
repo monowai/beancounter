@@ -4,6 +4,7 @@ import static com.beancounter.marketdata.integ.TestRegistrationMvc.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -77,7 +78,7 @@ public class TrnMvcTest {
   }
 
   @Test
-  void is_PersistAndRetrieve() throws Exception {
+  void is_PersistRetrieveAndPurge() throws Exception {
 
     Market nasdaq = marketService.getMarket("NASDAQ");
 
@@ -210,6 +211,15 @@ public class TrnMvcTest {
     assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(1);
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
 
+    // Purge all transactions for the Portfolio
+    mvcResult = mockMvc.perform(
+        delete("/trns/{portfolioId}", portfolioId)
+            .with(jwt(token).authorities(authorityRoleConverter))
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    assertThat(mvcResult.getResponse().getContentAsString()).isNotNull().isEqualTo("4");
   }
 
   private Portfolio portfolio(Portfolio portfolio) throws Exception {

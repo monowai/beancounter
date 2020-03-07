@@ -41,7 +41,8 @@ class FxRateTests {
   @Test
   void is_RateCalculatorComputing() {
 
-    Collection<IsoCurrencyPair> pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);
+    Collection<IsoCurrencyPair> pairs =
+        getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD);
 
     Map<String, FxRate> rates = getRateTable();
     String asAt = "2019-11-21";

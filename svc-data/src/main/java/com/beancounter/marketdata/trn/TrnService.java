@@ -10,6 +10,7 @@ import com.beancounter.marketdata.assets.AssetService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -17,12 +18,12 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@Transactional
 public class TrnService {
   private TrnRepository trnRepository;
   private AssetService assetService;
 
-  @Autowired
-  void setTrnRepository(TrnRepository trnRepository) {
+  TrnService(TrnRepository trnRepository) {
     this.trnRepository = trnRepository;
   }
 
@@ -51,6 +52,16 @@ public class TrnService {
             .and(Sort.by("tradeDate")));
     log.debug("Found {} for portfolio {}", results.size(), portfolio.getCode());
     return getTrnResponse(portfolio, results);
+  }
+
+  /**
+   * Purge transactions for a portfolio.
+   *
+   * @param portfolio portfolio owned by the caller
+   * @return number of deleted transactions
+   */
+  public long purge(Portfolio portfolio) {
+    return trnRepository.deleteByPortfolioId(portfolio.getId());
   }
 
   private TrnResponse getTrnResponse(Portfolio portfolio, Iterable<Trn> trns) {

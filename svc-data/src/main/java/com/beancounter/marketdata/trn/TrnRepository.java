@@ -8,4 +8,6 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface TrnRepository extends CrudRepository<Trn, TrnId> {
   Collection<Trn> findByPortfolioId(String portfolioId, Sort sort);
+
+  long deleteByPortfolioId(String portfolioId);
 }

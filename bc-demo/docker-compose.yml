@@ -87,11 +87,12 @@ services:
     container_name: app
     environment:
       SVC_POSITION: "http://position:9500"
-      SVC_DATA: "http://data:9600"
+      SVC_DATA: "http://data:9510"
       RAZZLE_PUBLIC_DIR: "http://localhost:4000"
       KC_CLIENT: bc-demo
     depends_on:
       - position
+      - data
 
 volumes:
   pg-data:

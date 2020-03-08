@@ -2,39 +2,74 @@
 
 exports[`<Portfolios /> should match snapshot 1`] = `
 <div>
-  <div
-    class="page-box"
-  >
-    <table
-      class="table is-striped is-hoverable"
+  <div>
+    <section
+      class="page-box hero is-primary is-fullheight has-background-light"
     >
-      <tbody>
-        <tr>
-          <td
-            align="left"
+      <div
+        class="hero-body"
+      >
+        <div
+          class="container"
+        >
+          <div
+            class="columns is-centered"
           >
-            <a
-              href="/holdings/TEST"
+            <table
+              class="table is-striped is-hoverable"
             >
-              TEST
-            </a>
-          </td>
-          <td
-            align="left"
-          >
-            Test Portfolio
-          </td>
-          <td>
-            €
-            EUR
-          </td>
-          <td>
-            $
-            USD
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <thead>
+                <tr>
+                  <th>
+                    Code
+                  </th>
+                  <th>
+                    Name
+                  </th>
+                  <th>
+                    Report
+                  </th>
+                  <th>
+                    Base
+                  </th>
+                  <th>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <a
+                      href="/holdings/TEST"
+                    >
+                      TEST
+                    </a>
+                  </td>
+                  <td>
+                    Test Portfolio
+                  </td>
+                  <td>
+                    €
+                    EUR
+                  </td>
+                  <td>
+                    $
+                    USD
+                  </td>
+                  <td>
+                    <a
+                      class="fa fa-edit"
+                      href="/portfolio/TEST"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 `;

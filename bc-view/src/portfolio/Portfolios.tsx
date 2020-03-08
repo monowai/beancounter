@@ -48,30 +48,47 @@ export function Portfolios(): React.ReactElement {
   if (portfolios) {
     if (portfolios.length > 0) {
       return (
-        <div className="page-box">
-          <table className={"table is-striped is-hoverable"}>
-            <tbody>
-              {portfolios.map(portfolio => (
-                <tr key={portfolio.id}>
-                  <td align={"left"}>
-                    <Link to={`/holdings/${portfolio.code}`}>{portfolio.code}</Link>
-                  </td>
-                  <td align={"left"}>{portfolio.name}</td>
-                  <td>
-                    {portfolio.currency.symbol}
-                    {portfolio.currency.code}
-                  </td>
-                  <td>
-                    {portfolio.base.symbol}
-                    {portfolio.base.code}
-                  </td>
-                  <td>
-                    <Link to={`/portfolio/${portfolio.code}`}>Edit</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div>
+          <section className="page-box hero is-primary is-fullheight has-background-light">
+            <div className="hero-body">
+              <div className="container">
+                <div className="columns is-centered">
+                  <table className={"table is-striped is-hoverable"}>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Report</th>
+                        <th>Base</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portfolios.map(portfolio => (
+                        <tr key={portfolio.id}>
+                          <td>
+                            <Link to={`/holdings/${portfolio.code}`}>{portfolio.code}</Link>
+                          </td>
+                          <td>{portfolio.name}</td>
+                          <td>
+                            {portfolio.currency.symbol}
+                            {portfolio.currency.code}
+                          </td>
+                          <td>
+                            {portfolio.base.symbol}
+                            {portfolio.base.code}
+                          </td>
+                          <td>
+                            <Link className="fa fa-edit" to={`/portfolio/${portfolio.code}`} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       );
     }

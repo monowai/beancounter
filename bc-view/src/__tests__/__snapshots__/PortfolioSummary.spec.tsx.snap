@@ -15,19 +15,29 @@ Object {
             >
               Summary
             </th>
-            <th>
+            <th
+              align="right"
+            >
               dividends
             </th>
-            <th>
+            <th
+              align="right"
+            >
               purchases
             </th>
-            <th>
+            <th
+              align="right"
+            >
               sales
             </th>
-            <th>
+            <th
+              align="right"
+            >
               value
             </th>
-            <th>
+            <th
+              align="right"
+            >
               strategy
             </th>
           </tr>
@@ -46,19 +56,29 @@ Object {
           >
             Summary
           </th>
-          <th>
+          <th
+            align="right"
+          >
             dividends
           </th>
-          <th>
+          <th
+            align="right"
+          >
             purchases
           </th>
-          <th>
+          <th
+            align="right"
+          >
             sales
           </th>
-          <th>
+          <th
+            align="right"
+          >
             value
           </th>
-          <th>
+          <th
+            align="right"
+          >
             strategy
           </th>
         </tr>

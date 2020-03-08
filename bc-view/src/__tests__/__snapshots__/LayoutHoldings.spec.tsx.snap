@@ -156,12 +156,6 @@ exports[`<ViewHoldings /> matches snapshot for zero apiHoldings 1`] = `
     >
       <div
         class="filter-label"
-      />
-      <div
-        class="filter-label"
-      />
-      <div
-        class="filter-label"
       >
         Value In
       </div>
@@ -350,19 +344,29 @@ exports[`<ViewHoldings /> matches snapshot for zero apiHoldings 1`] = `
             >
               Summary
             </th>
-            <th>
+            <th
+              align="right"
+            >
               dividends
             </th>
-            <th>
+            <th
+              align="right"
+            >
               purchases
             </th>
-            <th>
+            <th
+              align="right"
+            >
               sales
             </th>
-            <th>
+            <th
+              align="right"
+            >
               value
             </th>
-            <th>
+            <th
+              align="right"
+            >
               strategy
             </th>
           </tr>
@@ -644,12 +648,6 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
     >
       <div
         class="filter-label"
-      />
-      <div
-        class="filter-label"
-      />
-      <div
-        class="filter-label"
       >
         Value In
       </div>
@@ -838,19 +836,29 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
             >
               Summary
             </th>
-            <th>
+            <th
+              align="right"
+            >
               dividends
             </th>
-            <th>
+            <th
+              align="right"
+            >
               purchases
             </th>
-            <th>
+            <th
+              align="right"
+            >
               sales
             </th>
-            <th>
+            <th
+              align="right"
+            >
               value
             </th>
-            <th>
+            <th
+              align="right"
+            >
               strategy
             </th>
           </tr>
@@ -977,7 +985,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
             >
               AMP: Amp Limited
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <label>
                 $
                  
@@ -986,7 +996,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
                 </span>
               </label>
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <span>
                 637
               </span>
@@ -1162,7 +1174,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
             >
               AAPL: Apple Inc
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <label>
                 $
                  
@@ -1171,7 +1185,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
                 </span>
               </label>
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <span>
                 12
               </span>
@@ -1234,7 +1250,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
             >
               ABC: Amerisource Bergen Corp.
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <label>
                 $
                  
@@ -1243,7 +1261,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
                 </span>
               </label>
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <span>
                 25
               </span>
@@ -1306,7 +1326,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
             >
               CSCO: Cisco Systems, Inc.
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <label>
                 $
                  
@@ -1315,7 +1337,9 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
                 </span>
               </label>
             </td>
-            <td>
+            <td
+              align="right"
+            >
               <span>
                 55
               </span>

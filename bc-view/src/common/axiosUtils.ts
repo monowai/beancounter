@@ -14,6 +14,14 @@ export const getBearerToken = (): { Authorization: string } => ({
   }`
 });
 
+export function isLoggedOut(): boolean {
+  return localStorage.getItem("token") === undefined;
+}
+
+export function isLoggedIn(): boolean {
+  return !isLoggedOut();
+}
+
 export const setToken = (keycloak: KeycloakInstance<"native">): void => {
   if (keycloak && keycloak.token) {
     localStorage.setItem("token", keycloak.token);
@@ -21,5 +29,7 @@ export const setToken = (keycloak: KeycloakInstance<"native">): void => {
 };
 
 export const resetToken = (): void => {
-  localStorage.removeItem("token");
+  if (typeof window !== undefined) {
+    localStorage.removeItem("token");
+  }
 };

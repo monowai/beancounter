@@ -6,6 +6,7 @@ import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
 import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/web";
 import handleError from "../common/errors/UserError";
+import { SelectCurrency } from "../common/controls/SelectCurrency";
 
 export function ManagePortfolio(code: string): React.ReactElement {
   const { register, handleSubmit, errors } = useForm();
@@ -50,38 +51,68 @@ export function ManagePortfolio(code: string): React.ReactElement {
   }
   if (portfolio) {
     return (
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input
-          type="text"
-          placeholder="code"
-          defaultValue={portfolio?.code}
-          name="Unique code"
-          ref={register({ required: true, maxLength: 10 })}
-        />
-        <input
-          className="input"
-          type="text"
-          placeholder="name"
-          defaultValue={portfolio.name}
-          name="Name"
-          ref={register({ required: true, maxLength: 100 })}
-        />
-        <select placeholder={"Currency"} name="Currency" ref={register({ required: true })}>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-          <option value="SGD">SGD</option>
-          <option value="NZD">NZD</option>
-        </select>
-
-        <select placeholder={"Currency"} name="BaseCurrency" ref={register({ required: true })}>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-          <option value="SGD">SGD</option>
-          <option value="NZD">NZD</option>
-        </select>
-
-        <button className="button" type="submit" value="Submit input" />
-      </form>
+      <section className="page-box hero is-primary is-fullheight">
+        <div className="hero-body">
+          <div className="container">
+            <div className="columns is-centered">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="column is-5-tablet is-4-desktop is-3-widescreen"
+              >
+                <label className="label ">Code</label>
+                <div className="control ">
+                  <input
+                    type="text"
+                    className={"input"}
+                    autoFocus={true}
+                    placeholder="code"
+                    name="code"
+                    defaultValue={portfolio?.code}
+                    ref={register({ required: true, maxLength: 10 })}
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">Name</label>
+                  <div className="control">
+                    <input
+                      className="input is-3"
+                      type="text"
+                      placeholder="name"
+                      defaultValue={portfolio.name}
+                      name="Name"
+                      ref={register({ required: true, maxLength: 100 })}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Reporting Currency</label>
+                  <div className="control">
+                    <SelectCurrency
+                      name={"refCcy"}
+                      default={portfolio?.currency.code}
+                      key={"currency"}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Reference Currency</label>
+                  <div className="control">
+                    <SelectCurrency name={"baseCcy"} default={portfolio?.base.code} key={"base"} />
+                  </div>
+                </div>
+                <div className="field is-grouped">
+                  <div className="control">
+                    <button className="button is-link">Submit</button>
+                  </div>
+                  <div className="control">
+                    <button className="button is-link is-light">Cancel</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
     );
   }
   return <div id="root">Portfolio not found!</div>;

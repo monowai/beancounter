@@ -5,7 +5,7 @@ import { calculate } from "./calculate";
 import { GroupBy, groupOptions } from "../types/groupBy";
 import { GroupOption, HoldingContract, Holdings, ValuationOption } from "../types/beancounter";
 import Total from "./Total";
-import StatsHeader, { StatsRow } from "../portfolio/Stats";
+import StatsHeader, { StatsRow } from "./Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
@@ -68,8 +68,6 @@ export default function ViewHoldings(code: string): React.ReactElement {
     return (
       <div className="page-box">
         <div className="filter-columns">
-          <div className="filter-label" />
-          <div className="filter-label" />
           <div className="filter-label">Value In</div>
           <div className="filter-column">
             <Select

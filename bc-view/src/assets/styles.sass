@@ -1,61 +1,82 @@
 @import "~bulma/sass/utilities/all"
 @import url('https://fonts.googleapis.com/css?family=Helvetica Neue:400,700')
+@import url('')
 $family-sans-serif: "Helvetica Neue", "Helvetica", "Arial", sans-serif
 $table-border: #e7e7e7
+$green: #00a546
+$darkgreen: #00883A
 $table-head-background-color: #00a546
 $table-foot-background-color: #00a546
 $table-foot-cell-color: whitesmoke
 $table-head-cell-color: whitesmoke
 
-@import "~bulma/sass/elements/table"
-@import "~bulma/sass/elements/button"
-@import "~bulma/sass/elements/form"
+
+@import "~bulma/sass/base/all"
+@import "~bulma/sass/grid/_all"
+@import "~bulma/sass/form/all"
+@import "~bulma/sass/elements/_all"
+@import "~bulma/sass/components/all"
+@import "~bulma/sass/layout/_all"
+@import "~font-awesome/scss/font-awesome.scss"
+
+.link
+  color: whitesmoke
+.link:hover
+  color: black
+// These alter the HeaderBrand colors but I couldn't figure out some of the bulma attributes around the dropdown
+// so leaving here for reference
+//.navbar
+//  background-color: $darkgreen
+//
+//.navbar-item
+//  color: whitesmoke
+//
+//.navbar-link
+//  color: whitesmoke
+//  background: $darkgreen
+//  background-color: $darkgreen
+//
+//.navbar-dropdown
+//  color: whitesmoke
+//  background-color: $darkgreen
 
 .page-box
-  padding: 5px 10px
+  padding: 10px 15px
+  background-color: whitesmoke
+
+.hero-body
+  background-color: whitesmoke
+  color: whitesmoke
 
 .filter-columns
   display: flex
-  //flex-basis: 200px
-  width: 100%
+  flex-basis: 200px
+  width: 75%
   justify-content: space-between
-  align-items: center
-  font-size: medium
+  font-size: small
   padding-top: 7.5px
   padding-bottom: 7.5px
 
 .filter-column
+  text-align: left
   min-width: 15%
 
 .filter-label
-  text-align: right
-  min-width: 10%
+  padding-top: 7.5px
+  justify-content: center
 
 .table-header
-  background: #00a546
-  width: 900px
-  color: whitesmoke
   th
     color: whitesmoke
 
-.header-column
-  background: #00a546
-  color: whitesmoke
-  table
-    th
-      color: whitesmoke
-
-.group-header
-  //font-size: medium
-  background: whitesmoke
-  line-height: 2rem
-
 .stats-header
-
   color: whitesmoke
   height: 2em
+  vertical-align: center
   th
-    background-color: #00883A
+    background-color: $darkgreen
+
+
 
 .stats-row
   font-size: medium
@@ -98,7 +119,7 @@ table
   border-collapse: collapse
   th
     color: whitesmoke
-    background: #00a546
+    background: $green
     font-size: smaller
     width: 900px
 

@@ -1,5 +1,6 @@
 import express from "express";
 import logger from "./common/ConfigLogging";
+import "./../node_modules/bulma/css/bulma.css";
 
 // this require is necessary for server HMR to recover from error
 // tslint:disable-next-line:no-var-requires

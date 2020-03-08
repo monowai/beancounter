@@ -10,11 +10,11 @@ export default function StatsHeader(props: { portfolio: Portfolio }): JSX.Elemen
     <tbody key={props.portfolio.code}>
       <tr className={"stats-header"}>
         <th align={"left"}>Summary</th>
-        <th>{translate("dividends")}</th>
-        <th>{translate("purchases")}</th>
-        <th>{translate("sales")}</th>
-        <th>{translate("value")}</th>
-        <th>{translate("strategy")}</th>
+        <th align={"right"}>{translate("dividends")}</th>
+        <th align={"right"}>{translate("purchases")}</th>
+        <th align={"right"}>{translate("sales")}</th>
+        <th align={"right"}>{translate("value")}</th>
+        <th align={"right"}>{translate("strategy")}</th>
       </tr>
     </tbody>
   );

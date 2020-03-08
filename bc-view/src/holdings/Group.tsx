@@ -31,7 +31,7 @@ export function HoldingRows(props: { holdingGroup: HoldingGroup; valueIn: ValueI
   const holdings = props.holdingGroup.positions.map((position, index) => (
     <tr key={props.holdingGroup.group + index} className={"holding-row"}>
       <td className={"asset"}>{position.asset.code + ": " + position.asset.name}</td>
-      <td>
+      <td align={"right"}>
         {!position.asset.market.currency ? (
           "-"
         ) : (
@@ -49,7 +49,7 @@ export function HoldingRows(props: { holdingGroup: HoldingGroup; valueIn: ValueI
           </label>
         )}
       </td>
-      <td>
+      <td align={"right"}>
         <NumberFormat
           value={position.quantityValues.total}
           displayType={"text"}

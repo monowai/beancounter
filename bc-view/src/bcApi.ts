@@ -46,3 +46,12 @@ export const apiPortfolios = async (req: express.Request, res: express.Response)
   } as AxiosRequestConfig;
   await makeRequest(req, opts, res);
 };
+
+export const apiPortfolio = async (req: express.Request, res: express.Response): Promise<any> => {
+  const opts = {
+    url: svcUrl(req, runtimeConfig().bcData).toString(),
+    headers: req.headers,
+    method: "GET"
+  } as AxiosRequestConfig;
+  await makeRequest(req, opts, res);
+};

@@ -7,7 +7,9 @@ import com.beancounter.auth.TokenUtils;
 import com.beancounter.client.PortfolioService.PortfolioGw;
 import com.beancounter.client.RegistrationService;
 import com.beancounter.client.StaticService;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.PortfolioUtils;
@@ -60,10 +62,11 @@ public class TestPortfolioCommands {
 
     SystemUser owner = getSystemUser();
 
-    PortfolioRequest response = getPortfolioResponse("ABC", owner);
+    PortfoliosRequest request = getPortfolioRequest(owner);
+    PortfoliosResponse response = PortfoliosResponse.builder().data(request.getData()).build();
     Mockito.when(portfolioGw.addPortfolios(
         Mockito.eq(tokenService.getBearerToken()),
-        Mockito.isA(PortfolioRequest.class)))
+        Mockito.isA(PortfoliosRequest.class)))
         .thenReturn(response);
 
     String result = portfolioCommands
@@ -78,16 +81,16 @@ public class TestPortfolioCommands {
   void is_AddPortfolioThatExists() {
 
     SystemUser owner = getSystemUser();
-    PortfolioRequest response = getPortfolioResponse("ZZZ", owner);
-
-    Mockito.when(portfolioGw.getPortfolioByCode(tokenService.getBearerToken(), "ZZZ"))
+    Portfolio existing = getPortfolio("ZZZ", owner);
+    PortfolioResponse response = PortfolioResponse.builder().data(existing).build();
+    Mockito.when(portfolioGw.getPortfolioByCode(tokenService.getBearerToken(), existing.getCode()))
         .thenReturn(response); // Portfolio exists
 
     String result = portfolioCommands
         .add("ZZZ", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
     Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
-    assertThat(portfolio).isEqualTo(response.getData().iterator().next());
+    assertThat(portfolio).isEqualTo(response.getData());
   }
 
   private SystemUser getSystemUser() {
@@ -101,18 +104,23 @@ public class TestPortfolioCommands {
     return owner;
   }
 
-  private PortfolioRequest getPortfolioResponse(String code, SystemUser owner) {
+  private PortfoliosRequest getPortfolioRequest(SystemUser owner) {
 
+    PortfoliosRequest portfoliosResponse = PortfoliosRequest.builder().build();
+    portfoliosResponse.setData(Collections.singletonList(
+        getPortfolio("ABC", owner))
+    );
+    return portfoliosResponse;
+  }
+
+  private Portfolio getPortfolio(String code, SystemUser owner) {
     Portfolio toReturn = PortfolioUtils.getPortfolio(code);
     toReturn.setId("createdId");
     toReturn.setName(toReturn.getCode());
     toReturn.setOwner(owner);
     toReturn.setCurrency(staticService.getCurrency("NZD"));
     toReturn.setBase(staticService.getCurrency("USD"));
-
-    PortfolioRequest portfolioRequest = PortfolioRequest.builder().build();
-    portfolioRequest.setData(Collections.singletonList(toReturn));
-    return portfolioRequest;
+    return toReturn;
   }
 
 }

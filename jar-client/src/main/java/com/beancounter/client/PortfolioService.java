@@ -1,7 +1,9 @@
 package com.beancounter.client;
 
 import com.beancounter.auth.TokenService;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,7 @@ public class PortfolioService {
   }
 
   public Portfolio getPortfolioByCode(String portfolioCode) {
-    PortfolioRequest response = null;
+    PortfolioResponse response = null;
     if (portfolioCode != null) {
       response = portfolioGw.getPortfolioByCode(tokenService.getBearerToken(), portfolioCode);
     }
@@ -33,41 +35,41 @@ public class PortfolioService {
   }
 
   public Portfolio getPortfolioById(String portfolioId) {
-    PortfolioRequest response = null;
+    PortfolioResponse response = null;
     if (portfolioId != null) {
       response = portfolioGw.getPortfolioById(tokenService.getBearerToken(), portfolioId);
     }
     return getOrThrow(portfolioId, response);
   }
 
-  public PortfolioRequest add(PortfolioRequest portfolioRequest) {
-    return portfolioGw.addPortfolios(tokenService.getBearerToken(), portfolioRequest);
+  public PortfoliosResponse add(PortfoliosRequest portfoliosRequest) {
+    return portfolioGw.addPortfolios(tokenService.getBearerToken(), portfoliosRequest);
   }
 
-  private Portfolio getOrThrow(String portfolioCode, PortfolioRequest response) {
-    if (response == null || response.getData().isEmpty()) {
+  private Portfolio getOrThrow(String portfolioCode, PortfolioResponse response) {
+    if (response == null || response.getData() == null) {
       throw new BusinessException(String.format("Unable to find portfolio %s", portfolioCode));
     }
-    return response.getData().iterator().next();
+    return response.getData();
   }
 
   @FeignClient(name = "portfolios",
       url = "${marketdata.url:http://localhost:9510/api}")
   public interface PortfolioGw {
     @GetMapping(value = "/portfolios/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    PortfolioRequest getPortfolioById(
+    PortfolioResponse getPortfolioById(
         @RequestHeader("Authorization") String bearerToken,
         @PathVariable("id") String id);
 
-    @GetMapping(value = "/portfolios/{code}/code", produces = {MediaType.APPLICATION_JSON_VALUE})
-    PortfolioRequest getPortfolioByCode(
+    @GetMapping(value = "/portfolios/code/{code}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    PortfolioResponse getPortfolioByCode(
         @RequestHeader("Authorization") String bearerToken,
         @PathVariable("code") String code);
 
     @PostMapping(value = "/portfolios", produces = {MediaType.APPLICATION_JSON_VALUE})
-    PortfolioRequest addPortfolios(
+    PortfoliosResponse addPortfolios(
         @RequestHeader("Authorization") String bearerToken,
-        PortfolioRequest portfolioRequest);
+        PortfoliosRequest portfoliosRequest);
 
   }
 }

@@ -14,7 +14,7 @@ import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./common/ConfigLogging";
 import App from "./App";
 import { runtimeConfig } from "./config";
-import { apiHoldings, apiPortfolios, apiRegister } from "./bcApi";
+import { apiHoldings, apiPortfolio, apiPortfolios, apiRegister } from "./bcApi";
 
 let assets: any;
 let publicDir = "./";
@@ -67,6 +67,7 @@ i18n
         .use(express.json())
         .get("/bff/*/today", apiHoldings)
         .get("/bff/portfolios", apiPortfolios)
+        .get("/bff/portfolios/*", apiPortfolio)
         .post("/bff/register", apiRegister)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);

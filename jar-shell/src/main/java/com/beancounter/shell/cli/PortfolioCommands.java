@@ -2,7 +2,8 @@ package com.beancounter.shell.cli;
 
 import com.beancounter.client.PortfolioService;
 import com.beancounter.client.StaticService;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
@@ -44,7 +45,7 @@ public class PortfolioCommands {
     return writer.writeValueAsString(portfolio);
   }
 
-  @ShellMethod(key = "add", value="Add portfolio")
+  @ShellMethod(key = "add", value = "Add portfolio")
   @SneakyThrows
   public String add(
       @ShellOption(help = "Unique Code") String code,
@@ -63,7 +64,7 @@ public class PortfolioCommands {
     Currency base = staticService.getCurrency(baseCurrency);
     Currency ref = staticService.getCurrency(currencyCode);
 
-    PortfolioRequest portfolioRequest = PortfolioRequest.builder()
+    PortfoliosRequest portfoliosRequest = PortfoliosRequest.builder()
         .data(Collections.singleton(
             Portfolio.builder()
                 .base(base)
@@ -73,8 +74,7 @@ public class PortfolioCommands {
                 .build()
         ))
         .build();
-    PortfolioRequest result = portfolioService.add(portfolioRequest);
-    assert result != null;
+    PortfoliosResponse result = portfolioService.add(portfoliosRequest);
     return writer.writeValueAsString(result.getData().iterator().next());
   }
 }

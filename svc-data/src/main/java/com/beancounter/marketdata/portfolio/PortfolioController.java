@@ -1,11 +1,12 @@
 package com.beancounter.marketdata.portfolio;
 
 import com.beancounter.auth.RoleHelper;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.marketdata.registration.SystemUserService;
-import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,35 +32,46 @@ public class PortfolioController {
   }
 
   @GetMapping
-  PortfolioRequest getPortfolios() {
-    return PortfolioRequest.builder()
+  PortfoliosResponse getPortfolios() {
+    return PortfoliosResponse.builder()
         .data(portfolioService.getPortfolios())
         .build();
   }
 
   @GetMapping("/{id}")
-  public PortfolioRequest getPortfolio(@PathVariable String id) {
+  public PortfolioResponse getPortfolio(@PathVariable String id) {
     Portfolio portfolio = this.portfolioService.find(id);
-    return PortfolioRequest.builder()
-        .data(Collections.singletonList(portfolio))
+    return PortfolioResponse.builder()
+        .data(portfolio)
         .build();
 
   }
 
-  @GetMapping("/{code}/code")
-  public PortfolioRequest getPortfolioByCode(@PathVariable String code) {
-    Portfolio portfolio = this.portfolioService.findByCode(code.toUpperCase());
-    return PortfolioRequest.builder()
-        .data(Collections.singletonList(portfolio))
+  @GetMapping("/code/{code}")
+  public PortfolioResponse getPortfolioByCode(@PathVariable String code) {
+    Portfolio portfolio = this.portfolioService.findByCode(code);
+    return PortfolioResponse.builder()
+        .data(portfolio)
         .build();
 
   }
+
+//  @PatchMapping("/{id}")
+//  PortfolioResponse savePortfolio(
+//      final @AuthenticationPrincipal Jwt jwt,
+//      @PathVariable String id,
+//      @RequestBody PortfolioResponse portfolio) {
+//    SystemUser owner = systemUserService.find(jwt.getSubject());
+//    return PortfolioResponse.builder()
+//        .data(portfolioService.save(owner, portfolio.getData()))
+//        .build();
+//  }
 
   @PostMapping
-  PortfolioRequest savePortfolio(
-      final @AuthenticationPrincipal Jwt jwt, @RequestBody PortfolioRequest portfolio) {
+  PortfoliosRequest savePortfolios(
+      final @AuthenticationPrincipal Jwt jwt, @RequestBody PortfoliosRequest portfolio) {
     SystemUser owner = systemUserService.find(jwt.getSubject());
-    return PortfolioRequest.builder()
+    return PortfoliosRequest.builder()
         .data(portfolioService.save(owner, portfolio.getData()))
         .build();
   }

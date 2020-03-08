@@ -14,7 +14,8 @@ import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
@@ -224,12 +225,12 @@ public class TrnMvcTest {
 
   private Portfolio portfolio(Portfolio portfolio) throws Exception {
 
-    PortfolioRequest createRequest = PortfolioRequest.builder()
+    PortfoliosRequest createRequest = PortfoliosRequest.builder()
         .data(Collections.singleton(portfolio))
         .build();
 
     MvcResult portfolioResult = mockMvc.perform(
-        post("/portfolios")
+        post("/portfolios", portfolio.getCode())
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
@@ -237,9 +238,9 @@ public class TrnMvcTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    PortfolioRequest portfolioResponse = objectMapper
-        .readValue(portfolioResult.getResponse().getContentAsString(), PortfolioRequest.class);
-    return portfolioResponse.getData().iterator().next();
+    PortfoliosResponse portfoliosResponse = objectMapper
+        .readValue(portfolioResult.getResponse().getContentAsString(), PortfoliosResponse.class);
+    return portfoliosResponse.getData().iterator().next();
   }
 
   private Asset asset(AssetRequest assetRequest) throws Exception {

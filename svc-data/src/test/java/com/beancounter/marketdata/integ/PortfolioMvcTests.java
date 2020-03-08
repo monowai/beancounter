@@ -12,7 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
@@ -76,7 +78,7 @@ class PortfolioMvcTests {
             // Mocking does not use the JwtRoleConverter configured in ResourceServerConfig
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
-                .writeValueAsBytes(PortfolioRequest.builder()
+                .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(Collections.singleton(portfolio))
                     .build()))
             .contentType(MediaType.APPLICATION_JSON)
@@ -85,49 +87,61 @@ class PortfolioMvcTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    PortfolioRequest portfolioRequest = objectMapper
-        .readValue(portfolioResult.getResponse().getContentAsString(), PortfolioRequest.class);
+    PortfoliosResponse portfolios = objectMapper
+        .readValue(portfolioResult.getResponse().getContentAsString(), PortfoliosResponse.class);
 
-    assertThat(portfolioRequest)
+    assertThat(portfolios)
         .isNotNull()
         .hasFieldOrProperty("data");
 
-    assertThat(portfolioRequest.getData())
+    assertThat(portfolios.getData())
         .hasSize(1);
 
-    String id = portfolioRequest.getData().iterator().next().getId();
-
+    // Assert not found
     mockMvc.perform(
-        get("/portfolios/{code}/code", "does not exist")
+        get("/portfolios/code/{code}", "does not exist")
             .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError())
         .andReturn();
 
-    mockMvc.perform(
-        get("/portfolios/{code}/code", portfolio.getCode())
+    // Found by code
+    String result = mockMvc.perform(
+        get("/portfolios/code/{code}", portfolio.getCode())
             .with(jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andReturn();
+    ).andExpect(
+        status()
+            .isOk())
+        .andExpect(content()
+            .contentType(MediaType.APPLICATION_JSON))
+        .andReturn().getResponse().getContentAsString();
 
-    mockMvc.perform(
-        get("/portfolios/{id}", id)
-            .with(jwt(token).authorities(authorityRoleConverter))
-            .contentType(MediaType.APPLICATION_JSON)
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andReturn();
+    PortfolioResponse portfolioResponseByCode = objectMapper
+        .readValue(result, PortfolioResponse.class);
+
+    assertThat(portfolioResponseByCode)
+        .isNotNull()
+        .hasNoNullFieldsOrProperties();
 
     mockMvc.perform(
         get("/portfolios/{id}", "invalidId")
             .with(jwt(token).authorities(authorityRoleConverter))
             .with(csrf())
-
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError())
         .andReturn();
+
+    result = mockMvc.perform(
+        get("/portfolios/{id}", portfolioResponseByCode.getData().getId())
+            .with(jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn().getResponse().getContentAsString();
+
+    assertThat(objectMapper.readValue(result, PortfolioResponse.class))
+        .isEqualToComparingFieldByField(portfolioResponseByCode);
 
     MvcResult mvcResult = mockMvc.perform(
         get("/portfolios")
@@ -138,8 +152,8 @@ class PortfolioMvcTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    PortfolioRequest found = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class);
+    PortfoliosResponse found = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfoliosResponse.class);
 
     assertThat(found.getData()).isNotEmpty();
 
@@ -162,7 +176,7 @@ class PortfolioMvcTests {
 
     Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(portfolio);
-    PortfolioRequest createRequest = PortfolioRequest.builder()
+    PortfoliosRequest createRequest = PortfoliosRequest.builder()
         .data(portfolios)
         .build();
 
@@ -175,17 +189,17 @@ class PortfolioMvcTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    PortfolioRequest portfolioRequest = objectMapper
-        .readValue(portfolioResult.getResponse().getContentAsString(), PortfolioRequest.class);
+    PortfoliosResponse portfoliosResponse = objectMapper
+        .readValue(portfolioResult.getResponse().getContentAsString(), PortfoliosResponse.class);
 
-    assertThat(portfolioRequest)
+    assertThat(portfoliosResponse)
         .isNotNull()
         .hasFieldOrProperty("data");
 
-    assertThat(portfolioRequest.getData())
+    assertThat(portfoliosResponse.getData())
         .hasSize(1);
 
-    portfolioRequest.getData().forEach(foundPortfolio -> assertThat(foundPortfolio)
+    portfoliosResponse.getData().forEach(foundPortfolio -> assertThat(foundPortfolio)
         .hasFieldOrProperty("id")
         .hasFieldOrPropertyWithValue("code", portfolio.getCode())
         .hasFieldOrPropertyWithValue("name",
@@ -212,7 +226,7 @@ class PortfolioMvcTests {
         post("/portfolios")
             // No Token
             .content(new ObjectMapper()
-                .writeValueAsBytes(PortfolioRequest.builder()
+                .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(Collections.singleton(portfolio))
                     .build()))
             .contentType(MediaType.APPLICATION_JSON)
@@ -228,7 +242,7 @@ class PortfolioMvcTests {
         post("/portfolios")
             .with(jwt(tokenA).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
-                .writeValueAsBytes(PortfolioRequest.builder()
+                .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(Collections.singleton(portfolio))
                     .build()))
             .contentType(MediaType.APPLICATION_JSON)
@@ -238,12 +252,12 @@ class PortfolioMvcTests {
         .andReturn();
 
     // Logged in user created a Portfolio
-    PortfolioRequest portfolioResult = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class);
-    assertThat(portfolioResult.getData())
+    PortfoliosResponse portfoliosResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfoliosResponse.class);
+    assertThat(portfoliosResponse.getData())
         .hasSize(1);
 
-    portfolio = portfolioResult.getData().iterator().next();
+    portfolio = portfoliosResponse.getData().iterator().next();
     assertThat(portfolio).hasNoNullFieldsOrProperties();
 
     // User A can see the portfolio they created
@@ -256,11 +270,12 @@ class PortfolioMvcTests {
         .andReturn();
 
     assertThat(objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
-        .hasSize(1);
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioResponse.class)
+        .getData()).hasNoNullFieldsOrProperties();
+
     // By code, also can
     mvcResult = mockMvc.perform(
-        get("/portfolios/{code}/code", portfolio.getCode())
+        get("/portfolios/code/{code}", portfolio.getCode())
             .with(jwt(tokenA).authorities(authorityRoleConverter))
 
     ).andExpect(status().isOk())
@@ -268,8 +283,9 @@ class PortfolioMvcTests {
         .andReturn();
 
     assertThat(objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
-        .hasSize(1);
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioResponse.class)
+        .getData())
+        .hasNoNullFieldsOrProperties();
 
     // All users portfolios
     mvcResult = mockMvc.perform(
@@ -281,7 +297,7 @@ class PortfolioMvcTests {
         .andReturn();
 
     assertThat(objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfoliosRequest.class).getData())
         .hasSize(1);
 
     // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
@@ -300,7 +316,7 @@ class PortfolioMvcTests {
         .andReturn();
 
     mockMvc.perform(
-        get("/portfolios/{code}/code", portfolio.getCode())
+        get("/portfolios/code/{code}", portfolio.getCode())
             .with(jwt(tokenB).authorities(authorityRoleConverter))
 
     ).andExpect(status().isBadRequest())
@@ -315,7 +331,7 @@ class PortfolioMvcTests {
         .andReturn();
 
     assertThat(objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), PortfolioRequest.class).getData())
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfoliosRequest.class).getData())
         .hasSize(0);
 
   }
@@ -343,7 +359,7 @@ class PortfolioMvcTests {
         post("/portfolios")
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
-                .writeValueAsBytes(PortfolioRequest.builder()
+                .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(portfolios)
                     .build()))
             .contentType(MediaType.APPLICATION_JSON)

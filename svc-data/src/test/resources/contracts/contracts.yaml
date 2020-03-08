@@ -105,6 +105,17 @@ response:
   headers:
     Content-Type: application/json
 ---
+name: portfolios
+priority: 1
+request:
+  method: GET
+  url: /portfolios
+response:
+  status: 200
+  bodyFromFile: "portfolio/portfolios.json"
+  headers:
+    Content-Type: application/json
+---
 name: testPortfolioId
 priority: 1
 request:
@@ -112,7 +123,18 @@ request:
   url: /portfolios/TEST
 response:
   status: 200
-  bodyFromFile: "portfolio/TEST-response.json"
+  bodyFromFile: "portfolio/test.json"
+  headers:
+    Content-Type: application/json
+---
+name: testPortfolioCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/code/TEST
+response:
+  status: 200
+  bodyFromFile: "portfolio/test.json"
   headers:
     Content-Type: application/json
 ---
@@ -123,18 +145,7 @@ request:
   url: /portfolios/EMPTY
 response:
   status: 200
-  bodyFromFile: "portfolio/EMPTY-response.json"
-  headers:
-    Content-Type: application/json
----
-name: testPortfolioCode
-priority: 1
-request:
-  method: GET
-  url: /portfolios/TEST/code
-response:
-  status: 200
-  bodyFromFile: "portfolio/TEST-response.json"
+  bodyFromFile: "portfolio/empty.json"
   headers:
     Content-Type: application/json
 ---
@@ -142,13 +153,12 @@ name: emptyPortfolioCode
 priority: 1
 request:
   method: GET
-  url: /portfolios/EMPTY/code
+  url: /portfolios/code/EMPTY
 response:
   status: 200
-  bodyFromFile: "portfolio/EMPTY-response.json"
+  bodyFromFile: "portfolio/empty.json"
   headers:
     Content-Type: application/json
-
 ---
 name: currencies
 priority: 1

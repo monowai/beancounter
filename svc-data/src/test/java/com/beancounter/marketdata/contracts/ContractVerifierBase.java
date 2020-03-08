@@ -7,7 +7,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
-import com.beancounter.common.contracts.PortfolioRequest;
+import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
@@ -161,27 +162,36 @@ public class ContractVerifierBase {
   }
 
   @BeforeEach
+  @SneakyThrows
   public void mockPortfolios() throws Exception {
     mockPortfolio(getEmptyPortfolio());
     mockPortfolio(getTestPortfolio());
+    // All Portfolio
+    File jsonFile =
+        new ClassPathResource(contractPath + "/portfolio/portfolios.json").getFile();
+    PortfoliosResponse response = new ObjectMapper().readValue(jsonFile, PortfoliosResponse.class);
+    Mockito.when(portfolioService.getPortfolios()).thenReturn(response.getData());
+
   }
 
   private Portfolio getTestPortfolio() throws IOException {
     File jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/TEST-response.json").getFile();
+        new ClassPathResource(contractPath + "/portfolio/test.json").getFile();
 
-    PortfolioRequest portfolioRequest =
-        new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
-    return portfolioRequest.getData().iterator().next();
+    return getPortfolio(jsonFile);
   }
 
   private Portfolio getEmptyPortfolio() throws IOException {
     File jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/EMPTY-response.json").getFile();
+        new ClassPathResource(contractPath + "/portfolio/empty.json").getFile();
 
-    PortfolioRequest portfolioRequest =
-        new ObjectMapper().readValue(jsonFile, PortfolioRequest.class);
-    return portfolioRequest.getData().iterator().next();
+    return getPortfolio(jsonFile);
+  }
+
+  private Portfolio getPortfolio(File jsonFile) throws IOException {
+    PortfolioResponse portfolioResponse =
+        new ObjectMapper().readValue(jsonFile, PortfolioResponse.class);
+    return portfolioResponse.getData();
   }
 
   private void mockPortfolio(Portfolio portfolio) {

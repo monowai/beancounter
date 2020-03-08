@@ -65,6 +65,9 @@ export function Portfolios(): React.ReactElement {
                     {portfolio.base.symbol}
                     {portfolio.base.code}
                   </td>
+                  <td>
+                    <Link to={`/portfolio/${portfolio.code}`}>Edit</Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

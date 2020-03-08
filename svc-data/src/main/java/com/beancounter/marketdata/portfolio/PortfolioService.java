@@ -37,16 +37,26 @@ public class PortfolioService {
     return results;
   }
 
+  public Portfolio save(SystemUser owner, Portfolio portfolio) {
+    verifyOwner(owner);
+    return portfolioRepository.save(prepare(owner, portfolio));
+  }
+
   private Collection<Portfolio> prepare(SystemUser owner, Collection<Portfolio> portfolios) {
     Collection<Portfolio> results = new ArrayList<>();
     for (Portfolio portfolio : portfolios) {
-      portfolio.setId(KeyGenUtils.format(UUID.randomUUID()));
-      portfolio.setCode(portfolio.getCode().toUpperCase());
-      portfolio.setOwner(owner);
+      prepare(owner, portfolio);
       results.add(portfolio);
     }
 
     return results;
+  }
+
+  private Portfolio prepare(SystemUser owner, Portfolio portfolio) {
+    portfolio.setId(KeyGenUtils.format(UUID.randomUUID()));
+    portfolio.setCode(portfolio.getCode().toUpperCase());
+    portfolio.setOwner(owner);
+    return portfolio;
   }
 
   private void verifyOwner(SystemUser owner) {

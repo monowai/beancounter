@@ -34,6 +34,7 @@ export const resetToken = (): void => {
     localStorage.removeItem("token");
   }
 };
+
 export const makeRequest = async (
   req: express.Request,
   opts: AxiosRequestConfig,

@@ -1,68 +1,44 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import logger from "../common/ConfigLogging";
-import { Currency, Portfolio, PortfolioInput } from "../types/beancounter";
+import { Portfolio, PortfolioInput } from "../types/beancounter";
 import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
 import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/web";
 import handleError from "../common/errors/UserError";
-import { currencyOptions } from "../static/currencies";
+import { currencyOptions, useCurrencies } from "../static/currencies";
+import { updatePortfolio } from "./portfolioApi";
 
 export function ManagePortfolio(code: string): React.ReactElement {
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [portfolio, setPortfolio] = useState<Portfolio>();
-  const [currencies, setCurrencies] = useState<Currency[]>();
+  const currencies = useCurrencies();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
 
   const savePortfolio = handleSubmit(({ code, name, base, currency }) => {
-    const updatePortfolio = async (
-      id: string,
-      portfolioInput: PortfolioInput,
-      config: {
-        headers: { Authorization: string };
-      }
-    ): Promise<void> => {
-      setLoading(true);
-      logger.debug(">>patch portfolio %s", id);
-      await _axios
-        .patch<Portfolio>(`/bff/portfolios/${id}`, portfolioInput, config)
-        .then(result => {
-          logger.debug("<<patched Portfolio");
-          setPortfolio(result.data);
-        })
-        .catch(err => {
-          setError(err);
-          if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
-          }
-        });
-    };
-
     if (portfolio) {
+      setLoading(true);
       updatePortfolio(
         portfolio.id,
         { code, name, currency, base },
         {
           headers: getBearerToken()
         }
-      ).finally(() => setLoading(false));
+      )
+        .then(result => setPortfolio(result))
+        .catch(err => {
+          setError(err);
+          if (err.response) {
+            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+        })
+        .finally(() => setLoading(false));
     }
   });
 
   useEffect(() => {
-    const fetchCurrencies = async (config: {
-      headers: { Authorization: string };
-    }): Promise<void> => {
-      setLoading(true);
-      logger.debug(">>fetch getCurrencies");
-      await _axios.get<Currency[]>("/bff/currencies", config).then(result => {
-        logger.debug("<<fetched Currencies");
-        setCurrencies(result.data);
-      });
-    };
-
     const fetchPortfolio = async (config: {
       headers: { Authorization: string };
     }): Promise<void> => {
@@ -82,14 +58,12 @@ export function ManagePortfolio(code: string): React.ReactElement {
         });
     };
     setToken(keycloak);
-    fetchCurrencies({
-      headers: getBearerToken()
-    }).finally(() => logger.debug("Currencies Loaded"));
+    setLoading(true);
     fetchPortfolio({
       headers: getBearerToken()
     }).finally(() => setLoading(false));
   }, [code, keycloak]);
-  if (loading || !currencies) {
+  if (loading) {
     return <div id="root">Loading...</div>;
   }
   if (error) {
@@ -98,7 +72,7 @@ export function ManagePortfolio(code: string): React.ReactElement {
   if (errors) {
     console.log(errors);
   }
-  if (portfolio && currencies) {
+  if (portfolio) {
     return (
       <section className="page-box hero is-primary is-fullheight">
         <div className="hero-body">

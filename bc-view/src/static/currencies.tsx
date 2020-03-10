@@ -1,8 +1,23 @@
 import { Currency } from "../types/beancounter";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
+import logger from "../common/ConfigLogging";
+import { _axios, getBearerToken } from "../common/axiosUtils";
 
-export function byCurrencyCode(code: string, currencies: Currency[]): Currency | undefined {
-  return currencies.find(element => element.code === code);
+export function useCurrencies(): Currency[] {
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+
+  useEffect(() => {
+    logger.debug(">>fetch getCurrencies");
+    _axios
+      .get<any>("/bff/currencies", {
+        headers: getBearerToken()
+      })
+      .then(result => {
+        logger.debug("<<fetched Currencies");
+        setCurrencies(result.data);
+      });
+  }, []);
+  return currencies;
 }
 
 export function currencyOptions(currencies: Currency[]): ReactNode {

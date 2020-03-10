@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * AlphaAdvantage - www.alphavantage.co.
+ * Facade for WorldTradingData
  *
  * @author mikeh
  * @since 2019-03-03
@@ -28,17 +28,17 @@ public class WtdService implements MarketDataProvider {
   public static final String ID = "WTD";
   @Value("${beancounter.marketdata.provider.WTD.key:demo}")
   private String apiKey;
-  private WtdRequester wtdRequester;
+  private WtdProxy wtdProxy;
   private WtdConfig wtdConfig;
-  private WtdResponseHandler wtdResponseHandler;
+  private WtdAdapter wtdAdapter;
 
   @Autowired
-  WtdService(WtdRequester wtdRequester,
+  WtdService(WtdProxy wtdProxy,
              WtdConfig wtdConfig,
-             WtdResponseHandler wtdResponseHandler) {
-    this.wtdRequester = wtdRequester;
+             WtdAdapter wtdAdapter) {
+    this.wtdProxy = wtdProxy;
     this.wtdConfig = wtdConfig;
-    this.wtdResponseHandler = wtdResponseHandler;
+    this.wtdAdapter = wtdAdapter;
   }
 
   @PostConstruct
@@ -56,7 +56,7 @@ public class WtdService implements MarketDataProvider {
 
     for (Integer batch : providerArguments.getBatch().keySet()) {
       batchedRequests.put(batch,
-          wtdRequester.getMarketData(
+          wtdProxy.getMarketData(
               providerArguments.getBatch().get(batch),
               providerArguments.getBatchConfigs().get(batch).getDate(),
               apiKey));
@@ -74,7 +74,7 @@ public class WtdService implements MarketDataProvider {
     while (!empty) {
       for (Integer batch : requests.keySet()) {
         if (requests.get(batch).isDone()) {
-          results.addAll(wtdResponseHandler.get(providerArguments, batch, requests.get(batch)));
+          results.addAll(wtdAdapter.get(providerArguments, batch, requests.get(batch)));
           requests.remove(batch);
         }
         empty = requests.isEmpty();

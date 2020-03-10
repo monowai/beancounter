@@ -4,6 +4,7 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.BatchConfig;
+import com.beancounter.marketdata.providers.MarketDataAdapter;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class WtdResponseHandler {
+public class WtdAdapter implements MarketDataAdapter {
   public Collection<MarketData> get(ProviderArguments providerArguments,
                                     Integer batchId, Future<WtdResponse> response) {
     Collection<MarketData> results = new ArrayList<>();

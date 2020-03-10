@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.alpha;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.providers.MarketDataAdapter;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,10 +20,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class AlphaResponseHandler {
+public class AlphaAdapter implements MarketDataAdapter {
   private ObjectMapper alphaMdMapper;
 
-  public AlphaResponseHandler() {
+  public AlphaAdapter() {
     alphaMdMapper = new ObjectMapper();
 
     SimpleModule module =

@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.providers.alpha.AlphaAdapter;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
-import com.beancounter.marketdata.providers.alpha.AlphaResponseHandler;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,7 @@ import org.springframework.core.io.ClassPathResource;
  * @since 2019-03-03
  */
 class TestAlphaProvider {
-  private ObjectMapper mapper = new AlphaResponseHandler().getAlphaObjectMapper();
+  private ObjectMapper mapper = new AlphaAdapter().getAlphaObjectMapper();
 
   @Test
   void is_NullAsset() throws Exception {

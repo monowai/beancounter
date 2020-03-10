@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * AlphaAdvantage - www.alphavantage.co.
+ * Facade. AlphaAdvantage - www.alphavantage.co.
  *
  * @author mikeh
  * @since 2019-03-03
@@ -31,18 +31,18 @@ public class AlphaService implements MarketDataProvider {
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
 
-  private AlphaRequester alphaRequester;
+  private AlphaProxy alphaProxy;
   private AlphaConfig alphaConfig;
-  private AlphaResponseHandler alphaResponseHandler;
+  private AlphaAdapter alphaAdapter;
 
   public AlphaService(AlphaConfig alphaConfig) {
     this.alphaConfig = alphaConfig;
   }
 
   @Autowired
-  void setAlphaHelpers(AlphaRequester alphaRequester, AlphaResponseHandler alphaResponseHandler) {
-    this.alphaRequester = alphaRequester;
-    this.alphaResponseHandler = alphaResponseHandler;
+  void setAlphaHelpers(AlphaProxy alphaProxy, AlphaAdapter alphaAdapter) {
+    this.alphaProxy = alphaProxy;
+    this.alphaAdapter = alphaAdapter;
   }
 
   @PostConstruct
@@ -60,7 +60,7 @@ public class AlphaService implements MarketDataProvider {
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
       requests.put(batchId,
-          alphaRequester.getMarketData(providerArguments.getBatch().get(batchId), apiKey));
+          alphaProxy.getMarketData(providerArguments.getBatch().get(batchId), apiKey));
     }
 
     return getMarketData(providerArguments, requests);
@@ -76,7 +76,7 @@ public class AlphaService implements MarketDataProvider {
       for (Integer batch : requests.keySet()) {
         if (requests.get(batch).isDone()) {
           results.addAll(
-              alphaResponseHandler.get(providerArguments, batch, requests.get(batch))
+              alphaAdapter.get(providerArguments, batch, requests.get(batch))
           );
           requests.remove(batch);
         }

@@ -7,14 +7,14 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 /**
- * Async requester to obtain MarketData.
+ * Async proxy to obtain MarketData from Alpha
  *
  * @author mikeh
  * @since 2019-03-06
  */
 
 @Service
-public class AlphaRequester {
+public class AlphaProxy {
 
   private AlphaGateway alphaGateway;
 

@@ -8,14 +8,14 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 /**
- * Async request to obtain MarketData.
+ * Async proxy to obtain MarketData.
  *
  * @author mikeh
  * @since 2019-03-06
  */
 
 @Service
-public class WtdRequester {
+public class WtdProxy {
 
   private WtdGateway wtdGateway;
 

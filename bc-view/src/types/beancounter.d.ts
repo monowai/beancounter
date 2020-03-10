@@ -28,19 +28,18 @@ export interface Market {
 }
 
 export interface Currency {
-  id: string;
   code: string;
   symbol: string;
 }
 
-interface Asset {
+export interface Asset {
   id: string;
   code: string;
   name: string;
   market: Market;
 }
 
-interface MoneyValues {
+export interface MoneyValues {
   dividends: number;
   costValue: number;
   fees: number;
@@ -57,7 +56,7 @@ interface MoneyValues {
   valueIn: ValuationCcy;
 }
 
-interface QuantityValues {
+export interface QuantityValues {
   sold: number;
   purchased: number;
   total: number;
@@ -70,13 +69,20 @@ export interface Position {
   lastTradeDate: string;
 }
 
-interface Portfolio {
+export interface Portfolio {
   id: string;
   code: string;
   name: string;
   currency: Currency;
   base: Currency;
   owner: SystemUser;
+}
+
+export interface PortfolioInput {
+  code: string;
+  name: string;
+  currency: string;
+  base: string;
 }
 
 // Server side contract

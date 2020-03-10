@@ -13,7 +13,10 @@ function HeaderUserControls(): React.ReactElement {
         <span className="icon is-small">
           <i className="fa fa-sign-in" />
         </span>
-        <Link className={"link"} to={"/login"}> Sign In</Link>
+        <Link className={"link"} to={"/login"}>
+          {" "}
+          Sign In
+        </Link>
       </div>
     );
 

@@ -1,6 +1,5 @@
 package com.beancounter.common.contracts;
 
-import com.beancounter.common.model.Portfolio;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,5 +11,5 @@ import lombok.RequiredArgsConstructor;
 @Data
 @Builder
 public class PortfoliosRequest {
-  private Collection<Portfolio> data;
+  private Collection<PortfolioInput> data;
 }

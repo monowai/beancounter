@@ -43,16 +43,17 @@ public class StaticService {
     return staticGateway.getCurrencies(tokenService.getBearerToken());
   }
 
-  public Currency getCurrency(String currency) {
-    if (currency == null) {
+  public Currency getCurrency(String currencyCode) {
+    if (currencyCode == null) {
       return null;
     }
-
-    Currency result = getCurrencies().getData().get(currency);
-    if (result == null) {
-      throw new BusinessException(String.format("Unable to resolve the currency %s", currency));
+    Collection<Currency> currencies = getCurrencies().getData();
+    for (Currency currency : currencies) {
+      if (currency.getCode().equalsIgnoreCase(currencyCode)) {
+        return currency;
+      }
     }
-    return result;
+    throw new BusinessException(String.format("Unable to resolve the currency %s", currencyCode));
   }
 
   private Market get(String key) {

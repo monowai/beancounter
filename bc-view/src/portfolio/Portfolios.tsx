@@ -19,11 +19,11 @@ export function Portfolios(): React.ReactElement {
       headers: { Authorization: string };
     }): Promise<void> => {
       setLoading(true);
-      logger.debug(">>fetch apiPortfolios");
+      logger.debug(">>fetch getPortfolios");
       await _axios
         .get<Portfolio[]>("/bff/portfolios", config)
         .then(result => {
-          logger.debug("<<fetched apiPortfolios");
+          logger.debug("<<fetched getPortfolios");
           setPortfolios(result.data);
         })
         .catch(err => {

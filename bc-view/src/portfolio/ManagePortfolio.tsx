@@ -1,31 +1,77 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import logger from "../common/ConfigLogging";
-import { Portfolio } from "../types/beancounter";
+import { Currency, Portfolio, PortfolioInput } from "../types/beancounter";
 import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
 import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/web";
 import handleError from "../common/errors/UserError";
-import { SelectCurrency } from "../common/controls/SelectCurrency";
+import { currencyOptions } from "../static/currencies";
 
 export function ManagePortfolio(code: string): React.ReactElement {
-  const { register, handleSubmit, errors } = useForm();
-  const onSubmit = (data: Record<string, Portfolio>) => console.log(data);
+  const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [portfolio, setPortfolio] = useState<Portfolio>();
+  const [currencies, setCurrencies] = useState<Currency[]>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
 
+  const savePortfolio = handleSubmit(({ code, name, base, currency }) => {
+    const updatePortfolio = async (
+      id: string,
+      portfolioInput: PortfolioInput,
+      config: {
+        headers: { Authorization: string };
+      }
+    ): Promise<void> => {
+      setLoading(true);
+      logger.debug(">>patch portfolio %s", id);
+      await _axios
+        .patch<Portfolio>(`/bff/portfolios/${id}`, portfolioInput, config)
+        .then(result => {
+          logger.debug("<<patched Portfolio");
+          setPortfolio(result.data);
+        })
+        .catch(err => {
+          setError(err);
+          if (err.response) {
+            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+        });
+    };
+
+    if (portfolio) {
+      updatePortfolio(
+        portfolio.id,
+        { code, name, currency, base },
+        {
+          headers: getBearerToken()
+        }
+      ).finally(() => setLoading(false));
+    }
+  });
+
   useEffect(() => {
+    const fetchCurrencies = async (config: {
+      headers: { Authorization: string };
+    }): Promise<void> => {
+      setLoading(true);
+      logger.debug(">>fetch getCurrencies");
+      await _axios.get<Currency[]>("/bff/currencies", config).then(result => {
+        logger.debug("<<fetched Currencies");
+        setCurrencies(result.data);
+      });
+    };
+
     const fetchPortfolio = async (config: {
       headers: { Authorization: string };
     }): Promise<void> => {
       setLoading(true);
-      logger.debug(">>fetch apiPortfolio");
+      logger.debug(">>fetch getData");
       await _axios
         .get<Portfolio>(`/bff/portfolios/code/${code}`, config)
         .then(result => {
-          logger.debug("<<fetched apiPortfolio");
+          logger.debug("<<fetched getData");
           setPortfolio(result.data);
         })
         .catch(err => {
@@ -36,11 +82,14 @@ export function ManagePortfolio(code: string): React.ReactElement {
         });
     };
     setToken(keycloak);
+    fetchCurrencies({
+      headers: getBearerToken()
+    }).finally(() => logger.debug("Currencies Loaded"));
     fetchPortfolio({
       headers: getBearerToken()
     }).finally(() => setLoading(false));
   }, [code, keycloak]);
-  if (loading) {
+  if (loading || !currencies) {
     return <div id="root">Loading...</div>;
   }
   if (error) {
@@ -49,14 +98,14 @@ export function ManagePortfolio(code: string): React.ReactElement {
   if (errors) {
     console.log(errors);
   }
-  if (portfolio) {
+  if (portfolio && currencies) {
     return (
       <section className="page-box hero is-primary is-fullheight">
         <div className="hero-body">
           <div className="container">
             <div className="columns is-centered">
               <form
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={savePortfolio}
                 className="column is-5-tablet is-4-desktop is-3-widescreen"
               >
                 <label className="label ">Code</label>
@@ -79,7 +128,7 @@ export function ManagePortfolio(code: string): React.ReactElement {
                       type="text"
                       placeholder="name"
                       defaultValue={portfolio.name}
-                      name="Name"
+                      name="name"
                       ref={register({ required: true, maxLength: 100 })}
                     />
                   </div>
@@ -87,17 +136,29 @@ export function ManagePortfolio(code: string): React.ReactElement {
                 <div className="field">
                   <label className="label">Reporting Currency</label>
                   <div className="control">
-                    <SelectCurrency
-                      name={"refCcy"}
-                      default={portfolio?.currency.code}
-                      key={"currency"}
-                    />
+                    <select
+                      placeholder={"Select currency"}
+                      className={"select is-3"}
+                      defaultValue={portfolio.currency.code}
+                      name={"currency"}
+                      ref={register({ required: true })}
+                    >
+                      {currencyOptions(currencies)}
+                    </select>
                   </div>
                 </div>
                 <div className="field">
                   <label className="label">Reference Currency</label>
                   <div className="control">
-                    <SelectCurrency name={"baseCcy"} default={portfolio?.base.code} key={"base"} />
+                    <select
+                      placeholder={"Select currency"}
+                      className={"select is-3"}
+                      defaultValue={portfolio.base.code}
+                      name={"base"}
+                      ref={register({ required: true })}
+                    >
+                      {currencyOptions(currencies)}
+                    </select>
                   </div>
                 </div>
                 <div className="field is-grouped">

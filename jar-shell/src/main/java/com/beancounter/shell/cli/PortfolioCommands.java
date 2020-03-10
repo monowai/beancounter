@@ -1,11 +1,10 @@
 package com.beancounter.shell.cli;
 
 import com.beancounter.client.PortfolioService;
-import com.beancounter.client.StaticService;
+import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -20,13 +19,10 @@ import org.springframework.shell.standard.ShellOption;
 @Slf4j
 public class PortfolioCommands {
   private PortfolioService portfolioService;
-  private StaticService staticService;
   private ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
-  PortfolioCommands(PortfolioService portfolioService,
-                    StaticService staticService) {
+  PortfolioCommands(PortfolioService portfolioService) {
     this.portfolioService = portfolioService;
-    this.staticService = staticService;
   }
 
   @ShellMethod("Find portfolio by code")
@@ -61,14 +57,11 @@ public class PortfolioCommands {
       log.info("Creating portfolio {}", code);
     }
 
-    Currency base = staticService.getCurrency(baseCurrency);
-    Currency ref = staticService.getCurrency(currencyCode);
-
     PortfoliosRequest portfoliosRequest = PortfoliosRequest.builder()
         .data(Collections.singleton(
-            Portfolio.builder()
-                .base(base)
-                .currency(ref)
+            PortfolioInput.builder()
+                .base(baseCurrency)
+                .currency(currencyCode)
                 .code(code)
                 .name(name)
                 .build()

@@ -1,17 +1,15 @@
 package com.beancounter.marketdata.portfolio;
 
 import com.beancounter.auth.RoleHelper;
+import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.SystemUser;
-import com.beancounter.marketdata.registration.SystemUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,12 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class PortfolioController {
   private PortfolioService portfolioService;
-  private SystemUserService systemUserService;
 
   @Autowired
-  void setPortfolioService(PortfolioService portfolioService, SystemUserService systemUserService) {
+  void setPortfolioService(PortfolioService portfolioService) {
     this.portfolioService = portfolioService;
-    this.systemUserService = systemUserService;
   }
 
   @GetMapping
@@ -56,23 +52,20 @@ public class PortfolioController {
 
   }
 
-//  @PatchMapping("/{id}")
-//  PortfolioResponse savePortfolio(
-//      final @AuthenticationPrincipal Jwt jwt,
-//      @PathVariable String id,
-//      @RequestBody PortfolioResponse portfolio) {
-//    SystemUser owner = systemUserService.find(jwt.getSubject());
-//    return PortfolioResponse.builder()
-//        .data(portfolioService.save(owner, portfolio.getData()))
-//        .build();
-//  }
+  @PatchMapping(value = "/{id}")
+  PortfolioResponse savePortfolio(
+      @PathVariable String id,
+      @RequestBody PortfolioInput portfolio) {
+    return PortfolioResponse.builder()
+        .data(portfolioService.update(id, portfolio))
+        .build();
+  }
 
   @PostMapping
-  PortfoliosRequest savePortfolios(
-      final @AuthenticationPrincipal Jwt jwt, @RequestBody PortfoliosRequest portfolio) {
-    SystemUser owner = systemUserService.find(jwt.getSubject());
-    return PortfoliosRequest.builder()
-        .data(portfolioService.save(owner, portfolio.getData()))
+  PortfoliosResponse savePortfolios(
+      @RequestBody PortfoliosRequest portfolio) {
+    return PortfoliosResponse.builder()
+        .data(portfolioService.save(portfolio.getData()))
         .build();
   }
 }

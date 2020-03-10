@@ -24,7 +24,7 @@ nock(bff, {
   .log(console.log);
 
 describe("<ViewHoldings />", () => {
-  it("matches snapshot when apiHoldings present", async () => {
+  it("matches snapshot when getData present", async () => {
     const TestHoldings = (): JSX.Element => {
       return ViewHoldings("test");
     };
@@ -34,7 +34,7 @@ describe("<ViewHoldings />", () => {
     expect(container).toMatchSnapshot();
   });
 
-  it("matches snapshot for zero apiHoldings", async () => {
+  it("matches snapshot for zero getData", async () => {
     const ZeroHoldings = (): JSX.Element => {
       return ViewHoldings("zero");
     };

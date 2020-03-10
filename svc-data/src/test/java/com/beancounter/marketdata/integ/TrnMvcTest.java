@@ -14,6 +14,7 @@ import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
@@ -25,7 +26,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.markets.MarketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -91,10 +91,10 @@ public class TrnMvcTest {
         .data("aapl", AssetUtils.getAsset("AAPL", nasdaq))
         .build());
 
-    Portfolio portfolio = portfolio(Portfolio.builder()
+    Portfolio portfolio = portfolio(PortfolioInput.builder()
         .code("Twix")
         .name("NZD Portfolio")
-        .currency(CurrencyUtils.getCurrency("NZD"))
+        .currency("NZD")
         .build());
     // Creating in random order and assert retrieved in Sort Order.
     TrnRequest trnRequest = TrnRequest.builder()
@@ -223,7 +223,7 @@ public class TrnMvcTest {
     assertThat(mvcResult.getResponse().getContentAsString()).isNotNull().isEqualTo("4");
   }
 
-  private Portfolio portfolio(Portfolio portfolio) throws Exception {
+  private Portfolio portfolio(PortfolioInput portfolio) throws Exception {
 
     PortfoliosRequest createRequest = PortfoliosRequest.builder()
         .data(Collections.singleton(portfolio))

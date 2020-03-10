@@ -62,8 +62,9 @@ public class TestPortfolioCommands {
 
     SystemUser owner = getSystemUser();
 
-    PortfoliosRequest request = getPortfolioRequest(owner);
-    PortfoliosResponse response = PortfoliosResponse.builder().data(request.getData()).build();
+    PortfoliosResponse response = PortfoliosResponse.builder()
+        .data(Collections.singletonList(getPortfolio("ABC", owner)))
+        .build();
     Mockito.when(portfolioGw.addPortfolios(
         Mockito.eq(tokenService.getBearerToken()),
         Mockito.isA(PortfoliosRequest.class)))
@@ -104,19 +105,9 @@ public class TestPortfolioCommands {
     return owner;
   }
 
-  private PortfoliosRequest getPortfolioRequest(SystemUser owner) {
-
-    PortfoliosRequest portfoliosResponse = PortfoliosRequest.builder().build();
-    portfoliosResponse.setData(Collections.singletonList(
-        getPortfolio("ABC", owner))
-    );
-    return portfoliosResponse;
-  }
-
   private Portfolio getPortfolio(String code, SystemUser owner) {
     Portfolio toReturn = PortfolioUtils.getPortfolio(code);
     toReturn.setId("createdId");
-    toReturn.setName(toReturn.getCode());
     toReturn.setOwner(owner);
     toReturn.setCurrency(staticService.getCurrency("NZD"));
     toReturn.setBase(staticService.getCurrency("USD"));

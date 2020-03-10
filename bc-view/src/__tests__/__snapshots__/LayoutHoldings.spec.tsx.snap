@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<ViewHoldings /> matches snapshot for zero apiHoldings 1`] = `
+exports[`<ViewHoldings /> matches snapshot for zero getData 1`] = `
 .emotion-8 {
   position: relative;
   box-sizing: border-box;
@@ -425,7 +425,7 @@ exports[`<ViewHoldings /> matches snapshot for zero apiHoldings 1`] = `
       </table>
     </div>
     <div
-      class="all-apiHoldings"
+      class="all-getData"
     >
       <table
         class="table is-striped is-hoverable"
@@ -492,7 +492,7 @@ exports[`<ViewHoldings /> matches snapshot for zero apiHoldings 1`] = `
 </div>
 `;
 
-exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
+exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
 .emotion-8 {
   position: relative;
   box-sizing: border-box;
@@ -917,7 +917,7 @@ exports[`<ViewHoldings /> matches snapshot when apiHoldings present 1`] = `
       </table>
     </div>
     <div
-      class="all-apiHoldings"
+      class="all-getData"
     >
       <table
         class="table is-striped is-hoverable"

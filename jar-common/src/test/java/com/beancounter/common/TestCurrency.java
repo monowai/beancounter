@@ -10,8 +10,8 @@ import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -40,15 +40,15 @@ class TestCurrency {
   void is_CurrencyResponseSerializing() throws Exception {
 
     CurrencyResponse currencyResponse = CurrencyResponse.builder().build();
-    Map<String, Currency> currencyMap = new HashMap<>();
+    Collection<Currency> currencies = new ArrayList<>();
     Currency currency = Currency.builder()
         .code("SomeId")
         .name("Some Name")
         .symbol("$")
         .build();
 
-    currencyMap.put(currency.getCode(), currency);
-    currencyResponse.setData(currencyMap);
+    currencies.add(currency);
+    currencyResponse.setData(currencies);
 
     ObjectMapper om = new ObjectMapper();
     String json = om.writeValueAsString(currencyResponse);

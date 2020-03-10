@@ -3,6 +3,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { RouteComponentProps, withRouter } from "react-router";
 import { useKeycloak } from "@react-keycloak/web";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Home = (props: WithTranslation & RouteComponentProps): JSX.Element => {
   const { keycloak } = useKeycloak();
   if (keycloak) {

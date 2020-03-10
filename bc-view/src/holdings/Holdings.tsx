@@ -111,7 +111,7 @@ export default function ViewHoldings(code: string): React.ReactElement {
             />
           </table>
         </div>
-        <div className={"all-apiHoldings"}>
+        <div className={"all-getData"}>
           <table className={"table is-striped is-hoverable"}>
             {Object.keys(holdings.holdingGroups)
               .sort()

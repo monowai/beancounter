@@ -6,7 +6,7 @@ import { Currency, Portfolio, SystemUser } from "../types/beancounter";
 
 afterEach(cleanup);
 
-const usd: Currency = { id: "us", code: "USD", symbol: "$" };
+const usd: Currency = { code: "USD", symbol: "$" };
 
 describe("<PortfolioStats />", () => {
   it("should match snapshot", () => {

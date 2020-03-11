@@ -1,9 +1,16 @@
 import React from "react";
+import { useHistory } from "react-router";
 
 function HeaderBrand(): React.ReactElement {
+  const history = useHistory();
   return (
     <div className="navbar-brand">
-      <a className="navbar-item">
+      <a
+        className="navbar-item"
+        onClick={() => {
+          history.goBack();
+        }}
+      >
         BeanCounter$
         {/*<img src={Logo} />*/}
       </a>

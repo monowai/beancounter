@@ -1,19 +1,16 @@
 import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "../App.css";
 import { calculate } from "./calculate";
 import { GroupBy, groupOptions } from "../types/groupBy";
-import { GroupOption, HoldingContract, Holdings, ValuationOption } from "../types/beancounter";
+import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
 import Total from "./Total";
 import StatsHeader, { StatsRow } from "./Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
-import { AxiosError } from "axios";
-import logger from "../common/ConfigLogging";
-import { useKeycloak } from "@react-keycloak/web";
 import handleError from "../common/errors/UserError";
-import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
+import { useHoldings } from "./hooks";
 
 export default function ViewHoldings(code: string): React.ReactElement {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -25,38 +22,13 @@ export default function ViewHoldings(code: string): React.ReactElement {
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency"
   });
-  const [holdingContract, setHoldingContract] = useState<HoldingContract>();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<AxiosError>();
-  const [keycloak] = useKeycloak();
-  useEffect(() => {
-    const fetchHoldings = async (config: { headers: { Authorization: string } }): Promise<void> => {
-      setLoading(true);
-      logger.debug(">>fetch %s", code);
-      await _axios
-        .get<HoldingContract>(`/bff/${code}/today`, config)
-        .then(result => {
-          logger.debug("<<fetch %s", code);
-          setHoldingContract(result.data);
-        })
-        .catch(err => {
-          setError(err);
-          if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
-          }
-        });
-    };
-    setToken(keycloak);
-    fetchHoldings({
-      headers: getBearerToken()
-    }).finally(() => setLoading(false));
-  }, [keycloak, code]);
+  const [holdingContract, holdingError] = useHoldings(code);
   // Render where we are in the initialization process
-  if (loading) {
+  if (!holdingContract) {
     return <div id="root">Loading...</div>;
   }
-  if (error) {
-    return handleError(error, true);
+  if (holdingError) {
+    return handleError(holdingError, true);
   }
   if (holdingContract) {
     const holdings = calculate(

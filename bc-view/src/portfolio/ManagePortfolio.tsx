@@ -1,54 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import logger from "../common/ConfigLogging";
 import { Portfolio, PortfolioInput } from "../types/beancounter";
-import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
-import { AxiosError } from "axios";
-import { useKeycloak } from "@react-keycloak/web";
+import { _axios, getBearerToken } from "../common/axiosUtils";
 import handleError from "../common/errors/UserError";
 import { currencyOptions, useCurrencies } from "../static/currencies";
-import { updatePortfolio } from "./portfolioApi";
+import { usePortfolio } from "./hooks";
+import { AxiosError } from "axios";
+import { useHistory } from "react-router";
 
-export function ManagePortfolio(code: string): React.ReactElement {
+export function ManagePortfolio(portfolioId: string): React.ReactElement {
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
-  const [portfolio, setPortfolio] = useState<Portfolio>();
+  const [pfId, setPortfolioId] = useState<string>(portfolioId);
+  const [portfolio, pfError] = usePortfolio(pfId);
   const currencies = useCurrencies();
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<AxiosError>();
-  const [keycloak] = useKeycloak();
+  const history = useHistory();
 
-  const savePortfolio = handleSubmit(({ code, name, base, currency }) => {
+  const savePortfolio = handleSubmit((portfolioInput: PortfolioInput) => {
     if (portfolio) {
-      setLoading(true);
-      updatePortfolio(
-        portfolio.id,
-        { code, name, currency, base },
-        {
+      _axios
+        .patch<Portfolio>(`/bff/portfolios/${portfolio.id}`, portfolioInput, {
           headers: getBearerToken()
-        }
-      )
-        .then(result => setPortfolio(result))
-        .catch(err => {
-          setError(err);
-          if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
-          }
         })
-        .finally(() => setLoading(false));
-    }
-  });
-
-  useEffect(() => {
-    const fetchPortfolio = async (config: {
-      headers: { Authorization: string };
-    }): Promise<void> => {
-      setLoading(true);
-      logger.debug(">>fetch getData");
-      await _axios
-        .get<Portfolio>(`/bff/portfolios/code/${code}`, config)
         .then(result => {
-          logger.debug("<<fetched getData");
-          setPortfolio(result.data);
+          logger.debug("<<patched Portfolio");
+          setPortfolioId(result.data.id);
         })
         .catch(err => {
           setError(err);
@@ -56,18 +33,17 @@ export function ManagePortfolio(code: string): React.ReactElement {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
-    };
-    setToken(keycloak);
-    setLoading(true);
-    fetchPortfolio({
-      headers: getBearerToken()
-    }).finally(() => setLoading(false));
-  }, [code, keycloak]);
-  if (loading) {
-    return <div id="root">Loading...</div>;
+    }
+  });
+  if (pfError) {
+    return handleError(pfError, true);
   }
   if (error) {
     return handleError(error, true);
+  }
+
+  if (!portfolio) {
+    return <div id="root">Loading...</div>;
   }
   if (errors) {
     console.log(errors);
@@ -140,7 +116,14 @@ export function ManagePortfolio(code: string): React.ReactElement {
                     <button className="button is-link">Submit</button>
                   </div>
                   <div className="control">
-                    <button className="button is-link is-light">Cancel</button>
+                    <button
+                      className="button is-link is-light"
+                      onClick={() => {
+                        history.goBack();
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               </form>

@@ -8,6 +8,7 @@ import com.beancounter.auth.TokenService;
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.client.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
+import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.shell.auth.LoginService;
@@ -95,7 +96,7 @@ public class TestUserCommands {
             .build());
 
     OAuth2Response authResponse = new OAuth2Response();
-    authResponse.setToken("token");
+    authResponse.setToken(user);
     Mockito.when(authGateway.login(login)).thenReturn(authResponse);
     Mockito.when(jwtDecoder.decode(authResponse.getToken())).thenReturn(jwt);
     // Can I login?
@@ -103,10 +104,10 @@ public class TestUserCommands {
 
     // Is my token in the SecurityContext and am I Me?
     Mockito.when(registrationGateway.me(tokenService.getBearerToken()))
-        .thenReturn(SystemUser.builder()
+        .thenReturn(RegistrationResponse.builder().data(SystemUser.builder()
             .id(user)
             .email("someone@nowhere.com")
-            .build());
+            .build()).build());
     SystemUser me = new ObjectMapper().readValue(userCommands.me(), SystemUser.class);
     assertThat(me).isNotNull();
 
@@ -114,9 +115,9 @@ public class TestUserCommands {
 
     Mockito.when(registrationGateway.register(tokenService.getBearerToken(),
         RegistrationRequest.builder().build()))
-        .thenReturn(SystemUser.builder()
+        .thenReturn(RegistrationResponse.builder().data(SystemUser.builder()
             .id(user)
-            .build());
+            .build()).build());
 
     SystemUser registered = new ObjectMapper().readValue(userCommands.register(),
         SystemUser.class);

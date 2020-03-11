@@ -22,7 +22,7 @@ public class TokenUtils {
 
   public Jwt getUserToken(SystemUser systemUser, Map<String, Collection<String>> realmAccess) {
 
-    return Jwt.withTokenValue("token")
+    return Jwt.withTokenValue(systemUser.getId())
         .header("alg", "none")
         .subject(systemUser.getId())
         .claim("email", systemUser.getEmail())

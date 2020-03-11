@@ -1,4 +1,19 @@
 ---
+name: registerUser
+priority: 1
+request:
+  method: POST
+  url: /register
+  bodyFromFile: "register/request.json"
+  headers:
+    Content-Type: application/json
+
+response:
+  status: 200
+  bodyFromFile: "register/response.json"
+  headers:
+    Content-Type: application/json
+---
 name: createAssets
 priority: 1
 request:
@@ -102,6 +117,20 @@ request:
 response:
   status: 200
   bodyFromFile: "trn/EMPTY-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: addPortfolios
+priority: 1
+request:
+  method: POST
+  bodyFromFile: "portfolio/add-request.json"
+  headers:
+    Content-Type: application/json
+  url: /portfolios
+response:
+  status: 200
+  bodyFromFile: "portfolio/add-response.json"
   headers:
     Content-Type: application/json
 ---

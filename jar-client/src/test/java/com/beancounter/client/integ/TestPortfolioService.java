@@ -5,8 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.ClientConfig;
 import com.beancounter.client.PortfolioService;
+import com.beancounter.common.contracts.PortfolioInput;
+import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -29,6 +33,30 @@ public class TestPortfolioService {
     Portfolio portfolioById = portfolioService.getPortfolioById("TEST");
 
     assertThat(portfolioByCode).isEqualToComparingFieldByField(portfolioById);
+  }
+
+  @Test
+  void is_AddFailing() {
+    PortfoliosRequest request = PortfoliosRequest.builder()
+        .data(Collections.singleton(PortfolioInput.builder().code("ABC").build()))
+        .build();
+    // Null returned for an Add request
+    assertThat(portfolioService.add(request)).isNull();
+  }
+
+  @Test
+  void is_PortfolioAddRequest() {
+    PortfoliosRequest request = PortfoliosRequest.builder()
+        .data(Collections.singleton(PortfolioInput.builder()
+            .code("SGD")
+            .name("SGD Balanced")
+            .currency("SGD")
+            .base("USD")
+            .build()))
+        .build();
+    // Null returned for an Add request
+    PortfoliosResponse response = portfolioService.add(request);
+    assertThat(response).isNotNull().hasNoNullFieldsOrProperties();
   }
 
   @Test

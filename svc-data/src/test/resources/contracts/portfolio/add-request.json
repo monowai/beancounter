@@ -1,0 +1,10 @@
+{
+  "data": [
+    {
+      "code": "SGD",
+      "name": "SGD Balanced",
+      "currency": "SGD",
+      "base": "USD"
+    }
+  ]
+}

@@ -5,14 +5,18 @@ import static com.beancounter.marketdata.utils.EcbMockUtils.get;
 import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PortfolioResponse;
+import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
+import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
@@ -20,6 +24,7 @@ import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
 import com.beancounter.marketdata.providers.wtd.WtdGateway;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
+import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.trn.TrnService;
 import com.beancounter.marketdata.utils.WtdMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +45,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.verifier.messaging.boot.AutoConfigureMessageVerifier;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -69,6 +78,8 @@ public class ContractVerifierBase {
   public static final Asset AMP = getAsset("AMP", "ASX");
   public static final Asset EBAY = getAsset("EBAY", "NASDAQ");
   @MockBean
+  JwtDecoder jwtDecoder;
+  @MockBean
   private FxGateway fxGateway;
   @MockBean
   private WtdGateway wtdGateway;
@@ -78,10 +89,10 @@ public class ContractVerifierBase {
   private TrnService trnService;
   @MockBean
   private AssetService assetService;
-
+  @MockBean
+  private SystemUserService systemUserService;
   @Autowired
   private WebApplicationContext context;
-
   private String contractPath = "contracts";
 
   @BeforeEach
@@ -92,6 +103,29 @@ public class ContractVerifierBase {
 
     RestAssuredMockMvc
         .mockMvc(mockMvc);
+
+  }
+
+  @BeforeEach
+  @SneakyThrows
+  public void systemUsers() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    File jsonFile =
+        new ClassPathResource(contractPath + "/register/response.json").getFile();
+    RegistrationResponse response = objectMapper.readValue(jsonFile, RegistrationResponse.class);
+    String email = "blah@blah.com";
+
+    Jwt jwt = TokenUtils.getUserToken(SystemUser.builder()
+        .id(email)
+        .email(email)
+        .build());
+
+    Mockito.when(jwtDecoder.decode(email)).thenReturn(jwt);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new JwtAuthenticationToken(jwtDecoder.decode(email)));
+
+    Mockito.when(systemUserService.register(jwt)).thenReturn(response);
 
   }
 
@@ -163,15 +197,27 @@ public class ContractVerifierBase {
 
   @BeforeEach
   @SneakyThrows
-  public void mockPortfolios() throws Exception {
+  public void mockPortfolios() {
+    ObjectMapper objectMapper = new ObjectMapper();
     mockPortfolio(getEmptyPortfolio());
     mockPortfolio(getTestPortfolio());
     // All Portfolio
     File jsonFile =
         new ClassPathResource(contractPath + "/portfolio/portfolios.json").getFile();
-    PortfoliosResponse response = new ObjectMapper().readValue(jsonFile, PortfoliosResponse.class);
+    PortfoliosResponse response = objectMapper.readValue(jsonFile, PortfoliosResponse.class);
     Mockito.when(portfolioService.getPortfolios()).thenReturn(response.getData());
 
+    jsonFile =
+        new ClassPathResource(contractPath + "/portfolio/add-request.json").getFile();
+    PortfoliosRequest portfoliosRequest =
+        objectMapper.readValue(jsonFile, PortfoliosRequest.class);
+
+    jsonFile =
+        new ClassPathResource(contractPath + "/portfolio/add-response.json").getFile();
+    PortfoliosResponse portfoliosResponse =
+        objectMapper.readValue(jsonFile, PortfoliosResponse.class);
+    Mockito.when(portfolioService.save(portfoliosRequest.getData()))
+        .thenReturn(portfoliosResponse.getData());
   }
 
   private Portfolio getTestPortfolio() throws IOException {

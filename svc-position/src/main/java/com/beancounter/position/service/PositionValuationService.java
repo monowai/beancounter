@@ -1,5 +1,7 @@
 package com.beancounter.position.service;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
@@ -16,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +69,13 @@ public class PositionValuationService {
     return positions;
   }
 
+  @SneakyThrows
   private ValuationData getValuationData(Positions positions, Collection<Asset> assets) {
+    CompletableFuture<FxResponse> futureFxResponse =
+        asyncMdService.getFxData(fxUtils.buildRequest(
+            positions.getPortfolio().getBase(),
+            positions));
+
     CompletableFuture<PriceResponse> futurePriceResponse =
         asyncMdService.getMarketData(
             PriceRequest.builder()
@@ -74,13 +83,10 @@ public class PositionValuationService {
                 .assets(assets).build()
         );
 
-    CompletableFuture<FxResponse> futureFxResponse =
-        asyncMdService.getFxData(fxUtils.buildRequest(
-            positions.getPortfolio().getBase(),
-            positions));
-
-    return asyncMdService.getValuationData(futurePriceResponse, futureFxResponse);
-
+    return ValuationData.builder()
+        .fxResponse(futureFxResponse.get(30, SECONDS))
+        .priceResponse(futurePriceResponse.get(30, SECONDS))
+        .build();
   }
 
 }

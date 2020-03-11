@@ -4,7 +4,6 @@ package com.beancounter.marketdata.registration;
 import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.contracts.RegistrationResponse;
-import com.beancounter.common.model.SystemUser;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -35,9 +34,6 @@ public class RegistrationController {
       final @AuthenticationPrincipal Jwt jwt,
       @RequestBody(required = false) RegistrationRequest registrationRequest
   ) {
-    return systemUserService.register(SystemUser.builder()
-        .id(jwt.getSubject())
-        .email(jwt.getClaim("email"))
-        .build());
+    return systemUserService.register(jwt);
   }
 }

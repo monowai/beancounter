@@ -17,6 +17,14 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
 
+  const title = (): JSX.Element => {
+    return (
+      <section className="page-box is-centered page-title">
+        {pfId === "new" ? "Create" : "Edit"} Portfolio
+      </section>
+    );
+  };
+
   const savePortfolio = handleSubmit((portfolioInput: PortfolioInput) => {
     if (portfolio) {
       if (portfolioId === "new") {
@@ -81,8 +89,9 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
   }
   if (portfolio) {
     return (
-      <section className="page-box hero is-primary is-fullheight">
-        <div className="hero-body">
+      <div>
+        {title()}
+        <section className="is-primary is-fullheight">
           <div className="container">
             <div className="columns is-centered">
               <form
@@ -160,8 +169,8 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
               </form>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     );
   }
   return <div id="root">Portfolio not found!</div>;

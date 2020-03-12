@@ -5,22 +5,21 @@ import handleError from "../common/errors/UserError";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
-import { useCurrencies } from "../static/currencies";
 
 export function DeletePortfolio(portfolioId: string): React.ReactElement {
   const [pfId] = useState<string>(portfolioId);
   const [portfolio, pfError] = usePortfolio(pfId);
-  const currencies = useCurrencies();
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
+  function routeToPortfolios(): void {
+    history.push("/portfolios");
+  }
+
   function deletePf(): void {
     if (portfolio) {
       _axios
         .delete<void>(`/bff/portfolios/${portfolio.id}`, {
           headers: getBearerToken()
-        })
-        .then(result => {
-          logger.debug("<<deleted Portfolio");
         })
         .catch(err => {
           setError(err);
@@ -42,8 +41,9 @@ export function DeletePortfolio(portfolioId: string): React.ReactElement {
   }
   if (portfolio) {
     return (
-      <section className="page-box hero is-primary is-fullheight">
-        <div className="hero-body">
+      <div>
+        <section className="page-box is-centered has-background-danger">Delete Portfolio</section>
+        <section className="page-box is-primary is-fullheight">
           <div className="container">
             <div className="columns is-centered">
               <form onSubmit={deletePf} className="column is-5-tablet is-4-desktop is-3-widescreen">
@@ -96,23 +96,12 @@ export function DeletePortfolio(portfolioId: string): React.ReactElement {
                 </div>
                 <div className="field is-grouped">
                   <div className="control">
-                    <button
-                      className="button is-link is-warning"
-                      onClick={() => {
-                        deletePf();
-                        history.push("/portfolios");
-                      }}
-                    >
+                    <button className="button is-link is-danger" onClick={deletePf}>
                       Delete
                     </button>
                   </div>
                   <div className="control">
-                    <button
-                      className="button is-link is-light"
-                      onClick={() => {
-                        history.goBack();
-                      }}
-                    >
+                    <button className="button is-link is-light" onClick={routeToPortfolios}>
                       Cancel
                     </button>
                   </div>
@@ -120,8 +109,8 @@ export function DeletePortfolio(portfolioId: string): React.ReactElement {
               </form>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     );
   }
   return <div id="root">Portfolio not found!</div>;

@@ -8,7 +8,7 @@ function HeaderBrand(): React.ReactElement {
       <a
         className="navbar-item"
         onClick={() => {
-          history.goBack();
+          history.push("/");
         }}
       >
         BeanCounter$

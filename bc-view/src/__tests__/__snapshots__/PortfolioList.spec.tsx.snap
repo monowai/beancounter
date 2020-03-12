@@ -3,80 +3,85 @@
 exports[`<Portfolios /> should match snapshot 1`] = `
 <div>
   <div>
-    <section
-      class="page-box hero is-primary is-fullheight has-background-light"
+    <nav
+      class="container has-background-grey-lighter"
     >
       <div
-        class="hero-body"
+        class="column is-left"
       >
-        <div
-          class="container"
+        <button
+          class="navbar-item button is-link is-small"
         >
-          <div
-            class="columns is-centered"
-          >
-            <table
-              class="table is-striped is-hoverable"
-            >
-              <thead>
-                <tr>
-                  <th>
-                    Code
-                  </th>
-                  <th>
-                    Name
-                  </th>
-                  <th>
-                    Report
-                  </th>
-                  <th>
-                    Base
-                  </th>
-                  <th>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <a
-                      href="/holdings/TEST"
-                    >
-                      TEST
-                    </a>
-                  </td>
-                  <td>
-                    Test Portfolio
-                  </td>
-                  <td>
-                    €
-                    EUR
-                  </td>
-                  <td>
-                    $
-                    USD
-                  </td>
-                  <td>
-                    <a
-                      class="fa fa-edit"
-                      href="/portfolio/Kdf3jfUfSYqXV_S4Myc2wA"
-                    />
-                    <span>
-                       
-                    </span>
-                    <a
-                      class="fa fa-remove has-padding-left-6"
-                      href="/portfolio/delete/Kdf3jfUfSYqXV_S4Myc2wA"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+          Create
+        </button>
       </div>
-    </section>
+    </nav>
+    <div
+      class="page-box is-primary has-background-light"
+    >
+      <div
+        class="container"
+      >
+        <table
+          class="table is-striped is-hoverable"
+        >
+          <thead>
+            <tr>
+              <th>
+                Code
+              </th>
+              <th>
+                Name
+              </th>
+              <th>
+                Report
+              </th>
+              <th>
+                Base
+              </th>
+              <th>
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <a
+                  href="/holdings/TEST"
+                >
+                  TEST
+                </a>
+              </td>
+              <td>
+                Test Portfolio
+              </td>
+              <td>
+                €
+                EUR
+              </td>
+              <td>
+                $
+                USD
+              </td>
+              <td>
+                <a
+                  class="fa fa-edit"
+                  href="/portfolio/Kdf3jfUfSYqXV_S4Myc2wA"
+                />
+                <span>
+                   
+                </span>
+                <a
+                  class="fa fa-remove has-padding-left-6"
+                  href="/portfolio/delete/Kdf3jfUfSYqXV_S4Myc2wA"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 `;

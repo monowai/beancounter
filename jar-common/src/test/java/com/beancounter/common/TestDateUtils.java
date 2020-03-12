@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 import org.junit.jupiter.api.Test;
 
 class TestDateUtils {
@@ -22,7 +23,9 @@ class TestDateUtils {
 
   @Test
   void is_TodayAnIso8601String() {
-    Calendar calendar = new Calendar.Builder().setInstant(new Date()).build();
+    Calendar calendar = new Calendar.Builder()
+        .setTimeZone(TimeZone.getTimeZone(dateUtils.defaultZone))
+        .setInstant(new Date()).build();
     String now = dateUtils.today();
     calendar.get(Calendar.YEAR);
     assertThat(now)

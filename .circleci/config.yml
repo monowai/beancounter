@@ -1,6 +1,18 @@
 version: 2.1
 orbs:
   codecov: codecov/codecov@1.0.5
+
+executors:
+  java-build:
+    environment:
+      BC_POSITION: monowai/bc-position
+      BC_DATA: monowai/bc-data
+      BC_APP: monowai/bc-app
+      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+    docker:
+      - image: circleci/openjdk:11
 jobs:
   build-app:
     docker:
@@ -121,12 +133,9 @@ jobs:
           path: ~/project/jar-shell/build/libs
 
   build-position:
-    docker:
-      - image: circleci/openjdk:11
+    executor: java-build
     environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-
+      IMAGE_NAME: $BC_POSITION
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -135,17 +144,36 @@ jobs:
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-
-      - run: './gradlew svc-position:build --info'
-
+      - setup_remote_docker
+      - run: './gradlew svc-position:build'
+      - run:
+          command: |
+            docker build ~/project/svc-position/. -t $IMAGE_NAME:latest
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:${CIRCLE_BUILD_NUM}
+            docker save -o $IMAGE_NAME.tar $IMAGE_NAME
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./$IMAGE_NAME
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
-
       - codecov/upload:
           file: ~/project/svc-position/build/reports/jacoco/test/*.xml
-
       - store_artifacts:
           path: ~/project/svc-position/build/libs
+
+  docker-publish:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker
+      - run:
+          command: |
+            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
+            docker load -i /tmp/workspace/bc-position.tar
+            docker push monowai/bc-position:${CIRCLE_BUILD_NUM}
 
 workflows:
   version: 2
@@ -164,3 +192,9 @@ workflows:
           requires:
             - build-common
             - build-client
+      - docker-publish:
+          requires:
+            - build-common
+            - build-shell
+            - build-position
+            - build-app

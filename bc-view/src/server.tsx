@@ -14,7 +14,7 @@ import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./common/ConfigLogging";
 import App from "./App";
 import { runtimeConfig } from "./config";
-import { getData, patchData, postData } from "./server/dataApi";
+import { deleteData, getData, patchData, postData } from "./server/dataApi";
 import { getPositions } from "./server/positionApi";
 
 let assets: any;
@@ -70,7 +70,9 @@ i18n
         .post("/bff/register", postData)
         .get("/bff/currencies", getData)
         .get("/bff/portfolios", getData)
+        .post("/bff/portfolios", postData)
         .get("/bff/portfolios/*", getData)
+        .delete("/bff/portfolios/*", deleteData)
         .patch("/bff/portfolios/*", patchData)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);

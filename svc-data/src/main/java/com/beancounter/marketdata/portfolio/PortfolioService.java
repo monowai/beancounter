@@ -107,4 +107,10 @@ public class PortfolioService {
     return portfolioRepository.save(existing);
   }
 
+  public void delete(String id) {
+    Portfolio portfolio = find(id);
+    if (portfolio != null) {
+      portfolioRepository.delete(portfolio);
+    }
+  }
 }

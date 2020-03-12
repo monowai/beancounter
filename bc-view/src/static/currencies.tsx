@@ -27,3 +27,5 @@ export function currencyOptions(currencies: Currency[]): ReactNode {
     </option>
   ));
 }
+
+export const USD = { code: "USD" } as Currency;

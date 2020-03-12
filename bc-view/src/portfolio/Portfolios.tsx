@@ -49,6 +49,11 @@ export function Portfolios(): React.ReactElement {
                           </td>
                           <td>
                             <Link className="fa fa-edit" to={`/portfolio/${portfolio.id}`} />
+                            <span> </span>
+                            <Link
+                              className="fa fa-remove has-padding-left-6"
+                              to={`/portfolio/delete/${portfolio.id}`}
+                            />
                           </td>
                         </tr>
                       ))}
@@ -62,7 +67,11 @@ export function Portfolios(): React.ReactElement {
       );
     }
   }
-  return <div id="root">You have no portfolios - create one?</div>;
+  return (
+    <div id="root">
+      You have no portfolios - <Link to={"/portfolio/new"}>create one?</Link>
+    </div>
+  );
 }
 
 export default withRouter(Portfolios);

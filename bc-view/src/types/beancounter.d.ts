@@ -75,7 +75,7 @@ export interface Portfolio {
   name: string;
   currency: Currency;
   base: Currency;
-  owner: SystemUser;
+  owner?: SystemUser;
 }
 
 export interface PortfolioInput {

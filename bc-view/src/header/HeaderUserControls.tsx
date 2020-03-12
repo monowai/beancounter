@@ -1,13 +1,14 @@
 import React from "react";
-import { withTranslation } from "react-i18next";
 import { useKeycloak } from "@react-keycloak/web";
 import { Link } from "react-router-dom";
+import { useSystemUser } from "../profile/hooks";
 
 function HeaderUserControls(): React.ReactElement {
+  const systemUser = useSystemUser();
   const { keycloak } = useKeycloak();
   if (keycloak) {
     const loginOrOut = keycloak.authenticated ? (
-      <div>Account Settings</div>
+      <div>{systemUser.email}</div>
     ) : (
       <div>
         <span className="icon is-small">
@@ -60,4 +61,4 @@ function HeaderUserControls(): React.ReactElement {
   return <div>Preparing...</div>;
 }
 
-export default withTranslation()(HeaderUserControls);
+export default HeaderUserControls;

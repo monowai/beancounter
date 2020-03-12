@@ -69,6 +69,8 @@ i18n
         .get("/bff/*/today", getPositions)
         .post("/bff/register", postData)
         .get("/bff/currencies", getData)
+        .post("/bff/register", getData)
+        .get("/bff/me", getData)
         .get("/bff/portfolios", getData)
         .post("/bff/portfolios", postData)
         .get("/bff/portfolios/*", getData)

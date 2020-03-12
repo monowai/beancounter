@@ -31,7 +31,10 @@ export const setToken = (keycloak: KeycloakInstance<"native">): void => {
 
 export const resetToken = (): void => {
   if (typeof window !== undefined) {
+    console.debug("token reset");
     localStorage.removeItem("token");
+  } else {
+    console.debug("no window so no token to remove");
   }
 };
 

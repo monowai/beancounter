@@ -29,7 +29,7 @@ public class PortfolioController {
   }
 
   @GetMapping
-  PortfoliosResponse getPortfolios() {
+  public PortfoliosResponse getPortfolios() {
     return PortfoliosResponse.builder()
         .data(portfolioService.getPortfolios())
         .build();

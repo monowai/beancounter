@@ -61,7 +61,7 @@ class TestAlphaVantageApi {
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset));
+    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset).build());
     assertThat(results)
         .isNotNull()
         .hasSize(1);
@@ -81,7 +81,7 @@ class TestAlphaVantageApi {
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset));
+    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset).build());
     assertThat(results)
         .isNotNull()
         .hasSize(1);
@@ -102,7 +102,7 @@ class TestAlphaVantageApi {
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     Collection<MarketData> results = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(PriceRequest.of(asset));
+        .getMarketData(PriceRequest.of(asset).build());
 
     assertThat(results)
         .isNotNull()
@@ -123,7 +123,7 @@ class TestAlphaVantageApi {
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(PriceRequest.of(asset));
+        .getMarketData(PriceRequest.of(asset).build());
 
     MarketData marketData = mdResult.iterator().next();
     assertThat(marketData)

@@ -82,6 +82,9 @@ class TestCurrency {
     IsoCurrencyPair byCurrency = IsoCurrencyPair.from(getCurrency(report), getCurrency(trade));
     assertThat(byCode).isEqualToComparingFieldByField(byCurrency);
 
+    assertThat(IsoCurrencyPair.from(getCurrency(report), getCurrency(report)))
+        .isNull();
+
   }
 
   @Test

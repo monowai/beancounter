@@ -16,9 +16,8 @@ public class PriceRequest {
   private String date;
   private Collection<Asset> assets;
 
-  public static PriceRequest of(Asset asset) {
-    PriceRequest priceRequest = builder().build();
-    priceRequest.setAssets(Collections.singleton(asset));
-    return priceRequest;
+  public static PriceRequestBuilder of(Asset asset) {
+    return builder()
+        .assets(Collections.singleton(asset));
   }
 }

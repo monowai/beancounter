@@ -29,7 +29,7 @@ class TestMockProviderService {
     Asset asset = AssetUtils.getAsset("Anything", "MOCK");
     MarketDataProvider provider = new MockProviderService();
 
-    Collection<MarketData> result = provider.getMarketData(PriceRequest.of(asset));
+    Collection<MarketData> result = provider.getMarketData(PriceRequest.of(asset).build());
     assertThat(result)
         .isNotNull()
         .isNotEmpty();

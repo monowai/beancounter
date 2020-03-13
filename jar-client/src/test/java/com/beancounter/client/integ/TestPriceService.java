@@ -8,7 +8,6 @@ import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
-import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -28,11 +27,10 @@ public class TestPriceService {
 
   @Test
   void is_MarketDateOnDateFound() {
-    PriceRequest priceRequest = PriceRequest.builder()
-        .date("2019-10-18")
-        .assets(Collections.singletonList(
-            AssetUtils.getAsset("EBAY", "NASDAQ")))
-        .build();
+    PriceRequest priceRequest = PriceRequest.of(AssetUtils
+        .getAsset("EBAY", "NASDAQ"))
+        .date("2019-10-18").build();
+
     PriceResponse response = priceService.getPrices(priceRequest);
     assertThat(response).isNotNull();
     assertThat(response.getData()).isNotNull().hasSize(1);

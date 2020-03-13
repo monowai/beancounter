@@ -5,9 +5,6 @@ orbs:
 executors:
   java-build:
     environment:
-      BC_POSITION: monowai/bc-position
-      BC_DATA: monowai/bc-data
-      BC_APP: monowai/bc-app
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
@@ -17,6 +14,8 @@ jobs:
   build-app:
     docker:
       - image: circleci/node
+    environment:
+      IMAGE_NAME: bc-app
     steps:
       - checkout
       - restore_cache:
@@ -40,22 +39,42 @@ jobs:
           path: bc-view/reports/junit
       - store_artifacts:
           path: bc-view/reports/junit
+      - setup_remote_docker
+      - run:
+          name: Package BC-VIEW
+          command: |
+            docker build ~/project/bc-view/. -t monowai/$IMAGE_NAME:latest
+            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
+            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./bc-app.tar
 
   build-common:
-    docker:
-      - image: circleci/openjdk:11
+    executor: java-build
     environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+      IMAGE_NAME: bc-data
 
     steps:
       - checkout
       - restore_cache:
           keys:
             - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
-
       - run: 'pwd'
       - run: './gradlew jar-common:build jar-auth:build svc-data:build'
       - run: './gradlew svc-data:publishToMavenLocal'
+      - setup_remote_docker
+      - run:
+          name: Package BC-DATA
+          command: |
+            docker build ~/project/svc-data/. -t monowai/$IMAGE_NAME:latest
+            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
+            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./bc-data.tar
 
       - store_test_results:
           path: ~/project/svc-data/build/test-results/test
@@ -83,11 +102,7 @@ jobs:
           path: ~/project/jar-common/build/libs
 
   build-client:
-    docker:
-      - image: circleci/openjdk:11
-    environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-
+    executor: java-build
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -108,10 +123,9 @@ jobs:
           path: ~/project/jar-client/build/libs
 
   build-shell:
-    docker:
-      - image: circleci/openjdk:11
+    executor: java-build
     environment:
-      _JAVA_OPTIONS: "-Xms256m -Xmx512m"
+      IMAGE_NAME: bc-shell
 
     steps:
       - add_ssh_keys:
@@ -122,6 +136,17 @@ jobs:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: './gradlew jar-shell:build'
+      - setup_remote_docker
+      - run:
+          name: Package BC-SHELL
+          command: |
+            docker build ~/project/jar-shell/. -t monowai/$IMAGE_NAME:latest
+            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
+            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./bc-shell.tar
 
       - store_test_results:
           path: ~/project/jar-shell/build/test-results/test
@@ -135,7 +160,7 @@ jobs:
   build-position:
     executor: java-build
     environment:
-      IMAGE_NAME: $BC_POSITION
+      IMAGE_NAME: bc-position
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -144,17 +169,18 @@ jobs:
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - setup_remote_docker
       - run: './gradlew svc-position:build'
+      - setup_remote_docker
       - run:
+          name: Package BC-POSITION
           command: |
-            docker build ~/project/svc-position/. -t $IMAGE_NAME:latest
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o $IMAGE_NAME.tar $IMAGE_NAME
+            docker build ~/project/svc-position/. -t monowai/$IMAGE_NAME:latest
+            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
+            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
       - persist_to_workspace:
-          root: .
+          root: ~/project
           paths:
-            - ./$IMAGE_NAME
+            - ./bc-position.tar
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
       - codecov/upload:
@@ -165,15 +191,48 @@ jobs:
   docker-publish:
     docker:
       - image: circleci/buildpack-deps:stretch
+    environment:
+      BC_POSITION: monowai/bc-position
+      BC_DATA: monowai/bc-data
+      BC_APP: monowai/bc-app
+      BC_SHELL: monowai/bc-shell
+
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
       - run:
+          name: Publish POSITION
           command: |
             echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            docker load -i /tmp/workspace/bc-position.tar
-            docker push monowai/bc-position:${CIRCLE_BUILD_NUM}
+            ls /tmp/workspace
+            test -f /tmp/workspace/bc-position.tar &&
+                docker load -i /tmp/workspace/bc-position.tar &&
+                docker push $BC_POSITION
+
+      - run:
+          name: Publish DATA
+          command: |
+            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
+            test -f /tmp/workspace/bc-data.tar &&
+                docker load -i /tmp/workspace/bc-data.tar &&
+                docker push $BC_DATA
+
+      - run:
+          name: Publish APP
+          command: |
+            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
+            test -f /tmp/workspace/bc-app.tar &&
+                docker load -i /tmp/workspace/bc-app.tar &&
+                docker push $BC_APP
+
+      - run:
+          name: Publish SHELL
+          command: |
+            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
+            test -f /tmp/workspace/bc-shell.tar &&
+                docker load -i /tmp/workspace/bc-shell.tar &&
+                docker push $BC_SHELL
 
 workflows:
   version: 2
@@ -193,6 +252,9 @@ workflows:
             - build-common
             - build-client
       - docker-publish:
+          filters:
+            branches:
+              only: master
           requires:
             - build-common
             - build-shell

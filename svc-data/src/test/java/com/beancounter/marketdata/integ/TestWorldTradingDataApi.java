@@ -143,8 +143,8 @@ class TestWorldTradingDataApi {
     WtdMockUtils.mockWtdResponse(assets, mockInternet, priceDate, true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/APPL.json").getFile());
 
-    Collection<MarketData> mdResult = wtdService.getMarketData(
-        PriceRequest.builder().assets(assets).build());
+    Collection<MarketData> mdResult = wtdService
+        .getMarketData(PriceRequest.builder().assets(assets).build());
 
     assertThat(mdResult)
         .isNotNull()

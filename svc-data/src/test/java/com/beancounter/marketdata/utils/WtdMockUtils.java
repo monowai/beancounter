@@ -30,10 +30,11 @@ public class WtdMockUtils {
   public static final String WTD_PATH = "/contracts/wtd";
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  private static LocalDate zonedDateTime = LocalDate.now();
+  private static DateUtils dateUtils = new DateUtils();
+  private static LocalDate zonedDateTime = LocalDate.now(dateUtils.defaultZone);
 
   public static final String priceDate =
-      new DateUtils().getLastMarketDate(zonedDateTime, ZoneId.systemDefault()).toString();
+      dateUtils.getLastMarketDate(zonedDateTime, ZoneId.systemDefault()).toString();
 
   public static WtdResponse get(String date, Map<String, MarketData> prices) {
     WtdResponse response = new WtdResponse();

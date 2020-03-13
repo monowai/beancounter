@@ -4,50 +4,13 @@
 ## Financial Transaction Processing Services
 
 Transform financial transaction data into portfolio positions which can then be valued against market data 
+
+There's a demo stack connected with KeyCloak and Postgres [over here](http://github.com/monowai/bc-demo)
+
+*   [Application](bc-view/README.md) login, create portfolios and view positions
+*   [Load data into your portfolio](jar-shell/README.md) from a Google Docs sheet
+*   [Store and retrieve data](svc-data/README.md) from the BC Data service
+*   [Compute Portfolio Positions](svc-position/README.md) from the transactions
+  
     
-*   [Ingest transactions](jar-shell/README.md) from a Google Docs sheet
-*   [Create positions](svc-position/README.md) from the transactions
-*   Value positions with [Asset Prices](svc-data/README.md) from the BC Data service  
-    
-Put together, the flow looks like this
-
-```bash
-# Create the portfolio
-curl -X POST \
-  http://localhost:9510/api/portfolios \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "data": [
-    {
-      "id": "FT-vUCChRwOXDP7itcp5Kw",
-      "code": "TEST",
-      "name": "NZD Portfolio",
-      "currency": {
-        "code": "NZD"
-      },
-      "base": {
-        "code": "USD"
-      }
-    }
-  ]
-}'
-
-# Portfolio Code to load the transactions against
-
-# Transform columnar data into transaction objects
-curl -X POST \
-  http://localhost:9520/api/ \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "sheetId":"1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-  "provider": "SHEETS",
-  "portfolioCode": "TEST"
-}' -o trades.json 
-
-# Rollup transactions into positions
-curl -H "Content-Type: application/json" -X POST -d @trades.json http://localhost:9500/api/ > positions.json
-
-# Value positions with market data    
-curl -H "Content-Type: application/json" -X POST -d @positions.json http://localhost:9500/api/value > valuedPositions.json
-```
 

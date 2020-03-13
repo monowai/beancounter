@@ -44,8 +44,9 @@ public class PortfolioController {
   }
 
   @DeleteMapping("/{id}")
-  public void deletePortfolio(@PathVariable String id) {
+  public String deletePortfolio(@PathVariable String id) {
     this.portfolioService.delete(id);
+    return "ok";
   }
 
   @GetMapping("/code/{code}")

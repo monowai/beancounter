@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -335,7 +336,53 @@ class PortfolioMvcTests {
         .readValue(
             mvcResult.getResponse().getContentAsString(), PortfoliosResponse.class).getData())
         .hasSize(0);
+  }
 
+  @Test
+  @SneakyThrows
+  void is_DeletePortfolio() {
+    PortfolioInput portfolioInput = PortfolioInput.builder()
+        .code(UUID.randomUUID().toString())
+        .name("NZD Portfolio")
+        .currency("NZD")
+        .build();
+
+    SystemUser userA = SystemUser.builder()
+        .build();
+
+    // Add a token and repeat the call
+    Jwt tokenA = TokenUtils.getUserToken(userA);
+    registerUser(mockMvc, tokenA, userA);
+
+    MvcResult mvcResult = mockMvc.perform(
+        post("/portfolios")
+            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .content(new ObjectMapper()
+                .writeValueAsBytes(PortfoliosRequest.builder()
+                    .data(Collections.singleton(portfolioInput))
+                    .build()))
+            .contentType(MediaType.APPLICATION_JSON)
+
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    // User A created a Portfolio
+    PortfoliosResponse portfoliosResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), PortfoliosResponse.class);
+    assertThat(portfoliosResponse.getData())
+        .hasSize(1);
+    Portfolio portfolio = portfoliosResponse.getData().iterator().next();
+
+    mvcResult = mockMvc.perform(
+        delete("/portfolios/{id}", portfolio.getId())
+            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON)
+
+    ).andExpect(status().isOk())
+        .andReturn();
+
+    assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("ok");
   }
 
   @SneakyThrows

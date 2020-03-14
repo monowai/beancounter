@@ -1,13 +1,15 @@
 import React from "react";
-import { useKeycloak } from "@react-keycloak/web";
 import { Link } from "react-router-dom";
 import { useSystemUser } from "../profile/hooks";
+import handleError from "../common/errors/UserError";
 
 function HeaderUserControls(): React.ReactElement {
-  const systemUser = useSystemUser();
-  const { keycloak } = useKeycloak();
-  if (keycloak) {
-    const loginOrOut = keycloak.authenticated ? (
+  const [systemUser, systemError] = useSystemUser();
+  if (systemError) {
+    return handleError(systemError, false);
+  }
+  if (systemUser && systemUser.email) {
+    const loginOrOut = systemUser.email ? (
       <div>{systemUser.email}</div>
     ) : (
       <div>
@@ -21,7 +23,7 @@ function HeaderUserControls(): React.ReactElement {
       </div>
     );
 
-    const authMenu = keycloak.authenticated ? (
+    const authMenu = systemUser.email ? (
       <div className="navbar-dropdown">
         <Link to={"/register"} className="navbar-item">
           <span className="icon is-small">

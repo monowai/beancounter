@@ -13,9 +13,14 @@ import cors from "cors";
 import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./common/ConfigLogging";
 import App from "./App";
-import { runtimeConfig } from "./config";
+import { runtimeConfig } from "./common/config";
 import { deleteData, getData, patchData, postData } from "./server/dataApi";
 import { getPositions } from "./server/positionApi";
+// react-KeyCloak
+import { ServerPersistors, SSRKeycloakProvider } from "@react-keycloak/razzle";
+import cookieParser from "cookie-parser";
+import { keycloakConfig } from "./common/kcConfig";
+// end react-KeyCloak
 
 let assets: any;
 let publicDir = "./";
@@ -42,6 +47,7 @@ if (process.env.RAZZLE_PUBLIC_DIR) {
   staticDir = process.env.RAZZLE_PUBLIC_DIR;
 }
 logger.info("bcConfig @ %s", JSON.stringify(runtimeConfig()));
+logger.info("kcConfig @ %s", JSON.stringify(keycloakConfig));
 i18n
   .use(Backend)
   .use(i18nextMiddleware.LanguageDetector)
@@ -66,6 +72,7 @@ i18n
         .use(express.urlencoded({ extended: true }))
         .use(express.static(staticDir))
         .use(express.json())
+        .use(cookieParser())
         .get("/bff/*/today", getPositions)
         .post("/bff/register", postData)
         .get("/bff/currencies", getData)
@@ -79,12 +86,16 @@ i18n
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);
           const context: any = {};
+          // 2. KeyCloak -  ServerPersistors.ExpressCookies passing the current request
+          const cookiePersistor = ServerPersistors.ExpressCookies(req);
           const markup = renderToString(
-            <I18nextProvider i18n={req.i18n}>
-              <StaticRouter context={context} location={req.url}>
-                <App />
-              </StaticRouter>
-            </I18nextProvider>
+            <SSRKeycloakProvider keycloakConfig={keycloakConfig} persistor={cookiePersistor}>
+              <I18nextProvider i18n={req.i18n}>
+                <StaticRouter context={context} location={req.url}>
+                  <App />
+                </StaticRouter>
+              </I18nextProvider>
+            </SSRKeycloakProvider>
           );
 
           const helmet = Helmet.renderStatic();

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Redirect, useLocation } from "react-router";
-import { useKeycloak } from "@react-keycloak/web";
+import { useKeycloak } from "@react-keycloak/razzle";
 import logger from "../ConfigLogging";
 
 const Login = (): JSX.Element => {

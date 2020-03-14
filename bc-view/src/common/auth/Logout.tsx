@@ -1,14 +1,10 @@
-import { useKeycloak } from "@react-keycloak/web";
+import { useKeycloak } from "@react-keycloak/razzle";
 import logger from "../ConfigLogging";
-import { resetToken } from "../axiosUtils";
 import { LoginRedirect } from "./Login";
 
 const Logout = (): JSX.Element => {
-  const { keycloak } = useKeycloak();
-  resetToken();
-  if (keycloak) {
-    keycloak.logout({ redirectUri: window.location.origin }).then(() => logger.debug("logged out"));
-  }
+  const [keycloak] = useKeycloak();
+  keycloak.logout({ redirectUri: window.location.origin }).then(() => logger.debug("logged out"));
   return LoginRedirect();
 };
 

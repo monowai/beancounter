@@ -2,7 +2,7 @@ import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
 import { HoldingContract } from "../types/beancounter";
 import logger from "../common/ConfigLogging";
 import { useEffect, useState } from "react";
-import { useKeycloak } from "@react-keycloak/web";
+import { useKeycloak } from "@react-keycloak/razzle";
 import { AxiosError } from "axios";
 
 export function useHoldings(
@@ -14,7 +14,7 @@ export function useHoldings(
   useEffect(() => {
     _axios
       .get<HoldingContract>(`/bff/${code}/today`, {
-        headers: getBearerToken()
+        headers: getBearerToken(keycloak)
       })
       .then(result => {
         logger.debug("<<fetch %s", code);
@@ -26,7 +26,7 @@ export function useHoldings(
           logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
         }
       });
-  }, [code]);
+  }, [keycloak, code]);
   setToken(keycloak);
   return [holdingContract, error];
 }

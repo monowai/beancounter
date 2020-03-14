@@ -1,9 +1,10 @@
-import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
+import { _axios, getBearerToken } from "../common/axiosUtils";
 import { Portfolio } from "../types/beancounter";
 import logger from "../common/ConfigLogging";
 import { useEffect, useState } from "react";
 import { AxiosError } from "axios";
-import { useKeycloak } from "@react-keycloak/web";
+// @ts-ignore
+import { useKeycloak } from "@react-keycloak/razzle";
 import { USD } from "../static/currencies";
 
 export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
@@ -13,7 +14,7 @@ export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
   useEffect(() => {
     _axios
       .get<Portfolio[]>("/bff/portfolios", {
-        headers: getBearerToken()
+        headers: getBearerToken(keycloak)
       })
       .then(result => {
         logger.debug("<<retrieved Portfolio");
@@ -25,8 +26,7 @@ export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
         }
         setError(err);
       });
-  }, []);
-  setToken(keycloak);
+  }, [keycloak]);
   return [portfolios, error];
 }
 
@@ -44,7 +44,7 @@ export function usePortfolio(id: string): [Portfolio | undefined, AxiosError | u
     if (id !== "new") {
       _axios
         .get<Portfolio>(`/bff/portfolios/${id}`, {
-          headers: getBearerToken()
+          headers: getBearerToken(keycloak)
         })
         .then(result => {
           logger.debug("<<got Portfolio");
@@ -57,8 +57,7 @@ export function usePortfolio(id: string): [Portfolio | undefined, AxiosError | u
           }
         });
     }
-  }, [id]);
+  }, [keycloak, id]);
 
-  setToken(keycloak);
   return [portfolio, error];
 }

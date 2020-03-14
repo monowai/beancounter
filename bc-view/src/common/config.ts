@@ -1,5 +1,5 @@
-import { serverEnv } from "./common/utils";
-import { BcOptions } from "./types/app";
+import { serverEnv } from "./utils";
+import { BcOptions } from "../types/app";
 
 // ENV keys
 const SVC_POSITION = "SVC_POSITION";
@@ -8,7 +8,7 @@ const KC_URL = "KC_URL";
 const KC_REALM = "KC_REALM";
 const KC_CLIENT = "KC_CLIENT";
 
-export function runtimeConfig(): BcOptions {
+function runtimeConfig(): BcOptions {
   return typeof window !== "undefined" && window.env !== "undefined"
     ? {
         // client
@@ -29,3 +29,5 @@ export function runtimeConfig(): BcOptions {
         kcRealm: serverEnv(KC_REALM, "bc-dev")
       };
 }
+
+export { runtimeConfig };

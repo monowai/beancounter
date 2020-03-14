@@ -28,7 +28,7 @@ export default function ViewHoldings(code: string): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (holdingError) {
-    return handleError(holdingError, true);
+    return handleError(holdingError);
   }
   if (holdingContract) {
     const holdings = calculate(

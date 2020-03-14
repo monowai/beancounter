@@ -169,7 +169,7 @@ public class AuthTest {
 
 All of the above code can be seen in the `AuthTest` class
 
-## Keycloak
+## KcConfig
 To test tokens in a service, you need to have KeyCloak running. 
 
 Start by getting KeyCloak started and configured.  KC config work is discussed in [bc-demo](../bc-demo/README.md) and is beyond the scope of this guide.  Thanks to the magic of Docker and the way KC is packaged, most of the config work has been done for you, allowing you to focus on the internals of securing your app.

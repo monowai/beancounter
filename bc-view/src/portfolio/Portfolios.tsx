@@ -13,7 +13,7 @@ export function Portfolios(): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (error) {
-    return handleError(error, true);
+    return handleError(error);
   }
   if (portfolios) {
     if (portfolios.length > 0) {

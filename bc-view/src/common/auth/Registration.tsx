@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useKeycloak } from "@react-keycloak/web";
+import { useKeycloak } from "@react-keycloak/razzle";
 import logger from "../ConfigLogging";
 import { AxiosError } from "axios";
 import { SystemUser } from "../../types/beancounter";
@@ -31,7 +31,7 @@ const Registration = (): JSX.Element => {
     };
     setToken(keycloak);
     register({
-      headers: getBearerToken()
+      headers: getBearerToken(keycloak)
     }).finally(() => setLoading(false));
   }, [keycloak]);
 

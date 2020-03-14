@@ -2,8 +2,9 @@ import { AxiosError } from "axios";
 import { LoginRedirect } from "../auth/Login";
 import logger from "../ConfigLogging";
 import React from "react";
+import Error from "./Error";
 
-export default function handleError(error: AxiosError<any>, withRedirect: boolean): JSX.Element {
+export default function handleError(error: AxiosError<any>, withRedirect = true): JSX.Element {
   const { response } = error;
   if (response) {
     const { data: errData, status } = response;
@@ -13,5 +14,5 @@ export default function handleError(error: AxiosError<any>, withRedirect: boolea
     logger.error("Error: %s", errData.message);
     return <div>{errData.message}</div>;
   }
-  return <div>Unknown error</div>;
+  return Error(error.stack);
 }

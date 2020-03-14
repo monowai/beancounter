@@ -8,6 +8,7 @@ import { currencyOptions, useCurrencies } from "../static/currencies";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
+import { useKeycloak } from "@react-keycloak/razzle";
 
 export function ManagePortfolio(portfolioId: string): React.ReactElement {
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
@@ -16,6 +17,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
   const currencies = useCurrencies();
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
+  const keycloak = useKeycloak;
 
   const title = (): JSX.Element => {
     return (
@@ -33,7 +35,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
             "/bff/portfolios",
             { data: [portfolioInput] },
             {
-              headers: getBearerToken()
+              headers: getBearerToken(keycloak)
             }
           )
           .then(result => {
@@ -54,7 +56,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
       } else {
         _axios
           .patch<Portfolio>(`/bff/portfolios/${portfolio.id}`, portfolioInput, {
-            headers: getBearerToken()
+            headers: getBearerToken(keycloak)
           })
           .then(result => {
             logger.debug("<<patched Portfolio");
@@ -75,10 +77,10 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
     } // portfolio
   });
   if (pfError) {
-    return handleError(pfError, true);
+    return handleError(pfError);
   }
   if (error) {
-    return handleError(error, true);
+    return handleError(error);
   }
 
   if (!portfolio) {

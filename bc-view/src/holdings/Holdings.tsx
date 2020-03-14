@@ -9,8 +9,8 @@ import StatsHeader, { StatsRow } from "./Stats";
 import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
-import handleError from "../common/errors/UserError";
 import { useHoldings } from "./hooks";
+import ErrorPage from "../common/errors/ErrorPage";
 
 export default function ViewHoldings(code: string): React.ReactElement {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -28,7 +28,7 @@ export default function ViewHoldings(code: string): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (holdingError) {
-    return handleError(holdingError);
+    return ErrorPage(holdingError);
   }
   if (holdingContract) {
     const holdings = calculate(

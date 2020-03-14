@@ -2,6 +2,7 @@ import Home from "./Home";
 import ViewHoldings from "./holdings";
 import { useParams } from "react-router-dom";
 import Login from "./common/auth/Login";
+import ErrorPage from "./common/errors/ErrorPage";
 import Logout from "./common/auth/Logout";
 import Portfolios from "./portfolio/Portfolios";
 import Registration from "./common/auth/Registration";
@@ -43,6 +44,10 @@ const ClientRoutes = [
   {
     path: "/register",
     component: Registration
+  },
+  {
+    path: "/error",
+    component: ErrorPage
   },
   {
     path: "/portfolios",

@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useHistory, withRouter } from "react-router";
 import { usePortfolios } from "./hooks";
-import handleError from "../common/errors/UserError";
+import ErrorPage from "../common/errors/ErrorPage";
 
 export function Portfolios(): React.ReactElement {
   const [portfolios, error] = usePortfolios();
@@ -13,7 +13,7 @@ export function Portfolios(): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (error) {
-    return handleError(error);
+    return ErrorPage(error);
   }
   if (portfolios) {
     if (portfolios.length > 0) {

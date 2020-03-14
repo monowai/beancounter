@@ -3,21 +3,21 @@ import { useForm } from "react-hook-form";
 import logger from "../common/ConfigLogging";
 import { Portfolio, PortfolioInput } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import handleError from "../common/errors/UserError";
 import { currencyOptions, useCurrencies } from "../static/currencies";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
+import ErrorPage from "../common/errors/ErrorPage";
 
 export function ManagePortfolio(portfolioId: string): React.ReactElement {
+  const [keycloak] = useKeycloak();
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [pfId, setPortfolioId] = useState<string>(portfolioId);
   const [portfolio, pfError] = usePortfolio(pfId);
   const currencies = useCurrencies();
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
-  const keycloak = useKeycloak;
 
   const title = (): JSX.Element => {
     return (
@@ -25,6 +25,9 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
         {pfId === "new" ? "Create" : "Edit"} Portfolio
       </section>
     );
+  };
+  const handleCancel = () => {
+    return history.goBack();
   };
 
   const savePortfolio = handleSubmit((portfolioInput: PortfolioInput) => {
@@ -66,7 +69,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
             setError(err);
             if (err.response) {
               logger.error(
-                "axios error [%s]: [%s]",
+                "patchPortfolio [%s]: [%s]",
                 err.response.status,
                 err.response.data.message
               );
@@ -77,10 +80,10 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
     } // portfolio
   });
   if (pfError) {
-    return handleError(pfError);
+    return ErrorPage(pfError);
   }
   if (error) {
-    return handleError(error);
+    return ErrorPage(error);
   }
 
   if (!portfolio) {
@@ -98,6 +101,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
             <div className="columns is-centered">
               <form
                 onSubmit={savePortfolio}
+                onAbort={handleCancel}
                 className="column is-5-tablet is-4-desktop is-3-widescreen"
               >
                 <label className="label ">Code</label>
@@ -158,12 +162,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
                     <button className="button is-link">Submit</button>
                   </div>
                   <div className="control">
-                    <button
-                      className="button is-link is-light"
-                      onClick={() => {
-                        history.goBack();
-                      }}
-                    >
+                    <button className="button is-link is-light" onClick={handleCancel}>
                       Cancel
                     </button>
                   </div>

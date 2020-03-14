@@ -1,4 +1,4 @@
-import { _axios, getBearerToken, setToken } from "../common/axiosUtils";
+import { _axios, getBearerToken } from "../common/axiosUtils";
 import { HoldingContract } from "../types/beancounter";
 import logger from "../common/ConfigLogging";
 import { useEffect, useState } from "react";
@@ -27,6 +27,5 @@ export function useHoldings(
         }
       });
   }, [keycloak, code]);
-  setToken(keycloak);
   return [holdingContract, error];
 }

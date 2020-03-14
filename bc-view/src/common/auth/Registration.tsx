@@ -3,8 +3,8 @@ import { useKeycloak } from "@react-keycloak/razzle";
 import logger from "../ConfigLogging";
 import { AxiosError } from "axios";
 import { SystemUser } from "../../types/beancounter";
-import handleError from "../errors/UserError";
-import { _axios, getBearerToken, setToken } from "../axiosUtils";
+import { _axios, getBearerToken } from "../axiosUtils";
+import ErrorPage from "../errors/ErrorPage";
 
 const Registration = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -29,7 +29,6 @@ const Registration = (): JSX.Element => {
           }
         });
     };
-    setToken(keycloak);
     register({
       headers: getBearerToken(keycloak)
     }).finally(() => setLoading(false));
@@ -39,7 +38,7 @@ const Registration = (): JSX.Element => {
     return <div>Loading...</div>;
   }
   if (error) {
-    return handleError(error, true);
+    return ErrorPage(error);
   }
   if (systemUser) {
     return <div>Registered - {systemUser?.email}</div>;

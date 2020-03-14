@@ -1,7 +1,8 @@
 import React from "react";
 import "./Error.scss";
-import { RouteComponentProps } from "react-router-dom";
 import { serverEnv } from "../utils";
+import { useHistory } from "react-router";
+import { AxiosError } from "axios";
 
 const DevMessage = ({
   debug,
@@ -21,24 +22,27 @@ const DevMessage = ({
     </div>
   ) : null;
 
-export default function Error(props: RouteComponentProps): JSX.Element | null {
+export default function ErrorPage(message: AxiosError<any>): JSX.Element {
   const debug = serverEnv("NODE_ENV", "development") !== "production";
-  // const { t } = useTranslation();
-  const { location = { state: props } } = props;
-  const errorMessage = debug ? JSON.stringify(location, null, 2) : "";
+  const history = useHistory();
+  const errorMessage = debug ? JSON.stringify(message.stack, null, 2) : message.message;
 
+  function handleClick() {
+    return (e: React.MouseEvent) => {
+      e.preventDefault();
+      history.goBack();
+    };
+  }
+
+  function label(key: string): string {
+    return key;
+  }
   return (
     <div className="centered">
-      <img src="/assets/error-global-icon.svg" />
-      <h1>{"error-global-oops"}</h1>
-      <p>{"error-global"}</p>
-      <button
-        className="bc-button active rounded"
-        onClick={(e: React.MouseEvent) => {
-          e.preventDefault();
-          props.history.goBack();
-        }}
-      >
+      <img src="/assets/error-global-icon.svg" alt={"Error!"} />
+      <h1>{label("error-global-oops")}</h1>
+      <p>{label("error-global")}</p>
+      <button className="bc-button active rounded" onClick={handleClick()}>
         {"error-tryagain"}
       </button>
       <DevMessage debug={debug} errorMessage={errorMessage} />

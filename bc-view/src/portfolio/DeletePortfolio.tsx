@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import logger from "../common/ConfigLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import handleError from "../common/errors/UserError";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
+import ErrorPage from "../common/errors/ErrorPage";
 
 export function DeletePortfolio(portfolioId: string): React.ReactElement {
   const [pfId] = useState<string>(portfolioId);
@@ -32,10 +32,10 @@ export function DeletePortfolio(portfolioId: string): React.ReactElement {
     }
   }
   if (pfError) {
-    return handleError(pfError);
+    return ErrorPage(pfError);
   }
   if (error) {
-    return handleError(error);
+    return ErrorPage(error);
   }
 
   if (!portfolio) {

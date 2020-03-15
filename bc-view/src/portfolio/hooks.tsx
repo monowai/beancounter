@@ -3,7 +3,6 @@ import { Portfolio } from "../types/beancounter";
 import logger from "../common/ConfigLogging";
 import { useEffect, useState } from "react";
 import { AxiosError } from "axios";
-// @ts-ignore
 import { useKeycloak } from "@react-keycloak/razzle";
 import { USD } from "../static/currencies";
 

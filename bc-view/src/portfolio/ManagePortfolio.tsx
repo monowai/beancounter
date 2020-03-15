@@ -26,7 +26,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
       </section>
     );
   };
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     return history.goBack();
   };
 

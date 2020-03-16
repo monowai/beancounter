@@ -4,10 +4,12 @@ import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.config.ShareSightConfig;
 import com.beancounter.shell.reader.Transformer;
 import com.beancounter.shell.sharesight.ShareSightService;
@@ -73,7 +75,7 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("TEST", getCurrency("NZD"));
 
-    Trn trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio);
 
     trn = fxTransactions.applyRates(portfolio, trn);
 
@@ -108,7 +110,7 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
-    Trn trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio);
 
     trn = fxTransactions.applyRates(portfolio, trn);
 
@@ -140,12 +142,12 @@ class StubbedTradesWithFx {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     portfolio.setBase(getCurrency("GBP"));
 
-    Trn trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio);
 
     trn = fxTransactions.applyRates(portfolio, trn);
 
     assertThat(trn)
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
         .hasFieldOrPropertyWithValue("tradeAmount",
             new BigDecimal("1000"))
         .hasFieldOrPropertyWithValue("tradeBaseRate",
@@ -180,26 +182,27 @@ class StubbedTradesWithFx {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Testing all currency buckets
-    Portfolio portfolio = Portfolio.builder().code("TEST").build();
+    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST", Currency.builder()
+        .code("USD").build());
 
-    Trn trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio);
     trn.setCashCurrency(null);
-
     trn = fxTransactions.applyRates(portfolio, trn);
+
     // No currencies are defined so rate defaults to 1
     assertThat(trn)
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
+        .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
         .hasFieldOrPropertyWithValue("tradeBaseRate", FxRate.ONE.getRate())
         .hasFieldOrPropertyWithValue("tradeCashRate", FxRate.ONE.getRate())
         .hasFieldOrPropertyWithValue("tradePortfolioRate", FxRate.ONE.getRate());
 
   }
 
-  private void assertTransaction(Portfolio portfolio, Trn trn) {
+  private void assertTransaction(Portfolio portfolio, TrnInput trn) {
     assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("GBP"))
-        .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency())
+        .hasFieldOrPropertyWithValue("tradeCurrency", "GBP")
+        .hasFieldOrPropertyWithValue("cashCurrency", portfolio.getCurrency().getCode())
         .hasFieldOrPropertyWithValue("tradeBaseRate", new BigDecimal("0.80474951"))
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.53457983"))
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.53457983"))

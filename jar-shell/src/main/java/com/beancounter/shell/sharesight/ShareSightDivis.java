@@ -1,10 +1,11 @@
 package com.beancounter.shell.sharesight;
 
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.shell.reader.Transformer;
 import java.math.BigDecimal;
@@ -45,17 +46,16 @@ public class ShareSightDivis implements Transformer {
   }
 
   @Override
-  public Trn from(List<Object> row, Portfolio portfolio)
+  public TrnInput from(List<Object> row, Portfolio portfolio)
       throws ParseException {
 
     Asset asset = shareSightService.resolveAsset(row.get(code).toString());
     asset.getMarket().setCurrency(Currency.builder().code(row.get(currency).toString()).build());
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
-    return Trn.builder()
-        .asset(asset)
-        .portfolioId(portfolio.getId())
-        .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
+    return TrnInput.builder()
+        .asset(AssetUtils.toKey(asset))
+        .tradeCurrency(row.get(currency).toString())
         .trnType(TrnType.DIVI)
         .tax(MathUtils.multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
         .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))

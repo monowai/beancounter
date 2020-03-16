@@ -1,5 +1,6 @@
 package com.beancounter.common.contracts;
 
+import com.beancounter.common.input.PortfolioInput;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

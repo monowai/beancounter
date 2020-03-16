@@ -1,10 +1,10 @@
 package com.beancounter.shell.cli;
 
 import com.beancounter.client.PortfolioService;
-import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;

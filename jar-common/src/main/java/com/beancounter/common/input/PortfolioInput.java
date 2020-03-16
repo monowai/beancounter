@@ -1,4 +1,4 @@
-package com.beancounter.common.contracts;
+package com.beancounter.common.input;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

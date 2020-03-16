@@ -1,21 +1,20 @@
 package com.beancounter.common.contracts;
 
-import com.beancounter.common.model.Trn;
+import com.beancounter.common.input.TrnInput;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Singular;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrnRequest {
-  @Singular
-  private Collection<Trn> trns;
+public class TrnRequest implements Payload<Collection<TrnInput>> {
+
+  private Collection<TrnInput> data;
   @NonNull
-  private String porfolioId;
+  private String portfolioId;
 }

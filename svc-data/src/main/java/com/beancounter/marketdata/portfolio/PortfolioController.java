@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.portfolio;
 
 import com.beancounter.auth.RoleHelper;
-import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
+import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

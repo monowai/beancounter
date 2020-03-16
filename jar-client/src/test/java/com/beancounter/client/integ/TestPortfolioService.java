@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.ClientConfig;
 import com.beancounter.client.PortfolioService;
-import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;

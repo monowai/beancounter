@@ -2,8 +2,8 @@ package com.beancounter.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfoliosRequest;
+import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;

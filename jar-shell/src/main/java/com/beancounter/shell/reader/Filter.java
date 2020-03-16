@@ -1,6 +1,7 @@
 package com.beancounter.shell.reader;
 
-import com.beancounter.common.model.Trn;
+import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.utils.AssetUtils;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
 import java.util.ArrayList;
@@ -22,9 +23,9 @@ public class Filter {
     }
   }
 
-  public boolean inFilter(Trn trn) {
+  public boolean inFilter(TrnInput trn) {
     if (!filteredAssets.isEmpty()) {
-      return filteredAssets.contains(trn.getAsset().getCode().toUpperCase());
+      return filteredAssets.contains(AssetUtils.fromKey(trn.getAsset()).getCode().toUpperCase());
     }
     return true;
   }

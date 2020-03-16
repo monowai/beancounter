@@ -1,6 +1,6 @@
 package com.beancounter.common.utils;
 
-import com.beancounter.common.contracts.PortfolioInput;
+import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import lombok.experimental.UtilityClass;

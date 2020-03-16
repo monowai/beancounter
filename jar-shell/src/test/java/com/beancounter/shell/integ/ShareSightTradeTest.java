@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.PortfolioService;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.shell.config.ShareSightConfig;
@@ -104,7 +104,7 @@ class ShareSightTradeTest {
     // Portfolio is in NZD
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
 
-    Trn trn = rowProcessor.transform(portfolio, values, "Blah")
+    TrnInput trn = rowProcessor.transform(portfolio, values, "Blah")
         .iterator().next();
 
     assertThat(trn)
@@ -116,8 +116,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount",
             MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
+        .hasFieldOrPropertyWithValue("tradeCurrency","AUD")
         .hasFieldOrPropertyWithValue("tradeCashRate", null)
         .hasFieldOrProperty("tradeDate")
     ;
@@ -132,7 +131,7 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
 
-    Trn trn =
+    TrnInput trn =
         rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")), values, "twee")
             .iterator().next();
 
@@ -155,7 +154,7 @@ class ShareSightTradeTest {
     values.add(inFilter);
     values.add(outFilter);
 
-    Collection<Trn> trns =
+    Collection<TrnInput> trns =
         rowProcessor.transform(
             getPortfolio("Test", getCurrency("NZD")),
             values,
@@ -163,7 +162,7 @@ class ShareSightTradeTest {
             "twee");
 
     assertThat(trns).hasSize(1);
-    Trn trn = trns.iterator().next();
+    TrnInput trn = trns.iterator().next();
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
@@ -181,7 +180,7 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    Trn trn = rowProcessor
+    TrnInput trn = rowProcessor
         .transform(portfolio, values, "blah").iterator().next();
 
     assertThat(trn)
@@ -190,9 +189,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("AUD"))
-        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
-
+        .hasFieldOrPropertyWithValue("tradeCurrency","AUD")
         .hasFieldOrProperty("tradeDate")
     ;
 

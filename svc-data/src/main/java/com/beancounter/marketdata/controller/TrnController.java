@@ -38,8 +38,7 @@ public class TrnController {
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse update(@RequestBody TrnRequest trnRequest) {
-    Portfolio portfolio = portfolioService.find(trnRequest.getPorfolioId());
-    return trnService.save(portfolio, trnRequest);
+    return trnService.save(trnRequest);
   }
 
   @GetMapping(value = "/{portfolioId}/{provider}/{batch}/{id}")

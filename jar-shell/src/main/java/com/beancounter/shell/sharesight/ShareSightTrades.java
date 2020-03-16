@@ -1,11 +1,11 @@
 package com.beancounter.shell.sharesight;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.shell.reader.Transformer;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -47,7 +47,7 @@ public class ShareSightTrades implements Transformer {
   }
 
   @Override
-  public Trn from(List<Object> row, Portfolio portfolio)
+  public TrnInput from(List<Object> row, Portfolio portfolio)
       throws ParseException {
     try {
       TrnType trnType = shareSightService.resolveType(row.get(type).toString());
@@ -74,8 +74,8 @@ public class ShareSightTrades implements Transformer {
         tradeAmount = shareSightService.parseDouble(row.get(value));
       }
 
-      return Trn.builder()
-          .asset(asset)
+      return TrnInput.builder()
+          .asset(AssetUtils.toKey(asset))
           .trnType(trnType)
           .quantity(shareSightService.parseDouble(row.get(quantity)))
           .price(shareSightService.parseDouble(row.get(price)))
@@ -83,9 +83,8 @@ public class ShareSightTrades implements Transformer {
               fees, tradeRate))
           .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
           .tradeDate(shareSightService.parseDate(row.get(date)))
-          .portfolioId(portfolio.getId())
-          .cashCurrency(portfolio.getCurrency())
-          .tradeCurrency(Currency.builder().code(row.get(currency).toString()).build())
+          .cashCurrency(portfolio.getCurrency().getCode())
+          .tradeCurrency(row.get(currency).toString())
           // Zero and null are treated as "unknown"
           .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
               ? null : tradeRate)

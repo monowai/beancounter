@@ -14,12 +14,13 @@ import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
-import com.beancounter.common.contracts.PortfolioInput;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.input.PortfolioInput;
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
@@ -30,6 +31,8 @@ import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.markets.MarketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -87,70 +90,65 @@ public class TrnMvcTest {
         .data("msft", AssetUtils.getAsset("MSFT", nasdaq))
         .build());
 
-    Asset aapl = asset(AssetRequest.builder()
-        .data("aapl", AssetUtils.getAsset("AAPL", nasdaq))
-        .build());
-
     Portfolio portfolio = portfolio(PortfolioInput.builder()
         .code("Twix")
         .name("NZD Portfolio")
         .currency("NZD")
         .build());
     // Creating in random order and assert retrieved in Sort Order.
+    Collection<TrnInput> trnInputs = new ArrayList<>();
+    trnInputs.add(TrnInput.builder()
+        .id(TrnId.builder()
+            .batch(0)
+            .provider("test")
+            .id(1).build())
+        .asset(AssetUtils.toKey("MSFT", nasdaq.getCode()))
+        .tradeDate(new DateUtils().getDate("2018-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+    trnInputs.add(TrnInput.builder()
+        .id(TrnId.builder()
+            .batch(0)
+            .provider("test")
+            .id(3).build())
+        .asset(AssetUtils.toKey("AAPL", nasdaq.getCode()))
+        .tradeDate(new DateUtils().getDate("2018-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+    trnInputs.add(TrnInput.builder()
+        .id(TrnId.builder()
+            .batch(0)
+            .provider("test")
+            .id(2).build())
+        .asset(AssetUtils.toKey("MSFT", nasdaq.getCode()))
+        .tradeDate(new DateUtils().getDate("2017-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+
+    trnInputs.add(TrnInput.builder()
+        .id(TrnId.builder()
+            .batch(0)
+            .provider("test")
+            .id(4).build())
+        .asset(AssetUtils.toKey("AAPL", nasdaq.getCode()))
+        .tradeDate(new DateUtils().getDate("2017-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
     TrnRequest trnRequest = TrnRequest.builder()
-        .trn(Trn.builder()
-            .id(TrnId.builder()
-                .batch(0)
-                .provider("test")
-                .id(1).build())
-            .portfolioId(portfolio.getId())
-            .asset(msft)
-            .tradeDate(new DateUtils().getDate("2018-01-01"))
-            .quantity(BigDecimal.TEN)
-            .price(BigDecimal.TEN)
-            .tradeCurrency(msft.getMarket().getCurrency())
-            .tradePortfolioRate(BigDecimal.ONE)
-            .build())
-        .trn(Trn.builder()
-            .id(TrnId.builder()
-                .batch(0)
-                .provider("test")
-                .id(3).build())
-            .portfolioId(portfolio.getId())
-            .asset(aapl)
-            .tradeDate(new DateUtils().getDate("2018-01-01"))
-            .quantity(BigDecimal.TEN)
-            .price(BigDecimal.TEN)
-            .tradeCurrency(msft.getMarket().getCurrency())
-            .tradePortfolioRate(BigDecimal.ONE)
-            .build())
-        .trn(Trn.builder()
-            .id(TrnId.builder()
-                .batch(0)
-                .provider("test")
-                .id(2).build())
-            .portfolioId(portfolio.getId())
-            .asset(msft)
-            .tradeDate(new DateUtils().getDate("2017-01-01"))
-            .quantity(BigDecimal.TEN)
-            .price(BigDecimal.TEN)
-            .tradeCurrency(msft.getMarket().getCurrency())
-            .tradePortfolioRate(BigDecimal.ONE)
-            .build())
-        .trn(Trn.builder()
-            .id(TrnId.builder()
-                .batch(0)
-                .provider("test")
-                .id(4).build())
-            .portfolioId(portfolio.getId())
-            .asset(aapl)
-            .tradeDate(new DateUtils().getDate("2017-01-01"))
-            .quantity(BigDecimal.TEN)
-            .price(BigDecimal.TEN)
-            .tradeCurrency(msft.getMarket().getCurrency())
-            .tradePortfolioRate(BigDecimal.ONE)
-            .build())
-        .porfolioId(portfolio.getId())
+        .data(trnInputs)
+        .portfolioId(portfolio.getId())
         .build();
 
     MvcResult mvcResult = mockMvc.perform(

@@ -5,10 +5,11 @@ import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -34,35 +35,35 @@ public class FxTransactions {
     this.fxRateService = fxRateService;
   }
 
-  public Trn applyRates(Portfolio portfolio, Trn trn) {
+  public TrnInput applyRates(Portfolio portfolio, TrnInput trn) {
     return applyRates(portfolio, Collections.singleton(trn)).iterator().next();
   }
 
-  public Collection<Trn> applyRates(Portfolio portfolio,
-                                    Collection<Trn> trns) {
+  public Collection<TrnInput> applyRates(Portfolio portfolio,
+                                    Collection<TrnInput> trns) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
-    for (Trn trn : trns) {
+    for (TrnInput trn : trns) {
       String tradeDate = dateUtils.getDateString(trn.getTradeDate());
 
       FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
       IsoCurrencyPair tradePortfolio = CurrencyUtils.getCurrencyPair(
           trn.getTradePortfolioRate(),
-          trn.getAsset().getMarket().getCurrency(),
+          getOrNull(trn.getTradeCurrency()),
           portfolio.getCurrency());
 
       fxRequest.add(tradePortfolio);
 
       IsoCurrencyPair tradeBase = CurrencyUtils.getCurrencyPair(
           trn.getTradeBaseRate(),
-          trn.getAsset().getMarket().getCurrency(),
+          getOrNull(trn.getTradeCurrency()),
           portfolio.getBase());
       fxRequest.add(tradeBase);
 
       IsoCurrencyPair tradeCash = CurrencyUtils.getCurrencyPair(
           trn.getTradeCashRate(),
-          trn.getAsset().getMarket().getCurrency(),
-          trn.getCashCurrency());
+          getOrNull(trn.getTradeCurrency()),
+          getOrNull(trn.getCashCurrency()));
 
       fxRequest.add(tradeCash);
 
@@ -80,11 +81,18 @@ public class FxTransactions {
     return trns;
   }
 
+  private Currency getOrNull(String currency) {
+    if ( currency == null ) {
+      return null;
+    }
+    return CurrencyUtils.getCurrency(currency);
+  }
+
   private void applyRates(FxPairResults rates,
                           IsoCurrencyPair tradePortfolio,
                           IsoCurrencyPair tradeBase,
                           IsoCurrencyPair tradeCash,
-                          Trn trn) {
+                          TrnInput trn) {
 
     if (tradePortfolio != null && MathUtils.isUnset(trn.getTradePortfolioRate())) {
       trn.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());

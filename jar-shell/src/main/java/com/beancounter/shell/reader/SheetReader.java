@@ -4,8 +4,8 @@ import com.beancounter.client.PortfolioService;
 import com.beancounter.client.TrnService;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.shell.model.IngestionRequest;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.writer.FxTransactions;
@@ -80,7 +80,7 @@ public class SheetReader implements Ingester {
    * @return JSON transformation
    */
   @SneakyThrows
-  public Collection<Trn> ingest(IngestionRequest ingestionRequest) {
+  public Collection<TrnInput> ingest(IngestionRequest ingestionRequest) {
     // Build a new authorized API client service.
 
     Portfolio portfolio = portfolioService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
@@ -101,22 +101,22 @@ public class SheetReader implements Ingester {
     try (OutputStream outputStream = ingestWriter.prepareFile(shareSightService.getOutFile())) {
 
       log.info("Processing {} {}", shareSightService.getRange(), sheetId);
-      Collection<Trn> trns = rowProcessor.transform(
+      Collection<TrnInput> trnInputs = rowProcessor.transform(
           portfolio,
           values,
           new Filter(ingestionRequest.getFilter()),
           (ingestionRequest.getProvider() == null ? "SHEETS" : ingestionRequest.getProvider()));
 
-      if (trns.isEmpty()) {
+      if (trnInputs.isEmpty()) {
         return new ArrayList<>();
       }
       log.info("Back filling FX rates...");
-      trns = fxTransactions.applyRates(portfolio, trns);
+      trnInputs = fxTransactions.applyRates(portfolio, trnInputs);
       if (ingestionRequest.isTrnPersist()) {
-        log.info("Received request to write {} transactions {}", trns.size(), portfolio.getCode());
+        log.info("Received request to write {} transactions {}", trnInputs.size(), portfolio.getCode());
         TrnRequest trnRequest = TrnRequest.builder()
-            .porfolioId(portfolio.getId())
-            .trns(trns)
+            .portfolioId(portfolio.getId())
+            .data(trnInputs)
             .build();
         trnService.write(trnRequest);
       }
@@ -125,13 +125,13 @@ public class SheetReader implements Ingester {
         log.info("Writing output...");
         outputStream.write(
             objectMapper.writerWithDefaultPrettyPrinter()
-                .writeValueAsBytes(trns));
+                .writeValueAsBytes(trnInputs));
 
-        log.info("Wrote {} transactions into file {}", trns.size(),
+        log.info("Wrote {} transactions into file {}", trnInputs.size(),
             shareSightService.getOutFile());
       }
       log.info("Complete!");
-      return trns;
+      return trnInputs;
 
     }
   }

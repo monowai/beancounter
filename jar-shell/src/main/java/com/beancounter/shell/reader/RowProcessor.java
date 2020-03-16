@@ -2,8 +2,8 @@ package com.beancounter.shell.reader;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -24,18 +24,18 @@ public class RowProcessor {
     this.shareSightTransformers = shareSightTransformers;
   }
 
-  public Collection<Trn> transform(Portfolio portfolio,
+  public Collection<TrnInput> transform(Portfolio portfolio,
                                    List<List<Object>> values,
                                    String provider) {
     return transform(portfolio, values, new Filter(null), provider);
   }
 
-  public Collection<Trn> transform(Portfolio portfolio,
+  public Collection<TrnInput> transform(Portfolio portfolio,
                                    List<List<Object>> values,
                                    Filter filter,
                                    String provider) {
 
-    Collection<Trn> results = new ArrayList<>();
+    Collection<TrnInput> results = new ArrayList<>();
     if (filter.hasFilter()) {
       log.info("Filtering for assets matching {}", filter);
     }
@@ -46,7 +46,7 @@ public class RowProcessor {
 
       try {
         if (transformer.isValid(row)) {
-          Trn trn = transformer.from(row, portfolio);
+          TrnInput trn = transformer.from(row, portfolio);
 
           trn.setId(TrnId.builder()
               .id(trnId++)

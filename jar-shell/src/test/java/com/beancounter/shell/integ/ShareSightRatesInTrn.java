@@ -5,10 +5,10 @@ import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static com.beancounter.shell.integ.ShareSightTradeTest.getRow;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -77,12 +77,12 @@ public class ShareSightRatesInTrn {
 
     Transformer dividends = shareSightTransformers.transformer(row);
 
-    Trn trn = dividends.from(row, portfolio);
+    TrnInput trn = dividends.from(row, portfolio);
     Asset expectedAsset = AssetUtils.getAsset("ABBV", "NYSE");
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(trn)
-        .hasFieldOrPropertyWithValue("asset.code", expectedAsset.getCode())
+        .hasFieldOrPropertyWithValue("asset", AssetUtils.toKey(expectedAsset))
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
             MathUtils.multiply(new BigDecimal("15.85"), fxRate))
@@ -90,8 +90,7 @@ public class ShareSightRatesInTrn {
             MathUtils.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", getCurrency("USD"))
-        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
+        .hasFieldOrPropertyWithValue("tradeCurrency","USD")
 
         .hasFieldOrProperty("tradeDate")
     ;
@@ -108,9 +107,9 @@ public class ShareSightRatesInTrn {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     // System base currency
-    Collection<Trn> trns = rowProcessor.transform(portfolio, values, "Test");
+    Collection<TrnInput> trnInputs = rowProcessor.transform(portfolio, values, "Test");
 
-    Trn trn = trns.iterator().next();
+    TrnInput trn = trnInputs.iterator().next();
     log.info(new ObjectMapper().writeValueAsString(trn));
     assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
@@ -121,7 +120,6 @@ public class ShareSightRatesInTrn {
             MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0.8988")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrProperty("tradeCurrency")
-        .hasFieldOrPropertyWithValue("portfolioId", portfolio.getId())
         .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.8988"))
         .hasFieldOrProperty("tradeDate")
     ;

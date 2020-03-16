@@ -1,4 +1,4 @@
-package com.beancounter.shell.reader;
+package com.beancounter.shell.ingest;
 
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;

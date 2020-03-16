@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.marketdata.assets.AssetService;
@@ -56,4 +57,10 @@ public class TrnAdapter {
         .build();
   }
 
+  public Asset hydrate(Asset asset) {
+    if (asset == null) {
+      return null;
+    }
+    return assetService.find(asset.getId());
+  }
 }

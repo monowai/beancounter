@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.shell.cli.IngestionCommand;
 import com.beancounter.shell.config.IngestionConfig;
-import com.beancounter.shell.model.IngestionRequest;
-import com.beancounter.shell.reader.Ingester;
+import com.beancounter.shell.ingest.Ingester;
+import com.beancounter.shell.ingest.IngestionRequest;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

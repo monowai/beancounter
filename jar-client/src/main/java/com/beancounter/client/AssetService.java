@@ -29,9 +29,9 @@ public class AssetService {
   /**
    * Create assets, if necessary, and return the hydrated assets.
    *
-   * @param assetCode  Code on the exchange
-   * @param assetName  Name to set the asset to
-   * @param market exchange code
+   * @param assetCode Code on the exchange
+   * @param assetName Name to set the asset to
+   * @param market    exchange code
    * @return hydrated asset with a primary key.
    */
   public Asset resolveAsset(String assetCode, String assetName, Market market) {

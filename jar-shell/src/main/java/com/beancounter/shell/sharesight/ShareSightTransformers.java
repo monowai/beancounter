@@ -1,9 +1,8 @@
 package com.beancounter.shell.sharesight;
 
-import com.beancounter.shell.reader.Transformer;
+import com.beancounter.shell.ingest.Transformer;
 import java.util.List;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,7 +18,6 @@ public class ShareSightTransformers {
   private ShareSightTrades shareSightTrades;
   private ShareSightDivis shareSightDivis;
 
-  @Autowired
   public ShareSightTransformers(ShareSightDivis shareSightDivis,
                                 ShareSightTrades shareSightTrades) {
     this.shareSightDivis = shareSightDivis;

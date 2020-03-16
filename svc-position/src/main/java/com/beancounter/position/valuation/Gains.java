@@ -10,19 +10,16 @@ public class Gains {
 
   public void value(Position position, Position.In in) {
 
-    MoneyValues moneyValues = position.getMoneyValues(in);
-    BigDecimal total = position.getQuantityValues().getTotal();
-    boolean hasTotal = !BigDecimal.ZERO.equals(total);
-
-    if (hasTotal) {
-      // No quantity == no Unrealised Gain
-      moneyValues.setUnrealisedGain(moneyValues.getMarketValue()
-          .subtract(moneyValues.getCostValue()));
+    if (!BigDecimal.ZERO.equals(total)) {
+      moneyValues.setUnrealisedGain(
+          moneyValues.getMarketValue()
+              .subtract(moneyValues.getCostValue()));
     }
 
-    moneyValues.setTotalGain(moneyValues.getUnrealisedGain()
-        .add(moneyValues.getDividends()
-            .add(moneyValues.getRealisedGain())));
+    moneyValues.setTotalGain(
+        moneyValues.getUnrealisedGain()
+            .add(moneyValues.getDividends()
+                .add(moneyValues.getRealisedGain())));
   }
 
 }

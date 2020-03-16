@@ -1,14 +1,9 @@
-package com.beancounter.shell.config;
+package com.beancounter.shell.sharesight;
 
 import com.beancounter.client.ClientConfig;
+import com.beancounter.client.FxTransactions;
 import com.beancounter.common.utils.UtilConfig;
-import com.beancounter.shell.reader.Filter;
-import com.beancounter.shell.reader.RowProcessor;
-import com.beancounter.shell.sharesight.ShareSightDivis;
-import com.beancounter.shell.sharesight.ShareSightService;
-import com.beancounter.shell.sharesight.ShareSightTrades;
-import com.beancounter.shell.sharesight.ShareSightTransformers;
-import com.beancounter.shell.writer.FxTransactions;
+import com.beancounter.shell.ingest.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -22,7 +17,7 @@ import org.springframework.context.annotation.Import;
     ShareSightService.class,
     FxTransactions.class,
     Filter.class,
-    RowProcessor.class
+    ShareSightRowProcessor.class
 })
 public class ShareSightConfig {
 

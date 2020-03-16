@@ -1,8 +1,7 @@
-package com.beancounter.shell.reader;
+package com.beancounter.shell.google;
 
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.SystemException;
-import com.beancounter.shell.config.GoogleAuthConfig;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;

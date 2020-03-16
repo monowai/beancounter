@@ -1,4 +1,4 @@
-package com.beancounter.shell.config;
+package com.beancounter.shell.google;
 
 import com.beancounter.common.exception.SystemException;
 import com.google.api.client.auth.oauth2.Credential;

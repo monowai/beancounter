@@ -45,8 +45,7 @@ public class ValuationService implements Valuation {
   public PositionResponse value(Positions positions) {
 
     if (positions == null) {
-      return PositionResponse.builder()
-          .build();
+      return PositionResponse.builder().build();
     }
     if (positions.getAsAt() != null) {
       dateUtils.isValid(positions.getAsAt());

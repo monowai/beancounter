@@ -1,4 +1,4 @@
-package com.beancounter.shell.model;
+package com.beancounter.shell.ingest;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

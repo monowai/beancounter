@@ -11,10 +11,11 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.shell.config.ShareSightConfig;
-import com.beancounter.shell.reader.Filter;
-import com.beancounter.shell.reader.RowProcessor;
-import com.beancounter.shell.reader.Transformer;
+import com.beancounter.shell.ingest.Filter;
+import com.beancounter.shell.ingest.Transformer;
+import com.beancounter.shell.sharesight.ShareSightConfig;
+import com.beancounter.shell.sharesight.ShareSightRowProcessor;
+import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
 import java.math.BigDecimal;
@@ -44,7 +45,10 @@ import org.springframework.test.context.ActiveProfiles;
 class ShareSightTradeTest {
 
   @Autowired
-  private RowProcessor rowProcessor;
+  private ShareSightRowProcessor shareSightRowProcessor;
+
+  @Autowired
+  private ShareSightService shareSightService;
 
   @Autowired
   private PortfolioService portfolioService;
@@ -104,7 +108,7 @@ class ShareSightTradeTest {
     // Portfolio is in NZD
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
 
-    TrnInput trn = rowProcessor.transform(portfolio, values, "Blah")
+    TrnInput trn = shareSightRowProcessor.transform(portfolio, values, "Blah")
         .iterator().next();
 
     assertThat(trn)
@@ -116,7 +120,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount",
             MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency","AUD")
+        .hasFieldOrPropertyWithValue("tradeCurrency", "AUD")
         .hasFieldOrPropertyWithValue("tradeCashRate", null)
         .hasFieldOrProperty("tradeDate")
     ;
@@ -132,7 +136,7 @@ class ShareSightTradeTest {
     values.add(row);
 
     TrnInput trn =
-        rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")), values, "twee")
+        shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")), values, "twee")
             .iterator().next();
 
     assertThat(trn)
@@ -153,12 +157,11 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(inFilter);
     values.add(outFilter);
-
+    shareSightService.setFilter(new Filter("AMP"));
     Collection<TrnInput> trns =
-        rowProcessor.transform(
+        shareSightRowProcessor.transform(
             getPortfolio("Test", getCurrency("NZD")),
             values,
-            new Filter("AMP"),
             "twee");
 
     assertThat(trns).hasSize(1);
@@ -180,7 +183,7 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    TrnInput trn = rowProcessor
+    TrnInput trn = shareSightRowProcessor
         .transform(portfolio, values, "blah").iterator().next();
 
     assertThat(trn)
@@ -189,7 +192,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency","AUD")
+        .hasFieldOrPropertyWithValue("tradeCurrency", "AUD")
         .hasFieldOrProperty("tradeDate")
     ;
 
@@ -201,7 +204,7 @@ class ShareSightTradeTest {
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
     assertThrows(BusinessException.class, () ->
-        rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
+        shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
             values, "twee"));
   }
 
@@ -213,7 +216,7 @@ class ShareSightTradeTest {
     values.add(row);
 
     assertThrows(BusinessException.class, () ->
-        rowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
+        shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
             values, "twee"));
 
 

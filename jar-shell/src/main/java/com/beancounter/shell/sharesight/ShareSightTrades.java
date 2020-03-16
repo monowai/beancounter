@@ -5,8 +5,8 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.shell.reader.Transformer;
+import com.beancounter.shell.ingest.Filter;
+import com.beancounter.shell.ingest.Transformer;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -40,10 +40,12 @@ public class ShareSightTrades implements Transformer {
   public static final int value = 10;
   public static final int comments = 11;
   private final ShareSightService shareSightService;
+  private final Filter filter;
 
   @Autowired
-  public ShareSightTrades(ShareSightService shareSightService) {
+  public ShareSightTrades(ShareSightService shareSightService, Filter filter) {
     this.shareSightService = shareSightService;
+    this.filter = filter;
   }
 
   @Override
@@ -60,7 +62,9 @@ public class ShareSightTrades implements Transformer {
       String marketCode = row.get(market).toString();
 
       Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
-
+      if (!shareSightService.inFilter(asset)) {
+        return null;
+      }
       String comment = (row.size() == 12 ? nullSafe(row.get(comments)) : null);
 
       BigDecimal tradeRate = null;
@@ -75,7 +79,7 @@ public class ShareSightTrades implements Transformer {
       }
 
       return TrnInput.builder()
-          .asset(AssetUtils.toKey(asset))
+          .asset(asset.getId())
           .trnType(trnType)
           .quantity(shareSightService.parseDouble(row.get(quantity)))
           .price(shareSightService.parseDouble(row.get(price)))

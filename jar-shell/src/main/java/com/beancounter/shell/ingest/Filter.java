@@ -1,17 +1,17 @@
-package com.beancounter.shell.reader;
+package com.beancounter.shell.ingest;
 
-import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.model.Asset;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Filter {
 
   private Collection<String> filteredAssets = new ArrayList<>();
-
 
   public Filter(@Value("${filter:#{null}}") String filter) {
     init(filter);
@@ -23,9 +23,9 @@ public class Filter {
     }
   }
 
-  public boolean inFilter(TrnInput trn) {
+  public boolean inFilter(Asset asset) {
     if (!filteredAssets.isEmpty()) {
-      return filteredAssets.contains(AssetUtils.fromKey(trn.getAsset()).getCode().toUpperCase());
+      return filteredAssets.contains(asset.getCode().toUpperCase());
     }
     return true;
   }

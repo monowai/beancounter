@@ -81,7 +81,11 @@ public class TrnService {
         .build();
     trnResponse.addPortfolio(portfolio);
     Collection<Trn> trnCollection = new ArrayList<>();
-    trns.forEach(trnCollection::add);
+    for (Trn trn : trns) {
+      trnCollection.add(trn);
+      trn.setAsset(trnAdapter.hydrate(trn.getAsset()));
+      trn.setCashAsset(trnAdapter.hydrate(trn.getCashAsset()));
+    }
     trnResponse.setTrns(trnCollection);
     return trnResponse;
   }

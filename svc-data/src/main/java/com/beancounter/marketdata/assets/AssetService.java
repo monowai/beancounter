@@ -2,6 +2,7 @@ package com.beancounter.marketdata.assets;
 
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
@@ -60,11 +61,15 @@ public class AssetService {
   }
 
   public Asset find(String id) {
-    return assetRepository.findById(id).map(this::hydrateAsset).orElse(null);
+    Optional<Asset> result = assetRepository
+        .findById(id).map(this::hydrateAsset);
+    if ( result.isPresent()) {
+      return result.get();
+    }
+    throw new BusinessException(String.format("Asset.id %s not found", id));
   }
 
   private Asset hydrateAsset(Asset asset) {
-
     asset.setMarket(marketService.getMarket(asset.getMarketCode()));
     return asset;
   }

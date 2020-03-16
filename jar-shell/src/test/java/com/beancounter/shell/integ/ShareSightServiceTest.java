@@ -8,9 +8,10 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.PortfolioUtils;
-import com.beancounter.shell.config.ShareSightConfig;
-import com.beancounter.shell.reader.RowProcessor;
+import com.beancounter.shell.ingest.Filter;
+import com.beancounter.shell.sharesight.ShareSightConfig;
 import com.beancounter.shell.sharesight.ShareSightDivis;
+import com.beancounter.shell.sharesight.ShareSightRowProcessor;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTrades;
 import java.math.BigDecimal;
@@ -38,7 +39,7 @@ class ShareSightServiceTest {
   private ShareSightService shareSightService;
 
   @Autowired
-  private RowProcessor rowProcessor;
+  private ShareSightRowProcessor shareSightRowProcessor;
 
   @Test
   void is_DoubleValueInputCorrect() throws ParseException {
@@ -94,7 +95,7 @@ class ShareSightServiceTest {
     row.add(ShareSightTrades.date, "date");
     row.add(ShareSightTrades.quantity, "quantity");
     row.add(ShareSightTrades.price, "price");
-    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightService);
+    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightService, new Filter(null));
     assertThat(shareSightTrades.isValid(row)).isFalse();
 
     row.remove(ShareSightTrades.price);
@@ -127,7 +128,7 @@ class ShareSightServiceTest {
   }
 
   @Test
-  void is_AssetsSetIntoTransaction()  {
+  void is_AssetsSetIntoTransaction() {
     List<Object> row = new ArrayList<>();
     row.add(ShareSightTrades.market, "ASX");
     row.add(ShareSightTrades.code, "BHP");
@@ -161,7 +162,7 @@ class ShareSightServiceTest {
 
     assertThat(rows).hasSize(2);
 
-    Collection<TrnInput> trnInputs = rowProcessor
+    Collection<TrnInput> trnInputs = shareSightRowProcessor
         .transform(PortfolioUtils.getPortfolio("TEST"), rows, "Test");
 
     for (TrnInput trn : trnInputs) {

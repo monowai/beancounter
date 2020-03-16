@@ -6,16 +6,14 @@ import static com.beancounter.shell.integ.ShareSightTradeTest.getRow;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.shell.config.ShareSightConfig;
-import com.beancounter.shell.reader.RowProcessor;
-import com.beancounter.shell.reader.Transformer;
+import com.beancounter.shell.ingest.Transformer;
+import com.beancounter.shell.sharesight.ShareSightConfig;
 import com.beancounter.shell.sharesight.ShareSightDivis;
+import com.beancounter.shell.sharesight.ShareSightRowProcessor;
 import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTransformers;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +44,7 @@ public class ShareSightRatesInTrn {
   private ShareSightTransformers shareSightTransformers;
 
   @Autowired
-  private RowProcessor rowProcessor;
+  private ShareSightRowProcessor shareSightRowProcessor;
 
   @Test
   void is_IgnoreRatesDefaultCorrect() {
@@ -78,11 +76,11 @@ public class ShareSightRatesInTrn {
     Transformer dividends = shareSightTransformers.transformer(row);
 
     TrnInput trn = dividends.from(row, portfolio);
-    Asset expectedAsset = AssetUtils.getAsset("ABBV", "NYSE");
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(trn)
-        .hasFieldOrPropertyWithValue("asset", AssetUtils.toKey(expectedAsset))
+        // Id comes from svc-data/contracts/assets
+        .hasFieldOrPropertyWithValue("asset", "BguoVZpoRxWeWrITp7DEuw")
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
             MathUtils.multiply(new BigDecimal("15.85"), fxRate))
@@ -90,7 +88,7 @@ public class ShareSightRatesInTrn {
             MathUtils.multiply(new BigDecimal("15.85"), fxRate))
         .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency","USD")
+        .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
 
         .hasFieldOrProperty("tradeDate")
     ;
@@ -107,7 +105,7 @@ public class ShareSightRatesInTrn {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     // System base currency
-    Collection<TrnInput> trnInputs = rowProcessor.transform(portfolio, values, "Test");
+    Collection<TrnInput> trnInputs = shareSightRowProcessor.transform(portfolio, values, "Test");
 
     TrnInput trn = trnInputs.iterator().next();
     log.info(new ObjectMapper().writeValueAsString(trn));

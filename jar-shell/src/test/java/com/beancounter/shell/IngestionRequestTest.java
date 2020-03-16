@@ -2,7 +2,7 @@ package com.beancounter.shell;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.shell.model.IngestionRequest;
+import com.beancounter.shell.ingest.IngestionRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 

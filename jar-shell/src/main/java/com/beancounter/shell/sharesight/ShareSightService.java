@@ -7,6 +7,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
+import com.beancounter.shell.ingest.Filter;
 import com.google.api.client.util.Strings;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -39,6 +40,7 @@ public class ShareSightService {
   private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
   @Value("${range:All Trades Report}")
   private String range;
+  private Filter filter;
   private AssetService assetService;
   private DateUtils dateUtils = new DateUtils();
   private StaticService staticService;
@@ -113,5 +115,13 @@ public class ShareSightService {
 
   boolean isUnset(BigDecimal value) {
     return MathUtils.isUnset(value);
+  }
+
+  public boolean inFilter(Asset asset) {
+    if (filter == null) {
+      return true;
+    }
+
+    return filter.inFilter(asset);
   }
 }

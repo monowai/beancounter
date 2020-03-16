@@ -2,12 +2,10 @@ package com.beancounter.shell.sharesight;
 
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.shell.reader.Transformer;
+import com.beancounter.shell.ingest.Transformer;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -50,11 +48,14 @@ public class ShareSightDivis implements Transformer {
       throws ParseException {
 
     Asset asset = shareSightService.resolveAsset(row.get(code).toString());
-    asset.getMarket().setCurrency(Currency.builder().code(row.get(currency).toString()).build());
+    if (!shareSightService.inFilter(asset)) {
+      return null;
+    }
+
     BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
 
     return TrnInput.builder()
-        .asset(AssetUtils.toKey(asset))
+        .asset(asset.getId())
         .tradeCurrency(row.get(currency).toString())
         .trnType(TrnType.DIVI)
         .tax(MathUtils.multiply(new BigDecimal(row.get(tax).toString()), tradeRate))

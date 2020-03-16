@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,18 +28,23 @@ public class TrnController {
 
   private TrnService trnService;
   private PortfolioService portfolioService;
+  private AssetService assetService;
 
   @Autowired
-  void setServices(TrnService trnService, PortfolioService portfolioService) {
+  void setServices(TrnService trnService,
+                   PortfolioService portfolioService,
+                   AssetService assetService) {
     this.trnService = trnService;
     this.portfolioService = portfolioService;
+    this.assetService = assetService;
   }
 
   @PostMapping(
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse update(@RequestBody TrnRequest trnRequest) {
-    return trnService.save(trnRequest);
+    Portfolio portfolio = portfolioService.find(trnRequest.getPortfolioId());
+    return trnService.save(portfolio, trnRequest);
   }
 
   @GetMapping(value = "/{portfolioId}/{provider}/{batch}/{id}")
@@ -62,6 +68,14 @@ public class TrnController {
     Portfolio portfolio = portfolioService.find(portfolioId);
 
     return trnService.find(portfolio);
+  }
+
+  @GetMapping(value = "/{portfolioId}/{assetId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  TrnResponse findByAsset(
+      @PathVariable("portfolioId") String portfolioId,
+      @PathVariable("assetId") String assetId
+  ) {
+    return trnService.find(portfolioService.find(portfolioId), assetId);
   }
 
   @DeleteMapping(value = "/{portfolioId}")

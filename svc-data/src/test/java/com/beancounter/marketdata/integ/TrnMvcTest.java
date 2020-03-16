@@ -90,6 +90,10 @@ public class TrnMvcTest {
         .data("msft", AssetUtils.getAsset("MSFT", nasdaq))
         .build());
 
+    Asset aapl = asset(AssetRequest.builder()
+        .data("aapl", AssetUtils.getAsset("AAPL", nasdaq))
+        .build());
+
     Portfolio portfolio = portfolio(PortfolioInput.builder()
         .code("Twix")
         .name("NZD Portfolio")
@@ -102,7 +106,7 @@ public class TrnMvcTest {
             .batch(0)
             .provider("test")
             .id(1).build())
-        .asset(AssetUtils.toKey("MSFT", nasdaq.getCode()))
+        .asset(msft.getId())
         .tradeDate(new DateUtils().getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
@@ -114,7 +118,7 @@ public class TrnMvcTest {
             .batch(0)
             .provider("test")
             .id(3).build())
-        .asset(AssetUtils.toKey("AAPL", nasdaq.getCode()))
+        .asset(aapl.getId())
         .tradeDate(new DateUtils().getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
@@ -126,7 +130,7 @@ public class TrnMvcTest {
             .batch(0)
             .provider("test")
             .id(2).build())
-        .asset(AssetUtils.toKey("MSFT", nasdaq.getCode()))
+        .asset(msft.getId())
         .tradeDate(new DateUtils().getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
@@ -139,7 +143,7 @@ public class TrnMvcTest {
             .batch(0)
             .provider("test")
             .id(4).build())
-        .asset(AssetUtils.toKey("AAPL", nasdaq.getCode()))
+        .asset(aapl.getId())
         .tradeDate(new DateUtils().getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
@@ -151,7 +155,7 @@ public class TrnMvcTest {
         .portfolioId(portfolio.getId())
         .build();
 
-    MvcResult mvcResult = mockMvc.perform(
+    MvcResult postResult = mockMvc.perform(
         post("/trns")
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
@@ -161,9 +165,12 @@ public class TrnMvcTest {
         .andReturn();
 
     TrnResponse trnResponse = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
+        .readValue(postResult.getResponse().getContentAsString(), TrnResponse.class);
     assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(4);
     assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
+    for (Trn trn : trnResponse.getTrns()) {
+      assertThat(trn.getAsset()).isNotNull();
+    }
 
     String portfolioId = trnResponse.getTrns().iterator().next().getPortfolioId();
     assertThat(trnResponse.getPortfolios())
@@ -172,7 +179,7 @@ public class TrnMvcTest {
     assertThat(portfolio).isEqualTo(trnResponse.getPortfolios().iterator().next());
 
     // Find by Portfolio, sorted by assetId and then Date
-    mvcResult = mockMvc.perform(
+    MvcResult mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}", portfolioId)
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
@@ -190,15 +197,14 @@ public class TrnMvcTest {
     // Verify the sort order - asset.code, tradeDate
     for (Trn trn : trnResponse.getTrns()) {
       assertThat(trn.getId().getId() == i--);
+      assertThat(trn.getAsset()).isNotNull();
     }
 
-    TrnId trnId = trnResponse.getTrns().iterator().next().getId();
+    Trn trn = trnResponse.getTrns().iterator().next();
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}/{provider}/{batch}/{id}",
-
-            portfolioId, trnId.getProvider(), trnId.getBatch(), trnId.getId())
-            .content(new ObjectMapper().writeValueAsBytes(trnRequest))
+            portfolioId, trn.getId().getProvider(), trn.getId().getBatch(), trn.getId().getId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
@@ -208,7 +214,24 @@ public class TrnMvcTest {
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
     assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(1);
-    assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
+    assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1).contains(portfolio);
+
+    // Find by portfolio and asset
+    MvcResult findByAsset = mockMvc.perform(
+        get("/trns/{portfolioId}/{assetId}",
+            portfolioId, msft.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(jwt(token).authorities(authorityRoleConverter))
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    trnResponse = objectMapper
+        .readValue(findByAsset.getResponse().getContentAsString(), TrnResponse.class);
+    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(2); // 2 MSFT transactions
+    assertThat(trnResponse.getPortfolios())
+        .isNotEmpty()
+        .containsOnly(portfolio);
 
     // Purge all transactions for the Portfolio
     mvcResult = mockMvc.perform(

@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.marketdata.assets.AssetService;
@@ -23,14 +22,8 @@ public class TrnAdapter {
   public TrnResponse convert(Portfolio portfolio, TrnRequest trnRequest) {
     TrnResponse trnResponse = TrnResponse.builder().build();
     trnResponse.addPortfolio(portfolio);
-    Asset asset = null;
     for (TrnInput trnInput : trnRequest.getData()) {
-      Trn trn = map(portfolio, trnInput);
-      if (asset == null || !trnInput.getAsset().equals(asset.getId())) {
-        asset = assetService.find(trnInput.getAsset());
-      }
-      trn.setAsset(asset);
-      trnResponse.getTrns().add(trn);
+      trnResponse.getTrns().add(map(portfolio, trnInput));
     }
     return trnResponse;
 
@@ -55,10 +48,10 @@ public class TrnAdapter {
         .trnType(trnInput.getTrnType())
         .comments(trnInput.getComments())
         .asset(assetService.find(trnInput.getAsset()))
-        .cashAsset(trnInput.getCashAsset() == null ?
-            null : assetService.find((trnInput.getCashAsset())))
-        .cashCurrency(trnInput.getCashCurrency() == null ?
-            null : currencyService.getCode(trnInput.getCashCurrency()))
+        .cashAsset(trnInput.getCashAsset() == null
+            ? null : assetService.find((trnInput.getCashAsset())))
+        .cashCurrency(trnInput.getCashCurrency() == null
+            ? null : currencyService.getCode(trnInput.getCashCurrency()))
         .tradeCurrency(currencyService.getCode(trnInput.getTradeCurrency()))
         .build();
   }

@@ -113,7 +113,10 @@ public class SheetReader implements Ingester {
       log.info("Back filling FX rates...");
       trnInputs = fxTransactions.applyRates(portfolio, trnInputs);
       if (ingestionRequest.isTrnPersist()) {
-        log.info("Received request to write {} transactions {}", trnInputs.size(), portfolio.getCode());
+        log.info("Received request to write {} transactions {}",
+            trnInputs.size(),
+            portfolio.getCode());
+
         TrnRequest trnRequest = TrnRequest.builder()
             .portfolioId(portfolio.getId())
             .data(trnInputs)

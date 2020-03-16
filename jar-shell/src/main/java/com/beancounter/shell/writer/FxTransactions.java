@@ -40,7 +40,7 @@ public class FxTransactions {
   }
 
   public Collection<TrnInput> applyRates(Portfolio portfolio,
-                                    Collection<TrnInput> trns) {
+                                         Collection<TrnInput> trns) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
     for (TrnInput trn : trns) {
       String tradeDate = dateUtils.getDateString(trn.getTradeDate());
@@ -81,13 +81,6 @@ public class FxTransactions {
     return trns;
   }
 
-  private Currency getOrNull(String currency) {
-    if ( currency == null ) {
-      return null;
-    }
-    return CurrencyUtils.getCurrency(currency);
-  }
-
   private void applyRates(FxPairResults rates,
                           IsoCurrencyPair tradePortfolio,
                           IsoCurrencyPair tradeBase,
@@ -109,6 +102,13 @@ public class FxTransactions {
     } else {
       trn.setTradeCashRate(FxRate.ONE.getRate());
     }
+  }
+
+  private Currency getOrNull(String currency) {
+    if (currency == null) {
+      return null;
+    }
+    return CurrencyUtils.getCurrency(currency);
   }
 
   private FxRequest getFxRequest(Map<String, FxRequest> fxRequests, String tradeDate) {

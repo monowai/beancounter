@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
-import com.beancounter.marketdata.portfolio.PortfolioService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,19 +20,14 @@ import org.springframework.stereotype.Service;
 public class TrnService {
   private TrnRepository trnRepository;
   private TrnAdapter trnAdapter;
-  private PortfolioService portfolioService;
 
   TrnService(TrnRepository trnRepository,
-             TrnAdapter trnAdapter,
-             PortfolioService portfolioService) {
+             TrnAdapter trnAdapter) {
     this.trnRepository = trnRepository;
     this.trnAdapter = trnAdapter;
-    this.portfolioService = portfolioService;
   }
 
-  public TrnResponse save(TrnRequest trnRequest) {
-    Portfolio portfolio = portfolioService.find(trnRequest.getPortfolioId());
-
+  public TrnResponse save(Portfolio portfolio, TrnRequest trnRequest) {
     log.info("Received request to write {} transactions {}",
         trnRequest.getData().size(), portfolio.getCode());
     TrnResponse results = trnAdapter.convert(portfolio, trnRequest);
@@ -49,6 +43,19 @@ public class TrnService {
     Optional<Trn> found = trnRepository.findById(trnId);
     return found.map(transaction -> hydrate(portfolio, transaction))
         .orElseGet(() -> TrnResponse.builder().build());
+  }
+
+  public TrnResponse find(Portfolio portfolio, String assetId) {
+    Collection<Trn> results = trnRepository.findByPortfolioIdAndAssetId(portfolio.getId(),
+        assetId,
+        Sort.by("asset.code")
+            .and(Sort.by("tradeDate")));
+    log.debug("Found {} for portfolio {} and asset {}",
+        results.size(),
+        portfolio.getCode(),
+        assetId
+    );
+    return hydrate(portfolio, results);
   }
 
   public TrnResponse find(Portfolio portfolio) {

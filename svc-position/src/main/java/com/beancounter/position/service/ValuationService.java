@@ -52,7 +52,9 @@ public class ValuationService implements Valuation {
     }
     Collection<Asset> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
-      gains.value(position, Position.In.PORTFOLIO);
+      gains.value(position.getQuantityValues().getTotal(),
+          position.getMoneyValues(Position.In.PORTFOLIO));
+
       if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
         assets.add(position.getAsset());
       }

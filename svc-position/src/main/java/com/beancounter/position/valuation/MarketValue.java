@@ -31,19 +31,25 @@ public class MarketValue {
     Currency trade = asset.getMarket().getCurrency();
     Position position = positions.get(asset);
     Portfolio portfolio = positions.getPortfolio();
+    BigDecimal total = position.getQuantityValues().getTotal();
 
-    value(position, marketData, FxRate.ONE, Position.In.TRADE);
-    value(position, marketData, rate(portfolio.getBase(), trade, rates), Position.In.BASE);
-    value(position, marketData, rate(portfolio.getCurrency(), trade, rates), Position.In.PORTFOLIO);
+    value(total, position.getMoneyValues(Position.In.TRADE), marketData.getClose(),
+        FxRate.ONE
+    );
+    value(total, position.getMoneyValues(Position.In.BASE), marketData.getClose(),
+        rate(portfolio.getBase(), trade, rates)
+    );
+    value(total, position.getMoneyValues(Position.In.PORTFOLIO), marketData.getClose(),
+        rate(portfolio.getCurrency(), trade, rates)
+    );
     position.setAsset(asset);
   }
 
-  private void value(Position position, MarketData marketData, FxRate rate, Position.In in) {
-    BigDecimal total = position.getQuantityValues().getTotal();
-    MoneyValues moneyValues = position.getMoneyValues(in);
-    moneyValues.setPrice(MathUtils.multiply(marketData.getClose(), rate.getRate()));
+  private void value(BigDecimal total, MoneyValues moneyValues, BigDecimal price, FxRate rate) {
+
+    moneyValues.setPrice(MathUtils.multiply(price, rate.getRate()));
     moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));
-    gains.value(position, in);
+    gains.value(total, moneyValues);
   }
 
   private FxRate rate(Currency report, Currency trade, Map<IsoCurrencyPair, FxRate> rates) {

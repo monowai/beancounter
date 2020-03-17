@@ -32,7 +32,8 @@ const BaseApp = (): JSX.Element => {
           </Switch>
         </BrowserRouter>
       </Suspense>
-      // @ts-ignore
+      {/*
+  // @ts-ignore */}
     </SSRKeycloakProvider>
   );
 };

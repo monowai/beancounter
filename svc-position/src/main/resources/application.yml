@@ -34,23 +34,20 @@ endpoints:
 logging:
   level:
     root: debug
-    org.springframework.web.servlet: fatal
-    org.springframework: info
-    org.springframework.boot.web: info
-    org.mortbay: error
-    org.spring: error
-    com.google: error
-    org.apache: error
-    com.netflix: error
-    org: error
-    sun: error
-    jdk: error
     javax: error
-    io.opencensus: error
+    sun: error
     io: error
-    com.beancounter: debug
-    feign.template: error
-    io.github.resilience4j: fatal
+    feign: fatal
+    com:
+      netfix: error
+      beancounter: debug
+      zaxxer: error
+    org:
+      springframework: error
+      hibernate: error
+      apache: error
+      postgres: error
+
 feign:
   client:
     config:

@@ -1,6 +1,6 @@
 {
   "error-global-oops": "Oh No!",
-  "error-global": "Something went wrong",
+  "error-global": "Something went unexpectedly wrong",
   "app": "BeanCounter",
   "quantity": "Quantity",
   "price": "Price",

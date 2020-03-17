@@ -130,13 +130,13 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
                   </div>
                 </div>
                 <div className="field">
-                  <label className="label">Reporting Currency</label>
+                  <label className="label">Portfolio Currency</label>
                   <div className="control">
                     <select
                       placeholder={"Select currency"}
                       className={"select is-3"}
                       name={"currency"}
-                      value={portfolio.currency.code}
+                      defaultValue={portfolio.currency.code}
                       ref={register({ required: true })}
                     >
                       {currencyOptions(currencies)}
@@ -144,13 +144,13 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
                   </div>
                 </div>
                 <div className="field">
-                  <label className="label">Reference Currency</label>
+                  <label className="label">Common Currency</label>
                   <div className="control">
                     <select
                       placeholder={"Select currency"}
                       className={"select is-3"}
                       name={"base"}
-                      value={portfolio.base.code}
+                      defaultValue={portfolio.base.code}
                       ref={register({ required: true })}
                     >
                       {currencyOptions(currencies)}

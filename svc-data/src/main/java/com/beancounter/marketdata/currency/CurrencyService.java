@@ -36,6 +36,7 @@ public class CurrencyService {
     if (currencyRepository != null) {
       currencyRepository.saveAll(currencies);
     }
+    log.info("Created {} Default Currencies", currencies.size());
   }
 
   /**

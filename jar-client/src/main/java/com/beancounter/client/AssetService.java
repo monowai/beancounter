@@ -62,7 +62,7 @@ public class AssetService {
   @FeignClient(name = "assets",
       url = "${marketdata.url:http://localhost:9510/api}")
   public interface AssetGateway {
-    @PostMapping(value = "/assets",
+    @PostMapping( value = "/assets",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
     AssetResponse assets(@RequestHeader("Authorization") String bearerToken,

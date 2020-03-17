@@ -15,11 +15,19 @@ management:
 
 logging:
   level:
+    root: debug
+    javax: error
+    sun: error
+    io: error
     com:
-      netfix: ERROR
-      beancounter: DEBUG
+      netfix: error
+      beancounter: debug
+      zaxxer: error
     org:
       springframework: error
+      hibernate: error
+      apache: error
+      postgres: error
 
 auth:
   uri: "http://keycloak:9620/auth"

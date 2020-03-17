@@ -13,7 +13,7 @@ const DevMessage = ({
 }): JSX.Element | null =>
   debug ? (
     <div className="rockstar">
-      <h1 className="mono">Details De Dev!</h1>
+      <h1 className="mono">Details Dire Dév!</h1>
       <pre>
         <span>Your request failed with the following response:</span>
         {errorMessage}

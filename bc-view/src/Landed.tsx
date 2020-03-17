@@ -7,7 +7,7 @@ export function Landed(): JSX.Element {
   const [keycloak] = useKeycloak();
 
   if (keycloak) {
-    if (!keycloak.authenticated) {
+    if (!keycloak.token) {
       return <LoginRedirect />;
     }
     return <Portfolios />;

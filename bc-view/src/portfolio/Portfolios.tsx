@@ -1,11 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useHistory, withRouter } from "react-router";
+import { useHistory } from "react-router";
 import { usePortfolios } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
+import { useKeycloak } from "@react-keycloak/razzle";
 
 export function Portfolios(): React.ReactElement {
-  const [portfolios, error] = usePortfolios();
+  const [keycloak] = useKeycloak();
+  const [portfolios, error] = usePortfolios(keycloak);
   const history = useHistory();
 
   // Render where we are in the initialization process
@@ -13,8 +15,9 @@ export function Portfolios(): React.ReactElement {
     return <div id="root">Loading...</div>;
   }
   if (error) {
-    return ErrorPage(error);
+    return ErrorPage(error.stack, error.message);
   }
+
   if (portfolios) {
     if (portfolios.length > 0) {
       return (
@@ -83,4 +86,4 @@ export function Portfolios(): React.ReactElement {
   );
 }
 
-export default withRouter(Portfolios);
+export default Portfolios;

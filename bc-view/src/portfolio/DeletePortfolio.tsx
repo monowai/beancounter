@@ -7,12 +7,12 @@ import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
 import ErrorPage from "../common/errors/ErrorPage";
 
-export function DeletePortfolio(portfolioId: string): React.ReactElement {
+export function DeletePortfolio(portfolioId: string): JSX.Element {
   const [pfId] = useState<string>(portfolioId);
-  const [portfolio, pfError] = usePortfolio(pfId);
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
   const [keycloak] = useKeycloak();
+  const [portfolio, pfError] = usePortfolio(pfId);
   function routeToPortfolios(): void {
     history.push("/portfolios");
   }
@@ -21,7 +21,7 @@ export function DeletePortfolio(portfolioId: string): React.ReactElement {
     if (portfolio) {
       _axios
         .delete<void>(`/bff/portfolios/${portfolio.id}`, {
-          headers: getBearerToken(keycloak)
+          headers: getBearerToken(keycloak.token)
         })
         .catch(err => {
           setError(err);
@@ -32,10 +32,10 @@ export function DeletePortfolio(portfolioId: string): React.ReactElement {
     }
   }
   if (pfError) {
-    return ErrorPage(pfError);
+    return ErrorPage(pfError.stack, pfError.message);
   }
   if (error) {
-    return ErrorPage(error);
+    return ErrorPage(error.stack, error.message);
   }
 
   if (!portfolio) {

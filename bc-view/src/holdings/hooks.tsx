@@ -8,17 +8,17 @@ import { AxiosError } from "axios";
 export function useHoldings(
   code: string
 ): [HoldingContract | undefined, AxiosError<any> | undefined] {
-  const [holdingContract, setHoldingContract] = useState<HoldingContract>();
+  const [holdingResults, setHoldings] = useState<HoldingContract>();
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
   useEffect(() => {
     _axios
       .get<HoldingContract>(`/bff/${code}/today`, {
-        headers: getBearerToken(keycloak)
+        headers: getBearerToken(keycloak.token)
       })
       .then(result => {
         logger.debug("<<fetch %s", code);
-        setHoldingContract(result.data);
+        setHoldings(result.data);
       })
       .catch(err => {
         setError(err);
@@ -26,6 +26,6 @@ export function useHoldings(
           logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
         }
       });
-  }, [keycloak, code]);
-  return [holdingContract, error];
+  }, [code, keycloak.token]);
+  return [holdingResults, error];
 }

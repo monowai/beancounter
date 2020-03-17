@@ -1,5 +1,4 @@
 import React from "react";
-import "./common/i18nConfig";
 import { Switch, withRouter } from "react-router";
 import ClientRoutes from "./clientRoutes";
 import { renderRoutes } from "react-router-config";

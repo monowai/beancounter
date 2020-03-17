@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { URL } from "url";
 import express from "express";
-import { KeycloakInstance } from "keycloak-js";
 import logger from "./ConfigLogging";
 
 export const _axios: AxiosInstance = axios.create();
@@ -9,8 +8,8 @@ export const _axios: AxiosInstance = axios.create();
 export const svcUrl = (req: express.Request, endpoint: string): URL => {
   return new URL(req.originalUrl.replace("/bff/", "/api/"), endpoint);
 };
-export const getBearerToken = (keycloak: KeycloakInstance): { Authorization: string } => ({
-  Authorization: `Bearer ${keycloak !== undefined ? keycloak.token : "undefined"}`
+export const getBearerToken = (token?: string): { Authorization: string } => ({
+  Authorization: `Bearer ${token !== undefined ? token : "undefined"}`
 });
 
 export const makeRequest = async (

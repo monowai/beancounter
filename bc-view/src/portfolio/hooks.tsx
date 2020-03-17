@@ -6,14 +6,14 @@ import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { USD } from "../static/currencies";
 
-export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
+export function usePortfolios(keycloak): [Portfolio[], AxiosError | undefined] {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [error, setError] = useState<AxiosError>();
-  const [keycloak] = useKeycloak();
+  // const [keycloak] = useKeycloak();
   useEffect(() => {
     _axios
       .get<Portfolio[]>("/bff/portfolios", {
-        headers: getBearerToken(keycloak)
+        headers: getBearerToken(keycloak.token)
       })
       .then(result => {
         logger.debug("<<retrieved Portfolio");
@@ -25,7 +25,7 @@ export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
         }
         setError(err);
       });
-  }, [keycloak]);
+  }, [keycloak.token]);
   return [portfolios, error];
 }
 
@@ -37,17 +37,18 @@ export function usePortfolio(id: string): [Portfolio | undefined, AxiosError | u
     currency: USD,
     base: USD
   });
-  const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
+  const [error, setError] = useState<AxiosError>();
   useEffect(() => {
     if (id !== "new") {
       _axios
         .get<Portfolio>(`/bff/portfolios/${id}`, {
-          headers: getBearerToken(keycloak)
+          headers: getBearerToken(keycloak.token)
         })
         .then(result => {
           logger.debug("<<got Portfolio");
           setPortfolio(result.data);
+          setError(undefined);
         })
         .catch(err => {
           setError(err);
@@ -56,7 +57,7 @@ export function usePortfolio(id: string): [Portfolio | undefined, AxiosError | u
           }
         });
     }
-  }, [keycloak, id]);
+  }, [id, keycloak.token]);
 
   return [portfolio, error];
 }

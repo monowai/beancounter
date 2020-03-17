@@ -11,7 +11,7 @@ export function useCurrencies(): Currency[] {
     logger.debug(">>fetch getCurrencies");
     _axios
       .get<any>("/bff/currencies", {
-        headers: getBearerToken(keycloak)
+        headers: getBearerToken(keycloak.token)
       })
       .then(result => {
         logger.debug("<<fetched Currencies");

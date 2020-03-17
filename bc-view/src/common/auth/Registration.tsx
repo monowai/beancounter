@@ -7,17 +7,20 @@ import { _axios, getBearerToken } from "../axiosUtils";
 import ErrorPage from "../errors/ErrorPage";
 
 const Registration = (): JSX.Element => {
-  const [loading, setLoading] = useState<boolean>(true);
   const [systemUser, setSystemUser] = useState<SystemUser>();
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
 
   useEffect(() => {
-    const register = async (config: { headers: { Authorization: string } }): Promise<void> => {
-      setLoading(true);
-      logger.debug(">>do registration %s", config);
+    const register = async (): Promise<void> => {
       await _axios
-        .post<SystemUser>("/bff/register", {}, config)
+        .post<SystemUser>(
+          "/bff/register",
+          {},
+          {
+            headers: getBearerToken(keycloak.token)
+          }
+        )
         .then(result => {
           setSystemUser(result.data);
           logger.debug("<<fetched registered %s", result);
@@ -29,16 +32,11 @@ const Registration = (): JSX.Element => {
           }
         });
     };
-    register({
-      headers: getBearerToken(keycloak)
-    }).finally(() => setLoading(false));
+    register().finally(() => console.log("Registered"));
   }, [keycloak]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
   if (error) {
-    return ErrorPage(error);
+    return ErrorPage(error.stack, error.message);
   }
   if (systemUser) {
     return <div>Registered - {systemUser?.email}</div>;

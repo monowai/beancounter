@@ -2,7 +2,7 @@ import React from "react";
 import "./Error.scss";
 import { serverEnv } from "../utils";
 import { useHistory } from "react-router";
-import { AxiosError } from "axios";
+import { translate } from "../i18nConfig";
 
 const DevMessage = ({
   debug,
@@ -13,8 +13,7 @@ const DevMessage = ({
 }): JSX.Element | null =>
   debug ? (
     <div className="rockstar">
-      <h1 className="mono">Only for you Rock-Star Devs!</h1>
-      <p>In case you&apos;re wondering, the Back button just works&trade;... :p</p>
+      <h1 className="mono">Details De Dev!</h1>
       <pre>
         <span>Your request failed with the following response:</span>
         {errorMessage}
@@ -22,10 +21,10 @@ const DevMessage = ({
     </div>
   ) : null;
 
-export default function ErrorPage(message: AxiosError<any>): JSX.Element {
+export default function ErrorPage(stack: string | undefined, message: string): JSX.Element {
   const debug = serverEnv("NODE_ENV", "development") !== "production";
   const history = useHistory();
-  const errorMessage = debug ? JSON.stringify(message.stack, null, 2) : message.message;
+  const errorMessage = debug ? JSON.stringify({ message, stack }, null, 2) : message;
 
   function handleClick() {
     return (e: React.MouseEvent) => {
@@ -35,7 +34,7 @@ export default function ErrorPage(message: AxiosError<any>): JSX.Element {
   }
 
   function label(key: string): string {
-    return key;
+    return translate(key);
   }
   return (
     <div className="centered">

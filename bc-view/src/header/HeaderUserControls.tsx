@@ -1,13 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSystemUser } from "../user/hooks";
-import ErrorPage from "../common/errors/ErrorPage";
 
 function HeaderUserControls(): React.ReactElement {
-  const [systemUser, systemError] = useSystemUser();
-  if (systemError) {
-    return ErrorPage(systemError);
-  }
+  const systemUser = useSystemUser();
   if (systemUser && systemUser.email) {
     const loginOrOut = systemUser.email ? (
       <div>{systemUser.email}</div>

@@ -12,7 +12,7 @@ import { valuationOptions, ValueIn } from "../types/valueBy";
 import { useHoldings } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
 
-export default function ViewHoldings(code: string): React.ReactElement {
+export default function ViewHoldings(code: string): JSX.Element {
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio"
@@ -22,21 +22,16 @@ export default function ViewHoldings(code: string): React.ReactElement {
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency"
   });
-  const [holdingContract, holdingError] = useHoldings(code);
+  const [holdingResults, error] = useHoldings(code);
   // Render where we are in the initialization process
-  if (!holdingContract) {
+  if (!holdingResults) {
     return <div id="root">Loading...</div>;
   }
-  if (holdingError) {
-    return ErrorPage(holdingError);
+  if (error) {
+    return ErrorPage(error.stack, error.message);
   }
-  if (holdingContract) {
-    const holdings = calculate(
-      holdingContract,
-      hideEmpty,
-      valueIn.value,
-      groupBy.value
-    ) as Holdings;
+  if (holdingResults) {
+    const holdings = calculate(holdingResults, hideEmpty, valueIn.value, groupBy.value) as Holdings;
     return (
       <div className="page-box">
         <div className="filter-columns">
@@ -75,9 +70,9 @@ export default function ViewHoldings(code: string): React.ReactElement {
         </div>
         <div className={"stats-container"}>
           <table>
-            <StatsHeader portfolio={holdingContract.portfolio} />
+            <StatsHeader portfolio={holdingResults.portfolio} />
             <StatsRow
-              portfolio={holdingContract.portfolio}
+              portfolio={holdingResults.portfolio}
               moneyValues={holdings.totals}
               valueIn={valueIn.value}
             />

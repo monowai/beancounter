@@ -8,9 +8,7 @@ const Login = (): JSX.Element => {
   const [loggingIn, setLoggingIn] = useState<boolean>(false);
   const { keycloak, initialized } = useKeycloak();
   if (keycloak) {
-    // Object destructuring
-    const { authenticated } = keycloak;
-    if (authenticated) {
+    if (keycloak.token) {
       let path;
       location.pathname === "/login" ? (path = "/") : (path = location.pathname);
       return (

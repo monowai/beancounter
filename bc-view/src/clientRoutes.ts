@@ -2,7 +2,6 @@ import Home from "./Home";
 import ViewHoldings from "./holdings";
 import { useParams } from "react-router-dom";
 import Login from "./common/auth/Login";
-import ErrorPage from "./common/errors/ErrorPage";
 import Logout from "./common/auth/Logout";
 import Portfolios from "./portfolio/Portfolios";
 import Registration from "./common/auth/Registration";
@@ -11,20 +10,17 @@ import { DeletePortfolio } from "./portfolio/DeletePortfolio";
 
 const RouteHoldings = (): JSX.Element => {
   const { portfolioId } = useParams();
-  if (portfolioId) return ViewHoldings(portfolioId);
-  return ViewHoldings("portfolioId");
+  return ViewHoldings(portfolioId == undefined ? "new" : portfolioId);
 };
 
 const RoutePortfolio = (): JSX.Element => {
   const { portfolioId } = useParams();
-  if (portfolioId) return ManagePortfolio(portfolioId);
-  return ManagePortfolio("new");
+  return ManagePortfolio(portfolioId == undefined ? "new" : portfolioId);
 };
 
 const RoutePortfolioDelete = (): JSX.Element => {
   const { portfolioId } = useParams();
-  if (portfolioId) return DeletePortfolio(portfolioId);
-  return DeletePortfolio("unknown");
+  return DeletePortfolio(portfolioId == undefined ? "unknown" : portfolioId);
 };
 
 const ClientRoutes = [
@@ -44,10 +40,6 @@ const ClientRoutes = [
   {
     path: "/register",
     component: Registration
-  },
-  {
-    path: "/error",
-    component: ErrorPage
   },
   {
     path: "/portfolios",

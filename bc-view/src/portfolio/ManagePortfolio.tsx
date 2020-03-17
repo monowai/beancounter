@@ -38,7 +38,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
             "/bff/portfolios",
             { data: [portfolioInput] },
             {
-              headers: getBearerToken(keycloak)
+              headers: getBearerToken(keycloak.token)
             }
           )
           .then(result => {
@@ -59,7 +59,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
       } else {
         _axios
           .patch<Portfolio>(`/bff/portfolios/${portfolio.id}`, portfolioInput, {
-            headers: getBearerToken(keycloak)
+            headers: getBearerToken(keycloak.token)
           })
           .then(result => {
             logger.debug("<<patched Portfolio");
@@ -80,10 +80,10 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
     } // portfolio
   });
   if (pfError) {
-    return ErrorPage(pfError);
+    return ErrorPage(pfError.stack, pfError.message);
   }
   if (error) {
-    return ErrorPage(error);
+    return ErrorPage(error.stack, error.message);
   }
 
   if (!portfolio) {

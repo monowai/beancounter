@@ -27,9 +27,9 @@
     "strict": true,
     "pretty": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2018",
-    "skipLibCheck": true
-
+    "target": "es2017",
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "exclude": [
     "node_modules",

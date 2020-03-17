@@ -87,14 +87,17 @@ i18n
           logger.debug("Get %s", req.url);
           const context: any = {};
           // 2. KeyCloak -  ServerPersistors.ExpressCookies passing the current request
+          // @ts-ignore
           const cookiePersistor = ServerPersistors.ExpressCookies(req);
           const markup = renderToString(
+            // @ts-ignore
             <SSRKeycloakProvider keycloakConfig={keycloakConfig} persistor={cookiePersistor}>
               <I18nextProvider i18n={req.i18n}>
                 <StaticRouter context={context} location={req.url}>
                   <App />
                 </StaticRouter>
               </I18nextProvider>
+              // @ts-ignore
             </SSRKeycloakProvider>
           );
 

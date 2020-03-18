@@ -28,6 +28,7 @@ logging:
       hibernate: error
       apache: error
       postgres: error
+      postgresql: error
 
 auth:
   uri: "http://keycloak:9620/auth"

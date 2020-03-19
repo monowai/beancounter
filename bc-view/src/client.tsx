@@ -20,6 +20,7 @@ const BaseApp = (): JSX.Element => {
   return (
     // @ts-ignore
     <SSRKeycloakProvider
+      // @ts-ignore
       keycloakConfig={keycloakConfig}
       // @ts-ignore
       persistor={ClientPersistors.Cookies}

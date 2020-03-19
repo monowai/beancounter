@@ -1,5 +1,5 @@
 import React from "react";
-import "../assets/styles.sass";
+import "../css/styles.sass";
 import { translate } from "../common/i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";

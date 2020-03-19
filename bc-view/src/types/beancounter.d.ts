@@ -9,6 +9,8 @@ declare global {
   }
 }
 
+export type TrnType = "BUY" | "SELL" | "DIVI" | "SPLIT";
+
 export type MoneyFields =
   | "dividends"
   | "price"
@@ -120,4 +122,27 @@ interface ValuationOption {
 interface SystemUser {
   active: boolean;
   email: string | undefined;
+}
+
+interface TrnId {
+  provider: string;
+  batch: number;
+  id: number;
+}
+
+interface Transaction {
+  id: TrnId;
+  trnType: TrnType;
+  portfolioId: string;
+  asset: Asset;
+  tradeDate: string;
+  quantity: number;
+  price: number;
+  fees: number;
+  tradeAmount: number;
+  tradeCurrency: Currency;
+  tradeCashRate: number;
+  tradeBaseRate: number;
+  tradePortfolioRate: number;
+  comments: string;
 }

@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
-import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
@@ -276,10 +276,10 @@ public class ContractVerifierBase {
     AssetRequest assetRequest =
         new ObjectMapper().readValue(jsonRequest, AssetRequest.class);
 
-    AssetResponse assetResponse =
-        new ObjectMapper().readValue(jsonResponse, AssetResponse.class);
+    AssetUpdateResponse assetUpdateResponse =
+        new ObjectMapper().readValue(jsonResponse, AssetUpdateResponse.class);
 
-    Mockito.when(assetService.process(assetRequest)).thenReturn(assetResponse);
+    Mockito.when(assetService.process(assetRequest)).thenReturn(assetUpdateResponse);
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates) {

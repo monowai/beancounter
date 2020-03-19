@@ -73,8 +73,8 @@ class TestTrnAdapter {
 
     TrnResponse trnResponse = trnAdapter.convert(portfolioService.find("abc"), trnRequest);
     assertThat(trnResponse).isNotNull();
-    assertThat(trnResponse.getTrns()).hasSize(1);
-    assertThat(trnResponse.getTrns().iterator().next())
+    assertThat(trnResponse.getData()).hasSize(1);
+    assertThat(trnResponse.getData().iterator().next())
         .hasFieldOrPropertyWithValue("quantity", trnInput.getQuantity())
         .hasFieldOrPropertyWithValue("tradeDate", trnInput.getTradeDate())
         .hasFieldOrPropertyWithValue("settleDate", trnInput.getSettleDate())

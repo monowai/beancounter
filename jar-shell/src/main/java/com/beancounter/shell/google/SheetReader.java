@@ -111,7 +111,7 @@ public class SheetReader implements Ingester {
           .data(trnInputs)
           .build();
       TrnResponse response = trnService.write(trnRequest);
-      log.info("Wrote {}", response.getTrns().size());
+      log.info("Wrote {}", response.getData().size());
     }
 
     log.info("Complete!");

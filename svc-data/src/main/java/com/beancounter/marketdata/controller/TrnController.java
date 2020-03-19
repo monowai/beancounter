@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,15 +27,12 @@ public class TrnController {
 
   private TrnService trnService;
   private PortfolioService portfolioService;
-  private AssetService assetService;
 
   @Autowired
   void setServices(TrnService trnService,
-                   PortfolioService portfolioService,
-                   AssetService assetService) {
+                   PortfolioService portfolioService) {
     this.trnService = trnService;
     this.portfolioService = portfolioService;
-    this.assetService = assetService;
   }
 
   @PostMapping(
@@ -56,7 +52,7 @@ public class TrnController {
   ) {
     Portfolio portfolio = portfolioService.find(portfolioId);
 
-    return trnService.find(portfolio, TrnId.builder()
+    return trnService.find(TrnId.builder()
         .provider(provider)
         .batch(batch)
         .id(id)

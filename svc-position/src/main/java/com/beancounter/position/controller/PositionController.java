@@ -69,7 +69,7 @@ public class PositionController {
     TrnResponse trnResponse = trnService.read(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
-        .trns(trnResponse.getTrns())
+        .trns(trnResponse.getData())
         .build();
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
     if (valuationDate != null && !valuationDate.equalsIgnoreCase("today")) {

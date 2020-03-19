@@ -3,6 +3,7 @@ import { render, waitForElement } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import ViewHoldings from "../holdings";
 import nock from "nock";
+import { MemoryRouter } from "react-router";
 
 const bff = "http://localhost";
 
@@ -12,12 +13,12 @@ nock(bff, {
   }
 })
   .get("/bff/test/today")
-  .replyWithFile(200, __dirname + "/contracts/test-holdings.json", {
+  .replyWithFile(200, __dirname + "/__contracts__/test-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })
   .get("/bff/zero/today")
-  .replyWithFile(200, __dirname + "/contracts/zero-holdings.json", {
+  .replyWithFile(200, __dirname + "/__contracts__/zero-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"
   })
@@ -28,7 +29,11 @@ describe("<ViewHoldings />", () => {
     const TestHoldings = (): JSX.Element => {
       return ViewHoldings("test");
     };
-    const { getByText, container } = render(<TestHoldings />);
+    const { getByText, container } = render(
+      <MemoryRouter initialEntries={["/"]} keyLength={0}>
+        <TestHoldings />
+      </MemoryRouter>
+    );
     await waitForElement(() => getByText("USD"));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();

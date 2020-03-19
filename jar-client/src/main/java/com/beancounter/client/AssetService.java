@@ -2,7 +2,7 @@ package com.beancounter.client;
 
 import com.beancounter.auth.TokenService;
 import com.beancounter.common.contracts.AssetRequest;
-import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -49,13 +49,13 @@ public class AssetService {
             .market(market)
             .build())
         .build();
-    AssetResponse assetResponse = assetGateway.assets(tokenService.getBearerToken(), assetRequest);
-    if (assetResponse == null) {
+    AssetUpdateResponse assetUpdateResponse = assetGateway.assets(tokenService.getBearerToken(), assetRequest);
+    if (assetUpdateResponse == null) {
       throw new BusinessException(
           String.format("No response returned for %s:%s", assetCode, market.getCode()));
     }
 
-    return assetResponse.getData().values().iterator().next();
+    return assetUpdateResponse.getData().values().iterator().next();
 
   }
 
@@ -65,7 +65,7 @@ public class AssetService {
     @PostMapping( value = "/assets",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
-    AssetResponse assets(@RequestHeader("Authorization") String bearerToken,
-                         AssetRequest assetRequest);
+    AssetUpdateResponse assets(@RequestHeader("Authorization") String bearerToken,
+                               AssetRequest assetRequest);
   }
 }

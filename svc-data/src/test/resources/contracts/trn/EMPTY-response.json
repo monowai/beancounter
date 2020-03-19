@@ -1,20 +1,3 @@
 {
-  "trns": [],
-  "portfolios": [
-    {
-      "id": "EMPTY",
-      "code": "EMPTY",
-      "name": "NZD Portfolio",
-      "currency": {
-        "code": "NZD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "base": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      }
-    }
-  ]
+  "data": []
 }

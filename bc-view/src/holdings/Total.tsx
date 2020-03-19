@@ -4,7 +4,6 @@ import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 
 export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): JSX.Element {
-  // Transform the contract into the view the user requested
   const holdings = props.holdings;
   const valueIn = props.valueIn;
   return (

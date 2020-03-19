@@ -1,6 +1,5 @@
-import { HoldingFooter, HoldingHeader, HoldingRows } from "./Group";
 import React, { useState } from "react";
-import "../App.css";
+import { Footer } from "./Footer";
 import { calculate } from "./calculate";
 import { GroupBy, groupOptions } from "../types/groupBy";
 import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
@@ -11,6 +10,8 @@ import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
 import { useHoldings } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
+import { Rows } from "./Rows";
+import { Header } from "./Header";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -85,12 +86,13 @@ export default function ViewHoldings(code: string): JSX.Element {
               .map(groupKey => {
                 return (
                   <React.Fragment key={groupKey}>
-                    <HoldingHeader groupKey={groupKey} />
-                    <HoldingRows
+                    <Header groupKey={groupKey} />
+                    <Rows
+                      portfolio={holdingResults?.portfolio}
                       holdingGroup={holdings.holdingGroups[groupKey]}
                       valueIn={valueIn.value}
                     />
-                    <HoldingFooter
+                    <Footer
                       holdingGroup={holdings.holdingGroups[groupKey]}
                       valueIn={valueIn.value}
                     />

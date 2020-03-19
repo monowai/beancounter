@@ -1,4 +1,3 @@
-//import App from "./App";
 import React from "react";
 import { StaticRouter } from "react-router-dom";
 import express from "express";
@@ -83,6 +82,8 @@ i18n
         .get("/bff/portfolios/*", getData)
         .delete("/bff/portfolios/*", deleteData)
         .patch("/bff/portfolios/*", patchData)
+        .get("/bff/trns/*", getData)
+        .get("/bff/assets/*", getData)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);
           const context: any = {};
@@ -97,7 +98,8 @@ i18n
                   <App />
                 </StaticRouter>
               </I18nextProvider>
-              // @ts-ignore
+              {/*
+                // @ts-ignore */}
             </SSRKeycloakProvider>
           );
 

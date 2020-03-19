@@ -1,0 +1,15 @@
+{
+  "id": "alphabet",
+  "code": "GOOG",
+  "name": "Alphabet Inc - Ordinary Shares - Class C",
+  "category": "Equity",
+  "market": {
+    "code": "NASDAQ",
+    "currency": {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "timezone": "US/Eastern"
+  }
+}

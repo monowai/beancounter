@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
-import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
@@ -166,17 +166,12 @@ public class TrnMvcTest {
 
     TrnResponse trnResponse = objectMapper
         .readValue(postResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(4);
-    assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
-    for (Trn trn : trnResponse.getTrns()) {
+    assertThat(trnResponse.getData()).isNotEmpty().hasSize(4);
+    for (Trn trn : trnResponse.getData()) {
       assertThat(trn.getAsset()).isNotNull();
     }
 
-    String portfolioId = trnResponse.getTrns().iterator().next().getPortfolioId();
-    assertThat(trnResponse.getPortfolios())
-        .isNotEmpty()
-        .hasAtLeastOneElementOfType(Portfolio.class);
-    assertThat(portfolio).isEqualTo(trnResponse.getPortfolios().iterator().next());
+    String portfolioId = trnResponse.getData().iterator().next().getPortfolioId();
 
     // Find by Portfolio, sorted by assetId and then Date
     MvcResult mvcResult = mockMvc.perform(
@@ -190,17 +185,16 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1);
-    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(4);
+    assertThat(trnResponse.getData()).isNotEmpty().hasSize(4);
 
     int i = 4;
     // Verify the sort order - asset.code, tradeDate
-    for (Trn trn : trnResponse.getTrns()) {
+    for (Trn trn : trnResponse.getData()) {
       assertThat(trn.getId().getId() == i--);
       assertThat(trn.getAsset()).isNotNull();
     }
 
-    Trn trn = trnResponse.getTrns().iterator().next();
+    Trn trn = trnResponse.getData().iterator().next();
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
         get("/trns/{portfolioId}/{provider}/{batch}/{id}",
@@ -213,8 +207,7 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(1);
-    assertThat(trnResponse.getPortfolios()).isNotEmpty().hasSize(1).contains(portfolio);
+    assertThat(trnResponse.getData()).isNotEmpty().hasSize(1);
 
     // Find by portfolio and asset
     MvcResult findByAsset = mockMvc.perform(
@@ -228,10 +221,10 @@ public class TrnMvcTest {
 
     trnResponse = objectMapper
         .readValue(findByAsset.getResponse().getContentAsString(), TrnResponse.class);
-    assertThat(trnResponse.getTrns()).isNotEmpty().hasSize(2); // 2 MSFT transactions
-    assertThat(trnResponse.getPortfolios())
-        .isNotEmpty()
-        .containsOnly(portfolio);
+    assertThat(trnResponse.getData()).isNotEmpty().hasSize(2); // 2 MSFT transactions
+
+    // Most recent transaction first
+    assertThat(trnResponse.getData().iterator().next().getTradeDate()).isEqualTo("2018-01-01");
 
     // Purge all transactions for the Portfolio
     mvcResult = mockMvc.perform(
@@ -274,9 +267,9 @@ public class TrnMvcTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    AssetResponse assetResponse = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+    AssetUpdateResponse assetUpdateResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetUpdateResponse.class);
 
-    return assetResponse.getData().values().iterator().next();
+    return assetUpdateResponse.getData().values().iterator().next();
   }
 }

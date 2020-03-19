@@ -1,0 +1,49 @@
+[
+  {
+    "id": {
+      "provider": "SHEETS",
+      "batch": 0,
+      "id": 68
+    },
+    "trnType": "BUY",
+    "portfolioId": "test",
+    "asset": {
+      "id": "alphabet",
+      "code": "GOOG",
+      "name": "Alphabet Inc - Ordinary Shares - Class C",
+      "category": "Equity",
+      "market": {
+        "code": "NASDAQ",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "US/Eastern"
+      }
+    },
+    "cashAsset": null,
+    "tradeCurrency": {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "cashCurrency": {
+      "code": "AUD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "tradeDate": "2019-01-18",
+    "settleDate": null,
+    "quantity": 2.00,
+    "price": 1080.00,
+    "fees": 0.00,
+    "tax": 0.00,
+    "tradeAmount": 2160.01,
+    "cashAmount": null,
+    "tradeCashRate": 1.00,
+    "tradeBaseRate": 0.72,
+    "tradePortfolioRate": 0.72,
+    "comments": "testing"
+  }
+]

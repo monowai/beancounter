@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.contracts.AssetRequest;
-import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -41,20 +41,20 @@ class TestAsset {
   void assetResponseSerializes() throws Exception {
     Asset asset = AssetUtils.getJsonAsset("AAA", "BBB");
 
-    AssetResponse assetResponse = AssetResponse
+    AssetUpdateResponse assetUpdateResponse = AssetUpdateResponse
         .builder()
         .data(AssetUtils.toKey(asset), asset)
         .data("second", AssetUtils.getJsonAsset("Twee", "Whee"))
         .build();
 
-    assertThat(assetResponse.getData()).containsKeys(AssetUtils.toKey(asset));
+    assertThat(assetUpdateResponse.getData()).containsKeys(AssetUtils.toKey(asset));
 
     ObjectMapper om = new ObjectMapper();
-    String json = om.writeValueAsString(assetResponse);
+    String json = om.writeValueAsString(assetUpdateResponse);
 
-    AssetResponse fromJson = om.readValue(json, AssetResponse.class);
+    AssetUpdateResponse fromJson = om.readValue(json, AssetUpdateResponse.class);
 
-    assertThat(fromJson).isEqualTo(assetResponse);
+    assertThat(fromJson).isEqualTo(assetUpdateResponse);
   }
 
   @Test

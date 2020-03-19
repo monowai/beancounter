@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.assets;
 
 import com.beancounter.common.contracts.AssetRequest;
-import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -46,12 +46,12 @@ public class AssetService {
     return foundAsset;
   }
 
-  public AssetResponse process(AssetRequest asset) {
+  public AssetUpdateResponse process(AssetRequest asset) {
     Map<String, Asset> assets = new HashMap<>();
     for (String key : asset.getData().keySet()) {
       assets.put(key, create(asset.getData().get(key)));
     }
-    return AssetResponse.builder().data(assets).build();
+    return AssetUpdateResponse.builder().data(assets).build();
   }
 
   public Asset find(String marketCode, String code) {
@@ -63,7 +63,7 @@ public class AssetService {
   public Asset find(String id) {
     Optional<Asset> result = assetRepository
         .findById(id).map(this::hydrateAsset);
-    if ( result.isPresent()) {
+    if (result.isPresent()) {
       return result.get();
     }
     throw new BusinessException(String.format("Asset.id %s not found", id));

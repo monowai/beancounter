@@ -12,7 +12,6 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,7 +42,7 @@ class TestTrn {
         .cashCurrency("USD")
         .comments("Comment")
         .build();
-    Collection<TrnInput>trnInputs = new ArrayList<>();
+    Collection<TrnInput> trnInputs = new ArrayList<>();
     trnInputs.add(trnInput);
     TrnRequest trnRequest = TrnRequest.builder()
         .data(trnInputs)
@@ -83,10 +82,9 @@ class TestTrn {
     Collection<Trn> trns = new ArrayList<>();
     trns.add(trn);
     TrnResponse trnResponse = TrnResponse.builder()
-        .trns(trns)
+        .data(trns)
         .build();
 
-    trnResponse.addPortfolio(PortfolioUtils.getPortfolio("TWEE"));
     String json = mapper.writeValueAsString(trnResponse);
     TrnResponse fromJson = mapper.readValue(json, TrnResponse.class);
 

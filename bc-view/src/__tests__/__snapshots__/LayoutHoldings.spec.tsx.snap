@@ -999,9 +999,13 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                637
-              </span>
+              <a
+                href="/trns/test/0OKznUxcT9WlNWIAp2dn2Q"
+              >
+                <span>
+                  637
+                </span>
+              </a>
             </td>
             <td
               align="right"
@@ -1188,9 +1192,13 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                12
-              </span>
+              <a
+                href="/trns/test/pw1dIdlhSx2x8tnlA2qNhw"
+              >
+                <span>
+                  12
+                </span>
+              </a>
             </td>
             <td
               align="right"
@@ -1264,9 +1272,13 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                25
-              </span>
+              <a
+                href="/trns/test/QyZk-QioSRqyq1alwSf5Tw"
+              >
+                <span>
+                  25
+                </span>
+              </a>
             </td>
             <td
               align="right"
@@ -1340,9 +1352,13 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                55
-              </span>
+              <a
+                href="/trns/test/HQuFW0B9RUW9bML5r2x0pA"
+              >
+                <span>
+                  55
+                </span>
+              </a>
             </td>
             <td
               align="right"

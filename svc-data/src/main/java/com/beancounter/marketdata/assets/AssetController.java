@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets;
 import com.beancounter.auth.RoleHelper;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,17 +46,13 @@ public class AssetController {
   }
 
   @GetMapping(value = "/{assetId}")
-  Asset getAsset(@PathVariable String assetId) {
-    Asset asset = assetService.find(assetId);
-    if (asset == null) {
-      throw new BusinessException(String.format("No asset found for %s", assetId));
-    }
-    return asset;
+  AssetResponse getAsset(@PathVariable String assetId) {
+    return AssetResponse.builder().data(assetService.find(assetId)).build();
 
   }
 
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  AssetResponse update(@RequestBody AssetRequest assetRequest) {
+  AssetUpdateResponse update(@RequestBody AssetRequest assetRequest) {
     return assetService.process(assetRequest);
   }
 

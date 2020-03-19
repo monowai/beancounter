@@ -31,17 +31,17 @@ public class TrnService {
     log.info("Received request to write {} transactions {}",
         trnRequest.getData().size(), portfolio.getCode());
     TrnResponse results = trnAdapter.convert(portfolio, trnRequest);
-    Iterable<Trn> saved = trnRepository.saveAll(results.getTrns());
+    Iterable<Trn> saved = trnRepository.saveAll(results.getData());
     Collection<Trn> trns = new ArrayList<>();
     saved.forEach(trns::add);
-    results.setTrns(trns);
-    log.info("Wrote {} transactions", results.getTrns().size());
+    results.setData(trns);
+    log.info("Wrote {} transactions", results.getData().size());
     return results;
   }
 
-  public TrnResponse find(Portfolio portfolio, TrnId trnId) {
+  public TrnResponse find(TrnId trnId) {
     Optional<Trn> found = trnRepository.findById(trnId);
-    return found.map(transaction -> hydrate(portfolio, transaction))
+    return found.map(transaction -> hydrate(Collections.singleton(transaction)))
         .orElseGet(() -> TrnResponse.builder().build());
   }
 
@@ -49,13 +49,13 @@ public class TrnService {
     Collection<Trn> results = trnRepository.findByPortfolioIdAndAssetId(portfolio.getId(),
         assetId,
         Sort.by("asset.code")
-            .and(Sort.by("tradeDate")));
+            .and(Sort.by("tradeDate").descending()));
     log.debug("Found {} for portfolio {} and asset {}",
         results.size(),
         portfolio.getCode(),
         assetId
     );
-    return hydrate(portfolio, results);
+    return hydrate(results);
   }
 
   public TrnResponse find(Portfolio portfolio) {
@@ -63,7 +63,7 @@ public class TrnService {
         Sort.by("asset.code")
             .and(Sort.by("tradeDate")));
     log.debug("Found {} for portfolio {}", results.size(), portfolio.getCode());
-    return hydrate(portfolio, results);
+    return hydrate(results);
   }
 
   /**
@@ -76,25 +76,20 @@ public class TrnService {
     return trnRepository.deleteByPortfolioId(portfolio.getId());
   }
 
-  private TrnResponse hydrate(Portfolio portfolio, Iterable<Trn> trns) {
-    TrnResponse trnResponse = TrnResponse.builder()
-        .build();
-    trnResponse.addPortfolio(portfolio);
-    Collection<Trn> trnCollection = new ArrayList<>();
-    for (Trn trn : trns) {
-      trnCollection.add(trn);
-      trn.setAsset(trnAdapter.hydrate(trn.getAsset()));
-      trn.setCashAsset(trnAdapter.hydrate(trn.getCashAsset()));
-    }
-    trnResponse.setTrns(trnCollection);
-    return trnResponse;
+  private Trn setAssets(Trn trn) {
+    trn.setAsset(trnAdapter.hydrate(trn.getAsset()));
+    trn.setCashAsset(trnAdapter.hydrate(trn.getCashAsset()));
+    return trn;
   }
 
-  private TrnResponse hydrate(Portfolio portfolio, Trn trn) {
+  private TrnResponse hydrate(Iterable<Trn> trns) {
     TrnResponse trnResponse = TrnResponse.builder()
-        .trns(Collections.singleton(trn))
         .build();
-    trnResponse.addPortfolio(portfolio);
+    Collection<Trn> trnCollection = new ArrayList<>();
+    for (Trn trn : trns) {
+      trnCollection.add(setAssets(trn));
+    }
+    trnResponse.setData(trnCollection);
     return trnResponse;
   }
 }

@@ -22,9 +22,8 @@ public class TrnAdapter {
 
   public TrnResponse convert(Portfolio portfolio, TrnRequest trnRequest) {
     TrnResponse trnResponse = TrnResponse.builder().build();
-    trnResponse.addPortfolio(portfolio);
     for (TrnInput trnInput : trnRequest.getData()) {
-      trnResponse.getTrns().add(map(portfolio, trnInput));
+      trnResponse.getData().add(map(portfolio, trnInput));
     }
     return trnResponse;
 

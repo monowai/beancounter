@@ -12,6 +12,7 @@ import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.SystemUser;
@@ -82,16 +83,16 @@ class AssetMvcTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    AssetResponse assetResponse = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+    AssetUpdateResponse assetUpdateResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetUpdateResponse.class);
 
-    assertThat(assetResponse.getData()).hasSize(2);
+    assertThat(assetUpdateResponse.getData()).hasSize(2);
 
 
     // marketCode is for persistence only,  Clients should rely on the
     //   hydrated Market object
 
-    assertThat(assetResponse.getData().get(AssetUtils.toKey(firstAsset)))
+    assertThat(assetUpdateResponse.getData().get(AssetUtils.toKey(firstAsset)))
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
@@ -100,7 +101,7 @@ class AssetMvcTests {
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 
-    assertThat(assetResponse.getData().get(AssetUtils.toKey(secondAsset)))
+    assertThat(assetUpdateResponse.getData().get(AssetUtils.toKey(secondAsset)))
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
@@ -109,7 +110,7 @@ class AssetMvcTests {
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 
-    Asset asset = assetResponse.getData().get(AssetUtils.toKey(secondAsset));
+    Asset asset = assetUpdateResponse.getData().get(AssetUtils.toKey(secondAsset));
     mvcResult = mockMvc.perform(
         get("/assets/{assetId}", asset.getId())
             .with(jwt(token).authorities(authorityRoleConverter))
@@ -118,7 +119,9 @@ class AssetMvcTests {
         .andReturn();
 
     // Find by Primary Key
-    assertThat(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Asset.class))
+    AssetResponse assetResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+        AssetResponse.class);
+    assertThat(assetResponse.getData())
         .isEqualToComparingFieldByField(asset);
 
     // By Market/Asset
@@ -151,10 +154,10 @@ class AssetMvcTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    AssetResponse assetResponse = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+    AssetUpdateResponse assetUpdateResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetUpdateResponse.class);
 
-    Asset createdAsset = assetResponse.getData().get(AssetUtils.toKey(asset));
+    Asset createdAsset = assetUpdateResponse.getData().get(AssetUtils.toKey(asset));
     assertThat(createdAsset)
         .isNotNull()
         .hasFieldOrProperty("id")
@@ -176,10 +179,10 @@ class AssetMvcTests {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    assetResponse = objectMapper
-        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+    assetUpdateResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetUpdateResponse.class);
 
-    Asset updatedAsset = assetResponse.getData().get(AssetUtils.toKey(asset));
+    Asset updatedAsset = assetUpdateResponse.getData().get(AssetUtils.toKey(asset));
     assertThat(updatedAsset).isEqualToComparingFieldByField(createdAsset);
   }
 

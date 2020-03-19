@@ -1,5 +1,5 @@
 {
-  "trns": [
+  "data": [
     {
       "id": {
         "provider": "SHEETS",
@@ -89,23 +89,6 @@
       "tradeBaseRate": 1.00,
       "tradePortfolioRate": 0.63,
       "comments": "Dividend of 37.95 cents per share"
-    }
-  ],
-  "portfolios": [
-    {
-      "id": "FT-vUCChRwOXDP7itcp5Kw",
-      "code": "TEST",
-      "name": "NZD Portfolio",
-      "currency": {
-        "code": "NZD",
-        "name": "Dollar",
-        "symbol": "$"
-      },
-      "base": {
-        "code": "USD",
-        "name": "Dollar",
-        "symbol": "$"
-      }
     }
   ]
 }

@@ -6,10 +6,10 @@ import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { USD } from "../static/currencies";
 
-export function usePortfolios(keycloak): [Portfolio[], AxiosError | undefined] {
+export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [error, setError] = useState<AxiosError>();
-  // const [keycloak] = useKeycloak();
+  const [keycloak] = useKeycloak();
   useEffect(() => {
     _axios
       .get<Portfolio[]>("/bff/portfolios", {
@@ -25,7 +25,7 @@ export function usePortfolios(keycloak): [Portfolio[], AxiosError | undefined] {
         }
         setError(err);
       });
-  }, [keycloak.token]);
+  }, [keycloak]);
   return [portfolios, error];
 }
 

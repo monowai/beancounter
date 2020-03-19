@@ -3,11 +3,9 @@ import { Link } from "react-router-dom";
 import { useHistory } from "react-router";
 import { usePortfolios } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
-import { useKeycloak } from "@react-keycloak/razzle";
 
 export function Portfolios(): React.ReactElement {
-  const [keycloak] = useKeycloak();
-  const [portfolios, error] = usePortfolios(keycloak);
+  const [portfolios, error] = usePortfolios();
   const history = useHistory();
 
   // Render where we are in the initialization process

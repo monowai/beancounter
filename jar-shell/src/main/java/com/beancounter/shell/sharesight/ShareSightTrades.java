@@ -5,7 +5,6 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.shell.ingest.Filter;
 import com.beancounter.shell.ingest.Transformer;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -40,12 +39,10 @@ public class ShareSightTrades implements Transformer {
   public static final int value = 10;
   public static final int comments = 11;
   private final ShareSightService shareSightService;
-  private final Filter filter;
 
   @Autowired
-  public ShareSightTrades(ShareSightService shareSightService, Filter filter) {
+  public ShareSightTrades(ShareSightService shareSightService) {
     this.shareSightService = shareSightService;
-    this.filter = filter;
   }
 
   @Override

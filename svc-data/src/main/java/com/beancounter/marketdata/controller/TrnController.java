@@ -50,8 +50,6 @@ public class TrnController {
       @PathVariable("batch") Integer batch,
       @PathVariable("id") Integer id
   ) {
-    Portfolio portfolio = portfolioService.find(portfolioId);
-
     return trnService.find(TrnId.builder()
         .provider(provider)
         .batch(batch)

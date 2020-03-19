@@ -4,7 +4,6 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
-import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.registration.SystemUserService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +19,6 @@ public class PortfolioService {
   private PortfolioInputAdapter portfolioInputAdapter;
 
   PortfolioService(
-      CurrencyService currencyService,
       PortfolioInputAdapter portfolioInputAdapter,
       PortfolioRepository portfolioRepository,
       SystemUserService systemUserService

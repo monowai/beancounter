@@ -18,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Deserialize a BC MarketData object from a AlphaVantage result.
@@ -32,11 +31,6 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
   private static final ObjectMapper mapper = new ObjectMapper();
   private DateUtils dateUtils = new DateUtils();
 
-  @Autowired
-  void setDateUtils(DateUtils dateUtils) {
-    this.dateUtils = dateUtils;
-  }
-
   @Override
   public MarketData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
     MarketData result = null;
@@ -45,7 +39,6 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
     JsonNode nodeValue = source.get("Meta Data");
     Asset asset = getAsset(nodeValue);
     if (asset != null) {
-      String timeZone = getTimeZone(nodeValue);
       nodeValue = source.get("Time Series (Daily)");
       MapType mapType = mapper.getTypeFactory()
           .constructMapType(LinkedHashMap.class, String.class, HashMap.class);
@@ -63,10 +56,6 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
     }
 
     return result;
-  }
-
-  private String getTimeZone(JsonNode nodeValue) {
-    return nodeValue.get("5. Time Zone").asText();
   }
 
   private MarketData getMarketData(Asset asset, LocalDate priceDate, Map<String, Object> data) {

@@ -10,7 +10,6 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.ingest.Transformer;
 import com.beancounter.shell.sharesight.ShareSightConfig;
 import com.beancounter.shell.sharesight.ShareSightService;
@@ -182,7 +181,7 @@ class StubbedTradesWithFx {
     Transformer trades = shareSightTransformers.transformer(row);
 
     // Testing all currency buckets
-    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST", Currency.builder()
+    Portfolio portfolio = getPortfolio("TEST", Currency.builder()
         .code("USD").build());
 
     TrnInput trn = trades.from(row, portfolio);

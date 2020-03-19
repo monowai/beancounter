@@ -6,9 +6,9 @@ The purpose of this module is to make it easy to include a jar, wire up a bit of
 This guide is focused on how to make the security mechanism work and how to test it.   
 
 I wanted to be able to:
- * Use `MockMvc` to test my Auth mechanism
- * Have a simple configuration mechanism that enabled security to "just work"
- * Provide support for both SCOPE and ROLE as returned by KeyCloak  
+*   Use `MockMvc` to test my Auth mechanism
+*   Have a simple configuration mechanism that enabled security to "just work"
+*   Provide support for both SCOPE and ROLE as returned by KeyCloak  
 
 ## Key Classes
 The easiest way to see how things work is to check out the `AuthTest` class which injects a simple secured controller and then uses the various classes, via MockMvc, to verify security 
@@ -84,7 +84,7 @@ A scope of `beancounter` basically means "authorized"; You have to be authorized
 
 In KeyCloak, it is generally more efficient assign roles to groups and then put users into groups.
 
-By default `spring-security-test` supports OAuth `scope`. You can't call `hasRole` to check a scope or `hasScope` to check a role. While there is [no difference](https://stackoverflow.com/questions/19525380/difference-between-role-and-grantedauthority-in-spring-security) between a SCOPE_ and a ROLE_ except for the prefix, there is if you use the wrong annotation. You can see this by setting a breakpoint on `SecurityExpressionRoot.hasAnyAuthorityName`
+By default `spring-security-test` supports OAuth `scope`. You can't call `hasRole` to check a scope or `hasScope` to check a role. While there is [no difference](https://stackoverflow.com/questions/19525380/difference-between-role-and-grantedauthority-in-spring-security) between a `SCOPE_` and a `ROLE_` except for the prefix, there is if you use the wrong annotation. You can see this by setting a breakpoint on `SecurityExpressionRoot.hasAnyAuthorityName`
   
 `JwtRoleConverter` is responsible for merging scope and roles into a `GrantedAuthority` set allowing us to check by ROLE or SCOPE.  
 
@@ -180,17 +180,21 @@ cd ../bc-demo
 docker-compose start postgres keycloak
 ```
 
-## Useful references
+### Further reading and  references
  
 There's a ton of information on the internet and I recommend reading the following links it you want to dive deeper. All of these links have provided useful information which I believe I've consolidated into this module  
 
-https://blog.jdriven.com/2019/10/spring-security-5-2-oauth-2-exploration-part1/
-https://docs.spring.io/spring-security/site/docs/current/reference/html5/
-https://www.keycloak.org/docs/latest/authorization_services/
-https://stackoverflow.com/questions/58205510/spring-security-mapping-oauth2-claims-with-roles-to-secure-resource-server-endp
+<https://docs.spring.io/spring-security/site/docs/current/reference/html5/>
 
-Analyze encrypted tokens
-https://jwt.io/
+<https://blog.jdriven.com/2019/10/spring-security-5-2-oauth-2-exploration-part1/>
 
-Your token is not application state
-https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid
+<https://stackoverflow.com/questions/58205510/spring-security-mapping-oauth2-claims-with-roles-to-secure-resource-server-endp>
+
+<https://www.keycloak.org/docs/latest/authorization_services/>
+
+#### Decrypt  tokens
+<https://jwt.io/>
+
+#### Your token is not application state
+
+<https://paragonie.com/blog/2017/03/jwt-json-web-tokens-is-bad-standard-that-everyone-should-avoid>

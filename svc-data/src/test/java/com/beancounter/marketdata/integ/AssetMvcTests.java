@@ -119,8 +119,9 @@ class AssetMvcTests {
         .andReturn();
 
     // Find by Primary Key
-    AssetResponse assetResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
-        AssetResponse.class);
+    AssetResponse assetResponse = objectMapper.readValue(
+        mvcResult.getResponse().getContentAsString(), AssetResponse.class
+    );
     assertThat(assetResponse.getData())
         .isEqualToComparingFieldByField(asset);
 

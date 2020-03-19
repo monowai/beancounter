@@ -8,7 +8,6 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.PortfolioUtils;
-import com.beancounter.shell.ingest.Filter;
 import com.beancounter.shell.sharesight.ShareSightConfig;
 import com.beancounter.shell.sharesight.ShareSightDivis;
 import com.beancounter.shell.sharesight.ShareSightRowProcessor;
@@ -95,7 +94,7 @@ class ShareSightServiceTest {
     row.add(ShareSightTrades.date, "date");
     row.add(ShareSightTrades.quantity, "quantity");
     row.add(ShareSightTrades.price, "price");
-    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightService, new Filter(null));
+    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightService);
     assertThat(shareSightTrades.isValid(row)).isFalse();
 
     row.remove(ShareSightTrades.price);

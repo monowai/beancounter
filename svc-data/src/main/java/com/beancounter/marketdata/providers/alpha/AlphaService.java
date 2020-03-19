@@ -47,7 +47,7 @@ public class AlphaService implements MarketDataProvider {
 
   @PostConstruct
   void logStatus() {
-    Boolean isDemo = apiKey.substring(0, 4).toUpperCase().equalsIgnoreCase("demo");
+    Boolean isDemo = apiKey.substring(0, 4).equalsIgnoreCase("demo");
     log.info("DEMO key is {}", isDemo);
   }
 

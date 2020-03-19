@@ -96,7 +96,7 @@ public class ContractVerifierBase {
   private String contractPath = "contracts";
 
   @BeforeEach
-  public void setup() {
+  public void initMocks() {
     MockMvc mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
         .build();
@@ -272,7 +272,8 @@ public class ContractVerifierBase {
 
   }
 
-  private void mockAssetResponse(File jsonRequest, File jsonResponse) throws java.io.IOException {
+  @SneakyThrows
+  private void mockAssetResponse(File jsonRequest, File jsonResponse) {
     AssetRequest assetRequest =
         new ObjectMapper().readValue(jsonRequest, AssetRequest.class);
 

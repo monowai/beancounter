@@ -45,19 +45,19 @@ export function Rows(props: {
         </Link>
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"marketValue"}/>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"marketValue"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"costValue"}/>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"costValue"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"averageCost"}/>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"averageCost"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"dividends"}/>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"dividends"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"realisedGain"}/>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"realisedGain"} />
       </td>
       <td align={"right"}>
         <FormatMoneyValue
@@ -66,7 +66,7 @@ export function Rows(props: {
         />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"totalGain"}/>
+        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"totalGain"} />
       </td>
     </tr>
   ));

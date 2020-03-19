@@ -3,10 +3,7 @@ import { HoldingGroup } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 
-export function Footer(props: {
-  holdingGroup: HoldingGroup;
-  valueIn: ValueIn;
-}): JSX.Element {
+export function Footer(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }): JSX.Element {
   const valueIn = props.valueIn;
   const holdingGroup = props.holdingGroup;
   return (

@@ -10,7 +10,7 @@ export function useCurrencies(): Currency[] {
   useEffect(() => {
     logger.debug(">>fetch getCurrencies");
     _axios
-      .get<any>("/bff/currencies", {
+      .get<Currency[]>("/bff/currencies", {
         headers: getBearerToken(keycloak.token)
       })
       .then(result => {
@@ -24,9 +24,12 @@ export function useCurrencies(): Currency[] {
   return currencies;
 }
 
-export function currencyOptions(currencies: Currency[]): ReactNode {
+export function get(currencies: Currency[], value: string): Currency[] | undefined {
+  return currencies.filter(currency => currency.code === value);
+}
+export function currencyOptions(currencies: Currency[], selectedValue: string): ReactNode {
   return currencies.map((currency: Currency) => (
-    <option key={currency.code} value={currency.code}>
+    <option key={currency.code} value={currency.code} selected={currency.code === selectedValue}>
       {currency.code}
     </option>
   ));

@@ -29,7 +29,7 @@ export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
   return [portfolios, error];
 }
 
-export function usePortfolio(id: string): [Portfolio | undefined, AxiosError | undefined] {
+export function usePortfolio(id: string): [Portfolio, AxiosError | undefined] {
   const [portfolio, setPortfolio] = useState<Portfolio>({
     id: id,
     code: "",

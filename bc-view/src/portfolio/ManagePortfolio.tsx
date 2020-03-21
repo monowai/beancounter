@@ -18,6 +18,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
   const currencies = useCurrencies();
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
+  const [submitted, setSubmitted] = useState(false);
 
   const title = (): JSX.Element => {
     return (
@@ -27,58 +28,58 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
     );
   };
   const handleCancel = (): void => {
-    return history.goBack();
+    history.push("/portfolios");
   };
 
   const savePortfolio = handleSubmit((portfolioInput: PortfolioInput) => {
-    if (portfolio) {
-      if (portfolioId === "new") {
-        _axios
-          .post<Portfolio[]>(
-            "/bff/portfolios",
-            { data: [portfolioInput] },
-            {
-              headers: getBearerToken(keycloak.token)
-            }
-          )
-          .then(result => {
-            logger.debug("<<post Portfolio");
-            setPortfolioId(result.data[0].id);
-            history.push(`/portfolios`);
-          })
-          .catch(err => {
-            setError(err);
-            if (err.response) {
-              logger.error(
-                "axios error [%s]: [%s]",
-                err.response.status,
-                err.response.data.message
-              );
-            }
-          });
-      } else {
-        _axios
-          .patch<Portfolio>(`/bff/portfolios/${portfolio.id}`, portfolioInput, {
+    if (pfId === "new") {
+      _axios
+        .post<Portfolio[]>(
+          "/bff/portfolios",
+          { data: [portfolioInput] },
+          {
             headers: getBearerToken(keycloak.token)
-          })
-          .then(result => {
-            logger.debug("<<patched Portfolio");
-            setPortfolioId(result.data.id);
-          })
-          .catch(err => {
-            setError(err);
-            if (err.response) {
-              logger.error(
-                "patchPortfolio [%s]: [%s]",
-                err.response.status,
-                err.response.data.message
-              );
-            }
-          });
-        // New Portfolio
-      } // portfolio.id
-    } // portfolio
+          }
+        )
+        .then(result => {
+          logger.debug("<<post Portfolio");
+          setPortfolioId(result.data[0].id);
+          setSubmitted(true);
+        })
+        .catch(err => {
+          setError(err);
+          if (err.response) {
+            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+        });
+    } else {
+      _axios
+        .patch<Portfolio>(`/bff/portfolios/${pfId}`, portfolioInput, {
+          headers: getBearerToken(keycloak.token)
+        })
+        .then(result => {
+          logger.debug("<<patched Portfolio");
+          setPortfolioId(result.data.id);
+          setSubmitted(true);
+        })
+        .catch(err => {
+          setError(err);
+          if (err.response) {
+            logger.error(
+              "patchPortfolio [%s]: [%s]",
+              err.response.status,
+              err.response.data.message
+            );
+          }
+        });
+      // New Portfolio
+    } // portfolio.id
   });
+
+  if (submitted) {
+    history.push("/portfolios");
+  }
+
   if (pfError) {
     return ErrorPage(pfError.stack, pfError.message);
   }
@@ -112,7 +113,7 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
                     autoFocus={true}
                     placeholder="code"
                     name="code"
-                    defaultValue={portfolio?.code}
+                    defaultValue={portfolio.code}
                     ref={register({ required: true, maxLength: 10 })}
                   />
                 </div>
@@ -130,30 +131,37 @@ export function ManagePortfolio(portfolioId: string): React.ReactElement {
                   </div>
                 </div>
                 <div className="field">
-                  <label className="label">Portfolio Currency</label>
+                  <label className="label">Portfolio Reporting Currency</label>
                   <div className="control">
                     <select
                       placeholder={"Select currency"}
                       className={"select is-3"}
                       name={"currency"}
                       defaultValue={portfolio.currency.code}
+                      // onChange={e => {
+                      //   const value = e.target.value;
+                      //   const currency = get(currencies, value);
+                      //   // if (currency) {
+                      //   //   setValue("currency", currency[0].code);
+                      //   //   portfolio.currency = currency[0];
+                      //   // }
+                      // }}
                       ref={register({ required: true })}
                     >
-                      {currencyOptions(currencies)}
+                      {currencyOptions(currencies, portfolio.currency.code)}
                     </select>
                   </div>
                 </div>
                 <div className="field">
-                  <label className="label">Common Currency</label>
+                  <label className="label">Cross Portfolio Base Currency</label>
                   <div className="control">
                     <select
                       placeholder={"Select currency"}
                       className={"select is-3"}
                       name={"base"}
                       defaultValue={portfolio.base.code}
-                      ref={register({ required: true })}
                     >
-                      {currencyOptions(currencies)}
+                      {currencyOptions(currencies, portfolio.base.code)}
                     </select>
                   </div>
                 </div>

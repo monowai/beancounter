@@ -38,7 +38,7 @@ spring:
   application:
     name: bc-marketData
   cache:
-    cache-names: asset.prices
+    cache-names: asset.prices, ecb.rates
   jpa:
     open-in-view: false
     generate-ddl: true

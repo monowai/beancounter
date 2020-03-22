@@ -1,6 +1,9 @@
 package com.beancounter.common.identity;
 
+import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.KeyGenUtils;
 import java.io.Serializable;
+import java.util.UUID;
 import javax.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +23,16 @@ import lombok.NoArgsConstructor;
 @Embeddable
 public class TrnId implements Serializable {
   private String provider;
-  private Integer batch;
-  private Integer id;
+  private String batch;
+  private String id;
 
+  public static TrnId from(TrnId id) {
+    TrnId result = TrnId.builder()
+        .build();
+
+    result.setProvider(id == null || id.getProvider() == null ? "BC" : id.provider);
+    result.setBatch(id == null || id.getBatch() == null ? new DateUtils().today() : id.batch);
+    result.setId(id == null || id.getId() == null ? KeyGenUtils.format(UUID.randomUUID()) : id.id);
+    return result;
+  }
 }

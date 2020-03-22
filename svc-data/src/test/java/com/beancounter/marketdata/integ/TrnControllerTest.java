@@ -52,7 +52,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
-public class TrnMvcTest {
+public class TrnControllerTest {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
@@ -103,9 +103,9 @@ public class TrnMvcTest {
     Collection<TrnInput> trnInputs = new ArrayList<>();
     trnInputs.add(TrnInput.builder()
         .id(TrnId.builder()
-            .batch(0)
+            .batch("0")
             .provider("test")
-            .id(1).build())
+            .id("1").build())
         .asset(msft.getId())
         .tradeDate(new DateUtils().getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
@@ -115,9 +115,9 @@ public class TrnMvcTest {
         .build());
     trnInputs.add(TrnInput.builder()
         .id(TrnId.builder()
-            .batch(0)
+            .batch("0")
             .provider("test")
-            .id(3).build())
+            .id("3").build())
         .asset(aapl.getId())
         .tradeDate(new DateUtils().getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
@@ -127,9 +127,9 @@ public class TrnMvcTest {
         .build());
     trnInputs.add(TrnInput.builder()
         .id(TrnId.builder()
-            .batch(0)
+            .batch("0")
             .provider("test")
-            .id(2).build())
+            .id("2").build())
         .asset(msft.getId())
         .tradeDate(new DateUtils().getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
@@ -140,9 +140,9 @@ public class TrnMvcTest {
 
     trnInputs.add(TrnInput.builder()
         .id(TrnId.builder()
-            .batch(0)
+            .batch("0")
             .provider("test")
-            .id(4).build())
+            .id("4").build())
         .asset(aapl.getId())
         .tradeDate(new DateUtils().getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
@@ -171,7 +171,7 @@ public class TrnMvcTest {
       assertThat(trn.getAsset()).isNotNull();
     }
 
-    String portfolioId = trnResponse.getData().iterator().next().getPortfolioId();
+    String portfolioId = trnResponse.getData().iterator().next().getPortfolio().getId();
 
     // Find by Portfolio, sorted by assetId and then Date
     MvcResult mvcResult = mockMvc.perform(
@@ -190,15 +190,15 @@ public class TrnMvcTest {
     int i = 4;
     // Verify the sort order - asset.code, tradeDate
     for (Trn trn : trnResponse.getData()) {
-      assertThat(trn.getId().getId() == i--);
+      assertThat(trn.getId().getId().equals(String.valueOf(i--)));
       assertThat(trn.getAsset()).isNotNull();
     }
 
     Trn trn = trnResponse.getData().iterator().next();
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
-        get("/trns/{portfolioId}/{provider}/{batch}/{id}",
-            portfolioId, trn.getId().getProvider(), trn.getId().getBatch(), trn.getId().getId())
+        get("/trns/{provider}/{batch}/{id}",
+            trn.getId().getProvider(), trn.getId().getBatch(), trn.getId().getId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())

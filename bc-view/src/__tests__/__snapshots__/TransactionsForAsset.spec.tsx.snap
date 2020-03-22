@@ -93,7 +93,7 @@ exports[`<Transactions /> should match snapshot 1`] = `
               <td>
                 <a
                   class="fa fa-edit"
-                  href="/portfolio/[object Object]"
+                  href="/trns/SHEETS/0/68"
                 />
                 <span>
                    

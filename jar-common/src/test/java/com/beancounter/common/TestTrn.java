@@ -12,6 +12,7 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,7 +27,7 @@ class TestTrn {
     ObjectMapper mapper = new ObjectMapper();
 
     TrnInput trnInput = TrnInput.builder()
-        .id(TrnId.builder().batch(1).id(1).provider("ABC").build())
+        .id(TrnId.builder().batch("1").id("1").provider("ABC").build())
         .asset(AssetUtils.toKey("MSFT", "NASDAQ"))
         .cashAsset(AssetUtils.toKey("USD-X", "USER"))
         .tradeDate(new DateUtils().getDate("2019-10-10"))
@@ -70,8 +71,8 @@ class TestTrn {
     Trn trn = Trn.builder()
         .asset(asset)
         .trnType(trnType)
-        .id(TrnId.builder().batch(10).id(10).provider("TEST").build())
-        .portfolioId("TWEE")
+        .id(TrnId.builder().batch("10").id("10").provider("TEST").build())
+        .portfolio(PortfolioUtils.getPortfolio("TWEE"))
         .tradeDate(LocalDate.now())
         .settleDate(LocalDate.now())
         .quantity(new BigDecimal("100.01"))
@@ -90,5 +91,14 @@ class TestTrn {
 
     assertThat(fromJson)
         .isEqualToComparingFieldByField(trnResponse);
+  }
+
+  @Test
+  void is_TrnIdDefaulting () {
+    TrnId fromNull = TrnId.from(null);
+    assertThat(fromNull).hasNoNullFieldsOrProperties();
+
+    TrnId id = TrnId.builder().provider("provider").batch("batch").id("456").build();
+    assertThat(TrnId.from(id)).isEqualToComparingFieldByField(id);
   }
 }

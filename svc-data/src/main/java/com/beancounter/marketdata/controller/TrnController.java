@@ -35,20 +35,18 @@ public class TrnController {
     this.portfolioService = portfolioService;
   }
 
-  @PostMapping(
-      produces = MediaType.APPLICATION_JSON_VALUE,
-      consumes = MediaType.APPLICATION_JSON_VALUE)
-  TrnResponse update(@RequestBody TrnRequest trnRequest) {
-    Portfolio portfolio = portfolioService.find(trnRequest.getPortfolioId());
-    return trnService.save(portfolio, trnRequest);
+  @GetMapping(value = "/{portfolioId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  TrnResponse find(@PathVariable("portfolioId") String portfolioId) {
+    Portfolio portfolio = portfolioService.find(portfolioId);
+
+    return trnService.find(portfolio);
   }
 
-  @GetMapping(value = "/{portfolioId}/{provider}/{batch}/{id}")
+  @GetMapping(value = "/{provider}/{batch}/{id}")
   TrnResponse find(
-      @PathVariable("portfolioId") String portfolioId,
       @PathVariable("provider") String provider,
-      @PathVariable("batch") Integer batch,
-      @PathVariable("id") Integer id
+      @PathVariable("batch") String batch,
+      @PathVariable("id") String id
   ) {
     return trnService.find(TrnId.builder()
         .provider(provider)
@@ -57,11 +55,18 @@ public class TrnController {
         .build());
   }
 
-  @GetMapping(value = "/{portfolioId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  TrnResponse find(@PathVariable("portfolioId") String portfolioId) {
-    Portfolio portfolio = portfolioService.find(portfolioId);
+  @PostMapping(
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  TrnResponse update(@RequestBody TrnRequest trnRequest) {
+    Portfolio portfolio = portfolioService.find(trnRequest.getPortfolioId());
+    return trnService.save(portfolio, trnRequest);
+  }
 
-    return trnService.find(portfolio);
+  @DeleteMapping(value = "/{portfolioId}")
+  Long purge(@PathVariable("portfolioId") String portfolioId) {
+    Portfolio portfolio = portfolioService.find(portfolioId);
+    return trnService.purge(portfolio);
   }
 
   @GetMapping(value = "/{portfolioId}/{assetId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -70,11 +75,5 @@ public class TrnController {
       @PathVariable("assetId") String assetId
   ) {
     return trnService.find(portfolioService.find(portfolioId), assetId);
-  }
-
-  @DeleteMapping(value = "/{portfolioId}")
-  Long purge(@PathVariable("portfolioId") String portfolioId) {
-    Portfolio portfolio = portfolioService.find(portfolioId);
-    return trnService.purge(portfolio);
   }
 }

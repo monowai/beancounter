@@ -124,16 +124,26 @@ interface SystemUser {
   email: string | undefined;
 }
 
+interface TrnInput {
+  trnType: TrnType;
+  portfolioId: string;
+  asset: string;
+  tradeDate: string;
+  quantity: number;
+  price: number;
+  tradeAmount: number;
+}
+
 interface TrnId {
   provider: string;
-  batch: number;
-  id: number;
+  batch: string;
+  id: string;
 }
 
 interface Transaction {
   id: TrnId;
   trnType: TrnType;
-  portfolioId: string;
+  portfolio: Portfolio;
   asset: Asset;
   tradeDate: string;
   quantity: number;
@@ -145,4 +155,9 @@ interface Transaction {
   tradeBaseRate: number;
   tradePortfolioRate: number;
   comments: string;
+}
+
+interface BcResult<T> {
+  data: T | any;
+  error: AxiosError | undefined;
 }

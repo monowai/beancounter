@@ -49,20 +49,20 @@ public class AssetService {
             .market(market)
             .build())
         .build();
-    AssetUpdateResponse assetUpdateResponse = assetGateway.assets(tokenService.getBearerToken(), assetRequest);
-    if (assetUpdateResponse == null) {
+    AssetUpdateResponse response = assetGateway.assets(tokenService.getBearerToken(), assetRequest);
+    if (response == null) {
       throw new BusinessException(
           String.format("No response returned for %s:%s", assetCode, market.getCode()));
     }
 
-    return assetUpdateResponse.getData().values().iterator().next();
+    return response.getData().values().iterator().next();
 
   }
 
   @FeignClient(name = "assets",
       url = "${marketdata.url:http://localhost:9510/api}")
   public interface AssetGateway {
-    @PostMapping( value = "/assets",
+    @PostMapping(value = "/assets",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
     AssetUpdateResponse assets(@RequestHeader("Authorization") String bearerToken,

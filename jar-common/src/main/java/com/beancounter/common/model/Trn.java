@@ -34,7 +34,8 @@ public class Trn {
   @EmbeddedId
   private TrnId id;
   private TrnType trnType;
-  private String portfolioId;
+  @ManyToOne
+  private Portfolio portfolio;
   @ManyToOne
   private Asset asset;
   @ManyToOne

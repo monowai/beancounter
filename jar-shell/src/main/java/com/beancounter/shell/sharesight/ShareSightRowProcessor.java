@@ -32,7 +32,6 @@ public class ShareSightRowProcessor implements RowProcessor {
 
     Collection<TrnInput> results = new ArrayList<>();
 
-    int trnId = 1;
     for (List<Object> row : values) {
       Transformer transformer = shareSightTransformers.transformer(row);
 
@@ -41,15 +40,13 @@ public class ShareSightRowProcessor implements RowProcessor {
           TrnInput trn = transformer.from(row, portfolio);
           if (trn != null) {
             trn.setId(TrnId.builder()
-                .id(trnId++)
-                .batch(0)
                 .provider(provider)
                 .build());
             results.add(trn);
           }
         }
       } catch (ParseException | NumberFormatException e) {
-        log.error("{} Parsing row {} - {}", transformer.getClass().getSimpleName(), trnId, row);
+        log.error("{} Parsing row {}", transformer.getClass().getSimpleName(),  row);
         throw new BusinessException(e.getMessage());
       }
 

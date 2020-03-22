@@ -40,7 +40,7 @@ class TestTrnAdapter {
   @Test
   void is_InputToTrn() {
     TrnInput trnInput = TrnInput.builder()
-        .id(TrnId.builder().batch(1).id(1).provider("ABC").build())
+        .id(TrnId.builder().batch("1").id("1").provider("ABC").build())
         .trnType(TrnType.BUY)
         .asset(AssetUtils.toKey("MSFT", "NASDAQ"))
         .cashAsset(AssetUtils.toKey("USD-X", "USER"))

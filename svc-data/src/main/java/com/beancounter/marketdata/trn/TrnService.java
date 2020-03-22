@@ -2,9 +2,11 @@ package com.beancounter.marketdata.trn;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
+import com.beancounter.marketdata.portfolio.PortfolioService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,10 +22,13 @@ import org.springframework.stereotype.Service;
 public class TrnService {
   private TrnRepository trnRepository;
   private TrnAdapter trnAdapter;
+  private PortfolioService portfolioService;
 
   TrnService(TrnRepository trnRepository,
-             TrnAdapter trnAdapter) {
+             TrnAdapter trnAdapter,
+             PortfolioService portfolioService) {
     this.trnRepository = trnRepository;
+    this.portfolioService = portfolioService;
     this.trnAdapter = trnAdapter;
   }
 
@@ -41,8 +46,13 @@ public class TrnService {
 
   public TrnResponse find(TrnId trnId) {
     Optional<Trn> found = trnRepository.findById(trnId);
-    return found.map(transaction -> hydrate(Collections.singleton(transaction)))
-        .orElseGet(() -> TrnResponse.builder().build());
+    Optional<TrnResponse> result = found.map(
+        transaction -> hydrate(Collections.singleton(transaction)));
+
+    if (result.isEmpty()) {
+      throw new BusinessException(String.format("Trn %s not found", trnId));
+    }
+    return result.get();
   }
 
   public TrnResponse find(Portfolio portfolio, String assetId) {
@@ -83,13 +93,15 @@ public class TrnService {
   }
 
   private TrnResponse hydrate(Iterable<Trn> trns) {
-    TrnResponse trnResponse = TrnResponse.builder()
-        .build();
     Collection<Trn> trnCollection = new ArrayList<>();
     for (Trn trn : trns) {
-      trnCollection.add(setAssets(trn));
+      if (portfolioService.canView(trn.getPortfolio())) {
+        trnCollection.add(setAssets(trn));
+      }
     }
-    trnResponse.setData(trnCollection);
-    return trnResponse;
+    if (trnCollection.isEmpty()) {
+      return null; // Not Found
+    }
+    return TrnResponse.builder().data(trnCollection).build();
   }
 }

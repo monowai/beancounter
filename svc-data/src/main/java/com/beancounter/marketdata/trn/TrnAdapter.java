@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
+import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
@@ -31,7 +32,7 @@ public class TrnAdapter {
 
   public Trn map(Portfolio portfolio, TrnInput trnInput) {
     return Trn.builder()
-        .id(trnInput.getId())
+        .id(parseId(trnInput.getId()))
         .tradeDate(trnInput.getTradeDate())
         .settleDate(trnInput.getSettleDate())
         .cashAmount(trnInput.getCashAmount())
@@ -40,7 +41,7 @@ public class TrnAdapter {
         .tradeAmount(trnInput.getTradeAmount())
         .cashAmount(trnInput.getCashAmount())
         .quantity(trnInput.getQuantity())
-        .portfolioId(portfolio.getId())
+        .portfolio(portfolio)
         .price(trnInput.getPrice())
         .tradePortfolioRate(trnInput.getTradePortfolioRate())
         .tradeCashRate(trnInput.getTradeCashRate())
@@ -54,6 +55,11 @@ public class TrnAdapter {
             ? null : currencyService.getCode(trnInput.getCashCurrency()))
         .tradeCurrency(currencyService.getCode(trnInput.getTradeCurrency()))
         .build();
+  }
+
+  private TrnId parseId(TrnId id) {
+    TrnId result = TrnId.from(id);
+    return result;
   }
 
   public Asset hydrate(Asset asset) {

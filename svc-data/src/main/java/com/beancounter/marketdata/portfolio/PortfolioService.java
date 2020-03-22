@@ -53,7 +53,8 @@ public class PortfolioService {
 
   }
 
-  private boolean canView(SystemUser systemUser, Portfolio found) {
+  public boolean canView(Portfolio found) {
+    SystemUser systemUser = getOrThrow();
     return found.getOwner().getId().equals(systemUser.getId());
   }
 
@@ -68,12 +69,11 @@ public class PortfolioService {
   }
 
   public Portfolio find(String id) {
-    SystemUser systemUser = getOrThrow();
     Optional<Portfolio> found = portfolioRepository.findById(id);
     Portfolio portfolio = found.orElseThrow(()
         -> new BusinessException(String.format("Could not find a portfolio with ID %s", id)));
 
-    if (canView(systemUser, portfolio)) {
+    if (canView(portfolio)) {
       return portfolio;
     }
 
@@ -92,7 +92,7 @@ public class PortfolioService {
             code,
             systemUser.getId())));
 
-    if (canView(systemUser, portfolio)) {
+    if (canView(portfolio)) {
       return portfolio;
     }
     throw new BusinessException(String.format("Could not find a portfolio with code %s", code));

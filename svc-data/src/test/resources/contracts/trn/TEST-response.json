@@ -2,12 +2,12 @@
   "data": [
     {
       "id": {
-        "provider": "SHEETS",
-        "batch": 0,
-        "id": 25
+        "provider": "STUB",
+        "batch": "2020",
+        "id": "123"
       },
       "trnType": "BUY",
-      "portfolioId": "FT-vUCChRwOXDP7itcp5Kw",
+      "portfolio": {"code": "FT-vUCChRwOXDP7itcp5Kw"},
       "asset": {
         "id": "6VjYIJFKSCu7BtphC2GVSw",
         "code": "AAPL",
@@ -49,12 +49,12 @@
     },
     {
       "id": {
-        "provider": "SHEETS",
-        "batch": 0,
-        "id": 470
+        "provider": "STUB",
+        "batch": "2020",
+        "id": "456"
       },
       "trnType": "DIVI",
-      "portfolioId": "FT-vUCChRwOXDP7itcp5Kw",
+      "portfolio": {"code": "FT-vUCChRwOXDP7itcp5Kw"},
       "asset": {
         "id": "6VjYIJFKSCu7BtphC2GVSw",
         "code": "AAPL",

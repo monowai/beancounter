@@ -5,32 +5,42 @@ import Login from "./common/auth/Login";
 import Logout from "./common/auth/Logout";
 import Portfolios from "./portfolio/Portfolios";
 import Registration from "./common/auth/Registration";
-import { ManagePortfolio } from "./portfolio/ManagePortfolio";
+import { PortfolioEdit } from "./portfolio/PortfolioEdit";
 import { DeletePortfolio } from "./portfolio/DeletePortfolio";
 import Transactions from "./trns/Transactions";
+import { TransactionEdit } from "./trns/TransactionEdit";
 
+const __new__ = "new";
 const RouteHoldings = (): JSX.Element => {
   const { portfolioId } = useParams();
-  const pfId = portfolioId == undefined ? "new" : portfolioId;
+  const pfId = portfolioId == undefined ? __new__ : portfolioId;
   return ViewHoldings(pfId);
 };
 
 const RoutePortfolio = (): JSX.Element => {
   const { portfolioId } = useParams();
-  const pfId = portfolioId == undefined ? "new" : portfolioId;
-  return ManagePortfolio(pfId);
+  const pfId = portfolioId == undefined ? __new__ : portfolioId;
+  return PortfolioEdit(pfId);
 };
 
-const RouteTrnForAsset = (): JSX.Element => {
+const RouteTrnList = (): JSX.Element => {
   const { portfolioId, assetId } = useParams();
-  const pfId = portfolioId == undefined ? "new" : portfolioId;
-  const asset = assetId == undefined ? "new" : assetId;
-  return Transactions(pfId, asset);
+  const portfolio = portfolioId == undefined ? __new__ : portfolioId;
+  const asset = assetId == undefined ? __new__ : assetId;
+  return Transactions(portfolio, asset);
+};
+
+const RouteTrnManage = (): JSX.Element => {
+  const { providerId, batchId, trnId } = useParams();
+  const pId = providerId == undefined ? __new__ : providerId;
+  const bId = batchId == undefined ? __new__ : batchId;
+  const tId = trnId == undefined ? __new__ : trnId;
+  return TransactionEdit(pId, bId, tId);
 };
 
 const RoutePortfolioDelete = (): JSX.Element => {
   const { portfolioId } = useParams();
-  const pfId = portfolioId == undefined ? "new" : portfolioId;
+  const pfId = portfolioId == undefined ? __new__ : portfolioId;
   return DeletePortfolio(pfId);
 };
 
@@ -69,8 +79,12 @@ const ClientRoutes = [
     component: RouteHoldings
   },
   {
+    path: "/trns/:providerId/:batchId/:trnId",
+    component: RouteTrnManage
+  },
+  {
     path: "/trns/:portfolioId/:assetId",
-    component: RouteTrnForAsset
+    component: RouteTrnList
   }
 ];
 

@@ -10,7 +10,7 @@ import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
 import ErrorPage from "../common/errors/ErrorPage";
 
-export function ManagePortfolio(portfolioId: string): React.ReactElement {
+export function PortfolioEdit(portfolioId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [pfId, setPortfolioId] = useState<string>(portfolioId);

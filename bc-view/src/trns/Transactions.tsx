@@ -7,28 +7,21 @@ import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
 
 export function Transactions(portfolioId: string, assetId: string): React.ReactElement {
-  const [transactions, trnError] = useAssetTransactions(portfolioId, assetId);
-  const [asset, assetError] = useAsset(assetId);
+  const trnsResult = useAssetTransactions(portfolioId, assetId);
+  const assetResult = useAsset(assetId);
 
-  // Render where we are in the initialization process
-  if (!transactions && !asset) {
-    return <div id="root">Loading...</div>;
-  }
-  if (trnError) {
-    return ErrorPage(trnError.stack, trnError.message);
-  }
-  if (assetError) {
-    return ErrorPage(assetError.stack, assetError.message);
+  if (assetResult.error) {
+    return ErrorPage(assetResult.error.stack, assetResult.error.message);
   }
 
-  if (transactions && asset) {
-    if (transactions.length > 0) {
+  if (trnsResult.data && assetResult.data) {
+    if (trnsResult.data.length > 0) {
       return (
         <div>
           <nav className="container">
             <div className={"page-title"}>
               <div className={"column page-title subtitle is-6"}>
-                {asset?.name}:{asset?.market.code}
+                {assetResult.data.name}:{assetResult.data.market.code}
               </div>
             </div>
           </nav>
@@ -47,14 +40,14 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map(transaction => (
-                    <tr key={getKey(transaction.id)}>
-                      <td>{transaction.trnType}</td>
-                      <td>{transaction.tradeCurrency.code}</td>
-                      <td>{transaction.tradeDate}</td>
+                  {trnsResult.data.map(t => (
+                    <tr key={getKey(t.id)}>
+                      <td>{t.trnType}</td>
+                      <td>{t.tradeCurrency.code}</td>
+                      <td>{t.tradeDate}</td>
                       <td align={"right"}>
                         <NumberFormat
-                          value={transaction.quantity}
+                          value={t.quantity}
                           displayType={"text"}
                           decimalScale={0}
                           fixedDecimalScale={true}
@@ -63,7 +56,7 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                       </td>
                       <td align={"right"}>
                         <NumberFormat
-                          value={transaction.price}
+                          value={t.price}
                           displayType={"text"}
                           decimalScale={2}
                           fixedDecimalScale={true}
@@ -72,7 +65,7 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                       </td>
                       <td align={"right"}>
                         <NumberFormat
-                          value={transaction.tradeAmount}
+                          value={t.tradeAmount}
                           displayType={"text"}
                           decimalScale={2}
                           fixedDecimalScale={true}
@@ -80,11 +73,14 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                         />
                       </td>
                       <td>
-                        <Link className="fa fa-edit" to={`/portfolio/${transaction.id}`} />
+                        <Link
+                          className="fa fa-edit"
+                          to={`/trns/${t.id.provider}/${t.id.batch}/${t.id.id}`}
+                        />
                         <span> </span>
                         <Link
                           className="fa fa-remove has-padding-left-6"
-                          to={`/portfolio/delete/${transaction.id}`}
+                          to={`/portfolio/delete/${t.id}`}
                         />
                       </td>
                     </tr>
@@ -97,11 +93,7 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
       );
     }
   }
-  return (
-    <div id="root">
-      You have no transactions for this portfolio - <Link to={"/portfolio/new"}>create one?</Link>
-    </div>
-  );
+  return <div id="root">Loading...</div>;
 }
 
 export default Transactions;

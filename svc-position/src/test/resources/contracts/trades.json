@@ -11,12 +11,12 @@
         }
       }
     },
-    "portfolioId": "MIKE",
+    "portfolio": {"code": "MIKE"},
     "cashAsset": null,
     "id": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-      "batch": 0,
-      "id": 1
+      "batch": "0",
+      "id": "1"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -49,12 +49,12 @@
         }
       }
     },
-    "portfolioId": "MIKE",
+    "portfolio": {"code": "MIKE"},
     "cashAsset": null,
     "id": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-      "batch": 0,
-      "id": 2
+      "batch": "0",
+      "id": "2"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -86,12 +86,12 @@
         }
       }
     },
-    "portfolioId": "MIKE",
+    "portfolio": {"code": "MIKE"},
     "cashAsset": null,
     "id": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-      "batch": 0,
-      "id": 363
+      "batch": "0",
+      "id": "363"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -121,12 +121,12 @@
         }
       }
     },
-    "portfolioId": "MIKE",
+    "portfolio": {"code": "MIKE"},
     "cashAsset": null,
     "id": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-      "batch": 0,
-      "id": 364
+      "batch": "0",
+      "id": "364"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -156,12 +156,12 @@
         }
       }
     },
-    "portfolioId": "MIKE",
+    "portfolio": {"code": "MIKE"},
     "cashAsset": null,
     "id": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-      "batch": 0,
-      "id": 472
+      "batch": "0",
+      "id": "472"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -191,12 +191,12 @@
         }
       }
     },
-    "portfolioId": "MIKE",
+    "portfolio": {"code": "MIKE"},
     "cashAsset": null,
     "id": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
-      "batch": 0,
-      "id": 473
+      "batch": "0",
+      "id": "473"
     },
     "tradeCurrency": {
       "code": "USD"

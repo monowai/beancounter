@@ -12,6 +12,7 @@ import { useHoldings } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
 import { Rows } from "./Rows";
 import { Header } from "./Header";
+import { isDone } from "../types/typeUtils";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -23,16 +24,18 @@ export default function ViewHoldings(code: string): JSX.Element {
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency"
   });
-  const [holdingResults, error] = useHoldings(code);
+  const holdingResults = useHoldings(code);
   // Render where we are in the initialization process
-  if (!holdingResults) {
-    return <div id="root">Loading...</div>;
-  }
-  if (error) {
-    return ErrorPage(error.stack, error.message);
-  }
-  if (holdingResults) {
-    const holdings = calculate(holdingResults, hideEmpty, valueIn.value, groupBy.value) as Holdings;
+  if (isDone(holdingResults)) {
+    if (holdingResults.error) {
+      return ErrorPage(holdingResults.error.stack, holdingResults.error.message);
+    }
+    const holdings = calculate(
+      holdingResults.data,
+      hideEmpty,
+      valueIn.value,
+      groupBy.value
+    ) as Holdings;
     return (
       <div className="page-box">
         <div className="filter-columns">
@@ -71,9 +74,9 @@ export default function ViewHoldings(code: string): JSX.Element {
         </div>
         <div className={"stats-container"}>
           <table>
-            <StatsHeader portfolio={holdingResults.portfolio} />
+            <StatsHeader portfolio={holdingResults.data.portfolio} />
             <StatsRow
-              portfolio={holdingResults.portfolio}
+              portfolio={holdingResults.data.portfolio}
               moneyValues={holdings.totals}
               valueIn={valueIn.value}
             />
@@ -88,7 +91,7 @@ export default function ViewHoldings(code: string): JSX.Element {
                   <React.Fragment key={groupKey}>
                     <Header groupKey={groupKey} />
                     <Rows
-                      portfolio={holdingResults?.portfolio}
+                      portfolio={holdingResults.data.portfolio}
                       holdingGroup={holdings.holdingGroups[groupKey]}
                       valueIn={valueIn.value}
                     />
@@ -105,5 +108,5 @@ export default function ViewHoldings(code: string): JSX.Element {
       </div>
     );
   }
-  return <div id="root">No Holdings to display</div>;
+  return <div id="root">Loading...</div>;
 }

@@ -63,16 +63,16 @@ const ClientRoutes = [
     component: Registration
   },
   {
-    path: "/portfolios",
-    component: Portfolios
-  },
-  {
-    path: "/portfolio/delete/:portfolioId",
+    path: "/portfolios/:portfolioId/delete",
     component: RoutePortfolioDelete
   },
   {
-    path: "/portfolio/:portfolioId",
+    path: "/portfolios/:portfolioId",
     component: RoutePortfolio
+  },
+  {
+    path: "/portfolios",
+    component: Portfolios
   },
   {
     path: "/holdings/:portfolioId",

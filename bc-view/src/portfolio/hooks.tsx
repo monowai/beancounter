@@ -1,12 +1,12 @@
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import { Portfolio } from "../types/beancounter";
+import { BcResult, Portfolio } from "../types/beancounter";
 import logger from "../common/ConfigLogging";
 import { useEffect, useState } from "react";
 import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { USD } from "../static/currencies";
 
-export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
+export function usePortfolios(): BcResult<Portfolio[]> {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
@@ -26,10 +26,10 @@ export function usePortfolios(): [Portfolio[], AxiosError | undefined] {
         setError(err);
       });
   }, [keycloak]);
-  return [portfolios, error];
+  return { data: portfolios, error };
 }
 
-export function usePortfolio(id: string): [Portfolio, AxiosError | undefined] {
+export function usePortfolio(id: string): BcResult<Portfolio> {
   const [portfolio, setPortfolio] = useState<Portfolio>({
     id: id,
     code: "",
@@ -59,5 +59,5 @@ export function usePortfolio(id: string): [Portfolio, AxiosError | undefined] {
     }
   }, [id, keycloak.token]);
 
-  return [portfolio, error];
+  return { data: portfolio, error };
 }

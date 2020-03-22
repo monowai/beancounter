@@ -159,5 +159,6 @@ interface Transaction {
 
 interface BcResult<T> {
   data: T | any;
-  error: AxiosError | undefined;
+  error: AxiosError | any;
 }
+

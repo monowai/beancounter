@@ -1,12 +1,14 @@
-import { Currency } from "../types/beancounter";
+import { BcResult, Currency } from "../types/beancounter";
 import React, { ReactNode, useEffect, useState } from "react";
 import logger from "../common/ConfigLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/razzle";
+import { AxiosError } from "axios";
 
-export function useCurrencies(): Currency[] {
+export function useCurrencies(): BcResult<Currency[]> {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [keycloak] = useKeycloak();
+  const [error, setError] = useState<AxiosError>();
   useEffect(() => {
     logger.debug(">>fetch getCurrencies");
     _axios
@@ -19,9 +21,10 @@ export function useCurrencies(): Currency[] {
       })
       .catch(err => {
         console.error("Unable to get currencies {}", err);
+        setError(err);
       });
   }, [keycloak]);
-  return currencies;
+  return { data: currencies, error };
 }
 
 export function get(currencies: Currency[], value: string): Currency[] | undefined {

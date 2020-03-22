@@ -9,13 +9,14 @@ import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
 import ErrorPage from "../common/errors/ErrorPage";
+import { isDone } from "../types/typeUtils";
 
 export function PortfolioEdit(portfolioId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [pfId, setPortfolioId] = useState<string>(portfolioId);
-  const [portfolio, pfError] = usePortfolio(pfId);
-  const currencies = useCurrencies();
+  const portfolioResult = usePortfolio(pfId);
+  const currencyResult = useCurrencies();
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
   const [submitted, setSubmitted] = useState(false);
@@ -79,21 +80,19 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
   if (submitted) {
     history.push("/portfolios");
   }
-
-  if (pfError) {
-    return ErrorPage(pfError.stack, pfError.message);
-  }
   if (error) {
     return ErrorPage(error.stack, error.message);
-  }
-
-  if (!portfolio) {
-    return <div id="root">Loading...</div>;
   }
   if (errors) {
     console.log(errors);
   }
-  if (portfolio) {
+  if (isDone(portfolioResult) && isDone(currencyResult)) {
+    if (portfolioResult.error) {
+      return ErrorPage(portfolioResult.error.stack, portfolioResult.error.message);
+    }
+
+    const currencies = currencyResult.data;
+    const portfolio = portfolioResult.data;
     return (
       <div>
         {title()}
@@ -182,5 +181,5 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
       </div>
     );
   }
-  return <div id="root">Portfolio not found!</div>;
+  return <div id="root">Loading...</div>;
 }

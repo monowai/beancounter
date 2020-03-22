@@ -5,16 +5,20 @@ import { getKey, useAssetTransactions } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
 import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
+import { isDone } from "../types/typeUtils";
 
 export function Transactions(portfolioId: string, assetId: string): React.ReactElement {
   const trnsResult = useAssetTransactions(portfolioId, assetId);
   const assetResult = useAsset(assetId);
 
-  if (assetResult.error) {
-    return ErrorPage(assetResult.error.stack, assetResult.error.message);
-  }
+  if (isDone(trnsResult) && isDone(assetResult)) {
+    if (assetResult.error) {
+      return ErrorPage(assetResult.error.stack, assetResult.error.message);
+    }
+    if (trnsResult.error) {
+      return ErrorPage(trnsResult.error.stack, trnsResult.error.message);
+    }
 
-  if (trnsResult.data && assetResult.data) {
     if (trnsResult.data.length > 0) {
       return (
         <div>

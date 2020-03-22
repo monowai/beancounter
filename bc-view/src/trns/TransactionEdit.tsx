@@ -9,6 +9,7 @@ import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
 import ErrorPage from "../common/errors/ErrorPage";
 import { useTransaction } from "./hooks";
+import { isDone } from "../types/typeUtils";
 
 export function TransactionEdit(provider: string, batch: string, id: string): React.ReactElement {
   const [keycloak] = useKeycloak();
@@ -18,7 +19,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
     batch: batch,
     id: id
   });
-  const currencies = useCurrencies();
+  const currencyResult = useCurrencies();
   const [stateError, setError] = useState<AxiosError>();
   const history = useHistory();
   const [submitted, setSubmitted] = useState(false);
@@ -85,7 +86,8 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
     return ErrorPage(trnResult.error.stack, trnResult.error.message);
   }
 
-  if (trnResult.data) {
+  if (isDone(trnResult) && isDone(currencyResult)) {
+    const currencies = currencyResult.data;
     return (
       <div>
         {title()}

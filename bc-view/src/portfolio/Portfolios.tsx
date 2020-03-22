@@ -3,20 +3,17 @@ import { Link } from "react-router-dom";
 import { useHistory } from "react-router";
 import { usePortfolios } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
+import { isDone } from "../types/typeUtils";
 
 export function Portfolios(): React.ReactElement {
-  const [portfolios, error] = usePortfolios();
+  const portfolioResults = usePortfolios();
   const history = useHistory();
 
-  // Render where we are in the initialization process
-  if (!portfolios) {
-    return <div id="root">Loading...</div>;
-  }
-  if (error) {
-    return ErrorPage(error.stack, error.message);
-  }
-
-  if (portfolios) {
+  if (isDone(portfolioResults)) {
+    if (portfolioResults.error) {
+      return ErrorPage(portfolioResults.error.stack, portfolioResults.error.message);
+    }
+    const portfolios = portfolioResults.data;
     if (portfolios.length > 0) {
       return (
         <div>
@@ -25,7 +22,7 @@ export function Portfolios(): React.ReactElement {
               <button
                 className="navbar-item button is-link is-small"
                 onClick={() => {
-                  return history.push("/portfolio/new");
+                  return history.push("/portfolios/new");
                 }}
               >
                 Create
@@ -60,11 +57,11 @@ export function Portfolios(): React.ReactElement {
                         {portfolio.base.code}
                       </td>
                       <td>
-                        <Link className="fa fa-edit" to={`/portfolio/${portfolio.id}`} />
+                        <Link className="fa fa-edit" to={`/portfolios/${portfolio.id}`} />
                         <span> </span>
                         <Link
                           className="fa fa-remove has-padding-left-6"
-                          to={`/portfolio/delete/${portfolio.id}`}
+                          to={`/portfolios/${portfolio.id}/delete`}
                         />
                       </td>
                     </tr>
@@ -76,12 +73,13 @@ export function Portfolios(): React.ReactElement {
         </div>
       );
     }
+    return (
+      <div id="root">
+        You have no portfolios - <Link to={"/portfolios/new"}>create one?</Link>
+      </div>
+    );
   }
-  return (
-    <div id="root">
-      You have no portfolios - <Link to={"/portfolio/new"}>create one?</Link>
-    </div>
-  );
+  return <div id="root">Loading...</div>;
 }
 
 export default Portfolios;

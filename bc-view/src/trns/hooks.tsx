@@ -50,7 +50,7 @@ export function useTransaction(trnId: TrnId): BcResult<Transaction> {
         }
         setError(err);
       });
-  }, [keycloak, trnId]);
+  }, [keycloak, trnId.id, trnId.batch, trnId.provider]);
   return { data: transaction, error };
 }
 

@@ -67,14 +67,14 @@ exports[`<Portfolios /> should match snapshot 1`] = `
               <td>
                 <a
                   class="fa fa-edit"
-                  href="/portfolio/Kdf3jfUfSYqXV_S4Myc2wA"
+                  href="/portfolios/Kdf3jfUfSYqXV_S4Myc2wA"
                 />
                 <span>
                    
                 </span>
                 <a
                   class="fa fa-remove has-padding-left-6"
-                  href="/portfolio/delete/Kdf3jfUfSYqXV_S4Myc2wA"
+                  href="/portfolios/Kdf3jfUfSYqXV_S4Myc2wA/delete"
                 />
               </td>
             </tr>

@@ -15,6 +15,7 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
   const [keycloak] = useKeycloak();
   const portfolioResult = usePortfolio(pfId);
   const [submitted, setSubmitted] = useState(false);
+  // const [deleting, setDeleting] = useState(false);
 
   const handleCancel = (): void => {
     history.push("/portfolios");
@@ -22,6 +23,7 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
 
   function deletePf(): void {
     if (portfolioResult.data.id && !submitted) {
+      setSubmitted(true);
       console.debug("delete PF %s", portfolioResult.data.id);
       _axios
         .delete<void>(`/bff/portfolios/${portfolioResult.data.id}`, {
@@ -29,7 +31,6 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
         })
         .then(() => {
           console.debug("Delete success");
-          setSubmitted(true);
         })
         .catch(err => {
           setError(err);
@@ -41,6 +42,7 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
   }
 
   if (submitted) {
+    setSubmitted(false);
     history.push("/portfolios");
   }
 

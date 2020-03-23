@@ -10,14 +10,21 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@Data
 public class GoogleTransport {
 
   private GoogleAuthConfig googleAuthConfig;
+
+  @Value("${range:All Trades Report}")
+  private String range;
+
 
   GoogleTransport(GoogleAuthConfig googleAuthConfig) {
     this.googleAuthConfig = googleAuthConfig;

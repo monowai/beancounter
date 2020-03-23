@@ -5,7 +5,7 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.shell.ingest.Transformer;
+import com.beancounter.shell.ingest.TrnAdapter;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @Configuration
-public class ShareSightTrades implements Transformer {
+public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int market = 0;
   public static final int code = 1;
   public static final int name = 2;
@@ -41,7 +41,7 @@ public class ShareSightTrades implements Transformer {
   private final ShareSightService shareSightService;
 
   @Autowired
-  public ShareSightTrades(ShareSightService shareSightService) {
+  public ShareSightTradeAdapter(ShareSightService shareSightService) {
     this.shareSightService = shareSightService;
   }
 

@@ -10,12 +10,12 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.shell.ingest.Transformer;
+import com.beancounter.shell.ingest.TrnAdapter;
 import com.beancounter.shell.sharesight.ShareSightConfig;
-import com.beancounter.shell.sharesight.ShareSightDivis;
-import com.beancounter.shell.sharesight.ShareSightRowProcessor;
+import com.beancounter.shell.sharesight.ShareSightDividendAdapater;
+import com.beancounter.shell.sharesight.ShareSightFactory;
+import com.beancounter.shell.sharesight.ShareSightRowAdapter;
 import com.beancounter.shell.sharesight.ShareSightService;
-import com.beancounter.shell.sharesight.ShareSightTransformers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -41,10 +41,10 @@ public class ShareSightRatesInTrn {
   private ShareSightService shareSightService;
 
   @Autowired
-  private ShareSightTransformers shareSightTransformers;
+  private ShareSightFactory shareSightFactory;
 
   @Autowired
-  private ShareSightRowProcessor shareSightRowProcessor;
+  private ShareSightRowAdapter shareSightRowProcessor;
 
   @Test
   void is_IgnoreRatesDefaultCorrect() {
@@ -62,18 +62,18 @@ public class ShareSightRatesInTrn {
         .build();
 
     // Trade is in USD
-    row.add(ShareSightDivis.code, "ABBV.NYS");
-    row.add(ShareSightDivis.name, "Test Asset");
-    row.add(ShareSightDivis.date, "21/01/2019");
+    row.add(ShareSightDividendAdapater.code, "ABBV.NYS");
+    row.add(ShareSightDividendAdapater.name, "Test Asset");
+    row.add(ShareSightDividendAdapater.date, "21/01/2019");
     String rate = "0.8074"; // Sharesight Trade to Reference Rate
-    row.add(ShareSightDivis.fxRate, rate);
-    row.add(ShareSightDivis.currency, "USD"); // TradeCurrency
-    row.add(ShareSightDivis.net, "15.85");
-    row.add(ShareSightDivis.tax, "0");
-    row.add(ShareSightDivis.gross, "15.85");
-    row.add(ShareSightDivis.comments, "Test Comment");
+    row.add(ShareSightDividendAdapater.fxRate, rate);
+    row.add(ShareSightDividendAdapater.currency, "USD"); // TradeCurrency
+    row.add(ShareSightDividendAdapater.net, "15.85");
+    row.add(ShareSightDividendAdapater.tax, "0");
+    row.add(ShareSightDividendAdapater.gross, "15.85");
+    row.add(ShareSightDividendAdapater.comments, "Test Comment");
 
-    Transformer dividends = shareSightTransformers.transformer(row);
+    TrnAdapter dividends = shareSightFactory.adapter(row);
 
     TrnInput trn = dividends.from(row, portfolio);
 

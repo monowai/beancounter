@@ -24,7 +24,7 @@ Default is to look for google credentials `../secrets/credentials.json`
 ## General import flow from a google sheet
 Currently callbacks don't work when running the shell in Docker
 The general flow
-```bash
+```shell script
  # running the shell in DEV mode against the bc-demo stack
  # Assumes you've already registered you account via the UI or KeyCloak
  $ MARKETDATA_URL=http://localhost:9610/api java -jar jar-shell/build/libs/jar-shell-0.1.1.jar
@@ -34,8 +34,8 @@ The general flow
  bc-shell$ register
  bc-shell$ add SGD "SGD Domiciled" SGD USD
  # This command will not work for you, so you need to setup your google access and a sheet before calling it
- # If you don't ingest transacitons, then you will just see an empty portfolio in the viewer 
- bc-shell$ ingest --sheet "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio SGD
+ # If you don't ingest transactions, then you will just see an empty portfolio in the viewer 
+ bc-shell$ ingest --type GSHEET --file "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8" --portfolio SGD
 ```
 
 Supports an optional case sensitive filter property `"filter": "MSFT,"APPL"` to include only transactions where the Asset codes match those in the filter

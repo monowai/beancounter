@@ -4,8 +4,8 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.shell.ingest.RowProcessor;
-import com.beancounter.shell.ingest.Transformer;
+import com.beancounter.shell.ingest.RowAdapter;
+import com.beancounter.shell.ingest.TrnAdapter;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,13 +16,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class ShareSightRowProcessor implements RowProcessor {
+public class ShareSightRowAdapter implements RowAdapter {
 
-  private ShareSightTransformers shareSightTransformers;
+  private ShareSightFactory shareSightFactory;
 
   @Autowired
-  void setShareSightTransformers(ShareSightTransformers shareSightTransformers) {
-    this.shareSightTransformers = shareSightTransformers;
+  void setShareSightFactory(ShareSightFactory shareSightFactory) {
+    this.shareSightFactory = shareSightFactory;
   }
 
   @Override
@@ -33,11 +33,11 @@ public class ShareSightRowProcessor implements RowProcessor {
     Collection<TrnInput> results = new ArrayList<>();
 
     for (List<Object> row : values) {
-      Transformer transformer = shareSightTransformers.transformer(row);
+      TrnAdapter trnAdapter = shareSightFactory.adapter(row);
 
       try {
-        if (transformer.isValid(row)) {
-          TrnInput trn = transformer.from(row, portfolio);
+        if (trnAdapter.isValid(row)) {
+          TrnInput trn = trnAdapter.from(row, portfolio);
           if (trn != null) {
             trn.setId(TrnId.builder()
                 .provider(provider)
@@ -46,7 +46,7 @@ public class ShareSightRowProcessor implements RowProcessor {
           }
         }
       } catch (ParseException | NumberFormatException e) {
-        log.error("{} Parsing row {}", transformer.getClass().getSimpleName(),  row);
+        log.error("{} Parsing row {}", trnAdapter.getClass().getSimpleName(),  row);
         throw new BusinessException(e.getMessage());
       }
 

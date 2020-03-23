@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IngestionRequest {
 
-  private String sheetId;
+  @Builder.Default
+  private String type = "GSHEET";
+  private String file;
   private String filter;
   private String provider;
   @Builder.Default

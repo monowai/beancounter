@@ -38,8 +38,6 @@ public class ShareSightService {
   private String outFile;
   @Value("${ratesIgnored:false}")
   private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
-  @Value("${range:All Trades Report}")
-  private String range;
   private Filter filter;
   private AssetService assetService;
   private DateUtils dateUtils = new DateUtils();
@@ -63,10 +61,6 @@ public class ShareSightService {
       return null;
     }
     return dateUtils.getDate(date.toString(), "dd/MM/yyyy");
-  }
-
-  LocalDate parseDate(String date) {
-    return dateUtils.getDate(date, "dd/MM/yyyy");
   }
 
   public BigDecimal parseDouble(Object o) throws ParseException {

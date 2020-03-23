@@ -15,7 +15,7 @@ class IngestionRequestTest {
         .filter("TWEE")
         .portfolioCode("Test")
         .provider("TheProvider")
-        .sheetId("123")
+        .file("123")
         .build();
 
     assertThat(ingestionRequest.isRatesIgnored()).isTrue();

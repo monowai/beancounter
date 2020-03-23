@@ -12,12 +12,12 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.shell.ingest.Filter;
-import com.beancounter.shell.ingest.Transformer;
+import com.beancounter.shell.ingest.TrnAdapter;
 import com.beancounter.shell.sharesight.ShareSightConfig;
-import com.beancounter.shell.sharesight.ShareSightRowProcessor;
+import com.beancounter.shell.sharesight.ShareSightFactory;
+import com.beancounter.shell.sharesight.ShareSightRowAdapter;
 import com.beancounter.shell.sharesight.ShareSightService;
-import com.beancounter.shell.sharesight.ShareSightTrades;
-import com.beancounter.shell.sharesight.ShareSightTransformers;
+import com.beancounter.shell.sharesight.ShareSightTradeAdapter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +45,7 @@ import org.springframework.test.context.ActiveProfiles;
 class ShareSightTradeTest {
 
   @Autowired
-  private ShareSightRowProcessor shareSightRowProcessor;
+  private ShareSightRowAdapter shareSightRowProcessor;
 
   @Autowired
   private ShareSightService shareSightService;
@@ -54,7 +54,7 @@ class ShareSightTradeTest {
   private PortfolioService portfolioService;
 
   @Autowired
-  private ShareSightTransformers shareSightTransformers;
+  private ShareSightFactory shareSightFactory;
 
   static List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
     return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
@@ -66,36 +66,36 @@ class ShareSightTradeTest {
                              String tradeAmount) {
     List<Object> row = new ArrayList<>();
 
-    row.add(ShareSightTrades.market, market);
-    row.add(ShareSightTrades.code, code);
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, tranType);
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, fxRate);
-    row.add(ShareSightTrades.value, tradeAmount);
-    row.add(ShareSightTrades.comments, "Test Comment");
+    row.add(ShareSightTradeAdapter.market, market);
+    row.add(ShareSightTradeAdapter.code, code);
+    row.add(ShareSightTradeAdapter.name, "Test Asset");
+    row.add(ShareSightTradeAdapter.type, tranType);
+    row.add(ShareSightTradeAdapter.date, "21/01/2019");
+    row.add(ShareSightTradeAdapter.quantity, "10");
+    row.add(ShareSightTradeAdapter.price, "12.23");
+    row.add(ShareSightTradeAdapter.brokerage, "12.99");
+    row.add(ShareSightTradeAdapter.currency, "AUD");
+    row.add(ShareSightTradeAdapter.fxRate, fxRate);
+    row.add(ShareSightTradeAdapter.value, tradeAmount);
+    row.add(ShareSightTradeAdapter.comments, "Test Comment");
     return row;
   }
 
   @Test
   void is_SplitTransformerFoundForRow() {
     List<Object> row = new ArrayList<>();
-    row.add(ShareSightTrades.market, "ASX");
-    row.add(ShareSightTrades.code, "SLB");
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, "split");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
+    row.add(ShareSightTradeAdapter.market, "ASX");
+    row.add(ShareSightTradeAdapter.code, "SLB");
+    row.add(ShareSightTradeAdapter.name, "Test Asset");
+    row.add(ShareSightTradeAdapter.type, "split");
+    row.add(ShareSightTradeAdapter.date, "21/01/2019");
+    row.add(ShareSightTradeAdapter.quantity, "10");
+    row.add(ShareSightTradeAdapter.price, "12.23");
+    row.add(ShareSightTradeAdapter.brokerage, "12.99");
+    row.add(ShareSightTradeAdapter.currency, "AUD");
 
-    Transformer transformer = shareSightTransformers.transformer(row);
-    assertThat(transformer).isInstanceOf(ShareSightTrades.class);
+    TrnAdapter trnAdapter = shareSightFactory.adapter(row);
+    assertThat(trnAdapter).isInstanceOf(ShareSightTradeAdapter.class);
   }
 
   @Test
@@ -131,12 +131,13 @@ class ShareSightTradeTest {
   void is_RowWithNoCommentTransformed() {
 
     List<Object> row = getRow("buy", "0.8988", "2097.85");
-    row.remove(ShareSightTrades.comments);
+    row.remove(ShareSightTradeAdapter.comments);
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
 
     TrnInput trn =
-        shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")), values, "twee")
+        shareSightRowProcessor.transform(
+            getPortfolio("Test", getCurrency("NZD")), values, "twee")
             .iterator().next();
 
     assertThat(trn)
@@ -152,11 +153,17 @@ class ShareSightTradeTest {
   void is_RowFilterWorking() {
 
     List<Object> inFilter = getRow("buy", "0.8988", "2097.85");
-    List<Object> outFilter = getRow("ABC", "MOCK", "buy", "0.8988", "2097.85");
-    inFilter.remove(ShareSightTrades.comments);
+    List<Object> notInFilter = getRow(
+        "ABC",
+        "MOCK",
+        "buy",
+        "0.8988",
+        "2097.85"
+    );
+    inFilter.remove(ShareSightTradeAdapter.comments);
     List<List<Object>> values = new ArrayList<>();
     values.add(inFilter);
-    values.add(outFilter);
+    values.add(notInFilter);
     shareSightService.setFilter(new Filter("AMP"));
     Collection<TrnInput> trns =
         shareSightRowProcessor.transform(
@@ -211,15 +218,13 @@ class ShareSightTradeTest {
   @Test
   void is_IllegalDateFound() {
     List<Object> row = getRow("buy", "0.8988", "2097.85");
-    row.add(ShareSightTrades.date, "21/01/2019'");
+    row.add(ShareSightTradeAdapter.date, "21/01/2019'");
     List<List<Object>> values = new ArrayList<>();
     values.add(row);
 
     assertThrows(BusinessException.class, () ->
         shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
             values, "twee"));
-
-
   }
 
 }

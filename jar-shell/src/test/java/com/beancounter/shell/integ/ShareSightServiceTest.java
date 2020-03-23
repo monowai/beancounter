@@ -9,10 +9,10 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.sharesight.ShareSightConfig;
-import com.beancounter.shell.sharesight.ShareSightDivis;
-import com.beancounter.shell.sharesight.ShareSightRowProcessor;
+import com.beancounter.shell.sharesight.ShareSightDividendAdapater;
+import com.beancounter.shell.sharesight.ShareSightRowAdapter;
 import com.beancounter.shell.sharesight.ShareSightService;
-import com.beancounter.shell.sharesight.ShareSightTrades;
+import com.beancounter.shell.sharesight.ShareSightTradeAdapter;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ class ShareSightServiceTest {
   private ShareSightService shareSightService;
 
   @Autowired
-  private ShareSightRowProcessor shareSightRowProcessor;
+  private ShareSightRowAdapter shareSightRowProcessor;
 
   @Test
   void is_DoubleValueInputCorrect() throws ParseException {
@@ -87,75 +87,75 @@ class ShareSightServiceTest {
   @Test
   void is_ValidTradeRow() {
     List<Object> row = new ArrayList<>();
-    row.add(ShareSightTrades.market, "market"); // Header Row
-    row.add(ShareSightTrades.code, "code");
-    row.add(ShareSightTrades.name, "name");
-    row.add(ShareSightTrades.type, "type");
-    row.add(ShareSightTrades.date, "date");
-    row.add(ShareSightTrades.quantity, "quantity");
-    row.add(ShareSightTrades.price, "price");
-    ShareSightTrades shareSightTrades = new ShareSightTrades(shareSightService);
-    assertThat(shareSightTrades.isValid(row)).isFalse();
+    row.add(ShareSightTradeAdapter.market, "market"); // Header Row
+    row.add(ShareSightTradeAdapter.code, "code");
+    row.add(ShareSightTradeAdapter.name, "name");
+    row.add(ShareSightTradeAdapter.type, "type");
+    row.add(ShareSightTradeAdapter.date, "date");
+    row.add(ShareSightTradeAdapter.quantity, "quantity");
+    row.add(ShareSightTradeAdapter.price, "price");
+    ShareSightTradeAdapter shareSightTradeAdapter = new ShareSightTradeAdapter(shareSightService);
+    assertThat(shareSightTradeAdapter.isValid(row)).isFalse();
 
-    row.remove(ShareSightTrades.price);
-    assertThat(shareSightTrades.isValid(row)).isFalse(); // Not enough columns for a trade
+    row.remove(ShareSightTradeAdapter.price);
+    assertThat(shareSightTradeAdapter.isValid(row)).isFalse(); // Not enough columns for a trade
   }
 
   @Test
   void is_ValidDividendRow() {
     List<Object> row = new ArrayList<>();
-    row.add(ShareSightDivis.code, "code"); // Header Row
-    row.add(ShareSightDivis.name, "code");
-    row.add(ShareSightDivis.date, "name");
-    row.add(ShareSightDivis.fxRate, "type");
-    row.add(ShareSightDivis.currency, "date");
-    row.add(ShareSightDivis.net, "quantity");
-    row.add(ShareSightDivis.tax, "tax");
-    row.add(ShareSightDivis.gross, "gross");
-    row.add(ShareSightDivis.comments, "comments");
-    ShareSightDivis shareSightDivis = new ShareSightDivis(shareSightService);
-    assertThat(shareSightDivis.isValid(row)).isFalse();// Ignore CODE
+    row.add(ShareSightDividendAdapater.code, "code"); // Header Row
+    row.add(ShareSightDividendAdapater.name, "code");
+    row.add(ShareSightDividendAdapater.date, "name");
+    row.add(ShareSightDividendAdapater.fxRate, "type");
+    row.add(ShareSightDividendAdapater.currency, "date");
+    row.add(ShareSightDividendAdapater.net, "quantity");
+    row.add(ShareSightDividendAdapater.tax, "tax");
+    row.add(ShareSightDividendAdapater.gross, "gross");
+    row.add(ShareSightDividendAdapater.comments, "comments");
+    ShareSightDividendAdapater dividendAdapater = new ShareSightDividendAdapater(shareSightService);
+    assertThat(dividendAdapater.isValid(row)).isFalse();// Ignore CODE
 
-    row.remove(ShareSightTrades.code);
-    assertThat(shareSightDivis.isValid(row)).isFalse(); // Not enough columns for a trade
+    row.remove(ShareSightTradeAdapter.code);
+    assertThat(dividendAdapater.isValid(row)).isFalse(); // Not enough columns for a trade
 
-    row.add(ShareSightDivis.code, "total");
-    assertThat(shareSightDivis.isValid(row)).isFalse(); // Ignore TOTAL
-    row.remove(ShareSightTrades.code);
-    row.add(ShareSightDivis.code, "some.code");
-    assertThat(shareSightDivis.isValid(row)).isTrue();
+    row.add(ShareSightDividendAdapater.code, "total");
+    assertThat(dividendAdapater.isValid(row)).isFalse(); // Ignore TOTAL
+    row.remove(ShareSightTradeAdapter.code);
+    row.add(ShareSightDividendAdapater.code, "some.code");
+    assertThat(dividendAdapater.isValid(row)).isTrue();
   }
 
   @Test
   void is_AssetsSetIntoTransaction() {
     List<Object> row = new ArrayList<>();
-    row.add(ShareSightTrades.market, "ASX");
-    row.add(ShareSightTrades.code, "BHP");
-    row.add(ShareSightTrades.name, "Test Asset");
-    row.add(ShareSightTrades.type, "buy");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "AUD");
-    row.add(ShareSightTrades.fxRate, "99.99");
-    row.add(ShareSightTrades.value, "2097.85");
+    row.add(ShareSightTradeAdapter.market, "ASX");
+    row.add(ShareSightTradeAdapter.code, "BHP");
+    row.add(ShareSightTradeAdapter.name, "Test Asset");
+    row.add(ShareSightTradeAdapter.type, "buy");
+    row.add(ShareSightTradeAdapter.date, "21/01/2019");
+    row.add(ShareSightTradeAdapter.quantity, "10");
+    row.add(ShareSightTradeAdapter.price, "12.23");
+    row.add(ShareSightTradeAdapter.brokerage, "12.99");
+    row.add(ShareSightTradeAdapter.currency, "AUD");
+    row.add(ShareSightTradeAdapter.fxRate, "99.99");
+    row.add(ShareSightTradeAdapter.value, "2097.85");
 
     List<List<Object>> rows = new ArrayList<>();
     rows.add(row);
 
     row = new ArrayList<>();
-    row.add(ShareSightTrades.market, "NASDAQ");
-    row.add(ShareSightTrades.code, "MSFT");
-    row.add(ShareSightTrades.name, "Microsoft");
-    row.add(ShareSightTrades.type, "buy");
-    row.add(ShareSightTrades.date, "21/01/2019");
-    row.add(ShareSightTrades.quantity, "10");
-    row.add(ShareSightTrades.price, "12.23");
-    row.add(ShareSightTrades.brokerage, "12.99");
-    row.add(ShareSightTrades.currency, "USD");
-    row.add(ShareSightTrades.fxRate, "99.99");
-    row.add(ShareSightTrades.value, "2097.85");
+    row.add(ShareSightTradeAdapter.market, "NASDAQ");
+    row.add(ShareSightTradeAdapter.code, "MSFT");
+    row.add(ShareSightTradeAdapter.name, "Microsoft");
+    row.add(ShareSightTradeAdapter.type, "buy");
+    row.add(ShareSightTradeAdapter.date, "21/01/2019");
+    row.add(ShareSightTradeAdapter.quantity, "10");
+    row.add(ShareSightTradeAdapter.price, "12.23");
+    row.add(ShareSightTradeAdapter.brokerage, "12.99");
+    row.add(ShareSightTradeAdapter.currency, "USD");
+    row.add(ShareSightTradeAdapter.fxRate, "99.99");
+    row.add(ShareSightTradeAdapter.value, "2097.85");
 
     rows.add(row);
 

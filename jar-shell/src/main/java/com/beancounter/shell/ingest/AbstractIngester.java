@@ -1,4 +1,4 @@
-package com.beancounter.shell.google;
+package com.beancounter.shell.ingest;
 
 import com.beancounter.client.FxTransactions;
 import com.beancounter.client.PortfolioService;
@@ -8,12 +8,6 @@ import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.shell.ingest.Ingester;
-import com.beancounter.shell.ingest.IngestionRequest;
-import com.beancounter.shell.sharesight.ShareSightRowProcessor;
-import com.beancounter.shell.sharesight.ShareSightService;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.services.sheets.v4.Sheets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,26 +16,26 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Reads the actual google sheet.
- *
- * @author mikeh
- * @since 2019-02-08
- */
 @Service
 @Slf4j
-public class SheetReader implements Ingester {
-
-  private GoogleTransport googleTransport;
-
+public abstract class AbstractIngester implements Ingester {
   private FxTransactions fxTransactions;
-  private ShareSightService shareSightService;
-  private ShareSightRowProcessor shareSightRowProcessor;
+  private RowAdapter rowAdapter;
   private PortfolioService portfolioService;
   private TrnService trnService;
 
-  SheetReader(PortfolioService portfolioService, TrnService trnService) {
+  @Autowired
+  public void setRowAdapter(RowAdapter rowAdapter) {
+    this.rowAdapter = rowAdapter;
+  }
+
+  @Autowired
+  public void setPortfolioService(PortfolioService portfolioService) {
     this.portfolioService = portfolioService;
+  }
+
+  @Autowired
+  void setTrnService(TrnService trnService) {
     this.trnService = trnService;
   }
 
@@ -50,23 +44,8 @@ public class SheetReader implements Ingester {
     this.fxTransactions = fxTransactions;
   }
 
-  @Autowired
-  void setGoogleTransport(GoogleTransport googleTransport) {
-    this.googleTransport = googleTransport;
-  }
-
-  @Autowired
-  void setShareSightRowProcessor(ShareSightRowProcessor shareSightRowProcessor) {
-    this.shareSightRowProcessor = shareSightRowProcessor;
-  }
-
-  @Autowired
-  void setShareSightService(ShareSightService shareSightService) {
-    this.shareSightService = shareSightService;
-  }
-
   /**
-   * Reads a Google sheet and writes the output file.
+   * Default ingestion flow.
    *
    * @param ingestionRequest parameters to run the import.
    * @return JSON transformation
@@ -77,21 +56,13 @@ public class SheetReader implements Ingester {
 
     Portfolio portfolio = portfolioService.getPortfolioByCode(ingestionRequest.getPortfolioCode());
     if (portfolio == null) {
-      throw new BusinessException(String.format("Unknown portfolio code %s. Please create it.",
+      throw new BusinessException(String.format("Unknown portfolio code %s. Have you created it?",
           ingestionRequest.getPortfolioCode()));
     }
+    prepare(ingestionRequest);
+    List<List<Object>> values = getValues();
 
-    final NetHttpTransport httpTransport = googleTransport.getHttpTransport();
-
-    Sheets service = googleTransport.getSheets(httpTransport);
-    String sheetId = ingestionRequest.getSheetId();
-    List<List<Object>> values = googleTransport.getValues(
-        service,
-        sheetId,
-        shareSightService.getRange());
-
-    log.info("Processing {} {}", shareSightService.getRange(), sheetId);
-    Collection<TrnInput> trnInputs = shareSightRowProcessor.transform(
+    Collection<TrnInput> trnInputs = rowAdapter.transform(
         portfolio,
         values,
         (ingestionRequest.getProvider() == null ? "SHEETS" : ingestionRequest.getProvider()));
@@ -102,7 +73,7 @@ public class SheetReader implements Ingester {
     log.info("Back filling FX rates...");
     trnInputs = fxTransactions.applyRates(portfolio, trnInputs);
     if (ingestionRequest.isTrnPersist()) {
-      log.info("Received request to write {} transactions {}",
+      log.info("Writing {} transactions to portfolio {}",
           trnInputs.size(),
           portfolio.getCode());
 
@@ -119,5 +90,8 @@ public class SheetReader implements Ingester {
 
   }
 
+  protected abstract void prepare(IngestionRequest ingestionRequest);
+
+  protected abstract List<List<Object>> getValues();
 
 }

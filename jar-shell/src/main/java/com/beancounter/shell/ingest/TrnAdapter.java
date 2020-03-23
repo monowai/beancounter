@@ -11,7 +11,7 @@ import java.util.List;
  * @author mikeh
  * @since 2019-02-10
  */
-public interface Transformer {
+public interface TrnAdapter {
 
   TrnInput from(List<Object> row, Portfolio portfolio) throws ParseException;
 

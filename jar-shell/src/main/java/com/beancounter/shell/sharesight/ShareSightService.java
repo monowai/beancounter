@@ -4,7 +4,6 @@ import com.beancounter.client.AssetService;
 import com.beancounter.client.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.shell.ingest.Filter;
@@ -54,7 +53,7 @@ public class ShareSightService {
   }
 
 
-  LocalDate parseDate(Object date) {
+  public LocalDate parseDate(Object date) {
     if (date == null) {
       return null;
     }
@@ -63,10 +62,6 @@ public class ShareSightService {
 
   public BigDecimal parseDouble(Object o) throws ParseException {
     return new BigDecimal(NumberFormat.getInstance(Locale.US).parse(o.toString()).toString());
-  }
-
-  TrnType resolveType(String type) {
-    return TrnType.valueOf(type.toUpperCase());
   }
 
   /**

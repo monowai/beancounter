@@ -1,11 +1,11 @@
 package com.beancounter.shell.cli;
 
 import com.beancounter.shell.config.EnvConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.FileSystems;
 import java.util.Map;
 import java.util.TreeMap;
-import lombok.SneakyThrows;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
@@ -19,7 +19,8 @@ public class UtilCommands {
 
   @ShellMethod("Current working directory")
   public String pwd() {
-    return FileSystems.getDefault().getPath("").toAbsolutePath().toString();
+    return FileSystems.getDefault().getPath("")
+        .toAbsolutePath().toString();
   }
 
   @ShellMethod("Secrets")
@@ -28,8 +29,7 @@ public class UtilCommands {
   }
 
   @ShellMethod("Shell configuration")
-  @SneakyThrows
-  public String config() {
+  public String config() throws JsonProcessingException {
     Map<String, String> config = new TreeMap<>();
     config.put("AUTH_REALM", envConfig.getRealm());
     config.put("AUTH_CLIENT", envConfig.getClient());

@@ -6,10 +6,10 @@ import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.Collections;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -26,29 +26,28 @@ public class PortfolioCommands {
   }
 
   @ShellMethod("Find portfolio by code")
-  @SneakyThrows
   public String code(
-      @ShellOption(help = "Code - case insensitive") String portfolioCode) {
+      @ShellOption(help = "Code - case insensitive") String portfolioCode)
+      throws JsonProcessingException {
     Portfolio portfolio = portfolioService.getPortfolioByCode(portfolioCode);
     return writer.writeValueAsString(portfolio);
   }
 
   @ShellMethod("Find by id")
-  @SneakyThrows
   public String id(
-      @ShellOption(help = "Primary key - case sensitive") String portfolioId) {
+      @ShellOption(help = "Primary key - case sensitive") String portfolioId)
+      throws JsonProcessingException {
     Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
     return writer.writeValueAsString(portfolio);
   }
 
   @ShellMethod(key = "add", value = "Add portfolio")
-  @SneakyThrows
   public String add(
       @ShellOption(help = "Unique Code") String code,
       @ShellOption(help = "Name") String name,
       @ShellOption(help = "Reference currency") String currencyCode,
       @ShellOption(help = "Base currency") String baseCurrency
-  ) {
+  ) throws JsonProcessingException {
     Portfolio portfolio;
     try {
       portfolio = portfolioService.getPortfolioByCode(code);

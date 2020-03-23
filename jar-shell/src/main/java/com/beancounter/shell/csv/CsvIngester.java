@@ -55,8 +55,8 @@ public class CsvIngester extends AbstractIngester {
       while ((line = csvReader.readNext()) != null) {
         results.add(Arrays.asList(line));
       }
-    } finally {
-      reader.close();
+    } catch (IOException e) {
+      throw new SystemException(e.getMessage());
     }
     return results;
   }

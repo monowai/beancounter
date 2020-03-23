@@ -41,6 +41,11 @@ class ShareSightServiceTest {
   private ShareSightRowAdapter shareSightRowProcessor;
 
   @Test
+  void is_NullDateSupported () {
+    assertThat(shareSightService.parseDate(null)).isNull();
+  }
+
+  @Test
   void is_DoubleValueInputCorrect() throws ParseException {
     assertThat(shareSightService.parseDouble("5,000.99"))
         .isEqualByComparingTo(BigDecimal.valueOf(5000.99));

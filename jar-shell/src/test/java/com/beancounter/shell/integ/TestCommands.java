@@ -11,7 +11,6 @@ import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.cli.UtilCommands;
 import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.ShellConfig;
-import com.beancounter.shell.google.GoogleAuthConfig;
 import com.beancounter.shell.sharesight.ShareSightConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,9 +34,8 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(classes = {
     ShellConfig.class,
     AuthConfig.class,
-    GoogleAuthConfig.class,
     ShareSightConfig.class})
-public class ContractTest {
+public class TestCommands {
   @Autowired
   private DataCommands dataCommands;
 

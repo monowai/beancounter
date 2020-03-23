@@ -38,7 +38,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int fxRate = 9;
   public static final int value = 10;
   public static final int comments = 11;
-  private final ShareSightService shareSightService;
+  private ShareSightService shareSightService;
 
   @Autowired
   public ShareSightTradeAdapter(ShareSightService shareSightService) {
@@ -48,54 +48,53 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   @Override
   public TrnInput from(List<String> row, Portfolio portfolio)
       throws ParseException {
-    try {
-      TrnType trnType = shareSightService.resolveType(row.get(type));
-      if (trnType == null) {
-        throw new BusinessException(String.format("Unsupported type %s",
-            row.get(type)));
-      }
-      String assetName = row.get(name);
-      String assetCode = row.get(code);
-      String marketCode = row.get(market);
 
-      Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
-      if (!shareSightService.inFilter(asset)) {
-        return null;
-      }
-      String comment = (row.size() == 12 ? nullSafe(row.get(comments)) : null);
-
-      BigDecimal tradeRate = null;
-      BigDecimal fees = null;
-      BigDecimal tradeAmount = BigDecimal.ZERO;
-      if (trnType != TrnType.SPLIT) {
-        Object rate = row.get(fxRate);
-        tradeRate = getBigDecimal(rate);
-        Object fee = row.get(brokerage);
-        fees = getBigDecimal(fee);
-        tradeAmount = shareSightService.parseDouble(row.get(value));
-      }
-
-      return TrnInput.builder()
-          .asset(asset.getId())
-          .trnType(trnType)
-          .quantity(shareSightService.parseDouble(row.get(quantity)))
-          .price(shareSightService.parseDouble(row.get(price)))
-          .fees(shareSightService.safeDivide(
-              fees, tradeRate))
-          .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
-          .tradeDate(shareSightService.parseDate(row.get(date)))
-          .cashCurrency(portfolio.getCurrency().getCode())
-          .tradeCurrency(row.get(currency))
-          // Zero and null are treated as "unknown"
-          .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
-              ? null : tradeRate)
-          .comments(comment)
-          .build()
-          ;
-    } catch (RuntimeException re) {
-      log.error(String.valueOf(row));
-      throw re;
+    String ttype = row.get(type);
+    if (ttype == null || ttype.equalsIgnoreCase("")) {
+      throw new BusinessException(String.format("Unsupported type %s",
+          row.get(type)));
     }
+    TrnType trnType = TrnType.valueOf(ttype.toUpperCase());
+
+    String assetName = row.get(name);
+    String assetCode = row.get(code);
+    String marketCode = row.get(market);
+
+    Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
+    if (!shareSightService.inFilter(asset)) {
+      return null;
+    }
+    String comment = (row.size() == 12 ? nullSafe(row.get(comments)) : null);
+
+    BigDecimal tradeRate = null;
+    BigDecimal fees = null;
+    BigDecimal tradeAmount = BigDecimal.ZERO;
+    if (trnType != TrnType.SPLIT) {
+      Object rate = row.get(fxRate);
+      tradeRate = getBigDecimal(rate);
+      Object fee = row.get(brokerage);
+      fees = getBigDecimal(fee);
+      tradeAmount = shareSightService.parseDouble(row.get(value));
+    }
+
+    return TrnInput.builder()
+        .asset(asset.getId())
+        .trnType(trnType)
+        .quantity(shareSightService.parseDouble(row.get(quantity)))
+        .price(shareSightService.parseDouble(row.get(price)))
+        .fees(shareSightService.safeDivide(
+            fees, tradeRate))
+        .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
+        .tradeDate(shareSightService.parseDate(row.get(date)))
+        .cashCurrency(portfolio.getCurrency().getCode())
+        .tradeCurrency(row.get(currency))
+        // Zero and null are treated as "unknown"
+        .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
+            ? null : tradeRate)
+        .comments(comment)
+        .build()
+        ;
+
 
   }
 

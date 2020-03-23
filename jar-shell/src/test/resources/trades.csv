@@ -1,0 +1,6 @@
+Market,Code,Name,Type,Date,Quantity,Price *,Brokerage *,Currency,Exchange Rate,Value,Comments
+NASDAQ,AAPL,Apple Inc,Buy,12/02/2013,2,475.00,2.50,USD,0.8067,"1,180.74",
+NASDAQ,AAPL,Apple Inc,Split,06/09/2014,7,0.00,0.00,USD,,,
+NASDAQ,MSFT,Microsoft Corporation,Buy,02/10/2019,15,136.34,4.00,USD,0.7226,"2,835.88",
+NASDAQ,MSFT,Microsoft Corporation,Sell,27/02/2020,-15,163.37,3.00,USD,0.7169,"-3,414.26",
+AAPL.NAS,Apple Inc,14/11/2019,0.7341,USD,12.59,0.00,12.59,Dividend of 77.0 cents per share

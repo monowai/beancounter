@@ -30,8 +30,8 @@ public class ShareSightFactory {
    * @param row analyze this
    * @return appropriate transformer
    */
-  public TrnAdapter adapter(List<Object> row) {
-    if (TRADE_TYPES.contains(row.get(ShareSightTradeAdapter.type).toString().toUpperCase())) {
+  public TrnAdapter adapter(List<String> row) {
+    if (TRADE_TYPES.contains(row.get(ShareSightTradeAdapter.type).toUpperCase())) {
       return shareSightTrade;
     }
     return shareSightDivi;

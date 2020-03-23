@@ -56,15 +56,15 @@ class ShareSightTradeTest {
   @Autowired
   private ShareSightFactory shareSightFactory;
 
-  static List<Object> getRow(String tranType, String fxRate, String tradeAmount) {
+  static List<String> getRow(String tranType, String fxRate, String tradeAmount) {
     return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
   }
 
-  static List<Object> getRow(String code, String market,
+  static List<String> getRow(String code, String market,
                              String tranType,
                              String fxRate,
                              String tradeAmount) {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
 
     row.add(ShareSightTradeAdapter.market, market);
     row.add(ShareSightTradeAdapter.code, code);
@@ -83,7 +83,7 @@ class ShareSightTradeTest {
 
   @Test
   void is_SplitTransformerFoundForRow() {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
     row.add(ShareSightTradeAdapter.market, "ASX");
     row.add(ShareSightTradeAdapter.code, "SLB");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -101,8 +101,8 @@ class ShareSightTradeTest {
   @Test
   void is_RowWithoutFxConverted() {
 
-    List<Object> row = getRow("buy", "0.0", "2097.85");
-    List<List<Object>> values = new ArrayList<>();
+    List<String> row = getRow("buy", "0.0", "2097.85");
+    List<List<String>> values = new ArrayList<>();
     values.add(row);
 
     // Portfolio is in NZD
@@ -130,9 +130,9 @@ class ShareSightTradeTest {
   @Test
   void is_RowWithNoCommentTransformed() {
 
-    List<Object> row = getRow("buy", "0.8988", "2097.85");
+    List<String> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTradeAdapter.comments);
-    List<List<Object>> values = new ArrayList<>();
+    List<List<String>> values = new ArrayList<>();
     values.add(row);
 
     TrnInput trn =
@@ -152,8 +152,8 @@ class ShareSightTradeTest {
   @Test
   void is_RowFilterWorking() {
 
-    List<Object> inFilter = getRow("buy", "0.8988", "2097.85");
-    List<Object> notInFilter = getRow(
+    List<String> inFilter = getRow("buy", "0.8988", "2097.85");
+    List<String> notInFilter = getRow(
         "ABC",
         "MOCK",
         "buy",
@@ -161,7 +161,7 @@ class ShareSightTradeTest {
         "2097.85"
     );
     inFilter.remove(ShareSightTradeAdapter.comments);
-    List<List<Object>> values = new ArrayList<>();
+    List<List<String>> values = new ArrayList<>();
     values.add(inFilter);
     values.add(notInFilter);
     shareSightService.setFilter(new Filter("AMP"));
@@ -186,8 +186,8 @@ class ShareSightTradeTest {
   @Test
   void is_SplitTransactionTransformed() {
 
-    List<Object> row = getRow("split", null, null);
-    List<List<Object>> values = new ArrayList<>();
+    List<String> row = getRow("split", null, null);
+    List<List<String>> values = new ArrayList<>();
     values.add(row);
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     TrnInput trn = shareSightRowProcessor
@@ -207,8 +207,8 @@ class ShareSightTradeTest {
 
   @Test
   void is_IllegalNumberFound() {
-    List<Object> row = getRow("buy", "0.8988e", "2097.85");
-    List<List<Object>> values = new ArrayList<>();
+    List<String> row = getRow("buy", "0.8988e", "2097.85");
+    List<List<String>> values = new ArrayList<>();
     values.add(row);
     assertThrows(BusinessException.class, () ->
         shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
@@ -217,9 +217,9 @@ class ShareSightTradeTest {
 
   @Test
   void is_IllegalDateFound() {
-    List<Object> row = getRow("buy", "0.8988", "2097.85");
+    List<String> row = getRow("buy", "0.8988", "2097.85");
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");
-    List<List<Object>> values = new ArrayList<>();
+    List<List<String>> values = new ArrayList<>();
     values.add(row);
 
     assertThrows(BusinessException.class, () ->

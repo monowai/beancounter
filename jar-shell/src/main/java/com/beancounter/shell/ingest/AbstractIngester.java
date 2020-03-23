@@ -60,7 +60,7 @@ public abstract class AbstractIngester implements Ingester {
           ingestionRequest.getPortfolioCode()));
     }
     prepare(ingestionRequest);
-    List<List<Object>> values = getValues();
+    List<List<String>> values = getValues();
 
     Collection<TrnInput> trnInputs = rowAdapter.transform(
         portfolio,
@@ -90,8 +90,7 @@ public abstract class AbstractIngester implements Ingester {
 
   }
 
-  protected abstract void prepare(IngestionRequest ingestionRequest);
+  public abstract void prepare(IngestionRequest ingestionRequest);
 
-  protected abstract List<List<Object>> getValues();
-
+  public abstract List<List<String>> getValues();
 }

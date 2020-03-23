@@ -27,12 +27,12 @@ public class ShareSightRowAdapter implements RowAdapter {
 
   @Override
   public Collection<TrnInput> transform(Portfolio portfolio,
-                                        List<List<Object>> values,
+                                        List<List<String>> values,
                                         String provider) {
 
     Collection<TrnInput> results = new ArrayList<>();
 
-    for (List<Object> row : values) {
+    for (List<String> row : values) {
       TrnAdapter trnAdapter = shareSightFactory.adapter(row);
 
       try {

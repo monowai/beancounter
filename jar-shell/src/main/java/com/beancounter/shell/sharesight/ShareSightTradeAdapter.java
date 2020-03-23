@@ -46,17 +46,17 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(List<Object> row, Portfolio portfolio)
+  public TrnInput from(List<String> row, Portfolio portfolio)
       throws ParseException {
     try {
-      TrnType trnType = shareSightService.resolveType(row.get(type).toString());
+      TrnType trnType = shareSightService.resolveType(row.get(type));
       if (trnType == null) {
         throw new BusinessException(String.format("Unsupported type %s",
             row.get(type)));
       }
-      String assetName = row.get(name).toString();
-      String assetCode = row.get(code).toString();
-      String marketCode = row.get(market).toString();
+      String assetName = row.get(name);
+      String assetCode = row.get(code);
+      String marketCode = row.get(market);
 
       Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
       if (!shareSightService.inFilter(asset)) {
@@ -85,7 +85,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
           .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
           .tradeDate(shareSightService.parseDate(row.get(date)))
           .cashCurrency(portfolio.getCurrency().getCode())
-          .tradeCurrency(row.get(currency).toString())
+          .tradeCurrency(row.get(currency))
           // Zero and null are treated as "unknown"
           .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
               ? null : tradeRate)
@@ -111,9 +111,9 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   }
 
   @Override
-  public boolean isValid(List<Object> row) {
+  public boolean isValid(List<String> row) {
     if (row.size() > 6) {
-      return !row.get(0).toString().equalsIgnoreCase("market");
+      return !row.get(0).equalsIgnoreCase("market");
     }
     return false;
   }

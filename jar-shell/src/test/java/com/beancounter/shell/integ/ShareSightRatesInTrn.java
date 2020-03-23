@@ -53,7 +53,7 @@ public class ShareSightRatesInTrn {
 
   @Test
   void is_DividendRowWithFxConverted() throws Exception {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
 
     // Portfolio is in NZD
     Portfolio portfolio = Portfolio.builder()
@@ -98,8 +98,8 @@ public class ShareSightRatesInTrn {
   @Test
   void is_TradeRowWithFxConverted() throws Exception {
 
-    List<Object> row = getRow("buy", "0.8988", "2097.85");
-    List<List<Object>> values = new ArrayList<>();
+    List<String> row = getRow("buy", "0.8988", "2097.85");
+    List<List<String>> values = new ArrayList<>();
     values.add(row);
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));

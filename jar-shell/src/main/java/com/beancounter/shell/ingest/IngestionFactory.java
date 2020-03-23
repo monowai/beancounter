@@ -26,7 +26,7 @@ public class IngestionFactory {
 
 
   public Ingester getIngester(IngestionRequest ingestionRequest) {
-    return ingesterMap.get(ingestionRequest.getType());
+    return ingesterMap.get(ingestionRequest.getType().toUpperCase());
   }
 
   public void add(String key, Ingester ingester) {

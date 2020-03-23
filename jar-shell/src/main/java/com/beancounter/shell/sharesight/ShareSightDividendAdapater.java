@@ -44,25 +44,25 @@ public class ShareSightDividendAdapater implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(List<Object> row, Portfolio portfolio)
+  public TrnInput from(List<String> row, Portfolio portfolio)
       throws ParseException {
 
-    Asset asset = shareSightService.resolveAsset(row.get(code).toString());
+    Asset asset = shareSightService.resolveAsset(row.get(code));
     if (!shareSightService.inFilter(asset)) {
       return null;
     }
 
-    BigDecimal tradeRate = new BigDecimal(row.get(fxRate).toString());
+    BigDecimal tradeRate = new BigDecimal(row.get(fxRate));
 
     return TrnInput.builder()
         .asset(asset.getId())
-        .tradeCurrency(row.get(currency).toString())
+        .tradeCurrency(row.get(currency))
         .trnType(TrnType.DIVI)
-        .tax(MathUtils.multiply(new BigDecimal(row.get(tax).toString()), tradeRate))
+        .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
         .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
         .cashAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
         .tradeDate(shareSightService.parseDate(row.get(date)))
-        .comments(row.get(comments).toString())
+        .comments(row.get(comments))
         .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
             ? null : tradeRate)
         .build()
@@ -71,13 +71,13 @@ public class ShareSightDividendAdapater implements TrnAdapter {
   }
 
   @Override
-  public boolean isValid(List<Object> row) {
+  public boolean isValid(List<String> row) {
     if (row.size() == 9) {
-      if (row.get(0).toString().contains(".")) {
+      if (row.get(0).contains(".")) {
         return true;
       }
-      return !row.get(0).toString().equalsIgnoreCase("code")
-          && !row.get(0).toString().equalsIgnoreCase("total");
+      return !row.get(0).equalsIgnoreCase("code")
+          && !row.get(0).equalsIgnoreCase("total");
     }
     return false;
   }

@@ -34,8 +34,6 @@ import org.springframework.stereotype.Service;
 @Data
 public class ShareSightService {
 
-  @Value("${out.file:#{null}}")
-  private String outFile;
   @Value("${ratesIgnored:false}")
   private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
   private Filter filter;
@@ -112,10 +110,6 @@ public class ShareSightService {
   }
 
   public boolean inFilter(Asset asset) {
-    if (filter == null) {
-      return true;
-    }
-
-    return filter.inFilter(asset);
+    return filter == null || filter.inFilter(asset);
   }
 }

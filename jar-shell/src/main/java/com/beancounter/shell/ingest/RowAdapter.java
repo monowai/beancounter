@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface RowAdapter {
   Collection<TrnInput> transform(Portfolio portfolio,
-                                 List<List<Object>> values,
+                                 List<List<String>> values,
                                  String provider);
 
 }

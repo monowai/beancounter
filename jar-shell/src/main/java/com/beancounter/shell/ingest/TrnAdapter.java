@@ -13,8 +13,8 @@ import java.util.List;
  */
 public interface TrnAdapter {
 
-  TrnInput from(List<Object> row, Portfolio portfolio) throws ParseException;
+  TrnInput from(List<String> row, Portfolio portfolio) throws ParseException;
 
-  boolean isValid(List<Object> row);
+  boolean isValid(List<String> row);
 
 }

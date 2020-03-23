@@ -19,7 +19,7 @@ public class UtilCommands {
 
   @ShellMethod("Current working directory")
   public String pwd() {
-    return FileSystems.getDefault().getPath(".").toAbsolutePath().toString();
+    return FileSystems.getDefault().getPath("").toAbsolutePath().toString();
   }
 
   @ShellMethod("Secrets")

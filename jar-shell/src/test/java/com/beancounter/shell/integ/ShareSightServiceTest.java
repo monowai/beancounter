@@ -86,7 +86,7 @@ class ShareSightServiceTest {
 
   @Test
   void is_ValidTradeRow() {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
     row.add(ShareSightTradeAdapter.market, "market"); // Header Row
     row.add(ShareSightTradeAdapter.code, "code");
     row.add(ShareSightTradeAdapter.name, "name");
@@ -103,7 +103,7 @@ class ShareSightServiceTest {
 
   @Test
   void is_ValidDividendRow() {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
     row.add(ShareSightDividendAdapater.code, "code"); // Header Row
     row.add(ShareSightDividendAdapater.name, "code");
     row.add(ShareSightDividendAdapater.date, "name");
@@ -128,7 +128,7 @@ class ShareSightServiceTest {
 
   @Test
   void is_AssetsSetIntoTransaction() {
-    List<Object> row = new ArrayList<>();
+    List<String> row = new ArrayList<>();
     row.add(ShareSightTradeAdapter.market, "ASX");
     row.add(ShareSightTradeAdapter.code, "BHP");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -141,7 +141,7 @@ class ShareSightServiceTest {
     row.add(ShareSightTradeAdapter.fxRate, "99.99");
     row.add(ShareSightTradeAdapter.value, "2097.85");
 
-    List<List<Object>> rows = new ArrayList<>();
+    List<List<String>> rows = new ArrayList<>();
     rows.add(row);
 
     row = new ArrayList<>();

@@ -1,4 +1,4 @@
-package com.beancounter.shell.integ;
+package com.beancounter.shell;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,8 +46,8 @@ public class TestIngestCommand {
   @Test
   void is_IngestionCommandRunning() {
     ingestionFactory.add("MOCK", mockIngester);
-
-    assertThat(ingestionCommand.ingest("MOCK", "ABC", "ABC", null))
+    // Make sure we are not case sensitive when finding the ingester to use.
+    assertThat(ingestionCommand.ingest("mock", "ABC", "ABC", null))
         .isEqualTo("Done");
   }
 
@@ -55,12 +55,12 @@ public class TestIngestCommand {
   static class MockIngester extends AbstractIngester {
 
     @Override
-    protected void prepare(IngestionRequest ingestionRequest) {
+    public void prepare(IngestionRequest ingestionRequest) {
 
     }
 
     @Override
-    protected List<List<Object>> getValues() {
+    public List<List<String>> getValues() {
       return new ArrayList<>();
     }
   }

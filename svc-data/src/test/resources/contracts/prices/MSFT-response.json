@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "asset": {
+        "id": "MSFT",
+        "code": "MSFT",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "date": "2019-11-12",
+      "open": 124.91,
+      "close": 127.93,
+      "low": 127.93,
+      "high": 127.93,
+      "volume": 30915100
+    }
+  ]
+}

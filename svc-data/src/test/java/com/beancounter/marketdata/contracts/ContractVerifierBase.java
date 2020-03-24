@@ -12,6 +12,7 @@ import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.RegistrationResponse;
+import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
@@ -182,16 +183,28 @@ public class ContractVerifierBase {
   }
 
   @BeforeEach
-  public void mockTrnResponse() throws Exception {
-    mockTrnResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
-    mockTrnResponse(getEmptyPortfolio(), contractPath + "/trn/EMPTY-response.json");
+  public void mockTrnGetResponse() throws Exception {
+    mockTrnPostResponse(getTestPortfolio(), contractPath + "/trn/CSV-write.json",
+        contractPath + "/trn/CSV-response.json");
+    mockTrnGetResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
+    mockTrnGetResponse(getEmptyPortfolio(), contractPath + "/trn/EMPTY-response.json");
   }
 
   @SneakyThrows
-  void mockTrnResponse(Portfolio portfolio, String trnFile) {
+  void mockTrnGetResponse(Portfolio portfolio, String trnFile) {
     File jsonFile = new ClassPathResource(trnFile).getFile();
     TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
     Mockito.when(trnService.find(portfolio))
+        .thenReturn(trnResponse);
+  }
+
+  @SneakyThrows
+  void mockTrnPostResponse(Portfolio portfolio, String requestFile, String responseFile) {
+    File jsonFile = new ClassPathResource(requestFile).getFile();
+    TrnRequest trnRequest = new ObjectMapper().readValue(jsonFile, TrnRequest.class);
+    jsonFile = new ClassPathResource(responseFile).getFile();
+    TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
+    Mockito.when(trnService.save(portfolio, trnRequest))
         .thenReturn(trnResponse);
   }
 

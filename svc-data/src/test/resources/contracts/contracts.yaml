@@ -120,6 +120,21 @@ response:
   headers:
     Content-Type: application/json
 ---
+name: csvWrite
+priority: 1
+request:
+  method: POST
+  headers:
+    Content-Type: application/json
+  bodyFromFile: "trn/CSV-write.json"
+  url: /trns
+response:
+  status: 200
+  #  The response is shared. Input is MSFT, output is AAPL ;-)
+  bodyFromFile: "trn/CSV-response.json"
+  headers:
+    Content-Type: application/json
+---
 name: addPortfolios
 priority: 1
 request:
@@ -239,6 +254,21 @@ response:
   bodyFromFile: "fx/20190727Response.json"
   headers:
     Content-Type: application/json
+---
+name: usdnzd
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "fx/20190726-USDNZD-Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "fx/20190726-USDNZD-Response.json"
+  headers:
+    Content-Type: application/json
+
 ---
 name: usdEur-usdGbp-usdNzd
 priority: 1

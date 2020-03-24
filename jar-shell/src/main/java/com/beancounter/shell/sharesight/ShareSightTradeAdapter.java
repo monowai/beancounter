@@ -46,8 +46,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(List<String> row, Portfolio portfolio)
-      throws ParseException {
+  public TrnInput from(List<String> row, Portfolio portfolio) {
 
     String ttype = row.get(type);
     if (ttype == null || ttype.equalsIgnoreCase("")) {
@@ -69,44 +68,46 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     BigDecimal tradeRate = null;
     BigDecimal fees = null;
     BigDecimal tradeAmount = BigDecimal.ZERO;
-    if (trnType != TrnType.SPLIT) {
-      Object rate = row.get(fxRate);
-      tradeRate = getBigDecimal(rate);
-      Object fee = row.get(brokerage);
-      fees = getBigDecimal(fee);
-      tradeAmount = shareSightService.parseDouble(row.get(value));
+
+    try {
+      if (trnType != TrnType.SPLIT) {
+        tradeRate = shareSightService.parseDouble(row.get(fxRate));
+        fees = shareSightService.parseDouble(row.get(brokerage));
+        tradeAmount = shareSightService.parseDouble(row.get(value));
+      }
+
+      return TrnInput.builder()
+          .asset(asset.getId())
+          .trnType(trnType)
+          .quantity(shareSightService.parseDouble(row.get(quantity)))
+          .price(shareSightService.parseDouble(row.get(price)))
+          .fees(shareSightService.safeDivide(
+              fees, tradeRate))
+          .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
+          .tradeDate(shareSightService.parseDate(row.get(date)))
+          .cashCurrency(portfolio.getCurrency().getCode())
+          .tradeCurrency(row.get(currency))
+          // Zero and null are treated as "unknown"
+          .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
+              ? null : tradeRate)
+          .comments(comment)
+          .build();
+    } catch (ParseException e) {
+      String message = e.getMessage();
+      if (e.getCause() != null) {
+        message = e.getCause().getMessage();
+      }
+      log.error("{} - {} Parsing row {}",
+          message,
+          "TRADE",
+          row);
+      throw new BusinessException(message);
     }
-
-    return TrnInput.builder()
-        .asset(asset.getId())
-        .trnType(trnType)
-        .quantity(shareSightService.parseDouble(row.get(quantity)))
-        .price(shareSightService.parseDouble(row.get(price)))
-        .fees(shareSightService.safeDivide(
-            fees, tradeRate))
-        .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
-        .tradeDate(shareSightService.parseDate(row.get(date)))
-        .cashCurrency(portfolio.getCurrency().getCode())
-        .tradeCurrency(row.get(currency))
-        // Zero and null are treated as "unknown"
-        .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
-            ? null : tradeRate)
-        .comments(comment)
-        .build()
-        ;
-
 
   }
 
   private String nullSafe(Object o) {
     return o == null ? null : o.toString();
-  }
-
-  private BigDecimal getBigDecimal(Object rate) {
-    if (rate != null) {
-      return new BigDecimal(rate.toString());
-    }
-    return null;
   }
 
   @Override

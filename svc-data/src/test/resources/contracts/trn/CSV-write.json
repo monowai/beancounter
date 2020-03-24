@@ -1,0 +1,50 @@
+{
+  "data" : [ {
+    "id" : {
+      "provider" : "SHEETS",
+      "batch" : null,
+      "id" : null
+    },
+    "trnType" : "BUY",
+    "asset" : "BguoVZpoRxWjWrITp7DEuw",
+    "cashAsset" : null,
+    "tradeCurrency" : "USD",
+    "cashCurrency" : "NZD",
+    "tradeDate" : "2019-07-26",
+    "settleDate" : null,
+    "quantity" : 80,
+    "price" : 25.83,
+    "fees" : 4.42,
+    "tax" : 0,
+    "tradeAmount" : 2,
+    "cashAmount" : null,
+    "tradeCashRate" : 0.66428103,
+    "tradeBaseRate" : 1,
+    "tradePortfolioRate" : 0.66428103,
+    "comments" : "646.08"
+  }, {
+    "id" : {
+      "provider" : "SHEETS",
+      "batch" : null,
+      "id" : null
+    },
+    "trnType" : "DIVI",
+    "asset" : "BguoVZpoRxWjWrITp7DEuw",
+    "cashAsset" : null,
+    "tradeCurrency" : "USD",
+    "cashCurrency" : null,
+    "tradeDate" : "2019-07-26",
+    "settleDate" : null,
+    "quantity" : null,
+    "price" : null,
+    "fees" : 0,
+    "tax" : 0.00,
+    "tradeAmount" : 15.85,
+    "cashAmount" : 15.85,
+    "tradeCashRate" : 1,
+    "tradeBaseRate" : 1,
+    "tradePortfolioRate" : 0.66428103,
+    "comments" : "Dividend"
+  } ],
+  "portfolioId" : "TEST"
+}

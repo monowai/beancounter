@@ -1,5 +1,6 @@
 package com.beancounter.shell.sharesight;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
@@ -44,29 +45,41 @@ public class ShareSightDividendAdapater implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(List<String> row, Portfolio portfolio)
-      throws ParseException {
+  public TrnInput from(List<String> row, Portfolio portfolio) {
 
     Asset asset = shareSightService.resolveAsset(row.get(code));
     if (!shareSightService.inFilter(asset)) {
       return null;
     }
 
-    BigDecimal tradeRate = new BigDecimal(row.get(fxRate));
+    try {
+      BigDecimal tradeRate = shareSightService.parseDouble(row.get(fxRate));
+      return TrnInput.builder()
+          .asset(asset.getId())
+          .tradeCurrency(row.get(currency))
+          .trnType(TrnType.DIVI)
+          .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
+          .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
+          .cashAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
+          .tradeDate(shareSightService.parseDate(row.get(date)))
+          .comments(row.get(comments))
+          .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
+              ? null : tradeRate)
+          .build()
+          ;
+    } catch (NumberFormatException | ParseException e) {
+      String message = e.getMessage();
+      if (e.getCause() != null) {
+        message = e.getCause().getMessage();
+      }
+      log.error("{} - {} Parsing row {}",
+          message,
+          "DIVI",
+          row);
+      throw new BusinessException(message);
 
-    return TrnInput.builder()
-        .asset(asset.getId())
-        .tradeCurrency(row.get(currency))
-        .trnType(TrnType.DIVI)
-        .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
-        .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
-        .cashAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
-        .tradeDate(shareSightService.parseDate(row.get(date)))
-        .comments(row.get(comments))
-        .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
-            ? null : tradeRate)
-        .build()
-        ;
+
+    }
 
   }
 

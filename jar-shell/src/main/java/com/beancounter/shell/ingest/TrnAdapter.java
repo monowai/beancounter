@@ -2,7 +2,6 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
-import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -13,7 +12,7 @@ import java.util.List;
  */
 public interface TrnAdapter {
 
-  TrnInput from(List<String> row, Portfolio portfolio) throws ParseException;
+  TrnInput from(List<String> row, Portfolio portfolio);
 
   boolean isValid(List<String> row);
 

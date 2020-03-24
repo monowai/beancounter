@@ -39,6 +39,7 @@ public class ShareSightService {
   private AssetService assetService;
   private DateUtils dateUtils = new DateUtils();
   private StaticService staticService;
+  private NumberFormat numberFormatter = NumberFormat.getInstance(Locale.US);
 
   // retrieve rates from market data service
   @Autowired
@@ -61,7 +62,19 @@ public class ShareSightService {
   }
 
   public BigDecimal parseDouble(Object o) throws ParseException {
-    return new BigDecimal(NumberFormat.getInstance(Locale.US).parse(o.toString()).toString());
+    try {
+      if (o == null) {
+        return null;
+      }
+      if (o.toString().isBlank()) {
+        return BigDecimal.ZERO;
+      }
+
+      return new BigDecimal(numberFormatter.parse(o.toString()).toString());
+    } catch (ParseException e) {
+      log.error("Unable to parse {}", o);
+      throw e;
+    }
   }
 
   /**

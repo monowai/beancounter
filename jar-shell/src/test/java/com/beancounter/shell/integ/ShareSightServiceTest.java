@@ -41,7 +41,7 @@ class ShareSightServiceTest {
   private ShareSightRowAdapter shareSightRowProcessor;
 
   @Test
-  void is_NullDateSupported () {
+  void is_NullDateSupported() {
     assertThat(shareSightService.parseDate(null)).isNull();
   }
 

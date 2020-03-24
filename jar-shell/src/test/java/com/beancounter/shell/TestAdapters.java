@@ -13,12 +13,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 public class TestAdapters {
   @MockBean
-  private ShareSightService shareSightService ;
+  private ShareSightService shareSightService;
 
   @Test
   void is_NullTrnTypeCorrect() {
-
-    ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
 
     List<String> nullTrnType = new ArrayList<>();
     nullTrnType.add("");
@@ -26,7 +24,8 @@ public class TestAdapters {
     nullTrnType.add(null);
     nullTrnType.add("");
 
-    assertThrows( BusinessException.class, ()
+    ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
+    assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(nullTrnType, PortfolioUtils.getPortfolio("TEST")));
 
   }
@@ -34,15 +33,14 @@ public class TestAdapters {
   @Test
   void is_BlankTrnTypeCorrect() {
 
-    ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
-
     List<String> nullTrnType = new ArrayList<>();
     nullTrnType.add("");
     nullTrnType.add("");
     nullTrnType.add("");
     nullTrnType.add("");
 
-    assertThrows( BusinessException.class, ()
+    ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
+    assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(nullTrnType, PortfolioUtils.getPortfolio("TEST")));
 
   }

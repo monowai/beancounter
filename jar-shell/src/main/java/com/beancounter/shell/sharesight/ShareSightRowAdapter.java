@@ -1,12 +1,10 @@
 package com.beancounter.shell.sharesight;
 
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.ingest.RowAdapter;
 import com.beancounter.shell.ingest.TrnAdapter;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,21 +33,15 @@ public class ShareSightRowAdapter implements RowAdapter {
     for (List<String> row : values) {
       TrnAdapter trnAdapter = shareSightFactory.adapter(row);
 
-      try {
-        if (trnAdapter.isValid(row)) {
-          TrnInput trn = trnAdapter.from(row, portfolio);
-          if (trn != null) {
-            trn.setId(TrnId.builder()
-                .provider(provider)
-                .build());
-            results.add(trn);
-          }
+      if (trnAdapter.isValid(row)) {
+        TrnInput trn = trnAdapter.from(row, portfolio);
+        if (trn != null) {
+          trn.setId(TrnId.builder()
+              .provider(provider)
+              .build());
+          results.add(trn);
         }
-      } catch (ParseException | NumberFormatException e) {
-        log.error("{} Parsing row {}", trnAdapter.getClass().getSimpleName(),  row);
-        throw new BusinessException(e.getMessage());
       }
-
     }
     return results;
   }

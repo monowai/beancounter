@@ -1,0 +1,132 @@
+{
+  "data": [
+    {
+      "id": {
+        "provider": "SHEETS",
+        "batch": "2020-03-24",
+        "id": "cn9NIrvHStWEbFB14c9zUw"
+      },
+      "trnType": "BUY",
+      "portfolio": {
+        "id": "TEST",
+        "code": "TEST",
+        "name": "SGD Balanced",
+        "currency": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "fc542db9-0bf5-4b37-a5e8-d2f2c1372f23",
+          "email": "mike@nowhere.com",
+          "active": true,
+          "since": "2020-03-24"
+        }
+      },
+      "asset": {
+        "id": "BguoVZpoRxWjWrITp7DEuw",
+        "code": "MSFT",
+        "category": "Equity",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "cashAsset": null,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashCurrency": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "tradeDate": "2019-07-26",
+      "settleDate": null,
+      "quantity": 80,
+      "price": 25.83,
+      "fees": 4.42,
+      "tax": 0,
+      "tradeAmount": 2,
+      "cashAmount": null,
+      "tradeCashRate": 0.66428103,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 0.66428103,
+      "comments": "646.08"
+    },
+    {
+      "id": {
+        "provider": "SHEETS",
+        "batch": "2020-03-24",
+        "id": "bDd4TTiETSOUy5sgJG79bg"
+      },
+      "trnType": "DIVI",
+      "portfolio": {
+        "id": "TEST",
+        "code": "TEST",
+        "name": "SGD Balanced",
+        "currency": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "fc542db9-0bf5-4b37-a5e8-d2f2c1372f23",
+          "email": "mike@nowhere.com",
+          "active": true,
+          "since": "2020-03-24"
+        }
+      },
+      "asset": {
+        "id": "BguoVZpoRxWjWrITp7DEuw",
+        "code": "MSFT",
+        "category": "Equity",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "cashAsset": null,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashCurrency": null,
+      "tradeDate": "2019-07-26",
+      "settleDate": null,
+      "quantity": null,
+      "price": null,
+      "fees": 0,
+      "tax": 0.00,
+      "tradeAmount": 15.85,
+      "cashAmount": 15.85,
+      "tradeCashRate": 1,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 0.66428103,
+      "comments": "Dividend"
+    }
+  ]
+}

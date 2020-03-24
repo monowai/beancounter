@@ -206,16 +206,6 @@ class ShareSightTradeTest {
   }
 
   @Test
-  void is_IllegalNumberFound() {
-    List<String> row = getRow("buy", "0.8988e", "2097.85");
-    List<List<String>> values = new ArrayList<>();
-    values.add(row);
-    assertThrows(BusinessException.class, () ->
-        shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
-            values, "twee"));
-  }
-
-  @Test
   void is_IllegalDateFound() {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");

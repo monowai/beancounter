@@ -94,7 +94,7 @@ class TestTrn {
   }
 
   @Test
-  void is_TrnIdDefaulting () {
+  void is_TrnIdDefaulting() {
     TrnId fromNull = TrnId.from(null);
     assertThat(fromNull).hasNoNullFieldsOrProperties();
 

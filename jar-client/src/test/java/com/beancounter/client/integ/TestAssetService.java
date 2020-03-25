@@ -3,9 +3,9 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.AssetService;
-import com.beancounter.client.ClientConfig;
-import com.beancounter.client.StaticService;
+import com.beancounter.client.services.AssetService;
+import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.beancounter.position.service;
 
-import com.beancounter.client.PortfolioService;
+import com.beancounter.client.services.PortfolioService;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Portfolio;

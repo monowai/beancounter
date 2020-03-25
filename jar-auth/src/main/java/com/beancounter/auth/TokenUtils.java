@@ -1,5 +1,6 @@
 package com.beancounter.auth;
 
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.model.SystemUser;
 import java.util.ArrayList;
 import java.util.Collection;

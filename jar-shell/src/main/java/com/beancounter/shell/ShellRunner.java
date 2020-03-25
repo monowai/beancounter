@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication(scanBasePackages = {
     "com.beancounter.shell",
     "com.beancounter.common",
+    "com.beancounter.auth.client",
     "com.beancounter.client"})
 @EnableConfigurationProperties
 public class ShellRunner {

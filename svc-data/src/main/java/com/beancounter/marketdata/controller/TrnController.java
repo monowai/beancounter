@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.controller;
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;

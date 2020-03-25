@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.registration;
 
-import com.beancounter.auth.TokenService;
+import com.beancounter.auth.client.TokenService;
 import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.model.SystemUser;
 import lombok.extern.slf4j.Slf4j;

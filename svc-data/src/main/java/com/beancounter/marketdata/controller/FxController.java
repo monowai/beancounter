@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.controller;
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.marketdata.service.FxService;

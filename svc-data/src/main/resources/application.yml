@@ -55,6 +55,13 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.beancounter.common.input
+      group-id: bcIngestion
 
 beancounter:
   baseCode: "USD"

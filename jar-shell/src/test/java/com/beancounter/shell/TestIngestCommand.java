@@ -3,7 +3,7 @@ package com.beancounter.shell;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.client.PortfolioService;
+import com.beancounter.client.services.PortfolioService;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.cli.IngestionCommand;
 import com.beancounter.shell.config.IngestionConfig;
@@ -44,14 +44,15 @@ public class TestIngestCommand {
     Mockito.when(portfolioService.getPortfolioByCode("ABC"))
         .thenReturn(PortfolioUtils.getPortfolio("ABC"));
     mockIngester.setPortfolioService(portfolioService);
-    mockIngester.setTrnWriter(trnWriter);
+    Mockito.when(trnWriter.id()).thenReturn("mock");
+    mockIngester.setTrnWriters(trnWriter);
   }
 
   @Test
   void is_IngestionCommandRunning() {
     ingestionFactory.add("MOCK", mockIngester);
     // Make sure we are not case sensitive when finding the ingestion approach to use.
-    assertThat(ingestionCommand.ingest("mock", "ABC", "ABC", null))
+    assertThat(ingestionCommand.ingest("mock", trnWriter.id(), "ABC", "ABC", null))
         .isEqualTo("Done");
   }
 

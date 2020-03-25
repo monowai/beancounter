@@ -2,8 +2,8 @@ package com.beancounter.client.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.client.ClientConfig;
-import com.beancounter.client.FxRateService;
+import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.services.FxRateService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;

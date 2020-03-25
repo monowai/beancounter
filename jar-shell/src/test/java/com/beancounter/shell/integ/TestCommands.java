@@ -3,15 +3,15 @@ package com.beancounter.shell.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.auth.client.AuthClientConfig;
+import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.cli.DataCommands;
 import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.cli.UtilCommands;
-import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.ShellConfig;
-import com.beancounter.shell.sharesight.ShareSightConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
@@ -33,7 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {
     ShellConfig.class,
-    AuthConfig.class,
+    AuthClientConfig.class,
     ShareSightConfig.class})
 public class TestCommands {
   @Autowired

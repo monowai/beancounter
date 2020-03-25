@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.markets;
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;

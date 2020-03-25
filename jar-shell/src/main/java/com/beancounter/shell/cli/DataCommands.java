@@ -1,6 +1,6 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.client.StaticService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;

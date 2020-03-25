@@ -13,8 +13,9 @@ import lombok.NoArgsConstructor;
 public class IngestionRequest {
 
   @Builder.Default
-  private String type = "CSV";
+  private String reader = "CSV";
   private String file;
+  private String writer;
   private String filter;
   private String provider;
   @Builder.Default

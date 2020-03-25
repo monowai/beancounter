@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.portfolio;
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;

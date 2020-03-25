@@ -3,8 +3,8 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.ClientConfig;
-import com.beancounter.client.PortfolioService;
+import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.services.PortfolioService;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;

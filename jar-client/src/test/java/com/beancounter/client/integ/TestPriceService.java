@@ -2,8 +2,8 @@ package com.beancounter.client.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.client.ClientConfig;
-import com.beancounter.client.PriceService;
+import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.services.PriceService;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.MarketData;

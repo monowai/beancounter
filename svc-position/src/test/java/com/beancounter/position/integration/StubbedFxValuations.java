@@ -8,10 +8,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.beancounter.auth.AuthorityRoleConverter;
 import com.beancounter.auth.TokenUtils;
-import com.beancounter.client.PortfolioService;
-import com.beancounter.client.StaticService;
+import com.beancounter.auth.server.AuthorityRoleConverter;
+import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;

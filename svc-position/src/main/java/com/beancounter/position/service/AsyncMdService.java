@@ -1,7 +1,7 @@
 package com.beancounter.position.service;
 
-import com.beancounter.client.FxRateService;
-import com.beancounter.client.PriceService;
+import com.beancounter.client.services.FxRateService;
+import com.beancounter.client.services.PriceService;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PriceRequest;

@@ -2,11 +2,12 @@ package com.beancounter.shell.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.auth.TokenService;
 import com.beancounter.auth.TokenUtils;
-import com.beancounter.client.PortfolioService.PortfolioGw;
-import com.beancounter.client.RegistrationService;
-import com.beancounter.client.StaticService;
+import com.beancounter.auth.client.AuthClientConfig;
+import com.beancounter.auth.client.TokenService;
+import com.beancounter.client.services.PortfolioService.PortfolioGw;
+import com.beancounter.client.services.RegistrationService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
@@ -14,7 +15,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.cli.PortfolioCommands;
-import com.beancounter.shell.config.AuthConfig;
 import com.beancounter.shell.config.ShellConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
@@ -33,7 +33,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = {
-    ShellConfig.class, AuthConfig.class
+    ShellConfig.class, AuthClientConfig.class
 })
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,

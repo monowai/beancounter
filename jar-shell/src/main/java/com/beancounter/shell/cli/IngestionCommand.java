@@ -24,17 +24,23 @@ public class IngestionCommand {
 
   @ShellMethod("Ingest a google sheet")
   public String ingest(
-      @ShellOption(help = "CSV, GSHEET", defaultValue = "GSHEET") String type,
-      @ShellOption(help = "ID of the item to import - file name, sheetId") String file,
-      @ShellOption(help = "Portfolio code to write to") String portfolio,
+      @ShellOption(help = "CSV, GSHEET", defaultValue = "CSV")
+          String reader,
+      @ShellOption(help = "HTTP, KAFKA", defaultValue = "HTTP")
+          String writer,
+      @ShellOption(help = "ID of the item to import - file name, sheetId")
+          String file,
+      @ShellOption(help = "Portfolio code to write to")
+          String portfolio,
       @ShellOption(help = "Comma separated asset codes to include", defaultValue = "__NULL__")
           String filter
 
   ) {
     IngestionRequest ingestionRequest = IngestionRequest.builder()
-        .filter(filter)
+        .reader(reader)
+        .writer(writer)
         .file(file)
-        .type(type)
+        .filter(filter)
         .portfolioCode(portfolio)
         .build();
 

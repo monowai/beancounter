@@ -13,6 +13,7 @@ dependencies {
     implementation(
             project(":jar-common"),
             project(":jar-auth"),
+            "com.google.guava:guava:28.2-jre",
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
@@ -21,10 +22,24 @@ dependencies {
             "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion",
             "org.springframework.cloud:spring-cloud-starter-openfeign"
     )
-    compileOnly "org.projectlombok:lombok:$lombokVersion"
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    compileOnly(
+            "org.projectlombok:lombok:$lombokVersion"
+    )
+
+    annotationProcessor(
+            "org.projectlombok:lombok:$lombokVersion",
+    )
+
+    testAnnotationProcessor(
+            "org.projectlombok:lombok:$lombokVersion"
+    )
+
+//    testImplementation("io.rest-assured:rest-assured") {
+//        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
+//    }
     testImplementation(
             "org.assertj:assertj-core:$assertJ",
+            "org.projectlombok:lombok:$lombokVersion",
             "org.springframework.boot:spring-boot-starter-test:$springBootVersion",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.cloud:spring-cloud-contract-wiremock",

@@ -4,19 +4,20 @@ import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.client.FxTransactions;
+import com.beancounter.client.ingest.TrnAdapter;
+import com.beancounter.client.services.FxTransactions;
+import com.beancounter.client.sharesight.ShareSightConfig;
+import com.beancounter.client.sharesight.ShareSightFactory;
+import com.beancounter.client.sharesight.ShareSightService;
+import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.shell.ingest.TrnAdapter;
-import com.beancounter.shell.sharesight.ShareSightConfig;
-import com.beancounter.shell.sharesight.ShareSightFactory;
-import com.beancounter.shell.sharesight.ShareSightService;
-import com.beancounter.shell.sharesight.ShareSightTradeAdapter;
+import com.beancounter.common.utils.AssetUtils;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -46,8 +47,10 @@ class StubbedTradesWithFx {
   @Autowired
   private ShareSightService shareSightService;
 
+  private Asset asset = AssetUtils.getAsset("BHP", "LSE");
+
   @Test
-  void is_FxRatesSetFromCurrencies() throws Exception {
+  void is_FxRatesSetFromCurrencies() {
 
     List<String> row = new ArrayList<>();
 
@@ -74,7 +77,7 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("TEST", getCurrency("NZD"));
 
-    TrnInput trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio, asset);
 
     trn = fxTransactions.applyRates(portfolio, trn);
 
@@ -83,7 +86,7 @@ class StubbedTradesWithFx {
   }
 
   @Test
-  void is_FxRateOverridenFromSourceData() throws Exception {
+  void is_FxRateOverridenFromSourceData() {
 
     List<String> row = new ArrayList<>();
     // NZD Portfolio
@@ -109,7 +112,7 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
-    TrnInput trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio, asset);
 
     trn = fxTransactions.applyRates(portfolio, trn);
 
@@ -118,7 +121,7 @@ class StubbedTradesWithFx {
   }
 
   @Test
-  void is_FxRatesSetToTransaction() throws Exception {
+  void is_FxRatesSetToTransaction() {
 
     List<String> row = new ArrayList<>();
 
@@ -141,7 +144,7 @@ class StubbedTradesWithFx {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     portfolio.setBase(getCurrency("GBP"));
 
-    TrnInput trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio, asset);
 
     trn = fxTransactions.applyRates(portfolio, trn);
 
@@ -159,7 +162,7 @@ class StubbedTradesWithFx {
   }
 
   @Test
-  void is_RateOfOneSetForUndefinedCurrencies() throws ParseException {
+  void is_RateOfOneSetForUndefinedCurrencies() {
 
     List<String> row = new ArrayList<>();
 
@@ -184,7 +187,7 @@ class StubbedTradesWithFx {
     Portfolio portfolio = getPortfolio("TEST", Currency.builder()
         .code("USD").build());
 
-    TrnInput trn = trades.from(row, portfolio);
+    TrnInput trn = trades.from(row, portfolio, asset);
     trn.setCashCurrency(null);
     trn = fxTransactions.applyRates(portfolio, trn);
 

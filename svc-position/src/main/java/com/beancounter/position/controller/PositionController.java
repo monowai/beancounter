@@ -1,8 +1,8 @@
 package com.beancounter.position.controller;
 
-import com.beancounter.auth.RoleHelper;
-import com.beancounter.client.PortfolioService;
-import com.beancounter.client.TrnService;
+import com.beancounter.auth.server.RoleHelper;
+import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.TrnService;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.contracts.TrnResponse;

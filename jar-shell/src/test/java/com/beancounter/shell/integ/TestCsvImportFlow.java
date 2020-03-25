@@ -27,7 +27,8 @@ public class TestCsvImportFlow {
 
   @Test
   void is_CsvCommandFlowWorking() {
-    String result = ingestionCommand.ingest("CSV", "/MSFT.csv", "TEST", null);
+    String result = ingestionCommand
+        .ingest("CSV", "http", "/MSFT.csv", "TEST", null);
     assertThat(result).isEqualToIgnoringCase("DONE");
   }
 }

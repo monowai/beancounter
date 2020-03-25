@@ -33,6 +33,7 @@ dependencies {
     implementation(
             project(":jar-common"),
             project(":jar-auth"),
+            project(":jar-client"),
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.boot:spring-boot-starter-logging",
@@ -44,7 +45,8 @@ dependencies {
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2",
             "org.postgresql:postgresql:42.2.11",
-            "org.projectlombok:lombok"
+            "org.projectlombok:lombok",
+            "org.springframework.kafka:spring-kafka:$springKafkaVersion"
     )
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"

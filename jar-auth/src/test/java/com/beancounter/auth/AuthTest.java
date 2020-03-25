@@ -6,6 +6,11 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.server.AuthorityRoleConverter;
+import com.beancounter.auth.server.JwtRoleConverter;
+import com.beancounter.auth.server.ResourceServerConfig;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.model.SystemUser;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import java.util.Collection;
@@ -38,6 +43,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(classes = {
     MockServletContext.class,
     TokenService.class,
+    AuthTest.SimpleController.class,
     NimbusJwtDecoder.class,
     DefaultJWTProcessor.class,
     ResourceServerConfig.class})

@@ -1,6 +1,6 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.client.PortfolioService;
+import com.beancounter.client.services.PortfolioService;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;

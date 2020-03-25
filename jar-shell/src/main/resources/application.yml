@@ -7,6 +7,10 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   jackson:
     serialization:

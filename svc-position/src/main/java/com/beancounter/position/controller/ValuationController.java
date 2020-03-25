@@ -1,6 +1,6 @@
 package com.beancounter.position.controller;
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.position.service.Valuation;
 import org.springframework.beans.factory.annotation.Autowired;

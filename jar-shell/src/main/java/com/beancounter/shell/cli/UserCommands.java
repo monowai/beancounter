@@ -1,10 +1,11 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.auth.TokenService;
-import com.beancounter.client.RegistrationService;
+import com.beancounter.auth.client.LoginService;
+import com.beancounter.auth.client.TokenService;
+import com.beancounter.client.services.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.exception.UnauthorizedException;
-import com.beancounter.shell.auth.LoginService;
+import com.beancounter.shell.config.EnvConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.jline.reader.LineReader;
@@ -23,13 +24,16 @@ public class UserCommands {
   private TokenService tokenService;
   private LineReader lineReader;
   private ObjectMapper objectMapper = new ObjectMapper();
+  private EnvConfig envConfig;
 
   UserCommands(LoginService loginService,
                RegistrationService registrationService,
-               TokenService tokenService) {
+               TokenService tokenService,
+               EnvConfig envConfig) {
     this.loginService = loginService;
     this.registrationService = registrationService;
     this.tokenService = tokenService;
+    this.envConfig = envConfig;
   }
 
   @Autowired
@@ -42,7 +46,7 @@ public class UserCommands {
       @ShellOption(help = "User ID") String user) {
 
     String password = lineReader.readLine("Password: ", '*');
-    this.loginService.login(user, password);
+    this.loginService.login(user, password, envConfig.getClient());
 
   }
 
@@ -64,11 +68,6 @@ public class UserCommands {
     if (token == null) {
       throw new UnauthorizedException("Please login");
     }
-    // Not yet sure what my requirements are here.
-    //    Object email = token.getTokenAttributes().get("email");
-    //    if (email == null) {
-    //      throw new BusinessException("No email address");
-    //    }
     return objectMapper
         .writeValueAsString(
             this.registrationService.register(RegistrationRequest.builder().build())

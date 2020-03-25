@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.currency;
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.marketdata.config.StaticConfig;
 import org.springframework.beans.factory.annotation.Autowired;

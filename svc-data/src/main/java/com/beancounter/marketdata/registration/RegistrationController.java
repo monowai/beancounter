@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.registration;
 
 
-import com.beancounter.auth.RoleHelper;
+import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.contracts.RegistrationResponse;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -20,7 +20,6 @@ import com.beancounter.shell.sharesight.ShareSightService;
 import com.beancounter.shell.sharesight.ShareSightTradeAdapter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -102,14 +101,11 @@ class ShareSightTradeTest {
   void is_RowWithoutFxConverted() {
 
     List<String> row = getRow("buy", "0.0", "2097.85");
-    List<List<String>> values = new ArrayList<>();
-    values.add(row);
 
     // Portfolio is in NZD
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
 
-    TrnInput trn = shareSightRowProcessor.transform(portfolio, values, "Blah")
-        .iterator().next();
+    TrnInput trn = shareSightRowProcessor.transform(portfolio, row, "Blah");
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
@@ -132,13 +128,10 @@ class ShareSightTradeTest {
 
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTradeAdapter.comments);
-    List<List<String>> values = new ArrayList<>();
-    values.add(row);
 
     TrnInput trn =
         shareSightRowProcessor.transform(
-            getPortfolio("Test", getCurrency("NZD")), values, "twee")
-            .iterator().next();
+            getPortfolio("Test", getCurrency("NZD")), row, "twee");
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -161,18 +154,13 @@ class ShareSightTradeTest {
         "2097.85"
     );
     inFilter.remove(ShareSightTradeAdapter.comments);
-    List<List<String>> values = new ArrayList<>();
-    values.add(inFilter);
-    values.add(notInFilter);
     shareSightService.setFilter(new Filter("AMP"));
-    Collection<TrnInput> trns =
+    TrnInput trn =
         shareSightRowProcessor.transform(
             getPortfolio("Test", getCurrency("NZD")),
-            values,
+            inFilter,
             "twee");
 
-    assertThat(trns).hasSize(1);
-    TrnInput trn = trns.iterator().next();
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
@@ -181,17 +169,21 @@ class ShareSightTradeTest {
         .hasFieldOrProperty("tradeDate")
     ;
 
+    assertThat(shareSightRowProcessor.transform(
+        getPortfolio("Test", getCurrency("NZD")),
+        notInFilter,
+        "twee")).isNull();
+
   }
 
   @Test
   void is_SplitTransactionTransformed() {
 
     List<String> row = getRow("split", null, null);
-    List<List<String>> values = new ArrayList<>();
-    values.add(row);
+
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     TrnInput trn = shareSightRowProcessor
-        .transform(portfolio, values, "blah").iterator().next();
+        .transform(portfolio, row, "blah");
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -209,12 +201,10 @@ class ShareSightTradeTest {
   void is_IllegalDateFound() {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");
-    List<List<String>> values = new ArrayList<>();
-    values.add(row);
 
     assertThrows(BusinessException.class, () ->
         shareSightRowProcessor.transform(getPortfolio("Test", getCurrency("NZD")),
-            values, "twee"));
+            row, "twee"));
   }
 
 }

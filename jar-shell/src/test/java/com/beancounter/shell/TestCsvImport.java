@@ -4,6 +4,7 @@ package com.beancounter.shell;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.shell.csv.CsvIngester;
+import com.beancounter.shell.ingest.BufferedWriter;
 import com.beancounter.shell.ingest.IngestionRequest;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -15,7 +16,8 @@ public class TestCsvImport {
   @SneakyThrows
   void importCsv() {
     CsvIngester csvIngester = new CsvIngester();
-    csvIngester.prepare(IngestionRequest.builder().file("/trades.csv").build());
+    csvIngester.prepare(IngestionRequest.builder().file("/trades.csv").build(),
+        new BufferedWriter());
     List<List<String>> results = csvIngester.getValues();
     assertThat(results).isNotEmpty().hasSize(5);
   }

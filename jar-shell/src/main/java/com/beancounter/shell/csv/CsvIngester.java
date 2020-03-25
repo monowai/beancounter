@@ -3,6 +3,7 @@ package com.beancounter.shell.csv;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.shell.ingest.AbstractIngester;
 import com.beancounter.shell.ingest.IngestionRequest;
+import com.beancounter.shell.ingest.TrnWriter;
 import com.opencsv.CSVReader;
 import java.io.File;
 import java.io.IOException;
@@ -24,8 +25,9 @@ public class CsvIngester extends AbstractIngester {
   private Reader reader;
 
   @Override
-  public void prepare(IngestionRequest ingestionRequest) {
+  public void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter) {
     String trimmedFile = ingestionRequest.getFile().trim();
+    trnWriter.flush(ingestionRequest);
     try {
       // Unit tests
       File file = new ClassPathResource(trimmedFile).getFile();

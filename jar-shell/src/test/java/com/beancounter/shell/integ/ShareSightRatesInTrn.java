@@ -19,7 +19,6 @@ import com.beancounter.shell.sharesight.ShareSightService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -52,7 +51,7 @@ public class ShareSightRatesInTrn {
   }
 
   @Test
-  void is_DividendRowWithFxConverted() throws Exception {
+  void is_DividendRowWithFxConverted() {
     List<String> row = new ArrayList<>();
 
     // Portfolio is in NZD
@@ -99,15 +98,12 @@ public class ShareSightRatesInTrn {
   void is_TradeRowWithFxConverted() throws Exception {
 
     List<String> row = getRow("buy", "0.8988", "2097.85");
-    List<List<String>> values = new ArrayList<>();
-    values.add(row);
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
     // System base currency
-    Collection<TrnInput> trnInputs = shareSightRowProcessor.transform(portfolio, values, "Test");
+    TrnInput trn = shareSightRowProcessor.transform(portfolio, row, "Test");
 
-    TrnInput trn = trnInputs.iterator().next();
     log.info(new ObjectMapper().writeValueAsString(trn));
     assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)

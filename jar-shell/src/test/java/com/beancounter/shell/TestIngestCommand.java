@@ -10,6 +10,7 @@ import com.beancounter.shell.config.IngestionConfig;
 import com.beancounter.shell.ingest.AbstractIngester;
 import com.beancounter.shell.ingest.IngestionFactory;
 import com.beancounter.shell.ingest.IngestionRequest;
+import com.beancounter.shell.ingest.TrnWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,9 @@ public class TestIngestCommand {
   @MockBean
   private PortfolioService portfolioService;
 
+  @MockBean
+  private TrnWriter trnWriter;
+
   private MockIngester mockIngester = new MockIngester();
 
   @BeforeEach
@@ -40,13 +44,13 @@ public class TestIngestCommand {
     Mockito.when(portfolioService.getPortfolioByCode("ABC"))
         .thenReturn(PortfolioUtils.getPortfolio("ABC"));
     mockIngester.setPortfolioService(portfolioService);
-    mockIngester.setRowAdapter((portfolio, values, provider) -> new ArrayList<>());
+    mockIngester.setTrnWriter(trnWriter);
   }
 
   @Test
   void is_IngestionCommandRunning() {
     ingestionFactory.add("MOCK", mockIngester);
-    // Make sure we are not case sensitive when finding the ingester to use.
+    // Make sure we are not case sensitive when finding the ingestion approach to use.
     assertThat(ingestionCommand.ingest("mock", "ABC", "ABC", null))
         .isEqualTo("Done");
   }
@@ -55,7 +59,7 @@ public class TestIngestCommand {
   static class MockIngester extends AbstractIngester {
 
     @Override
-    public void prepare(IngestionRequest ingestionRequest) {
+    public void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter) {
 
     }
 

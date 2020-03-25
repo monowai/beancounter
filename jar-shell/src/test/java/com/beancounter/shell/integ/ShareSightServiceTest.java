@@ -164,10 +164,12 @@ class ShareSightServiceTest {
 
     rows.add(row);
 
-    assertThat(rows).hasSize(2);
-
-    Collection<TrnInput> trnInputs = shareSightRowProcessor
-        .transform(PortfolioUtils.getPortfolio("TEST"), rows, "Test");
+    Collection<TrnInput> trnInputs = new ArrayList<>();
+    for (List<String> strings : rows) {
+      trnInputs.add(shareSightRowProcessor
+          .transform(PortfolioUtils.getPortfolio("TEST"), strings, "Test"));
+    }
+    assertThat(trnInputs).hasSize(2);
 
     for (TrnInput trn : trnInputs) {
       assertThat(trn)

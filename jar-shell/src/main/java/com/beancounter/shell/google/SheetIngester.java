@@ -2,6 +2,7 @@ package com.beancounter.shell.google;
 
 import com.beancounter.shell.ingest.AbstractIngester;
 import com.beancounter.shell.ingest.IngestionRequest;
+import com.beancounter.shell.ingest.TrnWriter;
 import com.google.api.services.sheets.v4.Sheets;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class SheetIngester extends AbstractIngester {
   }
 
   @Override
-  public void prepare(IngestionRequest ingestionRequest) {
+  public void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter) {
     service = googleTransport.getSheets(googleTransport.getHttpTransport());
     this.ingestionRequest = ingestionRequest;
   }

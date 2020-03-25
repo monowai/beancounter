@@ -5,8 +5,6 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.shell.ingest.RowAdapter;
 import com.beancounter.shell.ingest.TrnAdapter;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,26 +22,22 @@ public class ShareSightRowAdapter implements RowAdapter {
   }
 
   @Override
-  public Collection<TrnInput> transform(Portfolio portfolio,
-                                        List<List<String>> values,
-                                        String provider) {
+  public TrnInput transform(Portfolio portfolio,
+                            List<String> values,
+                            String provider) {
 
-    Collection<TrnInput> results = new ArrayList<>();
+    TrnAdapter trnAdapter = shareSightFactory.adapter(values);
 
-    for (List<String> row : values) {
-      TrnAdapter trnAdapter = shareSightFactory.adapter(row);
-
-      if (trnAdapter.isValid(row)) {
-        TrnInput trn = trnAdapter.from(row, portfolio);
-        if (trn != null) {
-          trn.setId(TrnId.builder()
-              .provider(provider)
-              .build());
-          results.add(trn);
-        }
+    if (trnAdapter.isValid(values)) {
+      TrnInput trn = trnAdapter.from(values, portfolio);
+      if (trn != null) {
+        trn.setId(TrnId.builder()
+            .provider(provider)
+            .build());
+        return trn;
       }
     }
-    return results;
+    return null;
   }
 
 }

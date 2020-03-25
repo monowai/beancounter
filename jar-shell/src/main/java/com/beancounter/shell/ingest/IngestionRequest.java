@@ -1,5 +1,6 @@
 package com.beancounter.shell.ingest;
 
+import com.beancounter.common.model.Portfolio;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class IngestionRequest {
 
   @Builder.Default
-  private String type = "GSHEET";
+  private String type = "CSV";
   private String file;
   private String filter;
   private String provider;
@@ -21,5 +22,7 @@ public class IngestionRequest {
   @Builder.Default
   private boolean trnPersist = true;
   private String portfolioCode;
+  // Portfolio resolved from portfolioCode
+  private Portfolio portfolio;
 
 }

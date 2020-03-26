@@ -29,7 +29,7 @@ public class DataCommands {
           String marketCode) {
     if (marketCode != null) {
       MarketResponse marketResponse = MarketResponse.builder().build();
-      Market market = staticService.resolveMarket(
+      Market market = staticService.getMarket(
           marketCode
       );
 

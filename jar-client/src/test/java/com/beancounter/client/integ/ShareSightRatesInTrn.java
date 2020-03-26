@@ -10,7 +10,6 @@ import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
-import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
@@ -23,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,17 +39,18 @@ import org.springframework.test.context.ActiveProfiles;
 public class ShareSightRatesInTrn {
 
   @Autowired
-  private ShareSightService shareSightService;
+  private ShareSightFactory shareSightFactory;
 
   @Autowired
-  private ShareSightFactory shareSightFactory;
+  private ShareSightConfig shareSightConfig;
 
   @Autowired
   private ShareSightRowAdapter shareSightRowProcessor;
 
-  @Test
+  @BeforeEach
   void is_IgnoreRatesDefaultCorrect() {
-    assertThat(shareSightService.isRatesIgnored()).isFalse();
+    // Assumptions for all tests in this class
+    assertThat(shareSightConfig.isRatesIgnored()).isFalse();
   }
 
   @Test
@@ -75,7 +76,7 @@ public class ShareSightRatesInTrn {
     row.add(ShareSightDividendAdapter.comments, "Test Comment");
 
     TrnAdapter dividends = shareSightFactory.adapter(row);
-    Asset asset = shareSightService.resolveAsset("ABBV", "", "NYS");
+    Asset asset = dividends.resolveAsset(row);
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
@@ -109,7 +110,7 @@ public class ShareSightRatesInTrn {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    Asset asset = shareSightService.resolveAsset("AMP", "AX", "AX");
+    Asset asset = shareSightFactory.getShareSightTrade().resolveAsset(row);
     // System base currency
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)

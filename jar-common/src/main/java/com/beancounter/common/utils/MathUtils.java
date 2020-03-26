@@ -3,6 +3,8 @@ package com.beancounter.common.utils;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -47,6 +49,16 @@ public class MathUtils {
 
   public BigDecimal add(BigDecimal value, BigDecimal amount) {
     return value.add(amount).setScale(2, RoundingMode.HALF_UP);
+  }
 
+  public BigDecimal parse(String value, NumberFormat numberFormat) throws ParseException {
+    if (value == null) {
+      return null;
+    }
+    if (value.isBlank()) {
+      return BigDecimal.ZERO;
+    }
+
+    return new BigDecimal(numberFormat.parse(value).toString());
   }
 }

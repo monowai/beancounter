@@ -1,14 +1,15 @@
 package com.beancounter.client.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.client.ingest.TrnAdapter;
+import com.beancounter.client.services.AssetService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightDividendAdapter;
+import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
-import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
@@ -16,8 +17,6 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
-import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,29 +37,19 @@ import org.springframework.test.context.ActiveProfiles;
 class ShareSightServiceTest {
 
   @Autowired
-  private ShareSightService shareSightService;
+  private AssetService assetService;
+
+  @Autowired
+  private StaticService staticService;
+
+  @Autowired
+  private ShareSightFactory shareSightFactory;
+
+  @Autowired
+  private ShareSightConfig shareSightConfig;
 
   @Autowired
   private ShareSightRowAdapter shareSightRowProcessor;
-
-  @Test
-  void is_NullDateSupported() {
-    assertThat(shareSightService.parseDate(null)).isNull();
-  }
-
-  @Test
-  void is_DoubleValueInputCorrect() throws ParseException {
-    assertThat(shareSightService.parseDouble("5,000.99"))
-        .isEqualByComparingTo(BigDecimal.valueOf(5000.99));
-  }
-
-  @Test
-  void is_ExceptionThrownResolvingIncorrectAssetCodes() {
-    assertThrows(BusinessException.class, ()
-        -> shareSightService.resolveAsset(null));
-    assertThrows(BusinessException.class, ()
-        -> shareSightService.resolveAsset("ValueWithNoSeparator"));
-  }
 
   @Test
   void is_ExchangeAliasReturnedInAssetCode() {
@@ -81,12 +70,14 @@ class ShareSightServiceTest {
 
   @Test
   void is_IgnoreRatesCorrect() {
-    assertThat(shareSightService.isRatesIgnored()).isTrue();
+    assertThat(shareSightConfig.isRatesIgnored()).isTrue();
   }
 
   private void verifyMarketCode(String code, Asset expectedAsset) {
-
-    Asset asset = shareSightService.resolveAsset(code);
+    TrnAdapter diviAdapter = shareSightFactory.getShareSightDivi();
+    List<String> row = new ArrayList<>();
+    row.add(code);
+    Asset asset = diviAdapter.resolveAsset(row);
 
     assertThat(asset.getMarket().getCode())
         .isEqualTo(expectedAsset.getMarket().getCode());
@@ -102,7 +93,8 @@ class ShareSightServiceTest {
     row.add(ShareSightTradeAdapter.date, "date");
     row.add(ShareSightTradeAdapter.quantity, "quantity");
     row.add(ShareSightTradeAdapter.price, "price");
-    ShareSightTradeAdapter shareSightTradeAdapter = new ShareSightTradeAdapter(shareSightService);
+    ShareSightTradeAdapter shareSightTradeAdapter =
+        new ShareSightTradeAdapter(shareSightConfig, assetService, staticService);
     assertThat(shareSightTradeAdapter.isValid(row)).isFalse();
 
     row.remove(ShareSightTradeAdapter.price);
@@ -121,7 +113,8 @@ class ShareSightServiceTest {
     row.add(ShareSightDividendAdapter.tax, "tax");
     row.add(ShareSightDividendAdapter.gross, "gross");
     row.add(ShareSightDividendAdapter.comments, "comments");
-    ShareSightDividendAdapter dividendAdapater = new ShareSightDividendAdapter(shareSightService);
+    ShareSightDividendAdapter dividendAdapater =
+        new ShareSightDividendAdapter(shareSightConfig, assetService, staticService);
     assertThat(dividendAdapater.isValid(row)).isFalse();// Ignore CODE
 
     row.remove(ShareSightTradeAdapter.code);

@@ -64,6 +64,9 @@ spring:
         spring.json.trusted.packages: com.beancounter.common.input
       group-id: bcIngestion
 
+kafka:
+  enabled: false
+
 beancounter:
   baseCode: "USD"
 

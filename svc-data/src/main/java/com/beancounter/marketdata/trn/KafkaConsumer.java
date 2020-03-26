@@ -11,11 +11,13 @@ import com.beancounter.marketdata.service.FxService;
 import java.util.Collections;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(value = "kafka.enabled", matchIfMissing = true)
 public class KafkaConsumer {
   private static final String topicTrnCsv = "bc-trn-csv";
   private RowAdapter rowAdapter;

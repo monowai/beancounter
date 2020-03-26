@@ -1,12 +1,19 @@
 package com.beancounter.client.sharesight;
 
+import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
+import com.beancounter.client.services.AssetService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -36,29 +43,47 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   public static final int tax = 6;
   public static final int gross = 7;
   public static final int comments = 8;
+  private ShareSightConfig shareSightConfig;
+  private Filter filter = new Filter(null);
 
-  private ShareSightService shareSightService;
+  private DateUtils dateUtils = new DateUtils();
 
-  @Autowired
-  public ShareSightDividendAdapter(ShareSightService shareSightService) {
-    this.shareSightService = shareSightService;
+  private StaticService staticService;
+  private AssetService assetService;
+
+  public ShareSightDividendAdapter(ShareSightConfig shareSightConfig,
+                                   AssetService assetService,
+                                   StaticService staticService) {
+    this.shareSightConfig = shareSightConfig;
+    this.staticService = staticService;
+    this.assetService = assetService;
+  }
+
+  @Autowired(required = false)
+  void setFilter(Filter filter) {
+    this.filter = filter;
   }
 
   @Override
   public TrnInput from(TrustedTrnRequest trustedTrnRequest) {
     List<String> row = trustedTrnRequest.getRow();
     try {
-      BigDecimal tradeRate = shareSightService.parseDouble(row.get(fxRate));
+      BigDecimal tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
       return TrnInput.builder()
           .asset(trustedTrnRequest.getAsset().getId())
           .tradeCurrency(row.get(currency))
           .trnType(TrnType.DIVI)
           .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
-          .tradeAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
-          .cashAmount(MathUtils.multiply(shareSightService.parseDouble(row.get(net)), tradeRate))
-          .tradeDate(shareSightService.parseDate(row.get(date)))
+          .tradeAmount(
+              MathUtils.multiply(
+                  MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
+                  tradeRate))
+          .cashAmount(MathUtils.multiply(
+              MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
+              tradeRate))
+          .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
           .comments(row.get(comments))
-          .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
+          .tradeCashRate(shareSightConfig.isRatesIgnored() || MathUtils.isUnset(tradeRate)
               ? null : tradeRate)
           .build()
           ;
@@ -92,10 +117,30 @@ public class ShareSightDividendAdapter implements TrnAdapter {
 
   @Override
   public Asset resolveAsset(List<String> row) {
-    Asset asset = shareSightService.resolveAsset(row.get(code));
-    if (!shareSightService.inFilter(asset)) {
+    List<String> values = parseAsset(row.get(code));
+    Market market = staticService.getMarket(values.get(1).toUpperCase());
+    Asset asset = assetService.resolveAsset(values.get(0), null, market);
+
+    if (!filter.inFilter(asset)) {
       return null;
     }
     return asset;
   }
+
+  private List<String> parseAsset(String input) {
+    if (input == null || input.isEmpty()) {
+      throw new BusinessException("Unable to resolve Asset code");
+    }
+
+    List<String> values = Splitter
+        .on(CharMatcher.anyOf(".:-"))
+        .trimResults()
+        .splitToList(input);
+
+    if (values.isEmpty() || values.get(0).equals(input)) {
+      throw new BusinessException(String.format("Unable to parse %s", input));
+    }
+    return values;
+  }
+
 }

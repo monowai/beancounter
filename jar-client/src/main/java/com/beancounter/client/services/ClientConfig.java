@@ -18,8 +18,7 @@ import org.springframework.context.annotation.Import;
     RegistrationService.class,
     AssetService.class,
     TrnService.class,
-    TokenService.class,
-    ExchangeService.class
+    TokenService.class
 })
 @EnableFeignClients(basePackages = "com.beancounter.client")
 @ImportAutoConfiguration({

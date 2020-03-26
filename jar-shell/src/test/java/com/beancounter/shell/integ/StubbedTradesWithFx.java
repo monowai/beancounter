@@ -8,7 +8,6 @@ import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.services.FxTransactions;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
-import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
@@ -46,7 +45,7 @@ class StubbedTradesWithFx {
   private ShareSightFactory shareSightFactory;
 
   @Autowired
-  private ShareSightService shareSightService;
+  private ShareSightConfig shareSightConfig;
 
   private Asset asset = AssetUtils.getAsset("BHP", "LSE");
 
@@ -99,7 +98,7 @@ class StubbedTradesWithFx {
     // NZD Portfolio
     // USD System Base
     // GBP Trade
-    assertThat(shareSightService.isRatesIgnored()).isTrue();
+    assertThat(shareSightConfig.isRatesIgnored()).isTrue();
 
     row.add(ShareSightTradeAdapter.market, "LSE");
     row.add(ShareSightTradeAdapter.code, "BHP");

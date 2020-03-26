@@ -35,9 +35,9 @@ public class TestStaticService {
   @Test
   void is_MarketIllegalArgumentsThrowing() {
     assertThrows(BusinessException.class, () ->
-        staticService.resolveMarket(null));
+        staticService.getMarket(null));
     assertThrows(BusinessException.class, () ->
-        staticService.resolveMarket("ERR"));
+        staticService.getMarket("ERR"));
   }
 
   @Test

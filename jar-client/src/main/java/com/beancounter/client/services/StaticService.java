@@ -10,7 +10,11 @@ import io.github.resilience4j.retry.annotation.Retry;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -19,20 +23,38 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @Slf4j
 @Service
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix = "beancounter.exchanges")
 public class StaticService {
   public StaticGateway staticGateway;
-  private ExchangeService exchangeService;
   private TokenService tokenService;
 
+  @Getter
+  @Setter
+  private Map<String, String> aliases;
   private Map<String, Market> marketMap = new HashMap<>();
-  private Map<String, Map<String, Market>> providerAliases = new HashMap<>();
+
 
   StaticService(StaticGateway staticGateway,
-                ExchangeService exchangeService,
                 TokenService tokenService) {
     this.staticGateway = staticGateway;
-    this.exchangeService = exchangeService;
     this.tokenService = tokenService;
+  }
+
+  /**
+   * Return the Exchange code to use for the supplied input.
+   *
+   * @param input code that *might* have an alias.
+   * @return the alias or input if no exception is defined.
+   */
+  public String resolveAlias(String input) {
+    String alias = aliases.get(input);
+    if (alias == null) {
+      return input;
+    } else {
+      return alias;
+    }
+
   }
 
   @Retry(name = "data")
@@ -58,7 +80,6 @@ public class StaticService {
   }
 
   private Market get(String key) {
-    // ToDo: getMarket by Code and add @Cache
     if (marketMap.isEmpty()) {
       Collection<Market> markets = staticGateway.getMarkets(tokenService.getBearerToken())
           .getData();
@@ -69,13 +90,21 @@ public class StaticService {
     return marketMap.get(key);
   }
 
-  public Market resolveMarket(String marketCode) {
+  public Market getMarket(String marketCode) {
     if (marketCode == null) {
       throw new BusinessException("Null Market Code");
     }
-    Market market = get(exchangeService.resolveAlias(marketCode.toUpperCase()));
+    Market market = get(marketCode);
     if (market == null) {
-      throw new BusinessException(String.format("Unable to resolve market code %s", marketCode));
+      String errorMessage = String.format("Unable to resolve market code %s", marketCode);
+      String byAlias = resolveAlias(marketCode);
+      if (byAlias == null) {
+        throw new BusinessException(errorMessage);
+      }
+      market = get(byAlias);
+      if (market == null) {
+        throw new BusinessException(errorMessage);
+      }
     }
     return market;
   }

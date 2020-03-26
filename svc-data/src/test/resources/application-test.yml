@@ -1,8 +1,9 @@
 server:
   port: 0
 
-spring:
-  security.
+kafka:
+  enabled: false
+
 beancounter:
   marketdata:
     provider:

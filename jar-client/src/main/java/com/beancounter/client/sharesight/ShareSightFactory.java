@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
  * @since 2019-03-10
  */
 @Service
+
 public class ShareSightFactory {
 
   private static final Set<String> TRADE_TYPES = Set.of("BUY", "SELL", "SPLIT");
@@ -37,4 +38,11 @@ public class ShareSightFactory {
     return shareSightDivi;
   }
 
+  public ShareSightTradeAdapter getShareSightTrade() {
+    return shareSightTrade;
+  }
+
+  public ShareSightDividendAdapter getShareSightDivi() {
+    return shareSightDivi;
+  }
 }

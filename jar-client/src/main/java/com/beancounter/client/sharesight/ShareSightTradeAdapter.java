@@ -1,17 +1,22 @@
 package com.beancounter.client.sharesight;
 
+import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
+import com.beancounter.client.services.AssetService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,7 +29,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-@Configuration
 public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int market = 0;
   public static final int code = 1;
@@ -38,11 +42,24 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int fxRate = 9;
   public static final int value = 10;
   public static final int comments = 11;
-  private ShareSightService shareSightService;
+  private DateUtils dateUtils = new DateUtils();
+  private ShareSightConfig shareSightConfig;
+  private Filter filter = new Filter(null);
 
-  @Autowired
-  public ShareSightTradeAdapter(ShareSightService shareSightService) {
-    this.shareSightService = shareSightService;
+  private StaticService staticService;
+  private AssetService assetService;
+
+  public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
+                                AssetService assetService,
+                                StaticService staticService) {
+    this.staticService = staticService;
+    this.assetService = assetService;
+    this.shareSightConfig = shareSightConfig;
+  }
+
+  @Autowired(required = false)
+  void setFilter(Filter filter) {
+    this.filter = filter;
   }
 
   @Override
@@ -63,24 +80,23 @@ public class ShareSightTradeAdapter implements TrnAdapter {
 
     try {
       if (trnType != TrnType.SPLIT) {
-        tradeRate = shareSightService.parseDouble(row.get(fxRate));
-        fees = shareSightService.parseDouble(row.get(brokerage));
-        tradeAmount = shareSightService.parseDouble(row.get(value));
+        tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
+        fees = MathUtils.parse(row.get(brokerage), shareSightConfig.getNumberFormat());
+        tradeAmount = MathUtils.parse(row.get(value), shareSightConfig.getNumberFormat());
       }
 
       return TrnInput.builder()
           .asset(trustedTrnRequest.getAsset().getId())
           .trnType(trnType)
-          .quantity(shareSightService.parseDouble(row.get(quantity)))
-          .price(shareSightService.parseDouble(row.get(price)))
-          .fees(shareSightService.safeDivide(
-              fees, tradeRate))
-          .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
-          .tradeDate(shareSightService.parseDate(row.get(date)))
+          .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
+          .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))
+          .fees(MathUtils.divide(fees, tradeRate))
+          .tradeAmount(MathUtils.multiply(tradeAmount, tradeRate))
+          .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
           .cashCurrency(trustedTrnRequest.getPortfolio().getCurrency().getCode())
           .tradeCurrency(row.get(currency))
           // Zero and null are treated as "unknown"
-          .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)
+          .tradeCashRate(shareSightConfig.isRatesIgnored() || MathUtils.isUnset(tradeRate)
               ? null : tradeRate)
           .comments(comment)
           .build();
@@ -116,8 +132,10 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     String assetCode = row.get(code);
     String marketCode = row.get(market);
 
-    Asset asset = shareSightService.resolveAsset(assetCode, assetName, marketCode);
-    if (!shareSightService.inFilter(asset)) {
+    Market market = staticService.getMarket(marketCode.toUpperCase());
+    Asset asset = assetService.resolveAsset(assetCode, assetName, market);
+
+    if (!filter.inFilter(asset)) {
       return null;
     }
     return asset;

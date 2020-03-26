@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.services.AssetService;
 import com.beancounter.client.services.ClientConfig;
-import com.beancounter.client.services.ExchangeService;
 import com.beancounter.client.services.FxRateService;
 import com.beancounter.client.services.PortfolioService;
 import com.beancounter.client.services.PriceService;
@@ -26,8 +25,6 @@ public class WiringServices {
   @Autowired
   private AssetService assetService;
   @Autowired
-  private ExchangeService exchangeService;
-  @Autowired
   private FxRateService fxRateService;
   @Autowired
   private PortfolioService portfolioService;
@@ -41,7 +38,6 @@ public class WiringServices {
   @Test
   void is_Wired() {
     assertThat(assetService).isNotNull();
-    assertThat(exchangeService).isNotNull();
     assertThat(fxRateService).isNotNull();
     assertThat(portfolioService).isNotNull();
     assertThat(priceService).isNotNull();

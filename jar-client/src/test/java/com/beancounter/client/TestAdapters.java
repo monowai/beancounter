@@ -2,7 +2,9 @@ package com.beancounter.client;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.sharesight.ShareSightService;
+import com.beancounter.client.services.AssetService;
+import com.beancounter.client.services.StaticService;
+import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrustedTrnRequest;
@@ -14,8 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 public class TestAdapters {
+
   @MockBean
-  private ShareSightService shareSightService;
+  private ShareSightConfig shareSightConfig;
+
+  @MockBean
+  private AssetService assetService;
+
+  @MockBean
+  private StaticService staticService;
 
   @Test
   void is_NullTrnTypeCorrect() {
@@ -32,7 +41,9 @@ public class TestAdapters {
         .asset(AssetUtils.getAsset("MSFT", "NASDAQ"))
         .build();
 
-    ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
+    ShareSightTradeAdapter tradeAdapter =
+        new ShareSightTradeAdapter(shareSightConfig, assetService, staticService);
+
     assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(trustedTrnRequest));
 
@@ -52,7 +63,9 @@ public class TestAdapters {
         .asset(AssetUtils.getAsset("MSFT", "NASDAQ"))
         .build();
 
-    ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
+    ShareSightTradeAdapter tradeAdapter =
+        new ShareSightTradeAdapter(shareSightConfig, assetService, staticService);
+
     assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(trustedTrnRequest));
 

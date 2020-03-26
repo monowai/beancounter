@@ -4,9 +4,9 @@ import com.beancounter.common.model.Asset;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class Filter {
 
   private Collection<String> filteredAssets = new ArrayList<>();

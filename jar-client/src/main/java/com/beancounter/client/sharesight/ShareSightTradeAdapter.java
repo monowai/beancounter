@@ -3,8 +3,8 @@ package com.beancounter.client.sharesight;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -46,8 +46,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(List<String> row, Portfolio portfolio, Asset asset) {
-
+  public TrnInput from(TrustedTrnRequest trustedTrnRequest) {
+    List<String> row = trustedTrnRequest.getRow();
     String ttype = row.get(type);
     if (ttype == null || ttype.equalsIgnoreCase("")) {
       throw new BusinessException(String.format("Unsupported type %s",
@@ -69,7 +69,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       }
 
       return TrnInput.builder()
-          .asset(asset.getId())
+          .asset(trustedTrnRequest.getAsset().getId())
           .trnType(trnType)
           .quantity(shareSightService.parseDouble(row.get(quantity)))
           .price(shareSightService.parseDouble(row.get(price)))
@@ -77,7 +77,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
               fees, tradeRate))
           .tradeAmount(shareSightService.getValueWithFx(tradeAmount, tradeRate))
           .tradeDate(shareSightService.parseDate(row.get(date)))
-          .cashCurrency(portfolio.getCurrency().getCode())
+          .cashCurrency(trustedTrnRequest.getPortfolio().getCurrency().getCode())
           .tradeCurrency(row.get(currency))
           // Zero and null are treated as "unknown"
           .tradeCashRate(shareSightService.isRatesIgnored() || shareSightService.isUnset(tradeRate)

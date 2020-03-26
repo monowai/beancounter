@@ -2,10 +2,12 @@ package com.beancounter.marketdata.trn;
 
 import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.services.FxTransactions;
+import com.beancounter.common.contracts.FxRequest;
+import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
-import java.util.Collection;
+import com.beancounter.marketdata.service.FxService;
 import java.util.Collections;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ public class KafkaConsumer {
   private RowAdapter rowAdapter;
   private FxTransactions fxTransactions;
   private TrnService trnService;
+  private FxService fxService;
 
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
@@ -28,6 +31,11 @@ public class KafkaConsumer {
   @Autowired
   void setTrnService(TrnService trnService) {
     this.trnService = trnService;
+  }
+
+  @Autowired
+  void setFxService(FxService fxService) {
+    this.fxService = fxService;
   }
 
   @Autowired
@@ -43,18 +51,15 @@ public class KafkaConsumer {
   @KafkaListener(topics = "bc-trn-csv")
   public void processMessage(TrustedTrnRequest trustedRequest) {
 
-    TrnInput trnInput = rowAdapter.transform(
-        trustedRequest.getPortfolio(),
-        trustedRequest.getAsset(),
-        trustedRequest.getRow(),
-        trustedRequest.getProvider());
+    TrnInput trnInput = rowAdapter.transform(trustedRequest);
 
-    Collection<TrnInput> trnInputs = fxTransactions.applyRates(
-        trustedRequest.getPortfolio(), Collections.singleton(trnInput));
+    FxRequest fxRequest = fxTransactions.buildRequest(trustedRequest.getPortfolio(), trnInput);
+    FxResponse fxResponse = fxService.getRates(fxRequest);
+    fxTransactions.setRates(fxResponse.getData(), fxRequest, trnInput);
 
     TrnRequest trnRequest = TrnRequest.builder()
         .portfolioId(trustedRequest.getPortfolio().getId())
-        .data(trnInputs)
+        .data(Collections.singletonList(trnInput))
         .build();
 
     trnService.save(trustedRequest.getPortfolio(), trnRequest);

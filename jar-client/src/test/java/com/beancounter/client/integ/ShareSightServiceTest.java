@@ -4,14 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.sharesight.ShareSightConfig;
-import com.beancounter.client.sharesight.ShareSightDividendAdapater;
+import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.math.BigDecimal;
@@ -110,25 +112,25 @@ class ShareSightServiceTest {
   @Test
   void is_ValidDividendRow() {
     List<String> row = new ArrayList<>();
-    row.add(ShareSightDividendAdapater.code, "code"); // Header Row
-    row.add(ShareSightDividendAdapater.name, "code");
-    row.add(ShareSightDividendAdapater.date, "name");
-    row.add(ShareSightDividendAdapater.fxRate, "type");
-    row.add(ShareSightDividendAdapater.currency, "date");
-    row.add(ShareSightDividendAdapater.net, "quantity");
-    row.add(ShareSightDividendAdapater.tax, "tax");
-    row.add(ShareSightDividendAdapater.gross, "gross");
-    row.add(ShareSightDividendAdapater.comments, "comments");
-    ShareSightDividendAdapater dividendAdapater = new ShareSightDividendAdapater(shareSightService);
+    row.add(ShareSightDividendAdapter.code, "code"); // Header Row
+    row.add(ShareSightDividendAdapter.name, "code");
+    row.add(ShareSightDividendAdapter.date, "name");
+    row.add(ShareSightDividendAdapter.fxRate, "type");
+    row.add(ShareSightDividendAdapter.currency, "date");
+    row.add(ShareSightDividendAdapter.net, "quantity");
+    row.add(ShareSightDividendAdapter.tax, "tax");
+    row.add(ShareSightDividendAdapter.gross, "gross");
+    row.add(ShareSightDividendAdapter.comments, "comments");
+    ShareSightDividendAdapter dividendAdapater = new ShareSightDividendAdapter(shareSightService);
     assertThat(dividendAdapater.isValid(row)).isFalse();// Ignore CODE
 
     row.remove(ShareSightTradeAdapter.code);
     assertThat(dividendAdapater.isValid(row)).isFalse(); // Not enough columns for a trade
 
-    row.add(ShareSightDividendAdapater.code, "total");
+    row.add(ShareSightDividendAdapter.code, "total");
     assertThat(dividendAdapater.isValid(row)).isFalse(); // Ignore TOTAL
     row.remove(ShareSightTradeAdapter.code);
-    row.add(ShareSightDividendAdapater.code, "some.code");
+    row.add(ShareSightDividendAdapter.code, "some.code");
     assertThat(dividendAdapater.isValid(row)).isTrue();
   }
 
@@ -167,9 +169,17 @@ class ShareSightServiceTest {
 
     Collection<TrnInput> trnInputs = new ArrayList<>();
     Asset asset = AssetUtils.getAsset("MSFT", "NASDAQ");
-    for (List<String> strings : rows) {
+    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
+    for (List<String> columnValues : rows) {
+      TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+          .row(columnValues)
+          .portfolio(portfolio)
+          .asset(asset)
+          .provider("Test")
+          .build();
+
       trnInputs.add(shareSightRowProcessor
-          .transform(PortfolioUtils.getPortfolio("TEST"), asset, strings, "Test"));
+          .transform(trustedTrnRequest));
     }
     assertThat(trnInputs).hasSize(2);
 

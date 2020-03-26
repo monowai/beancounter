@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.util.ArrayList;
@@ -19,32 +20,41 @@ public class TestAdapters {
   @Test
   void is_NullTrnTypeCorrect() {
 
-    List<String> nullTrnType = new ArrayList<>();
-    nullTrnType.add("");
-    nullTrnType.add("");
-    nullTrnType.add(null);
-    nullTrnType.add("");
+    List<String> row = new ArrayList<>();
+    row.add("");
+    row.add("");
+    row.add(null);
+    row.add("");
+
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(PortfolioUtils.getPortfolio("TEST"))
+        .asset(AssetUtils.getAsset("MSFT", "NASDAQ"))
+        .build();
 
     ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
     assertThrows(BusinessException.class, ()
-        -> tradeAdapter.from(nullTrnType, PortfolioUtils.getPortfolio("TEST"),
-        AssetUtils.getAsset("MSFT", "NASDAQ")));
+        -> tradeAdapter.from(trustedTrnRequest));
 
   }
 
   @Test
   void is_BlankTrnTypeCorrect() {
 
-    List<String> nullTrnType = new ArrayList<>();
-    nullTrnType.add("");
-    nullTrnType.add("");
-    nullTrnType.add("");
-    nullTrnType.add("");
+    List<String> row = new ArrayList<>();
+    row.add("");
+    row.add("");
+    row.add("");
+    row.add("");
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(PortfolioUtils.getPortfolio("TEST"))
+        .asset(AssetUtils.getAsset("MSFT", "NASDAQ"))
+        .build();
 
     ShareSightTradeAdapter tradeAdapter = new ShareSightTradeAdapter(shareSightService);
     assertThrows(BusinessException.class, ()
-        -> tradeAdapter.from(nullTrnType, PortfolioUtils.getPortfolio("TEST"),
-        AssetUtils.getAsset("MSFT", "NASDAQ")));
+        -> tradeAdapter.from(trustedTrnRequest));
 
   }
 

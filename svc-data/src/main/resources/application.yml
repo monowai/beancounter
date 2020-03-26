@@ -19,6 +19,7 @@ logging:
     javax: error
     sun: error
     io: error
+    feign: error
     com:
       netfix: error
       beancounter: debug

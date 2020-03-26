@@ -2,12 +2,14 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.ingest.TrnAdapter;
+import com.beancounter.client.services.FxRateService;
 import com.beancounter.client.services.FxTransactions;
 import com.beancounter.client.services.TrnService;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +24,7 @@ public class HttpWriter implements TrnWriter {
 
   Collection<TrnInput> trnInputs = new ArrayList<>();
   private FxTransactions fxTransactions;
+  private FxRateService fxRateService;
   private TrnService trnService;
   private RowAdapter rowAdapter;
   private ShareSightFactory shareSightFactory;
@@ -29,6 +32,11 @@ public class HttpWriter implements TrnWriter {
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
     this.fxTransactions = fxTransactions;
+  }
+
+  @Autowired
+  void setFxRateService(FxRateService fxRateService) {
+    this.fxRateService = fxRateService;
   }
 
   @Autowired
@@ -53,12 +61,15 @@ public class HttpWriter implements TrnWriter {
     if (asset == null) {
       return;
     }
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .portfolio(ingestionRequest.getPortfolio())
+        .asset(asset)
+        .row(row)
+        .provider(ingestionRequest.getProvider() == null
+            ? "SHEETS" : ingestionRequest.getProvider())
+        .build();
 
-    TrnInput trnInput = rowAdapter.transform(
-        ingestionRequest.getPortfolio(),
-        asset,
-        row,
-        (ingestionRequest.getProvider() == null ? "SHEETS" : ingestionRequest.getProvider()));
+    TrnInput trnInput = rowAdapter.transform(trustedTrnRequest);
 
     if (trnInput != null) {
       trnInputs.add(trnInput);
@@ -72,7 +83,9 @@ public class HttpWriter implements TrnWriter {
     int rows;
     if (trnInputs != null && !trnInputs.isEmpty()) {
       rows = trnInputs.size();
-      trnInputs = fxTransactions.applyRates(ingestionRequest.getPortfolio(), trnInputs);
+      for (TrnInput trnInput : trnInputs) {
+        fxTransactions.setTrnRates(ingestionRequest.getPortfolio(), trnInput);
+      }
       log.info("Writing {} transactions to portfolio {}",
           rows,
           ingestionRequest.getPortfolio().getCode());

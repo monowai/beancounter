@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import;
 @Import({
     ClientConfig.class,
     UtilConfig.class,
-    ShareSightDividendAdapater.class,
+    ShareSightDividendAdapter.class,
     ShareSightTradeAdapter.class,
     ShareSightFactory.class,
     ShareSightService.class,

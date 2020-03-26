@@ -1,14 +1,9 @@
 package com.beancounter.client.ingest;
 
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Portfolio;
-import java.util.List;
+import com.beancounter.common.input.TrustedTrnRequest;
 
 public interface RowAdapter {
-  TrnInput transform(Portfolio portfolio,
-                     Asset asset,
-                     List<String> values,
-                     String provider);
+  TrnInput transform(TrustedTrnRequest trustedTrnRequest);
 
 }

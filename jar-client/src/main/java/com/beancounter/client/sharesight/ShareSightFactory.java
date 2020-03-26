@@ -16,9 +16,9 @@ public class ShareSightFactory {
 
   private static final Set<String> TRADE_TYPES = Set.of("BUY", "SELL", "SPLIT");
   private ShareSightTradeAdapter shareSightTrade;
-  private ShareSightDividendAdapater shareSightDivi;
+  private ShareSightDividendAdapter shareSightDivi;
 
-  public ShareSightFactory(ShareSightDividendAdapater shareSightDivi,
+  public ShareSightFactory(ShareSightDividendAdapter shareSightDivi,
                            ShareSightTradeAdapter shareSightTrade) {
     this.shareSightDivi = shareSightDivi;
     this.shareSightTrade = shareSightTrade;

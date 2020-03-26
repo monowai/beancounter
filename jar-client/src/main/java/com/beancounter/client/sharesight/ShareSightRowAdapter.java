@@ -4,9 +4,7 @@ import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Portfolio;
-import java.util.List;
+import com.beancounter.common.input.TrustedTrnRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,18 +21,15 @@ public class ShareSightRowAdapter implements RowAdapter {
   }
 
   @Override
-  public TrnInput transform(Portfolio portfolio,
-                            Asset asset,
-                            List<String> values,
-                            String provider) {
+  public TrnInput transform(TrustedTrnRequest trnRequest) {
 
-    TrnAdapter trnAdapter = shareSightFactory.adapter(values);
+    TrnAdapter trnAdapter = shareSightFactory.adapter(trnRequest.getRow());
 
-    if (trnAdapter.isValid(values)) {
-      TrnInput trn = trnAdapter.from(values, portfolio, asset);
+    if (trnAdapter.isValid(trnRequest.getRow())) {
+      TrnInput trn = trnAdapter.from(trnRequest);
       if (trn != null) {
         trn.setId(TrnId.builder()
-            .provider(provider)
+            .provider(trnRequest.getProvider())
             .build());
         return trn;
       }

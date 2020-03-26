@@ -3,7 +3,6 @@ package com.beancounter.common.contracts;
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
@@ -38,8 +37,27 @@ public class FxRequest {
     return this;
   }
 
-  @SuppressWarnings("WeakerAccess")
-  @JsonPOJOBuilder(withPrefix = "")
-  public static class FxRequestBuilder {
+  @JsonIgnore
+  private IsoCurrencyPair tradePf;
+
+  public void setTradePf(IsoCurrencyPair tradePf) {
+    this.tradePf = tradePf;
+    add(tradePf);
+  }
+
+  @JsonIgnore
+  private IsoCurrencyPair tradeBase;
+
+  public void setTradeBase(IsoCurrencyPair tradeBase) {
+    this.tradeBase = tradeBase;
+    add(tradeBase);
+  }
+
+  @JsonIgnore
+  private IsoCurrencyPair tradeCash;
+
+  public void setTradeCash(IsoCurrencyPair tradeCash) {
+    this.tradeCash = tradeCash;
+    add(tradeCash);
   }
 }

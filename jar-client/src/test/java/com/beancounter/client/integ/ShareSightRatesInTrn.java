@@ -7,11 +7,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.sharesight.ShareSightConfig;
-import com.beancounter.client.sharesight.ShareSightDividendAdapater;
+import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
@@ -62,20 +63,27 @@ public class ShareSightRatesInTrn {
         .build();
 
     // Trade is in USD
-    row.add(ShareSightDividendAdapater.code, "ABBV.NYS");
-    row.add(ShareSightDividendAdapater.name, "Test Asset");
-    row.add(ShareSightDividendAdapater.date, "21/01/2019");
+    row.add(ShareSightDividendAdapter.code, "ABBV.NYS");
+    row.add(ShareSightDividendAdapter.name, "Test Asset");
+    row.add(ShareSightDividendAdapter.date, "21/01/2019");
     String rate = "0.8074"; // Sharesight Trade to Reference Rate
-    row.add(ShareSightDividendAdapater.fxRate, rate);
-    row.add(ShareSightDividendAdapater.currency, "USD"); // TradeCurrency
-    row.add(ShareSightDividendAdapater.net, "15.85");
-    row.add(ShareSightDividendAdapater.tax, "0");
-    row.add(ShareSightDividendAdapater.gross, "15.85");
-    row.add(ShareSightDividendAdapater.comments, "Test Comment");
+    row.add(ShareSightDividendAdapter.fxRate, rate);
+    row.add(ShareSightDividendAdapter.currency, "USD"); // TradeCurrency
+    row.add(ShareSightDividendAdapter.net, "15.85");
+    row.add(ShareSightDividendAdapter.tax, "0");
+    row.add(ShareSightDividendAdapter.gross, "15.85");
+    row.add(ShareSightDividendAdapter.comments, "Test Comment");
 
     TrnAdapter dividends = shareSightFactory.adapter(row);
     Asset asset = shareSightService.resolveAsset("ABBV", "", "NYS");
-    TrnInput trn = dividends.from(row, portfolio, asset);
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .provider("Test")
+        .build();
+
+    TrnInput trn = dividends.from(trustedTrnRequest);
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(trn)
@@ -103,7 +111,14 @@ public class ShareSightRatesInTrn {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     Asset asset = shareSightService.resolveAsset("AMP", "AX", "AX");
     // System base currency
-    TrnInput trn = shareSightRowProcessor.transform(portfolio, asset, row, "Test");
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .provider("Test")
+        .build();
+
+    TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
 
     log.info(new ObjectMapper().writeValueAsString(trn));
     assertThat(trn)

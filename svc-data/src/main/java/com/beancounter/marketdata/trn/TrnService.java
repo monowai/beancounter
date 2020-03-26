@@ -33,14 +33,14 @@ public class TrnService {
   }
 
   public TrnResponse save(Portfolio portfolio, TrnRequest trnRequest) {
-    log.info("Received request to write {} transactions {}",
+    log.debug("Received request to write {} transactions {}",
         trnRequest.getData().size(), portfolio.getCode());
     TrnResponse results = trnAdapter.convert(portfolio, trnRequest);
     Iterable<Trn> saved = trnRepository.saveAll(results.getData());
     Collection<Trn> trns = new ArrayList<>();
     saved.forEach(trns::add);
     results.setData(trns);
-    log.info("Wrote {} transactions", results.getData().size());
+    log.debug("Wrote {} transactions", results.getData().size());
     return results;
   }
 

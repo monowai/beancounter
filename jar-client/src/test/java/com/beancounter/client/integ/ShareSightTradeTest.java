@@ -13,6 +13,7 @@ import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
@@ -102,8 +103,14 @@ class ShareSightTradeTest {
     // Portfolio is in NZD
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
     Asset asset = AssetUtils.getAsset("Why", "ME");
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .provider("Test")
+        .build();
 
-    TrnInput trn = shareSightRowProcessor.transform(portfolio, asset, row, "Blah");
+    TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
@@ -126,12 +133,14 @@ class ShareSightTradeTest {
 
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTradeAdapter.comments);
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(getPortfolio("Test", getCurrency("NZD")))
+        .asset(AssetUtils.getAsset("Why", "ME"))
+        .provider("Test")
+        .build();
 
-    TrnInput trn =
-        shareSightRowProcessor.transform(
-            getPortfolio("Test", getCurrency("NZD")),
-            AssetUtils.getAsset("Why", "ME"),
-            row, "twee");
+    TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -149,8 +158,16 @@ class ShareSightTradeTest {
 
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     Asset asset = AssetUtils.getAsset("Why", "ME");
+
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .provider("Test")
+        .build();
+
     TrnInput trn = shareSightRowProcessor
-        .transform(portfolio, asset, row, "blah");
+        .transform(trustedTrnRequest);
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
@@ -168,12 +185,15 @@ class ShareSightTradeTest {
   void is_IllegalDateFound() {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(getPortfolio("Test", getCurrency("NZD")))
+        .asset(AssetUtils.getAsset("Why", "ME"))
+        .provider("Test")
+        .build();
 
     assertThrows(BusinessException.class, () ->
-        shareSightRowProcessor.transform(
-            getPortfolio("Test", getCurrency("NZD")),
-            AssetUtils.getAsset("Why", "ME"),
-            row, "twee"));
+        shareSightRowProcessor.transform(trustedTrnRequest));
   }
 
 }

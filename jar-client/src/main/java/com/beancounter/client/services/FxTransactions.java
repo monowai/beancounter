@@ -12,8 +12,6 @@ import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -28,51 +26,43 @@ public class FxTransactions {
     this.dateUtils = dateUtils;
   }
 
-  public TrnInput applyRates(Portfolio portfolio, TrnInput trn) {
-    return applyRates(portfolio, Collections.singleton(trn)).iterator().next();
-  }
-
-  public Collection<TrnInput> applyRates(Portfolio portfolio,
-                                         Collection<TrnInput> trns) {
+  public FxRequest buildRequest(Portfolio portfolio, TrnInput trn) {
     Map<String, FxRequest> fxRequestMap = new HashMap<>();
-    for (TrnInput trn : trns) {
-      String tradeDate = dateUtils.getDateString(trn.getTradeDate());
+    String tradeDate = dateUtils.getDateString(trn.getTradeDate());
 
-      FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
+    FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
-      IsoCurrencyPair tradePf = pair(trn, trn.getTradePortfolioRate(), portfolio.getCurrency());
-      fxRequest.add(tradePf);
+    fxRequest.setTradePf(
+        pair(trn, trn.getTradePortfolioRate(), portfolio.getCurrency())
+    );
 
-      IsoCurrencyPair tradeBase = pair(trn, trn.getTradeBaseRate(), portfolio.getBase());
-      fxRequest.add(tradeBase);
+    fxRequest.setTradeBase(
+        pair(trn, trn.getTradeBaseRate(), portfolio.getBase())
+    );
 
-      IsoCurrencyPair tradeCash = pair(trn, trn.getTradeCashRate(), get(trn.getCashCurrency()));
-      fxRequest.add(tradeCash);
+    fxRequest.setTradeCash(
+        pair(trn, trn.getTradeCashRate(), get(trn.getCashCurrency()))
+    );
 
-      FxResponse fxResponse = fxRateService.getRates(fxRequest);
-      applyRates(fxResponse.getData(), tradePf, tradeBase, tradeCash, trn);
-    }
-    return trns;
+    return fxRequest;
   }
 
-  private void applyRates(FxPairResults rates,
-                          IsoCurrencyPair tradePortfolio,
-                          IsoCurrencyPair tradeBase,
-                          IsoCurrencyPair tradeCash,
-                          TrnInput trn) {
+  public void setRates(FxPairResults rates,
+                       FxRequest fxRequest,
+                       TrnInput trn) {
 
-    if (tradePortfolio != null && MathUtils.isUnset(trn.getTradePortfolioRate())) {
-      trn.setTradePortfolioRate(rates.getRates().get(tradePortfolio).getRate());
+    if (fxRequest.getTradePf() != null && MathUtils.isUnset(trn.getTradePortfolioRate())) {
+      trn.setTradePortfolioRate(rates.getRates().get(fxRequest.getTradePf()).getRate());
     } else {
       trn.setTradePortfolioRate(FxRate.ONE.getRate());
     }
-    if (tradeBase != null && MathUtils.isUnset(trn.getTradeBaseRate())) {
-      trn.setTradeBaseRate(rates.getRates().get(tradeBase).getRate());
+    if (fxRequest.getTradeBase() != null && MathUtils.isUnset(trn.getTradeBaseRate())) {
+      trn.setTradeBaseRate(rates.getRates().get(fxRequest.getTradeBase()).getRate());
     } else {
       trn.setTradeBaseRate(FxRate.ONE.getRate());
     }
-    if (tradeCash != null && MathUtils.isUnset(trn.getTradeCashRate())) {
-      trn.setTradeCashRate(rates.getRates().get(tradeCash).getRate());
+    if (fxRequest.getTradeCash() != null && MathUtils.isUnset(trn.getTradeCashRate())) {
+      trn.setTradeCashRate(rates.getRates().get(fxRequest.getTradeCash()).getRate());
     } else {
       trn.setTradeCashRate(FxRate.ONE.getRate());
     }
@@ -104,4 +94,10 @@ public class FxTransactions {
     return fxRequest;
   }
 
+  public void setTrnRates(Portfolio portfolio, TrnInput trnInput) {
+    FxRequest fxRequest = buildRequest(portfolio, trnInput);
+    FxResponse fxResponse = fxRateService.getRates(fxRequest);
+    setRates(fxResponse.getData(), fxRequest, trnInput);
+
+  }
 }

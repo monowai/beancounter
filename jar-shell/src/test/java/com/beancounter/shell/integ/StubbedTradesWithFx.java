@@ -11,6 +11,7 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
@@ -77,9 +78,15 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("TEST", getCurrency("NZD"));
 
-    TrnInput trn = trades.from(row, portfolio, asset);
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .build();
 
-    trn = fxTransactions.applyRates(portfolio, trn);
+    TrnInput trn = trades.from(trustedTrnRequest);
+
+    fxTransactions.setTrnRates(portfolio, trn);
 
     assertTransaction(portfolio, trn);
 
@@ -112,9 +119,16 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
 
-    TrnInput trn = trades.from(row, portfolio, asset);
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .build();
 
-    trn = fxTransactions.applyRates(portfolio, trn);
+    TrnInput trn = trades.from(trustedTrnRequest);
+
+
+    fxTransactions.setTrnRates(portfolio, trn);
 
     assertTransaction(portfolio, trn);
 
@@ -144,9 +158,15 @@ class StubbedTradesWithFx {
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
     portfolio.setBase(getCurrency("GBP"));
 
-    TrnInput trn = trades.from(row, portfolio, asset);
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .build();
 
-    trn = fxTransactions.applyRates(portfolio, trn);
+    TrnInput trn = trades.from(trustedTrnRequest);
+
+    fxTransactions.setTrnRates(portfolio, trn);
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
@@ -187,9 +207,16 @@ class StubbedTradesWithFx {
     Portfolio portfolio = getPortfolio("TEST", Currency.builder()
         .code("USD").build());
 
-    TrnInput trn = trades.from(row, portfolio, asset);
+    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(portfolio)
+        .asset(asset)
+        .build();
+
+    TrnInput trn = trades.from(trustedTrnRequest);
+
     trn.setCashCurrency(null);
-    trn = fxTransactions.applyRates(portfolio, trn);
+    fxTransactions.setTrnRates(portfolio, trn);
 
     // No currencies are defined so rate defaults to 1
     assertThat(trn)

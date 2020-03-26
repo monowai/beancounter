@@ -3,8 +3,8 @@ package com.beancounter.client.sharesight;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class ShareSightDividendAdapater implements TrnAdapter {
+public class ShareSightDividendAdapter implements TrnAdapter {
 
   public static final int code = 0;
   public static final int name = 1;
@@ -40,17 +40,17 @@ public class ShareSightDividendAdapater implements TrnAdapter {
   private ShareSightService shareSightService;
 
   @Autowired
-  public ShareSightDividendAdapater(ShareSightService shareSightService) {
+  public ShareSightDividendAdapter(ShareSightService shareSightService) {
     this.shareSightService = shareSightService;
   }
 
   @Override
-  public TrnInput from(List<String> row, Portfolio portfolio, Asset asset) {
-
+  public TrnInput from(TrustedTrnRequest trustedTrnRequest) {
+    List<String> row = trustedTrnRequest.getRow();
     try {
       BigDecimal tradeRate = shareSightService.parseDouble(row.get(fxRate));
       return TrnInput.builder()
-          .asset(asset.getId())
+          .asset(trustedTrnRequest.getAsset().getId())
           .tradeCurrency(row.get(currency))
           .trnType(TrnType.DIVI)
           .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))

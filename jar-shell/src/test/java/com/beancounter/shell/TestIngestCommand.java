@@ -61,7 +61,7 @@ public class TestIngestCommand {
 
     @Override
     public void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter) {
-
+      // Noop
     }
 
     @Override

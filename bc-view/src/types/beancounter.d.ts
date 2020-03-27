@@ -161,4 +161,3 @@ interface BcResult<T> {
   data: T | any;
   error: AxiosError | any;
 }
-

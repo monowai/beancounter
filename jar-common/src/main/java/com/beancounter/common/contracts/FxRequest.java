@@ -17,8 +17,14 @@ import lombok.NoArgsConstructor;
 public class FxRequest {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String rateDate;
-
   private Collection<IsoCurrencyPair> pairs;
+
+  @JsonIgnore
+  private IsoCurrencyPair tradePf;
+  @JsonIgnore
+  private IsoCurrencyPair tradeCash;
+  @JsonIgnore
+  private IsoCurrencyPair tradeBase;
 
   @JsonIgnore
   public FxRequest add(IsoCurrencyPair isoCurrencyPair) {
@@ -37,24 +43,15 @@ public class FxRequest {
     return this;
   }
 
-  @JsonIgnore
-  private IsoCurrencyPair tradePf;
-
   public void setTradePf(IsoCurrencyPair tradePf) {
     this.tradePf = tradePf;
     add(tradePf);
   }
 
-  @JsonIgnore
-  private IsoCurrencyPair tradeBase;
-
   public void setTradeBase(IsoCurrencyPair tradeBase) {
     this.tradeBase = tradeBase;
     add(tradeBase);
   }
-
-  @JsonIgnore
-  private IsoCurrencyPair tradeCash;
 
   public void setTradeCash(IsoCurrencyPair tradeCash) {
     this.tradeCash = tradeCash;

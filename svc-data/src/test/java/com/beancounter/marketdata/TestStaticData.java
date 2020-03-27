@@ -14,7 +14,6 @@ import com.beancounter.marketdata.providers.wtd.WtdService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,10 +52,10 @@ class TestStaticData {
     Market nzx = marketService.getMarket("NZX");
     Market asx = marketService.getMarket("ASX");
     Market nasdaq = marketService.getMarket("NASDAQ");
-    Assertions.assertThat(marketService.getMarket("nys")).isEqualTo(nyse);
-    Assertions.assertThat(marketService.getMarket("NZ")).isEqualTo(nzx);
-    Assertions.assertThat(marketService.getMarket("AX")).isEqualTo(asx);
-    Assertions.assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq);
+    assertThat(marketService.getMarket("nys")).isEqualTo(nyse);
+    assertThat(marketService.getMarket("NZ")).isEqualTo(nzx);
+    assertThat(marketService.getMarket("AX")).isEqualTo(asx);
+    assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq);
   }
 
   @Test

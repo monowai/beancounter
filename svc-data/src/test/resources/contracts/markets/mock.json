@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "code": "MOCK",
+      "currency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "UTC"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "code": "NYSE",
+      "currency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "US/Eastern"
+    }
+  ]
+}

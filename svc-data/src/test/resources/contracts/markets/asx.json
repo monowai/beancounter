@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "code": "ASX",
+      "currency": {
+        "code": "AUD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "Australia/Sydney"
+    }
+  ]
+}

@@ -104,11 +104,15 @@ beancounter:
       id: NASDAQ
       timezoneId: US/Eastern
       currencyId: USD
+      aliases:
+        ShareSight: NAS
 
     - code: NYSE
       id: NYSE
       timezoneId: US/Eastern
       currencyId: USD
+      aliases:
+        ShareSight: NYS
 
     - code: AMEX
       id: AMEX

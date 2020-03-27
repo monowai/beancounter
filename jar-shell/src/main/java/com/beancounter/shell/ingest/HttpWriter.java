@@ -2,7 +2,6 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.FxRateService;
 import com.beancounter.client.services.FxTransactions;
 import com.beancounter.client.services.TrnService;
 import com.beancounter.client.sharesight.ShareSightFactory;
@@ -24,7 +23,6 @@ public class HttpWriter implements TrnWriter {
 
   Collection<TrnInput> trnInputs = new ArrayList<>();
   private FxTransactions fxTransactions;
-  private FxRateService fxRateService;
   private TrnService trnService;
   private RowAdapter rowAdapter;
   private ShareSightFactory shareSightFactory;
@@ -32,11 +30,6 @@ public class HttpWriter implements TrnWriter {
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
     this.fxTransactions = fxTransactions;
-  }
-
-  @Autowired
-  void setFxRateService(FxRateService fxRateService) {
-    this.fxRateService = fxRateService;
   }
 
   @Autowired

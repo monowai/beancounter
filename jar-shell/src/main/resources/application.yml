@@ -16,18 +16,13 @@ spring:
     serialization:
       INDENT_OUTPUT: true
 
+  cache:
+    cache-names: market
+
 auth:
   uri: "http://keycloak:9620/auth"
   realm: "bc-dev"
   client: "bc-dev"
-
-beancounter:
-  exchanges:
-    aliases:
-      NYS: NYSE
-      NAS: NASDAQ
-      AX: ASX
-      NZ: NZX
 
 logging:
   level:

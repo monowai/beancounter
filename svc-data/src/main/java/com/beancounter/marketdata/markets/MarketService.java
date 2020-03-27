@@ -4,9 +4,8 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.config.StaticConfig;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,30 +20,67 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MarketService {
 
-  private StaticConfig staticConfig;
+  private Map<String, Market> markets;
+  private Map<String, String> aliases = new HashMap<>();
+
+  /**
+   * Return the Exchange code to use for the supplied input.
+   *
+   * @param input code that *might* have an alias.
+   * @return the alias or input if no exception is defined.
+   */
+  public String resolveAlias(String input) {
+    String alias = aliases.get(input.toUpperCase());
+    if (alias == null) {
+      return input;
+    } else {
+      return alias;
+    }
+
+  }
 
   /**
    * Resolves a market via its code property.
    *
-   * @param code non-null market
+   * @param marketCode non-null market code - can also be an alias
    * @return resolved market
    */
-  public Market getMarket(@NotNull String code) {
-    Objects.requireNonNull(code);
-    Market market = staticConfig.getMarketData().get(code.toUpperCase());
+  public Market getMarket(String marketCode) {
+    if (marketCode == null) {
+      throw new BusinessException("Null Market Code");
+    }
+    Market market = markets.get(marketCode.toUpperCase());
     if (market == null) {
-      throw new BusinessException(String.format("Market not found %s", code));
+      String errorMessage = String.format("Unable to resolve market code %s", marketCode);
+      String byAlias = resolveAlias(marketCode);
+      if (byAlias == null) {
+        throw new BusinessException(errorMessage);
+      }
+      market = markets.get(byAlias);
+      if (market == null) {
+        throw new BusinessException(errorMessage);
+      }
     }
     return market;
   }
 
   public MarketResponse getMarkets() {
-    Map<String, Market> markets = staticConfig.getMarketData();
+
     return MarketResponse.builder().data(markets.values()).build();
   }
 
   @Autowired
   public void setMarkets(StaticConfig staticConfig) {
-    this.staticConfig = staticConfig;
+    this.markets = staticConfig.getMarketData();
+    for (String marketCode : markets.keySet()) {
+      Market market = markets.get(marketCode);
+      if (!market.getAliases().isEmpty()) {
+        for (String provider : market.getAliases().keySet()) {
+          this.aliases
+              .put(market.getAliases().get(provider).toUpperCase(), marketCode.toUpperCase());
+        }
+      }
+    }
+
   }
 }

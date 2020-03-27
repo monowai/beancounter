@@ -14,6 +14,7 @@ import com.beancounter.marketdata.providers.wtd.WtdService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +45,18 @@ class TestStaticData {
     this.marketService = marketService;
     this.staticConfig = staticConfig;
     this.currencyService = currencyService;
+  }
+
+  @Test
+  void is_FoundForAlias() {
+    Market nyse = marketService.getMarket("NYSE");
+    Market nzx = marketService.getMarket("NZX");
+    Market asx = marketService.getMarket("ASX");
+    Market nasdaq = marketService.getMarket("NASDAQ");
+    Assertions.assertThat(marketService.getMarket("nys")).isEqualTo(nyse);
+    Assertions.assertThat(marketService.getMarket("NZ")).isEqualTo(nzx);
+    Assertions.assertThat(marketService.getMarket("AX")).isEqualTo(asx);
+    Assertions.assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq);
   }
 
   @Test

@@ -8,17 +8,15 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import io.github.resilience4j.retry.annotation.Retry;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 @Slf4j
@@ -29,32 +27,10 @@ public class StaticService {
   public StaticGateway staticGateway;
   private TokenService tokenService;
 
-  @Getter
-  @Setter
-  private Map<String, String> aliases;
-  private Map<String, Market> marketMap = new HashMap<>();
-
-
   StaticService(StaticGateway staticGateway,
                 TokenService tokenService) {
     this.staticGateway = staticGateway;
     this.tokenService = tokenService;
-  }
-
-  /**
-   * Return the Exchange code to use for the supplied input.
-   *
-   * @param input code that *might* have an alias.
-   * @return the alias or input if no exception is defined.
-   */
-  public String resolveAlias(String input) {
-    String alias = aliases.get(input);
-    if (alias == null) {
-      return input;
-    } else {
-      return alias;
-    }
-
   }
 
   @Retry(name = "data")
@@ -79,44 +55,35 @@ public class StaticService {
     throw new BusinessException(String.format("Unable to resolve the currency %s", currencyCode));
   }
 
-  private Market get(String key) {
-    if (marketMap.isEmpty()) {
-      Collection<Market> markets = staticGateway.getMarkets(tokenService.getBearerToken())
-          .getData();
-      for (Market market : markets) {
-        marketMap.put(market.getCode(), market);
-      }
-    }
-    return marketMap.get(key);
-  }
-
+  @Cacheable("market")
   public Market getMarket(String marketCode) {
     if (marketCode == null) {
       throw new BusinessException("Null Market Code");
     }
-    Market market = get(marketCode);
-    if (market == null) {
-      String errorMessage = String.format("Unable to resolve market code %s", marketCode);
-      String byAlias = resolveAlias(marketCode);
-      if (byAlias == null) {
-        throw new BusinessException(errorMessage);
-      }
-      market = get(byAlias);
-      if (market == null) {
-        throw new BusinessException(errorMessage);
-      }
+    try {
+      MarketResponse marketResponse =
+          staticGateway.getMarketByCode(tokenService.getBearerToken(), marketCode.toUpperCase());
+      return marketResponse.getData().iterator().next();
+    } catch (RuntimeException re) {
+      throw new BusinessException("Unable to resolve market code " + marketCode);
     }
-    return market;
+
   }
 
   @FeignClient(name = "static",
       url = "${marketdata.url:http://localhost:9510/api}")
   public interface StaticGateway {
     @GetMapping(value = "/markets", produces = {MediaType.APPLICATION_JSON_VALUE})
-    MarketResponse getMarkets(@RequestHeader("Authorization") String bearerToken);
+    MarketResponse getMarkets(
+        @RequestHeader("Authorization") String bearerToken);
+
+    @GetMapping(value = "/markets/{code}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    MarketResponse getMarketByCode(
+        @RequestHeader("Authorization") String bearerToken, @PathVariable String code);
 
     @GetMapping(value = "/currencies", produces = {MediaType.APPLICATION_JSON_VALUE})
-    CurrencyResponse getCurrencies(@RequestHeader("Authorization") String bearerToken);
+    CurrencyResponse getCurrencies(
+        @RequestHeader("Authorization") String bearerToken);
 
   }
 

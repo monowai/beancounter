@@ -228,6 +228,95 @@ response:
     Content-Type: application/json
 
 ---
+name: errorMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/ERR
+response:
+  status: 400
+#  bodyFromFile: "markets/error.json"
+#  headers:
+#    Content-Type: application/json
+
+---
+name: nasdaqMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/NASDAQ
+response:
+  status: 200
+  bodyFromFile: "markets/nasdaq.json"
+  headers:
+    Content-Type: application/json
+---
+name: nasMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/NAS
+response:
+  status: 200
+  bodyFromFile: "markets/nasdaq.json"
+  headers:
+    Content-Type: application/json
+---
+name: nyseMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/NYSE
+response:
+  status: 200
+  bodyFromFile: "markets/nyse.json"
+  headers:
+    Content-Type: application/json
+---
+name: nysMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/NYS
+response:
+  status: 200
+  bodyFromFile: "markets/nyse.json"
+  headers:
+    Content-Type: application/json
+---
+name: asxMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/ASX
+response:
+  status: 200
+  bodyFromFile: "markets/asx.json"
+  headers:
+    Content-Type: application/json
+---
+name: axMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/AX
+response:
+  status: 200
+  bodyFromFile: "markets/asx.json"
+  headers:
+    Content-Type: application/json
+---
+name: mockMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/MOCK
+response:
+  status: 200
+  bodyFromFile: "markets/mock.json"
+  headers:
+    Content-Type: application/json
+---
 name: nzdUsd
 request:
   method: POST

@@ -24,16 +24,20 @@ class TestFx {
     IsoCurrencyPair pair = IsoCurrencyPair.builder().from("THIS").to("THAT").build();
 
     FxRequest fxRequest = FxRequest.builder().build();
-    fxRequest.add(pair);
+    fxRequest.setTradeBase(pair);
+    fxRequest.setTradePf(pair);
+    fxRequest.setTradeCash(pair);
     fxRequest.add(null); // shouldn't carry null
+    assertThat(fxRequest.getPairs()).size().isEqualTo(1);
 
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(fxRequest);
     FxRequest fromJson = mapper.readValue(json, FxRequest.class);
-    assertThat(fromJson)
-        .usingRecursiveComparison().isEqualTo(fxRequest);
 
     assertThat(fromJson.getPairs()).hasSize(1);
+    assertThat(fromJson.getTradeBase()).isNull();
+    assertThat(fromJson.getTradePf()).isNull();
+    assertThat(fromJson.getTradeCash()).isNull();
 
   }
 

@@ -102,9 +102,6 @@ public class ShareSightTradeAdapter implements TrnAdapter {
           .build();
     } catch (ParseException e) {
       String message = e.getMessage();
-      if (e.getCause() != null) {
-        message = e.getCause().getMessage();
-      }
       log.error("{} - {} Parsing row {}",
           message,
           "TRADE",

@@ -89,9 +89,6 @@ public class ShareSightDividendAdapter implements TrnAdapter {
           ;
     } catch (NumberFormatException | ParseException e) {
       String message = e.getMessage();
-      if (e.getCause() != null) {
-        message = e.getCause().getMessage();
-      }
       log.error("{} - {} Parsing row {}",
           message,
           "DIVI",

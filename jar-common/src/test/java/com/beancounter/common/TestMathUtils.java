@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 class TestMathUtils {
@@ -94,5 +96,12 @@ class TestMathUtils {
     assertThat(costBasis.divide(total, MathUtils.getMathContext()))
         .isEqualTo(new BigDecimal("1.801801802"));
 
+  }
+
+  @Test
+  void is_NumberFormat() throws Exception {
+    NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
+    BigDecimal result = MathUtils.parse("1,000.99", numberFormat);
+    assertThat(result).isEqualTo("1000.99");
   }
 }

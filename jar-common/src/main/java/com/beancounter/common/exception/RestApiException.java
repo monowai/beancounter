@@ -1,6 +1,5 @@
 package com.beancounter.common.exception;
 
-import com.beancounter.common.exception.SpringExceptionMessage;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
+import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
@@ -17,6 +19,28 @@ import org.junit.jupiter.api.Test;
 
 
 class TestAsset {
+  private ObjectMapper om = new ObjectMapper();
+
+  @Test
+  void is_PriceRequestForAsset() {
+    PriceRequest priceRequest = PriceRequest.of(AssetUtils
+        .getAsset("EBAY", "NASDAQ"))
+        .date("2019-10-18").build();
+
+    assertThat(priceRequest.getAssets()).hasSize(1);
+  }
+
+  @Test
+  void is_AssetResponse() throws Exception {
+    AssetResponse assetResponse = AssetResponse.builder()
+        .data(AssetUtils.getAsset("Blah", "as")).build();
+    assetResponse.getData().setMarketCode(null);// JsonIgnore
+    String json = om.writeValueAsString(assetResponse);
+    AssetResponse fromJson = om.readValue(json, AssetResponse.class);
+
+    assertThat(fromJson).isEqualToComparingFieldByField(assetResponse);
+  }
+
   @Test
   void assetRequestSerializes() throws Exception {
     Asset asset = AssetUtils.getJsonAsset("AAA", "BBB");
@@ -29,7 +53,7 @@ class TestAsset {
 
     assertThat(assetRequest.getData()).containsKeys(AssetUtils.toKey(asset));
 
-    ObjectMapper om = new ObjectMapper();
+
     String json = om.writeValueAsString(assetRequest);
 
     AssetRequest fromJson = om.readValue(json, AssetRequest.class);

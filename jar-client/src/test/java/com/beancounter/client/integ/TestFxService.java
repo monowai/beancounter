@@ -4,10 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.services.ClientConfig;
 import com.beancounter.client.services.FxRateService;
+import com.beancounter.client.services.FxTransactions;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
+import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.IsoCurrencyPair;
+import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.PortfolioUtils;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.junit.jupiter.api.Test;
@@ -26,6 +32,9 @@ public class TestFxService {
 
   @Autowired
   private FxRateService fxRateService;
+
+  @Autowired
+  private FxTransactions fxTransactions;
 
   @Test
   void is_FxContractHonoured() {
@@ -75,5 +84,27 @@ public class TestFxService {
     FxResponse fxResponse = fxRateService.getRates(FxRequest.builder().build());
     assertThat(fxResponse).isNotNull();
     assertThat(fxResponse.getData().getRates()).isEmpty();
+  }
+
+  @Test
+  void is_fxTransactionsSettingCorrectRates() {
+    TrnInput trnInput = TrnInput.builder()
+        .asset("MSFT")
+        .tradeCurrency("USD")
+        .cashCurrency("USD")
+        .tradeDate(new DateUtils().getDate("2019-07-26"))
+        .build();
+    Portfolio portfolio = PortfolioUtils.getPortfolio("ABC");
+    FxRequest request = fxTransactions.buildRequest(portfolio, trnInput);
+    assertThat(request).hasFieldOrProperty("tradePf");
+
+    fxTransactions.setTrnRates(portfolio, trnInput);
+
+    assertThat(trnInput)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
+        .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
+        .hasFieldOrPropertyWithValue("tradePortfolioRate", new BigDecimal("0.66428103"));
+
   }
 }

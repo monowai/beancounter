@@ -2,5 +2,5 @@ ignore:
   - svc-position/src/main/java/com/beancounter/position/PositionBoot.java
   - svc-data/src/main/java/com/beancounter/marketdata/MarketDataBoot.java
   - jar-shell/src/main/java/com/beancounter/shell/ShellRunner.java
-  - jar-shell/src/main/java/com/beancounter/shell/reader/SheetReader.java
-  - jar-shell/src/main/java/com/beancounter/shell/reader/GoogleTransport
+  - jar-shell/src/main/java/com/beancounter/shell/google/GoogleAuthConfig.java
+  - - jar-shell/src/main/java/com/beancounter/shell/google/SheetIngester.java

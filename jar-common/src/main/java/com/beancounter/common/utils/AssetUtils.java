@@ -60,12 +60,14 @@ public class AssetUtils {
    * @return simple Asset.
    */
   public Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
-    return getAsset(
+    Asset asset = getAsset(
         assetCode,
         Market.builder()
             .code(marketCode.toUpperCase())
             .currency(Currency.builder().code("USD").build())
             .build());
+    asset.setMarketCode(null);
+    return asset;
   }
 
   /**
@@ -76,12 +78,15 @@ public class AssetUtils {
    * @return asset on a market
    */
   public Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
-    return Asset.builder()
+    Asset asset = Asset.builder()
         .id(assetCode)
         .code(assetCode)
         .market(market)
         .marketCode(market.getCode().toUpperCase())
         .build();
+    asset.setMarketCode(null);
+    return asset;
+
   }
 
   public Map<String, Collection<Asset>> split(Collection<Asset> assets) {

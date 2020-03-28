@@ -3,6 +3,7 @@ package com.beancounter.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.RegistrationRequest;
+import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.model.SystemUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
@@ -37,6 +38,12 @@ public class TestRegistration {
 
     assertThat(objectMapper.readValue(json, SystemUser.class))
         .isEqualToComparingFieldByField(systemUser);
+
+    RegistrationResponse response = RegistrationResponse.builder().data(systemUser).build();
+
+    json = objectMapper.writeValueAsString(response);
+    assertThat(objectMapper.readValue(json, RegistrationResponse.class))
+        .isEqualToComparingFieldByField(response);
   }
 
 }

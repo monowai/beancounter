@@ -26,6 +26,7 @@ public class TrnId implements Serializable {
   private String batch;
   private String id;
 
+  // Fill in any missing default values from the supplied Id
   public static TrnId from(TrnId id) {
     TrnId result = TrnId.builder()
         .build();

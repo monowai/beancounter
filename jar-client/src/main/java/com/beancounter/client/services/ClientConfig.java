@@ -1,6 +1,7 @@
 package com.beancounter.client.services;
 
 import com.beancounter.auth.client.TokenService;
+import com.beancounter.common.utils.DateUtils;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -12,6 +13,8 @@ import org.springframework.context.annotation.Import;
 @Import({
     AssetService.class,
     FxRateService.class,
+    FxTransactions.class,
+    DateUtils.class,
     StaticService.class,
     PriceService.class,
     PortfolioService.class,

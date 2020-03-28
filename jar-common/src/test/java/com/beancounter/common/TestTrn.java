@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.TrnId;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Trn;
@@ -18,14 +19,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class TestTrn {
+  private ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void is_TransactionRequestSerializing() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-
     TrnInput trnInput = TrnInput.builder()
         .id(TrnId.builder().batch("1").id("1").provider("ABC").build())
         .asset(AssetUtils.toKey("MSFT", "NASDAQ"))
@@ -60,7 +61,6 @@ class TestTrn {
   @Test
   void is_TransactionResponseSerializing() throws Exception {
     TrnType trnType = TrnType.BUY;
-    ObjectMapper mapper = new ObjectMapper();
 
     Asset asset = Asset.builder().code(
         "Test")
@@ -100,5 +100,38 @@ class TestTrn {
 
     TrnId id = TrnId.builder().provider("provider").batch("batch").id("456").build();
     assertThat(TrnId.from(id)).isEqualToComparingFieldByField(id);
+  }
+
+  @Test
+  void is_TrustedTrnRequestValid() throws Exception {
+    List<String> row = new ArrayList<>();
+    row.add("ABC");
+    row.add("ABC");
+
+    TrustedTrnRequest ttr = TrustedTrnRequest.builder()
+        .asset(AssetUtils.getAsset("ABC", "MOCK"))
+        .portfolio(PortfolioUtils.getPortfolio("TWEE"))
+        .provider("BLAH")
+        .row(row)
+        .build();
+
+    String json = mapper.writeValueAsString(ttr);
+    TrustedTrnRequest fromJson = mapper.readValue( json, TrustedTrnRequest.class);
+    assertThat(fromJson).isEqualToComparingFieldByField(ttr);
+  }
+
+  @Test
+  void is_TrnIdDefaults() {
+    TrnId trnId = TrnId.builder().build();
+    assertThat(trnId).hasAllNullFieldsOrProperties();
+    // No values, so defaults should be created
+    assertThat(TrnId.from(trnId)).hasNoNullFieldsOrProperties();
+
+    trnId = TrnId.builder().id("ABC").batch("ABC").provider("ABC").build();
+    assertThat(TrnId.from(trnId))
+        .hasFieldOrPropertyWithValue("batch", "ABC")
+        .hasFieldOrPropertyWithValue("provider", "ABC")
+        .hasFieldOrPropertyWithValue("id", "ABC");
+
   }
 }

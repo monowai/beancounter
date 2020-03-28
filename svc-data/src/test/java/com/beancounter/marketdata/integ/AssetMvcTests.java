@@ -97,7 +97,6 @@ class AssetMvcTests {
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
         .hasFieldOrPropertyWithValue("code", firstAsset.getCode().toUpperCase())
-        .hasFieldOrPropertyWithValue("market.code", firstAsset.getMarketCode().toUpperCase())
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 
@@ -106,7 +105,6 @@ class AssetMvcTests {
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
         .hasFieldOrPropertyWithValue("code", secondAsset.getCode().toUpperCase())
-        .hasFieldOrPropertyWithValue("market.code", secondAsset.getMarketCode().toUpperCase())
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
 

@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Portfolio;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class HttpWriter implements TrnWriter {
 
   Collection<TrnInput> trnInputs = new ArrayList<>();
+  private Portfolio portfolio;
   private FxTransactions fxTransactions;
   private TrnService trnService;
   private RowAdapter rowAdapter;
@@ -48,20 +50,18 @@ public class HttpWriter implements TrnWriter {
   }
 
   @Override
-  public void write(IngestionRequest ingestionRequest, List<String> row) {
+  public void write(TrustedTrnRequest trustedTrnRequest) {
+    List<String> row = trustedTrnRequest.getRow();
     TrnAdapter adapter = shareSightFactory.adapter(row);
     Asset asset = adapter.resolveAsset(row);
     if (asset == null) {
       return;
     }
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
-        .portfolio(ingestionRequest.getPortfolio())
-        .asset(asset)
-        .row(row)
-        .provider(ingestionRequest.getProvider() == null
-            ? "SHEETS" : ingestionRequest.getProvider())
-        .build();
+    trustedTrnRequest.setAsset(asset);
+    trustedTrnRequest.setProvider(trustedTrnRequest.getProvider() == null
+        ? "SHEETS" : trustedTrnRequest.getProvider());
 
+    this.portfolio = trustedTrnRequest.getPortfolio();
     TrnInput trnInput = rowAdapter.transform(trustedTrnRequest);
 
     if (trnInput != null) {
@@ -71,20 +71,20 @@ public class HttpWriter implements TrnWriter {
   }
 
   @Override
-  public void flush(IngestionRequest ingestionRequest) {
+  public void flush() {
     log.info("Back filling FX rates...");
     int rows;
     if (trnInputs != null && !trnInputs.isEmpty()) {
       rows = trnInputs.size();
       for (TrnInput trnInput : trnInputs) {
-        fxTransactions.setTrnRates(ingestionRequest.getPortfolio(), trnInput);
+        fxTransactions.setTrnRates(portfolio, trnInput);
       }
       log.info("Writing {} transactions to portfolio {}",
           rows,
-          ingestionRequest.getPortfolio().getCode());
+          portfolio.getCode());
 
       TrnRequest trnRequest = TrnRequest.builder()
-          .portfolioId(ingestionRequest.getPortfolio().getId())
+          .portfolioId(portfolio.getId())
           .data(trnInputs)
           .build();
 
@@ -96,6 +96,7 @@ public class HttpWriter implements TrnWriter {
     if (trnInputs != null) {
       trnInputs.clear();
     }
+    portfolio = null;
     log.info("Complete!");
   }
 

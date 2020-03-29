@@ -22,7 +22,6 @@ public class TestCsvImport {
     portfolio.setId("test");
     csvIngester.prepare(
         IngestionRequest.builder()
-            .portfolio(portfolio)
             .file("/trades.csv").build(),
         new HttpWriter());
     List<List<String>> results = csvIngester.getValues();

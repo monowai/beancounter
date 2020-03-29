@@ -2,6 +2,7 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.client.services.PortfolioService;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Portfolio;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +50,6 @@ public abstract class AbstractIngester implements Ingester {
       throw new BusinessException(String.format("Unknown portfolio code %s. Have you created it?",
           ingestionRequest.getPortfolioCode()));
     }
-    ingestionRequest.setPortfolio(portfolio);
     TrnWriter writer = getWriter(ingestionRequest.getWriter());
     if (writer == null) {
       throw new BusinessException(
@@ -61,10 +61,15 @@ public abstract class AbstractIngester implements Ingester {
     List<List<String>> rows = getValues();
 
     for (List<String> row : rows) {
-      writer.write(ingestionRequest, row);
+      TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
+          .row(row)
+          .portfolio(portfolio)
+          .provider(ingestionRequest.getProvider())
+          .build();
+      writer.write(trnRequest);
     }
 
-    writer.flush(ingestionRequest);
+    writer.flush();
   }
 
   public abstract void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter);

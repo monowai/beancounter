@@ -1,11 +1,14 @@
 package com.beancounter.shell.ingest;
 
-import java.util.List;
+import com.beancounter.common.input.TrustedTrnRequest;
 
 public interface TrnWriter {
-  void write(IngestionRequest ingestionRequest, List<String> row);
+  void write(TrustedTrnRequest trnRequest);
 
-  void flush(IngestionRequest ingestionRequest);
+  /**
+   * if you're writer supports batching, this tells you when we're done processing.
+   */
+  void flush();
 
   String id();
 }

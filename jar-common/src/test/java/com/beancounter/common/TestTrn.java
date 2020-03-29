@@ -116,7 +116,7 @@ class TestTrn {
         .build();
 
     String json = mapper.writeValueAsString(ttr);
-    TrustedTrnRequest fromJson = mapper.readValue( json, TrustedTrnRequest.class);
+    TrustedTrnRequest fromJson = mapper.readValue(json, TrustedTrnRequest.class);
     assertThat(fromJson).isEqualToComparingFieldByField(ttr);
   }
 

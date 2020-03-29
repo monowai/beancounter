@@ -4,9 +4,7 @@ import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
-import com.beancounter.shell.ingest.IngestionRequest;
 import com.beancounter.shell.ingest.TrnWriter;
-import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -23,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class KafkaWriter implements TrnWriter {
 
-  private static final String topicTrnCsv = "bc-trn-csv";
+  public static final String topicTrnCsv = "bc-trn-csv";
   private final KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer;
   private ShareSightFactory shareSightFactory;
 
@@ -45,24 +43,20 @@ public class KafkaWriter implements TrnWriter {
 
   @Override
   @SneakyThrows
-  public void write(IngestionRequest ingestionRequest, List<String> row) {
-    TrnAdapter adapter = shareSightFactory.adapter(row);
-    Asset asset = adapter.resolveAsset(row);
+  public void write(TrustedTrnRequest trustedTrnRequest) {
+    TrnAdapter adapter = shareSightFactory.adapter(trustedTrnRequest.getRow());
+    Asset asset = adapter.resolveAsset(trustedTrnRequest.getRow());
     if (asset == null) {
       return;
     }
 
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
-        .portfolio(ingestionRequest.getPortfolio())
-        .asset(asset)
-        .provider(ingestionRequest.getProvider())
-        .row(row).build();
+    trustedTrnRequest.setAsset(asset);
 
     kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnRequest);
   }
 
   @Override
-  public void flush(IngestionRequest ingestionRequest) {
+  public void flush() {
     //Noop
   }
 

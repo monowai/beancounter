@@ -21,6 +21,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.marketdata.utils.SysUserUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,8 +65,7 @@ class PortfolioMvcTests {
 
   @Test
   void is_findingByIdCode() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .build();
+    SystemUser user = SysUserUtils.getSystemUser();
 
     PortfolioInput portfolio = PortfolioInput.builder()
         .code(UUID.randomUUID().toString().toUpperCase())
@@ -164,8 +164,7 @@ class PortfolioMvcTests {
 
   @Test
   void is_persistAndFindPortfoliosWorking() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .build();
+    SystemUser user = SysUserUtils.getSystemUser();
 
     Jwt token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token, user);
@@ -214,8 +213,7 @@ class PortfolioMvcTests {
 
   @Test
   void is_OwnerHonoured() throws Exception {
-    SystemUser userA = SystemUser.builder()
-        .build();
+    SystemUser userA = SysUserUtils.getSystemUser();
 
     PortfolioInput portfolioInput = PortfolioInput.builder()
         .code(UUID.randomUUID().toString())
@@ -347,8 +345,7 @@ class PortfolioMvcTests {
         .currency("NZD")
         .build();
 
-    SystemUser userA = SystemUser.builder()
-        .build();
+    SystemUser userA = SysUserUtils.getSystemUser();
 
     // Add a token and repeat the call
     Jwt tokenA = TokenUtils.getUserToken(userA);
@@ -388,8 +385,7 @@ class PortfolioMvcTests {
   @SneakyThrows
   @Test
   void is_UniqueConstraintInPlace() {
-    SystemUser userA = SystemUser.builder()
-        .build();
+    SystemUser userA = SysUserUtils.getSystemUser();
 
     PortfolioInput portfolio = PortfolioInput.builder()
         .name("NZD Portfolio")
@@ -424,8 +420,7 @@ class PortfolioMvcTests {
   @SneakyThrows
   @Test
   void is_UpdatePortfolioWorking() {
-    SystemUser user = SystemUser.builder()
-        .build();
+    SystemUser user = SysUserUtils.getSystemUser();
 
     Jwt token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token, user);

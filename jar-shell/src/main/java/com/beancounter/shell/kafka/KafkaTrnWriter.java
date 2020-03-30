@@ -19,14 +19,14 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class KafkaWriter implements TrnWriter {
+public class KafkaTrnWriter implements TrnWriter {
 
   public static final String topicTrnCsv = "bc-trn-csv";
   private final KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer;
   private ShareSightFactory shareSightFactory;
 
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-  public KafkaWriter(KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer) {
+  public KafkaTrnWriter(KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer) {
     this.kafkaCsvTrnProducer = kafkaCsvTrnProducer;
   }
 
@@ -34,7 +34,6 @@ public class KafkaWriter implements TrnWriter {
   void setShareSightFactory(ShareSightFactory shareSightFactory) {
     this.shareSightFactory = shareSightFactory;
   }
-
 
   @Bean
   public NewTopic topicTrnCvs() {
@@ -49,9 +48,7 @@ public class KafkaWriter implements TrnWriter {
     if (asset == null) {
       return;
     }
-
     trustedTrnRequest.setAsset(asset);
-
     kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnRequest);
   }
 

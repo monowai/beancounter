@@ -5,6 +5,7 @@ import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.TrnRequest;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.marketdata.service.FxRateService;
@@ -50,8 +51,8 @@ public class TrnKafka {
     return new NewTopic(topicTrnCsv, 1, (short) 1);
   }
 
-  @KafkaListener(topics = "bc-trn-csv")
-  public void processMessage(TrustedTrnRequest trustedRequest) {
+  @KafkaListener(topics = topicTrnCsv)
+  public TrnResponse processMessage(TrustedTrnRequest trustedRequest) {
 
     TrnInput trnInput = rowAdapter.transform(trustedRequest);
 
@@ -64,7 +65,7 @@ public class TrnKafka {
         .data(Collections.singletonList(trnInput))
         .build();
 
-    trnService.save(trustedRequest.getPortfolio(), trnRequest);
+    return trnService.save(trustedRequest.getPortfolio(), trnRequest);
 
   }
 

@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
@@ -49,7 +49,7 @@ class ShareSightTradeTest {
   private ShareSightRowAdapter shareSightRowProcessor;
 
   @Autowired
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
 
   @Autowired
   private ShareSightFactory shareSightFactory;

@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Asset;
@@ -68,7 +68,7 @@ class StubbedFxValuations {
   private StaticService staticService;
 
   @Autowired
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
 
   private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 

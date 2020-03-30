@@ -1,6 +1,6 @@
 package com.beancounter.shell.integ;
 
-import static com.beancounter.shell.kafka.KafkaWriter.topicTrnCsv;
+import static com.beancounter.shell.kafka.KafkaTrnWriter.topicTrnCsv;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
@@ -10,7 +10,7 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
-import com.beancounter.shell.kafka.KafkaWriter;
+import com.beancounter.shell.kafka.KafkaTrnWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +38,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     topics = {topicTrnCsv},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
+        "log.dir=./kafka",
         "listeners=PLAINTEXT://localhost:${kafka.broker.port}",
         "auto.create.topics.enable=true"}
 )
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
-    KafkaWriter.class,
+    KafkaTrnWriter.class,
     ShareSightConfig.class,
     ClientConfig.class,
     KafkaAutoConfiguration.class
@@ -53,10 +54,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class TrnCsvKafka {
 
   @Autowired
-  private EmbeddedKafkaBroker embeddedKafka;
+  private EmbeddedKafkaBroker embeddedKafkaBroker;
 
   @Autowired
-  private KafkaWriter kafkaWriter;
+  private KafkaTrnWriter kafkaTrnWriter;
 
   @MockBean
   private ShareSightFactory shareSightFactory;
@@ -71,15 +72,15 @@ public class TrnCsvKafka {
         .thenReturn(AssetUtils.getAsset("ABC", "ABC"));
     row.add("ABC");
     Mockito.when(shareSightFactory.adapter(row)).thenReturn(trnAdapter);
-    log.info (embeddedKafka.getBrokersAsString());
+    log.debug(embeddedKafkaBroker.getBrokersAsString());
     Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("test", "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("shell-test", "false", embeddedKafkaBroker);
 
     DefaultKafkaConsumerFactory<String, String> cf =
         new DefaultKafkaConsumerFactory<>(consumerProps);
 
     consumer = cf.createConsumer();
-    embeddedKafka.consumeFromEmbeddedTopics(consumer, topicTrnCsv);
+    embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, topicTrnCsv);
 
   }
 
@@ -90,7 +91,7 @@ public class TrnCsvKafka {
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
         .build();
-    kafkaWriter.write(trnRequest);
+    kafkaTrnWriter.write(trnRequest);
 
     log.info("Waiting for Result");
     ConsumerRecord<String, String>

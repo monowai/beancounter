@@ -13,11 +13,13 @@ import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.config.ShellConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
+import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -95,7 +97,9 @@ public class TestPortfolioCommands {
   }
 
   private SystemUser getSystemUser() {
-    Jwt jwt = TokenUtils.getUserToken(SystemUser.builder().build());
+    Jwt jwt = TokenUtils.getUserToken(SystemUser.builder()
+        .id(KeyGenUtils.format(UUID.randomUUID()))
+        .build());
     Mockito.when(jwtDecoder.decode("token")).thenReturn(jwt);
     SystemUser owner = SystemUser.builder().build();
     Mockito.when(registrationService.me()).thenReturn(owner);

@@ -1,12 +1,12 @@
 kafka:
-  broker.port: 7777
+  broker.port: 3349
 
 spring:
   main:
     banner-mode: "off"
     web-application-type: none
   kafka:
+    bootstrap-servers: "localhost:${kafka.broker.port}"
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    bootstrapServersProperty: "localhost:${kafka.broker.port}"
 

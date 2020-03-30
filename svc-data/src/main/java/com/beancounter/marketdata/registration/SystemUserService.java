@@ -21,14 +21,14 @@ public class SystemUserService {
   }
 
   public SystemUser save(SystemUser systemUser) {
-    if ( systemUser.getId() == null ) {
+    if (systemUser.getId() == null) {
       systemUser.setId(KeyGenUtils.format(UUID.randomUUID()));
     }
     return systemUserRepository.save(systemUser);
   }
 
   public SystemUser find(String id) {
-    if ( id == null ) {
+    if (id == null) {
       return null;
     }
     return (systemUserRepository.findById(id).orElse(null));

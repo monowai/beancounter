@@ -3,4 +3,5 @@ ignore:
   - svc-data/src/main/java/com/beancounter/marketdata/MarketDataBoot.java
   - jar-shell/src/main/java/com/beancounter/shell/ShellRunner.java
   - jar-shell/src/main/java/com/beancounter/shell/google/GoogleAuthConfig.java
-  - - jar-shell/src/main/java/com/beancounter/shell/google/SheetIngester.java
+  - jar-shell/src/main/java/com/beancounter/shell/google/SheetIngester.java
+  - jar-shell/src/main/java/com/beancounter/shell/google/GoogleTransport.java

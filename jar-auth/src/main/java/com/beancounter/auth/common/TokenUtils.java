@@ -1,4 +1,4 @@
-package com.beancounter.auth;
+package com.beancounter.auth.common;
 
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.model.SystemUser;

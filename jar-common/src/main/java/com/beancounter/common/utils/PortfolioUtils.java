@@ -18,6 +18,7 @@ public class PortfolioUtils {
 
   public Portfolio getPortfolio(String code, Currency currency) {
     return Portfolio.builder()
+        .id(code)
         .code(code)
         .currency(currency)
         .build();

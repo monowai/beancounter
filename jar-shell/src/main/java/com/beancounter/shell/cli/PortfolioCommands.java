@@ -1,6 +1,6 @@
 package com.beancounter.shell.cli;
 
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
@@ -18,10 +18,10 @@ import org.springframework.shell.standard.ShellOption;
 @ShellComponent
 @Slf4j
 public class PortfolioCommands {
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
   private ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
-  PortfolioCommands(PortfolioService portfolioService) {
+  PortfolioCommands(PortfolioServiceClient portfolioService) {
     this.portfolioService = portfolioService;
   }
 

@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
 public class FxRequest {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String rateDate;
-  private Collection<IsoCurrencyPair> pairs;
+  @Builder.Default
+  private Collection<IsoCurrencyPair> pairs = new ArrayList<>();
 
   @JsonIgnore
   private IsoCurrencyPair tradePf;

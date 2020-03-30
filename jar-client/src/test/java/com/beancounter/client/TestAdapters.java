@@ -3,8 +3,8 @@ package com.beancounter.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.AssetService;
 import com.beancounter.client.services.StaticService;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightDividendAdapter;
@@ -23,7 +23,7 @@ public class TestAdapters {
   private ShareSightConfig shareSightConfig = new ShareSightConfig();
 
   @MockBean
-  private AssetService assetService;
+  private AssetIngestService assetIngestService;
 
   @MockBean
   private StaticService staticService;
@@ -41,7 +41,7 @@ public class TestAdapters {
         .build();
 
     TrnAdapter dividendAdapter =
-        new ShareSightDividendAdapter(shareSightConfig, assetService, staticService);
+        new ShareSightDividendAdapter(shareSightConfig, assetIngestService, staticService);
 
     assertThrows(BusinessException.class, () -> dividendAdapter.from(request));
 
@@ -63,7 +63,7 @@ public class TestAdapters {
         .build();
 
     ShareSightTradeAdapter tradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetService, staticService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, staticService);
 
     assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(trustedTrnRequest));
@@ -85,7 +85,7 @@ public class TestAdapters {
         .build();
 
     ShareSightTradeAdapter tradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetService, staticService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, staticService);
 
     assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(trustedTrnRequest));
@@ -103,7 +103,7 @@ public class TestAdapters {
     row.add(ShareSightTradeAdapter.quantity, "quantity");
     row.add(ShareSightTradeAdapter.price, "price");
     ShareSightTradeAdapter shareSightTradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetService, staticService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, staticService);
     assertThat(shareSightTradeAdapter.isValid(row)).isFalse();
 
     row.remove(ShareSightTradeAdapter.price);
@@ -123,7 +123,7 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.gross, "gross");
     row.add(ShareSightDividendAdapter.comments, "comments");
     ShareSightDividendAdapter dividendAdapter =
-        new ShareSightDividendAdapter(shareSightConfig, assetService, staticService);
+        new ShareSightDividendAdapter(shareSightConfig, assetIngestService, staticService);
     assertThat(dividendAdapter.isValid(row)).isFalse();// Ignore CODE
 
     row.remove(ShareSightTradeAdapter.code);

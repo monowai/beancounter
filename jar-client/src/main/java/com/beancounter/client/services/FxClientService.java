@@ -1,6 +1,7 @@
 package com.beancounter.client.services;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.common.TokenService;
+import com.beancounter.client.FxService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -15,13 +16,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
 @Slf4j
-public class FxRateService {
+public class FxClientService implements FxService {
 
   private FxGateway fxGateway;
   private TokenService tokenService;
 
   @Autowired
-  FxRateService(FxGateway bcGateway, TokenService tokenService) {
+  FxClientService(FxGateway bcGateway, TokenService tokenService) {
     this.fxGateway = bcGateway;
     this.tokenService = tokenService;
   }

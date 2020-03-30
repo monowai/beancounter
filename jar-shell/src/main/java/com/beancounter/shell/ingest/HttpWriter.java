@@ -1,8 +1,8 @@
 package com.beancounter.shell.ingest;
 
+import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.FxTransactions;
 import com.beancounter.client.services.TrnService;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.contracts.TrnRequest;

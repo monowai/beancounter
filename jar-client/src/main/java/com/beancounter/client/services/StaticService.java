@@ -1,6 +1,7 @@
 package com.beancounter.client.services;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.common.TokenService;
+import com.beancounter.client.MarketService;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @Service
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
-public class StaticService {
+public class StaticService implements MarketService {
   public StaticGateway staticGateway;
   private TokenService tokenService;
 
@@ -33,6 +34,7 @@ public class StaticService {
     this.tokenService = tokenService;
   }
 
+  @Override
   @Retry(name = "data")
   public MarketResponse getMarkets() {
     return staticGateway.getMarkets(tokenService.getBearerToken());
@@ -55,6 +57,7 @@ public class StaticService {
     throw new BusinessException(String.format("Unable to resolve the currency %s", currencyCode));
   }
 
+  @Override
   @Cacheable("market")
   public Market getMarket(String marketCode) {
     if (marketCode == null) {

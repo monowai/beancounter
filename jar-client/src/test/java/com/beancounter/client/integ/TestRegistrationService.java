@@ -3,8 +3,8 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.auth.TokenUtils;
-import com.beancounter.client.services.ClientConfig;
+import com.beancounter.auth.common.TokenUtils;
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.services.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.exception.UnauthorizedException;

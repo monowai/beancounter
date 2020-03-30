@@ -2,10 +2,10 @@ package com.beancounter.shell.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.auth.TokenUtils;
 import com.beancounter.auth.client.AuthClientConfig;
-import com.beancounter.auth.client.TokenService;
-import com.beancounter.client.services.PortfolioService.PortfolioGw;
+import com.beancounter.auth.common.TokenService;
+import com.beancounter.auth.common.TokenUtils;
+import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw;
 import com.beancounter.client.services.RegistrationService;
 import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PortfolioResponse;

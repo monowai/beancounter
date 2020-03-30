@@ -1,6 +1,6 @@
 package com.beancounter.shell.ingest;
 
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Portfolio;
@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public abstract class AbstractIngester implements Ingester {
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
   private Map<String, TrnWriter> writers = new HashMap<>();
 
   @Autowired
-  public void setPortfolioService(PortfolioService portfolioService) {
+  public void setPortfolioService(PortfolioServiceClient portfolioService) {
     this.portfolioService = portfolioService;
   }
 

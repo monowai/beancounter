@@ -3,8 +3,8 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.services.ClientConfig;
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
@@ -23,9 +23,9 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ImportAutoConfiguration(ClientConfig.class)
 @SpringBootTest(classes = ClientConfig.class)
-public class TestPortfolioService {
+public class TestPortfolioServiceClient {
   @Autowired
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
 
   @Test
   void is_PortfolioFinders() {

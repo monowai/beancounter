@@ -1,6 +1,6 @@
 package com.beancounter.position.service;
 
-import com.beancounter.client.services.FxRateService;
+import com.beancounter.client.FxService;
 import com.beancounter.client.services.PriceService;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -17,12 +17,12 @@ import org.springframework.stereotype.Service;
 public class AsyncMdService {
 
   private PriceService priceService;
-  private FxRateService fxRateService;
+  private FxService fxRateService;
 
   @Autowired
   AsyncMdService(
       PriceService priceService,
-      FxRateService fxRateService) {
+      FxService fxRateService) {
     this.priceService = priceService;
     this.fxRateService = fxRateService;
   }

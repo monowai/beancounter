@@ -3,8 +3,8 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.services.AssetService;
-import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
@@ -20,17 +20,17 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ImportAutoConfiguration(ClientConfig.class)
 @SpringBootTest(classes = ClientConfig.class)
-public class TestAssetService {
+public class TestAssetIngestService {
 
   @Autowired
-  private AssetService assetService;
+  private AssetIngestService assetIngestService;
 
   @Autowired
   private StaticService staticService;
 
   @Test
   void is_HydratedAssetFound() {
-    Asset asset = assetService.resolveAsset("MSFT", "Microsoft",
+    Asset asset = assetIngestService.resolveAsset("MSFT", "Microsoft",
         staticService.getMarket("NASDAQ"));
 
     assertThat(asset).isNotNull();
@@ -41,7 +41,7 @@ public class TestAssetService {
 
   @Test
   void is_MockAssetFound() {
-    Asset asset = assetService
+    Asset asset = assetIngestService
         .resolveAsset("MSFT", "Microsoftie",
             staticService.getMarket("MOCK"));
     assertThat(asset).isNotNull();
@@ -51,7 +51,7 @@ public class TestAssetService {
   @Test
   void is_NotFound() {
     assertThrows(BusinessException.class, () ->
-        assetService
+        assetIngestService
             .resolveAsset("ABC", "Microsoft",
                 staticService.getMarket("NASDAQ")));
   }

@@ -1,6 +1,6 @@
 package com.beancounter.position.service;
 
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.model.Portfolio;
@@ -20,10 +20,10 @@ import org.springframework.stereotype.Service;
 public class PositionService implements Position {
 
   private Accumulator accumulator;
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
 
   PositionService(Accumulator accumulator,
-                  PortfolioService portfolioService
+                  PortfolioServiceClient portfolioService
   ) {
     this.accumulator = accumulator;
     this.portfolioService = portfolioService;

@@ -1,9 +1,9 @@
 package com.beancounter.client.sharesight;
 
+import com.beancounter.client.MarketService;
+import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.AssetService;
-import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
@@ -46,14 +46,14 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   private ShareSightConfig shareSightConfig;
   private Filter filter = new Filter(null);
 
-  private StaticService staticService;
-  private AssetService assetService;
+  private MarketService marketService;
+  private AssetIngestService assetIngestService;
 
   public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
-                                AssetService assetService,
-                                StaticService staticService) {
-    this.staticService = staticService;
-    this.assetService = assetService;
+                                AssetIngestService assetIngestService,
+                                MarketService marketService) {
+    this.marketService = marketService;
+    this.assetIngestService = assetIngestService;
     this.shareSightConfig = shareSightConfig;
   }
 
@@ -129,8 +129,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     String assetCode = row.get(code);
     String marketCode = row.get(market);
 
-    Market market = staticService.getMarket(marketCode.toUpperCase());
-    Asset asset = assetService.resolveAsset(assetCode, assetName, market);
+    Market market = marketService.getMarket(marketCode.toUpperCase());
+    Asset asset = assetIngestService.resolveAsset(assetCode, assetName, market);
 
     if (!filter.inFilter(asset)) {
       return null;

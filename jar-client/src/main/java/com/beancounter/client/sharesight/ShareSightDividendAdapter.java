@@ -1,9 +1,9 @@
 package com.beancounter.client.sharesight;
 
+import com.beancounter.client.MarketService;
+import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.AssetService;
-import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
@@ -48,15 +48,15 @@ public class ShareSightDividendAdapter implements TrnAdapter {
 
   private DateUtils dateUtils = new DateUtils();
 
-  private StaticService staticService;
-  private AssetService assetService;
+  private MarketService marketService;
+  private AssetIngestService assetIngestService;
 
   public ShareSightDividendAdapter(ShareSightConfig shareSightConfig,
-                                   AssetService assetService,
-                                   StaticService staticService) {
+                                   AssetIngestService assetIngestService,
+                                   MarketService marketService) {
     this.shareSightConfig = shareSightConfig;
-    this.staticService = staticService;
-    this.assetService = assetService;
+    this.marketService = marketService;
+    this.assetIngestService = assetIngestService;
   }
 
   @Autowired(required = false)
@@ -115,8 +115,8 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   @Override
   public Asset resolveAsset(List<String> row) {
     List<String> values = parseAsset(row.get(code));
-    Market market = staticService.getMarket(values.get(1).toUpperCase());
-    Asset asset = assetService.resolveAsset(values.get(0), null, market);
+    Market market = marketService.getMarket(values.get(1).toUpperCase());
+    Asset asset = assetIngestService.resolveAsset(values.get(0), null, market);
 
     if (!filter.inFilter(asset)) {
       return null;

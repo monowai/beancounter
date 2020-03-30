@@ -3,7 +3,9 @@ package com.beancounter.shell.integ;
 import static com.beancounter.shell.kafka.KafkaWriter.topicTrnCsv;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.TrnAdapter;
+import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.utils.AssetUtils;
@@ -35,12 +37,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     partitions = 1,
     topics = {topicTrnCsv},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = { "log.dir=${kafka.broker.logs-dir}",
+    brokerProperties = {
         "listeners=PLAINTEXT://localhost:${kafka.broker.port}",
-        "auto.create.topics.enable=${kafka.broker.topics-enable:true}"}
+        "auto.create.topics.enable=true"}
 )
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {KafkaWriter.class,
+@SpringBootTest(classes = {
+    KafkaWriter.class,
+    ShareSightConfig.class,
+    ClientConfig.class,
     KafkaAutoConfiguration.class
 })
 @ActiveProfiles("kafka")
@@ -56,30 +61,30 @@ public class TrnCsvKafka {
   @MockBean
   private ShareSightFactory shareSightFactory;
 
-  @MockBean
-  private TrnAdapter trnAdapter;
-
   private List<String> row = new ArrayList<>();
+  private Consumer<String, String> consumer;
 
   @BeforeEach
   void mockBeans() {
-    row.add("ABC");
-    Mockito.when(shareSightFactory.adapter(row)).thenReturn(trnAdapter);
+    TrnAdapter trnAdapter = Mockito.mock(TrnAdapter.class);
     Mockito.when(trnAdapter.resolveAsset(row))
         .thenReturn(AssetUtils.getAsset("ABC", "ABC"));
+    row.add("ABC");
+    Mockito.when(shareSightFactory.adapter(row)).thenReturn(trnAdapter);
+    log.info (embeddedKafka.getBrokersAsString());
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps("test", "false", embeddedKafka);
+
+    DefaultKafkaConsumerFactory<String, String> cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+
+    consumer = cf.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(consumer, topicTrnCsv);
+
   }
 
   @Test
   void is_TrnRequestSendingCorrectly() throws Exception {
-
-    Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("test", "false", embeddedKafka);
-
-    DefaultKafkaConsumerFactory<String, String> cf = new DefaultKafkaConsumerFactory<>(
-        consumerProps);
-
-    Consumer<String, String> consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
 
     TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
         .row(row)

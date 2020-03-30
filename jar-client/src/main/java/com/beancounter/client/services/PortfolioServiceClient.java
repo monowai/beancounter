@@ -1,6 +1,6 @@
 package com.beancounter.client.services;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.common.TokenService;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @Slf4j
 @Service
-public class PortfolioService {
+public class PortfolioServiceClient {
   private PortfolioGw portfolioGw;
   private TokenService tokenService;
 
-  PortfolioService(PortfolioGw portfolioGw, TokenService tokenService) {
+  PortfolioServiceClient(PortfolioGw portfolioGw, TokenService tokenService) {
     this.portfolioGw = portfolioGw;
     this.tokenService = tokenService;
   }

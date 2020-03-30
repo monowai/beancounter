@@ -5,6 +5,7 @@ import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.services.PortfolioService;
 import com.beancounter.client.sharesight.ShareSightConfig;
@@ -41,7 +42,7 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
-@SpringBootTest(classes = {ShareSightConfig.class})
+@SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
 class ShareSightTradeTest {
 
   @Autowired

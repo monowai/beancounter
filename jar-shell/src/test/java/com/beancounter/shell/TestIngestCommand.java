@@ -3,7 +3,7 @@ package com.beancounter.shell;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.cli.IngestionCommand;
 import com.beancounter.shell.config.IngestionConfig;
@@ -32,7 +32,7 @@ public class TestIngestCommand {
   private IngestionFactory ingestionFactory;
 
   @MockBean
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
 
   @MockBean
   private TrnWriter trnWriter;

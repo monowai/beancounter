@@ -2,6 +2,8 @@ package com.beancounter.shell.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.shell.cli.IngestionCommand;
 import com.beancounter.shell.config.IngestionConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ActiveProfiles("test")
 @Slf4j
-@SpringBootTest(classes = {IngestionConfig.class})
+@SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class, IngestionConfig.class})
 public class TestCsvImportFlow {
 
   @Autowired

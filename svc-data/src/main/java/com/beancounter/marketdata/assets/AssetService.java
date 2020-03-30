@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AssetService {
+public class AssetService implements com.beancounter.client.AssetService {
   private AssetRepository assetRepository;
   private MarketService marketService;
 

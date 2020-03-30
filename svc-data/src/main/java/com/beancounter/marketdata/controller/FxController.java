@@ -3,7 +3,7 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import com.beancounter.marketdata.service.FxService;
+import com.beancounter.marketdata.service.FxRateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,16 +24,16 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class FxController {
 
-  private FxService fxService;
+  private FxRateService fxRateService;
 
   @Autowired
-  FxController(FxService fxService) {
-    this.fxService = fxService;
+  FxController(FxRateService fxRateService) {
+    this.fxRateService = fxRateService;
   }
 
   @PostMapping
   FxResponse getRates(@RequestBody FxRequest fxRequest) {
-    return fxService.getRates(fxRequest);
+    return fxRateService.getRates(fxRequest);
   }
 
 }

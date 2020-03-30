@@ -1,6 +1,6 @@
-package com.beancounter.client.services;
+package com.beancounter.client.ingest;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.client.AssetService;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
@@ -8,22 +8,16 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
 @Slf4j
-public class AssetService {
+public class AssetIngestService {
 
-  private AssetGateway assetGateway;
-  private TokenService tokenService;
+  private final AssetService assetService;
 
-  AssetService(AssetGateway assetGateway, TokenService tokenService) {
-    this.assetGateway = assetGateway;
-    this.tokenService = tokenService;
+  AssetIngestService(AssetService assetService) {
+    this.assetService = assetService;
   }
 
   /**
@@ -49,7 +43,7 @@ public class AssetService {
             .market(market)
             .build())
         .build();
-    AssetUpdateResponse response = assetGateway.assets(tokenService.getBearerToken(), assetRequest);
+    AssetUpdateResponse response = assetService.process(assetRequest);
     if (response == null) {
       throw new BusinessException(
           String.format("No response returned for %s:%s", assetCode, market.getCode()));
@@ -59,13 +53,5 @@ public class AssetService {
 
   }
 
-  @FeignClient(name = "assets",
-      url = "${marketdata.url:http://localhost:9510/api}")
-  public interface AssetGateway {
-    @PostMapping(value = "/assets",
-        produces = {MediaType.APPLICATION_JSON_VALUE},
-        consumes = {MediaType.APPLICATION_JSON_VALUE})
-    AssetUpdateResponse assets(@RequestHeader("Authorization") String bearerToken,
-                               AssetRequest assetRequest);
-  }
+
 }

@@ -3,7 +3,7 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.contracts.MarketResponse;

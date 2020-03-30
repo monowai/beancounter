@@ -4,8 +4,9 @@ import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.FxTransactions;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
@@ -35,7 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ActiveProfiles("test")
 @Slf4j
-@SpringBootTest(classes = {ShareSightConfig.class})
+@SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
 class StubbedTradesWithFx {
 
   @Autowired

@@ -6,7 +6,8 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.common.TokenService;
+import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
 import com.beancounter.auth.server.JwtRoleConverter;
 import com.beancounter.auth.server.ResourceServerConfig;

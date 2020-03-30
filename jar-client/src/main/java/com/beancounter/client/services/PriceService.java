@@ -1,6 +1,6 @@
 package com.beancounter.client.services;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.common.TokenService;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import lombok.extern.slf4j.Slf4j;

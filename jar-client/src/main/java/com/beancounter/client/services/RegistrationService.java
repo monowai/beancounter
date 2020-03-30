@@ -1,6 +1,6 @@
 package com.beancounter.client.services;
 
-import com.beancounter.auth.client.TokenService;
+import com.beancounter.auth.common.TokenService;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.exception.UnauthorizedException;

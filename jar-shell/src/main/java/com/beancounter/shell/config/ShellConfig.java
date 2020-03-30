@@ -1,6 +1,6 @@
 package com.beancounter.shell.config;
 
-import com.beancounter.client.services.ClientConfig;
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.common.utils.UtilConfig;
 import com.beancounter.shell.cli.DataCommands;
 import com.beancounter.shell.cli.PortfolioCommands;

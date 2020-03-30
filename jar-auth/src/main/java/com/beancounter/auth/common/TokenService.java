@@ -1,4 +1,4 @@
-package com.beancounter.auth.client;
+package com.beancounter.auth.common;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,4 +37,11 @@ public class TokenService {
     return "Bearer " + getToken();
   }
 
+  public String getSubject() {
+    JwtAuthenticationToken token = getJwtToken();
+    if (token == null) {
+      return null;
+    }
+    return token.getToken().getSubject();
+  }
 }

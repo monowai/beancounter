@@ -1,5 +1,6 @@
-package com.beancounter.client.services;
+package com.beancounter.client.ingest;
 
+import com.beancounter.client.FxService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -18,11 +19,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class FxTransactions {
-  private FxRateService fxRateService;
+  private FxService fxService;
   private DateUtils dateUtils;
 
-  FxTransactions(FxRateService fxRateService, DateUtils dateUtils) {
-    this.fxRateService = fxRateService;
+  FxTransactions(FxService fxService, DateUtils dateUtils) {
+    this.fxService = fxService;
     this.dateUtils = dateUtils;
   }
 
@@ -96,7 +97,7 @@ public class FxTransactions {
 
   public void setTrnRates(Portfolio portfolio, TrnInput trnInput) {
     FxRequest fxRequest = buildRequest(portfolio, trnInput);
-    FxResponse fxResponse = fxRateService.getRates(fxRequest);
+    FxResponse fxResponse = fxService.getRates(fxRequest);
     setRates(fxResponse.getData(), fxRequest, trnInput);
 
   }

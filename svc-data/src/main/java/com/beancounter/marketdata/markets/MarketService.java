@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class MarketService {
+public class MarketService implements com.beancounter.client.MarketService {
 
   private Map<String, Market> markets;
   private Map<String, String> aliases = new HashMap<>();

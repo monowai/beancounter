@@ -1,5 +1,9 @@
 package com.beancounter.shell;
 
+import com.beancounter.auth.client.AuthClientConfig;
+import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.sharesight.ShareSightConfig;
+import com.beancounter.common.utils.UtilConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,11 +15,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @author mikeh
  * @since 2019-02-08
  */
-@SpringBootApplication(scanBasePackages = {
-    "com.beancounter.shell",
-    "com.beancounter.common",
-    "com.beancounter.auth.client",
-    "com.beancounter.client"})
+@SpringBootApplication(scanBasePackageClasses = {
+    AuthClientConfig.class,
+    ShareSightConfig.class,
+    UtilConfig.class,
+    ClientConfig.class},
+    scanBasePackages = {
+        "com.beancounter.shell"})
 @EnableConfigurationProperties
 public class ShellRunner {
   public static void main(String[] args) {

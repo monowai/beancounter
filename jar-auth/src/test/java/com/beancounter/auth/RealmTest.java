@@ -2,6 +2,7 @@ package com.beancounter.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.JwtRoleConverter;
 import com.beancounter.common.model.SystemUser;
 import org.junit.jupiter.api.Test;

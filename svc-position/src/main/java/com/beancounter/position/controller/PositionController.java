@@ -1,7 +1,7 @@
 package com.beancounter.position.controller;
 
 import com.beancounter.auth.server.RoleHelper;
-import com.beancounter.client.services.PortfolioService;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.client.services.TrnService;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
@@ -37,12 +37,12 @@ public class PositionController {
 
   private PositionService positionService;
   private Valuation valuationService;
-  private PortfolioService portfolioService;
+  private PortfolioServiceClient portfolioService;
   private TrnService trnService;
 
   @Autowired
   PositionController(PositionService positionService,
-                     PortfolioService portfolioService,
+                     PortfolioServiceClient portfolioService,
                      TrnService trnService) {
     this.positionService = positionService;
     this.portfolioService = portfolioService;

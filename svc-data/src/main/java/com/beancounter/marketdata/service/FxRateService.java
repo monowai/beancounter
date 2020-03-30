@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.service;
 
+import com.beancounter.client.FxService;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.exception.BusinessException;
@@ -17,13 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FxService {
+public class FxRateService implements FxService {
   private CurrencyService currencyService;
   private EcbService ecbService;
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired
-  FxService(EcbService ecbService, CurrencyService currencyService) {
+  FxRateService(EcbService ecbService, CurrencyService currencyService) {
     this.ecbService = ecbService;
     this.currencyService = currencyService;
   }

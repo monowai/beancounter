@@ -2,9 +2,9 @@ package com.beancounter.client.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.client.services.ClientConfig;
-import com.beancounter.client.services.FxRateService;
-import com.beancounter.client.services.FxTransactions;
+import com.beancounter.client.FxService;
+import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
@@ -31,7 +31,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 public class TestFxService {
 
   @Autowired
-  private FxRateService fxRateService;
+  private FxService fxRateService;
 
   @Autowired
   private FxTransactions fxTransactions;

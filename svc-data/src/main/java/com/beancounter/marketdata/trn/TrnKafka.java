@@ -1,13 +1,13 @@
 package com.beancounter.marketdata.trn;
 
+import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.client.ingest.RowAdapter;
-import com.beancounter.client.services.FxTransactions;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
-import com.beancounter.marketdata.service.FxService;
+import com.beancounter.marketdata.service.FxRateService;
 import java.util.Collections;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @ConditionalOnProperty(value = "kafka.enabled", matchIfMissing = true)
-public class KafkaConsumer {
-  private static final String topicTrnCsv = "bc-trn-csv";
+public class TrnKafka {
+  public static final String topicTrnCsv = "bc-trn-csv";
   private RowAdapter rowAdapter;
   private FxTransactions fxTransactions;
   private TrnService trnService;
-  private FxService fxService;
+  private FxRateService fxRateService;
 
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
@@ -36,8 +36,8 @@ public class KafkaConsumer {
   }
 
   @Autowired
-  void setFxService(FxService fxService) {
-    this.fxService = fxService;
+  void setFxRateService(FxRateService fxRateService) {
+    this.fxRateService = fxRateService;
   }
 
   @Autowired
@@ -56,7 +56,7 @@ public class KafkaConsumer {
     TrnInput trnInput = rowAdapter.transform(trustedRequest);
 
     FxRequest fxRequest = fxTransactions.buildRequest(trustedRequest.getPortfolio(), trnInput);
-    FxResponse fxResponse = fxService.getRates(fxRequest);
+    FxResponse fxResponse = fxRateService.getRates(fxRequest);
     fxTransactions.setRates(fxResponse.getData(), fxRequest, trnInput);
 
     TrnRequest trnRequest = TrnRequest.builder()

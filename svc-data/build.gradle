@@ -67,6 +67,7 @@ dependencies {
             "org.springframework.security:spring-security-test",
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
+            "org.springframework.kafka:spring-kafka-test",
             // Not strictly needed, but pulling into build cache
             "org.springframework.cloud:spring-cloud-contract-stub-runner"
             // End not strictly needed

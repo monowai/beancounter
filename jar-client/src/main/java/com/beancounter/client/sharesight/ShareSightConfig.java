@@ -1,9 +1,9 @@
 package com.beancounter.client.sharesight;
 
+import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
-import com.beancounter.client.services.ClientConfig;
-import com.beancounter.client.services.FxTransactions;
-import com.beancounter.common.utils.UtilConfig;
+import com.beancounter.client.ingest.FxTransactions;
+import com.beancounter.common.utils.DateUtils;
 import java.text.NumberFormat;
 import java.util.Locale;
 import lombok.Data;
@@ -13,12 +13,12 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({
-    ClientConfig.class,
-    UtilConfig.class,
+    DateUtils.class,
     ShareSightDividendAdapter.class,
     ShareSightTradeAdapter.class,
     ShareSightFactory.class,
     FxTransactions.class,
+    AssetIngestService.class,
     Filter.class,
     ShareSightRowAdapter.class
 })

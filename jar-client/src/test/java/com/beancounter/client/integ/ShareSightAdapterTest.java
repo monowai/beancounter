@@ -2,6 +2,7 @@ package com.beancounter.client.integ;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
@@ -30,8 +31,8 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
-@SpringBootTest(classes = {ShareSightConfig.class})
-class ShareSightAdapaterTest {
+@SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
+class ShareSightAdapterTest {
 
   @Autowired
   private ShareSightFactory shareSightFactory;

@@ -1,5 +1,6 @@
 package com.beancounter.shell.config;
 
+import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.shell.cli.IngestionCommand;
 import com.beancounter.shell.csv.CsvIngester;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Import;
     IngestionCommand.class,
     IngestionFactory.class,
     HttpWriter.class,
+    ClientConfig.class,
     ShareSightConfig.class,
     GoogleConfig.class,
     CsvIngester.class})

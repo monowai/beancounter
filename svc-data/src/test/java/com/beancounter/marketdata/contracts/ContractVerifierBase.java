@@ -5,7 +5,7 @@ import static com.beancounter.marketdata.utils.EcbMockUtils.get;
 import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.auth.TokenUtils;
+import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PortfolioResponse;

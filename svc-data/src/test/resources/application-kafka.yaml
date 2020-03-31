@@ -1,6 +1,6 @@
 kafka:
   enabled: "true"
-  broker.port: 3339
+  broker.port: 0
 
 spring:
   kafka:

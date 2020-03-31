@@ -11,8 +11,11 @@
     </root>
     <logger name="com.beancounter" level="debug"/>
     <logger name="org.springframework" level="info"/>
+    <logger name="org.springframework.kafka" level="error"/>
     <logger name="org.hibernate" level="error"/>
-    <logger name="wiremock" level="debug"/>
+    <logger name="org.apache" level="error"/>
+    <logger name="org.apache.kafka.clients" level="error"/>
+    <logger name="wiremock" level="error"/>
     <logger name="wiremock.org.eclipse" level="error"/>
     <logger name="wiremock.com.jayway" level="error"/>
     <logger name="wiremock.com.github" level="error"/>

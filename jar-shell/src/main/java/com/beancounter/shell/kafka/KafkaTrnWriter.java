@@ -11,7 +11,9 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * Writes a trusted transaction request for processing.
@@ -49,7 +51,12 @@ public class KafkaTrnWriter implements TrnWriter {
       return;
     }
     trustedTrnRequest.setAsset(asset);
-    kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnRequest);
+    ListenableFuture<SendResult<String, TrustedTrnRequest>> result =
+        kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnRequest);
+
+    SendResult<String, TrustedTrnRequest> sendResult = result.get();
+
+    log.debug("recordMetaData: {}", sendResult.getRecordMetadata().toString());
   }
 
   @Override

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,19 +68,21 @@ public class TrnCsvKafka {
 
   @BeforeEach
   void mockBeans() {
+    log.debug("!!! {}", embeddedKafkaBroker.getBrokersAsString());
     TrnAdapter trnAdapter = Mockito.mock(TrnAdapter.class);
     Mockito.when(trnAdapter.resolveAsset(row))
         .thenReturn(AssetUtils.getAsset("ABC", "ABC"));
     row.add("ABC");
     Mockito.when(shareSightFactory.adapter(row)).thenReturn(trnAdapter);
-    log.debug(embeddedKafkaBroker.getBrokersAsString());
     Map<String, Object> consumerProps =
         KafkaTestUtils.consumerProps("shell-test", "false", embeddedKafkaBroker);
-
+    consumerProps.put("session.timeout.ms", 6000);
+    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     DefaultKafkaConsumerFactory<String, String> cf =
         new DefaultKafkaConsumerFactory<>(consumerProps);
 
     consumer = cf.createConsumer();
+
     embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, topicTrnCsv);
 
   }
@@ -94,11 +97,17 @@ public class TrnCsvKafka {
     kafkaTrnWriter.write(trnRequest);
 
     log.info("Waiting for Result");
-    ConsumerRecord<String, String>
-        received = KafkaTestUtils.getSingleRecord(consumer, topicTrnCsv);
-    assertThat(received.value()).isNotNull();
-    assertThat(new ObjectMapper().readValue(received.value(), TrustedTrnRequest.class))
-        .isEqualToComparingFieldByField(trnRequest);
+    try {
+      ConsumerRecord<String, String>
+          received = KafkaTestUtils.getSingleRecord(consumer, topicTrnCsv);
+      assertThat(received.value()).isNotNull();
+      assertThat(new ObjectMapper().readValue(received.value(), TrustedTrnRequest.class))
+          .isEqualToComparingFieldByField(trnRequest);
+    } finally {
+      consumer.close();
+      embeddedKafkaBroker.destroy();
+
+    }
   }
 
 }

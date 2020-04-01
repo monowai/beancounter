@@ -1,10 +1,11 @@
 {
   "data": [
     {
-      "id": {
+      "id": "cn9NIrvHStWEbFB14c9zUw",
+      "callerRef": {
         "provider": "SHEETS",
         "batch": "2020-03-24",
-        "id": "cn9NIrvHStWEbFB14c9zUw"
+        "callerId": "cn9NIrvHStWEbFB14c9zUw"
       },
       "trnType": "BUY",
       "portfolio": {
@@ -67,10 +68,11 @@
       "comments": "646.08"
     },
     {
-      "id": {
+      "id": "bDd4TTiETSOUy5sgJG79bg",
+      "callerRef": {
         "provider": "SHEETS",
         "batch": "2020-03-24",
-        "id": "bDd4TTiETSOUy5sgJG79bg"
+        "callerId": "bDd4TTiETSOUy5sgJG79bg"
       },
       "trnType": "DIVI",
       "portfolio": {

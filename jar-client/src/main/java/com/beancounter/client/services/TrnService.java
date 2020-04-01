@@ -40,7 +40,7 @@ public class TrnService {
         @RequestHeader("Authorization") String bearerToken,
         TrnRequest trnRequest);
 
-    @GetMapping(value = "/trns/{portfolioId}",
+    @GetMapping(value = "/trns/portfolio/{portfolioId}",
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
     TrnResponse read(

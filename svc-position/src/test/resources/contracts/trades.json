@@ -13,10 +13,11 @@
     },
     "portfolio": {"code": "MIKE"},
     "cashAsset": null,
-    "id": {
+    "id": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "callerRef": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
       "batch": "0",
-      "id": "1"
+      "callerId": "1"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -51,10 +52,11 @@
     },
     "portfolio": {"code": "MIKE"},
     "cashAsset": null,
-    "id": {
+    "id": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "callerRef": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
       "batch": "0",
-      "id": "2"
+      "callerId": "2"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -88,10 +90,11 @@
     },
     "portfolio": {"code": "MIKE"},
     "cashAsset": null,
-    "id": {
+    "id": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "callerRef": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
       "batch": "0",
-      "id": "363"
+      "callerId": "363"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -123,10 +126,11 @@
     },
     "portfolio": {"code": "MIKE"},
     "cashAsset": null,
-    "id": {
+    "id": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "callerRef": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
       "batch": "0",
-      "id": "364"
+      "callerId": "364"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -158,10 +162,11 @@
     },
     "portfolio": {"code": "MIKE"},
     "cashAsset": null,
-    "id": {
+    "id": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "callerRef": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
       "batch": "0",
-      "id": "472"
+      "callerId": "472"
     },
     "tradeCurrency": {
       "code": "USD"
@@ -193,10 +198,11 @@
     },
     "portfolio": {"code": "MIKE"},
     "cashAsset": null,
-    "id": {
+    "id": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
+    "callerRef": {
       "provider": "1a0EOYzNj4Ru2zGS76EQimzndjQm9URHQbuhwxvDLGJ8",
       "batch": "0",
-      "id": "473"
+      "callerId": "473"
     },
     "tradeCurrency": {
       "code": "USD"

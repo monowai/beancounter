@@ -108,7 +108,6 @@ class ShareSightTradeTest {
         .row(row)
         .portfolio(portfolio)
         .asset(asset)
-        .provider("Test")
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
@@ -138,7 +137,6 @@ class ShareSightTradeTest {
         .row(row)
         .portfolio(getPortfolio("Test", getCurrency("NZD")))
         .asset(AssetUtils.getAsset("Why", "ME"))
-        .provider("Test")
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
@@ -164,7 +162,6 @@ class ShareSightTradeTest {
         .row(row)
         .portfolio(portfolio)
         .asset(asset)
-        .provider("Test")
         .build();
 
     TrnInput trn = shareSightRowProcessor
@@ -190,7 +187,6 @@ class ShareSightTradeTest {
         .row(row)
         .portfolio(getPortfolio("Test", getCurrency("NZD")))
         .asset(AssetUtils.getAsset("Why", "ME"))
-        .provider("Test")
         .build();
 
     assertThrows(BusinessException.class, () ->

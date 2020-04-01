@@ -4,11 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
@@ -28,7 +29,7 @@ class TestTrn {
   @Test
   void is_TransactionRequestSerializing() throws Exception {
     TrnInput trnInput = TrnInput.builder()
-        .id(TrnId.builder().batch("1").id("1").provider("ABC").build())
+        .callerRef(CallerRef.builder().batch("1").callerId("1").provider("ABC").build())
         .asset(AssetUtils.toKey("MSFT", "NASDAQ"))
         .cashAsset(AssetUtils.toKey("USD-X", "USER"))
         .tradeDate(new DateUtils().getDate("2019-10-10"))
@@ -67,12 +68,14 @@ class TestTrn {
         .name("name")
         .market(Market.builder().code("NYSE").build())
         .build();
+    Portfolio portfolio = PortfolioUtils.getPortfolio("TWEE");
 
     Trn trn = Trn.builder()
+        .id("PK")
         .asset(asset)
         .trnType(trnType)
-        .id(TrnId.builder().batch("10").id("10").provider("TEST").build())
-        .portfolio(PortfolioUtils.getPortfolio("TWEE"))
+        .callerRef(CallerRef.builder().batch("10").callerId("10").provider("TEST").build())
+        .portfolio(portfolio)
         .tradeDate(LocalDate.now())
         .settleDate(LocalDate.now())
         .quantity(new BigDecimal("100.01"))
@@ -95,11 +98,11 @@ class TestTrn {
 
   @Test
   void is_TrnIdDefaulting() {
-    TrnId fromNull = TrnId.from(null);
+    CallerRef fromNull = CallerRef.from(null);
     assertThat(fromNull).hasNoNullFieldsOrProperties();
 
-    TrnId id = TrnId.builder().provider("provider").batch("batch").id("456").build();
-    assertThat(TrnId.from(id)).isEqualToComparingFieldByField(id);
+    CallerRef id = CallerRef.builder().provider("provider").batch("batch").callerId("456").build();
+    assertThat(CallerRef.from(id)).isEqualToComparingFieldByField(id);
   }
 
   @Test
@@ -111,7 +114,6 @@ class TestTrn {
     TrustedTrnRequest ttr = TrustedTrnRequest.builder()
         .asset(AssetUtils.getAsset("ABC", "MOCK"))
         .portfolio(PortfolioUtils.getPortfolio("TWEE"))
-        .provider("BLAH")
         .row(row)
         .build();
 
@@ -122,16 +124,16 @@ class TestTrn {
 
   @Test
   void is_TrnIdDefaults() {
-    TrnId trnId = TrnId.builder().build();
-    assertThat(trnId).hasAllNullFieldsOrProperties();
+    CallerRef callerRef = CallerRef.builder().build();
+    assertThat(callerRef).hasAllNullFieldsOrProperties();
     // No values, so defaults should be created
-    assertThat(TrnId.from(trnId)).hasNoNullFieldsOrProperties();
+    assertThat(CallerRef.from(callerRef)).hasNoNullFieldsOrProperties();
 
-    trnId = TrnId.builder().id("ABC").batch("ABC").provider("ABC").build();
-    assertThat(TrnId.from(trnId))
+    callerRef = CallerRef.builder().callerId("ABC").batch("ABC").provider("ABC").build();
+    assertThat(CallerRef.from(callerRef))
         .hasFieldOrPropertyWithValue("batch", "ABC")
         .hasFieldOrPropertyWithValue("provider", "ABC")
-        .hasFieldOrPropertyWithValue("id", "ABC");
+        .hasFieldOrPropertyWithValue("callerId", "ABC");
 
   }
 }

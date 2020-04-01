@@ -18,7 +18,7 @@ import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
@@ -90,7 +90,7 @@ public class TrnControllerTest {
         .build());
 
     MvcResult mvcResult = mockMvc.perform(
-        get("/trns/{portfolioId}", portfolio.getId())
+        get("/trns/portfolio/{portfolioId}", portfolio.getId())
             .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -127,10 +127,10 @@ public class TrnControllerTest {
     // Creating in random order and assert retrieved in Sort Order.
     Collection<TrnInput> trnInputs = new ArrayList<>();
     trnInputs.add(TrnInput.builder()
-        .id(TrnId.builder()
+        .callerRef(CallerRef.builder()
             .batch("0")
             .provider("test")
-            .id("1").build())
+            .callerId("1").build())
         .asset(msft.getId())
         .tradeDate(new DateUtils().getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
@@ -139,10 +139,10 @@ public class TrnControllerTest {
         .tradePortfolioRate(BigDecimal.ONE)
         .build());
     trnInputs.add(TrnInput.builder()
-        .id(TrnId.builder()
+        .callerRef(CallerRef.builder()
             .batch("0")
             .provider("test")
-            .id("3").build())
+            .callerId("3").build())
         .asset(aapl.getId())
         .tradeDate(new DateUtils().getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
@@ -151,10 +151,10 @@ public class TrnControllerTest {
         .tradePortfolioRate(BigDecimal.ONE)
         .build());
     trnInputs.add(TrnInput.builder()
-        .id(TrnId.builder()
+        .callerRef(CallerRef.builder()
             .batch("0")
             .provider("test")
-            .id("2").build())
+            .callerId("2").build())
         .asset(msft.getId())
         .tradeDate(new DateUtils().getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
@@ -164,10 +164,10 @@ public class TrnControllerTest {
         .build());
 
     trnInputs.add(TrnInput.builder()
-        .id(TrnId.builder()
+        .callerRef(CallerRef.builder()
             .batch("0")
             .provider("test")
-            .id("4").build())
+            .callerId("4").build())
         .asset(aapl.getId())
         .tradeDate(new DateUtils().getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
@@ -200,7 +200,7 @@ public class TrnControllerTest {
 
     // Find by Portfolio, sorted by assetId and then Date
     MvcResult mvcResult = mockMvc.perform(
-        get("/trns/{portfolioId}", portfolioId)
+        get("/trns/portfolio/{portfolioId}", portfolioId)
             .with(jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
@@ -215,15 +215,18 @@ public class TrnControllerTest {
     int i = 4;
     // Verify the sort order - asset.code, tradeDate
     for (Trn trn : trnResponse.getData()) {
-      assertThat(trn.getId().getId().equals(String.valueOf(i--)));
+      assertThat(trn.getCallerRef().getCallerId().equals(String.valueOf(i--)));
       assertThat(trn.getAsset()).isNotNull();
+      assertThat(trn.getId()).isNotNull();
     }
 
     Trn trn = trnResponse.getData().iterator().next();
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
         get("/trns/{provider}/{batch}/{id}",
-            trn.getId().getProvider(), trn.getId().getBatch(), trn.getId().getId())
+            trn.getCallerRef().getProvider(),
+            trn.getCallerRef().getBatch(),
+            trn.getCallerRef().getCallerId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
@@ -253,7 +256,7 @@ public class TrnControllerTest {
 
     // Purge all transactions for the Portfolio
     mvcResult = mockMvc.perform(
-        delete("/trns/{portfolioId}", portfolioId)
+        delete("/trns/portfolio/{portfolioId}", portfolioId)
             .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

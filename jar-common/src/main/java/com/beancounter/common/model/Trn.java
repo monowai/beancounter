@@ -1,6 +1,6 @@
 package com.beancounter.common.model;
 
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -8,9 +8,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import javax.persistence.EmbeddedId;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,9 +31,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"provider", "batch", "callerId"})})
 public class Trn {
-  @EmbeddedId
-  private TrnId id;
+  @Id
+  private String id;
+  @Embedded
+  private CallerRef callerRef;
   private TrnType trnType;
   @ManyToOne
   private Portfolio portfolio;

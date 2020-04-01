@@ -3,7 +3,7 @@ package com.beancounter.marketdata.trn;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.marketdata.portfolio.PortfolioService;
@@ -44,13 +44,13 @@ public class TrnService {
     return results;
   }
 
-  public TrnResponse find(TrnId trnId) {
-    Optional<Trn> found = trnRepository.findById(trnId);
+  public TrnResponse find(CallerRef callerRef) {
+    Optional<Trn> found = trnRepository.findByCallerRef(callerRef);
     Optional<TrnResponse> result = found.map(
         transaction -> hydrate(Collections.singleton(transaction)));
 
     if (result.isEmpty()) {
-      throw new BusinessException(String.format("Trn %s not found", trnId));
+      throw new BusinessException(String.format("Trn %s not found", callerRef));
     }
     return result.get();
   }

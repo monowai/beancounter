@@ -134,14 +134,15 @@ interface TrnInput {
   tradeAmount: number;
 }
 
-interface TrnId {
+interface CallerRef {
   provider: string;
   batch: string;
-  id: string;
+  callerId: string;
 }
 
 interface Transaction {
-  id: TrnId;
+  id: string;
+  callerRef: CallerRef;
   trnType: TrnType;
   portfolio: Portfolio;
   asset: Asset;

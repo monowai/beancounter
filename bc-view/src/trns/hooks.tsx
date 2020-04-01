@@ -1,4 +1,4 @@
-import { BcResult, Transaction, TrnId } from "../types/beancounter";
+import { BcResult, CallerRef, Transaction } from "../types/beancounter";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
@@ -31,14 +31,14 @@ export function useAssetTransactions(
   return { data: transactions, error };
 }
 
-export function useTransaction(trnId: TrnId): BcResult<Transaction> {
+export function useTransaction(trnId: CallerRef): BcResult<Transaction> {
   const [transaction, setTransaction] = useState<Transaction>();
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
   useEffect(() => {
-    console.log("Hook-TrnId");
+    console.log("Hook-CallerRef");
     _axios
-      .get<Transaction>(`/bff/trns/${trnId.provider}/${trnId.batch}/${trnId.id}`, {
+      .get<Transaction>(`/bff/trns/${trnId.provider}/${trnId.batch}/${trnId.callerId}`, {
         headers: getBearerToken(keycloak.token)
       })
       .then(result => {
@@ -50,10 +50,10 @@ export function useTransaction(trnId: TrnId): BcResult<Transaction> {
         }
         setError(err);
       });
-  }, [keycloak, trnId.id, trnId.batch, trnId.provider]);
+  }, [keycloak, trnId.callerId, trnId.batch, trnId.provider]);
   return { data: transaction, error };
 }
 
-export function getKey(trnId: TrnId): string {
-  return trnId.provider + "." + trnId.batch + "." + trnId.id;
+export function getKey(trnId: CallerRef): string {
+  return trnId.provider + "." + trnId.batch + "." + trnId.callerId;
 }

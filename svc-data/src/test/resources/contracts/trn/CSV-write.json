@@ -1,9 +1,9 @@
 {
   "data" : [ {
-    "id" : {
+    "callerRef" : {
       "provider" : "SHEETS",
       "batch" : null,
-      "id" : null
+      "callerId" : null
     },
     "trnType" : "BUY",
     "asset" : "BguoVZpoRxWjWrITp7DEuw",
@@ -23,10 +23,10 @@
     "tradePortfolioRate" : 0.66428103,
     "comments" : "646.08"
   }, {
-    "id" : {
+    "callerRef" : {
       "provider" : "SHEETS",
       "batch" : null,
-      "id" : null
+      "callerId" : null
     },
     "trnType" : "DIVI",
     "asset" : "BguoVZpoRxWjWrITp7DEuw",

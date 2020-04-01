@@ -58,8 +58,6 @@ public class HttpWriter implements TrnWriter {
       return;
     }
     trustedTrnRequest.setAsset(asset);
-    trustedTrnRequest.setProvider(trustedTrnRequest.getProvider() == null
-        ? "SHEETS" : trustedTrnRequest.getProvider());
 
     this.portfolio = trustedTrnRequest.getPortfolio();
     TrnInput trnInput = rowAdapter.transform(trustedTrnRequest);

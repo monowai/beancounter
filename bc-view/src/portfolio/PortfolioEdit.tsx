@@ -74,7 +74,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
           }
         });
       // New Portfolio
-    } // portfolio.id
+    } // portfolio.callerId
   });
 
   if (submitted) {
@@ -159,6 +159,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
                       className={"select is-3"}
                       name={"base"}
                       defaultValue={portfolio.base.code}
+                      ref={register({ required: true })}
                     >
                       {currencyOptions(currencies, portfolio.base.code)}
                     </select>

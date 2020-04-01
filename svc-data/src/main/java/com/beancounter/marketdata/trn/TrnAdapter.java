@@ -2,13 +2,15 @@ package com.beancounter.marketdata.trn;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
+import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.currency.CurrencyService;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,7 +34,8 @@ public class TrnAdapter {
 
   public Trn map(Portfolio portfolio, TrnInput trnInput) {
     return Trn.builder()
-        .id(parseId(trnInput.getId()))
+        .id(KeyGenUtils.format(UUID.randomUUID()))
+        .callerRef(CallerRef.from(trnInput.getCallerRef()))
         .tradeDate(trnInput.getTradeDate())
         .settleDate(trnInput.getSettleDate())
         .cashAmount(trnInput.getCashAmount())
@@ -55,11 +58,6 @@ public class TrnAdapter {
             ? null : currencyService.getCode(trnInput.getCashCurrency()))
         .tradeCurrency(currencyService.getCode(trnInput.getTradeCurrency()))
         .build();
-  }
-
-  private TrnId parseId(TrnId id) {
-    TrnId result = TrnId.from(id);
-    return result;
   }
 
   public Asset hydrate(Asset asset) {

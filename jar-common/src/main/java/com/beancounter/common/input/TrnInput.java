@@ -1,6 +1,6 @@
 package com.beancounter.common.input;
 
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.model.TrnType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrnInput {
-  private TrnId id;
+  private CallerRef callerRef;
   private TrnType trnType;
   private String asset;
   private String cashAsset;

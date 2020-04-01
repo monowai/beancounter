@@ -3,7 +3,7 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
@@ -35,23 +35,23 @@ public class TrnController {
     this.portfolioService = portfolioService;
   }
 
-  @GetMapping(value = "/{portfolioId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/portfolio/{portfolioId}", produces = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse find(@PathVariable("portfolioId") String portfolioId) {
     Portfolio portfolio = portfolioService.find(portfolioId);
 
     return trnService.find(portfolio);
   }
 
-  @GetMapping(value = "/{provider}/{batch}/{id}")
+  @GetMapping(value = "/{provider}/{batch}/{callerId}")
   TrnResponse find(
       @PathVariable("provider") String provider,
       @PathVariable("batch") String batch,
-      @PathVariable("id") String id
+      @PathVariable("callerId") String callerId
   ) {
-    return trnService.find(TrnId.builder()
+    return trnService.find(CallerRef.builder()
         .provider(provider)
         .batch(batch)
-        .id(id)
+        .callerId(callerId)
         .build());
   }
 
@@ -63,7 +63,7 @@ public class TrnController {
     return trnService.save(portfolio, trnRequest);
   }
 
-  @DeleteMapping(value = "/{portfolioId}")
+  @DeleteMapping(value = "/portfolio/{portfolioId}")
   Long purge(@PathVariable("portfolioId") String portfolioId) {
     Portfolio portfolio = portfolioService.find(portfolioId);
     return trnService.purge(portfolio);

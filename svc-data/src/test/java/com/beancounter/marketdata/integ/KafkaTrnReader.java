@@ -105,7 +105,6 @@ public class KafkaTrnReader {
 
     TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
         .row(row)
-        .provider("KTEST")
         .portfolio(pfResponse.iterator().next())
         .asset(assetResponse.getData().get("MSFT"))
         .build();

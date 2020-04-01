@@ -1,5 +1,6 @@
 package com.beancounter.common.input;
 
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import java.util.List;
@@ -15,6 +16,6 @@ import lombok.NoArgsConstructor;
 public class TrustedTrnRequest {
   private Portfolio portfolio;
   private Asset asset;
-  private String provider;
+  private CallerRef callerRef;
   private List<String> row;
 }

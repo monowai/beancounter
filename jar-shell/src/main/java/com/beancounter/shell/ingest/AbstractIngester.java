@@ -2,6 +2,7 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Portfolio;
 import java.util.HashMap;
@@ -59,12 +60,19 @@ public abstract class AbstractIngester implements Ingester {
 
     prepare(ingestionRequest, writer);
     List<List<String>> rows = getValues();
-
+    int i = 0;
     for (List<String> row : rows) {
+      CallerRef callerRef = CallerRef.builder()
+          .provider(ingestionRequest.getProvider() == null ?
+              portfolio.getId() : ingestionRequest.getProvider())
+          .batch(String.valueOf(i))
+          .callerId(String.valueOf(i++))
+          .build();
+
       TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
           .row(row)
           .portfolio(portfolio)
-          .provider(ingestionRequest.getProvider())
+          .callerRef(CallerRef.from(callerRef))
           .build();
       writer.write(trnRequest);
     }

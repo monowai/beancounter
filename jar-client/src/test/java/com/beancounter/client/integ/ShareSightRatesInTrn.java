@@ -82,7 +82,6 @@ public class ShareSightRatesInTrn {
         .row(row)
         .portfolio(portfolio)
         .asset(asset)
-        .provider("Test")
         .build();
 
     TrnInput trn = dividends.from(trustedTrnRequest);
@@ -117,7 +116,6 @@ public class ShareSightRatesInTrn {
         .row(row)
         .portfolio(portfolio)
         .asset(asset)
-        .provider("Test")
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);

@@ -8,6 +8,7 @@ import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
@@ -117,7 +118,7 @@ class ShareSightAdapterTest {
           .row(columnValues)
           .portfolio(portfolio)
           .asset(asset)
-          .provider("Test")
+          .callerRef(CallerRef.builder().build())
           .build();
 
       trnInputs.add(shareSightRowProcessor

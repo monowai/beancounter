@@ -17,7 +17,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
   const trnResult = useTransaction({
     provider: provider,
     batch: batch,
-    id: id
+    callerId: id
   });
   const currencyResult = useCurrencies();
   const [stateError, setError] = useState<AxiosError>();
@@ -71,7 +71,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
           }
         });
       // New Portfolio
-    } // portfolio.id
+    } // portfolio.callerId
   });
 
   if (submitted) {

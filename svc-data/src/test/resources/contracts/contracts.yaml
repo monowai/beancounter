@@ -102,7 +102,7 @@ name: transactionsForPortfolio
 priority: 1
 request:
   method: GET
-  url: /trns/TEST
+  url: /trns/portfolio/TEST
 response:
   status: 200
   bodyFromFile: "trn/TEST-response.json"
@@ -113,7 +113,7 @@ name: noTransactionsForPortfolio
 priority: 1
 request:
   method: GET
-  url: /trns/EMPTY
+  url: /trns/portfolio/EMPTY
 response:
   status: 200
   bodyFromFile: "trn/EMPTY-response.json"

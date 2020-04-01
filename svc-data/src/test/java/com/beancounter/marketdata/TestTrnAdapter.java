@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
@@ -40,7 +40,7 @@ class TestTrnAdapter {
   @Test
   void is_InputToTrn() {
     TrnInput trnInput = TrnInput.builder()
-        .id(TrnId.builder().batch("1").id("1").provider("ABC").build())
+        .callerRef(CallerRef.builder().batch("1").callerId("1").provider("ABC").build())
         .trnType(TrnType.BUY)
         .asset(AssetUtils.toKey("MSFT", "NASDAQ"))
         .cashAsset(AssetUtils.toKey("USD-X", "USER"))

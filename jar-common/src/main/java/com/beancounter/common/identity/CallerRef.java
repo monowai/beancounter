@@ -21,19 +21,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Embeddable
-public class TrnId implements Serializable {
+public class CallerRef implements Serializable {
   private String provider;
   private String batch;
-  private String id;
+  private String callerId;
 
   // Fill in any missing default values from the supplied Id
-  public static TrnId from(TrnId id) {
-    TrnId result = TrnId.builder()
+  public static CallerRef from(CallerRef id) {
+    CallerRef result = CallerRef.builder()
         .build();
 
     result.setProvider(id == null || id.getProvider() == null ? "BC" : id.provider);
     result.setBatch(id == null || id.getBatch() == null ? new DateUtils().today() : id.batch);
-    result.setId(id == null || id.getId() == null ? KeyGenUtils.format(UUID.randomUUID()) : id.id);
+    result.setCallerId(id == null || id.getCallerId() == null ?
+        KeyGenUtils.format(UUID.randomUUID()) : id.callerId);
     return result;
   }
 }

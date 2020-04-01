@@ -1,10 +1,11 @@
 {
   "data": [
     {
-      "id": {
+      "id": "123",
+      "callerRef": {
         "provider": "STUB",
         "batch": "2020",
-        "id": "123"
+        "callerId": "123"
       },
       "trnType": "BUY",
       "portfolio": {"code": "FT-vUCChRwOXDP7itcp5Kw"},
@@ -48,10 +49,11 @@
       "comments": null
     },
     {
-      "id": {
+      "id": "456",
+      "callerRef": {
         "provider": "STUB",
         "batch": "2020",
-        "id": "456"
+        "callerId": "456"
       },
       "trnType": "DIVI",
       "portfolio": {"code": "FT-vUCChRwOXDP7itcp5Kw"},

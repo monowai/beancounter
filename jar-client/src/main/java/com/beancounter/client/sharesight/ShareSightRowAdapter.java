@@ -2,7 +2,7 @@ package com.beancounter.client.sharesight;
 
 import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.common.identity.TrnId;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +28,7 @@ public class ShareSightRowAdapter implements RowAdapter {
     if (trnAdapter.isValid(trnRequest.getRow())) {
       TrnInput trn = trnAdapter.from(trnRequest);
       if (trn != null) {
-        trn.setId(TrnId.builder()
-            .provider(trnRequest.getProvider())
-            .build());
+        trn.setCallerRef(CallerRef.from(trnRequest.getCallerRef()));
         return trn;
       }
     }

@@ -11,14 +11,15 @@ ENV VERSION ${VERSION}
 ENV API_PATH /secrets/google-api/
 
 RUN mkdir /app && \
-    mkdir /data && \
+    mkdir /demo && \
+    mkdir /import && \
     mkdir /secrets
 
 WORKDIR /app
 
 COPY wait-for-it.sh .
 COPY ${JAR_FILE} app.jar
-COPY src/test/resources/trades.csv /data
+COPY src/test/resources/trades.csv /demo
 
 RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
 USER beancounter

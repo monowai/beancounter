@@ -83,7 +83,7 @@ public class PortfolioService {
 
   public Portfolio findByCode(String code) {
     SystemUser systemUser = getOrThrow();
-    log.debug("Searching on behalf of {}", systemUser.getId());
+    log.trace("Searching on behalf of {}", systemUser.getId());
     Optional<Portfolio> found = portfolioRepository
         .findByCodeAndOwner(code.toUpperCase(), systemUser);
     Portfolio portfolio = found.orElseThrow(()

@@ -56,7 +56,7 @@ public class KafkaTrnWriter implements TrnWriter {
 
     SendResult<String, TrustedTrnRequest> sendResult = result.get();
 
-    log.debug("recordMetaData: {}", sendResult.getRecordMetadata().toString());
+    log.trace("recordMetaData: {}", sendResult.getRecordMetadata().toString());
   }
 
   @Override

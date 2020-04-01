@@ -82,6 +82,31 @@ public class TrnControllerTest {
   }
 
   @Test
+  void is_EmptyResponseValid() throws Exception {
+    Portfolio portfolio = portfolio(PortfolioInput.builder()
+        .code("BLAH")
+        .name("NZD Portfolio")
+        .currency("NZD")
+        .build());
+
+    MvcResult mvcResult = mockMvc.perform(
+        get("/trns/{portfolioId}", portfolio.getId())
+            .with(jwt(token).authorities(authorityRoleConverter))
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    String body = mvcResult.getResponse().getContentAsString();
+    assertThat(body).isNotNull();
+
+    TrnResponse trnResponse = objectMapper.readValue(body, TrnResponse.class);
+
+    assertThat(trnResponse.getData()).isNotNull().hasSize(0);
+
+  }
+
+
+  @Test
   void is_PersistRetrieveAndPurge() throws Exception {
 
     Market nasdaq = marketService.getMarket("NASDAQ");

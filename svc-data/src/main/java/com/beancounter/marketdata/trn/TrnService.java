@@ -72,7 +72,7 @@ public class TrnService {
     Collection<Trn> results = trnRepository.findByPortfolioId(portfolio.getId(),
         Sort.by("asset.code")
             .and(Sort.by("tradeDate")));
-    log.debug("Found {} for portfolio {}", results.size(), portfolio.getCode());
+    log.debug("trns: {} portfolio: {}", results.size(), portfolio.getCode());
     return hydrate(results);
   }
 
@@ -100,7 +100,7 @@ public class TrnService {
       }
     }
     if (trnCollection.isEmpty()) {
-      return null; // Not Found
+      return TrnResponse.builder().build(); // Empty
     }
     return TrnResponse.builder().data(trnCollection).build();
   }

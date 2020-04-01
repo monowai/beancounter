@@ -6,20 +6,13 @@ import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
+@AllArgsConstructor
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class TrnResponse {
+public class TrnResponse implements Payload<Collection<Trn>> {
   @Builder.Default
   private Collection<Trn> data = new ArrayList<>();
-//  @Builder.Default
-//  private Collection<Portfolio> portfolios = new ArrayList<>();
-//
-//  @JsonIgnore
-//  public void addPortfolio(Portfolio portfolio) {
-//    portfolios.add(portfolio);
-//  }
 }

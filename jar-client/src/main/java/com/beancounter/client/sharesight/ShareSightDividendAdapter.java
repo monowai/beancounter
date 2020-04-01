@@ -102,14 +102,8 @@ public class ShareSightDividendAdapter implements TrnAdapter {
 
   @Override
   public boolean isValid(List<String> row) {
-    if (row.size() == 9) {
-      if (row.get(0).contains(".")) {
-        return true;
-      }
-      return !row.get(0).equalsIgnoreCase("code")
-          && !row.get(0).equalsIgnoreCase("total");
-    }
-    return false;
+    String rate = row.get(fxRate).toUpperCase();
+    return rate.contains("."); // divis have an fx rate in this column
   }
 
   @Override

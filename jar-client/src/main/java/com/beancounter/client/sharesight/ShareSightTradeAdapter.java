@@ -117,10 +117,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
 
   @Override
   public boolean isValid(List<String> row) {
-    if (row.size() > 6) {
-      return !row.get(0).equalsIgnoreCase("market");
-    }
-    return false;
+    String ttype = row.get(type);
+    return ttype != null && !ttype.contains(".");
   }
 
   @Override

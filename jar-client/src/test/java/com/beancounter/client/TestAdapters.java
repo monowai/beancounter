@@ -34,7 +34,7 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.code, "market"); // Header Row
     row.add(ShareSightDividendAdapter.name, "name");
     row.add(ShareSightDividendAdapter.date, "date");
-    row.add(ShareSightDividendAdapter.fxRate, "illegal");
+    row.add(ShareSightDividendAdapter.fxRate, "A.B");
 
     TrustedTrnRequest request = TrustedTrnRequest.builder()
         .row(row)
@@ -98,16 +98,14 @@ public class TestAdapters {
     row.add(ShareSightTradeAdapter.market, "market"); // Header Row
     row.add(ShareSightTradeAdapter.code, "code");
     row.add(ShareSightTradeAdapter.name, "name");
-    row.add(ShareSightTradeAdapter.type, "type");
+    row.add(ShareSightTradeAdapter.type, "BUY");
     row.add(ShareSightTradeAdapter.date, "date");
     row.add(ShareSightTradeAdapter.quantity, "quantity");
     row.add(ShareSightTradeAdapter.price, "price");
     ShareSightTradeAdapter shareSightTradeAdapter =
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService, staticService);
-    assertThat(shareSightTradeAdapter.isValid(row)).isFalse();
+    assertThat(shareSightTradeAdapter.isValid(row)).isTrue();
 
-    row.remove(ShareSightTradeAdapter.price);
-    assertThat(shareSightTradeAdapter.isValid(row)).isFalse(); // Not enough columns for a trade
   }
 
   @Test
@@ -116,7 +114,7 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.code, "code"); // Header Row
     row.add(ShareSightDividendAdapter.name, "code");
     row.add(ShareSightDividendAdapter.date, "name");
-    row.add(ShareSightDividendAdapter.fxRate, "type");
+    row.add(ShareSightDividendAdapter.fxRate, "1.0");
     row.add(ShareSightDividendAdapter.currency, "date");
     row.add(ShareSightDividendAdapter.net, "quantity");
     row.add(ShareSightDividendAdapter.tax, "tax");
@@ -124,15 +122,7 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.comments, "comments");
     ShareSightDividendAdapter dividendAdapter =
         new ShareSightDividendAdapter(shareSightConfig, assetIngestService, staticService);
-    assertThat(dividendAdapter.isValid(row)).isFalse();// Ignore CODE
-
-    row.remove(ShareSightTradeAdapter.code);
-    assertThat(dividendAdapter.isValid(row)).isFalse(); // Not enough columns for a trade
-
-    row.add(ShareSightDividendAdapter.code, "total");
-    assertThat(dividendAdapter.isValid(row)).isFalse(); // Ignore TOTAL
-    row.remove(ShareSightTradeAdapter.code);
-    row.add(ShareSightDividendAdapter.code, "some.code");
     assertThat(dividendAdapter.isValid(row)).isTrue();
+
   }
 }

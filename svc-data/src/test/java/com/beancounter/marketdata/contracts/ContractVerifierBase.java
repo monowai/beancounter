@@ -194,7 +194,7 @@ public class ContractVerifierBase {
   void mockTrnGetResponse(Portfolio portfolio, String trnFile) {
     File jsonFile = new ClassPathResource(trnFile).getFile();
     TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
-    Mockito.when(trnService.find(portfolio))
+    Mockito.when(trnService.findForPortfolio(portfolio))
         .thenReturn(trnResponse);
   }
 

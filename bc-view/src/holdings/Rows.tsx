@@ -34,7 +34,7 @@ export function Rows(props: {
         )}
       </td>
       <td align={"right"}>
-        <Link to={`/trns/${props.portfolio.id}/${position.asset.id}`}>
+        <Link to={`/trns/${props.portfolio.id}/asset/${position.asset.id}`}>
           <NumberFormat
             value={position.quantityValues.total}
             displayType={"text"}

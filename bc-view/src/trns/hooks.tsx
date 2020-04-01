@@ -53,7 +53,3 @@ export function useTransaction(trnId: CallerRef): BcResult<Transaction> {
   }, [keycloak, trnId.callerId, trnId.batch, trnId.provider]);
   return { data: transaction, error };
 }
-
-export function getKey(trnId: CallerRef): string {
-  return trnId.provider + "." + trnId.batch + "." + trnId.callerId;
-}

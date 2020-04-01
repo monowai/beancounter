@@ -1,7 +1,7 @@
 import React from "react";
 import "../css/styles.sass";
 import { Link } from "react-router-dom";
-import { getKey, useAssetTransactions } from "./hooks";
+import { useAssetTransactions } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
 import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
@@ -45,7 +45,7 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                 </thead>
                 <tbody>
                   {trnsResult.data.map(t => (
-                    <tr key={getKey(t.id)}>
+                    <tr key={t.id}>
                       <td>{t.trnType}</td>
                       <td>{t.tradeCurrency.code}</td>
                       <td>{t.tradeDate}</td>
@@ -77,14 +77,11 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                         />
                       </td>
                       <td>
-                        <Link
-                          className="fa fa-edit"
-                          to={`/trns/${t.id.provider}/${t.id.batch}/${t.id.id}`}
-                        />
+                        <Link className="fa fa-edit" to={`/trns/${t.portfolio.id}/${t.id}`} />
                         <span> </span>
                         <Link
                           className="fa fa-remove has-padding-left-6"
-                          to={`/portfolio/delete/${t.id}`}
+                          to={`/portfolio/delete/${t.portfolio.id}/${t.id}`}
                         />
                       </td>
                     </tr>

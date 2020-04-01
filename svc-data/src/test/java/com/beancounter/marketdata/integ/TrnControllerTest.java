@@ -223,10 +223,9 @@ public class TrnControllerTest {
     Trn trn = trnResponse.getData().iterator().next();
     // Find by PrimaryKey
     mvcResult = mockMvc.perform(
-        get("/trns/{provider}/{batch}/{id}",
-            trn.getCallerRef().getProvider(),
-            trn.getCallerRef().getBatch(),
-            trn.getCallerRef().getCallerId())
+        get("/trns/{portfolioId}/{trnId}",
+            portfolio.getId(),
+            trn.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
@@ -239,7 +238,7 @@ public class TrnControllerTest {
 
     // Find by portfolio and asset
     MvcResult findByAsset = mockMvc.perform(
-        get("/trns/{portfolioId}/{assetId}",
+        get("/trns/{portfolioId}/asset/{assetId}",
             portfolioId, msft.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(jwt(token).authorities(authorityRoleConverter))

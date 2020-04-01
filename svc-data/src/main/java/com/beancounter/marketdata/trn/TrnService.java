@@ -44,7 +44,8 @@ public class TrnService {
     return results;
   }
 
-  public TrnResponse find(CallerRef callerRef) {
+  public TrnResponse findByCallerRef(CallerRef callerRef) {
+    // Security: Filter by portfolio
     Optional<Trn> found = trnRepository.findByCallerRef(callerRef);
     Optional<TrnResponse> result = found.map(
         transaction -> hydrate(Collections.singleton(transaction)));
@@ -55,7 +56,20 @@ public class TrnService {
     return result.get();
   }
 
-  public TrnResponse find(Portfolio portfolio, String assetId) {
+  public TrnResponse find(Portfolio portfolio, String trnId) {
+    Optional<Trn> trn = trnRepository.findByPortfolioIdAndId(portfolio.getId(), trnId);
+    Optional<TrnResponse> result = trn.map(
+        transaction -> hydrate(Collections.singleton(transaction)));
+
+    if (result.isEmpty()) {
+      throw new BusinessException(String.format("Trn %s not found", trnId));
+    }
+    return result.get();
+
+  }
+
+
+  public TrnResponse findByPortfolioAsset(Portfolio portfolio, String assetId) {
     Collection<Trn> results = trnRepository.findByPortfolioIdAndAssetId(portfolio.getId(),
         assetId,
         Sort.by("asset.code")
@@ -68,7 +82,7 @@ public class TrnService {
     return hydrate(results);
   }
 
-  public TrnResponse find(Portfolio portfolio) {
+  public TrnResponse findForPortfolio(Portfolio portfolio) {
     Collection<Trn> results = trnRepository.findByPortfolioId(portfolio.getId(),
         Sort.by("asset.code")
             .and(Sort.by("tradeDate")));
@@ -104,4 +118,5 @@ public class TrnService {
     }
     return TrnResponse.builder().data(trnCollection).build();
   }
+
 }

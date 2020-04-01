@@ -15,4 +15,6 @@ public interface TrnRepository extends CrudRepository<Trn, CallerRef> {
   Optional<Trn> findByCallerRef(CallerRef callerRef);
 
   long deleteByPortfolioId(String portfolioId);
+
+  Optional<Trn> findByPortfolioIdAndId(String portfolioId, String trnId);
 }

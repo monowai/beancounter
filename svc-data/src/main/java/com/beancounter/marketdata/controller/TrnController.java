@@ -3,7 +3,6 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
@@ -39,20 +38,17 @@ public class TrnController {
   TrnResponse find(@PathVariable("portfolioId") String portfolioId) {
     Portfolio portfolio = portfolioService.find(portfolioId);
 
-    return trnService.find(portfolio);
+    return trnService.findForPortfolio(portfolio);
   }
 
-  @GetMapping(value = "/{provider}/{batch}/{callerId}")
+  @GetMapping(value = "/{portfolioId}/{trnId}")
   TrnResponse find(
-      @PathVariable("provider") String provider,
-      @PathVariable("batch") String batch,
-      @PathVariable("callerId") String callerId
+      @PathVariable("portfolioId") String portfolioId,
+      @PathVariable("trnId") String trnId
   ) {
-    return trnService.find(CallerRef.builder()
-        .provider(provider)
-        .batch(batch)
-        .callerId(callerId)
-        .build());
+    Portfolio portfolio = portfolioService.find(portfolioId);
+
+    return trnService.find(portfolio, trnId);
   }
 
   @PostMapping(
@@ -69,11 +65,11 @@ public class TrnController {
     return trnService.purge(portfolio);
   }
 
-  @GetMapping(value = "/{portfolioId}/{assetId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{portfolioId}/asset/{assetId}", produces = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse findByAsset(
       @PathVariable("portfolioId") String portfolioId,
       @PathVariable("assetId") String assetId
   ) {
-    return trnService.find(portfolioService.find(portfolioId), assetId);
+    return trnService.findByPortfolioAsset(portfolioService.find(portfolioId), assetId);
   }
 }

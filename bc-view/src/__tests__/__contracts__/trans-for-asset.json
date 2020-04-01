@@ -1,12 +1,16 @@
 [
   {
-    "id": {
+    "id": "68",
+    "callerRef": {
       "provider": "SHEETS",
       "batch": 0,
-      "id": 68
+      "callerId": 68
     },
     "trnType": "BUY",
-    "portfolioId": "test",
+    "portfolio": {
+      "id": "test",
+      "code": "TEST"
+    },
     "asset": {
       "id": "alphabet",
       "code": "GOOG",

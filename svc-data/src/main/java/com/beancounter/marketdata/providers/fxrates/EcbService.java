@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,7 +32,6 @@ public class EcbService {
     this.dateUtils = dateUtils;
   }
 
-  @Cacheable("ecb.rates")
   public Collection<FxRate> getRates(String asAt) {
     EcbRates rates = fxGateway.getRatesForSymbols(
         ecbDate.getValidDate(asAt),

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,6 +35,7 @@ public class FxRateService implements FxService {
     this.dateUtils = dateUtils;
   }
 
+  @Cacheable("fx.rates")
   public FxResponse getRates(FxRequest fxRequest) {
     verify(fxRequest.getPairs());
     Collection<FxRate> rates;

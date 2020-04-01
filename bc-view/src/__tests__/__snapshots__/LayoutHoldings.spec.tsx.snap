@@ -177,6 +177,7 @@ exports[`<ViewHoldings /> matches snapshot for zero getData 1`] = `
                 Portfolio
               </div>
               <input
+                aria-autocomplete="list"
                 class="emotion-1"
                 id="react-select-4-input"
                 readonly=""
@@ -234,6 +235,7 @@ exports[`<ViewHoldings /> matches snapshot for zero getData 1`] = `
                 Currency
               </div>
               <input
+                aria-autocomplete="list"
                 class="emotion-1"
                 id="react-select-5-input"
                 readonly=""
@@ -669,6 +671,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
                 Portfolio
               </div>
               <input
+                aria-autocomplete="list"
                 class="emotion-1"
                 id="react-select-2-input"
                 readonly=""
@@ -726,6 +729,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
                 Currency
               </div>
               <input
+                aria-autocomplete="list"
                 class="emotion-1"
                 id="react-select-3-input"
                 readonly=""

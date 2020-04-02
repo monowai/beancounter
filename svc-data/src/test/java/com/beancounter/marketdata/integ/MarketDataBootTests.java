@@ -15,6 +15,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.MarketDataBoot;
+import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,8 +27,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -47,6 +50,8 @@ class MarketDataBootTests {
   // Represents dummy after it has been Jackson'ized
   private final Asset dummyJsonAsset;
   private WebApplicationContext wac;
+  @MockBean
+  private AssetService assetService;
   private MockProviderService mockProviderService;
   private MockMvc mockMvc;
   private ObjectMapper objectMapper = new ObjectMapper();
@@ -67,6 +72,8 @@ class MarketDataBootTests {
   @BeforeEach
   void setUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    Mockito.when(assetService.find(dummy.getId())).thenReturn(dummy);
+    Mockito.when(assetService.find(dummy.getMarket().getCode(), dummy.getId())).thenReturn(dummy);
   }
 
   @Test
@@ -107,8 +114,6 @@ class MarketDataBootTests {
         .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
         .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());
-
-
   }
 
   @Test

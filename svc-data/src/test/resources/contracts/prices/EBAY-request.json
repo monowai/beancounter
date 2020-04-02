@@ -5,7 +5,13 @@
       "id": "EBAY",
       "code": "EBAY",
       "market": {
-        "code": "NASDAQ"
+        "code": "NASDAQ",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "US/Eastern"
       }
     }
   ]

@@ -37,7 +37,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
-class AssetMvcTests {
+class TestAssetMvc {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 

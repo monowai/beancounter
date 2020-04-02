@@ -4,7 +4,7 @@ import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
+import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.service.MarketDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,28 +27,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class PriceController {
 
   private MarketDataService marketDataService;
+  private AssetService assetService;
 
   @Autowired
-  PriceController(MarketDataService marketDataService) {
+  PriceController(MarketDataService marketDataService, AssetService assetService) {
     this.marketDataService = marketDataService;
+    this.assetService = assetService;
   }
 
   /**
    * Market:Asset i.e. NYSE:MSFT.
    *
-   * @param assetId Exchange:Code
+   * @param assetCode Exchange:Code
    * @return Market Dat information for the supplied asset
    */
-  @GetMapping(value = "/{marketId}/{assetId}")
-  PriceResponse getPrice(@PathVariable("marketId") String marketId,
-                         @PathVariable("assetId") String assetId) {
-    Asset testAsset = Asset.builder()
-        .code(assetId)
-        .id(assetId)
-        .market(Market.builder()
-            .code(marketId).build())
-        .build();
-    return marketDataService.getPrice(testAsset);
+  @GetMapping(value = "/{marketCode}/{assetCode}")
+  PriceResponse getPrice(@PathVariable("marketCode") String marketCode,
+                         @PathVariable("assetCode") String assetCode) {
+    Asset asset = assetService.find(marketCode, assetCode);
+    return marketDataService.getPrice(asset);
 
   }
 

@@ -33,8 +33,8 @@ public class CallerRef implements Serializable {
 
     result.setProvider(id == null || id.getProvider() == null ? "BC" : id.provider);
     result.setBatch(id == null || id.getBatch() == null ? new DateUtils().today() : id.batch);
-    result.setCallerId(id == null || id.getCallerId() == null ?
-        KeyGenUtils.format(UUID.randomUUID()) : id.callerId);
+    result.setCallerId(id == null || id.getCallerId() == null
+        ? KeyGenUtils.format(UUID.randomUUID()) : id.callerId);
     return result;
   }
 }

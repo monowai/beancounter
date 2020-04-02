@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.markets.MarketService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,12 +23,10 @@ import org.springframework.stereotype.Service;
 public class MarketDataService {
 
   private MdFactory mdFactory;
-  private MarketService marketService;
 
   @Autowired
-  MarketDataService(MdFactory mdFactory, MarketService marketService) {
+  MarketDataService(MdFactory mdFactory) {
     this.mdFactory = mdFactory;
-    this.marketService = marketService;
   }
 
   /**
@@ -39,7 +36,6 @@ public class MarketDataService {
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
   public PriceResponse getPrice(Asset asset) {
-    hydrateAsset(asset);
     List<Asset> assets = Collections.singletonList(asset);
     PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
     return getPrice(priceRequest);
@@ -52,10 +48,6 @@ public class MarketDataService {
    * @return results
    */
   public PriceResponse getPrice(PriceRequest priceRequest) {
-
-    for (Asset asset : priceRequest.getAssets()) {
-      hydrateAsset(asset);
-    }
     Map<String, Collection<Asset>> factories = splitProviders(priceRequest.getAssets());
     Collection<MarketData> results = new ArrayList<>();
 
@@ -79,10 +71,6 @@ public class MarketDataService {
       results.put(marketDataProvider.getId(), mdpAssets);
     }
     return results;
-  }
-
-  private void hydrateAsset(Asset asset) {
-    asset.setMarket(marketService.getMarket(asset.getMarket().getCode()));
   }
 
 

@@ -3,7 +3,7 @@ import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import logger from "../common/ConfigLogging";
+import logger from "../common/configLogging";
 
 export function useAsset(assetId: string): BcResult<Asset> {
   const [asset, setAsset] = useState<Asset>();

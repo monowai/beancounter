@@ -1,6 +1,6 @@
 import { BcResult, Currency } from "../types/beancounter";
-import React, { ReactNode, useEffect, useState } from "react";
-import logger from "../common/ConfigLogging";
+import { useEffect, useState } from "react";
+import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { AxiosError } from "axios";
@@ -29,13 +29,6 @@ export function useCurrencies(): BcResult<Currency[]> {
 
 export function get(currencies: Currency[], value: string): Currency[] | undefined {
   return currencies.filter(currency => currency.code === value);
-}
-export function currencyOptions(currencies: Currency[], selectedValue: string): ReactNode {
-  return currencies.map((currency: Currency) => (
-    <option key={currency.code} value={currency.code} selected={currency.code === selectedValue}>
-      {currency.code}
-    </option>
-  ));
 }
 
 export const USD = { code: "USD" } as Currency;

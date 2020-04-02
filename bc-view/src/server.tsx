@@ -10,7 +10,7 @@ import * as path from "path";
 import fs from "fs";
 import cors from "cors";
 import i18nextMiddleware from "i18next-express-middleware";
-import logger from "./common/ConfigLogging";
+import logger from "./common/configLogging";
 import App from "./App";
 import { runtimeConfig } from "./common/config";
 import { deleteData, getData, patchData, postData } from "./server/dataApi";

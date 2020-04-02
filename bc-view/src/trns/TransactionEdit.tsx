@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import logger from "../common/ConfigLogging";
+import logger from "../common/configLogging";
 import { Transaction, TrnInput } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import { currencyOptions, useCurrencies } from "../static/currencies";
+import { useCurrencies } from "../static/hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
 import ErrorPage from "../common/errors/ErrorPage";
 import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
+import { currencyOptions } from "../static/IsoHelper";
 
 export function TransactionEdit(provider: string, batch: string, id: string): React.ReactElement {
   const [keycloak] = useKeycloak();

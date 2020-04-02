@@ -1,6 +1,6 @@
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { BcResult, HoldingContract } from "../types/beancounter";
-import logger from "../common/ConfigLogging";
+import logger from "../common/configLogging";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { AxiosError } from "axios";

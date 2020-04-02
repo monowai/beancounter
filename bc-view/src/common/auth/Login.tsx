@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Redirect, useLocation } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
-import logger from "../ConfigLogging";
+import logger from "../configLogging";
 
 const Login = (): JSX.Element => {
   const location = useLocation();

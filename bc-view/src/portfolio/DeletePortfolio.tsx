@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logger from "../common/ConfigLogging";
+import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";

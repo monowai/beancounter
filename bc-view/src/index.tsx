@@ -1,5 +1,5 @@
 import express from "express";
-import logger from "./common/ConfigLogging";
+import logger from "./common/configLogging";
 import "./../node_modules/bulma/css/bulma.css";
 
 // this require is necessary for server HMR to recover from error

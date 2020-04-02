@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { URL } from "url";
 import express from "express";
-import logger from "./ConfigLogging";
+import logger from "./configLogging";
 
 export const _axios: AxiosInstance = axios.create();
 

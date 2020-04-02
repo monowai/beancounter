@@ -1,5 +1,5 @@
 import { SystemUser } from "../../types/beancounter";
-import logger from "../ConfigLogging";
+import logger from "../configLogging";
 import { _axios } from "../axiosUtils";
 
 export const registerUser = (config: {

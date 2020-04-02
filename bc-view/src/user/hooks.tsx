@@ -1,6 +1,6 @@
 import { SystemUser } from "../types/beancounter";
 import { useEffect, useState } from "react";
-import logger from "../common/ConfigLogging";
+import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/razzle";
 

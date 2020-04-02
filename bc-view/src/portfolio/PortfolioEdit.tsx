@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import logger from "../common/ConfigLogging";
+import logger from "../common/configLogging";
 import { Portfolio, PortfolioInput } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import { currencyOptions, useCurrencies } from "../static/currencies";
+import { currencyOptions, useCurrencies } from "../static/hooks";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";

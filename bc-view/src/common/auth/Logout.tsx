@@ -1,5 +1,5 @@
 import { useKeycloak } from "@react-keycloak/razzle";
-import logger from "../ConfigLogging";
+import logger from "../configLogging";
 import { LoginRedirect } from "./Login";
 
 const Logout = (): JSX.Element => {

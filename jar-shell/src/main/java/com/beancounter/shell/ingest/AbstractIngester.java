@@ -63,8 +63,8 @@ public abstract class AbstractIngester implements Ingester {
     int i = 0;
     for (List<String> row : rows) {
       CallerRef callerRef = CallerRef.builder()
-          .provider(ingestionRequest.getProvider() == null ?
-              portfolio.getId() : ingestionRequest.getProvider())
+          .provider(ingestionRequest.getProvider() == null
+              ? portfolio.getId() : ingestionRequest.getProvider())
           .batch(String.valueOf(i))
           .callerId(String.valueOf(i++))
           .build();

@@ -18,11 +18,8 @@ const BaseApp = (): JSX.Element => {
   useSSR((window as WindowI18n).initialI18nStore, (window as WindowI18n).initialLanguage);
 
   return (
-    // @ts-ignore
     <SSRKeycloakProvider
-      // @ts-ignore
       keycloakConfig={keycloakConfig}
-      // @ts-ignore
       persistor={ClientPersistors.Cookies}
       initConfig={initConfig}
     >
@@ -33,8 +30,6 @@ const BaseApp = (): JSX.Element => {
           </Switch>
         </BrowserRouter>
       </Suspense>
-      {/*
-  // @ts-ignore */}
     </SSRKeycloakProvider>
   );
 };

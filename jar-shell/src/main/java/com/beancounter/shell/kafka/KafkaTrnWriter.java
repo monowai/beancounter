@@ -50,7 +50,6 @@ public class KafkaTrnWriter implements TrnWriter {
     if (asset == null) {
       return;
     }
-    trustedTrnRequest.setAsset(asset);
     ListenableFuture<SendResult<String, TrustedTrnRequest>> result =
         kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnRequest);
 

@@ -32,7 +32,7 @@ class TestMarketValuesWithFx {
         .currency(getCurrency("NZD"))
         .build();
 
-    Asset asset = AssetUtils.getAsset("ABC", "Test");
+    Asset asset = AssetUtils.getAsset("Test", "ABC");
     BigDecimal simpleRate = new BigDecimal("0.1");
 
     Trn buyTrn = Trn.builder()

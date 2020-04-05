@@ -3,6 +3,7 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.service.MarketDataService;
@@ -50,7 +51,16 @@ public class PriceController {
   }
 
   @PostMapping
-  PriceResponse getPrices(@RequestBody PriceRequest priceRequest) {
+  PriceResponse prices(@RequestBody PriceRequest priceRequest) {
+    for (AssetInput requestedAsset : priceRequest.getAssets()) {
+      Asset asset = assetService
+          .find(requestedAsset.getMarket(), requestedAsset.getCode());
+      if (asset != null) {
+        requestedAsset.setResolvedAsset(asset);
+      }
+
+    }
+
     return marketDataService.getPrice(priceRequest);
   }
 

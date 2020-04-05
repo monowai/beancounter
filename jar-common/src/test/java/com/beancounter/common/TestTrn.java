@@ -112,7 +112,6 @@ class TestTrn {
     row.add("ABC");
 
     TrustedTrnRequest ttr = TrustedTrnRequest.builder()
-        .asset(AssetUtils.getAsset("ABC", "MOCK"))
         .portfolio(PortfolioUtils.getPortfolio("TWEE"))
         .row(row)
         .build();

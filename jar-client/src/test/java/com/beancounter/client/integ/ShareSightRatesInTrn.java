@@ -13,7 +13,6 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
@@ -77,11 +76,9 @@ public class ShareSightRatesInTrn {
     row.add(ShareSightDividendAdapter.comments, "Test Comment");
 
     TrnAdapter dividends = shareSightFactory.adapter(row);
-    Asset asset = dividends.resolveAsset(row);
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = dividends.from(trustedTrnRequest);
@@ -110,12 +107,10 @@ public class ShareSightRatesInTrn {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    Asset asset = shareSightFactory.getShareSightTrade().resolveAsset(row);
     // System base currency
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);

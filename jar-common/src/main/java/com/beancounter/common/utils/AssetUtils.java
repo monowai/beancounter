@@ -1,6 +1,7 @@
 package com.beancounter.common.utils;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
@@ -49,23 +50,23 @@ public class AssetUtils {
     if (marketAsset.length != 2) {
       throw new BusinessException(String.format("Unable to parse the key %s", key));
     }
-    return getAsset(marketAsset[0], marketAsset[1]);
+    return getAsset(marketAsset[1], marketAsset[0]);
   }
 
   /**
    * Helper to create a simple Asset with a USD currency.
    *
-   * @param assetCode  assetCode
    * @param marketCode marketCode
+   * @param assetCode  assetCode
    * @return simple Asset.
    */
-  public Asset getAsset(@NonNull String assetCode, @NonNull String marketCode) {
+  public Asset getAsset(@NonNull String marketCode, @NonNull String assetCode) {
     Asset asset = getAsset(
-        assetCode,
         Market.builder()
             .code(marketCode.toUpperCase())
             .currency(Currency.builder().code("USD").build())
-            .build());
+            .build(), assetCode
+    );
     asset.setMarketCode(null);
     return asset;
   }
@@ -73,11 +74,11 @@ public class AssetUtils {
   /**
    * Asset on a market.
    *
-   * @param assetCode asset.code
    * @param market    market to return
+   * @param assetCode asset.code
    * @return asset on a market
    */
-  public Asset getAsset(@NonNull String assetCode, @NonNull Market market) {
+  public Asset getAsset(@NonNull Market market, @NonNull String assetCode) {
     Asset asset = Asset.builder()
         .id(assetCode)
         .code(assetCode)
@@ -89,13 +90,13 @@ public class AssetUtils {
 
   }
 
-  public Map<String, Collection<Asset>> split(Collection<Asset> assets) {
+  public Map<String, Collection<Asset>> split(Collection<AssetInput> assets) {
     Map<String, Collection<Asset>> results = new HashMap<>();
-    for (Asset asset : assets) {
-      Market market = asset.getMarket();
+    for (AssetInput input : assets) {
+      Market market = input.getResolvedAsset().getMarket();
       Collection<Asset> marketAssets =
           results.computeIfAbsent(market.getCode(), k -> new ArrayList<>());
-      marketAssets.add(asset);
+      marketAssets.add(input.getResolvedAsset());
     }
     return results;
   }
@@ -103,13 +104,24 @@ public class AssetUtils {
   /**
    * Helper for tests that returns the "serialized" view of an asset.
    *
-   * @param code   assetCode
    * @param market marketCode
+   * @param code   assetCode
    * @return asset object with all @JsonIgnore fields applied
    * @throws JsonProcessingException error
    */
-  public static Asset getJsonAsset(String code, String market) throws JsonProcessingException {
-    Asset asset = getAsset(code, market);
+  public Asset getJsonAsset(String market, String code) throws JsonProcessingException {
+    Asset asset = getAsset(market, code);
     return objectMapper.readValue(objectMapper.writeValueAsString(asset), Asset.class);
+  }
+
+  public AssetInput getAssetInput(String market, String code) {
+    return AssetInput.builder()
+        .code(code)
+        .market(market)
+        .build();
+  }
+
+  public AssetInput getAssetInput(Asset asset) {
+    return AssetInput.builder().resolvedAsset(asset).build();
   }
 }

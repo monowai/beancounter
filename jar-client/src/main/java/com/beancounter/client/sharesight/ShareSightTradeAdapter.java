@@ -84,9 +84,13 @@ public class ShareSightTradeAdapter implements TrnAdapter {
         fees = MathUtils.parse(row.get(brokerage), shareSightConfig.getNumberFormat());
         tradeAmount = MathUtils.parse(row.get(value), shareSightConfig.getNumberFormat());
       }
-
+      Asset asset = resolveAsset(row);
+      if (asset == null) {
+        log.error("Unable to resolve asset [{}]", row);
+        return null;
+      }
       return TrnInput.builder()
-          .asset(trustedTrnRequest.getAsset().getId())
+          .asset(asset.getId())
           .trnType(trnType)
           .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
           .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))

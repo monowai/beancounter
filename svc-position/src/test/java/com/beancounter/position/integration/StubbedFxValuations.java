@@ -123,7 +123,7 @@ class StubbedFxValuations {
 
   @Test
   void is_MvcValuingPositions() throws Exception {
-    Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
+    Asset asset = AssetUtils.getAsset("NASDAQ", "EBAY");
     Positions positions = getPositions(asset);
     PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
 
@@ -164,10 +164,9 @@ class StubbedFxValuations {
 
   @Test
   void is_MarketValuationCalculatedAsAt() {
-    Asset asset = AssetUtils.getAsset("EBAY",
-        Market.builder().code("NASDAQ")
-            .currency(getCurrency("USD"))
-            .build()
+    Asset asset = AssetUtils.getAsset(Market.builder().code("NASDAQ")
+        .currency(getCurrency("USD"))
+        .build(), "EBAY"
     );
 
     // We need to have a Quantity in order to get the price, so create a position
@@ -193,7 +192,7 @@ class StubbedFxValuations {
   @Test
   void is_AssetAndCurrencyHydratedFromValuationRequest() {
 
-    Asset asset = AssetUtils.getAsset("EBAY", "NASDAQ");
+    Asset asset = AssetUtils.getAsset("NASDAQ", "EBAY");
 
     Positions positions = getValuedPositions(asset);
     Position position = positions.get(asset);

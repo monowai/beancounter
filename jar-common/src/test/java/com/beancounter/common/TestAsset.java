@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
@@ -24,7 +25,7 @@ class TestAsset {
   @Test
   void is_PriceRequestForAsset() {
     PriceRequest priceRequest = PriceRequest.of(AssetUtils
-        .getAsset("EBAY", "NASDAQ"))
+        .getAsset("NASDAQ", "EBAY"))
         .date("2019-10-18").build();
 
     assertThat(priceRequest.getAssets()).hasSize(1);
@@ -33,7 +34,7 @@ class TestAsset {
   @Test
   void is_AssetResponse() throws Exception {
     AssetResponse assetResponse = AssetResponse.builder()
-        .data(AssetUtils.getAsset("Blah", "as")).build();
+        .data(AssetUtils.getAsset("as", "Blah")).build();
     assetResponse.getData().setMarketCode(null);// JsonIgnore
     String json = om.writeValueAsString(assetResponse);
     AssetResponse fromJson = om.readValue(json, AssetResponse.class);
@@ -43,12 +44,12 @@ class TestAsset {
 
   @Test
   void assetRequestSerializes() throws Exception {
-    Asset asset = AssetUtils.getJsonAsset("AAA", "BBB");
+    Asset asset = AssetUtils.getJsonAsset("BBB", "AAA");
 
     AssetRequest assetRequest = AssetRequest
         .builder()
         .data(AssetUtils.toKey(asset), asset)
-        .data("second", AssetUtils.getJsonAsset("Twee", "Whee"))
+        .data("second", AssetUtils.getJsonAsset("Whee", "Twee"))
         .build();
 
     assertThat(assetRequest.getData()).containsKeys(AssetUtils.toKey(asset));
@@ -63,12 +64,12 @@ class TestAsset {
 
   @Test
   void assetResponseSerializes() throws Exception {
-    Asset asset = AssetUtils.getJsonAsset("AAA", "BBB");
+    Asset asset = AssetUtils.getJsonAsset("BBB", "AAA");
 
     AssetUpdateResponse assetUpdateResponse = AssetUpdateResponse
         .builder()
         .data(AssetUtils.toKey(asset), asset)
-        .data("second", AssetUtils.getJsonAsset("Twee", "Whee"))
+        .data("second", AssetUtils.getJsonAsset("Whee", "Twee"))
         .build();
 
     assertThat(assetUpdateResponse.getData()).containsKeys(AssetUtils.toKey(asset));
@@ -83,7 +84,7 @@ class TestAsset {
 
   @Test
   void is_AssetKeyParsing() {
-    Asset asset = AssetUtils.getAsset("ACODE", "MCODE");
+    Asset asset = AssetUtils.getAsset("MCODE", "ACODE");
 
     String keyIn = AssetUtils.toKey(asset);
 
@@ -101,13 +102,13 @@ class TestAsset {
         () -> AssetUtils.fromKey(null));
 
     assertThrows(NullPointerException.class,
-        () -> AssetUtils.getAsset(null, (Market) null));
+        () -> AssetUtils.getAsset((Market) null, null));
     assertThrows(NullPointerException.class,
-        () -> AssetUtils.getAsset("Twee", (Market) null));
+        () -> AssetUtils.getAsset((Market) null, "Twee"));
     assertThrows(NullPointerException.class,
-        () -> AssetUtils.getAsset("Twee", (String) null));
+        () -> AssetUtils.getAsset((String) null, "Twee"));
     assertThrows(NullPointerException.class,
-        () -> AssetUtils.getAsset(null, (String) null));
+        () -> AssetUtils.getAsset((Market) null, null));
 
     assertThrows(NullPointerException.class,
         () -> AssetUtils.toKey(null));
@@ -119,12 +120,17 @@ class TestAsset {
 
   @Test
   void is_AssetsSplitByMarket() {
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(AssetUtils.getAsset("ABC", "AAA"));
-    assets.add(AssetUtils.getAsset("123", "AAA"));
-    assets.add(AssetUtils.getAsset("ABC", "BBB"));
-    assets.add(AssetUtils.getAsset("123", "BBB"));
-    assets.add(AssetUtils.getAsset("123", "CCC"));
+    Collection<AssetInput> assets = new ArrayList<>();
+    assets.add(AssetInput.builder().resolvedAsset(
+        AssetUtils.getAsset("AAA", "ABC")).build());
+    assets.add(AssetInput.builder().resolvedAsset(
+        AssetUtils.getAsset("AAA", "123")).build());
+    assets.add(AssetInput.builder().resolvedAsset(
+        AssetUtils.getAsset("BBB", "ABC")).build());
+    assets.add(AssetInput.builder().resolvedAsset(
+        AssetUtils.getAsset("BBB", "123")).build());
+    assets.add(AssetInput.builder().resolvedAsset(
+        AssetUtils.getAsset("CCC", "123")).build());
     Map<String, Collection<Asset>> results = AssetUtils.split(assets);
     assertThat(results.size()).isEqualTo(3);
     assertThat(results.get("AAA")).hasSize(2);

@@ -3,11 +3,14 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
+import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.services.PriceService;
+import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.common.utils.AssetUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -25,10 +28,17 @@ public class TestPriceService {
   @Autowired
   private PriceService priceService;
 
+  @Autowired
+  private AssetIngestService assetIngestService;
+
+  @Autowired
+  private StaticService staticService;
+
   @Test
   void is_MarketDateOnDateFound() {
-    PriceRequest priceRequest = PriceRequest.of(AssetUtils
-        .getAsset("EBAY", "NASDAQ"))
+    Market market = staticService.getMarket("NASDAQ");
+    Asset asset = assetIngestService.resolveAsset("EBAY", "EBAY", market);
+    PriceRequest priceRequest = PriceRequest.of(asset)
         .date("2019-10-18").build();
 
     PriceResponse response = priceService.getPrices(priceRequest);

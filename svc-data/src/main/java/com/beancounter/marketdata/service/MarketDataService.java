@@ -2,11 +2,11 @@ package com.beancounter.marketdata.service;
 
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +36,9 @@ public class MarketDataService {
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
   public PriceResponse getPrice(Asset asset) {
-    List<Asset> assets = Collections.singletonList(asset);
-    PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
+    List<AssetInput> inputs = new ArrayList<>();
+    inputs.add(AssetInput.builder().resolvedAsset(asset).build());
+    PriceRequest priceRequest = PriceRequest.builder().assets(inputs).build();
     return getPrice(priceRequest);
   }
 
@@ -58,16 +59,16 @@ public class MarketDataService {
     return PriceResponse.builder().data(results).build();
   }
 
-  private Map<String, Collection<Asset>> splitProviders(Collection<Asset> assets) {
+  private Map<String, Collection<Asset>> splitProviders(Collection<AssetInput> assets) {
     Map<String, Collection<Asset>> results = new HashMap<>();
 
-    for (Asset asset : assets) {
-      MarketDataProvider marketDataProvider = mdFactory.getMarketDataProvider(asset);
+    for (AssetInput input : assets) {
+      MarketDataProvider marketDataProvider = mdFactory.getMarketDataProvider(input.getResolvedAsset());
       Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
       if (mdpAssets == null) {
         mdpAssets = new ArrayList<>();
       }
-      mdpAssets.add(asset);
+      mdpAssets.add(input.getResolvedAsset());
       results.put(marketDataProvider.getId(), mdpAssets);
     }
     return results;

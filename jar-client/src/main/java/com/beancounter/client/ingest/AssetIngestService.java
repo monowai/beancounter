@@ -31,7 +31,7 @@ public class AssetIngestService {
   public Asset resolveAsset(String assetCode, String assetName, Market market) {
     if (market.getCode().equalsIgnoreCase("MOCK")) {
       // Support unit testings where we don't really care about the asset
-      Asset asset = AssetUtils.getAsset(assetCode, "MOCK");
+      Asset asset = AssetUtils.getAsset("MOCK", assetCode);
       asset.setName(assetName);
       return asset;
     }

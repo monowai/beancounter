@@ -2,11 +2,8 @@
   "date": "2019-11-12",
   "assets": [
     {
-      "id": "MSFT",
       "code": "MSFT",
-      "market": {
-        "code": "NASDAQ"
-      }
+      "market": "NASDAQ"
     }
   ]
 }

@@ -111,13 +111,12 @@ class ShareSightAdapterTest {
     rows.add(row);
 
     Collection<TrnInput> trnInputs = new ArrayList<>();
-    Asset asset = AssetUtils.getAsset("MSFT", "NASDAQ");
+    Asset asset = AssetUtils.getAsset("NASDAQ", "MSFT");
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
     for (List<String> columnValues : rows) {
       TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
           .row(columnValues)
           .portfolio(portfolio)
-          .asset(asset)
           .callerRef(CallerRef.builder().build())
           .build();
 

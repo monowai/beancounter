@@ -2,17 +2,8 @@
   "date": "2019-10-18",
   "assets": [
     {
-      "id": "EBAY",
       "code": "EBAY",
-      "market": {
-        "code": "NASDAQ",
-        "currency": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "timezone": "US/Eastern"
-      }
+      "market": "NASDAQ"
     }
   ]
 }

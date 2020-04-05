@@ -53,7 +53,7 @@ class TestMdProviders {
     assertThat(mdFactory.getMarketDataProvider(MockProviderService.ID)).isNotNull();
 
     MarketDataProvider mdp = mdFactory.getMarketDataProvider(AssetUtils
-        .getAsset("ABC", Market.builder().code("NonExistent").build()));
+        .getAsset(Market.builder().code("NonExistent").build(), "ABC"));
 
     assertThat(mdp)
         .isNotNull()
@@ -62,11 +62,11 @@ class TestMdProviders {
 
   @Test
   void is_FoundByMarket() {
-    Asset amp = AssetUtils.getAsset("AMP", Market.builder().code("ASX").build());
+    Asset amp = AssetUtils.getAsset(Market.builder().code("ASX").build(), "AMP");
     MarketDataProvider asxMarket = mdFactory.getMarketDataProvider(amp);
     assertThat(asxMarket.getId()).isEqualTo(WtdService.ID);
 
-    Asset gne = AssetUtils.getAsset("GNE", Market.builder().code("NZX").build());
+    Asset gne = AssetUtils.getAsset(Market.builder().code("NZX").build(), "GNE");
     MarketDataProvider nzxMarket = mdFactory.getMarketDataProvider(gne);
     assertThat(nzxMarket.getId())
         .isEqualTo(AlphaService.ID);

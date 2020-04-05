@@ -12,10 +12,10 @@ class TestFilter {
   void is_FilteredAssetsCaseInsensitive() {
     Filter filter = new Filter("Code");
     assertThat(filter.hasFilter()).isTrue();
-    assertThat(filter.inFilter(AssetUtils.getAsset("Code", "Market")))
+    assertThat(filter.inFilter(AssetUtils.getAsset("Market", "Code")))
         .isTrue();
 
-    assertThat(filter.inFilter(AssetUtils.getAsset("code", "Market")))
+    assertThat(filter.inFilter(AssetUtils.getAsset("Market", "code")))
         .isTrue();
 
   }

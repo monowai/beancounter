@@ -1,0 +1,18 @@
+{
+  "data": {
+    "MSFT:NASDAQ": {
+      "id": "EBAY",
+      "code": "EBAY",
+      "name": "Ebay",
+      "market": {
+        "code": "NASDAQ",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "timezone": "US/Eastern"
+      }
+    }
+  }
+}

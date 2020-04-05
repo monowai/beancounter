@@ -24,7 +24,7 @@ class TestAccumulationOfQuantityValues {
     Portfolio portfolio = getPortfolio("TEST");
     Trn buyTrn = Trn.builder()
         .trnType(TrnType.BUY)
-        .asset(getAsset("CODE", "marketCode"))
+        .asset(getAsset("marketCode", "CODE"))
         .tradeAmount(new BigDecimal(2000))
         .quantity(new BigDecimal(100)).build();
 

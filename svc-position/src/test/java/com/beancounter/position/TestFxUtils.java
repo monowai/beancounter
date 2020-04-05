@@ -21,17 +21,16 @@ class TestFxUtils {
   void is_CurrencyPairResultsAsExpected() {
 
     Position inValidPosition = Position.builder().asset(
-        getAsset("Test","TWEE")
+        getAsset("TWEE", "Test")
     ).build();
     Currency invalidCurrency = inValidPosition.getAsset().getMarket().getCurrency();
     assertThat(IsoCurrencyPair.from(null, invalidCurrency))
         .isNull(); // No currency in market
 
     Position validPosition = Position.builder().asset(
-        getAsset("Test",
-            Market.builder()
-                .code("USD")
-                .currency(getCurrency("USD")).build()
+        getAsset(Market.builder()
+            .code("USD")
+            .currency(getCurrency("USD")).build(), "Test"
         )
     ).build();
     Currency validCurrency = validPosition.getAsset().getMarket().getCurrency();
@@ -51,26 +50,23 @@ class TestFxUtils {
   void is_FxRequestCorrect() {
     Currency usd = getCurrency("USD");
     Position gbpPosition = Position.builder().asset(
-        getAsset("GBP Asset",
-            Market.builder()
-                .code("GBP")
-                .currency(getCurrency("GBP")).build()
+        getAsset(Market.builder()
+            .code("GBP")
+            .currency(getCurrency("GBP")).build(), "GBP Asset"
         )
     ).build();
 
     Position usdPosition = Position.builder().asset(
-        getAsset("USD Asset",
-            Market.builder()
-                .code("USD")
-                .currency(usd).build()
+        getAsset(Market.builder()
+            .code("USD")
+            .currency(usd).build(), "USD Asset"
         )
     ).build();
 
     Position otherUsdPosition = Position.builder().asset(
-        getAsset("USD Asset Other",
-            Market.builder()
-                .code("USD")
-                .currency(usd).build()
+        getAsset(Market.builder()
+            .code("USD")
+            .currency(usd).build(), "USD Asset Other"
         )
     ).build();
 

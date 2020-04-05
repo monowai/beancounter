@@ -56,6 +56,21 @@ response:
   headers:
     Content-Type: application/json
 ---
+name: createEbay
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "assets/ebay-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "assets/ebay-response.json"
+  headers:
+    Content-Type: application/json
+
+---
 name: createBhpAsx
 priority: 1
 request:
@@ -251,6 +266,17 @@ response:
   headers:
     Content-Type: application/json
 ---
+name: lseMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/LSE
+response:
+  status: 200
+  bodyFromFile: "markets/lse.json"
+  headers:
+    Content-Type: application/json
+---
 name: nasMarket
 priority: 1
 request:
@@ -426,20 +452,6 @@ request:
 response:
   status: 200
   bodyFromFile: "fx/early-response.json"
-  headers:
-    Content-Type: application/json
----
-name: ABC-price
-priority: 1
-request:
-  method: POST
-  url: /prices
-  bodyFromFile: "prices/abc-request.json"
-  headers:
-    Content-Type: application/json
-response:
-  status: 200
-  bodyFromFile: "prices/abc-response.json"
   headers:
     Content-Type: application/json
 ---

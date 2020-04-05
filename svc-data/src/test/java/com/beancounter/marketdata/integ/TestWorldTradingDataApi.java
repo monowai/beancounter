@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.AssetUtils.getAssetInput;
 import static com.beancounter.marketdata.contracts.ContractVerifierBase.AAPL;
 import static com.beancounter.marketdata.contracts.ContractVerifierBase.AMP;
 import static com.beancounter.marketdata.contracts.ContractVerifierBase.MSFT;
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import com.beancounter.common.contracts.PriceRequest;
-import com.beancounter.common.model.Asset;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.utils.WtdMockUtils;
@@ -65,8 +66,8 @@ class TestWorldTradingDataApi {
     HashMap<String, Object> response = getResponseMap(
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/AMP-ASX.json").getFile());
 
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(AMP);
+    Collection<AssetInput> assets = new ArrayList<>();
+    assets.add(getAssetInput(AMP));
 
     mockInternet
         .stubFor(
@@ -92,14 +93,14 @@ class TestWorldTradingDataApi {
   @Test
   void is_MarketDataDateOverridingRequestDate() throws Exception {
 
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(AAPL);
-    assets.add(MSFT);
+    Collection<AssetInput> inputs = new ArrayList<>();
+    inputs.add(getAssetInput(AAPL));
+    inputs.add(getAssetInput(MSFT));
 
     // While the request date is relative to "Today", we are testing that we get back
     //  the date as set in the response from the provider.
 
-    WtdMockUtils.mockWtdResponse(assets, mockInternet,
+    WtdMockUtils.mockWtdResponse(inputs, mockInternet,
         "2019-11-15", // Prices are at T-1. configured date set in -test.yaml
         false,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").getFile());
@@ -107,7 +108,7 @@ class TestWorldTradingDataApi {
     Collection<MarketData> mdResult =
         wtdService.getMarketData(PriceRequest.builder()
             .date("2019-11-15")
-            .assets(assets).build());
+            .assets(inputs).build());
 
 
     assertThat(mdResult)
@@ -134,17 +135,17 @@ class TestWorldTradingDataApi {
 
   @Test
   void is_WtdInvalidAssetPriceDefaulting() throws Exception {
-    Collection<Asset> assets = new ArrayList<>();
+    Collection<AssetInput> inputs = new ArrayList<>();
 
-    assets.add(AAPL);
-    assets.add(MSFT_INVALID);
+    inputs.add(getAssetInput(AAPL));
+    inputs.add(getAssetInput(MSFT_INVALID));
 
     // Prices are at T-1. configured date set in -test.yaml
-    WtdMockUtils.mockWtdResponse(assets, mockInternet, priceDate, true,
+    WtdMockUtils.mockWtdResponse(inputs, mockInternet, priceDate, true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/APPL.json").getFile());
 
     Collection<MarketData> mdResult = wtdService
-        .getMarketData(PriceRequest.builder().assets(assets).build());
+        .getMarketData(PriceRequest.builder().assets(inputs).build());
 
     assertThat(mdResult)
         .isNotNull()
@@ -169,17 +170,17 @@ class TestWorldTradingDataApi {
   @Test
   void is_NoDataReturned() throws Exception {
 
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(MSFT);
+    Collection<AssetInput> inputs = new ArrayList<>();
+    inputs.add(getAssetInput(MSFT));
 
-    WtdMockUtils.mockWtdResponse(assets, mockInternet, "2019-11-15", true,
+    WtdMockUtils.mockWtdResponse(inputs, mockInternet, "2019-11-15", true,
         new ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").getFile());
     Collection<MarketData> prices = wtdService.getMarketData(
         PriceRequest.builder()
             .date("2019-11-15")
-            .assets(assets).build());
+            .assets(inputs).build());
 
-    assertThat(prices).hasSize(assets.size());
+    assertThat(prices).hasSize(inputs.size());
     assertThat(
         prices.iterator().next()).hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
   }

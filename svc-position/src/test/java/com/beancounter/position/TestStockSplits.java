@@ -28,7 +28,7 @@ class TestStockSplits {
   @Test
   void is_QuantityWorkingForSplit() {
 
-    Asset apple = getAsset("AAPL", "NASDAQ");
+    Asset apple = getAsset("NASDAQ", "AAPL");
 
     Positions positions = new Positions(getPortfolio("TEST"));
 

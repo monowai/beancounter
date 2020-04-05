@@ -11,8 +11,10 @@ import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.registration.SystemUserService;
@@ -75,7 +77,7 @@ public class KafkaTrnReader {
 
     // The asset has to exist
     AssetRequest assetRequest = AssetRequest.builder()
-        .data("MSFT", AssetUtils.getAsset("MSFT", "NASDAQ"))
+        .data("MSFT", AssetUtils.getAsset("NASDAQ", "MSFT"))
         .build();
     AssetUpdateResponse assetResponse = assetService.process(assetRequest);
     assertThat(assetResponse.getData().get("MSFT")).hasFieldOrProperty("id");
@@ -90,7 +92,7 @@ public class KafkaTrnReader {
 
     // A CSV row
     List<String> row = new ArrayList<>();
-    row.add(ShareSightTradeAdapter.market, "NAS");
+    row.add(ShareSightTradeAdapter.market, "NASDAQ");
     row.add(ShareSightTradeAdapter.code, "MSFT");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
     row.add(ShareSightTradeAdapter.type, "BUY");
@@ -106,10 +108,13 @@ public class KafkaTrnReader {
     TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(pfResponse.iterator().next())
-        .asset(assetResponse.getData().get("MSFT"))
         .build();
     TrnResponse response = trnKafka.processMessage(trnRequest);
+    Asset expectedAsset = assetResponse.getData().get("MSFT");
     assertThat(response).isNotNull();
+    for (Trn trn : response.getData()) {
+      assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
+    }
   }
 
 }

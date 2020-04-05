@@ -1,10 +1,11 @@
 package com.beancounter.common;
 
+import static com.beancounter.common.utils.AssetUtils.getAssetInput;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
-import com.beancounter.common.model.Asset;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.utils.AssetUtils;
@@ -22,7 +23,7 @@ class TestMarketData {
 
     Collection<MarketData> marketDataCollection = new ArrayList<>();
     marketDataCollection.add(MarketData.builder()
-        .asset(AssetUtils.getJsonAsset("Asset", "Market"))
+        .asset(AssetUtils.getJsonAsset("Market", "Asset"))
         .close(BigDecimal.TEN)
         .open(BigDecimal.ONE)
         .close(BigDecimal.TEN)
@@ -56,8 +57,8 @@ class TestMarketData {
 
   @Test
   void is_PriceRequestSerializing() throws Exception {
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(AssetUtils.getJsonAsset("ABC", "XYZ"));
+    Collection<AssetInput> assets = new ArrayList<>();
+    assets.add(getAssetInput("XYZ", "ABC"));
     PriceRequest priceRequest = PriceRequest.builder()
         .date("2019-11-11")
         .assets(assets)

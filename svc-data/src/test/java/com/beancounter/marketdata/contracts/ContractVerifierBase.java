@@ -27,7 +27,6 @@ import com.beancounter.marketdata.providers.wtd.WtdGateway;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.trn.TrnService;
-import com.beancounter.marketdata.utils.WtdMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import java.io.File;
@@ -35,6 +34,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,11 +73,10 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("nosecurity")
 public class ContractVerifierBase {
 
-  public static final Asset AAPL = getAsset("AAPL", "NASDAQ");
-  public static final Asset MSFT = getAsset("MSFT", "NASDAQ");
-  public static final Asset MSFT_INVALID = getAsset("MSFTx", "NASDAQ");
-  public static final Asset AMP = getAsset("AMP", "ASX");
-  public static final Asset EBAY = getAsset("EBAY", "NASDAQ");
+  public static final Asset AAPL = getAsset("NASDAQ", "AAPL");
+  public static final Asset MSFT = getAsset("NASDAQ", "MSFT");
+  public static final Asset MSFT_INVALID = getAsset("NASDAQ", "MSFTx");
+  public static final Asset AMP = getAsset("ASX", "AMP");
   @MockBean
   JwtDecoder jwtDecoder;
   @MockBean
@@ -92,11 +91,14 @@ public class ContractVerifierBase {
   private AssetService assetService;
   @MockBean
   private SystemUserService systemUserService;
+
   @Autowired
   private WebApplicationContext context;
   private String contractPath = "contracts";
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
+  @SneakyThrows
   public void initMocks() {
     MockMvc mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
@@ -104,13 +106,15 @@ public class ContractVerifierBase {
 
     RestAssuredMockMvc
         .mockMvc(mockMvc);
-
+    mockPortfolios();
+    systemUsers();
+    ecbRates();
+    mockTrnGetResponse();
+    mockAssets();
   }
 
-  @BeforeEach
   @SneakyThrows
-  public void systemUsers() {
-    ObjectMapper objectMapper = new ObjectMapper();
+  private void systemUsers() {
     File jsonFile =
         new ClassPathResource(contractPath + "/register/response.json").getFile();
     RegistrationResponse response = objectMapper.readValue(jsonFile, RegistrationResponse.class);
@@ -130,8 +134,7 @@ public class ContractVerifierBase {
 
   }
 
-  @BeforeEach
-  public void ecbRates() {
+  private void ecbRates() {
     Map<String, BigDecimal> rates;
     rates = getRateMap("0.8973438622", "1.3652189519", "0.7756191673",
         "1.5692749462", "1.4606963388");
@@ -168,22 +171,7 @@ public class ContractVerifierBase {
 
   }
 
-  @BeforeEach
-  public void wtdPrices() {
-    // WTD Price Mocking
-    // Ebay
-    Map<String, MarketData> results = new HashMap<>();
-    String date = "2019-10-18";
-
-    results.put("EBAY", WtdMockUtils.get(date, EBAY,
-        "39.21", "100.00", "39.35", "38.74", "6274307"));
-    mockWtdResponse(String.join(",", results.keySet()), date,
-        WtdMockUtils.get(date, results));
-
-  }
-
-  @BeforeEach
-  public void mockTrnGetResponse() throws Exception {
+  private void mockTrnGetResponse() throws Exception {
     mockTrnPostResponse(getTestPortfolio(), contractPath + "/trn/CSV-write.json",
         contractPath + "/trn/CSV-response.json");
     mockTrnGetResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
@@ -193,7 +181,7 @@ public class ContractVerifierBase {
   @SneakyThrows
   void mockTrnGetResponse(Portfolio portfolio, String trnFile) {
     File jsonFile = new ClassPathResource(trnFile).getFile();
-    TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
+    TrnResponse trnResponse = objectMapper.readValue(jsonFile, TrnResponse.class);
     Mockito.when(trnService.findForPortfolio(portfolio))
         .thenReturn(trnResponse);
   }
@@ -201,17 +189,14 @@ public class ContractVerifierBase {
   @SneakyThrows
   void mockTrnPostResponse(Portfolio portfolio, String requestFile, String responseFile) {
     File jsonFile = new ClassPathResource(requestFile).getFile();
-    TrnRequest trnRequest = new ObjectMapper().readValue(jsonFile, TrnRequest.class);
+    TrnRequest trnRequest = objectMapper.readValue(jsonFile, TrnRequest.class);
     jsonFile = new ClassPathResource(responseFile).getFile();
-    TrnResponse trnResponse = new ObjectMapper().readValue(jsonFile, TrnResponse.class);
+    TrnResponse trnResponse = objectMapper.readValue(jsonFile, TrnResponse.class);
     Mockito.when(trnService.save(portfolio, trnRequest))
         .thenReturn(trnResponse);
   }
 
-  @BeforeEach
-  @SneakyThrows
-  public void mockPortfolios() {
-    ObjectMapper objectMapper = new ObjectMapper();
+  public void mockPortfolios() throws Exception {
     mockPortfolio(getEmptyPortfolio());
     mockPortfolio(getTestPortfolio());
     // All Portfolio
@@ -249,7 +234,7 @@ public class ContractVerifierBase {
 
   private Portfolio getPortfolio(File jsonFile) throws IOException {
     PortfolioResponse portfolioResponse =
-        new ObjectMapper().readValue(jsonFile, PortfolioResponse.class);
+        objectMapper.readValue(jsonFile, PortfolioResponse.class);
     return portfolioResponse.getData();
   }
 
@@ -262,38 +247,66 @@ public class ContractVerifierBase {
         .thenReturn(portfolio);
   }
 
-  @BeforeEach
-  public void mockAssets() throws Exception {
-    mockAssetResponse(
+  private void mockAssets() throws Exception {
+    mockAssetResponses(
         new ClassPathResource(contractPath + "/assets/request.json").getFile(),
         new ClassPathResource(contractPath + "/assets/response.json").getFile());
-    mockAssetResponse(
+    mockAssetResponses(
+        new ClassPathResource(contractPath + "/assets/ebay-request.json").getFile(),
+        new ClassPathResource(contractPath + "/assets/ebay-response.json").getFile());
+    mockAssetResponses(
         new ClassPathResource(contractPath + "/assets/msft-request.json").getFile(),
         new ClassPathResource(contractPath + "/assets/msft-response.json").getFile());
-    mockAssetResponse(
+    mockAssetResponses(
         new ClassPathResource(contractPath + "/assets/bhp-request.json").getFile(),
         new ClassPathResource(contractPath + "/assets/bhp-response.json").getFile());
-    mockAssetResponse(
+    mockAssetResponses(
         new ClassPathResource(contractPath + "/assets/bhp-lse-request.json").getFile(),
         new ClassPathResource(contractPath + "/assets/bhp-lse-response.json").getFile());
-    mockAssetResponse(
+    mockAssetResponses(
         new ClassPathResource(contractPath + "/assets/abbv-request.json").getFile(),
         new ClassPathResource(contractPath + "/assets/abbv-response.json").getFile());
-    mockAssetResponse(
+    mockAssetResponses(
         new ClassPathResource(contractPath + "/assets/amp-request.json").getFile(),
         new ClassPathResource(contractPath + "/assets/amp-response.json").getFile());
+
+    WtdResponse wtdResponse = new WtdResponse();
+    Map<String, MarketData> result = new HashMap<>();
+    result.put("EBAY", MarketData.builder()
+        .date("2019-10-18")
+        .open(new BigDecimal("39.21"))
+        .close(new BigDecimal("100.00"))
+        .low(new BigDecimal("38.74"))
+        .high(new BigDecimal("39.35"))
+        .volume(new BigDecimal("6274307"))
+        .build());
+    wtdResponse.setData(result);
+    Mockito.when(wtdGateway
+        .getMarketDataForAssets("EBAY", "2019-10-18", "demo"))
+        .thenReturn(wtdResponse);
 
   }
 
   @SneakyThrows
-  private void mockAssetResponse(File jsonRequest, File jsonResponse) {
+  private void mockAssetResponses(File jsonRequest, File jsonResponse) {
     AssetRequest assetRequest =
-        new ObjectMapper().readValue(jsonRequest, AssetRequest.class);
+        objectMapper.readValue(jsonRequest, AssetRequest.class);
 
     AssetUpdateResponse assetUpdateResponse =
-        new ObjectMapper().readValue(jsonResponse, AssetUpdateResponse.class);
+        objectMapper.readValue(jsonResponse, AssetUpdateResponse.class);
 
     Mockito.when(assetService.process(assetRequest)).thenReturn(assetUpdateResponse);
+    Set<String> keys = assetUpdateResponse.getData().keySet();
+    for (String key : keys) {
+      Asset theAsset = assetUpdateResponse.getData().get(key);
+      if (theAsset.getId() != null) {
+        Mockito.when(assetService.find(theAsset.getId())).thenReturn(theAsset);
+      }
+      Mockito.when(assetService.find(
+          theAsset.getMarket().getCode().toUpperCase(),
+          theAsset.getCode().toUpperCase()))
+          .thenReturn(theAsset);
+    }
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates) {
@@ -304,11 +317,6 @@ public class ContractVerifierBase {
     Mockito.when(fxGateway.getRatesForSymbols(rateDate, "USD",
         String.join(",", rates.keySet())))
         .thenReturn(ecbRates);
-  }
-
-  private void mockWtdResponse(String assets, String date, WtdResponse wtdResponse) {
-    Mockito.when(wtdGateway.getMarketDataForAssets(assets, date, "demo"))
-        .thenReturn(wtdResponse);
   }
 
   @Test

@@ -1,7 +1,7 @@
 package com.beancounter.position.service;
 
 import com.beancounter.common.contracts.PositionResponse;
-import com.beancounter.common.model.Asset;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
@@ -50,13 +50,16 @@ public class ValuationService implements Valuation {
     if (positions.getAsAt() != null) {
       dateUtils.isValid(positions.getAsAt());
     }
-    Collection<Asset> assets = new ArrayList<>();
+    Collection<AssetInput> assets = new ArrayList<>();
     for (Position position : positions.getPositions().values()) {
       gains.value(position.getQuantityValues().getTotal(),
           position.getMoneyValues(Position.In.PORTFOLIO));
 
       if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
-        assets.add(position.getAsset());
+        assets.add(AssetInput.builder()
+            .code(position.getAsset().getCode())
+            .market(position.getAsset().getMarket().getCode())
+            .build());
       }
     }
     Positions valuedPositions = positionValuationService.value(positions, assets);

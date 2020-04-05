@@ -2,18 +2,14 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.client.ingest.RowAdapter;
-import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.services.TrnService;
-import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +23,6 @@ public class HttpWriter implements TrnWriter {
   private FxTransactions fxTransactions;
   private TrnService trnService;
   private RowAdapter rowAdapter;
-  private ShareSightFactory shareSightFactory;
 
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
@@ -44,24 +39,10 @@ public class HttpWriter implements TrnWriter {
     this.rowAdapter = rowAdapter;
   }
 
-  @Autowired
-  void setShareSightService(ShareSightFactory shareSightService) {
-    this.shareSightFactory = shareSightService;
-  }
-
   @Override
   public void write(TrustedTrnRequest trustedTrnRequest) {
-    List<String> row = trustedTrnRequest.getRow();
-    TrnAdapter adapter = shareSightFactory.adapter(row);
-    Asset asset = adapter.resolveAsset(row);
-    if (asset == null) {
-      return;
-    }
-    trustedTrnRequest.setAsset(asset);
-
     this.portfolio = trustedTrnRequest.getPortfolio();
     TrnInput trnInput = rowAdapter.transform(trustedTrnRequest);
-
     if (trnInput != null) {
       trnInputs.add(trnInput);
     }

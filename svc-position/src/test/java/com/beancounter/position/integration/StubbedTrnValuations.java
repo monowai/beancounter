@@ -105,7 +105,7 @@ class StubbedTrnValuations {
     assertThat(positionResponse.getData().getAsAt()).isEqualTo("2019-10-18");
 
     assertThat(positionResponse.getData()
-        .get(AssetUtils.getAsset("AAPL", "NASDAQ")))
+        .get(AssetUtils.getAsset("NASDAQ", "AAPL")))
         .isNotNull();
 
   }

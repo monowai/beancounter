@@ -68,9 +68,16 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   public TrnInput from(TrustedTrnRequest trustedTrnRequest) {
     List<String> row = trustedTrnRequest.getRow();
     try {
+
+      Asset asset = resolveAsset(row);
+      if (asset == null) {
+        log.error("Unable to resolve asset [{}]", row);
+        return null;
+      }
+
       BigDecimal tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
       return TrnInput.builder()
-          .asset(trustedTrnRequest.getAsset().getId())
+          .asset(asset.getId())
           .tradeCurrency(row.get(currency))
           .trnType(TrnType.DIVI)
           .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))

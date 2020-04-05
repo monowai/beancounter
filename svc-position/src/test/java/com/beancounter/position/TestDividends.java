@@ -26,10 +26,10 @@ class TestDividends {
   @Test
   void is_CashDividendAccumulated() {
 
-    Asset asset = AssetUtils.getAsset("MO", Market.builder()
+    Asset asset = AssetUtils.getAsset(Market.builder()
         .code("ASX")
         .currency(getCurrency("AUD"))
-        .build());
+        .build(), "MO");
 
     Trn trn = Trn.builder()
         .asset(asset)

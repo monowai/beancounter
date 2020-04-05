@@ -28,9 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = Accumulator.class)
 class TestMoneyValues {
   private static final BigDecimal TRADE_PORTFOLIO_RATE = new BigDecimal("100");
-  private Asset microsoft = AssetUtils.getAsset("MSFT", "NYSE");
-  private Asset intel = AssetUtils.getAsset("INTC", "NYSE");
-  private Asset bidu = AssetUtils.getAsset("BIDU", "NYSE");
+  private Asset microsoft = AssetUtils.getAsset("NYSE", "MSFT");
+  private Asset intel = AssetUtils.getAsset("NYSE", "INTC");
+  private Asset bidu = AssetUtils.getAsset("NYSE", "BIDU");
 
   @Autowired
   private Accumulator accumulator;

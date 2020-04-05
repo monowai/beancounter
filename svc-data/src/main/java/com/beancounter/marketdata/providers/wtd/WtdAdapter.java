@@ -46,7 +46,9 @@ public class WtdAdapter implements MarketDataAdapter {
         } else {
           marketData.setAsset(bcAsset);
         }
-        marketData.setDate(wtdResponse.getDate());
+        if (marketData.getDate() == null) {
+          marketData.setDate(wtdResponse.getDate());
+        }
         results.add(marketData);
       }
       return results;

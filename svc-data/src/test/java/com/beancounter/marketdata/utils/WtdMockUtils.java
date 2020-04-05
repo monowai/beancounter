@@ -4,7 +4,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
@@ -72,17 +74,19 @@ public class WtdMockUtils {
    * @throws IOException error
    */
   public static void mockWtdResponse(
-      Collection<Asset> assets, WireMockRule wtdMock, String asAt,
+      Collection<AssetInput> assets, WireMockRule wtdMock, String asAt,
       boolean overrideAsAt, File jsonFile) throws IOException {
 
     StringBuilder assetArg = null;
 
-    for (Asset asset : assets) {
+    for (AssetInput input : assets) {
+      Market market = input.getResolvedAsset().getMarket();
+      Asset asset = input.getResolvedAsset();
       String suffix = "";
-      if (!(asset.getMarket().getCode().equalsIgnoreCase("NASDAQ"))) {
+      if (!(market.getCode().equalsIgnoreCase("NASDAQ"))) {
         // Horrible hack to support WTD contract mocking ASX/AX
-        suffix = "." + (asset.getMarket().getCode().equalsIgnoreCase("ASX")
-            ? "AX" : asset.getMarket().getCode());
+        suffix = "." + (market.getCode().equalsIgnoreCase("ASX")
+            ? "AX" : market.getCode());
       }
 
       if (assetArg != null) {

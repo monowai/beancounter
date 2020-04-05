@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.mock;
 
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
@@ -39,8 +40,8 @@ public class MockProviderService implements MarketDataProvider {
   @Override
   public Collection<MarketData> getMarketData(PriceRequest priceRequest) {
     Collection<MarketData> results = new ArrayList<>(priceRequest.getAssets().size());
-    for (Asset asset : priceRequest.getAssets()) {
-      results.add(getMarketData(asset));
+    for (AssetInput input : priceRequest.getAssets()) {
+      results.add(getMarketData(input.getResolvedAsset()));
     }
     return results;
   }

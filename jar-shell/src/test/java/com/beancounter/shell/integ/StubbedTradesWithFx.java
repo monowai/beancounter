@@ -12,12 +12,10 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +45,6 @@ class StubbedTradesWithFx {
 
   @Autowired
   private ShareSightConfig shareSightConfig;
-
-  private Asset asset = AssetUtils.getAsset("BHP", "LSE");
 
   @Test
   void is_FxRatesSetFromCurrencies() {
@@ -81,7 +77,6 @@ class StubbedTradesWithFx {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = trades.from(trustedTrnRequest);
@@ -122,7 +117,6 @@ class StubbedTradesWithFx {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = trades.from(trustedTrnRequest);
@@ -161,7 +155,6 @@ class StubbedTradesWithFx {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = trades.from(trustedTrnRequest);
@@ -210,7 +203,6 @@ class StubbedTradesWithFx {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = trades.from(trustedTrnRequest);

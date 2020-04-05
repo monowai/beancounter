@@ -34,7 +34,7 @@ class TestTrnLogic {
    */
   @Test
   void do_UnorderedTransactionsError() {
-    Asset apple = AssetUtils.getAsset("AAPL", "NASDAQ");
+    Asset apple = AssetUtils.getAsset("NASDAQ", "AAPL");
     Positions positions = new Positions(Portfolio.builder().code("TEST").build());
 
     Position position = positions.get(apple);

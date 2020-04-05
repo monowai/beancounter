@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.AssetUtils.getAssetInput;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,8 +11,8 @@ import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.MarketDataBoot;
@@ -44,7 +45,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(classes = MarketDataBoot.class)
 @WebAppConfiguration
 @ActiveProfiles("test")
-class MarketDataBootTests {
+class MarketDataControllerTests {
 
   private final Asset dummy;
   // Represents dummy after it has been Jackson'ized
@@ -57,15 +58,15 @@ class MarketDataBootTests {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
-  private MarketDataBootTests(WebApplicationContext webApplicationContext,
-                              MarketService marketService,
-                              MockProviderService mockProviderService)
+  private MarketDataControllerTests(WebApplicationContext webApplicationContext,
+                                    MarketService marketService,
+                                    MockProviderService mockProviderService)
       throws JsonProcessingException {
     this.wac = webApplicationContext;
     this.mockProviderService = mockProviderService;
     dummy = AssetUtils.getAsset(
-        "dummy",
-        marketService.getMarket("mock"));
+        marketService.getMarket("mock"), "dummy"
+    );
     dummyJsonAsset = objectMapper.readValue(objectMapper.writeValueAsString(dummy), Asset.class);
   }
 
@@ -85,10 +86,13 @@ class MarketDataBootTests {
   @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_MarketsReturned() throws Exception {
     String json = mockMvc.perform(get("/markets")
-        .contentType(MediaType.APPLICATION_JSON_VALUE)
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andReturn().getResponse().getContentAsString();
+        .contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(
+            status().isOk()
+        ).andExpect(
+            content().contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andReturn()
+        .getResponse().getContentAsString();
     MarketResponse marketResponse = objectMapper.readValue(json, MarketResponse.class);
     assertThat(marketResponse.getData()).isNotNull().isNotEmpty();
   }
@@ -98,13 +102,17 @@ class MarketDataBootTests {
   @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_PriceFormMarketAssetFound() throws Exception {
 
-    String json = mockMvc.perform(get("/prices/{marketId}/{assetId}",
-        dummy.getMarket().getCode(),
-        dummy.getCode())
-        .contentType(MediaType.APPLICATION_JSON_VALUE)
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andReturn().getResponse().getContentAsString();
+    String json = mockMvc.perform(
+        get("/prices/{marketId}/{assetId}",
+            dummy.getMarket().getCode(),
+            dummy.getCode()
+        )
+            .contentType(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(
+            status().isOk()
+        ).andExpect(
+            content().contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andReturn().getResponse().getContentAsString();
 
     PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
     assertThat(priceResponse.getData()).hasSize(1);
@@ -120,24 +128,30 @@ class MarketDataBootTests {
   @Tag("slow")
   @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_MdCollectionReturnedForAssets() throws Exception {
-    Collection<Asset> assets = new ArrayList<>();
-    Asset asset = Asset.builder().code("assetCode")
-        .market(Market.builder().code("MOCK").build()).build();
 
-    assets.add(asset);
+    Mockito.when(assetService.find("MOCK", "ASSETCODE"))
+        .thenReturn(AssetUtils.getAsset("ASSETCODE", "MOCK"));
 
-    PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
+    Collection<AssetInput> assetInputs = new ArrayList<>();
+    assetInputs.add(
+        getAssetInput("MOCK", "ASSETCODE"));
 
-    String json = mockMvc.perform(post("/prices",
-        dummy.getMarket().getCode(), dummy.getCode())
-        .contentType(MediaType.APPLICATION_JSON_VALUE)
-        .content(objectMapper.writeValueAsString(priceRequest))
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andReturn().getResponse().getContentAsString();
+    String json = mockMvc.perform(
+        post("/prices")
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper
+                .writeValueAsString(PriceRequest.builder().assets(assetInputs).build())
+            ))
+        .andExpect(
+            status().isOk()
+        ).andExpect(
+            content().contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andReturn()
+        .getResponse()
+        .getContentAsString();
 
     PriceResponse mdResponse = objectMapper.readValue(json, PriceResponse.class);
-    assertThat(mdResponse.getData()).hasSize(assets.size());
+    assertThat(mdResponse.getData()).hasSize(assetInputs.size());
   }
 
   @Test
@@ -148,9 +162,11 @@ class MarketDataBootTests {
         dummy.getMarket().getCode(),
         dummy.getCode())
         .contentType(MediaType.APPLICATION_JSON_VALUE)
-    ).andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-        .andReturn()
+    ).andExpect(
+        status().isOk()
+    ).andExpect(
+        content().contentType(MediaType.APPLICATION_JSON_VALUE)
+    ).andReturn()
         .getResponse()
         .getContentAsString();
 

@@ -67,8 +67,8 @@ class TestAssetMvc {
   @Test
   void is_AssetCreationAndFindByWorking() throws Exception {
 
-    Asset firstAsset = AssetUtils.getAsset("MyCode", "MOCK");
-    Asset secondAsset = AssetUtils.getAsset("Second", "MOCK");
+    Asset firstAsset = AssetUtils.getAsset("MOCK", "MyCode");
+    Asset secondAsset = AssetUtils.getAsset("MOCK", "Second");
     AssetRequest assetRequest = AssetRequest.builder()
         .data(AssetUtils.toKey(firstAsset), firstAsset)
         .data(AssetUtils.toKey(secondAsset), secondAsset)
@@ -139,7 +139,7 @@ class TestAssetMvc {
 
   @Test
   void is_PostSameAssetTwiceBehaving() throws Exception {
-    Asset asset = AssetUtils.getAsset("MyCodeX", "MOCK");
+    Asset asset = AssetUtils.getAsset("MOCK", "MyCodeX");
     AssetRequest assetRequest = AssetRequest.builder()
         .data(AssetUtils.toKey(asset), asset)
         .build();

@@ -15,10 +15,8 @@ import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -103,11 +101,9 @@ class ShareSightTradeTest {
 
     // Portfolio is in NZD
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
-    Asset asset = AssetUtils.getAsset("Why", "ME");
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
@@ -124,6 +120,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeCurrency", "AUD")
         .hasFieldOrPropertyWithValue("tradeCashRate", null)
         .hasFieldOrProperty("tradeDate")
+        .hasFieldOrProperty("asset")
     ;
 
   }
@@ -136,7 +133,6 @@ class ShareSightTradeTest {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(getPortfolio("Test", getCurrency("NZD")))
-        .asset(AssetUtils.getAsset("Why", "ME"))
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
@@ -146,6 +142,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("comments", null)
+        .hasFieldOrProperty("asset")
         .hasFieldOrProperty("tradeDate");
 
   }
@@ -156,12 +153,10 @@ class ShareSightTradeTest {
     List<String> row = getRow("split", null, null);
 
     Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    Asset asset = AssetUtils.getAsset("Why", "ME");
 
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(portfolio)
-        .asset(asset)
         .build();
 
     TrnInput trn = shareSightRowProcessor
@@ -174,6 +169,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", "AUD")
+        .hasFieldOrProperty("asset")
         .hasFieldOrProperty("tradeDate")
     ;
 
@@ -186,7 +182,6 @@ class ShareSightTradeTest {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(getPortfolio("Test", getCurrency("NZD")))
-        .asset(AssetUtils.getAsset("Why", "ME"))
         .build();
 
     assertThrows(BusinessException.class, () ->

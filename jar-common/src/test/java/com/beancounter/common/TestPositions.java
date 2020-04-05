@@ -75,7 +75,7 @@ class TestPositions {
   @Test
   void is_DateValuesSetFromTransaction() {
 
-    Asset asset = getAsset("Dates", "Code");
+    Asset asset = getAsset("Code", "Dates");
 
     LocalDate firstTradeDate = dateUtils.getDate("2018-12-01");
     LocalDate secondTradeDate = dateUtils.getDate("2018-12-02");
@@ -123,7 +123,7 @@ class TestPositions {
   void is_PositionRequestSerializing() throws Exception {
     Collection<Trn> trns = new ArrayList<>();
     trns.add(Trn.builder()
-        .asset(getJsonAsset("Blah", "Market"))
+        .asset(getJsonAsset("Market", "Blah"))
         .portfolio(PortfolioUtils.getPortfolio("PCODE"))
         .build());
 

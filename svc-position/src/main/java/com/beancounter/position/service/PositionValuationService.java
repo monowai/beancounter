@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.model.Asset;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.MarketData;
@@ -38,7 +38,7 @@ public class PositionValuationService {
     this.fxUtils = fxUtils;
   }
 
-  public Positions value(Positions positions, Collection<Asset> assets) {
+  public Positions value(Positions positions, Collection<AssetInput> assets) {
     if (assets.isEmpty()) {
       return positions;
     }
@@ -70,7 +70,7 @@ public class PositionValuationService {
   }
 
   @SneakyThrows
-  private ValuationData getValuationData(Positions positions, Collection<Asset> assets) {
+  private ValuationData getValuationData(Positions positions, Collection<AssetInput> assets) {
     CompletableFuture<FxResponse> futureFxResponse =
         asyncMdService.getFxData(fxUtils.buildRequest(
             positions.getPortfolio().getBase(),

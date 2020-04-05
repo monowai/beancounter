@@ -3,6 +3,7 @@ package com.beancounter.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
@@ -18,9 +19,9 @@ import org.junit.jupiter.api.Test;
  * of being based on batch sizes.
  */
 class TestProviderArguments {
-  private Asset aapl = AssetUtils.getAsset("AAPL", "NASDAQ");
-  private Asset msft = AssetUtils.getAsset("MSFT", "NASDAQ");
-  private Asset intc = AssetUtils.getAsset("INTC", "NASDAQ");
+  private Asset aapl = AssetUtils.getAsset("NASDAQ", "AAPL");
+  private Asset msft = AssetUtils.getAsset("NASDAQ", "MSFT");
+  private Asset intc = AssetUtils.getAsset("NASDAQ", "INTC");
 
   @Test
   void is_BatchOfOne() {
@@ -74,10 +75,19 @@ class TestProviderArguments {
 
   @Test
   void is_SplitByMarket() {
-    Collection<Asset> assets = new ArrayList<>();
-    assets.add(AssetUtils.getAsset("ABC", "AAA"));
-    assets.add(AssetUtils.getAsset("ABC", "BBB"));
-    assets.add(AssetUtils.getAsset("ABC", "CCC"));
+    Collection<AssetInput> assets = new ArrayList<>();
+    assets.add(AssetInput.builder()
+        .resolvedAsset(AssetUtils
+            .getAsset("AAA", "ABC")).build());
+
+    assets.add(AssetInput.builder()
+        .resolvedAsset(AssetUtils
+            .getAsset("BBB", "ABC")).build());
+
+    assets.add(AssetInput.builder()
+        .resolvedAsset(AssetUtils
+            .getAsset("CCC", "ABC")).build());
+
     PriceRequest priceRequest = PriceRequest.builder().assets(assets).build();
     TestConfig testConfig = new TestConfig(10);
     ProviderArguments providerArguments =

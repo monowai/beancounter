@@ -11,7 +11,6 @@ import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrustedTrnRequest;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +58,6 @@ public class TestAdapters {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
-        .asset(AssetUtils.getAsset("MSFT", "NASDAQ"))
         .build();
 
     ShareSightTradeAdapter tradeAdapter =
@@ -81,7 +79,6 @@ public class TestAdapters {
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
-        .asset(AssetUtils.getAsset("MSFT", "NASDAQ"))
         .build();
 
     ShareSightTradeAdapter tradeAdapter =

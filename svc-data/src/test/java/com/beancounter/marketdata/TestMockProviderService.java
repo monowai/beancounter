@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
@@ -26,7 +27,7 @@ class TestMockProviderService {
 
   @Test
   void is_MockProviderReturningValues() {
-    Asset asset = AssetUtils.getAsset("Anything", "MOCK");
+    Asset asset = AssetUtils.getAsset("MOCK", "Anything");
     MarketDataProvider provider = new MockProviderService();
 
     Collection<MarketData> result = provider.getMarketData(PriceRequest.of(asset).build());
@@ -41,10 +42,11 @@ class TestMockProviderService {
   @Test
   void is_MockDataProviderThrowing() {
     // Hard coded asset exception
-    Asset asset = AssetUtils.getAsset("123", "MOCK");
+    Asset asset = AssetUtils.getAsset("MOCK", "123");
     MarketDataProvider provider = new MockProviderService();
     PriceRequest priceRequest = PriceRequest.builder().build();
-    priceRequest.setAssets(Collections.singleton(asset));
+    priceRequest.setAssets(Collections.singleton(AssetInput.builder()
+        .resolvedAsset(asset).build()));
     assertThrows(BusinessException.class, () -> provider.getMarketData(priceRequest));
   }
 

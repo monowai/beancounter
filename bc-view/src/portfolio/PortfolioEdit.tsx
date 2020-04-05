@@ -3,13 +3,15 @@ import { useForm } from "react-hook-form";
 import logger from "../common/configLogging";
 import { Portfolio, PortfolioInput } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import { currencyOptions, useCurrencies } from "../static/hooks";
+import { useCurrencies } from "../static/hooks";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
 import ErrorPage from "../common/errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
+import { currencyOptions } from "../static/IsoHelper";
+import { TrnDropZone } from "./DropZone";
 
 export function PortfolioEdit(portfolioId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
@@ -137,14 +139,6 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
                       className={"select is-3"}
                       name={"currency"}
                       defaultValue={portfolio.currency.code}
-                      // onChange={e => {
-                      //   const value = e.target.value;
-                      //   const currency = get(currencies, value);
-                      //   // if (currency) {
-                      //   //   setValue("currency", currency[0].code);
-                      //   //   portfolio.currency = currency[0];
-                      //   // }
-                      // }}
                       ref={register({ required: true })}
                     >
                       {currencyOptions(currencies, portfolio.currency.code)}
@@ -174,6 +168,9 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
                       Cancel
                     </button>
                   </div>
+                </div>
+                <div className="field">
+                  <TrnDropZone portfolio={portfolio}/>
                 </div>
               </form>
             </div>

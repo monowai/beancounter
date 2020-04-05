@@ -1004,7 +1004,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/0OKznUxcT9WlNWIAp2dn2Q"
+                href="/trns/test/asset/0OKznUxcT9WlNWIAp2dn2Q"
               >
                 <span>
                   637
@@ -1197,7 +1197,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/pw1dIdlhSx2x8tnlA2qNhw"
+                href="/trns/test/asset/pw1dIdlhSx2x8tnlA2qNhw"
               >
                 <span>
                   12
@@ -1277,7 +1277,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/QyZk-QioSRqyq1alwSf5Tw"
+                href="/trns/test/asset/QyZk-QioSRqyq1alwSf5Tw"
               >
                 <span>
                   25
@@ -1357,7 +1357,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/HQuFW0B9RUW9bML5r2x0pA"
+                href="/trns/test/asset/HQuFW0B9RUW9bML5r2x0pA"
               >
                 <span>
                   55

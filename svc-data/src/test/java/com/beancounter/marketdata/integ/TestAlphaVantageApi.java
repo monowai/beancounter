@@ -37,7 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Tag("slow")
 class TestAlphaVantageApi {
 
-  private static WireMockRule mockInternet;
+  private static WireMockRule alphaVantage;
 
   @Autowired
   private MdFactory mdFactory;
@@ -45,9 +45,9 @@ class TestAlphaVantageApi {
   @Autowired
   void mockServices() {
     // ToDo: Figure out RandomPort + Feign.  Config issues :(
-    if (mockInternet == null) {
-      mockInternet = new WireMockRule(options().port(9999));
-      mockInternet.start();
+    if (alphaVantage == null) {
+      alphaVantage = new WireMockRule(options().port(9999));
+      alphaVantage.start();
     }
   }
 
@@ -56,9 +56,9 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API.ERR", jsonFile);
     Asset asset =
-        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
+        Asset.builder().code("API").market(Market.builder().code("ERR").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
     Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset).build());
@@ -76,9 +76,10 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API.KEY", jsonFile);
     Asset asset =
-        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
+        Asset.builder().code("API")
+            .market(Market.builder().code("KEY").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
     Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset).build());
@@ -97,9 +98,9 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API.X", jsonFile);
     Asset asset =
-        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
+        Asset.builder().code("API").market(Market.builder().code("X").build()).build();
 
     Collection<MarketData> results = mdFactory.getMarketDataProvider(AlphaService.ID)
         .getMarketData(PriceRequest.of(asset).build());
@@ -118,7 +119,7 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantage-asx.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(mockInternet, jsonFile);
+    AlphaMockUtils.mockAlphaResponse(alphaVantage, "ABC.AX", jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 

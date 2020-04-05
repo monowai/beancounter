@@ -103,9 +103,8 @@ public class ContractVerifierBase {
     MockMvc mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
         .build();
+    RestAssuredMockMvc.mockMvc(mockMvc);
 
-    RestAssuredMockMvc
-        .mockMvc(mockMvc);
     mockPortfolios();
     systemUsers();
     ecbRates();

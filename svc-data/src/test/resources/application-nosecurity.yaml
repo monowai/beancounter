@@ -1,72 +1,3 @@
-server:
-  port: 9510
-  servlet:
-    context-path: '/api'
-
-management:
-  server:
-    port: 9511
-  endpoint:
-    health.show-details: always
-  endpoints:
-    web:
-      exposure.include: '*'
-      base-path: "/"
-
-logging:
-  level:
-    root: debug
-    javax: error
-    sun: error
-    io: error
-    feign: error
-    com:
-      netfix: error
-      beancounter: debug
-      zaxxer: error
-    org:
-      springframework: error
-      hibernate: error
-      apache: error
-      postgres: error
-      postgresql: error
-
-auth:
-  uri: "http://keycloak:9620/auth"
-  realm: "bc-dev"
-
-spring:
-  application:
-    name: bc-marketData
-  cache:
-    cache-names: asset.prices, fx.rates, providers
-  jpa:
-    open-in-view: false
-    generate-ddl: true
-  datasource:
-    username: sa
-    password:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-  h2:
-    console:
-      enabled: true
-      path: /h2
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
-  kafka:
-    bootstrap-servers: kafka:9092
-    consumer:
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: com.beancounter.common.input
-      group-id: bcIngestion
-
-kafka:
-  enabled: false
-
 beancounter:
   baseCode: "USD"
 
@@ -152,11 +83,9 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: NASDAQ,AMEX,NYSE,NZX,ASX
+        markets:
 
       WTD:
         url: https://www.worldtradingdata.com
         batchSize: 2
-        markets:
-
-
+        markets: NASDAQ,AMEX,NYSE,NZX,ASX

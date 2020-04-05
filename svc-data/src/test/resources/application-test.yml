@@ -7,7 +7,6 @@ kafka:
 beancounter:
   marketdata:
     provider:
-
       ALPHA:
         url: http://localhost:9999
         markets: NZX

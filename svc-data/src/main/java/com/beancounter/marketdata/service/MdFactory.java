@@ -8,6 +8,7 @@ import com.beancounter.marketdata.providers.wtd.WtdService;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,6 +38,7 @@ public class MdFactory {
    * @param asset who wants to know?
    * @return the provider that supports the asset
    */
+  @Cacheable("providers")
   public MarketDataProvider getMarketDataProvider(Asset asset) {
     MarketDataProvider provider = resolveProvider(asset.getMarket());
     if (provider == null) {

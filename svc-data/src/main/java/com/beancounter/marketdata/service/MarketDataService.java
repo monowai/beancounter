@@ -63,7 +63,8 @@ public class MarketDataService {
     Map<String, Collection<Asset>> results = new HashMap<>();
 
     for (AssetInput input : assets) {
-      MarketDataProvider marketDataProvider = mdFactory.getMarketDataProvider(input.getResolvedAsset());
+      MarketDataProvider marketDataProvider =
+          mdFactory.getMarketDataProvider(input.getResolvedAsset());
       Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
       if (mdpAssets == null) {
         mdpAssets = new ArrayList<>();

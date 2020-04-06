@@ -95,7 +95,7 @@
     "postcss-flexbugs-fixes": "^4.1.0",
     "postcss-preset-env": "^6.7.0",
     "prettier": "^1.18.2",
-    "pretty-format": "^25.2.3",
+    "pretty-format": "^25.2.6",
     "razzle-plugin-typescript": "^3.0.0",
     "react-hot-loader": "^4.12.15",
     "remark-cli": "^7.0.0",

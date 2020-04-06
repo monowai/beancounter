@@ -20,27 +20,19 @@ This service returns market data for assets. You can request a prices for a sing
    -d '[
    {
      "code": "MSFT",
-     "market": {
-       "code": "NASDAQ"
-     }
+     "market": "NASDAQ"
    },
    {
      "code": "INTC",
-     "market": {
-       "code": "NASDAQ"
-     }
+     "market": "NASDAQ"
    },
    {
      "code": "XLV",
-     "market": {
-       "code": "NASDAQ"
-     }
+     "market": "NASDAQ"
    },
    {
      "code": "AAPL",
-     "market": {
-       "code": "NASDAQ"
-     }
+     "market": "NASDAQ"
    }
  ]'
 
@@ -55,7 +47,7 @@ In the use case of this service you ask svc-position to value the assets, in you
 
 ```
 Normally the service will compute the dataproviders date for which to retrieve "current" prices, usually close of business previous day. For testing purposes you can force the date to use by starting the service with the following
-```$xslt
+```$properties
 # Setting request date for the WTD provider
 beancounter.marketdata.provider.WTD.date=yyyy-MM-dd
 ``` 

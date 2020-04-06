@@ -51,12 +51,18 @@ public class TestPortfolioCommands {
 
   @MockBean
   private RegistrationService registrationService;
-
   @MockBean
   private PortfolioGw portfolioGw;
-
   @MockBean
   private JwtDecoder jwtDecoder;
+
+  @Test
+  @SneakyThrows
+  void getPortfolios () {
+    SystemUser owner = getSystemUser();
+    String result = portfolioCommands.get();
+    assertThat(result).isNotBlank();
+  }
 
   @Test
   @SneakyThrows

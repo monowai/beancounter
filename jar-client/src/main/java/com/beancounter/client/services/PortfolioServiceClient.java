@@ -42,6 +42,12 @@ public class PortfolioServiceClient {
     return getOrThrow(portfolioId, response);
   }
 
+  public PortfoliosResponse getPortfolios() {
+    PortfolioResponse response = null;
+    return portfolioGw.getPortfolios(tokenService.getBearerToken());
+  }
+
+
   public PortfoliosResponse add(PortfoliosRequest portfoliosRequest) {
     return portfolioGw.addPortfolios(tokenService.getBearerToken(), portfoliosRequest);
   }
@@ -56,6 +62,10 @@ public class PortfolioServiceClient {
   @FeignClient(name = "portfolios",
       url = "${marketdata.url:http://localhost:9510/api}")
   public interface PortfolioGw {
+    @GetMapping(value = "/portfolios", produces = {MediaType.APPLICATION_JSON_VALUE})
+    PortfoliosResponse getPortfolios(
+        @RequestHeader("Authorization") String bearerToken);
+
     @GetMapping(value = "/portfolios/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     PortfolioResponse getPortfolioById(
         @RequestHeader("Authorization") String bearerToken,

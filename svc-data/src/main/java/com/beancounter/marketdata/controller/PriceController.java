@@ -3,6 +3,7 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.marketdata.assets.AssetService;
@@ -46,6 +47,9 @@ public class PriceController {
   PriceResponse getPrice(@PathVariable("marketCode") String marketCode,
                          @PathVariable("assetCode") String assetCode) {
     Asset asset = assetService.find(marketCode, assetCode);
+    if (asset == null) {
+      throw new BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode));
+    }
     return marketDataService.getPrice(asset);
 
   }

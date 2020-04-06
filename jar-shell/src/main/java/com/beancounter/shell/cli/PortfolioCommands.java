@@ -33,6 +33,16 @@ public class PortfolioCommands {
     return writer.writeValueAsString(portfolio);
   }
 
+  @ShellMethod("My Portfolios")
+  public String get()
+      throws JsonProcessingException {
+    PortfoliosResponse portfolio = portfolioService.getPortfolios();
+    if ( portfolio == null || portfolio.getData() == null ) {
+      return "No portfolios";
+    }
+    return writer.writeValueAsString(portfolio.getData());
+  }
+
   @ShellMethod("Find by id")
   public String id(
       @ShellOption(help = "Primary key - case sensitive") String portfolioId)

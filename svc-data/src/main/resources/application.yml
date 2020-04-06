@@ -18,6 +18,8 @@ logging:
     root: debug
     javax: error
     sun: error
+    netflix: error
+    jdk: error
     io: error
     feign: error
     com:
@@ -152,11 +154,11 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: NASDAQ,AMEX,NYSE,NZX,ASX
+        markets: NASDAQ,AMEX,NYSE,ASX
 
       WTD:
         url: https://www.worldtradingdata.com
         batchSize: 2
-        markets:
+        markets: NZX
 
 

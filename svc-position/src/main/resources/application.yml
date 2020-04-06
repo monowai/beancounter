@@ -37,6 +37,8 @@ logging:
     javax: error
     sun: error
     io: error
+    netflix: error
+    jdk: error
     feign: fatal
     com:
       netfix: error

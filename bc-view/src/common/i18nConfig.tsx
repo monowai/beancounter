@@ -5,10 +5,7 @@ import XHR from "i18next-xhr-backend";
 import logger from "./configLogging";
 
 if (process && !process.release) {
-  i18n
-    .use(XHR)
-    .use(LanguageDetector)
-    .use(initReactI18next);
+  i18n.use(XHR).use(LanguageDetector).use(initReactI18next);
 }
 
 // initialize if not already initialized
@@ -28,7 +25,7 @@ if (!i18n.isInitialized) {
             return value;
           }
           return value;
-        }
+        },
       },
       keySeparator: false, // we do not use keys in form messages.welcome
       lng: "en",
@@ -36,14 +33,14 @@ if (!i18n.isInitialized) {
       ns: ["translations"],
       backend: {
         // for all available options read the backend's repository readme file
-        loadPath: "/locales/{{lng}}/{{ns}}.json"
+        loadPath: "/locales/{{lng}}/{{ns}}.json",
       },
       react: {
         transKeepBasicHtmlNodesFor: ["br", "strong", "i", "p", "\n"],
-        transSupportBasicHtmlNodes: true
-      }
+        transSupportBasicHtmlNodes: true,
+      },
     },
-    function(err, t) {
+    function (err, t) {
       // initialized and ready to go!
       logger.info("i18n " + t("app") + " initialised");
     }

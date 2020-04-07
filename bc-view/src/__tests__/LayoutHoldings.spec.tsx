@@ -9,18 +9,18 @@ const bff = "http://localhost";
 
 nock(bff, {
   reqheaders: {
-    authorization: "Bearer undefined"
-  }
+    authorization: "Bearer undefined",
+  },
 })
   .get("/bff/test/today")
   .replyWithFile(200, __dirname + "/__contracts__/test-holdings.json", {
     "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
+    "Content-type": "application/json",
   })
   .get("/bff/zero/today")
   .replyWithFile(200, __dirname + "/__contracts__/zero-holdings.json", {
     "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
+    "Content-type": "application/json",
   })
   .log(console.log);
 

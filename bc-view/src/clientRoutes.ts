@@ -47,44 +47,44 @@ const ClientRoutes = [
   {
     path: "/",
     exact: true,
-    component: Home
+    component: Home,
   },
   {
     path: "/login",
-    component: Login
+    component: Login,
   },
   {
     path: "/logout",
-    component: Logout
+    component: Logout,
   },
   {
     path: "/register",
-    component: Registration
+    component: Registration,
   },
   {
     path: "/portfolios/:portfolioId/delete",
-    component: RoutePortfolioDelete
+    component: RoutePortfolioDelete,
   },
   {
     path: "/portfolios/:portfolioId",
-    component: RoutePortfolio
+    component: RoutePortfolio,
   },
   {
     path: "/portfolios",
-    component: Portfolios
+    component: Portfolios,
   },
   {
     path: "/holdings/:portfolioId",
-    component: RouteHoldings
+    component: RouteHoldings,
   },
   {
     path: "/trns/:portfolioId/asset/:assetId",
-    component: RouteAssetTrnList
+    component: RouteAssetTrnList,
   },
   {
     path: "/trns/:portfolioId/:trnId",
-    component: RouteTrnEdit
-  }
+    component: RouteTrnEdit,
+  },
 ];
 
 export default ClientRoutes;

@@ -17,12 +17,12 @@ import { isDone } from "../types/typeUtils";
 export default function ViewHoldings(code: string): JSX.Element {
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
-    label: "Portfolio"
+    label: "Portfolio",
   });
   const [hideEmpty, setHideEmpty] = useState<boolean>(true);
   const [groupBy, setGroupBy] = useState<GroupOption>({
     value: GroupBy.MARKET_CURRENCY,
-    label: "Currency"
+    label: "Currency",
   });
   const holdingResults = useHoldings(code);
   // Render where we are in the initialization process
@@ -86,7 +86,7 @@ export default function ViewHoldings(code: string): JSX.Element {
           <table className={"table is-striped is-hoverable"}>
             {Object.keys(holdings.holdingGroups)
               .sort()
-              .map(groupKey => {
+              .map((groupKey) => {
                 return (
                   <React.Fragment key={groupKey}>
                     <Header groupKey={groupKey} />

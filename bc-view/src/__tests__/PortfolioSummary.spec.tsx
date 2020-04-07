@@ -17,7 +17,7 @@ describe("<PortfolioStats />", () => {
       name: "",
       currency: usd,
       base: usd,
-      owner: owner
+      owner: owner,
     };
     const container = render(
       <table>

@@ -41,15 +41,15 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
           "/bff/portfolios",
           { data: [portfolioInput] },
           {
-            headers: getBearerToken(keycloak.token)
+            headers: getBearerToken(keycloak.token),
           }
         )
-        .then(result => {
+        .then((result) => {
           logger.debug("<<post Portfolio");
           setPortfolioId(result.data[0].id);
           setSubmitted(true);
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
@@ -58,14 +58,14 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
     } else {
       _axios
         .patch<Portfolio>(`/bff/portfolios/${pfId}`, portfolioInput, {
-          headers: getBearerToken(keycloak.token)
+          headers: getBearerToken(keycloak.token),
         })
-        .then(result => {
+        .then((result) => {
           logger.debug("<<patched Portfolio");
           setPortfolioId(result.data.id);
           setSubmitted(true);
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error(

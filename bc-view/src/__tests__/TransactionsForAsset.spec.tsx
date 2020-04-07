@@ -10,24 +10,24 @@ afterEach(cleanup);
 const bff = "http://localhost";
 nock(bff, {
   reqheaders: {
-    authorization: "Bearer undefined"
-  }
+    authorization: "Bearer undefined",
+  },
 })
   .get("/bff/trns/test/asset/alphabet")
   .replyWithFile(200, __dirname + "/__contracts__/trans-for-asset.json", {
     "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
+    "Content-type": "application/json",
   });
 
 nock(bff, {
   reqheaders: {
-    authorization: "Bearer undefined"
-  }
+    authorization: "Bearer undefined",
+  },
 })
   .get("/bff/assets/alphabet")
   .replyWithFile(200, __dirname + "/__contracts__/alphabet.json", {
     "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
+    "Content-type": "application/json",
   });
 
 describe("<Transactions />", () => {

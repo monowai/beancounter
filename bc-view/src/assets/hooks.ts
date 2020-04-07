@@ -13,12 +13,12 @@ export function useAsset(assetId: string): BcResult<Asset> {
     console.debug("Hook asset");
     _axios
       .get<Asset>(`/bff/assets/${assetId}`, {
-        headers: getBearerToken(keycloak.token)
+        headers: getBearerToken(keycloak.token),
       })
-      .then(result => {
+      .then((result) => {
         setAsset(result.data);
       })
-      .catch(err => {
+      .catch((err) => {
         if (err.response) {
           logger.error("Asset error [%s]: [%s]", err.response.status, err.response.data.message);
         }

@@ -13,13 +13,13 @@ export function usePortfolios(): BcResult<Portfolio[]> {
   useEffect(() => {
     _axios
       .get<Portfolio[]>("/bff/portfolios", {
-        headers: getBearerToken(keycloak.token)
+        headers: getBearerToken(keycloak.token),
       })
-      .then(result => {
+      .then((result) => {
         logger.debug("<<retrieved Portfolio");
         setPortfolios(result.data);
       })
-      .catch(err => {
+      .catch((err) => {
         if (err.response) {
           logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
         }
@@ -35,7 +35,7 @@ export function usePortfolio(id: string): BcResult<Portfolio> {
     code: "",
     name: "",
     currency: USD,
-    base: USD
+    base: USD,
   });
   const [keycloak] = useKeycloak();
   const [error, setError] = useState<AxiosError>();
@@ -43,14 +43,14 @@ export function usePortfolio(id: string): BcResult<Portfolio> {
     if (id !== "new") {
       _axios
         .get<Portfolio>(`/bff/portfolios/${id}`, {
-          headers: getBearerToken(keycloak.token)
+          headers: getBearerToken(keycloak.token),
         })
-        .then(result => {
+        .then((result) => {
           logger.debug("<<got Portfolio");
           setPortfolio(result.data);
           setError(undefined);
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);

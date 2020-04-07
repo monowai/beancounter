@@ -54,13 +54,13 @@ i18n
     {
       backend: {
         addPath: `${resolveApp(staticDir)}/locales/{{lng}}/{{ns}}.missing.json`,
-        loadPath: `${resolveApp(staticDir)}/locales/{{lng}}/{{ns}}.json`
+        loadPath: `${resolveApp(staticDir)}/locales/{{lng}}/{{ns}}.json`,
       },
       debug: false,
       defaultNS: "translations",
       nonExplicitWhitelist: true,
       ns: ["translations"],
-      preload: ["en"]
+      preload: ["en"],
     },
     () => {
       server
@@ -108,7 +108,7 @@ i18n
             res.redirect(url);
           } else {
             const initialI18nStore = {};
-            req.i18n.languages.forEach(l => {
+            req.i18n.languages.forEach((l) => {
               initialI18nStore[l] = req.i18n.services.resourceStore.data[l];
             });
             const initialLanguage = req.i18n.language;

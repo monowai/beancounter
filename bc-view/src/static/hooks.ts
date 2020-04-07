@@ -13,13 +13,13 @@ export function useCurrencies(): BcResult<Currency[]> {
     logger.debug(">>fetch getCurrencies");
     _axios
       .get<Currency[]>("/bff/currencies", {
-        headers: getBearerToken(keycloak.token)
+        headers: getBearerToken(keycloak.token),
       })
-      .then(result => {
+      .then((result) => {
         logger.debug("<<fetched Currencies");
         setCurrencies(result.data);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Unable to get currencies {}", err);
         setError(err);
       });
@@ -28,7 +28,7 @@ export function useCurrencies(): BcResult<Currency[]> {
 }
 
 export function get(currencies: Currency[], value: string): Currency[] | undefined {
-  return currencies.filter(currency => currency.code === value);
+  return currencies.filter((currency) => currency.code === value);
 }
 
 export const USD = { code: "USD" } as Currency;

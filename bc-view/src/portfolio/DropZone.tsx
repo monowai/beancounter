@@ -5,8 +5,8 @@ import { Portfolio } from "../types/beancounter";
 export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement {
   // https://github.com/react-dropzone/react-dropzone
   const onDrop = useCallback(
-    acceptedFiles => {
-      acceptedFiles.forEach(file => {
+    (acceptedFiles) => {
+      acceptedFiles.forEach((file) => {
         const reader = new FileReader();
 
         reader.onabort = () => console.log("file reading was aborted");

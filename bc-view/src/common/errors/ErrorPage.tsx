@@ -6,7 +6,7 @@ import { translate } from "../i18nConfig";
 
 const DevMessage = ({
   debug,
-  errorMessage
+  errorMessage,
 }: {
   debug: boolean;
   errorMessage: string;

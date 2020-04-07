@@ -42,7 +42,7 @@ export function Portfolios(): React.ReactElement {
                   </tr>
                 </thead>
                 <tbody>
-                  {portfolios.map(portfolio => (
+                  {portfolios.map((portfolio) => (
                     <tr key={portfolio.id}>
                       <td>
                         <Link to={`/holdings/${portfolio.code}`}>{portfolio.code}</Link>

@@ -15,7 +15,7 @@ const Login = (): JSX.Element => {
         <Redirect
           to={{
             pathname: path,
-            state: { from: location }
+            state: { from: location },
           }}
         />
       );
@@ -41,7 +41,7 @@ export const LoginRedirect = (): JSX.Element => {
     <Redirect
       to={{
         pathname: "/login",
-        state: { from: location }
+        state: { from: location },
       }}
     />
   );

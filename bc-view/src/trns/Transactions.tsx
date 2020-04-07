@@ -44,7 +44,7 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                   </tr>
                 </thead>
                 <tbody>
-                  {trnsResult.data.map(t => (
+                  {trnsResult.data.map((t) => (
                     <tr key={t.id}>
                       <td>{t.trnType}</td>
                       <td>{t.tradeCurrency.code}</td>

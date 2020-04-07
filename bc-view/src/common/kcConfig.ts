@@ -6,9 +6,9 @@ export const KcConfig = typeof window !== "undefined" ? require("keycloak-js") :
 export const keycloakConfig: KeycloakConfig = {
   url: runtimeConfig().kcUrl,
   realm: runtimeConfig().kcRealm,
-  clientId: runtimeConfig().kcClient
+  clientId: runtimeConfig().kcClient,
 };
 
 export const initConfig: KeycloakInitOptions = {
-  checkLoginIframe: false
+  checkLoginIframe: false,
 };

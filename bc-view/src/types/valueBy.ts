@@ -7,13 +7,13 @@ import { ValuationOption } from "./beancounter";
 export enum ValueIn {
   TRADE = "TRADE",
   BASE = "BASE",
-  PORTFOLIO = "PORTFOLIO"
+  PORTFOLIO = "PORTFOLIO",
 }
 
 export function valuationOptions(): ValuationOption[] {
   return [
     { value: ValueIn.PORTFOLIO, label: translate("valuein.portfolio") },
     { value: ValueIn.BASE, label: translate("valuein.base") },
-    { value: ValueIn.TRADE, label: translate("valuein.trade") }
+    { value: ValueIn.TRADE, label: translate("valuein.trade") },
   ];
 }

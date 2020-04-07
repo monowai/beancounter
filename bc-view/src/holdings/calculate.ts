@@ -24,7 +24,7 @@ function total(total: MoneyValues, position: Position, valueIn: ValueIn): MoneyV
       valueIn: valueIn,
       averageCost: 0,
       price: 0,
-      currency: position.moneyValues[valueIn].currency
+      currency: position.moneyValues[valueIn].currency,
     };
   }
   total.marketValue += position.moneyValues[valueIn].marketValue;
@@ -53,7 +53,7 @@ export function calculate(
   groupBy: GroupBy
 ): Holdings {
   return Object.keys(contract.positions)
-    .filter(positionKey =>
+    .filter((positionKey) =>
       hideEmpty ? contract.positions[positionKey].quantityValues.total !== 0 : true
     )
     .reduce(
@@ -64,7 +64,7 @@ export function calculate(
         results.holdingGroups[groupKey] = results.holdingGroups[groupKey] || {
           group: groupKey,
           positions: [],
-          totals: []
+          totals: [],
         };
         results.holdingGroups[groupKey].positions.push(position);
         results.totals["PORTFOLIO"] = total(
@@ -86,7 +86,7 @@ export function calculate(
         portfolio: contract.portfolio,
         holdingGroups: [],
         valueIn: valueIn,
-        totals: []
+        totals: [],
       }
     );
 }

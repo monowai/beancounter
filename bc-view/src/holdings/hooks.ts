@@ -12,13 +12,13 @@ export function useHoldings(code: string): BcResult<HoldingContract> {
   useEffect(() => {
     _axios
       .get<HoldingContract>(`/bff/${code}/today`, {
-        headers: getBearerToken(keycloak.token)
+        headers: getBearerToken(keycloak.token),
       })
-      .then(result => {
+      .then((result) => {
         logger.debug("<<fetch %s", code);
         setHoldings(result.data);
       })
-      .catch(err => {
+      .catch((err) => {
         setError(err);
         if (err.response) {
           logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);

@@ -21,7 +21,7 @@ dependencies {
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework:spring-webmvc:$springWebVersion",
-            "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.1.RELEASE",
+            "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.2.RELEASE",
             "org.springframework.security:spring-security-config:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion"

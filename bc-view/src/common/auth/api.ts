@@ -6,7 +6,7 @@ export const registerUser = (config: {
   headers: { Authorization: string };
 }): Promise<SystemUser> => {
   logger.debug(">>postData");
-  return _axios.post<SystemUser>(`/bff/register`, config).then(result => {
+  return _axios.post<SystemUser>(`/bff/register`, config).then((result) => {
     logger.debug("<<postData %s", result.data.email);
     return result.data;
   });

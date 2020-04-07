@@ -17,10 +17,10 @@ export function useSystemUser(): SystemUser {
           "/bff/register",
           {},
           {
-            headers: getBearerToken(keycloak.token)
+            headers: getBearerToken(keycloak.token),
           }
         )
-        .then(result => {
+        .then((result) => {
           logger.debug("<<fetched SystemUser");
           setSystemUser(result.data);
         });

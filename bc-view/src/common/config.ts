@@ -18,7 +18,7 @@ function runtimeConfig(): BcOptions {
         bcData: window.env ? window.env.bcData : serverEnv(SVC_DATA, "http://localhost:9510"),
         kcUrl: window.env ? window.env.kcUrl : serverEnv(KC_URL, "http://keycloak:9620/auth"),
         kcClient: window.env ? window.env.kcClient : serverEnv(KC_CLIENT, "bc-dev"),
-        kcRealm: window.env ? window.env.kcRealm : serverEnv(KC_REALM, "bc-dev")
+        kcRealm: window.env ? window.env.kcRealm : serverEnv(KC_REALM, "bc-dev"),
       }
     : {
         // server
@@ -26,7 +26,7 @@ function runtimeConfig(): BcOptions {
         bcData: serverEnv(SVC_DATA, "http://localhost:9510"),
         kcUrl: serverEnv(KC_URL, "http://keycloak:9620/auth"),
         kcClient: serverEnv(KC_CLIENT, "bc-dev"),
-        kcRealm: serverEnv(KC_REALM, "bc-dev")
+        kcRealm: serverEnv(KC_REALM, "bc-dev"),
       };
 }
 

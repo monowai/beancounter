@@ -18,14 +18,14 @@ const Registration = (): JSX.Element => {
           "/bff/register",
           {},
           {
-            headers: getBearerToken(keycloak.token)
+            headers: getBearerToken(keycloak.token),
           }
         )
-        .then(result => {
+        .then((result) => {
           setSystemUser(result.data);
           logger.debug("<<fetched registered %s", result);
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);

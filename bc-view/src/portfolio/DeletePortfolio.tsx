@@ -27,12 +27,12 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
       console.debug("delete PF %s", portfolioResult.data.id);
       _axios
         .delete<void>(`/bff/portfolios/${portfolioResult.data.id}`, {
-          headers: getBearerToken(keycloak.token)
+          headers: getBearerToken(keycloak.token),
         })
         .then(() => {
           console.debug("Delete success");
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);

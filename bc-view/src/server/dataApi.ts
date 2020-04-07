@@ -7,7 +7,7 @@ export const getData = async (req: express.Request, res: express.Response): Prom
   const opts = {
     url: svcUrl(req, runtimeConfig().bcData).toString(),
     headers: req.headers,
-    method: "GET"
+    method: "GET",
   } as AxiosRequestConfig;
   await makeRequest(req, opts, res);
 };
@@ -16,7 +16,7 @@ export const deleteData = async (req: express.Request, res: express.Response): P
   const opts = {
     url: svcUrl(req, runtimeConfig().bcData).toString(),
     headers: req.headers,
-    method: "DELETE"
+    method: "DELETE",
   } as AxiosRequestConfig;
   await makeRequest(req, opts, res);
 };
@@ -26,7 +26,7 @@ export const patchData = async (req: express.Request, res: express.Response): Pr
     url: svcUrl(req, runtimeConfig().bcData).toString(),
     headers: req.headers,
     data: req.body,
-    method: "PATCH"
+    method: "PATCH",
   } as AxiosRequestConfig;
   await makeRequest(req, opts, res);
 };
@@ -36,7 +36,7 @@ export const postData = async (req: express.Request, res: express.Response): Pro
     url: svcUrl(req, runtimeConfig().bcData).toString(),
     headers: req.headers,
     data: req.body,
-    method: "POST"
+    method: "POST",
   } as AxiosRequestConfig;
   //logger.debug("calling %s %s", opts.url, req.headers);
   await makeRequest(req, opts, res);

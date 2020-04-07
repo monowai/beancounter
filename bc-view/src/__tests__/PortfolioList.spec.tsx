@@ -10,13 +10,13 @@ afterEach(cleanup);
 const bff = "http://localhost";
 nock(bff, {
   reqheaders: {
-    authorization: "Bearer undefined"
-  }
+    authorization: "Bearer undefined",
+  },
 })
   .get("/bff/portfolios")
   .replyWithFile(200, __dirname + "/__contracts__/portfolios.json", {
     "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
+    "Content-type": "application/json",
   });
 
 describe("<Portfolios />", () => {

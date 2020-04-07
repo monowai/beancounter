@@ -39,14 +39,14 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           "/bff/trns",
           { data: [trnInput] },
           {
-            headers: getBearerToken(keycloak.token)
+            headers: getBearerToken(keycloak.token),
           }
         )
         .then(() => {
           logger.debug("<<post Trn");
           setSubmitted(true);
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
@@ -55,13 +55,13 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     } else {
       _axios
         .patch<Transaction>(`/bff/trns/${trnId}`, trnInput, {
-          headers: getBearerToken(keycloak.token)
+          headers: getBearerToken(keycloak.token),
         })
         .then(() => {
           logger.debug("<<patch Trn");
           setSubmitted(true);
         })
-        .catch(err => {
+        .catch((err) => {
           setError(err);
           if (err.response) {
             logger.error("patchedTrn [%s]: [%s]", err.response.status, err.response.data.message);

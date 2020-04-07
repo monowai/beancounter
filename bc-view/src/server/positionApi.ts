@@ -7,7 +7,7 @@ export const getPositions = async (req: express.Request, res: express.Response):
   const opts = {
     url: svcUrl(req, runtimeConfig().bcPositions).toString(),
     headers: req.headers,
-    method: "GET"
+    method: "GET",
   } as AxiosRequestConfig;
   await makeRequest(req, opts, res);
 };

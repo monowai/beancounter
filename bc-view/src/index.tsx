@@ -25,7 +25,7 @@ export default express()
   .listen(port, () => {
     logger.info("> Started on port %s", port);
   })
-  .on("error", e => {
+  .on("error", (e) => {
     logger.error(e.message);
     throw e;
   });

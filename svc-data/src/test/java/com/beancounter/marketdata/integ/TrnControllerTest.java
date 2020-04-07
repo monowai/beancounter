@@ -77,7 +77,7 @@ public class TrnControllerTest {
         .build();
 
     token = TokenUtils.getUserToken(user);
-    registerUser(mockMvc, token, user);
+    registerUser(mockMvc, token);
 
   }
 
@@ -91,7 +91,7 @@ public class TrnControllerTest {
 
     MvcResult mvcResult = mockMvc.perform(
         get("/trns/portfolio/{portfolioId}", portfolio.getId())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -182,7 +182,7 @@ public class TrnControllerTest {
 
     MvcResult postResult = mockMvc.perform(
         post("/trns")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -201,7 +201,7 @@ public class TrnControllerTest {
     // Find by Portfolio, sorted by assetId and then Date
     MvcResult mvcResult = mockMvc.perform(
         get("/trns/portfolio/{portfolioId}", portfolioId)
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -227,7 +227,7 @@ public class TrnControllerTest {
             portfolio.getId(),
             trn.getId())
             .contentType(MediaType.APPLICATION_JSON)
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -241,7 +241,7 @@ public class TrnControllerTest {
         get("/trns/{portfolioId}/asset/{assetId}",
             portfolioId, msft.getId())
             .contentType(MediaType.APPLICATION_JSON)
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -256,7 +256,7 @@ public class TrnControllerTest {
     // Purge all transactions for the Portfolio
     mvcResult = mockMvc.perform(
         delete("/trns/portfolio/{portfolioId}", portfolioId)
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -272,7 +272,7 @@ public class TrnControllerTest {
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios", portfolio.getCode())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -287,7 +287,7 @@ public class TrnControllerTest {
   private Asset asset(AssetRequest assetRequest) throws Exception {
     MvcResult mvcResult = mockMvc.perform(
         post("/assets/")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())

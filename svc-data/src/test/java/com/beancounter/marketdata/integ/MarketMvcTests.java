@@ -58,7 +58,7 @@ class MarketMvcTests {
         .build();
 
     token = TokenUtils.getUserToken(user);
-    registerUser(mockMvc, token, user);
+    registerUser(mockMvc, token);
 
   }
 
@@ -67,7 +67,7 @@ class MarketMvcTests {
 
     MvcResult mvcResult = mockMvc.perform(
         get("/markets/")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -83,7 +83,7 @@ class MarketMvcTests {
   void is_SingleMarketFoundCaseInsensitive() throws Exception {
     MvcResult mvcResult = mockMvc.perform(
         get("/markets/nzx")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -102,7 +102,7 @@ class MarketMvcTests {
   void is_SingleMarketBadRequest() throws Exception {
     ResultActions result = mockMvc.perform(
         get("/markets/non-existent")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());
 

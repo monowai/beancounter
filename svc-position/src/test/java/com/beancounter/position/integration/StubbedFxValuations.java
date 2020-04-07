@@ -129,7 +129,7 @@ class StubbedFxValuations {
 
     assertThat(mockMvc).isNotNull();
     String json = mockMvc.perform(post("/value")
-        .with(jwt(token).authorities(authorityRoleConverter))
+        .with(jwt().jwt(token).authorities(authorityRoleConverter))
         .contentType(MediaType.APPLICATION_JSON_VALUE)
         .content(mapper.writeValueAsString(positionResponse))
     ).andExpect(status().isOk())
@@ -149,7 +149,7 @@ class StubbedFxValuations {
   void is_MvcRestException() throws Exception {
 
     MvcResult result = mockMvc.perform(post("/value")
-        .with(jwt(token).authorities(authorityRoleConverter))
+        .with(jwt().jwt(token).authorities(authorityRoleConverter))
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString("{asdf}"))
     ).andExpect(status().is4xxClientError()).andReturn();

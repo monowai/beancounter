@@ -73,7 +73,7 @@ class FxMvcTests {
         .email("user@testing.com")
         .build();
     token = TokenUtils.getUserToken(user);
-    TestRegistrationMvc.registerUser(mockMvc, token, user);
+    TestRegistrationMvc.registerUser(mockMvc, token);
 
   }
 
@@ -83,7 +83,7 @@ class FxMvcTests {
     AlphaMockUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies
-        "/2019-08-27?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
+        "/2019-08-27?base=USD&symbols=AUD%2CSGD%2CEUR%2CGBP%2CUSD%2CNZD",
         rateResponse);
     String date = "2019-08-27";
     IsoCurrencyPair nzdUsd = IsoCurrencyPair.builder().from("NZD").to("USD").build();
@@ -95,7 +95,7 @@ class FxMvcTests {
     fxRequest.add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(fxRequest)
             )
@@ -126,7 +126,7 @@ class FxMvcTests {
     AlphaMockUtils.mockGetResponse(
         mockInternet,
         // Matches all supported currencies
-        "/" + today + "?base=USD&symbols=AUD,SGD,EUR,GBP,USD,NZD",
+        "/" + today + "?base=USD&symbols=AUD%2CSGD%2CEUR%2CGBP%2CUSD%2CNZD",
         rateResponse);
 
     IsoCurrencyPair nzdUsd = IsoCurrencyPair.builder().from("USD").to("NZD").build();
@@ -137,7 +137,7 @@ class FxMvcTests {
     fxRequest.add(nzdUsd);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(fxRequest)
             )
@@ -176,7 +176,7 @@ class FxMvcTests {
     fxRequest.add(invalid);
     MvcResult mvcResult = mockMvc.perform(
         post("/fx")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(fxRequest)
             )

@@ -37,7 +37,7 @@ public class PortfolioCommands {
   public String get()
       throws JsonProcessingException {
     PortfoliosResponse portfolio = portfolioService.getPortfolios();
-    if ( portfolio == null || portfolio.getData() == null ) {
+    if (portfolio == null || portfolio.getData() == null) {
       return "No portfolios";
     }
     return writer.writeValueAsString(portfolio.getData());

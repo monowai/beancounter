@@ -90,7 +90,7 @@ public class WtdMockUtils {
       }
 
       if (assetArg != null) {
-        assetArg.append(",").append(asset.getCode()).append(suffix);
+        assetArg.append("%2C").append(asset.getCode()).append(suffix);
       } else {
         assetArg = new StringBuilder(asset.getCode()).append(suffix);
       }

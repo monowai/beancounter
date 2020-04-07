@@ -52,7 +52,7 @@ class CurrencyMvcTests {
 
     MvcResult mvcResult = mockMvc.perform(
         get("/currencies/")
-            .with(jwt(token).authorities(new AuthorityRoleConverter()))
+            .with(jwt().jwt(token).authorities(new AuthorityRoleConverter()))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

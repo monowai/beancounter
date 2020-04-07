@@ -35,7 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * .
+ * WorldTradingData API tests.
  *
  * @author mikeh
  * @since 2019-03-04

@@ -60,7 +60,7 @@ class TestAssetMvc {
         .email("user@testing.com")
         .build();
     token = TokenUtils.getUserToken(user);
-    TestRegistrationMvc.registerUser(mockMvc, token, user);
+    TestRegistrationMvc.registerUser(mockMvc, token);
 
   }
 
@@ -76,7 +76,7 @@ class TestAssetMvc {
 
     MvcResult mvcResult = mockMvc.perform(
         post("/assets/")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -111,7 +111,7 @@ class TestAssetMvc {
     Asset asset = assetUpdateResponse.getData().get(AssetUtils.toKey(secondAsset));
     mvcResult = mockMvc.perform(
         get("/assets/{assetId}", asset.getId())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -127,7 +127,7 @@ class TestAssetMvc {
     mvcResult = mockMvc.perform(
         get("/assets/{marketCode}/{assetCode}",
             asset.getMarket().getCode(), asset.getCode())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -146,7 +146,7 @@ class TestAssetMvc {
 
     MvcResult mvcResult = mockMvc.perform(
         post("/assets/")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -171,7 +171,7 @@ class TestAssetMvc {
 
     mvcResult = mockMvc.perform(
         post("/assets/")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -189,7 +189,7 @@ class TestAssetMvc {
   void is_MissingAssetBadRequest() throws Exception {
     ResultActions result = mockMvc.perform(
         get("/assets/twee/blah")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());
 
@@ -199,7 +199,7 @@ class TestAssetMvc {
 
     result = mockMvc.perform(
         get("/assets/{assetId}", "doesn't exist")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());
 

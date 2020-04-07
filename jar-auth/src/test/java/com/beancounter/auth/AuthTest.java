@@ -114,15 +114,16 @@ public class AuthTest {
 
     mockMvc.perform(
         get("/hello")
-            .with(jwt(token).authorities(roleConverter))
+            .with(jwt().jwt(token).authorities(roleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andReturn();
 
     MvcResult result = mockMvc.perform(
         get("/what")
-            .with(jwt(token).authorities(roleConverter))
-            .contentType(MediaType.APPLICATION_JSON)
+            .with(
+                jwt().jwt(token).authorities(roleConverter)
+            ).contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isForbidden())
         .andReturn();
     assertThat(result.getResponse().getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
@@ -138,7 +139,9 @@ public class AuthTest {
 
     MvcResult result = mockMvc.perform(
         get("/hello")
-            .with(jwt(token).authorities(roleConverter))
+            .with(
+                jwt().jwt(token).authorities(roleConverter)
+            )
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isForbidden())
         .andReturn();
@@ -146,7 +149,9 @@ public class AuthTest {
 
     result = mockMvc.perform(
         get("/what")
-            .with(jwt(token).authorities(roleConverter))
+            .with(
+                jwt().jwt(token).authorities(roleConverter)
+            )
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isForbidden())
         .andReturn();
@@ -163,7 +168,7 @@ public class AuthTest {
 
     MvcResult result = mockMvc.perform(
         get("/me")
-            .with(jwt(token).authorities(roleConverter))
+            .with(jwt().jwt(token).authorities(roleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andReturn();

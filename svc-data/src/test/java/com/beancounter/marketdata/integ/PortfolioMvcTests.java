@@ -74,12 +74,12 @@ class PortfolioMvcTests {
         .build();
 
     Jwt token = TokenUtils.getUserToken(user);
-    registerUser(mockMvc, token, user);
+    registerUser(mockMvc, token);
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
             // Mocking does not use the JwtRoleConverter configured in ResourceServerConfig
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
                 .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(Collections.singleton(portfolio))
@@ -103,7 +103,7 @@ class PortfolioMvcTests {
     // Assert not found
     mockMvc.perform(
         get("/portfolios/code/{code}", "does not exist")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError())
         .andReturn();
@@ -111,7 +111,7 @@ class PortfolioMvcTests {
     // Found by code
     String result = mockMvc.perform(
         get("/portfolios/code/{code}", portfolio.getCode())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(
         status()
@@ -129,7 +129,7 @@ class PortfolioMvcTests {
 
     mockMvc.perform(
         get("/portfolios/{id}", "invalidId")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError())
@@ -137,7 +137,7 @@ class PortfolioMvcTests {
 
     result = mockMvc.perform(
         get("/portfolios/{id}", portfolioResponseByCode.getData().getId())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -148,7 +148,7 @@ class PortfolioMvcTests {
 
     MvcResult mvcResult = mockMvc.perform(
         get("/portfolios")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -167,7 +167,7 @@ class PortfolioMvcTests {
     SystemUser user = SysUserUtils.getSystemUser();
 
     Jwt token = TokenUtils.getUserToken(user);
-    registerUser(mockMvc, token, user);
+    registerUser(mockMvc, token);
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
     PortfolioInput portfolioInput = PortfolioInput.builder()
@@ -183,7 +183,7 @@ class PortfolioMvcTests {
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -235,11 +235,11 @@ class PortfolioMvcTests {
 
     // Add a token and repeat the call
     Jwt tokenA = TokenUtils.getUserToken(userA);
-    registerUser(mockMvc, tokenA, userA);
+    registerUser(mockMvc, tokenA);
 
     MvcResult mvcResult = mockMvc.perform(
         post("/portfolios")
-            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenA).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
                 .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(Collections.singleton(portfolioInput))
@@ -263,7 +263,7 @@ class PortfolioMvcTests {
     // User A can see the portfolio they created
     mvcResult = mockMvc.perform(
         get("/portfolios/{id}", portfolio.getId())
-            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenA).authorities(authorityRoleConverter))
 
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -276,7 +276,7 @@ class PortfolioMvcTests {
     // By code, also can
     mvcResult = mockMvc.perform(
         get("/portfolios/code/{code}", portfolioInput.getCode())
-            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenA).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
@@ -289,7 +289,7 @@ class PortfolioMvcTests {
     // All users portfolios
     mvcResult = mockMvc.perform(
         get("/portfolios")
-            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenA).authorities(authorityRoleConverter))
 
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -307,17 +307,17 @@ class PortfolioMvcTests {
         .build();
 
     Jwt tokenB = TokenUtils.getUserToken(userB);
-    registerUser(mockMvc, tokenB, userB);
+    registerUser(mockMvc, tokenB);
 
     mockMvc.perform(
         get("/portfolios/{id}", portfolio.getId())
-            .with(jwt(tokenB).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenB).authorities(authorityRoleConverter))
     ).andExpect(status().isBadRequest())
         .andReturn();
 
     mockMvc.perform(
         get("/portfolios/code/{code}", portfolio.getCode())
-            .with(jwt(tokenB).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenB).authorities(authorityRoleConverter))
 
     ).andExpect(status().isBadRequest())
         .andReturn();
@@ -325,7 +325,7 @@ class PortfolioMvcTests {
     // All portfolios
     mvcResult = mockMvc.perform(
         get("/portfolios/")
-            .with(jwt(tokenB).authorities(authorityRoleConverter))
+            .with(jwt().jwt(tokenB).authorities(authorityRoleConverter))
 
     ).andExpect(status().isOk())
         .andReturn();
@@ -348,12 +348,12 @@ class PortfolioMvcTests {
     SystemUser userA = SysUserUtils.getSystemUser();
 
     // Add a token and repeat the call
-    Jwt tokenA = TokenUtils.getUserToken(userA);
-    registerUser(mockMvc, tokenA, userA);
+    Jwt token = TokenUtils.getUserToken(userA);
+    registerUser(mockMvc, token);
 
     MvcResult mvcResult = mockMvc.perform(
         post("/portfolios")
-            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
                 .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(Collections.singleton(portfolioInput))
@@ -373,7 +373,7 @@ class PortfolioMvcTests {
 
     mvcResult = mockMvc.perform(
         delete("/portfolios/{id}", portfolio.getId())
-            .with(jwt(tokenA).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isOk())
@@ -400,7 +400,7 @@ class PortfolioMvcTests {
     // Can't create two portfolios with the same code
     MvcResult result = mockMvc.perform(
         post("/portfolios")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper()
                 .writeValueAsBytes(PortfoliosRequest.builder()
                     .data(portfolios)
@@ -423,7 +423,7 @@ class PortfolioMvcTests {
     SystemUser user = SysUserUtils.getSystemUser();
 
     Jwt token = TokenUtils.getUserToken(user);
-    registerUser(mockMvc, token, user);
+    registerUser(mockMvc, token);
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
     PortfolioInput portfolioInput = PortfolioInput.builder()
@@ -439,7 +439,7 @@ class PortfolioMvcTests {
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
@@ -460,7 +460,7 @@ class PortfolioMvcTests {
 
     MvcResult patchResult = mockMvc.perform(
         patch("/portfolios/{id}", portfolio.getId())
-            .with(jwt(token).authorities(authorityRoleConverter))
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(new ObjectMapper().writeValueAsBytes(updateTo))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())

@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.server.AuthorityRoleConverter;
 import com.beancounter.common.contracts.RegistrationRequest;
-import com.beancounter.common.model.SystemUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.http.MediaType;
@@ -20,12 +19,12 @@ public class TestRegistrationMvc {
   private static AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @SneakyThrows
-  public static void registerUser(MockMvc mockMvc, Jwt token, SystemUser user) {
+  public static void registerUser(MockMvc mockMvc, Jwt token) {
 
     mockMvc.perform(
         post("/register")
             .with(
-                jwt(token)
+                jwt().jwt(token)
                     .authorities(authorityRoleConverter))
             .with(csrf())
             .content(new ObjectMapper()

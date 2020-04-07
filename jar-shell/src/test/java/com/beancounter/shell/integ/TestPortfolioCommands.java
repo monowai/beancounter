@@ -58,8 +58,8 @@ public class TestPortfolioCommands {
 
   @Test
   @SneakyThrows
-  void getPortfolios () {
-    SystemUser owner = getSystemUser();
+  void getPortfolios() {
+    getSystemUser();
     String result = portfolioCommands.get();
     assertThat(result).isNotBlank();
   }

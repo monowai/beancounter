@@ -170,7 +170,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
                   </div>
                 </div>
                 <div className="field">
-                  <TrnDropZone portfolio={portfolio}/>
+                  <TrnDropZone portfolio={portfolio} />
                 </div>
               </form>
             </div>

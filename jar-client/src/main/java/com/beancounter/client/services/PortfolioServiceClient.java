@@ -43,7 +43,6 @@ public class PortfolioServiceClient {
   }
 
   public PortfoliosResponse getPortfolios() {
-    PortfolioResponse response = null;
     return portfolioGw.getPortfolios(tokenService.getBearerToken());
   }
 

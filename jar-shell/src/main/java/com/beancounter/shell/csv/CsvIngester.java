@@ -27,6 +27,7 @@ public class CsvIngester extends AbstractIngester {
   @Override
   public void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter) {
     String trimmedFile = ingestionRequest.getFile().trim();
+    trnWriter.reset();
     trnWriter.flush();
     try {
       // Unit tests

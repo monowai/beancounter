@@ -14,7 +14,6 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.position.model.ValuationData;
 import com.beancounter.position.utils.FxUtils;
 import com.beancounter.position.valuation.MarketValue;
-import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -59,12 +58,10 @@ public class PositionValuationService {
     Map<IsoCurrencyPair, FxRate> rates = fxResponse.getData().getRates();
 
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
-      if (!marketData.getClose().equals(BigDecimal.ZERO)) {
-        marketValue.value(
-            positions,
-            marketData,
-            rates);
-      }
+      marketValue.value(
+          positions,
+          marketData,
+          rates);
     }
     return positions;
   }

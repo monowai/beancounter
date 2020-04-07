@@ -43,6 +43,11 @@ public class KafkaTrnWriter implements TrnWriter {
   }
 
   @Override
+  public void reset() {
+
+  }
+
+  @Override
   @SneakyThrows
   public void write(TrustedTrnRequest trustedTrnRequest) {
     TrnAdapter adapter = shareSightFactory.adapter(trustedTrnRequest.getRow());

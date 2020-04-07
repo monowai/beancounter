@@ -40,6 +40,12 @@ public class HttpWriter implements TrnWriter {
   }
 
   @Override
+  public void reset() {
+    this.portfolio = null;
+    this.trnInputs = new ArrayList<>();
+  }
+
+  @Override
   public void write(TrustedTrnRequest trustedTrnRequest) {
     this.portfolio = trustedTrnRequest.getPortfolio();
     TrnInput trnInput = rowAdapter.transform(trustedTrnRequest);
@@ -51,9 +57,9 @@ public class HttpWriter implements TrnWriter {
 
   @Override
   public void flush() {
-    log.info("Back filling FX rates...");
     int rows;
     if (trnInputs != null && !trnInputs.isEmpty()) {
+      log.info("Back filling FX rates...");
       rows = trnInputs.size();
       for (TrnInput trnInput : trnInputs) {
         fxTransactions.setTrnRates(portfolio, trnInput);
@@ -71,12 +77,9 @@ public class HttpWriter implements TrnWriter {
       if (response != null && response.getData() != null) {
         log.info("Wrote {}", response.getData().size());
       }
+      log.info("Complete!");
     }
-    if (trnInputs != null) {
-      trnInputs.clear();
-    }
-    portfolio = null;
-    log.info("Complete!");
+    reset();
   }
 
   @Override

@@ -3,6 +3,8 @@ package com.beancounter.shell.ingest;
 import com.beancounter.common.input.TrustedTrnRequest;
 
 public interface TrnWriter {
+  void reset();
+
   void write(TrustedTrnRequest trnRequest);
 
   /**

@@ -32,7 +32,7 @@ public class WtdAdapter implements MarketDataAdapter {
         if (wtdResponse.getMessage() != null) {
           // Issue with the data
           // ToDo: subtract a day and try again?
-          log.warn("{} - {}", wtdResponse.getMessage(), providerArguments.getAssets(batchId));
+          log.trace("{} - {}", wtdResponse.getMessage(), providerArguments.getAssets(batchId));
         }
 
         MarketData marketData = null;
@@ -59,7 +59,7 @@ public class WtdAdapter implements MarketDataAdapter {
 
 
   private MarketData getDefault(Asset asset, String dpAsset, BatchConfig batchConfig) {
-    log.warn("{}/{} - unable to locate a price on {}",
+    log.trace("{}/{} - unable to locate a price on {}",
         dpAsset, asset.getName(), batchConfig.getDate());
 
     return MarketData.builder()

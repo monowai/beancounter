@@ -21,7 +21,8 @@ public class MarketData {
   private Asset asset;
   private String date;
   private BigDecimal open;
-  private BigDecimal close;
+  @Builder.Default
+  private BigDecimal close = BigDecimal.ZERO;
   private BigDecimal low;
   private BigDecimal high;
   private BigDecimal volume;

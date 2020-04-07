@@ -1,4 +1,4 @@
-import { BcResult, CallerRef, Transaction } from "../types/beancounter";
+import { BcResult, Transaction } from "../types/beancounter";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
@@ -15,7 +15,7 @@ export function useAssetTransactions(
   useEffect(() => {
     console.debug("Hook-AssetTrn");
     _axios
-      .get<Transaction[]>(`/bff/trns/${portfolioId}/${assetId}`, {
+      .get<Transaction[]>(`/bff/trns/${portfolioId}/asset/${assetId}`, {
         headers: getBearerToken(keycloak.token)
       })
       .then(result => {
@@ -31,14 +31,14 @@ export function useAssetTransactions(
   return { data: transactions, error };
 }
 
-export function useTransaction(trnId: CallerRef): BcResult<Transaction> {
+export function useTransaction(portfolioId: string, trnId: string): BcResult<Transaction> {
   const [transaction, setTransaction] = useState<Transaction>();
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
   useEffect(() => {
     console.log("Hook-CallerRef");
     _axios
-      .get<Transaction>(`/bff/trns/${trnId.provider}/${trnId.batch}/${trnId.callerId}`, {
+      .get<Transaction>(`/bff/trns/${portfolioId}/${trnId}`, {
         headers: getBearerToken(keycloak.token)
       })
       .then(result => {
@@ -50,6 +50,6 @@ export function useTransaction(trnId: CallerRef): BcResult<Transaction> {
         }
         setError(err);
       });
-  }, [keycloak, trnId.callerId, trnId.batch, trnId.provider]);
+  }, [keycloak, portfolioId, trnId]);
   return { data: transaction, error };
 }

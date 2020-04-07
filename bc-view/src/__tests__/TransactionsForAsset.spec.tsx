@@ -13,7 +13,7 @@ nock(bff, {
     authorization: "Bearer undefined"
   }
 })
-  .get("/bff/trns/test/alphabet")
+  .get("/bff/trns/test/asset/alphabet")
   .replyWithFile(200, __dirname + "/__contracts__/trans-for-asset.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json"

@@ -34,5 +34,5 @@ Ingestion flow against the BC_DEMO stack.  Assumes you've already registered and
  # Create a portfolio if you didn't create one in bc-view
  bc-shell$ add SGD "SGD Domiciled" SGD USD
  # If you don't ingest transactions, then you will just see an empty portfolio in the viewer
- bc-shell$ ingest HTTP jar-shell/src/test/resources/trades.csv SGD
+ bc-shell$ ingest --file jar-shell/src/test/resources/trades.csv SGD
 ```

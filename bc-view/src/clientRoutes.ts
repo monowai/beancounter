@@ -23,19 +23,18 @@ const RoutePortfolio = (): JSX.Element => {
   return PortfolioEdit(pfId);
 };
 
-const RouteTrnList = (): JSX.Element => {
+const RouteAssetTrnList = (): JSX.Element => {
   const { portfolioId, assetId } = useParams();
   const portfolio = portfolioId == undefined ? __new__ : portfolioId;
   const asset = assetId == undefined ? __new__ : assetId;
   return Transactions(portfolio, asset);
 };
 
-const RouteTrnManage = (): JSX.Element => {
-  const { providerId, batchId, trnId } = useParams();
-  const pId = providerId == undefined ? __new__ : providerId;
-  const bId = batchId == undefined ? __new__ : batchId;
+const RouteTrnEdit = (): JSX.Element => {
+  const { portfolioId, trnId } = useParams();
+  const pId = portfolioId == undefined ? __new__ : portfolioId;
   const tId = trnId == undefined ? __new__ : trnId;
-  return TransactionEdit(pId, bId, tId);
+  return TransactionEdit(pId, tId);
 };
 
 const RoutePortfolioDelete = (): JSX.Element => {
@@ -79,12 +78,12 @@ const ClientRoutes = [
     component: RouteHoldings
   },
   {
-    path: "/trns/:providerId/:batchId/:trnId",
-    component: RouteTrnManage
+    path: "/trns/:portfolioId/asset/:assetId",
+    component: RouteAssetTrnList
   },
   {
-    path: "/trns/:portfolioId/:assetId",
-    component: RouteTrnList
+    path: "/trns/:portfolioId/:trnId",
+    component: RouteTrnEdit
   }
 ];
 

@@ -12,14 +12,10 @@ import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
 
-export function TransactionEdit(provider: string, batch: string, id: string): React.ReactElement {
+export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
   const { register, handleSubmit } = useForm<TrnInput>();
-  const trnResult = useTransaction({
-    provider: provider,
-    batch: batch,
-    callerId: id
-  });
+  const trnResult = useTransaction(portfolioId, trnId);
   const currencyResult = useCurrencies();
   const [stateError, setError] = useState<AxiosError>();
   const history = useHistory();
@@ -28,7 +24,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
   const title = (): JSX.Element => {
     return (
       <section className="page-box is-centered page-title">
-        {provider === "new" ? "Create" : "Edit"} Transaction
+        {trnId === "new" ? "Create" : "Edit"} Transaction
       </section>
     );
   };
@@ -37,7 +33,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
   };
 
   const saveTransaction = handleSubmit((trnInput: TrnInput) => {
-    if (provider === "new") {
+    if (trnId === "new") {
       _axios
         .post<Transaction>(
           "/bff/trns",
@@ -58,7 +54,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
         });
     } else {
       _axios
-        .patch<Transaction>(`/bff/trns/${provider}/${batch}/${id}`, trnInput, {
+        .patch<Transaction>(`/bff/trns/${trnId}`, trnInput, {
           headers: getBearerToken(keycloak.token)
         })
         .then(() => {
@@ -72,7 +68,7 @@ export function TransactionEdit(provider: string, batch: string, id: string): Re
           }
         });
       // New Portfolio
-    } // portfolio.callerId
+    } // portfolioId.callerId
   });
 
   if (submitted) {

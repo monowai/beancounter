@@ -44,7 +44,7 @@ public class KafkaTrnWriter implements TrnWriter {
 
   @Override
   public void reset() {
-
+    // Not a stateful writer
   }
 
   @Override

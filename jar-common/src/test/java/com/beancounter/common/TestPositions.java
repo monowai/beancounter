@@ -18,7 +18,6 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -124,7 +123,7 @@ class TestPositions {
     Collection<Trn> trns = new ArrayList<>();
     trns.add(Trn.builder()
         .asset(getJsonAsset("Market", "Blah"))
-        .portfolio(PortfolioUtils.getPortfolio("PCODE"))
+        .portfolio(getPortfolio("PCODE"))
         .build());
 
     PositionRequest positionRequest = PositionRequest.builder()

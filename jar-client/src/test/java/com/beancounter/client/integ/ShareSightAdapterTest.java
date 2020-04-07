@@ -14,7 +14,6 @@ import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -111,7 +110,7 @@ class ShareSightAdapterTest {
     rows.add(row);
 
     Collection<TrnInput> trnInputs = new ArrayList<>();
-    Asset asset = AssetUtils.getAsset("NASDAQ", "MSFT");
+
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
     for (List<String> columnValues : rows) {
       TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()

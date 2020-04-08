@@ -1875,7 +1875,7 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@react-keycloak/core@^1.1.1", "@react-keycloak/core@^1.2.1":
+"@react-keycloak/core@^1.1.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@react-keycloak/core/-/core-1.2.1.tgz#aca9990bda4ff2b3796e0193cb97a133e8d66f2d"
   integrity sha512-ekXRKaAoeimbWENYn6xJkzd+c5kxPNE7HOSc2GdmDTJ2Krk1+NJQ+x+wNbVSFvBABhhkFUxH3w452Zg21EYLOg==
@@ -1884,13 +1884,22 @@
     prop-types "^15.7.2"
     react-fast-compare "^3.0.1"
 
-"@react-keycloak/razzle@^1.0.0-alpha.1":
-  version "1.0.0-alpha.7"
-  resolved "https://registry.yarnpkg.com/@react-keycloak/razzle/-/razzle-1.0.0-alpha.7.tgz#46899bce3900834b298f7e72223a28bba6af9509"
-  integrity sha512-7D0864w7pIpQE+4O6+uUe3nd5kzmOQLRhoUUPWLE/SzK8FBLeoZf9bLhIze7pd3HcqM4N+THmPBheXV3y8YNtw==
+"@react-keycloak/core@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@react-keycloak/core/-/core-2.0.0.tgz#5bd68c05d79cd37fb8a6ee63208b971285e0bc20"
+  integrity sha512-BMU7QX6ocnyIvEr0wD64yRBd8lnqEW+7FqeysdbmbITq5nVKh5LDMFnA4GsusMsBLYXpiq6Z2M8qhC9PYynL1A==
   dependencies:
     "@babel/runtime" "^7.9.0"
-    "@react-keycloak/core" "^1.2.1"
+    prop-types "^15.7.2"
+    react-fast-compare "^3.0.1"
+
+"@react-keycloak/razzle@^2.0.0-beta.1":
+  version "2.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@react-keycloak/razzle/-/razzle-2.0.0-beta.1.tgz#f442fed41df8f30b36be6bd49d178736012b8eda"
+  integrity sha512-g8gr7YidiXZP6TiABqV8eSH2shhWbxDw/wM8XfSmwWRsyFEyfUBZSsQljASTGc6z25bPO5lncHsklAYsqnTCUg==
+  dependencies:
+    "@babel/runtime" "^7.9.0"
+    "@react-keycloak/core" "^2.0.0"
     base-64 "^0.1.0"
     detect-node "^2.0.4"
     hoist-non-react-statics "^3.3.2"
@@ -6554,14 +6563,7 @@ hmac-drbg@^1.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
 
-hoist-non-react-statics@^3.1.0:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.1.tgz#101685d3aff3b23ea213163f6e8e12f4f111e19f"
-  integrity sha512-wbg3bpgA/ZqWrZuMOeJi8+SKMhr7X9TesL/rXMjTzh0p0JUBo3II8DHboYbuIXWRlttrUFxwcu/5kygrCw8fJw==
-  dependencies:
-    react-is "^16.7.0"
-
-hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
+hoist-non-react-statics@^3.1.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz#ece0acaf71d62c2969c2ec59feff42a4b1a85b45"
   integrity sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==

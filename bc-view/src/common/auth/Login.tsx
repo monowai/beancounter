@@ -8,7 +8,9 @@ const Login = (): JSX.Element => {
   const [loggingIn, setLoggingIn] = useState<boolean>(false);
   const { keycloak, initialized } = useKeycloak();
   if (keycloak) {
-    if (keycloak.token) {
+    const { login, token } = keycloak;
+    if (token) {
+      setLoggingIn(false);
       let path;
       location.pathname === "/login" ? (path = "/") : (path = location.pathname);
       return (
@@ -21,8 +23,7 @@ const Login = (): JSX.Element => {
       );
     } else if (initialized && !loggingIn) {
       setLoggingIn(true);
-      keycloak
-        .login()
+      login()
         .then(() => {
           logger.debug("Logging in");
         })

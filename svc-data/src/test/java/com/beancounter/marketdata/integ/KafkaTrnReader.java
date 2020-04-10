@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,6 +70,7 @@ public class KafkaTrnReader {
   @Autowired
   private TrnKafka trnKafka;
 
+  @SneakyThrows
   @Test
   void is_TrnRequestReceived() {
     log.debug(embeddedKafkaBroker.getBrokersAsString());
@@ -110,6 +112,7 @@ public class KafkaTrnReader {
         .portfolio(pfResponse.iterator().next())
         .build();
     TrnResponse response = trnKafka.processMessage(trnRequest);
+
     Asset expectedAsset = assetResponse.getData().get("MSFT");
     assertThat(response).isNotNull();
     for (Trn trn : response.getData()) {

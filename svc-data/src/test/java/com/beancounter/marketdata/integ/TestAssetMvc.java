@@ -140,6 +140,7 @@ class TestAssetMvc {
   @Test
   void is_PostSameAssetTwiceBehaving() throws Exception {
     Asset asset = AssetUtils.getAsset("MOCK", "MyCodeX");
+    asset.setName("\"quotes should be removed\"");
     AssetRequest assetRequest = AssetRequest.builder()
         .data(AssetUtils.toKey(asset), asset)
         .build();
@@ -160,6 +161,7 @@ class TestAssetMvc {
     assertThat(createdAsset)
         .isNotNull()
         .hasFieldOrProperty("id")
+        .hasFieldOrPropertyWithValue("name", "quotes should be removed")
         .hasFieldOrProperty("market");
 
     // Send it a second time, should not change

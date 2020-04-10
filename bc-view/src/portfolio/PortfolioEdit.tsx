@@ -82,6 +82,13 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
   if (submitted) {
     history.push("/portfolios");
   }
+  if (portfolioResult.error) {
+    if (portfolioResult.error.response.status === 401) {
+      history.push("/login");
+    } else if (portfolioResult.error.response.status === 400) {
+      history.push("/portfolios");
+    }
+  }
   if (error) {
     return ErrorPage(error.stack, error.message);
   }

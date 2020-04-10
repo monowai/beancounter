@@ -19,6 +19,7 @@ import { getPositions } from "./server/positionApi";
 import { ServerPersistors, SSRKeycloakProvider } from "@react-keycloak/razzle";
 import cookieParser from "cookie-parser";
 import { keycloakConfig } from "./common/kcConfig";
+import { postKafkaTrn } from "./server/writeTrn";
 // end react-KeyCloak
 
 let assets: any;
@@ -76,6 +77,7 @@ i18n
         .post("/bff/register", postData)
         .get("/bff/currencies", getData)
         .post("/bff/register", getData)
+        .post("/upload/trn", postKafkaTrn)
         .get("/bff/me", getData)
         .get("/bff/portfolios", getData)
         .post("/bff/portfolios", postData)

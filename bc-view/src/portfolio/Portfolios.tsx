@@ -4,6 +4,7 @@ import { useHistory } from "react-router";
 import { usePortfolios } from "./hooks";
 import ErrorPage from "../common/errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
+import { LoginRedirect } from "../common/auth/Login";
 
 export function Portfolios(): React.ReactElement {
   const portfolioResults = usePortfolios();
@@ -11,6 +12,9 @@ export function Portfolios(): React.ReactElement {
 
   if (isDone(portfolioResults)) {
     if (portfolioResults.error) {
+      if (portfolioResults.error.code === "401") {
+        return LoginRedirect();
+      }
       return ErrorPage(portfolioResults.error.stack, portfolioResults.error.message);
     }
     const portfolios = portfolioResults.data;

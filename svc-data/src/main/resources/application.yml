@@ -61,10 +61,10 @@ spring:
   kafka:
     bootstrap-servers: kafka:9092
     consumer:
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: com.beancounter.common.input
-      group-id: bcIngestion
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#      properties:
+#        spring.json.trusted.packages: com.beancounter.common.input
+      group-id: bc-data
 
 kafka:
   enabled: false
@@ -154,11 +154,11 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: NASDAQ,AMEX,NYSE,ASX
+        markets:
 
       WTD:
         url: https://www.worldtradingdata.com
         batchSize: 2
-        markets: NZX
+        markets: NZX,NASDAQ,AMEX,NYSE,ASX
 
 

@@ -39,6 +39,7 @@ public class AssetService implements com.beancounter.client.AssetService {
       asset.setCode(asset.getCode().toUpperCase());
       Market market = marketService.getMarket(asset.getMarket().getCode());
       asset.setMarketCode(market.getCode());
+      asset.setName(asset.getName().replace("\"", ""));
       foundAsset = assetRepository.save(asset);
       foundAsset.setMarket(market);
 

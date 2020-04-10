@@ -6,6 +6,7 @@ import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 class TestMathUtils {
@@ -103,5 +104,14 @@ class TestMathUtils {
     NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
     BigDecimal result = MathUtils.parse("1,000.99", numberFormat);
     assertThat(result).isEqualTo("1000.99");
+  }
+
+  @Test
+  @SneakyThrows
+  void is_CsvExportedQuotationsHandled() {
+    NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
+    String value = "\"1,180.74\"";
+    assertThat(MathUtils.parse(value, numberFormat))
+        .isEqualTo("1180.74");
   }
 }

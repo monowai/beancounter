@@ -58,7 +58,6 @@ public class MathUtils {
     if (value.isBlank()) {
       return BigDecimal.ZERO;
     }
-
-    return new BigDecimal(numberFormat.parse(value).toString());
+    return new BigDecimal(numberFormat.parse(value.replace("\"","")).toString());
   }
 }

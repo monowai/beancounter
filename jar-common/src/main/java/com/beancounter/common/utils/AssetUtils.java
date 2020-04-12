@@ -83,6 +83,7 @@ public class AssetUtils {
         .id(assetCode)
         .code(assetCode)
         .market(market)
+        .name(assetCode)
         .marketCode(market.getCode().toUpperCase())
         .build();
     asset.setMarketCode(null);

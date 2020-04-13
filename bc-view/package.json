@@ -100,7 +100,7 @@
     "remark-cli": "^7.0.0",
     "remark-lint": "^6.0.5",
     "remark-lint-no-literal-urls": "^2.0.0",
-    "remark-preset-lint-recommended": "^3.0.3",
+    "remark-preset-lint-recommended": "^4.0.0",
     "ts-jest": "25.3.0",
     "typescript": "^3.8.3",
     "webpack": "^4.41.3"

@@ -1,11 +1,11 @@
 import express from "express";
 import { makeRequest, svcUrl } from "../common/axiosUtils";
-import { runtimeConfig } from "../common/config";
+import { bcConfig } from "../common/config";
 import { AxiosRequestConfig } from "axios";
 
 export const getData = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcUrl(req, runtimeConfig().bcData).toString(),
+    url: svcUrl(req, bcConfig.bcData).toString(),
     headers: req.headers,
     method: "GET",
   } as AxiosRequestConfig;
@@ -14,7 +14,7 @@ export const getData = async (req: express.Request, res: express.Response): Prom
 
 export const deleteData = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcUrl(req, runtimeConfig().bcData).toString(),
+    url: svcUrl(req, bcConfig.bcData).toString(),
     headers: req.headers,
     method: "DELETE",
   } as AxiosRequestConfig;
@@ -23,7 +23,7 @@ export const deleteData = async (req: express.Request, res: express.Response): P
 
 export const patchData = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcUrl(req, runtimeConfig().bcData).toString(),
+    url: svcUrl(req, bcConfig.bcData).toString(),
     headers: req.headers,
     data: req.body,
     method: "PATCH",
@@ -33,7 +33,7 @@ export const patchData = async (req: express.Request, res: express.Response): Pr
 
 export const postData = async (req: express.Request, res: express.Response): Promise<any> => {
   const opts = {
-    url: svcUrl(req, runtimeConfig().bcData).toString(),
+    url: svcUrl(req, bcConfig.bcData).toString(),
     headers: req.headers,
     data: req.body,
     method: "POST",

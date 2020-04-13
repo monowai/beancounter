@@ -4,6 +4,7 @@ package com.beancounter.marketdata.registration;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.contracts.RegistrationResponse;
+import com.beancounter.common.exception.ForbiddenException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -26,7 +27,12 @@ public class RegistrationController {
 
   @GetMapping("/me")
   RegistrationResponse getMe(final @AuthenticationPrincipal Jwt jwt) {
-    return RegistrationResponse.builder().data(systemUserService.find(jwt.getSubject())).build();
+    RegistrationResponse response = RegistrationResponse.builder().data(
+        systemUserService.find(jwt.getSubject())).build();
+    if (response.getData() == null) {
+      throw new ForbiddenException("Authenticated, but unregistered");
+    }
+    return response;
   }
 
   @PostMapping(value = "/register")

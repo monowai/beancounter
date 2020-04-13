@@ -17,7 +17,7 @@ import com.beancounter.auth.server.AuthorityRoleConverter;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
-import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.exception.ForbiddenException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -385,9 +386,8 @@ class PortfolioMvcTests {
   @SneakyThrows
   @Test
   void is_UniqueConstraintInPlace() {
-    SystemUser userA = SysUserUtils.getSystemUser();
-
     PortfolioInput portfolio = PortfolioInput.builder()
+        .code("Code")
         .name("NZD Portfolio")
         .currency("NZD")
         .build();
@@ -396,15 +396,18 @@ class PortfolioMvcTests {
     portfolios.add(portfolio);
     portfolios.add(portfolio); // Code and Owner are the same so, reject
 
+    SystemUser userA = SysUserUtils.getSystemUser();
     Jwt token = TokenUtils.getUserToken(userA);
+    registerUser(mockMvc, token);
     // Can't create two portfolios with the same code
     MvcResult result = mockMvc.perform(
         post("/portfolios")
-            .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(new ObjectMapper()
-                .writeValueAsBytes(PortfoliosRequest.builder()
-                    .data(portfolios)
-                    .build()))
+            .with(
+                jwt().jwt(token).authorities(authorityRoleConverter)
+            ).content(new ObjectMapper()
+            .writeValueAsBytes(PortfoliosRequest.builder()
+                .data(portfolios)
+                .build()))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isBadRequest())
@@ -412,7 +415,43 @@ class PortfolioMvcTests {
 
     assertThat(result.getResolvedException())
         .isNotNull()
-        .isInstanceOfAny(BusinessException.class)
+        .isInstanceOfAny(DataIntegrityViolationException.class)
+    ;
+
+  }
+
+  @SneakyThrows
+  @Test
+  void is_UnregisteredUserRejected() {
+    PortfolioInput portfolio = PortfolioInput.builder()
+        .code("Code")
+        .name("NZD Portfolio")
+        .currency("NZD")
+        .build();
+
+    Collection<PortfolioInput> portfolios = new ArrayList<>();
+    portfolios.add(portfolio);
+
+    SystemUser userA = SysUserUtils.getSystemUser();
+    Jwt token = TokenUtils.getUserToken(userA);
+    // registerUser(mockMvc, token);
+    // Authenticated, but unregistered user can't create portfolios
+    MvcResult result = mockMvc.perform(
+        post("/portfolios")
+            .with(
+                jwt().jwt(token).authorities(authorityRoleConverter)
+            ).content(new ObjectMapper()
+            .writeValueAsBytes(PortfoliosRequest.builder()
+                .data(portfolios)
+                .build()))
+            .contentType(MediaType.APPLICATION_JSON)
+
+    ).andExpect(status().isForbidden())
+        .andReturn();
+
+    assertThat(result.getResolvedException())
+        .isNotNull()
+        .isInstanceOfAny(ForbiddenException.class)
     ;
 
   }

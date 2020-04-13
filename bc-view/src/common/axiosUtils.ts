@@ -21,7 +21,11 @@ export const makeRequest = async (
   await axios(opts)
     .then((response) => res.json(response.data.data))
     .catch((err) => {
-      logger.error("api - %s %s", err.response.status, err.response.data);
-      res.status(err.response.status || 500).send(err);
+      if (err.response) {
+        logger.debug("api - %s %s", err.response.status, err.response.data);
+        res.status(err.response.status || 500).send(err);
+      }
+      res.status(500);
+      logger.error(err);
     });
 };

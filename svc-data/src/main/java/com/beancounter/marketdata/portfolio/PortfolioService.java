@@ -1,13 +1,16 @@
 package com.beancounter.marketdata.portfolio;
 
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.exception.ForbiddenException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.marketdata.registration.SystemUserService;
+import com.beancounter.marketdata.trn.TrnRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,16 +18,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class PortfolioService {
   private PortfolioRepository portfolioRepository;
+  private TrnRepository trnRepository;
   private SystemUserService systemUserService;
   private PortfolioInputAdapter portfolioInputAdapter;
 
   PortfolioService(
       PortfolioInputAdapter portfolioInputAdapter,
       PortfolioRepository portfolioRepository,
+      TrnRepository trnRepository,
       SystemUserService systemUserService
   ) {
     this.portfolioRepository = portfolioRepository;
     this.systemUserService = systemUserService;
+    this.trnRepository = trnRepository;
     this.portfolioInputAdapter = portfolioInputAdapter;
   }
 
@@ -39,7 +45,7 @@ public class PortfolioService {
 
   private void verifyOwner(SystemUser owner) {
     if (owner == null) {
-      throw new BusinessException("Unable to identify the owner");
+      throw new ForbiddenException("Unable to identify the owner");
     }
     if (!owner.getActive()) {
       throw new BusinessException("User is not active");
@@ -99,15 +105,18 @@ public class PortfolioService {
 
   }
 
+  @Transactional
   public Portfolio update(String id, PortfolioInput portfolioInput) {
     Portfolio existing = find(id);
     portfolioInputAdapter.fromInput(portfolioInput, existing);
     return portfolioRepository.save(existing);
   }
 
+  @Transactional
   public void delete(String id) {
     Portfolio portfolio = find(id);
     if (portfolio != null) {
+      trnRepository.deleteByPortfolioId(portfolio.getId());
       portfolioRepository.delete(portfolio);
     }
   }

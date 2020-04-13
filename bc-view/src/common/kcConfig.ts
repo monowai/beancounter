@@ -1,12 +1,12 @@
 import { KeycloakConfig, KeycloakInitOptions } from "keycloak-js";
-import { runtimeConfig } from "./config";
+import { bcConfig } from "./config";
 
 export const KcConfig = typeof window !== "undefined" ? require("keycloak-js") : null;
 
 export const keycloakConfig: KeycloakConfig = {
-  url: runtimeConfig().kcUrl,
-  realm: runtimeConfig().kcRealm,
-  clientId: runtimeConfig().kcClient,
+  url: bcConfig.kcUrl,
+  realm: bcConfig.kcRealm,
+  clientId: bcConfig.kcClient,
 };
 
 export const initConfig: KeycloakInitOptions = {

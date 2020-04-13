@@ -18,11 +18,13 @@ ENV HOST 0.0.0.0
 ENV PORT 3000
 ENV RAZZLE_PUBLIC_DIR /app/build/public
 ENV SVC_POSITION http://localhost:9500/api
+ENV SVC_DATA http://localhost:9510/api
 
 RUN mkdir /app
 WORKDIR /app
 RUN chown node:node /app
 COPY --chown=node:node --from=builder /app/build /app/build
+COPY --chown=node:node --from=builder /app/build /app/node_modules
 COPY --chown=node:node --from=builder /app/package.json /app/
 COPY --chown=node:node --from=builder /app/yarn.lock /app/
 

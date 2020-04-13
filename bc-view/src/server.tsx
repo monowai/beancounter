@@ -12,7 +12,7 @@ import cors from "cors";
 import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./common/configLogging";
 import App from "./App";
-import { runtimeConfig } from "./common/config";
+import { bcConfig } from "./common/config";
 import { deleteData, getData, patchData, postData } from "./server/dataApi";
 import { getPositions } from "./server/positionApi";
 // react-KeyCloak
@@ -46,7 +46,7 @@ let staticDir = "./";
 if (process.env.RAZZLE_PUBLIC_DIR) {
   staticDir = process.env.RAZZLE_PUBLIC_DIR;
 }
-logger.info("bcConfig @ %s", JSON.stringify(runtimeConfig()));
+logger.info("bcConfig @ %s", JSON.stringify(bcConfig));
 logger.info("kcConfig @ %s", JSON.stringify(keycloakConfig));
 i18n
   .use(Backend)
@@ -140,7 +140,7 @@ i18n
           <script>
             window.initialLanguage = '${initialLanguage}';
             window.initialI18nStore = ${JSON.stringify(initialI18nStore)};
-            window.env = ${JSON.stringify(runtimeConfig())};  
+            window.env = ${JSON.stringify(bcConfig)};  
         </script>          
     </head>
     <style>

@@ -5,12 +5,14 @@ import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.KeyGenUtils;
 import java.util.UUID;
+import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@Transactional
 public class SystemUserService {
   private SystemUserRepository systemUserRepository;
   private TokenService tokenService;

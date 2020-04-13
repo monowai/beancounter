@@ -98,7 +98,7 @@
     "razzle-plugin-typescript": "^3.0.0",
     "react-hot-loader": "^4.12.15",
     "remark-cli": "^7.0.0",
-    "remark-lint": "^6.0.5",
+    "remark-lint": "^7.0.0",
     "remark-lint-no-literal-urls": "^2.0.0",
     "remark-preset-lint-recommended": "^3.0.3",
     "ts-jest": "25.3.0",

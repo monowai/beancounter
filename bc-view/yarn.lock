@@ -12446,12 +12446,19 @@ remark-lint-ordered-list-marker-style@^1.0.0:
     unist-util-position "^3.0.0"
     unist-util-visit "^1.1.1"
 
-remark-lint@^6.0.0, remark-lint@^6.0.5:
+remark-lint@^6.0.0:
   version "6.0.6"
   resolved "https://registry.yarnpkg.com/remark-lint/-/remark-lint-6.0.6.tgz#5bf64efe5d88f3caf859ad541ab00656e3ca9c63"
   integrity sha512-JBY6zz5fYQFN724Vq6VeiHwhyjVIlrww/dE1+hWGcDyUuz7YNCqwZKwBdQGDvslICkzHw/wEExNEb8D4PNiLlA==
   dependencies:
     remark-message-control "^4.0.0"
+
+remark-lint@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/remark-lint/-/remark-lint-7.0.0.tgz#76c054bbd32e8b7b01234f6a0c00e3d72ac9129a"
+  integrity sha512-OLrWPYy0MUcGLa/2rjuy1kQILTRRK+JiRtyUzqe4XRoHboGuvFDcy/W2e7sq5hu/0xmD+Eh7cEa1Coiqp7LeaA==
+  dependencies:
+    remark-message-control "^6.0.0"
 
 remark-message-control@^4.0.0:
   version "4.2.0"
@@ -12461,6 +12468,14 @@ remark-message-control@^4.0.0:
     mdast-comment-marker "^1.0.0"
     unified-message-control "^1.0.0"
     xtend "^4.0.1"
+
+remark-message-control@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/remark-message-control/-/remark-message-control-6.0.0.tgz#955b054b38c197c9f2e35b1d88a4912949db7fc5"
+  integrity sha512-k9bt7BYc3G7YBdmeAhvd3VavrPa/XlKWR3CyHjr4sLO9xJyly8WHHT3Sp+8HPR8lEUv+/sZaffL7IjMLV0f6BA==
+  dependencies:
+    mdast-comment-marker "^1.0.0"
+    unified-message-control "^3.0.0"
 
 remark-parse@^7.0.0:
   version "7.0.2"
@@ -14360,6 +14375,14 @@ unified-message-control@^1.0.0:
     unist-util-visit "^1.0.0"
     vfile-location "^2.0.0"
 
+unified-message-control@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/unified-message-control/-/unified-message-control-3.0.1.tgz#7018855daea9af96082cbea35970d48c9c4dbbf2"
+  integrity sha512-K2Kvvp1DBzeuxYLLsumZh/gDWUTl4e2z/P3VReFirC78cfHKtQifbhnfRrSBtKtd1Uc6cvYTW0/SZIUaMAEcTg==
+  dependencies:
+    unist-util-visit "^2.0.0"
+    vfile-location "^3.0.0"
+
 unified@^8.2.0:
   version "8.4.2"
   resolved "https://registry.yarnpkg.com/unified/-/unified-8.4.2.tgz#13ad58b4a437faa2751a4a4c6a16f680c500fff1"
@@ -14646,6 +14669,11 @@ vfile-location@^2.0.0, vfile-location@^2.0.1:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/vfile-location/-/vfile-location-2.0.6.tgz#8a274f39411b8719ea5728802e10d9e0dff1519e"
   integrity sha512-sSFdyCP3G6Ka0CEmN83A2YCMKIieHx0EDaj5IDP4g1pa5ZJ4FJDvpO0WODLxo4LUX4oe52gmSCK7Jw4SBghqxA==
+
+vfile-location@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/vfile-location/-/vfile-location-3.0.1.tgz#d78677c3546de0f7cd977544c367266764d31bb3"
+  integrity sha512-yYBO06eeN/Ki6Kh1QAkgzYpWT1d3Qln+ZCtSbJqFExPl1S3y2qqotJQXoh6qEvl/jDlgpUJolBn3PItVnnZRqQ==
 
 vfile-message@^2.0.0:
   version "2.0.2"

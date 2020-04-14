@@ -13,6 +13,7 @@ import ErrorPage from "../common/errors/ErrorPage";
 import { Rows } from "./Rows";
 import { Header } from "./Header";
 import { isDone } from "../types/typeUtils";
+import PageLoader from "../common/PageLoader";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const [valueIn, setValueIn] = useState<ValuationOption>({
@@ -25,6 +26,7 @@ export default function ViewHoldings(code: string): JSX.Element {
     label: "Currency",
   });
   const holdingResults = useHoldings(code);
+
   // Render where we are in the initialization process
   if (isDone(holdingResults)) {
     if (holdingResults.error) {
@@ -108,5 +110,5 @@ export default function ViewHoldings(code: string): JSX.Element {
       </div>
     );
   }
-  return <div id="root">Loading...</div>;
+  return PageLoader({ message: "Crunching numeric goodness...", show: true });
 }

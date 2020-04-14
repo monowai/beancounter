@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",
-    "@react-keycloak/core": "^1.1.1",
+    "@react-keycloak/core": "^2.1.1",
     "@react-keycloak/razzle": "^1.0.0-alpha.1",
     "axios": "^0.19.2",
     "bulma": "^0.8.0",

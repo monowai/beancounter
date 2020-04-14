@@ -20,28 +20,30 @@ export function useSystemUser(): SystemUser {
         logger.debug("<<fetched SystemUser");
         setSystemUser(result.data);
       })
-      .catch(() => {
-        _axios
-          .post<SystemUser>(
-            "/bff/register",
-            {},
-            {
-              headers: getBearerToken(keycloak.token),
-            }
-          )
-          .then((result) => {
-            logger.debug("<<fetched SystemUser");
-            setSystemUser(result.data);
-          })
-          .catch((err) => {
-            if (err.response) {
-              logger.error(
-                "Registration error [%s]: [%s]",
-                err.response.status,
-                err.response.data.message
-              );
-            }
-          });
+      .catch((err) => {
+        if (err.response.status != 401) {
+          _axios
+            .post<SystemUser>(
+              "/bff/register",
+              {},
+              {
+                headers: getBearerToken(keycloak.token),
+              }
+            )
+            .then((result) => {
+              logger.debug("<<fetched SystemUser");
+              setSystemUser(result.data);
+            })
+            .catch((err) => {
+              if (err.response) {
+                logger.error(
+                  "Registration error [%s]: [%s]",
+                  err.response.status,
+                  err.response.data.message
+                );
+              }
+            });
+        }
       });
     //}
   }, [keycloak, initialized]);

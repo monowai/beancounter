@@ -22,7 +22,7 @@ export const makeRequest = async (
     .then((response) => res.json(response.data.data))
     .catch((err) => {
       if (err.response) {
-        logger.debug("api - %s %s", err.response.status, err.response.data);
+        logger.debug("bff - url: %s status:%s", req.url, err.response.status);
         res.status(err.response.status || 500).send(err);
       }
       res.status(500);

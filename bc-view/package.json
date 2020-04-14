@@ -14,6 +14,7 @@
     "test": "razzle test --env=jsdom"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.13.0",
     "@react-keycloak/core": "^1.1.1",
     "@react-keycloak/razzle": "^1.0.0-alpha.1",
     "axios": "^0.19.2",
@@ -22,7 +23,6 @@
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "font-awesome": "^4.7.0",
     "i18next": "^19.0.2",
     "i18next-browser-languagedetector": "^4.0.1",
     "i18next-express-middleware": "^1.8.2",

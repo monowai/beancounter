@@ -13,7 +13,10 @@ export default function Header(): React.ReactElement {
           <div className="navbar-start">
             {""}
             <div className="navbar-item">
-              <small>Wealth management for the rest of us</small>
+              <i className="fas fa-euro-sign"></i>
+              <i className="fas fa-dollar-sign"></i>
+              <i className="fas fa-pound-sign"></i>
+              <small> Wealth management for the rest of us</small>
             </div>
           </div>
           <HeaderUserControls />

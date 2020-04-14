@@ -25,20 +25,20 @@ function HeaderUserControls(): React.ReactElement {
       <div className="navbar-dropdown">
         <Link to={"/register"} className="navbar-item">
           <span className="icon is-small">
-            <i className="fa fa-user-circle" />
+            <i className="far fa-user-circle" />
           </span>
           <div>Register</div>
         </Link>
         <Link to={"/portfolios"} className="navbar-item">
           <span className="icon is-small">
-            <i className="fa fa-folder-o" />
+            <i className="far fa-folder-open" />
           </span>
           <div>Portfolios</div>
         </Link>
         <div className="navbar-divider" />
         <Link to={"/logout"} className="navbar-item">
           <span className="icon is-small">
-            <i className="fa fa-sign-out" />
+            <i className="fa fa-sign-out-alt" />
           </span>
           <div>Sign Out</div>
         </Link>

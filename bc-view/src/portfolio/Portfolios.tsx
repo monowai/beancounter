@@ -61,10 +61,10 @@ export function Portfolios(): React.ReactElement {
                         {portfolio.base.code}
                       </td>
                       <td>
-                        <Link className="fa fa-edit" to={`/portfolios/${portfolio.id}`} />
+                        <Link className="far fa-edit" to={`/portfolios/${portfolio.id}`} />
                         <span> </span>
                         <Link
-                          className="fa fa-remove has-padding-left-6"
+                          className="far fa-trash-alt has-padding-left-6"
                           to={`/portfolios/${portfolio.id}/delete`}
                         />
                       </td>

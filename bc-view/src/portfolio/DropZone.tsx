@@ -12,20 +12,18 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
     (acceptedFiles) => {
       acceptedFiles.forEach((file) => {
         const reader = new FileReader();
-
-        reader.onabort = () => console.log("file reading was aborted");
-        reader.onerror = () => console.log("file reading has failed");
+        reader.onabort = () => logger.debug("file reading was aborted");
+        reader.onerror = () => logger.debug("file reading has failed");
         reader.onload = () => {
           // Do whatever you want with the file contents
           if (typeof reader.result === "string") {
             const results = reader.result.split("\r\n");
             let headerSkipped = false;
+            let rows = 0;
             results.forEach(function (value) {
               if (headerSkipped) {
+                rows++;
                 const row = value.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                // for (const rowElement of row) {
-                //   rowElement.replace(/\"/g, "");
-                // }
                 _axios
                   .post<string>(
                     "/upload/trn",
@@ -34,9 +32,6 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
                       headers: getBearerToken(keycloak.token),
                     }
                   )
-                  .then((result) => {
-                    logger.debug("<<POST trnUpload %s", result.data);
-                  })
                   .catch((err) => {
                     if (err.response) {
                       logger.error(
@@ -50,10 +45,9 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
                 headerSkipped = true;
               }
             });
+            logger.debug("<<POST trnUpload sent %s", rows);
           }
-          // console.log(props.portfolio, result);
         };
-
         reader.readAsText(file, "utf-8");
       });
     },
@@ -61,10 +55,15 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
   );
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
+  if (props.portfolio.id === "new") {
+    return <div />;
+  }
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} />
-      <p>Drag drop some files here, or click to select files</p>
+      <span>
+        <i className="far fa-arrow-alt-circle-up fa-3x"></i>
+      </span>
     </div>
   );
 }

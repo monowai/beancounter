@@ -18,12 +18,9 @@ function writeTrn(trnRequest: TransactionUpload): void {
       },
     ];
     //producer.on("ready", () => {
-    producer.send(payloads, (err, data) => {
-      logger.debug("Sending:");
+    producer.send(payloads, (err) => {
       if (err) {
         logger.error("[kafka-producer -> %s]: broker send failed. %s", topic, err.message);
-      } else {
-        logger.debug("[kafka-producer -> %s]: broker send success", topic);
       }
     });
     //});

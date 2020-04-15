@@ -28,9 +28,9 @@ public class WtdService implements MarketDataProvider {
   public static final String ID = "WTD";
   @Value("${beancounter.marketdata.provider.WTD.key:demo}")
   private String apiKey;
-  private WtdProxy wtdProxy;
-  private WtdConfig wtdConfig;
-  private WtdAdapter wtdAdapter;
+  private final WtdProxy wtdProxy;
+  private final WtdConfig wtdConfig;
+  private final WtdAdapter wtdAdapter;
 
   @Autowired
   WtdService(WtdProxy wtdProxy,
@@ -61,7 +61,7 @@ public class WtdService implements MarketDataProvider {
               providerArguments.getBatchConfigs().get(batch).getDate(),
               apiKey));
     }
-    log.debug("Assets price retrieval completed.");
+    log.trace("Assets price processing complete.");
     return getMarketData(providerArguments, batchedRequests);
   }
 

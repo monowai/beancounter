@@ -41,7 +41,7 @@ spring:
   application:
     name: bc-marketData
   cache:
-    cache-names: asset.prices, fx.rates, providers
+    cache-names: asset.prices, fx.rates, providers, asset.ext
   jpa:
     open-in-view: false
     generate-ddl: true
@@ -61,9 +61,9 @@ spring:
   kafka:
     bootstrap-servers: kafka:9092
     consumer:
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-#      properties:
-#        spring.json.trusted.packages: com.beancounter.common.input
+      #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      #      properties:
+      #        spring.json.trusted.packages: com.beancounter.common.input
       group-id: bc-data
 
 kafka:
@@ -107,19 +107,23 @@ beancounter:
       timezoneId: US/Eastern
       currencyId: USD
       aliases:
-        ShareSight: NAS
+        SHARESIGHT: NAS
+        FIGI: US
 
     - code: NYSE
       id: NYSE
       timezoneId: US/Eastern
       currencyId: USD
       aliases:
-        ShareSight: NYS
+        SHARESIGHT: NYS
+        FIGI: US
 
     - code: AMEX
       id: AMEX
       timezoneId: US/Eastern
       currencyId: USD
+      aliases:
+        FIGI: US
 
     - code: ASX
       id: ASX
@@ -127,6 +131,7 @@ beancounter:
       currencyId: AUD
       aliases:
         WTD: AX
+        FIGI: AU
 
     - code: NZX
       id: NZX
@@ -135,16 +140,21 @@ beancounter:
       aliases:
         WTD: NZ
         ALPHA: NZ
+        FIGI: NZ
 
     - code: SGX
       id: SGX
       currencyId: SGD
       timezoneId: Asia/Singapore
+      aliases:
+        FIGI: SG
 
     - code: LSE
       id: LSE
       currencyId: GBP
       timezoneId: Europe/London
+      aliases:
+        FIGI: GB
 
   marketdata:
     provider:
@@ -154,11 +164,11 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets:
+        markets: NASDAQ,AMEX,NYSE,ASX
 
       WTD:
         url: https://www.worldtradingdata.com
         batchSize: 2
-        markets: NZX,NASDAQ,AMEX,NYSE,ASX
+        markets: NZX
 
 

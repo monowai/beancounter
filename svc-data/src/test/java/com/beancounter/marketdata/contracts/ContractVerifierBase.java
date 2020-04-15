@@ -94,8 +94,8 @@ public class ContractVerifierBase {
 
   @Autowired
   private WebApplicationContext context;
-  private String contractPath = "contracts";
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final String contractPath = "contracts";
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
   @SneakyThrows
@@ -301,7 +301,7 @@ public class ContractVerifierBase {
       if (theAsset.getId() != null) {
         Mockito.when(assetService.find(theAsset.getId())).thenReturn(theAsset);
       }
-      Mockito.when(assetService.find(
+      Mockito.when(assetService.findLocally(
           theAsset.getMarket().getCode().toUpperCase(),
           theAsset.getCode().toUpperCase()))
           .thenReturn(theAsset);

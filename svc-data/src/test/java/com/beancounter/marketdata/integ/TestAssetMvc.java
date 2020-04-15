@@ -17,12 +17,14 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.marketdata.assets.figi.FigiProxy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
@@ -39,14 +41,17 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 class TestAssetMvc {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   private WebApplicationContext context;
   private MockMvc mockMvc;
 
-  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private Jwt token;
+
+  @MockBean
+  private FigiProxy figiProxy;
 
   @Autowired
   void mockServices() {

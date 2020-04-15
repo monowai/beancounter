@@ -4,7 +4,6 @@ import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -29,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class AssetController {
 
-  private AssetService assetService;
+  private final AssetService assetService;
 
   @Autowired
   AssetController(AssetService assetService) {
@@ -38,11 +37,7 @@ public class AssetController {
 
   @GetMapping(value = "/{market}/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
   Asset getAsset(@PathVariable String market, @PathVariable String code) {
-    Asset asset = assetService.find(market, code);
-    if (asset == null) {
-      throw new BusinessException(String.format("No asset found for %s/%s", market, code));
-    }
-    return asset;
+    return assetService.find(market, code);
   }
 
   @GetMapping(value = "/{assetId}")

@@ -50,12 +50,12 @@ class MarketDataControllerTests {
   private final Asset dummy;
   // Represents dummy after it has been Jackson'ized
   private final Asset dummyJsonAsset;
-  private WebApplicationContext wac;
+  private final WebApplicationContext wac;
   @MockBean
   private AssetService assetService;
-  private MockProviderService mockProviderService;
+  private final MockProviderService mockProviderService;
   private MockMvc mockMvc;
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   private MarketDataControllerTests(WebApplicationContext webApplicationContext,
@@ -73,8 +73,11 @@ class MarketDataControllerTests {
   @BeforeEach
   void setUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-    Mockito.when(assetService.find(dummy.getId())).thenReturn(dummy);
-    Mockito.when(assetService.find(dummy.getMarket().getCode(), dummy.getId())).thenReturn(dummy);
+    Mockito.when(
+        assetService.find(dummy.getId())).thenReturn(dummy);
+    Mockito.when(
+        assetService.findLocally(dummy.getMarket().getCode(), dummy.getId()))
+        .thenReturn(dummy);
   }
 
   @Test
@@ -129,7 +132,7 @@ class MarketDataControllerTests {
   @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_MdCollectionReturnedForAssets() throws Exception {
 
-    Mockito.when(assetService.find("MOCK", "ASSETCODE"))
+    Mockito.when(assetService.findLocally("MOCK", "ASSETCODE"))
         .thenReturn(AssetUtils.getAsset("ASSETCODE", "MOCK"));
 
     Collection<AssetInput> assetInputs = new ArrayList<>();

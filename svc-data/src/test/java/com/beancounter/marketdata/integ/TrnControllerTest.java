@@ -28,6 +28,7 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.assets.figi.FigiProxy;
 import com.beancounter.marketdata.markets.MarketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
@@ -53,18 +55,16 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 @Tag("slow")
 public class TrnControllerTest {
-  private ObjectMapper objectMapper = new ObjectMapper();
-
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   @Autowired
   private WebApplicationContext wac;
-
   @Autowired
   private MarketService marketService;
-
   private MockMvc mockMvc;
-
+  @MockBean
+  private FigiProxy figiProxy;
   private Jwt token;
-  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @Autowired
   void mockServices() {
@@ -78,7 +78,7 @@ public class TrnControllerTest {
 
     token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token);
-
+    assertThat(figiProxy).isNotNull();
   }
 
   @Test

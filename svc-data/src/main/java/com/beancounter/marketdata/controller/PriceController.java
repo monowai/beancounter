@@ -28,8 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class PriceController {
 
-  private MarketDataService marketDataService;
-  private AssetService assetService;
+  private final MarketDataService marketDataService;
+  private final AssetService assetService;
 
   @Autowired
   PriceController(MarketDataService marketDataService, AssetService assetService) {
@@ -46,7 +46,7 @@ public class PriceController {
   @GetMapping(value = "/{marketCode}/{assetCode}")
   PriceResponse getPrice(@PathVariable("marketCode") String marketCode,
                          @PathVariable("assetCode") String assetCode) {
-    Asset asset = assetService.find(marketCode, assetCode);
+    Asset asset = assetService.findLocally(marketCode, assetCode);
     if (asset == null) {
       throw new BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode));
     }
@@ -58,7 +58,7 @@ public class PriceController {
   PriceResponse prices(@RequestBody PriceRequest priceRequest) {
     for (AssetInput requestedAsset : priceRequest.getAssets()) {
       Asset asset = assetService
-          .find(requestedAsset.getMarket(), requestedAsset.getCode());
+          .findLocally(requestedAsset.getMarket(), requestedAsset.getCode());
       if (asset != null) {
         requestedAsset.setResolvedAsset(asset);
       }

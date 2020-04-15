@@ -112,11 +112,11 @@ public class TrnControllerTest {
     Market nasdaq = marketService.getMarket("NASDAQ");
 
     Asset msft = asset(AssetRequest.builder()
-        .data("msft", AssetUtils.getAsset(nasdaq, "MSFT"))
+        .data("msft", AssetUtils.getAssetInput(nasdaq.getCode(), "MSFT"))
         .build());
 
     Asset aapl = asset(AssetRequest.builder()
-        .data("aapl", AssetUtils.getAsset(nasdaq, "AAPL"))
+        .data("aapl", AssetUtils.getAssetInput(nasdaq.getCode(), "AAPL"))
         .build());
 
     Portfolio portfolio = portfolio(PortfolioInput.builder()

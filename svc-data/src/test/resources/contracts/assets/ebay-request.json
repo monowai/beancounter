@@ -2,10 +2,7 @@
   "data": {
     "EBAY:NASDAQ": {
       "code": "EBAY",
-      "name": "EBAY",
-      "market": {
-        "code": "NASDAQ"
-      }
+      "market": "NASDAQ"
     }
   }
 }

@@ -4,6 +4,7 @@ import com.beancounter.client.AssetService;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
@@ -37,10 +38,9 @@ public class AssetIngestService {
     }
     String callerKey = AssetUtils.toKey(assetCode, market.getCode());
     AssetRequest assetRequest = AssetRequest.builder()
-        .data(callerKey, Asset.builder()
+        .data(callerKey, AssetInput.builder()
             .code(assetCode)
-            .name(assetName)
-            .market(market)
+            .market(market.getCode())
             .build())
         .build();
     AssetUpdateResponse response = assetService.process(assetRequest);

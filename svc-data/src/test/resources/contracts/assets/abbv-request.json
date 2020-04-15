@@ -2,9 +2,7 @@
   "data": {
     "ABBV:NYSE": {
       "code": "ABBV",
-      "market": {
-        "code": "NYSE"
-      }
+      "market": "NYSE"
     }
   }
 }

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 
 class TestAsset {
-  private ObjectMapper om = new ObjectMapper();
+  private final ObjectMapper om = new ObjectMapper();
 
   @Test
   void is_PriceRequestForAsset() {
@@ -48,13 +48,12 @@ class TestAsset {
 
     AssetRequest assetRequest = AssetRequest
         .builder()
-        .data(AssetUtils.toKey(asset), asset)
-        .data("second", AssetUtils.getJsonAsset("Whee", "Twee"))
+        .data(AssetUtils.toKey(asset), AssetUtils.getAssetInput("BBB", "AAA"))
+        .data("second", AssetUtils.getAssetInput("Whee", "Twee"))
         .build();
 
-    assertThat(assetRequest.getData()).containsKeys(AssetUtils.toKey(asset));
-
-
+    assertThat(assetRequest.getData())
+        .containsKeys(AssetUtils.toKey(asset));
     String json = om.writeValueAsString(assetRequest);
 
     AssetRequest fromJson = om.readValue(json, AssetRequest.class);
@@ -100,7 +99,6 @@ class TestAsset {
         () -> AssetUtils.fromKey("CodeWithNoMarket"));
     assertThrows(NullPointerException.class,
         () -> AssetUtils.fromKey(null));
-
     assertThrows(NullPointerException.class,
         () -> AssetUtils.getAsset((Market) null, null));
     assertThrows(NullPointerException.class,
@@ -109,9 +107,10 @@ class TestAsset {
         () -> AssetUtils.getAsset((String) null, "Twee"));
     assertThrows(NullPointerException.class,
         () -> AssetUtils.getAsset((Market) null, null));
-
     assertThrows(NullPointerException.class,
-        () -> AssetUtils.toKey(null));
+        () -> AssetUtils.toKey((Asset)null));
+    assertThrows(NullPointerException.class,
+        () -> AssetUtils.toKey((AssetInput) null));
     assertThrows(NullPointerException.class,
         () -> AssetUtils.toKey("Twee", null));
     assertThrows(NullPointerException.class,

@@ -2,9 +2,7 @@
   "data": {
     "BHP:ASX": {
       "code": "BHP",
-      "market": {
-        "code": "ASX"
-      }
+      "market": "ASX"
     }
   }
 }

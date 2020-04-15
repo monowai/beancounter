@@ -23,7 +23,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class AssetUtils {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Takes a valid asset and returns a key for it.
@@ -33,6 +33,10 @@ public class AssetUtils {
    */
   public String toKey(@NonNull Asset asset) {
     return toKey(asset.getCode(), asset.getMarket().getCode());
+  }
+
+  public String toKey(@NonNull AssetInput asset) {
+    return toKey(asset.getCode(), asset.getMarket());
   }
 
   public static String toKey(@NonNull String asset, @NonNull String market) {
@@ -117,8 +121,8 @@ public class AssetUtils {
 
   public AssetInput getAssetInput(String market, String code) {
     return AssetInput.builder()
-        .code(code)
         .market(market)
+        .code(code)
         .build();
   }
 

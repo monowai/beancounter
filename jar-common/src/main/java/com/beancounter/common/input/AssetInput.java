@@ -16,6 +16,7 @@ public class AssetInput {
   private String code;
   // Market code or alias
   private String market;
+  private String name;
   @JsonIgnore // This property is server side only & untrusted from a client
   private Asset resolvedAsset;
 }

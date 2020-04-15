@@ -2,15 +2,11 @@
   "data": {
     "BHP:ASX": {
       "code": "BHP",
-      "market": {
-        "code": "ASX"
-      }
+      "market": "ASX"
     },
     "MSFT:NASDAQ": {
       "code": "MSFT",
-      "market": {
-        "code": "NASDAQ"
-      }
+      "market": "NASDAQ"
     }
   }
 }

@@ -79,7 +79,7 @@ public class KafkaTrnReader {
 
     // The asset has to exist
     AssetRequest assetRequest = AssetRequest.builder()
-        .data("MSFT", AssetUtils.getAsset("NASDAQ", "MSFT"))
+        .data("MSFT", AssetUtils.getAssetInput("NASDAQ", "MSFT"))
         .build();
     AssetUpdateResponse assetResponse = assetService.process(assetRequest);
     assertThat(assetResponse.getData().get("MSFT")).hasFieldOrProperty("id");

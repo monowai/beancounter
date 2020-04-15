@@ -2,9 +2,7 @@
   "data": {
     "MSFT:NASDAQ": {
       "code": "MSFT",
-      "market": {
-        "code": "NASDAQ"
-      }
+      "market": "NASDAQ"
     }
   }
 }

@@ -2,9 +2,7 @@
   "data": {
     "BHP:LSE": {
       "code": "BHP",
-      "market": {
-        "code": "LSE"
-      }
+      "market": "LSE"
     }
   }
 }

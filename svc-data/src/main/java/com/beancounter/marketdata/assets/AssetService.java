@@ -3,6 +3,7 @@ package com.beancounter.marketdata.assets;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
@@ -35,24 +36,25 @@ public class AssetService implements com.beancounter.client.AssetService {
     this.marketService = marketService;
   }
 
-  public Asset create(Asset asset) {
+  private Asset create(AssetInput assetInput) {
     Asset foundAsset = findLocally(
-        asset.getMarket().getCode().toUpperCase(),
-        asset.getCode().toUpperCase());
+        assetInput.getMarket().toUpperCase(),
+        assetInput.getCode().toUpperCase());
 
     if (foundAsset == null) {
-      Market market = marketService.getMarket(asset.getMarket().getCode());
+      Market market = marketService.getMarket(assetInput.getMarket());
 
       // Find @Bloomberg
-      Asset figiAsset = findExternally(asset.getMarket().getCode(), asset.getCode());
+      Asset figiAsset = findExternally(assetInput.getMarket(), assetInput.getCode());
 
       if (figiAsset == null) {
         // User Defined Asset?
+        Asset asset = Asset.builder().build();
         asset.setId(KeyGenUtils.format(UUID.randomUUID()));
-        asset.setCode(asset.getCode().toUpperCase());
+        asset.setCode(assetInput.getCode().toUpperCase());
         asset.setMarketCode(market.getCode());
-        if (asset.getName() != null) {
-          asset.setName(asset.getName().replace("\"", ""));
+        if (assetInput.getName() != null) {
+          asset.setName(assetInput.getName().replace("\"", ""));
         }
         foundAsset = assetRepository.save(asset);
       } else {

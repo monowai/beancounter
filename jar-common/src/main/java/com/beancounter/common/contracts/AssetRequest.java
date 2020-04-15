@@ -1,6 +1,6 @@
 package com.beancounter.common.contracts;
 
-import com.beancounter.common.model.Asset;
+import com.beancounter.common.input.AssetInput;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,8 +12,8 @@ import lombok.Singular;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AssetRequest implements Payload<Map<String, Asset>> {
+public class AssetRequest implements Payload<Map<String, AssetInput>> {
   @Singular("data")
-  private Map<String, Asset> data;
+  private Map<String, AssetInput> data;
 
 }

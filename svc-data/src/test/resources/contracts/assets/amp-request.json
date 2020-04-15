@@ -2,9 +2,7 @@
   "data": {
     "AMP:ASX": {
       "code": "AMP",
-      "market": {
-        "code": "ASX"
-      }
+      "market": "ASX"
     }
   }
 }

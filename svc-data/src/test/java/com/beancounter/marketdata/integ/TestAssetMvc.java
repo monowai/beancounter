@@ -14,17 +14,16 @@ import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.marketdata.assets.figi.FigiProxy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
@@ -50,9 +49,6 @@ class TestAssetMvc {
   private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private Jwt token;
 
-  @MockBean
-  private FigiProxy figiProxy;
-
   @Autowired
   void mockServices() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
@@ -75,16 +71,18 @@ class TestAssetMvc {
     Asset firstAsset = AssetUtils.getAsset("MOCK", "MyCode");
     Asset secondAsset = AssetUtils.getAsset("MOCK", "Second");
     AssetRequest assetRequest = AssetRequest.builder()
-        .data(AssetUtils.toKey(firstAsset), firstAsset)
-        .data(AssetUtils.toKey(secondAsset), secondAsset)
+        .data(AssetUtils.toKey(firstAsset),
+            AssetUtils.getAssetInput("MOCK", "MyCode"))
+        .data(AssetUtils.toKey(secondAsset),
+            AssetUtils.getAssetInput("MOCK", "Second"))
         .build();
 
     MvcResult mvcResult = mockMvc.perform(
-        post("/assets/")
+        post("/assets")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(objectMapper.writeValueAsBytes(assetRequest))
-            .contentType(MediaType.APPLICATION_JSON)
-    ).andExpect(status().isOk())
+            .content(objectMapper.writeValueAsString(assetRequest))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
@@ -144,14 +142,14 @@ class TestAssetMvc {
 
   @Test
   void is_PostSameAssetTwiceBehaving() throws Exception {
-    Asset asset = AssetUtils.getAsset("MOCK", "MyCodeX");
+    AssetInput asset = AssetUtils.getAssetInput("MOCK", "MyCodeX");
     asset.setName("\"quotes should be removed\"");
     AssetRequest assetRequest = AssetRequest.builder()
         .data(AssetUtils.toKey(asset), asset)
         .build();
 
     MvcResult mvcResult = mockMvc.perform(
-        post("/assets/")
+        post("/assets")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(assetRequest))
             .contentType(MediaType.APPLICATION_JSON)
@@ -171,7 +169,6 @@ class TestAssetMvc {
 
     // Send it a second time, should not change
     asset.setName("Random Change");
-    asset.setId(null);
     assetRequest = AssetRequest.builder()
         .data(AssetUtils.toKey(asset), asset)
         .build();

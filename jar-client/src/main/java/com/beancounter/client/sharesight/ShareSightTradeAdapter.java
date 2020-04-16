@@ -5,6 +5,7 @@ import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
@@ -42,12 +43,12 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int fxRate = 9;
   public static final int value = 10;
   public static final int comments = 11;
-  private DateUtils dateUtils = new DateUtils();
-  private ShareSightConfig shareSightConfig;
+  private final DateUtils dateUtils = new DateUtils();
+  private final ShareSightConfig shareSightConfig;
   private Filter filter = new Filter(null);
 
-  private MarketService marketService;
-  private AssetIngestService assetIngestService;
+  private final MarketService marketService;
+  private final AssetIngestService assetIngestService;
 
   public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
                                 AssetIngestService assetIngestService,
@@ -92,6 +93,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       return TrnInput.builder()
           .asset(asset.getId())
           .trnType(trnType)
+          .callerRef(CallerRef.builder().provider(trustedTrnRequest.getPortfolio().getId()).build())
           .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
           .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))
           .fees(MathUtils.divide(fees, tradeRate))

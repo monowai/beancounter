@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.trn.TrnKafka.topicTrnCsv;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.auth.common.TokenService;
@@ -18,7 +17,7 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.registration.SystemUserService;
-import com.beancounter.marketdata.trn.TrnKafka;
+import com.beancounter.marketdata.trn.TrnKafkaConsumer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @EmbeddedKafka(
     partitions = 1,
-    topics = {topicTrnCsv},
+    topics = {"topicTrnCsv"},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
         "log.dir=./kafka",
@@ -48,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest
 @ActiveProfiles("kafka")
 @Slf4j
-public class KafkaTrnReader {
+public class TestKafkaTrnConsumer {
 
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -68,7 +67,7 @@ public class KafkaTrnReader {
   private TokenService tokenService;
 
   @Autowired
-  private TrnKafka trnKafka;
+  private TrnKafkaConsumer trnKafkaConsumer;
 
   @SneakyThrows
   @Test
@@ -111,7 +110,7 @@ public class KafkaTrnReader {
         .row(row)
         .portfolio(pfResponse.iterator().next())
         .build();
-    TrnResponse response = trnKafka.processMessage(trnRequest);
+    TrnResponse response = trnKafkaConsumer.processMessage(trnRequest);
 
     Asset expectedAsset = assetResponse.getData().get("MSFT");
     assertThat(response).isNotNull();

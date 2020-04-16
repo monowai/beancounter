@@ -8,7 +8,5 @@ import lombok.Data;
 public class FigiSearch {
   private String query;
   private String exchCode;
-  @Builder.Default
-  private String securityType = "Common Stock";
   private String start;
 }

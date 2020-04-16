@@ -1,6 +1,5 @@
 package com.beancounter.shell.integ;
 
-import static com.beancounter.shell.kafka.KafkaTrnWriter.topicTrnCsv;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
@@ -10,7 +9,7 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
-import com.beancounter.shell.kafka.KafkaTrnWriter;
+import com.beancounter.shell.kafka.KafkaTrnProducer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @EmbeddedKafka(
     partitions = 1,
-    topics = {topicTrnCsv},
+    topics = {"topicTrnCsv"},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
         "log.dir=./kafka",
@@ -45,7 +44,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 )
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {
-    KafkaTrnWriter.class,
+    KafkaTrnProducer.class,
     ShareSightConfig.class,
     ClientConfig.class,
     KafkaAutoConfiguration.class
@@ -58,7 +57,7 @@ public class TrnCsvKafka {
   private EmbeddedKafkaBroker embeddedKafkaBroker;
 
   @Autowired
-  private KafkaTrnWriter kafkaTrnWriter;
+  private KafkaTrnProducer kafkaTrnProducer;
 
   @MockBean
   private ShareSightFactory shareSightFactory;
@@ -83,7 +82,7 @@ public class TrnCsvKafka {
 
     consumer = cf.createConsumer();
 
-    embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, topicTrnCsv);
+    embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, "topicTrnCsv");
 
   }
 
@@ -94,12 +93,12 @@ public class TrnCsvKafka {
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
         .build();
-    kafkaTrnWriter.write(trnRequest);
+    kafkaTrnProducer.write(trnRequest);
 
     log.info("Waiting for Result");
     try {
       ConsumerRecord<String, String>
-          received = KafkaTestUtils.getSingleRecord(consumer, topicTrnCsv);
+          received = KafkaTestUtils.getSingleRecord(consumer, "topicTrnCsv");
       assertThat(received.value()).isNotNull();
       assertThat(new ObjectMapper().readValue(received.value(), TrustedTrnRequest.class))
           .isEqualToComparingFieldByField(trnRequest);

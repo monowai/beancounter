@@ -32,7 +32,7 @@ logging:
     com.beancounter.shell.IngestBoot: error
     com.beancounter: debug
     org.springframework.web.servlet: info
-    feign: debug
+    feign: error
     sun: error
     jdk: error
     javax: error

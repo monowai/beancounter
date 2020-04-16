@@ -5,6 +5,7 @@ import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
@@ -43,13 +44,13 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   public static final int tax = 6;
   public static final int gross = 7;
   public static final int comments = 8;
-  private ShareSightConfig shareSightConfig;
+  private final ShareSightConfig shareSightConfig;
   private Filter filter = new Filter(null);
 
-  private DateUtils dateUtils = new DateUtils();
+  private final DateUtils dateUtils = new DateUtils();
 
-  private MarketService marketService;
-  private AssetIngestService assetIngestService;
+  private final MarketService marketService;
+  private final AssetIngestService assetIngestService;
 
   public ShareSightDividendAdapter(ShareSightConfig shareSightConfig,
                                    AssetIngestService assetIngestService,
@@ -79,6 +80,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       return TrnInput.builder()
           .asset(asset.getId())
           .tradeCurrency(row.get(currency))
+          .callerRef(CallerRef.builder().provider(trustedTrnRequest.getPortfolio().getId()).build())
           .trnType(TrnType.DIVI)
           .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
           .tradeAmount(

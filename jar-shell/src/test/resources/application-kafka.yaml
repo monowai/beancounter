@@ -10,3 +10,7 @@ spring:
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+beancounter:
+  topics:
+    trn:
+      csv: topicTrnCsv

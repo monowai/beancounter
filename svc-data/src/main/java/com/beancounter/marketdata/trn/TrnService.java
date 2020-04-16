@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.marketdata.portfolio.PortfolioService;
@@ -20,9 +19,9 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 public class TrnService {
-  private TrnRepository trnRepository;
-  private TrnAdapter trnAdapter;
-  private PortfolioService portfolioService;
+  private final TrnRepository trnRepository;
+  private final TrnAdapter trnAdapter;
+  private final PortfolioService portfolioService;
 
   TrnService(TrnRepository trnRepository,
              TrnAdapter trnAdapter,
@@ -42,18 +41,6 @@ public class TrnService {
         results.getData().size(), trnRequest.getData().size(), portfolio.getCode());
 
     return results;
-  }
-
-  public TrnResponse findByCallerRef(CallerRef callerRef) {
-    // Security: Filter by portfolio
-    Optional<Trn> found = trnRepository.findByCallerRef(callerRef);
-    Optional<TrnResponse> result = found.map(
-        transaction -> hydrate(Collections.singleton(transaction)));
-
-    if (result.isEmpty()) {
-      throw new BusinessException(String.format("Trn %s not found", callerRef));
-    }
-    return result.get();
   }
 
   public TrnResponse find(Portfolio portfolio, String trnId) {
@@ -86,7 +73,7 @@ public class TrnService {
     Collection<Trn> results = trnRepository.findByPortfolioId(portfolio.getId(),
         Sort.by("asset.code")
             .and(Sort.by("tradeDate")));
-    log.debug("trns: {} portfolio: {}", results.size(), portfolio.getCode());
+    log.debug("trns: {}, portfolio: {}", results.size(), portfolio.getCode());
     return hydrate(results);
   }
 

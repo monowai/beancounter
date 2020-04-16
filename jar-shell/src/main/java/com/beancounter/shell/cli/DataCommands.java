@@ -15,8 +15,8 @@ import org.springframework.shell.standard.ShellOption;
 @Slf4j
 public class DataCommands {
 
-  private StaticService staticService;
-  private ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
+  private final StaticService staticService;
+  private final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
   DataCommands(StaticService staticService) {
     this.staticService = staticService;

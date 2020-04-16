@@ -4,8 +4,6 @@ import express from "express";
 import kafka from "kafka-node";
 import { bcConfig } from "../common/config";
 
-const topic = "bc-trn-csv";
-
 function writeTrn(trnRequest: TransactionUpload): void {
   try {
     const client = new kafka.KafkaClient({ kafkaHost: bcConfig.kafkaUrl });
@@ -14,13 +12,17 @@ function writeTrn(trnRequest: TransactionUpload): void {
 
     const payloads = [
       {
-        topic: topic,
+        topic: bcConfig.topicCsvTrn,
         messages: JSON.stringify(trnRequest),
       },
     ];
     producer.send(payloads, (err) => {
       if (err) {
-        logger.error("[kafka-producer -> %s]: broker send failed. %s", topic, err.message);
+        logger.error(
+          "[kafka-producer -> %s]: broker send failed. %s",
+          bcConfig.topicCsvTrn,
+          err.message
+        );
       }
     });
   } catch (e) {

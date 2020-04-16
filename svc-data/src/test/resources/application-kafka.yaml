@@ -16,3 +16,10 @@ spring:
   embedded:
     kafka:
       brokers: "localhost:${kafka.broker.port}"
+
+
+beancounter:
+  marketdata:
+    provider:
+      FIGI:
+        enabled: false

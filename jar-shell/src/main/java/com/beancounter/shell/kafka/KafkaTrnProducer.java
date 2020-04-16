@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -21,14 +22,15 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 @Service
 @Slf4j
-public class KafkaTrnWriter implements TrnWriter {
+public class KafkaTrnProducer implements TrnWriter {
 
-  public static final String topicTrnCsv = "bc-trn-csv";
+  @Value("${beancounter.topics.trn.csv:bc-trn-csv-dev}")
+  public String topicTrnCsv;
   private final KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer;
   private ShareSightFactory shareSightFactory;
 
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-  public KafkaTrnWriter(KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer) {
+  public KafkaTrnProducer(KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer) {
     this.kafkaCsvTrnProducer = kafkaCsvTrnProducer;
   }
 

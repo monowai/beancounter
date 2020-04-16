@@ -90,9 +90,17 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   public Asset find(String id) {
-    Optional<Asset> result = assetRepository
-        .findById(id).map(this::hydrateAsset);
+    Optional<Asset> result = assetRepository.findById(id).map(this::hydrateAsset);
     if (result.isPresent()) {
+      Asset asset = result.get();
+      if (asset.getName() == null) {
+        Asset figiAsset = findExternally(asset.getMarket().getCode(), asset.getCode());
+        if (figiAsset != null) {
+          figiAsset.setId(id);
+          assetRepository.save(figiAsset);
+          return figiAsset;
+        }
+      }
       return result.get();
     }
     throw new BusinessException(String.format("Asset.id %s not found", id));

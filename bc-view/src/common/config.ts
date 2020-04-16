@@ -5,6 +5,7 @@ import { BcOptions } from "../types/app";
 const SVC_POSITION = "SVC_POSITION";
 const SVC_DATA = "SVC_DATA";
 const KAFKA_URL = "KAFKA_URL";
+const KAFKA_TOPIC_TRN = "KAFKA_TOPIC_TRN";
 const KC_URL = "KC_URL";
 const KC_REALM = "KC_REALM";
 const KC_CLIENT = "KC_CLIENT";
@@ -16,6 +17,7 @@ function runtimeConfig(): BcOptions {
         bcPositions: "undefined",
         bcData: "undefined",
         kafkaUrl: "undefined",
+        topicCsvTrn: "undefined",
         kcUrl: window.env ? window.env.kcUrl : serverEnv(KC_URL, "http://keycloak:9620/auth"),
         kcRealm: window.env ? window.env.kcRealm : serverEnv(KC_REALM, "bc-dev"),
         kcClient: window.env ? window.env.kcClient : serverEnv(KC_CLIENT, "bc-dev"),
@@ -25,6 +27,7 @@ function runtimeConfig(): BcOptions {
         bcPositions: serverEnv(SVC_POSITION, "http://localhost:9500"),
         bcData: serverEnv(SVC_DATA, "http://localhost:9510"),
         kafkaUrl: serverEnv(KAFKA_URL, "kafka:9092"),
+        topicCsvTrn: serverEnv(KAFKA_TOPIC_TRN, "bc-trn-csv-dev"),
         kcUrl: serverEnv(KC_URL, "http://keycloak:9620/auth"),
         kcRealm: serverEnv(KC_REALM, "bc-dev"),
         kcClient: serverEnv(KC_CLIENT, "bc-dev"),
@@ -38,4 +41,5 @@ export const bcConfig: BcOptions = {
   kcUrl: runtimeConfig().kcUrl,
   kcRealm: runtimeConfig().kcRealm,
   kcClient: runtimeConfig().kcClient,
+  topicCsvTrn: runtimeConfig().topicCsvTrn,
 };

@@ -39,7 +39,7 @@ auth:
 
 spring:
   application:
-    name: bc-marketData
+    name: bc-data
   cache:
     cache-names: asset.prices, fx.rates, providers, asset.ext
   jpa:
@@ -172,13 +172,24 @@ beancounter:
         markets: NZX
 
 
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      failureRateThreshold: 3
-      slidingWindowSize: 10
-      permittedNumberOfCallsInHalfOpenState: 3
-      slidingWindowType: TIME_BASED
-      waitDurationInOpenState: 5s
-      registerHealthIndicator: true
-      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        registerHealthIndicator: false
+        limitForPeriod: 1
+        limitRefreshPeriod: 6s
+        timeoutDuration: 180s
+        eventConsumerBufferSize: 200
+
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 3
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: TIME_BASED
+        waitDurationInOpenState: 5s
+        registerHealthIndicator: true
+        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+

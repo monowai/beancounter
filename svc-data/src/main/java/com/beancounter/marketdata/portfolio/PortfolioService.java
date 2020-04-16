@@ -74,6 +74,17 @@ public class PortfolioService {
     return results;
   }
 
+  /**
+   * Confirms if the requested portfolio is known. Service side call.
+   *
+   * @param id pk
+   * @return exists or not
+   */
+  public boolean verify(String id) {
+    Optional<Portfolio> found = portfolioRepository.findById(id);
+    return found.isPresent();
+  }
+
   public Portfolio find(String id) {
     Optional<Portfolio> found = portfolioRepository.findById(id);
     Portfolio portfolio = found.orElseThrow(()

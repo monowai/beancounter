@@ -14,6 +14,7 @@ public class FigiAdapter {
     return Asset.builder()
         .name(figiAsset.getName())
         .market(market)
+        .marketCode(market.getCode())
         .code(figiAsset.getTicker())
         .category(figiAsset.getSecurityType2())
         .build();

@@ -3,7 +3,7 @@ plugins {
     id "org.springframework.boot" version "$springBootVersion"
 }
 
-apply from: "../buildtools/javaCommon.gradle"
+apply from: "../javaCommon.gradle"
 
 version = '0.0.1'
 
@@ -19,7 +19,9 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
-            "io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion"
     )
 
@@ -52,7 +54,6 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-//        mavenBom "org.keycloak.bom:keycloak-adapter-bom:3.0.0.CR1"
     }
 }
 

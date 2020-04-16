@@ -8,9 +8,7 @@ buildscript {
     }
 }
 
-apply from: '../buildtools/javaCommon.gradle'
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+apply from: '../javaCommon.gradle'
 
 dependencies() {
 

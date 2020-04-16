@@ -2,14 +2,12 @@ plugins {
     id "io.spring.dependency-management" version "$springDependencyManagement"
 }
 
-apply from: '../buildtools/javaCommon.gradle'
+apply from: '../javaCommon.gradle'
 
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
 
 dependencies {
-
     implementation(
             project(":jar-common"),
             project(":jar-auth"),
@@ -18,10 +16,13 @@ dependencies {
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
-            "io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion",
-            "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "org.springframework.cloud:spring-cloud-starter-openfeign"
     )
+
     compileOnly(
             "org.projectlombok:lombok:$lombokVersion"
     )

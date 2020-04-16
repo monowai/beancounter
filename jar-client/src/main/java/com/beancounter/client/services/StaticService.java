@@ -25,8 +25,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
 public class StaticService implements MarketService {
-  public StaticGateway staticGateway;
-  private TokenService tokenService;
+  public final StaticGateway staticGateway;
+  private final TokenService tokenService;
 
   StaticService(StaticGateway staticGateway,
                 TokenService tokenService) {

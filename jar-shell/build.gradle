@@ -3,7 +3,7 @@ plugins {
     id "org.springframework.boot" version "$springBootVersion"
 }
 
-apply from: '../buildtools/javaCommon.gradle'
+apply from: '../javaCommon.gradle'
 
 version = "0.1.1"
 

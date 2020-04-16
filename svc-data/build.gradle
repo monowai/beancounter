@@ -15,7 +15,7 @@ plugins {
     id "maven-publish"
 }
 apply plugin: 'spring-cloud-contract'
-apply from: "../buildtools/javaCommon.gradle"
+apply from: "../javaCommon.gradle"
 
 version = "0.1.1"
 
@@ -42,6 +42,9 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
+            "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2",
             "org.postgresql:postgresql:42.2.12",

@@ -172,3 +172,13 @@ beancounter:
         markets: NZX
 
 
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      failureRateThreshold: 3
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: TIME_BASED
+      waitDurationInOpenState: 5s
+      registerHealthIndicator: true
+      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate

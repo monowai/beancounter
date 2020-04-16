@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 public class AssetServiceClient implements AssetService {
 
-  private AssetGateway assetGateway;
-  private TokenService tokenService;
+  private final AssetGateway assetGateway;
+  private final TokenService tokenService;
 
   AssetServiceClient(AssetGateway assetGateway, TokenService tokenService) {
     this.tokenService = tokenService;

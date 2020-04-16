@@ -6,7 +6,6 @@ import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -18,10 +17,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @Slf4j
 public class FxClientService implements FxService {
 
-  private FxGateway fxGateway;
-  private TokenService tokenService;
+  private final FxGateway fxGateway;
+  private final TokenService tokenService;
 
-  @Autowired
   FxClientService(FxGateway bcGateway, TokenService tokenService) {
     this.fxGateway = bcGateway;
     this.tokenService = tokenService;

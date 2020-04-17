@@ -18,11 +18,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AssetService implements com.beancounter.client.AssetService {
-  private final FigiProxy figiProxy;
+  private FigiProxy figiProxy;
   private AssetRepository assetRepository;
   private MarketService marketService;
 
-  AssetService(FigiProxy figiProxy) {
+  @Autowired(required = false)
+  void setFigiProxy(FigiProxy figiProxy) {
     this.figiProxy = figiProxy;
   }
 
@@ -66,7 +67,7 @@ public class AssetService implements com.beancounter.client.AssetService {
 
 
     }
-    return foundAsset;
+    return backFillMissingData(foundAsset.getId(), foundAsset);
   }
 
   public AssetUpdateResponse process(AssetRequest asset) {
@@ -93,17 +94,21 @@ public class AssetService implements com.beancounter.client.AssetService {
     Optional<Asset> result = assetRepository.findById(id).map(this::hydrateAsset);
     if (result.isPresent()) {
       Asset asset = result.get();
-      if (asset.getName() == null) {
-        Asset figiAsset = findExternally(asset.getMarket().getCode(), asset.getCode());
-        if (figiAsset != null) {
-          figiAsset.setId(id);
-          assetRepository.save(figiAsset);
-          return figiAsset;
-        }
-      }
-      return result.get();
+      return backFillMissingData(id, asset);
     }
     throw new BusinessException(String.format("Asset.id %s not found", id));
+  }
+
+  private Asset backFillMissingData(String id, Asset asset) {
+    if (asset.getName() == null) {
+      Asset figiAsset = findExternally(asset.getMarket().getCode(), asset.getCode());
+      if (figiAsset != null) {
+        figiAsset.setId(id);
+        assetRepository.save(figiAsset);
+        return figiAsset;
+      }
+    }
+    return asset;
   }
 
   public Asset findLocally(String marketCode, String code) {
@@ -114,7 +119,7 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   private Asset findExternally(String marketCode, String code) {
-    if (marketCode.equalsIgnoreCase("MOCK")) {
+    if (figiProxy == null || marketCode.equalsIgnoreCase("MOCK")) {
       return null;
     }
     return figiProxy.find(marketCode, code);

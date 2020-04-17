@@ -8,5 +8,5 @@ import lombok.Data;
 public class FigiSearch {
   private String query;
   private String exchCode;
-  private String start;
+  private String securityType2;
 }

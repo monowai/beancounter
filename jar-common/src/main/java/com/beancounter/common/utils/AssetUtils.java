@@ -127,6 +127,9 @@ public class AssetUtils {
   }
 
   public AssetInput getAssetInput(Asset asset) {
-    return AssetInput.builder().resolvedAsset(asset).build();
+    return AssetInput.builder()
+        .code(asset.getCode())
+        .market(asset.getMarket().getCode())
+        .resolvedAsset(asset).build();
   }
 }

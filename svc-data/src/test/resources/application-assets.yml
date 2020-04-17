@@ -1,0 +1,22 @@
+server:
+  port: 0
+
+kafka:
+  enabled: false
+
+beancounter:
+  marketdata:
+    provider:
+      FIGI:
+        enabled: false
+
+      ALPHA:
+        url: http://localhost:9999
+        markets: NZX
+      WTD:
+        url: http://localhost:8888
+        markets: NASDAQ,AMEX,NYSE,ASX
+      FX:
+        url: http://localhost:7777
+      MOCK:
+        markets: MOCK

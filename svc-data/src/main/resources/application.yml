@@ -175,12 +175,20 @@ beancounter:
 resilience4j:
   ratelimiter:
     configs:
-      default:
+      figi:
         registerHealthIndicator: false
-        limitForPeriod: 1
-        limitRefreshPeriod: 6s
+        limitForPeriod: 17
+        limitRefreshPeriod: 60s
         timeoutDuration: 180s
         eventConsumerBufferSize: 200
+
+      alphaVantage:
+        registerHealthIndicator: false
+        limitForPeriod: 5
+        limitRefreshPeriod: 60s
+        timeoutDuration: 180s
+        eventConsumerBufferSize: 200
+
 
   circuitbreaker:
     configs:

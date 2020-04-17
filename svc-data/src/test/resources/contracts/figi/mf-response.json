@@ -1,0 +1,18 @@
+{
+  "data": [
+    {
+      "figi": "BBG000BJ29X7",
+      "name": "FINANCIAL SELECT SECTOR SPDR",
+      "ticker": "XLF",
+      "exchCode": "US",
+      "compositeFIGI": "BBG000BJ29X7",
+      "uniqueID": "EQ0038317900001000",
+      "securityType": "ETP",
+      "marketSector": "Equity",
+      "shareClassFIGI": "BBG001S7T223",
+      "uniqueIDFutOpt": null,
+      "securityType2": "Mutual Fund",
+      "securityDescription": "XLF"
+    }
+  ]
+}

@@ -31,10 +31,10 @@ import org.springframework.boot.test.context.SpringBootTest;
     StaticConfig.class})
 class TestStaticData {
 
-  private StaticConfig staticConfig;
-  private MarketService marketService;
-  private CurrencyService currencyService;
-  private DateUtils dateUtils = new DateUtils();
+  private final StaticConfig staticConfig;
+  private final MarketService marketService;
+  private final CurrencyService currencyService;
+  private final DateUtils dateUtils = new DateUtils();
 
   @Autowired
   TestStaticData(StaticConfig staticConfig,

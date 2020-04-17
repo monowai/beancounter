@@ -19,9 +19,14 @@ public class FigiMockUtils {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @SneakyThrows
-  public static void mock(WireMockRule figiApi, File jsonFile, String market, String code) {
+  public static void mock(WireMockRule figiApi,
+                          File jsonFile,
+                          String market,
+                          String code,
+                          String securityType) {
     FigiSearch search = FigiSearch.builder()
         .query(code)
+        .securityType2(securityType)
         .exchCode(market)
         .build();
 

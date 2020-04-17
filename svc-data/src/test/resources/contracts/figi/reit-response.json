@@ -1,0 +1,18 @@
+{
+  "data": [
+    {
+      "figi": "BBG000BGBTC2",
+      "name": "OMEGA HEALTHCARE INVESTORS",
+      "ticker": "OHI",
+      "exchCode": "US",
+      "compositeFIGI": "BBG000BGBTC2",
+      "uniqueID": "EQ0011522300001000",
+      "securityType": "REIT",
+      "marketSector": "Equity",
+      "shareClassFIGI": "BBG001S736L1",
+      "uniqueIDFutOpt": null,
+      "securityType2": "REIT",
+      "securityDescription": "OHI"
+    }
+  ]
+}

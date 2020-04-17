@@ -83,12 +83,27 @@ class TestAsset {
 
   @Test
   void is_AssetKeyParsing() {
-    Asset asset = AssetUtils.getAsset("MCODE", "ACODE");
+    Asset asset = AssetUtils.getAsset(
+        "MCODE",
+        "ACODE");
 
     String keyIn = AssetUtils.toKey(asset);
 
-    assertThat(AssetUtils.fromKey(keyIn)).isEqualTo(asset);
+    assertThat(AssetUtils.toKey(AssetInput.builder()
+        .market("MCODE")
+        .code("ACODE").build()))
+        .isEqualTo(keyIn);
 
+    AssetInput assetInput = AssetUtils.getAssetInput(asset);
+    assertThat(assetInput)
+        .hasFieldOrProperty("code")
+        .hasFieldOrProperty("market")
+        .hasFieldOrProperty("resolvedAsset");
+
+    assertThat(AssetUtils.toKey(assetInput))
+        .isEqualTo(keyIn);
+
+    assertThat(AssetUtils.fromKey(keyIn)).isEqualTo(asset);
   }
 
   @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
@@ -108,7 +123,7 @@ class TestAsset {
     assertThrows(NullPointerException.class,
         () -> AssetUtils.getAsset((Market) null, null));
     assertThrows(NullPointerException.class,
-        () -> AssetUtils.toKey((Asset)null));
+        () -> AssetUtils.toKey((Asset) null));
     assertThrows(NullPointerException.class,
         () -> AssetUtils.toKey((AssetInput) null));
     assertThrows(NullPointerException.class,

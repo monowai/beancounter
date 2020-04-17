@@ -13,5 +13,4 @@ import lombok.NoArgsConstructor;
 public class FigiResponse {
   private Collection<FigiAsset> data;
   private String error;
-  private String next;
 }

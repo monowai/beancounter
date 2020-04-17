@@ -36,7 +36,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("assets")
 @Tag("slow")
 class TestAssetMvc {
 
@@ -191,8 +191,20 @@ class TestAssetMvc {
 
   @Test
   void is_MissingAssetBadRequest() throws Exception {
+    // Invalid market
     ResultActions result = mockMvc.perform(
         get("/assets/twee/blah")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().is4xxClientError());
+
+    assertThat(result.andReturn().getResolvedException())
+        .isNotNull()
+        .isInstanceOfAny(BusinessException.class);
+
+    // Invalid Asset
+    result = mockMvc.perform(
+        get("/assets/NASDAQ/blah")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());

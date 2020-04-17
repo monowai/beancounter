@@ -12,7 +12,7 @@
     <logger name="com.beancounter" level="debug"/>
     <logger name="org.springframework" level="info"/>
     <logger name="org.springframework.kafka" level="error"/>
-    <logger name="org.hibernate" level="error"/>
+    <logger name="org.hibernate" level="fatal"/>
     <logger name="org.apache" level="error"/>
     <logger name="org.apache.kafka.clients" level="error"/>
     <logger name="kafka" level="error"/>

@@ -19,6 +19,8 @@ class TestDateUtils {
   void is_Today() {
     assertThat(dateUtils.isToday(dateUtils.today())).isTrue();
     assertThat(dateUtils.isToday(null)).isTrue();
+    assertThat(dateUtils.isToday("")).isTrue();
+    assertThat(dateUtils.isToday(" ")).isTrue();
   }
 
   @Test

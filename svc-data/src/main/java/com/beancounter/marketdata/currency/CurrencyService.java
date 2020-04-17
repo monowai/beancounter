@@ -33,10 +33,15 @@ public class CurrencyService {
   }
 
   public void loadDefaultCurrencies(Collection<Currency> currencies) {
-    if (currencyRepository != null) {
-      currencyRepository.saveAll(currencies);
+    if (currencyRepository == null) {
+      log.info("In-Memory {} default currencies", currencies.size());
+    } else {
+      log.info("Persisting {} default currencies", currencies.size());
+      Iterable<Currency> result = currencyRepository.saveAll(currencies);
+      for (Currency currency : result) {
+        log.debug("Persisted {}", currency);
+      }
     }
-    log.info("Created {} Default Currencies", currencies.size());
   }
 
   /**

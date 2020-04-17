@@ -101,7 +101,7 @@ public class DateUtils {
   }
 
   public boolean isToday(String inDate) {
-    if (inDate == null) {
+    if (inDate == null || inDate.trim().isEmpty()) {
       return true; // Null date is BC is "today"
     }
     try {

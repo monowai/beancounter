@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 public final class JwtRoleConverter implements Converter<Jwt, AbstractAuthenticationToken> {
   private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter
       = new JwtGrantedAuthoritiesConverter();
-  private String resourceId;
-  private String realmClaim;
+  private final String resourceId;
+  private final String realmClaim;
 
   public JwtRoleConverter() {
     this("realm_access", "roles");

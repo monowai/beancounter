@@ -19,11 +19,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class FxTransactions {
-  private FxService fxService;
-  private DateUtils dateUtils;
+  private final FxService fxService;
+  private final DateUtils dateUtils;
 
-  FxTransactions(FxService fxService, DateUtils dateUtils) {
-    this.fxService = fxService;
+  public FxTransactions(FxService fxClientService, DateUtils dateUtils) {
+    this.fxService = fxClientService;
     this.dateUtils = dateUtils;
   }
 
@@ -77,9 +77,6 @@ public class FxTransactions {
   }
 
   private Currency get(String currency) {
-    if (currency == null) {
-      return null;
-    }
     return CurrencyUtils.getCurrency(currency);
   }
 

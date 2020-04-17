@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.integ.TestRegistrationMvc.registerUser;
+import static com.beancounter.marketdata.utils.RegistrationUtils.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;

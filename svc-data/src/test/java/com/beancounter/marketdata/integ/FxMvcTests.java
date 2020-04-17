@@ -20,6 +20,7 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.fxrates.EcbDate;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
+import com.beancounter.marketdata.utils.RegistrationUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -47,14 +48,13 @@ import org.springframework.web.context.WebApplicationContext;
 class FxMvcTests {
 
   private static WireMockRule mockInternet;
-  private ObjectMapper objectMapper = new ObjectMapper();
-
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final DateUtils dateUtils = new DateUtils();
   @Autowired
   private WebApplicationContext context;
   private MockMvc mockMvc;
-  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private Jwt token;
-  private DateUtils dateUtils = new DateUtils();
 
   @Autowired
   void mockServices() {
@@ -73,7 +73,7 @@ class FxMvcTests {
         .email("user@testing.com")
         .build();
     token = TokenUtils.getUserToken(user);
-    TestRegistrationMvc.registerUser(mockMvc, token);
+    RegistrationUtils.registerUser(mockMvc, token);
 
   }
 

@@ -33,10 +33,6 @@ public class FxRequest {
       return this;
     }
 
-    if (pairs == null) {
-      pairs = new ArrayList<>();
-    }
-
     if (!pairs.contains(isoCurrencyPair)) {
       pairs.add(isoCurrencyPair);
     }

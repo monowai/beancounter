@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.marketdata.integ.TestRegistrationMvc.registerUser;
+import static com.beancounter.marketdata.utils.RegistrationUtils.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -49,13 +49,13 @@ import org.springframework.web.context.WebApplicationContext;
 @Slf4j
 class PortfolioMvcTests {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
   private MockMvc mockMvc;
 
   @Autowired
   private WebApplicationContext context;
 
-  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
   void mockServices() {

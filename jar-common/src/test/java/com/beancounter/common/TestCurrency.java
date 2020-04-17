@@ -68,6 +68,7 @@ class TestCurrency {
   void is_GetCurrencyWorking() {
     Currency currency = getCurrency("NZD");
     assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD");
+    assertThat(CurrencyUtils.getCurrency(null)).isNull();
   }
 
   @Test

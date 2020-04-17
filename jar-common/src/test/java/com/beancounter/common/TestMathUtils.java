@@ -70,10 +70,13 @@ class TestMathUtils {
   }
 
   @Test
+  @SneakyThrows
   void is_ZeroAndNullSafe() {
     assertThat(MathUtils.isUnset(null)).isTrue();
     assertThat(MathUtils.isUnset(new BigDecimal("0"))).isTrue();
     assertThat(MathUtils.isUnset(new BigDecimal("0.00"))).isTrue();
+    assertThat(MathUtils.parse(null, NumberFormat.getInstance())).isNull();
+    assertThat(MathUtils.parse("", NumberFormat.getInstance())).isEqualTo(BigDecimal.ZERO);
   }
 
   @Test

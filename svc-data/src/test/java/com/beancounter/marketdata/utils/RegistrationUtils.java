@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.integ;
+package com.beancounter.marketdata.utils;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -14,9 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.MockMvc;
 
-public class TestRegistrationMvc {
+public class RegistrationUtils {
 
-  private static AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  public static AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @SneakyThrows
   public static void registerUser(MockMvc mockMvc, Jwt token) {

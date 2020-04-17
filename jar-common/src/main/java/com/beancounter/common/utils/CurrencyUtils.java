@@ -8,6 +8,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class CurrencyUtils {
   public Currency getCurrency(String isoCode) {
+    if ( isoCode == null) {
+      return null;
+    }
     return Currency.builder().code(isoCode).build();
   }
 

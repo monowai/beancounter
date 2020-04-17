@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class RegistrationController {
 
-  private SystemUserService systemUserService;
+  private final SystemUserService systemUserService;
 
   RegistrationController(SystemUserService systemUserService) {
     this.systemUserService = systemUserService;

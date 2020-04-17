@@ -18,6 +18,7 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.marketdata.utils.RegistrationUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -41,12 +42,10 @@ import org.springframework.web.context.WebApplicationContext;
 class TestAssetMvc {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   @Autowired
   private WebApplicationContext context;
   private MockMvc mockMvc;
-
-  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private Jwt token;
 
   @Autowired
@@ -61,7 +60,7 @@ class TestAssetMvc {
         .email("user@testing.com")
         .build();
     token = TokenUtils.getUserToken(user);
-    TestRegistrationMvc.registerUser(mockMvc, token);
+    RegistrationUtils.registerUser(mockMvc, token);
 
   }
 

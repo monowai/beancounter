@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class AlphaAdapter implements MarketDataAdapter {
-  private ObjectMapper alphaMdMapper;
+  private final ObjectMapper alphaMdMapper;
 
   public AlphaAdapter() {
     alphaMdMapper = new ObjectMapper();
@@ -44,16 +44,15 @@ public class AlphaAdapter implements MarketDataAdapter {
       for (String dpAsset : assets) {
         Asset asset = providerArguments.getDpToBc().get(dpAsset);
         String result = response.get();
-        if (!isMdResponse(asset, result)) {
-          results.add(getDefault(asset));
-        } else {
+        if (isMdResponse(asset, result)) {
           MarketData marketData = alphaMdMapper.readValue(response.get(), MarketData.class);
-
           String assetName = marketData.getAsset().getName();
           asset.setName(assetName); // Keep the name
           marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
           log.debug("Valued {} ", marketData.getAsset());
           results.add(marketData);
+        } else {
+          results.add(getDefault(asset));
         }
       }
 

@@ -9,7 +9,6 @@ import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,11 +19,11 @@ import org.springframework.stereotype.Service;
 public class FigiProxy {
 
   public static final String FIGI = "FIGI";
-  private FigiGateway figiGateway;
   private final MarketService marketService;
   private final FigiConfig figiConfig;
-  private FigiAdapter figiAdapter;
   private final Collection<String> filter = new ArrayList<>();
+  private FigiGateway figiGateway;
+  private FigiAdapter figiAdapter;
 
 
   FigiProxy(FigiConfig figiConfig, MarketService marketService) {
@@ -47,14 +46,13 @@ public class FigiProxy {
     this.figiAdapter = figiAdapter;
   }
 
-  @Cacheable(value = "asset.ext", unless = "#result == null")
   @RateLimiter(name = "figi")
   public Asset find(String marketCode, String assetCode) {
     Market market = marketService.getMarket(marketCode);
     String figiMarket = market.getAliases().get(FIGI);
     FigiSearch figiSearch = FigiSearch.builder()
         .exchCode(figiMarket.toUpperCase())
-        .query(assetCode.toUpperCase())
+        .idValue(assetCode.toUpperCase())
         .build();
     FigiResponse response = resolve(figiSearch);
 
@@ -76,11 +74,11 @@ public class FigiProxy {
 
   private FigiResponse resolve(FigiSearch figiSearch) {
     FigiResponse response = findEquity(figiSearch);
-    if (response.getData().isEmpty()) {
+    if (response.getError() != null) {
       response = findAdr(figiSearch);
-      if (response.getData().isEmpty()) {
+      if (response.getError() != null) {
         response = findMutualFund(figiSearch);
-        if (response.getData().isEmpty()) {
+        if (response.getError() != null) {
           response = findReit(figiSearch);
         }
       }
@@ -88,23 +86,37 @@ public class FigiProxy {
     return response;
   }
 
+  private Collection<FigiSearch> getSearchArgs(FigiSearch figiSearch) {
+    Collection<FigiSearch> figiSearches = new ArrayList<>();
+    figiSearches.add(figiSearch);
+    return figiSearches;
+  }
+
+  private FigiResponse extractResult(Collection<FigiResponse> search) {
+    if (search.isEmpty()) {
+      return null;
+    }
+    return search.iterator().next();
+  }
+
   private FigiResponse findEquity(FigiSearch figiSearch) {
     figiSearch.setSecurityType2("Common Stock");
-    return figiGateway.search(figiSearch, figiConfig.getApiKey());
+    return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.getApiKey()));
   }
+
 
   private FigiResponse findMutualFund(FigiSearch figiSearch) {
     figiSearch.setSecurityType2("Mutual Fund");
-    return figiGateway.search(figiSearch, figiConfig.getApiKey());
+    return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.getApiKey()));
   }
 
   private FigiResponse findReit(FigiSearch figiSearch) {
     figiSearch.setSecurityType2("REIT");
-    return figiGateway.search(figiSearch, figiConfig.getApiKey());
+    return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.getApiKey()));
   }
 
   private FigiResponse findAdr(FigiSearch figiSearch) {
     figiSearch.setSecurityType2("Depositary Receipt");
-    return figiGateway.search(figiSearch, figiConfig.getApiKey());
+    return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.getApiKey()));
   }
 }

@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MarketDataService {
 
-  private MdFactory mdFactory;
+  private final MdFactory mdFactory;
 
   @Autowired
   MarketDataService(MdFactory mdFactory) {
@@ -63,8 +64,20 @@ public class MarketDataService {
     Map<String, Collection<Asset>> results = new HashMap<>();
 
     for (AssetInput input : assets) {
-      MarketDataProvider marketDataProvider =
-          mdFactory.getMarketDataProvider(input.getResolvedAsset());
+      Market market;
+      if (input.getResolvedAsset() != null) {
+        market = input.getResolvedAsset().getMarket();
+      } else {
+        // Asset is not known locally
+        market = Market.builder().code(input.getMarket()).build();
+        Asset resolvedAsset = Asset.builder()
+            .code(input.getCode())
+            .name(input.getName())
+            .market(market)
+            .build();
+        input.setResolvedAsset(resolvedAsset);
+      }
+      MarketDataProvider marketDataProvider = mdFactory.getMarketDataProvider(market);
       Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
       if (mdpAssets == null) {
         mdpAssets = new ArrayList<>();

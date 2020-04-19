@@ -24,10 +24,16 @@ public class AlphaProxy {
     this.alphaGateway = alphaGateway;
   }
 
+  @Cacheable("asset.prices")
+  @Async
+  public Future<String> getPrice(String code, String apiKey) {
+    return new AsyncResult<>(alphaGateway.getPrice(code, apiKey));
+  }
+
   @Async
   @Cacheable("asset.prices")
-  public Future<String> getMarketData(String code, String apiKey) {
-    String result = alphaGateway.getMarketData(code, apiKey);
+  public Future<String> getPrices(String code, String apiKey) {
+    String result = alphaGateway.getPrices(code, apiKey);
     return new AsyncResult<>(result);
   }
 }

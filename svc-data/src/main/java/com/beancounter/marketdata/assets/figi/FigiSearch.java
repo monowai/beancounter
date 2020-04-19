@@ -6,7 +6,9 @@ import lombok.Data;
 @Data
 @Builder
 public class FigiSearch {
-  private String query;
+  @Builder.Default
+  private String idType = "BASE_TICKER";
+  private String idValue;
   private String exchCode;
   private String securityType2;
 }

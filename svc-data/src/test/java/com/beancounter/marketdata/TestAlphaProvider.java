@@ -21,13 +21,21 @@ import org.springframework.core.io.ClassPathResource;
  * @since 2019-03-03
  */
 class TestAlphaProvider {
-  private ObjectMapper mapper = new AlphaAdapter().getAlphaObjectMapper();
+  private final ObjectMapper mapper = new AlphaAdapter().getAlphaObjectMapper();
 
   @Test
   void is_NullAsset() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/alphavantage-empty-response.json").getFile();
     assertThat(mapper.readValue(jsonFile, MarketData.class)).isNull();
+  }
+
+  @Test
+  void is_GlobalResponse() throws Exception {
+    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
+        + "/global-response.json").getFile();
+    MarketData marketData = mapper.readValue(jsonFile, MarketData.class);
+    assertThat(marketData).isNotNull().hasNoNullFieldsOrPropertiesExcept("id");
   }
 
   @Test
@@ -88,4 +96,5 @@ class TestAlphaProvider {
         Market.builder().code("NZX").build())).isNotNull();
 
   }
+
 }

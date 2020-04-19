@@ -20,7 +20,9 @@ logging:
     sun: error
     netflix: error
     jdk: error
-    io: error
+    io:
+      github:
+        resilience4j: error
     feign: error
     com:
       netfix: error
@@ -172,32 +174,29 @@ beancounter:
         markets: NZX
 
 
-resilience4j:
-  ratelimiter:
-    configs:
-      figi:
-        registerHealthIndicator: false
-        limitForPeriod: 17
-        limitRefreshPeriod: 60s
-        timeoutDuration: 180s
-        eventConsumerBufferSize: 200
+resilience4j.ratelimiter:
+  instances:
+    figi:
+      registerHealthIndicator: false
+      limitForPeriod: 60
+      limitRefreshPeriod: 65s
+      timeoutDuration: 80s
+      eventConsumerBufferSize: 200
+    alphaVantage:
+      registerHealthIndicator: false
+      limitForPeriod: 5
+      limitRefreshPeriod: 65s
+      timeoutDuration: 80s
+      eventConsumerBufferSize: 200
 
-      alphaVantage:
-        registerHealthIndicator: false
-        limitForPeriod: 5
-        limitRefreshPeriod: 60s
-        timeoutDuration: 180s
-        eventConsumerBufferSize: 200
-
-
-  circuitbreaker:
-    configs:
-      default:
-        failureRateThreshold: 3
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 3
-        slidingWindowType: TIME_BASED
-        waitDurationInOpenState: 5s
-        registerHealthIndicator: true
-        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      failureRateThreshold: 3
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: TIME_BASED
+      waitDurationInOpenState: 5s
+      registerHealthIndicator: true
+      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
 

@@ -1,18 +1,20 @@
-{
-  "data": [
-    {
-      "figi": "BBG000QXWHD1",
-      "name": "BAIDU INC - SPON ADR",
-      "ticker": "BIDU",
-      "exchCode": "US",
-      "compositeFIGI": "BBG000QXWHD1",
-      "uniqueID": "EQ0000000001875002",
-      "securityType": "ADR",
-      "marketSector": "Equity",
-      "shareClassFIGI": "BBG001SNBKD5",
-      "uniqueIDFutOpt": null,
-      "securityType2": "Depositary Receipt",
-      "securityDescription": "BIDU"
-    }
-  ]
-}
+[
+  {
+    "data": [
+      {
+        "figi": "BBG000QXWHD1",
+        "name": "BAIDU INC - SPON ADR",
+        "ticker": "BIDU",
+        "exchCode": "US",
+        "compositeFIGI": "BBG000QXWHD1",
+        "uniqueID": "EQ0000000001875002",
+        "securityType": "ADR",
+        "marketSector": "Equity",
+        "shareClassFIGI": "BBG001SNBKD5",
+        "uniqueIDFutOpt": null,
+        "securityType2": "Depositary Receipt",
+        "securityDescription": "BIDU"
+      }
+    ]
+  }
+]

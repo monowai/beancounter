@@ -7,24 +7,25 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
-import com.beancounter.marketdata.assets.figi.FigiProxy;
 import com.beancounter.marketdata.markets.MarketService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@Transactional
 public class AssetService implements com.beancounter.client.AssetService {
-  private FigiProxy figiProxy;
   private AssetRepository assetRepository;
   private MarketService marketService;
+  private AssetEnricher assetEnricher;
 
-  @Autowired(required = false)
-  void setFigiProxy(FigiProxy figiProxy) {
-    this.figiProxy = figiProxy;
+  @Autowired
+  void setAssetEnricher(AssetEnricher assetEnricher) {
+    this.assetEnricher = assetEnricher;
   }
 
   @Autowired
@@ -46,9 +47,11 @@ public class AssetService implements com.beancounter.client.AssetService {
       Market market = marketService.getMarket(assetInput.getMarket());
 
       // Find @Bloomberg
-      Asset figiAsset = findExternally(assetInput.getMarket(), assetInput.getCode());
+      Asset enrichedAsset = assetEnricher.findExternally(
+          assetInput.getMarket(),
+          assetInput.getCode());
 
-      if (figiAsset == null) {
+      if (enrichedAsset == null) {
         // User Defined Asset?
         Asset asset = Asset.builder().build();
         asset.setId(KeyGenUtils.format(UUID.randomUUID()));
@@ -60,8 +63,8 @@ public class AssetService implements com.beancounter.client.AssetService {
         foundAsset = assetRepository.save(asset);
       } else {
         // Market Listed
-        figiAsset.setId(KeyGenUtils.format(UUID.randomUUID()));
-        foundAsset = assetRepository.save(figiAsset);
+        enrichedAsset.setId(KeyGenUtils.format(UUID.randomUUID()));
+        foundAsset = assetRepository.save(enrichedAsset);
       }
       foundAsset.setMarket(market);
 
@@ -81,7 +84,7 @@ public class AssetService implements com.beancounter.client.AssetService {
   public Asset find(String marketCode, String code) {
     Asset asset = findLocally(marketCode, code);
     if (asset == null) {
-      asset = findExternally(marketCode, code);
+      asset = assetEnricher.findExternally(marketCode, code);
       if (asset == null) {
         throw new BusinessException(String.format("No asset found for %s/%s", marketCode, code));
       }
@@ -94,22 +97,11 @@ public class AssetService implements com.beancounter.client.AssetService {
     Optional<Asset> result = assetRepository.findById(id).map(this::hydrateAsset);
     if (result.isPresent()) {
       Asset asset = result.get();
-      return backFillMissingData(id, asset);
+      return asset;
     }
     throw new BusinessException(String.format("Asset.id %s not found", id));
   }
 
-  private Asset backFillMissingData(String id, Asset asset) {
-    if (asset.getName() == null) {
-      Asset figiAsset = findExternally(asset.getMarket().getCode(), asset.getCode());
-      if (figiAsset != null) {
-        figiAsset.setId(id);
-        assetRepository.save(figiAsset);
-        return figiAsset;
-      }
-    }
-    return asset;
-  }
 
   public Asset findLocally(String marketCode, String code) {
     // Search Local
@@ -118,11 +110,17 @@ public class AssetService implements com.beancounter.client.AssetService {
     return optionalAsset.map(this::hydrateAsset).orElse(null);
   }
 
-  private Asset findExternally(String marketCode, String code) {
-    if (figiProxy == null || marketCode.equalsIgnoreCase("MOCK")) {
-      return null;
+  public Asset backFillMissingData(String id, Asset asset) {
+    if (asset.getName() == null) {
+      Asset figiAsset = assetEnricher.findExternally(asset.getMarket().getCode(), asset.getCode());
+      if (figiAsset != null) {
+        figiAsset.setId(id);
+        figiAsset.setMarketCode(asset.getMarket().getCode());
+        assetRepository.save(figiAsset);
+        return figiAsset;
+      }
     }
-    return figiProxy.find(marketCode, code);
+    return asset;
   }
 
   private Asset hydrateAsset(Asset asset) {

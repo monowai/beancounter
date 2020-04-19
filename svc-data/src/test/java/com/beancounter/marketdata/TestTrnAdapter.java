@@ -37,6 +37,8 @@ class TestTrnAdapter {
   @Autowired
   private TrnAdapter trnAdapter;
 
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
+
   @Test
   void is_InputToTrn() {
     TrnInput trnInput = TrnInput.builder()
@@ -69,7 +71,7 @@ class TestTrnAdapter {
     Mockito.when(assetService.find(trnInput.getAsset()))
         .thenReturn(AssetUtils.fromKey(trnInput.getAsset()));
     Mockito.when(currencyService.getCode("USD"))
-        .thenReturn(CurrencyUtils.getCurrency("USD"));
+        .thenReturn(currencyUtils.getCurrency("USD"));
 
     TrnResponse trnResponse = trnAdapter.convert(portfolioService.find("abc"), trnRequest);
     assertThat(trnResponse).isNotNull();

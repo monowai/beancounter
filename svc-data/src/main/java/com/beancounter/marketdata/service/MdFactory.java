@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.service;
 
-import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MdFactory {
 
-  private Map<String, MarketDataProvider> providers = new HashMap<>();
+  private final Map<String, MarketDataProvider> providers = new HashMap<>();
 
   MdFactory(MockProviderService mockProviderService,
             AlphaService alphaService,
@@ -32,15 +31,14 @@ public class MdFactory {
   }
 
   /**
-   * Figures out how to locate a Market Data provider for the requested asset.
-   * If one can't be found, then the MOCK provider is returned.
+   * Locate a price provider for the requested market.
    *
-   * @param asset who wants to know?
+   * @param market who is pricing this for this market
    * @return the provider that supports the asset
    */
   @Cacheable("providers")
-  public MarketDataProvider getMarketDataProvider(Asset asset) {
-    MarketDataProvider provider = resolveProvider(asset.getMarket());
+  public MarketDataProvider getMarketDataProvider(Market market) {
+    MarketDataProvider provider = resolveProvider(market);
     if (provider == null) {
       return providers.get(MockProviderService.ID);
     }

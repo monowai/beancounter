@@ -37,8 +37,8 @@ import org.springframework.test.context.ActiveProfiles;
     MarketService.class})
 @ActiveProfiles("test")
 class TestMdProviders {
-  private MdFactory mdFactory;
-  private MarketService marketService;
+  private final MdFactory mdFactory;
+  private final MarketService marketService;
 
   @Autowired
   TestMdProviders(MdFactory mdFactory, MarketService marketService) {
@@ -52,8 +52,8 @@ class TestMdProviders {
     assertThat(mdFactory.getMarketDataProvider(AlphaService.ID)).isNotNull();
     assertThat(mdFactory.getMarketDataProvider(MockProviderService.ID)).isNotNull();
 
-    MarketDataProvider mdp = mdFactory.getMarketDataProvider(AssetUtils
-        .getAsset(Market.builder().code("NonExistent").build(), "ABC"));
+    MarketDataProvider mdp = mdFactory.getMarketDataProvider(
+        Market.builder().code("NonExistent").build());
 
     assertThat(mdp)
         .isNotNull()
@@ -63,11 +63,11 @@ class TestMdProviders {
   @Test
   void is_FoundByMarket() {
     Asset amp = AssetUtils.getAsset(Market.builder().code("ASX").build(), "AMP");
-    MarketDataProvider asxMarket = mdFactory.getMarketDataProvider(amp);
+    MarketDataProvider asxMarket = mdFactory.getMarketDataProvider(amp.getMarket());
     assertThat(asxMarket.getId()).isEqualTo(WtdService.ID);
 
     Asset gne = AssetUtils.getAsset(Market.builder().code("NZX").build(), "GNE");
-    MarketDataProvider nzxMarket = mdFactory.getMarketDataProvider(gne);
+    MarketDataProvider nzxMarket = mdFactory.getMarketDataProvider(gne.getMarket());
     assertThat(nzxMarket.getId())
         .isEqualTo(AlphaService.ID);
 

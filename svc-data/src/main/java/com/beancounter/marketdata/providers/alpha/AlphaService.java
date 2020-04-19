@@ -28,11 +28,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AlphaService implements MarketDataProvider {
   public static final String ID = "ALPHA";
+  private final AlphaConfig alphaConfig;
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
-
   private AlphaProxy alphaProxy;
-  private AlphaConfig alphaConfig;
   private AlphaAdapter alphaAdapter;
 
   public AlphaService(AlphaConfig alphaConfig) {
@@ -60,7 +59,7 @@ public class AlphaService implements MarketDataProvider {
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
       requests.put(batchId,
-          alphaProxy.getMarketData(providerArguments.getBatch().get(batchId), apiKey));
+          alphaProxy.getPrices(providerArguments.getBatch().get(batchId), apiKey));
     }
 
     return getMarketData(providerArguments, requests);

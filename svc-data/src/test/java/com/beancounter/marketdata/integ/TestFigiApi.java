@@ -29,6 +29,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class TestFigiApi {
 
   private static WireMockRule figiApi;
+  private final String prefix = "/contracts";
 
   @Autowired
   private FigiProxy figiProxy;
@@ -40,12 +41,12 @@ public class TestFigiApi {
     if (figiApi == null) {
       figiApi = new WireMockRule(options().port(6666));
       figiApi.start();
-      String prefix = "/contracts";
       FigiMockUtils.mock(figiApi,
           new ClassPathResource(prefix + "/figi/common-stock-response.json").getFile(),
           "US",
           "MSFT",
           "Common Stock");
+
       FigiMockUtils.mock(figiApi,
           new ClassPathResource(prefix + "/figi/adr-response.json").getFile(),
           "US",
@@ -69,7 +70,9 @@ public class TestFigiApi {
           .willReturn(aResponse()
               .withStatus(200)
               .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-              .withBody("{\n   \"data\": []}")));
+              .withBody("[{\"error\": \"No identifier found.\"\n"
+                  + "    }\n"
+                  + "]")));
     }
   }
 
@@ -77,6 +80,7 @@ public class TestFigiApi {
   void is_CommonStockFound() {
     Asset asset = figiProxy.find("NASDAQ", "MSFT");
     assertThat(asset)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("name", "MICROSOFT CORP")
         .isNotNull();
   }
@@ -85,6 +89,7 @@ public class TestFigiApi {
   void is_AdrFound() {
     Asset asset = figiProxy.find("NASDAQ", "BAIDU");
     assertThat(asset)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("name", "BAIDU INC - SPON ADR")
         .isNotNull();
   }
@@ -93,6 +98,7 @@ public class TestFigiApi {
   void is_ReitFound() {
     Asset asset = figiProxy.find("NYSE", "OHI");
     assertThat(asset)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("name", "OMEGA HEALTHCARE INVESTORS")
         .isNotNull();
   }
@@ -101,6 +107,7 @@ public class TestFigiApi {
   void is_MutualFundFound() {
     Asset asset = figiProxy.find("NYSE", "XLF");
     assertThat(asset)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR")
         .isNotNull();
   }

@@ -5,6 +5,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,37 +29,78 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class AlphaDeserializer extends JsonDeserializer<MarketData> {
+  public static final String GLOBAL_QUOTE = "Global Quote";
+  public static final String TIME_SERIES_DAILY = "Time Series (Daily)";
   private static final ObjectMapper mapper = new ObjectMapper();
-  private DateUtils dateUtils = new DateUtils();
+  private final DateUtils dateUtils = new DateUtils();
 
   @Override
-  public MarketData deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-    MarketData result = null;
+  public MarketData deserialize(JsonParser p, DeserializationContext context) throws IOException {
     JsonNode source = p.getCodec().readTree(p);
+    if (source.has(TIME_SERIES_DAILY)) {
+      return handleTimeSeries(source);
+    } else if (source.has(GLOBAL_QUOTE)) {
+      return handleGlobal(source);
+      //nodeValue = source.get("Global Quote");
+      //marketData =getMarketData(asset, )
+    }
+    return null;
+  }
 
-    JsonNode nodeValue = source.get("Meta Data");
-    Asset asset = getAsset(nodeValue);
+  private MarketData handleGlobal(JsonNode source) throws JsonProcessingException {
+    JsonNode metaData = source.get("Global Quote");
+    Asset asset = getAsset(metaData, "01. symbol");
+    MapType mapType = mapper.getTypeFactory()
+        .constructMapType(LinkedHashMap.class, String.class, String.class);
+
+    return getMdFromGlobal(asset, mapper.readValue(metaData.toString(), mapType));
+  }
+
+  private MarketData getMdFromGlobal(Asset asset, Map<String, Object> data) {
+    MarketData marketData = null;
+    if (data != null) {
+      BigDecimal open = new BigDecimal(data.get("02. open").toString());
+      BigDecimal high = new BigDecimal(data.get("03. high").toString());
+      BigDecimal low = new BigDecimal(data.get("04. low").toString());
+      BigDecimal close = new BigDecimal(data.get("05. price").toString());
+      BigDecimal volume = new BigDecimal(data.get("06. volume").toString());
+      String priceDate = data.get("07. latest trading day").toString();
+      marketData = MarketData.builder()
+          .asset(asset)
+          .date(priceDate)
+          .open(open)
+          .close(close)
+          .high(high)
+          .low(low)
+          .volume(volume)
+          .build();
+    }
+    return marketData;
+  }
+
+  private MarketData handleTimeSeries(JsonNode source) throws JsonProcessingException {
+    MarketData result = null;
+    JsonNode metaData = source.get("Meta Data");
+    Asset asset = getAsset(metaData, "2. Symbol");
     if (asset != null) {
-      nodeValue = source.get("Time Series (Daily)");
       MapType mapType = mapper.getTypeFactory()
           .constructMapType(LinkedHashMap.class, String.class, HashMap.class);
       LinkedHashMap<?, ? extends LinkedHashMap<String, Object>>
-          allValues = mapper.readValue(nodeValue.toString(), mapType);
-      MarketData marketData = null;
+          allValues = mapper.readValue(source.get("Time Series (Daily)").toString(), mapType);
+
       Optional<? extends Map.Entry<?, ? extends LinkedHashMap<String, Object>>>
           firstKey = allValues.entrySet().stream().findFirst();
       if (firstKey.isPresent()) {
         LocalDate localDateTime = dateUtils.getLocalDate(
             firstKey.get().getKey().toString(), "yyyy-M-dd");
-        marketData = getMarketData(asset, localDateTime, firstKey.get().getValue());
+        result = getPrice(asset, localDateTime, firstKey.get().getValue());
       }
-      result = marketData;
-    }
 
+    }
     return result;
   }
 
-  private MarketData getMarketData(Asset asset, LocalDate priceDate, Map<String, Object> data) {
+  private MarketData getPrice(Asset asset, LocalDate priceDate, Map<String, Object> data) {
     MarketData marketData = null;
     if (data != null) {
       BigDecimal open = new BigDecimal(data.get("1. open").toString());
@@ -77,10 +119,10 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
     return marketData;
   }
 
-  private Asset getAsset(JsonNode nodeValue) {
+  private Asset getAsset(JsonNode nodeValue, String assetField) {
     Asset asset = null;
     if (!isNull(nodeValue)) {
-      JsonNode symbols = nodeValue.get("2. Symbol");
+      JsonNode symbols = nodeValue.get(assetField);
       String[] values = symbols.asText().split(":");
       Market market = Market.builder().code("US").build();
 

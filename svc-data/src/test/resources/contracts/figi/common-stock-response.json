@@ -1,18 +1,20 @@
-{
-  "data": [
-    {
-      "figi": "BBG000BPH459",
-      "name": "MICROSOFT CORP",
-      "ticker": "MSFT",
-      "exchCode": "US",
-      "compositeFIGI": "BBG000BPH459",
-      "uniqueID": "EQ0010174300001000",
-      "securityType": "Common Stock",
-      "marketSector": "Equity",
-      "shareClassFIGI": "BBG001S5TD05",
-      "uniqueIDFutOpt": null,
-      "securityType2": "Common Stock",
-      "securityDescription": "MSFT"
-    }
-  ]
-}
+[
+  {
+    "data": [
+      {
+        "figi": "BBG000BPH459",
+        "name": "MICROSOFT CORP",
+        "ticker": "MSFT",
+        "exchCode": "US",
+        "compositeFIGI": "BBG000BPH459",
+        "uniqueID": "EQ0010174300001000",
+        "securityType": "Common Stock",
+        "marketSector": "Equity",
+        "shareClassFIGI": "BBG001S5TD05",
+        "uniqueIDFutOpt": null,
+        "securityType2": "Common Stock",
+        "securityDescription": "MSFT"
+      }
+    ]
+  }
+]

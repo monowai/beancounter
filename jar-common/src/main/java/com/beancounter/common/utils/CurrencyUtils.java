@@ -3,12 +3,10 @@ package com.beancounter.common.utils;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.IsoCurrencyPair;
 import java.math.BigDecimal;
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
 public class CurrencyUtils {
   public Currency getCurrency(String isoCode) {
-    if ( isoCode == null) {
+    if (isoCode == null) {
       return null;
     }
     return Currency.builder().code(isoCode).build();

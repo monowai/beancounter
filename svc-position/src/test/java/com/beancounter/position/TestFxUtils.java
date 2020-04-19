@@ -1,7 +1,6 @@
 package com.beancounter.position;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.FxRequest;
@@ -11,11 +10,13 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.position.utils.FxUtils;
 import org.junit.jupiter.api.Test;
 
 class TestFxUtils {
-  private FxUtils fxUtils = new FxUtils();
+  private final FxUtils fxUtils = new FxUtils();
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @Test
   void is_CurrencyPairResultsAsExpected() {
@@ -30,7 +31,7 @@ class TestFxUtils {
     Position validPosition = Position.builder().asset(
         getAsset(Market.builder()
             .code("USD")
-            .currency(getCurrency("USD")).build(), "Test"
+            .currency(currencyUtils.getCurrency("USD")).build(), "Test"
         )
     ).build();
     Currency validCurrency = validPosition.getAsset().getMarket().getCurrency();
@@ -38,21 +39,21 @@ class TestFxUtils {
     assertThat(IsoCurrencyPair.from(null, validCurrency))
         .isNull(); // From == null
 
-    Currency usd = getCurrency("USD");
+    Currency usd = currencyUtils.getCurrency("USD");
     assertThat(IsoCurrencyPair.from(usd, validCurrency))
         .isNull();// From == To
 
-    assertThat(IsoCurrencyPair.from(getCurrency("NZD"), validCurrency))
+    assertThat(IsoCurrencyPair.from(currencyUtils.getCurrency("NZD"), validCurrency))
         .isNotNull();// From != To
   }
 
   @Test
   void is_FxRequestCorrect() {
-    Currency usd = getCurrency("USD");
+    Currency usd = currencyUtils.getCurrency("USD");
     Position gbpPosition = Position.builder().asset(
         getAsset(Market.builder()
             .code("GBP")
-            .currency(getCurrency("GBP")).build(), "GBP Asset"
+            .currency(currencyUtils.getCurrency("GBP")).build(), "GBP Asset"
         )
     ).build();
 
@@ -70,7 +71,9 @@ class TestFxUtils {
         )
     ).build();
 
-    Portfolio portfolio = Portfolio.builder().currency(getCurrency("SGD")).build();
+    Portfolio portfolio = Portfolio.builder()
+        .currency(currencyUtils.getCurrency("SGD"))
+        .build();
     Positions positions = new Positions(portfolio);
     positions.add(gbpPosition);
     positions.add(usdPosition);

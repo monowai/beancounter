@@ -2,7 +2,6 @@ package com.beancounter.common;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
 import static com.beancounter.common.utils.AssetUtils.getJsonAsset;
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,6 +16,7 @@ import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Trn;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -28,8 +28,9 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestPositions {
-  private ObjectMapper mapper = new ObjectMapper();
-  private DateUtils dateUtils = new DateUtils();
+  private final ObjectMapper mapper = new ObjectMapper();
+  private final DateUtils dateUtils = new DateUtils();
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @Test
   void is_PositionResponseChainSerializing() throws Exception {
@@ -110,11 +111,11 @@ class TestPositions {
     // Requesting a non existent MV.  Without a currency, it can't be created
     assertThat(position.getMoneyValues(Position.In.TRADE)).isNull();
     // Retrieve with a currency will create if missing
-    assertThat(position.getMoneyValues(Position.In.TRADE, getCurrency("SGD")))
+    assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
         .isNotNull()
-        .hasFieldOrPropertyWithValue("currency", getCurrency("SGD"));
+        .hasFieldOrPropertyWithValue("currency", currencyUtils.getCurrency("SGD"));
 
-    assertThat(position.getMoneyValues(Position.In.TRADE, getCurrency("SGD")))
+    assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
         .isNotNull();
   }
 

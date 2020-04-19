@@ -1,7 +1,5 @@
 package com.beancounter.common;
 
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
-import static com.beancounter.common.utils.CurrencyUtils.getCurrencyPair;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.CurrencyResponse;
@@ -17,6 +15,8 @@ import org.junit.jupiter.api.Test;
 
 
 class TestCurrency {
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
+
   @Test
   void is_CurrencySerializing() throws Exception {
 
@@ -66,9 +66,9 @@ class TestCurrency {
 
   @Test
   void is_GetCurrencyWorking() {
-    Currency currency = getCurrency("NZD");
+    Currency currency = currencyUtils.getCurrency("NZD");
     assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD");
-    assertThat(CurrencyUtils.getCurrency(null)).isNull();
+    assertThat(currencyUtils.getCurrency(null)).isNull();
   }
 
   @Test
@@ -80,10 +80,12 @@ class TestCurrency {
         .to(trade)
         .build();
 
-    IsoCurrencyPair byCurrency = IsoCurrencyPair.from(getCurrency(report), getCurrency(trade));
+    IsoCurrencyPair byCurrency = IsoCurrencyPair.from(
+        currencyUtils.getCurrency(report), currencyUtils.getCurrency(trade));
     assertThat(byCode).isEqualToComparingFieldByField(byCurrency);
 
-    assertThat(IsoCurrencyPair.from(getCurrency(report), getCurrency(report)))
+    assertThat(IsoCurrencyPair.from(
+        currencyUtils.getCurrency(report), currencyUtils.getCurrency(report)))
         .isNull();
 
   }
@@ -91,29 +93,38 @@ class TestCurrency {
   @Test
   void is_NullCurrencyAssertions() {
 
-    assertThat(IsoCurrencyPair.from(getCurrency("USD"), null)).isNull();
-    assertThat(IsoCurrencyPair.from(null, getCurrency("USD"))).isNull();
-    assertThat(CurrencyUtils
-        .getCurrencyPair(BigDecimal.ONE, getCurrency("USD"), null)).isNull();
-    assertThat(CurrencyUtils
-        .getCurrencyPair(BigDecimal.ONE, null, getCurrency("USD"))).isNull();
+    assertThat(IsoCurrencyPair.from(
+        currencyUtils.getCurrency("USD"), null))
+        .isNull();
+    assertThat(IsoCurrencyPair.from(
+        null, currencyUtils.getCurrency("USD")))
+        .isNull();
+    assertThat(currencyUtils
+        .getCurrencyPair(BigDecimal.ONE,
+            currencyUtils.getCurrency("USD"), null))
+        .isNull();
+    assertThat(currencyUtils.getCurrencyPair(BigDecimal.ONE,
+        null, currencyUtils.getCurrency("USD")))
+        .isNull();
 
   }
 
 
   @Test
   void is_CorrectCurrencyPair() {
-    assertThat(getCurrencyPair(null, null, null)).isNull();
+    assertThat(currencyUtils.getCurrencyPair(null, null, null)).isNull();
 
-    assertThat(getCurrencyPair(BigDecimal.TEN,
-        getCurrency("NZD"),
-        getCurrency("USD")))
+    assertThat(currencyUtils.getCurrencyPair(BigDecimal.TEN,
+        currencyUtils.getCurrency("NZD"),
+        currencyUtils.getCurrency("USD")))
         .isNull(); // We have a rate, so don't request one
 
-    assertThat(getCurrencyPair(null, getCurrency("USD"), getCurrency("USD")))
+    assertThat(currencyUtils.getCurrencyPair(null,
+        currencyUtils.getCurrency("USD"), currencyUtils.getCurrency("USD")))
         .isNull();
 
-    assertThat(getCurrencyPair(null, getCurrency("NZD"), getCurrency("USD")))
+    assertThat(currencyUtils.getCurrencyPair(null,
+        currencyUtils.getCurrency("NZD"), currencyUtils.getCurrency("USD")))
         .isNotNull()
         .hasFieldOrPropertyWithValue("from", "NZD")
         .hasFieldOrPropertyWithValue("to", "USD");

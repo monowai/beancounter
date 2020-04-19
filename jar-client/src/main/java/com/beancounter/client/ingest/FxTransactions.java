@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 public class FxTransactions {
   private final FxService fxService;
   private final DateUtils dateUtils;
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   public FxTransactions(FxService fxClientService, DateUtils dateUtils) {
     this.fxService = fxClientService;
@@ -42,7 +43,7 @@ public class FxTransactions {
     );
 
     fxRequest.setTradeCash(
-        pair(trn, trn.getTradeCashRate(), get(trn.getCashCurrency()))
+        pair(trn, trn.getTradeCashRate(), currencyUtils.getCurrency(trn.getCashCurrency()))
     );
 
     return fxRequest;
@@ -70,14 +71,10 @@ public class FxTransactions {
   }
 
   private IsoCurrencyPair pair(TrnInput trn, BigDecimal tradePortfolioRate, Currency currency) {
-    return CurrencyUtils.getCurrencyPair(
+    return currencyUtils.getCurrencyPair(
         tradePortfolioRate,
-        get(trn.getTradeCurrency()),
+        currencyUtils.getCurrency(trn.getTradeCurrency()),
         currency);
-  }
-
-  private Currency get(String currency) {
-    return CurrencyUtils.getCurrency(currency);
   }
 
   private FxRequest getFxRequest(Map<String, FxRequest> fxRequests, String tradeDate) {

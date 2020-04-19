@@ -1,7 +1,6 @@
 package com.beancounter.client.integ;
 
 import static com.beancounter.client.integ.ShareSightTradeTest.getRow;
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,6 +15,7 @@ import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -46,6 +46,8 @@ public class ShareSightRatesInTrn {
 
   @Autowired
   private ShareSightRowAdapter shareSightRowProcessor;
+
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @BeforeEach
   void is_IgnoreRatesDefaultCorrect() {
@@ -106,7 +108,7 @@ public class ShareSightRatesInTrn {
 
     List<String> row = getRow("buy", "0.8988", "2097.85");
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
     // System base currency
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)

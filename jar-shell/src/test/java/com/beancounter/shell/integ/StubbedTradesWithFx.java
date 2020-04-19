@@ -1,6 +1,5 @@
 package com.beancounter.shell.integ;
 
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,6 +15,7 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.CurrencyUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +46,8 @@ class StubbedTradesWithFx {
   @Autowired
   private ShareSightConfig shareSightConfig;
 
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
+
   @Test
   void is_FxRatesSetFromCurrencies() {
 
@@ -72,7 +74,7 @@ class StubbedTradesWithFx {
     TrnAdapter trades = shareSightFactory.adapter(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio("TEST", getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("TEST", currencyUtils.getCurrency("NZD"));
 
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
@@ -112,7 +114,7 @@ class StubbedTradesWithFx {
     TrnAdapter trades = shareSightFactory.adapter(row);
 
     // Portfolio is in NZD
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
 
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
@@ -149,8 +151,8 @@ class StubbedTradesWithFx {
     TrnAdapter trades = shareSightFactory.adapter(row);
 
     // Testing all currency buckets
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
-    portfolio.setBase(getCurrency("GBP"));
+    Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
+    portfolio.setBase(currencyUtils.getCurrency("GBP"));
 
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)

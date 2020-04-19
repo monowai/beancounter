@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -14,6 +13,7 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.accumulation.BuyBehaviour;
 import com.beancounter.position.valuation.Gains;
@@ -24,12 +24,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestMarketValuesWithFx {
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @Test
   void is_MarketValue() {
     Portfolio portfolio = Portfolio.builder()
         .code("MV")
-        .currency(getCurrency("NZD"))
+        .currency(currencyUtils.getCurrency("NZD"))
         .build();
 
     Asset asset = AssetUtils.getAsset("Test", "ABC");
@@ -71,7 +72,7 @@ class TestMarketValuesWithFx {
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(marketData.getClose())
             .averageCost(new BigDecimal("20.00"))
-            .currency(getCurrency("USD"))
+            .currency(currencyUtils.getCurrency("USD"))
             .purchases(buyTrn.getTradeAmount())
             .costBasis(buyTrn.getTradeAmount())
             .costValue(buyTrn.getTradeAmount())
@@ -85,7 +86,7 @@ class TestMarketValuesWithFx {
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(marketData.getClose())
             .averageCost(new BigDecimal("20.00"))
-            .currency(getCurrency("USD"))
+            .currency(currencyUtils.getCurrency("USD"))
             .purchases(buyTrn.getTradeAmount())
             .costBasis(buyTrn.getTradeAmount())
             .costValue(buyTrn.getTradeAmount())

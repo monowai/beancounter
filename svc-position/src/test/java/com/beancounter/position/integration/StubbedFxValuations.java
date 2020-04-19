@@ -1,6 +1,5 @@
 package com.beancounter.position.integration;
 
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -22,6 +21,7 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,9 +70,10 @@ class StubbedFxValuations {
   @Autowired
   private PortfolioServiceClient portfolioService;
 
-  private AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
+  private final ObjectMapper mapper = new ObjectMapper();
   private Jwt token;
 
   @Autowired
@@ -165,7 +166,7 @@ class StubbedFxValuations {
   @Test
   void is_MarketValuationCalculatedAsAt() {
     Asset asset = AssetUtils.getAsset(Market.builder().code("NASDAQ")
-        .currency(getCurrency("USD"))
+        .currency(currencyUtils.getCurrency("USD"))
         .build(), "EBAY"
     );
 

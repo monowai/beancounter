@@ -22,7 +22,6 @@ public class TestFxTransactions {
 
   @Test
   void is_TrnDefaultsSetting() {
-    FxPairResults pairResults = new FxPairResults();
     IsoCurrencyPair tradeBase = IsoCurrencyPair.builder().from("USD").to("NZD").build();
     IsoCurrencyPair tradePf = IsoCurrencyPair.builder().from("USD").to("NZD").build();
     IsoCurrencyPair tradeCash = IsoCurrencyPair.builder().from("USD").to("NZD").build();
@@ -31,6 +30,7 @@ public class TestFxTransactions {
     mapRates.put(tradePf, FxRate.ONE);
     mapRates.put(tradeCash, FxRate.ONE);
 
+    FxPairResults pairResults = new FxPairResults();
     pairResults.setRates(mapRates);
 
     FxRequest fxRequest = FxRequest.builder()
@@ -42,7 +42,7 @@ public class TestFxTransactions {
         .build();
     FxTransactions fxTransactions = new FxTransactions(fxService, new DateUtils());
     fxTransactions.setRates(pairResults, fxRequest, trnInput);
-    assertThat (trnInput)
+    assertThat(trnInput)
         .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
         .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
         .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE);

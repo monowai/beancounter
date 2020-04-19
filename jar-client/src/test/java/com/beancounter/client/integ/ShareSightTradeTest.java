@@ -1,6 +1,5 @@
 package com.beancounter.client.integ;
 
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -17,6 +16,7 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -51,6 +51,8 @@ class ShareSightTradeTest {
 
   @Autowired
   private ShareSightFactory shareSightFactory;
+
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   static List<String> getRow(String tranType, String fxRate, String tradeAmount) {
     return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
@@ -132,7 +134,7 @@ class ShareSightTradeTest {
     row.remove(ShareSightTradeAdapter.comments);
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
-        .portfolio(getPortfolio("Test", getCurrency("NZD")))
+        .portfolio(getPortfolio("Test", currencyUtils.getCurrency("NZD")))
         .build();
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
@@ -152,7 +154,7 @@ class ShareSightTradeTest {
 
     List<String> row = getRow("split", null, null);
 
-    Portfolio portfolio = getPortfolio("Test", getCurrency("NZD"));
+    Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
 
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
@@ -181,7 +183,7 @@ class ShareSightTradeTest {
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
-        .portfolio(getPortfolio("Test", getCurrency("NZD")))
+        .portfolio(getPortfolio("Test", currencyUtils.getCurrency("NZD")))
         .build();
 
     assertThrows(BusinessException.class, () ->

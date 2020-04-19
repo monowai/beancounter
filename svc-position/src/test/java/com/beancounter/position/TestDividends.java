@@ -1,6 +1,5 @@
 package com.beancounter.position;
 
-import static com.beancounter.common.utils.CurrencyUtils.getCurrency;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Asset;
@@ -11,6 +10,7 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.position.service.Accumulator;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = Accumulator.class)
 class TestDividends {
-
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @Autowired
   private Accumulator accumulator;
 
@@ -28,7 +28,7 @@ class TestDividends {
 
     Asset asset = AssetUtils.getAsset(Market.builder()
         .code("ASX")
-        .currency(getCurrency("AUD"))
+        .currency(currencyUtils.getCurrency("AUD"))
         .build(), "MO");
 
     Trn trn = Trn.builder()

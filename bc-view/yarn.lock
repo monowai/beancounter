@@ -3763,10 +3763,10 @@ bulma-pageloader@^0.3.0:
   resolved "https://registry.yarnpkg.com/bulma-pageloader/-/bulma-pageloader-0.3.0.tgz#94a4ff7d9129cbe01dbc5cae4e64508e13563cf1"
   integrity sha512-lbahiqhBCov5AYdziHFnC5/JOhCrJWFTpdRiAkwW49IM/mf0whCWHVe8MuejZFu2PEs1mtH8Gnz8exEks4Q+7g==
 
-bulma-spacing@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/bulma-spacing/-/bulma-spacing-1.0.2.tgz#3f532ccdf092276f486f10970d6781f00aca4894"
-  integrity sha512-YMr236011MWVxMyx+CPuJ4NL4rZ0RixqK9wwz+/PrTO7jEAizpZVLv49CxF9vlDgzlBh+/Jaxnz1IwbbeVv7YQ==
+bulma-spacing@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/bulma-spacing/-/bulma-spacing-1.2.0.tgz#f3462bb0d9d73f1c5c57101b010b19300fa09ba8"
+  integrity sha512-X/Znwu7BJMqVIIOescEZw0UgCdHaTne38Tm6SD9wUVfTvUigVEg5385IIIO4wEQnENzg3dawxuI480ExM/VEYw==
 
 bulma@^0.8.0:
   version "0.8.2"

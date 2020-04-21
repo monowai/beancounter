@@ -31,7 +31,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
-@ActiveProfiles("test-nobackfill")
+@ActiveProfiles("infile")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
@@ -52,7 +52,7 @@ public class ShareSightRatesInTrn {
   @BeforeEach
   void is_IgnoreRatesDefaultCorrect() {
     // Assumptions for all tests in this class
-    assertThat(shareSightConfig.isRatesIgnored()).isFalse();
+    assertThat(shareSightConfig.isCalculateRates()).isFalse();
   }
 
   @Test

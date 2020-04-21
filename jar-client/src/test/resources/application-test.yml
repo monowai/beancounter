@@ -1,3 +1,2 @@
 marketdata:
   url: http://localhost:10999
-ratesIgnored: true

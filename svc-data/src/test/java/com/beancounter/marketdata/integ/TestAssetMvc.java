@@ -134,7 +134,9 @@ class TestAssetMvc {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    assertThat(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Asset.class))
+    assertThat(objectMapper.readValue(
+        mvcResult.getResponse().getContentAsString(), AssetResponse.class)
+        .getData())
         .isEqualToComparingFieldByField(asset);
 
   }

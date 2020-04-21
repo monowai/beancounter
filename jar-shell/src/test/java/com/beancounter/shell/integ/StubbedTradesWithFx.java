@@ -96,7 +96,7 @@ class StubbedTradesWithFx {
     // NZD Portfolio
     // USD System Base
     // GBP Trade
-    assertThat(shareSightConfig.isRatesIgnored()).isTrue();
+    assertThat(shareSightConfig.isCalculateRates()).isTrue();
 
     row.add(ShareSightTradeAdapter.market, "LSE");
     row.add(ShareSightTradeAdapter.code, "BHP");
@@ -131,7 +131,7 @@ class StubbedTradesWithFx {
   }
 
   @Test
-  void is_FxRatesSetToTransaction() {
+  void is_FxRatesSetAndTradeAmountCalculated() {
 
     List<String> row = new ArrayList<>();
 
@@ -145,8 +145,8 @@ class StubbedTradesWithFx {
     row.add(ShareSightTradeAdapter.price, "100");
     row.add(ShareSightTradeAdapter.brokerage, null);
     row.add(ShareSightTradeAdapter.currency, "USD");
-    row.add(ShareSightTradeAdapter.fxRate, null);
-    row.add(ShareSightTradeAdapter.value, "1000.00");
+    row.add(ShareSightTradeAdapter.fxRate, null); // This rate will be ignored
+    row.add(ShareSightTradeAdapter.value, "1001.00"); // This rate will be ignored
 
     TrnAdapter trades = shareSightFactory.adapter(row);
 
@@ -165,15 +165,11 @@ class StubbedTradesWithFx {
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
-        .hasFieldOrPropertyWithValue("tradeAmount",
-            new BigDecimal("1000"))
-        .hasFieldOrPropertyWithValue("tradeBaseRate",
-            new BigDecimal("1.28929253"))
-        .hasFieldOrPropertyWithValue("tradeCashRate",
-            new BigDecimal("0.63723696"))
-        .hasFieldOrPropertyWithValue("tradePortfolioRate",
-            new BigDecimal("0.63723696"))
-    ;
+        // Was tradeAmount calculated?
+        .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("1000.00"))
+        .hasFieldOrPropertyWithValue("tradeBaseRate", new BigDecimal("1.28929253"))
+        .hasFieldOrPropertyWithValue("tradeCashRate", new BigDecimal("0.63723696"))
+        .hasFieldOrPropertyWithValue("tradePortfolioRate", new BigDecimal("0.63723696"));
   }
 
   @Test

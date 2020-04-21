@@ -9,7 +9,6 @@ import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +35,9 @@ public class TestPriceService {
 
   @Test
   void is_MarketDateOnDateFound() {
-    Market market = staticService.getMarket("NASDAQ");
-    Asset asset = assetIngestService.resolveAsset("EBAY", "EBAY", market);
+    Asset asset = assetIngestService
+        .resolveAsset("NASDAQ", "EBAY", "EBAY");
+
     PriceRequest priceRequest = PriceRequest.of(asset)
         .date("2019-10-18").build();
 

@@ -60,4 +60,11 @@ public class MathUtils {
     }
     return new BigDecimal(numberFormat.parse(value.replace("\"","")).toString());
   }
+
+  public BigDecimal get(String money) {
+    if (money == null) {
+      return null;
+    }
+    return new BigDecimal(money);
+  }
 }

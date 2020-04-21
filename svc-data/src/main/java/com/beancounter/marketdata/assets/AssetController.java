@@ -4,7 +4,6 @@ import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
-import com.beancounter.common.model.Asset;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,8 +35,8 @@ public class AssetController {
   }
 
   @GetMapping(value = "/{market}/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
-  Asset getAsset(@PathVariable String market, @PathVariable String code) {
-    return assetService.find(market, code);
+  AssetResponse getAsset(@PathVariable String market, @PathVariable String code) {
+    return AssetResponse.builder().data(assetService.find(market, code)).build();
   }
 
   @GetMapping(value = "/{assetId}")

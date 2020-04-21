@@ -1,6 +1,5 @@
 package com.beancounter.client.sharesight;
 
-import com.beancounter.client.MarketService;
 import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
@@ -9,7 +8,6 @@ import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -47,13 +45,10 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   private final ShareSightConfig shareSightConfig;
   private Filter filter = new Filter(null);
 
-  private final MarketService marketService;
   private final AssetIngestService assetIngestService;
 
   public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
-                                AssetIngestService assetIngestService,
-                                MarketService marketService) {
-    this.marketService = marketService;
+                                AssetIngestService assetIngestService) {
     this.assetIngestService = assetIngestService;
     this.shareSightConfig = shareSightConfig;
   }
@@ -83,7 +78,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       if (trnType != TrnType.SPLIT) {
         tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
         fees = MathUtils.parse(row.get(brokerage), shareSightConfig.getNumberFormat());
-        tradeAmount = MathUtils.parse(row.get(value), shareSightConfig.getNumberFormat());
+        tradeAmount = calcTradeAmount(row, tradeRate);
       }
       Asset asset = resolveAsset(row);
       if (asset == null) {
@@ -97,13 +92,12 @@ public class ShareSightTradeAdapter implements TrnAdapter {
           .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
           .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))
           .fees(MathUtils.divide(fees, tradeRate))
-          .tradeAmount(MathUtils.multiply(tradeAmount, tradeRate))
+          .tradeAmount(tradeAmount)
           .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
           .cashCurrency(trustedTrnRequest.getPortfolio().getCurrency().getCode())
           .tradeCurrency(row.get(currency))
           // Zero and null are treated as "unknown"
-          .tradeCashRate(shareSightConfig.isRatesIgnored() || MathUtils.isUnset(tradeRate)
-              ? null : tradeRate)
+          .tradeCashRate(getTradeCashRate(tradeRate))
           .comments(comment)
           .build();
     } catch (ParseException e) {
@@ -115,6 +109,28 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       throw new BusinessException(message);
     }
 
+  }
+
+  private BigDecimal getTradeCashRate(BigDecimal tradeRate) {
+    return shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
+        ? null : tradeRate;
+  }
+
+  private BigDecimal calcTradeAmount(List<String> row, BigDecimal tradeRate) throws ParseException {
+    BigDecimal result = MathUtils.parse(row.get(value), shareSightConfig.getNumberFormat());
+    if (shareSightConfig.isCalculateAmount() || result == null) {
+      BigDecimal q = new BigDecimal(row.get(quantity));
+      BigDecimal p = new BigDecimal(row.get(price));
+      BigDecimal f = MathUtils.get(row.get(brokerage));
+      result = MathUtils.multiply(q, p);
+      if (!MathUtils.isUnset(f)) {
+        result = result.add(f);
+      }
+    } else {
+      // ShareSight store tradeAmount it portfolio currency, BC stores in Trade CCY
+      result = MathUtils.multiply(result, tradeRate);
+    }
+    return result;
   }
 
   private String nullSafe(Object o) {
@@ -133,8 +149,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     String assetCode = row.get(code);
     String marketCode = row.get(market);
 
-    Market market = marketService.getMarket(marketCode.toUpperCase());
-    Asset asset = assetIngestService.resolveAsset(assetCode, assetName, market);
+    Asset asset = assetIngestService.resolveAsset(marketCode, assetCode, assetName);
 
     if (!filter.inFilter(asset)) {
       return null;

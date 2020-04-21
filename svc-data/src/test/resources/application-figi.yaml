@@ -1,0 +1,12 @@
+server:
+  port: 0
+
+kafka:
+  enabled: false
+
+beancounter:
+  marketdata:
+    provider:
+      FIGI:
+        url: http://localhost:6655
+        key: demo

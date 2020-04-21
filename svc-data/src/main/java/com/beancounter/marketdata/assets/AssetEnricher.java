@@ -20,7 +20,8 @@ public class AssetEnricher {
     if (figiProxy == null || marketCode.equalsIgnoreCase("MOCK")) {
       return null;
     }
-    return figiProxy.find(marketCode, code);
+
+    return figiProxy.find(marketCode, code.replace(".", "/"));
   }
 
 

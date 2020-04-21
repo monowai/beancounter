@@ -3,7 +3,6 @@ package com.beancounter.client.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
-import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
@@ -62,14 +61,13 @@ class ShareSightAdapterTest {
 
   @Test
   void is_IgnoreRatesCorrect() {
-    assertThat(shareSightConfig.isRatesIgnored()).isTrue();
+    assertThat(shareSightConfig.isCalculateRates()).isTrue();
   }
 
   private void verifyMarketCode(String code, Asset expectedAsset) {
-    TrnAdapter diviAdapter = shareSightFactory.getShareSightDivi();
     List<String> row = new ArrayList<>();
     row.add(code);
-    Asset asset = diviAdapter.resolveAsset(row);
+    Asset asset = shareSightFactory.getShareSightDivi().resolveAsset(row);
 
     assertThat(asset.getMarket().getCode())
         .isEqualTo(expectedAsset.getMarket().getCode());

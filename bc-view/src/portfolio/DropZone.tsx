@@ -17,7 +17,7 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
         reader.onload = () => {
           // Do whatever you want with the file contents
           if (typeof reader.result === "string") {
-            const results = reader.result.split("\r\n");
+            const results = reader.result.split("\n");
             let headerSkipped = false;
             let rows = 0;
             results.forEach(function (value) {

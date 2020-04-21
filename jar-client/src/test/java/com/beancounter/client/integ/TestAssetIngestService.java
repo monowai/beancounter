@@ -30,8 +30,8 @@ public class TestAssetIngestService {
 
   @Test
   void is_HydratedAssetFound() {
-    Asset asset = assetIngestService.resolveAsset("MSFT", "Microsoft",
-        staticService.getMarket("NASDAQ"));
+    Asset asset = assetIngestService.resolveAsset("NASDAQ", "MSFT", "Microsoft"
+    );
 
     assertThat(asset).isNotNull();
     assertThat(asset.getId()).isNotNull();
@@ -42,8 +42,8 @@ public class TestAssetIngestService {
   @Test
   void is_MockAssetFound() {
     Asset asset = assetIngestService
-        .resolveAsset("MSFT", "Microsoftie",
-            staticService.getMarket("MOCK"));
+        .resolveAsset("MOCK", "MSFT", "Microsoftie"
+        );
     assertThat(asset).isNotNull();
     assertThat(asset).isNotNull().hasFieldOrPropertyWithValue("name", "Microsoftie");
   }
@@ -52,7 +52,7 @@ public class TestAssetIngestService {
   void is_NotFound() {
     assertThrows(BusinessException.class, () ->
         assetIngestService
-            .resolveAsset("ABC", "Microsoft",
-                staticService.getMarket("NASDAQ")));
+            .resolveAsset("NASDAQ", "ABC", "Microsoft"
+            ));
   }
 }

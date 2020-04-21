@@ -1,6 +1,5 @@
 package com.beancounter.client.sharesight;
 
-import com.beancounter.client.MarketService;
 import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
@@ -9,7 +8,6 @@ import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -49,14 +47,11 @@ public class ShareSightDividendAdapter implements TrnAdapter {
 
   private final DateUtils dateUtils = new DateUtils();
 
-  private final MarketService marketService;
   private final AssetIngestService assetIngestService;
 
   public ShareSightDividendAdapter(ShareSightConfig shareSightConfig,
-                                   AssetIngestService assetIngestService,
-                                   MarketService marketService) {
+                                   AssetIngestService assetIngestService) {
     this.shareSightConfig = shareSightConfig;
-    this.marketService = marketService;
     this.assetIngestService = assetIngestService;
   }
 
@@ -92,10 +87,9 @@ public class ShareSightDividendAdapter implements TrnAdapter {
               tradeRate))
           .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
           .comments(row.get(comments))
-          .tradeCashRate(shareSightConfig.isRatesIgnored() || MathUtils.isUnset(tradeRate)
+          .tradeCashRate(shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
               ? null : tradeRate)
-          .build()
-          ;
+          .build();
     } catch (NumberFormatException | ParseException e) {
       String message = e.getMessage();
       log.error("{} - {} Parsing row {}",
@@ -118,8 +112,10 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   @Override
   public Asset resolveAsset(List<String> row) {
     List<String> values = parseAsset(row.get(code));
-    Market market = marketService.getMarket(values.get(1).toUpperCase());
-    Asset asset = assetIngestService.resolveAsset(values.get(0), null, market);
+    Asset asset = assetIngestService.resolveAsset(
+        values.get(1).toUpperCase(), values.get(0),
+        null
+    );
 
     if (!filter.inFilter(asset)) {
       return null;

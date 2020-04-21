@@ -17,7 +17,6 @@ import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.CurrencyUtils;
-import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,36 +95,6 @@ class ShareSightTradeTest {
     assertThat(trnAdapter).isInstanceOf(ShareSightTradeAdapter.class);
   }
 
-  @Test
-  void is_RowWithoutFxConverted() {
-
-    List<String> row = getRow("buy", "0.0", "2097.85");
-
-    // Portfolio is in NZD
-    Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
-
-    TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
-
-    assertThat(trn)
-        .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-        .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
-        .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
-        .hasFieldOrPropertyWithValue("fees", new BigDecimal("12.99"))
-
-        .hasFieldOrPropertyWithValue("tradeAmount",
-            MathUtils.multiply(new BigDecimal("2097.85"), new BigDecimal("0")))
-        .hasFieldOrPropertyWithValue("comments", "Test Comment")
-        .hasFieldOrPropertyWithValue("tradeCurrency", "AUD")
-        .hasFieldOrPropertyWithValue("tradeCashRate", null)
-        .hasFieldOrProperty("tradeDate")
-        .hasFieldOrProperty("asset")
-    ;
-
-  }
 
   @Test
   void is_RowWithNoCommentTransformed() {

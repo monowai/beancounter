@@ -58,7 +58,8 @@ public class AlphaService implements MarketDataProvider {
     Map<Integer, Future<String>> requests = new ConcurrentHashMap<>();
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
-      requests.put(batchId,
+      requests.put(
+          batchId,
           alphaProxy.getPrices(providerArguments.getBatch().get(batchId), apiKey));
     }
 
@@ -69,9 +70,8 @@ public class AlphaService implements MarketDataProvider {
   private Collection<MarketData> getMarketData(ProviderArguments providerArguments,
                                                Map<Integer, Future<String>> requests) {
     Collection<MarketData> results = new ArrayList<>();
-    boolean empty = requests.isEmpty();
 
-    while (!empty) {
+    while (!requests.isEmpty()) {
       for (Integer batch : requests.keySet()) {
         if (requests.get(batch).isDone()) {
           results.addAll(
@@ -79,7 +79,6 @@ public class AlphaService implements MarketDataProvider {
           );
           requests.remove(batch);
         }
-        empty = requests.isEmpty();
       }
     }
 

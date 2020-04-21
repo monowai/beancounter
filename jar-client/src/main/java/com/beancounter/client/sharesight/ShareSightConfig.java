@@ -29,8 +29,13 @@ public class ShareSightConfig {
   @Value("${date.format:dd/MM/yyyy}")
   private String dateFormat;
 
-  @Value("${ratesIgnored:false}")
-  private boolean ratesIgnored = false; // Use rates in source file to compute values, but have BC
+  @Value("${rates:true}")
+  // Backfill FX rates and ignore source file value
+  private boolean calculateRates = true;
+
+  @Value("${amount:true}")
+  // Calculate the tradeAmount field and ignore source file value
+  private boolean calculateAmount = true;
 
 
 }

@@ -1,0 +1,20 @@
+beancounter:
+  exchanges:
+    aliases:
+      NYS: NYSE
+      NAS: NASDAQ
+      AX: ASX
+      NZ: NZX
+  marketdata:
+    provider:
+      WTD:
+        date: 2019-11-16
+
+server:
+  port: 0
+
+marketdata:
+  url: http://localhost:10999
+
+rates: false
+amount: false

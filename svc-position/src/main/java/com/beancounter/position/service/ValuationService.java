@@ -26,8 +26,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ValuationService implements Valuation {
 
-  private Gains gains;
-  private PositionValuationService positionValuationService;
+  private final Gains gains;
+  private final PositionValuationService positionValuationService;
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired

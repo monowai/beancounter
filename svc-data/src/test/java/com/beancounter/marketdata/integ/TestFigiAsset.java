@@ -86,6 +86,7 @@ public class TestFigiAsset {
 
     assertThat(assetResponse.getData())
         .isNotNull()
+        .hasFieldOrPropertyWithValue("code", "BRK.B")
         .hasFieldOrPropertyWithValue("name", "BERKSHIRE HATHAWAY INC-CL B");
 
   }

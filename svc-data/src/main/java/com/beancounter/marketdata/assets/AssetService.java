@@ -47,7 +47,7 @@ public class AssetService implements com.beancounter.client.AssetService {
       Market market = marketService.getMarket(assetInput.getMarket());
 
       // Find @Bloomberg
-      Asset enrichedAsset = assetEnricher.findExternally(
+      Asset enrichedAsset = assetEnricher.enrich(
           assetInput.getMarket(),
           assetInput.getCode());
 
@@ -57,17 +57,18 @@ public class AssetService implements com.beancounter.client.AssetService {
         asset.setId(KeyGenUtils.format(UUID.randomUUID()));
         asset.setCode(assetInput.getCode().toUpperCase());
         asset.setMarketCode(market.getCode());
+        asset.setMarket(market);
         if (assetInput.getName() != null) {
           asset.setName(assetInput.getName().replace("\"", ""));
         }
-        foundAsset = assetRepository.save(asset);
+        return hydrateAsset(
+            assetRepository.save(asset)
+        );
       } else {
         // Market Listed
         enrichedAsset.setId(KeyGenUtils.format(UUID.randomUUID()));
-        foundAsset = assetRepository.save(enrichedAsset);
+        return assetRepository.save(enrichedAsset);
       }
-      foundAsset.setMarket(market);
-
 
     }
     return backFillMissingData(foundAsset.getId(), foundAsset);
@@ -76,17 +77,26 @@ public class AssetService implements com.beancounter.client.AssetService {
   public AssetUpdateResponse process(AssetRequest asset) {
     Map<String, Asset> assets = new HashMap<>();
     for (String key : asset.getData().keySet()) {
-      assets.put(key, create(asset.getData().get(key)));
+      assets.put(
+          key,
+          create(asset.getData().get(key))
+      );
     }
     return AssetUpdateResponse.builder().data(assets).build();
   }
 
   public Asset find(String marketCode, String code) {
     Asset asset = findLocally(marketCode, code);
-    if (asset == null) {
-      asset = assetEnricher.findExternally(marketCode, code);
+    if (asset == null || asset.getName() == null) {
+      asset = assetEnricher.enrich(marketCode, code);
       if (asset == null) {
-        throw new BusinessException(String.format("No asset found for %s/%s", marketCode, code));
+        throw new BusinessException(String.format("No asset found for %s:%s", marketCode, code));
+      }
+      if (!marketCode.equalsIgnoreCase("MOCK")) {
+        if (asset.getId() == null) {
+          asset.setId(KeyGenUtils.format(UUID.randomUUID()));
+        }
+        asset = assetRepository.save(asset);
       }
 
     }
@@ -96,8 +106,7 @@ public class AssetService implements com.beancounter.client.AssetService {
   public Asset find(String id) {
     Optional<Asset> result = assetRepository.findById(id).map(this::hydrateAsset);
     if (result.isPresent()) {
-      Asset asset = result.get();
-      return asset;
+      return result.get();
     }
     throw new BusinessException(String.format("Asset.id %s not found", id));
   }
@@ -112,7 +121,7 @@ public class AssetService implements com.beancounter.client.AssetService {
 
   public Asset backFillMissingData(String id, Asset asset) {
     if (asset.getName() == null) {
-      Asset figiAsset = assetEnricher.findExternally(asset.getMarket().getCode(), asset.getCode());
+      Asset figiAsset = assetEnricher.enrich(asset.getMarket().getCode(), asset.getCode());
       if (figiAsset != null) {
         figiAsset.setId(id);
         figiAsset.setMarketCode(asset.getMarket().getCode());

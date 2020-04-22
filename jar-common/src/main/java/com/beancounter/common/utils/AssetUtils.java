@@ -39,7 +39,7 @@ public class AssetUtils {
     return toKey(asset.getCode(), asset.getMarket());
   }
 
-  public static String toKey(@NonNull String asset, @NonNull String market) {
+  public String toKey(@NonNull String asset, @NonNull String market) {
     return asset + ":" + market;
   }
 
@@ -122,6 +122,7 @@ public class AssetUtils {
   public AssetInput getAssetInput(String market, String code) {
     return AssetInput.builder()
         .market(market)
+        .name(code)
         .code(code)
         .build();
   }
@@ -129,6 +130,7 @@ public class AssetUtils {
   public AssetInput getAssetInput(Asset asset) {
     return AssetInput.builder()
         .code(asset.getCode())
+        .name(asset.getName())
         .market(asset.getMarket().getCode())
         .resolvedAsset(asset).build();
   }

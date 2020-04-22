@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MarketValue {
-  private Gains gains;
+  private final Gains gains;
 
   public MarketValue(Gains gains) {
     this.gains = gains;
@@ -42,7 +42,6 @@ public class MarketValue {
     value(total, position.getMoneyValues(Position.In.PORTFOLIO), marketData.getClose(),
         rate(portfolio.getCurrency(), trade, rates)
     );
-    position.setAsset(asset);
   }
 
   private void value(BigDecimal total, MoneyValues moneyValues, BigDecimal price, FxRate rate) {

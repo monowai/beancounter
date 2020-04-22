@@ -1,9 +1,10 @@
 {
   "data": [
     {
-      "asset": {
+      "asset":  {
         "id": "EBAY",
         "code": "EBAY",
+        "name": "eBay Inc.",
         "market": {
           "code": "NASDAQ",
           "currency": {

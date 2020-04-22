@@ -47,28 +47,31 @@ public class FigiProxy {
   }
 
   @RateLimiter(name = "figi")
-  public Asset find(String marketCode, String assetCode) {
+  public Asset find(String marketCode, String bcAssetCode) {
+    String figiCode = bcAssetCode.replace(".", "/").toUpperCase();
+
     Market market = marketService.getMarket(marketCode);
     String figiMarket = market.getAliases().get(FIGI);
     FigiSearch figiSearch = FigiSearch.builder()
-        .exchCode(figiMarket.toUpperCase())
-        .idValue(assetCode.toUpperCase())
+        .exchCode(figiMarket)
+        .idValue(figiCode)
         .build();
     FigiResponse response = resolve(figiSearch);
 
     if (response.getError() != null) {
-      log.debug("Error {}/{} {}", figiMarket, assetCode, response.getError());
+      log.debug("Error {}/{} {}", figiMarket, figiCode, response.getError());
       return null;
     }
+
     if (response.getData() != null) {
       for (FigiAsset datum : response.getData()) {
         if (filter.contains(datum.getSecurityType2().toUpperCase())) {
-          log.debug("Found {}/{}", figiMarket, assetCode);
-          return figiAdapter.transform(market, datum);
+          log.debug("Found {}/{}", figiMarket, figiCode);
+          return figiAdapter.transform(market, bcAssetCode, datum);
         }
       }
     }
-    log.debug("Couldn't find {}/{}", figiMarket, assetCode);
+    log.debug("Couldn't find {}/{}", figiMarket, figiCode);
     return null;
   }
 

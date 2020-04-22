@@ -16,13 +16,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AsyncMdService {
 
-  private PriceService priceService;
-  private FxService fxRateService;
+  private final PriceService priceService;
+  private final FxService fxRateService;
 
   @Autowired
-  AsyncMdService(
-      PriceService priceService,
-      FxService fxRateService) {
+  AsyncMdService(PriceService priceService, FxService fxRateService) {
     this.priceService = priceService;
     this.fxRateService = fxRateService;
   }

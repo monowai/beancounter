@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @Slf4j
 public class PriceService {
 
-  private PriceGateway priceGateway;
-  private TokenService tokenService;
+  private final PriceGateway priceGateway;
+  private final TokenService tokenService;
 
   @Autowired
   PriceService(PriceGateway priceGateway, TokenService tokenService) {

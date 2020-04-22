@@ -98,6 +98,7 @@ class TestAssetMvc {
         .isNotNull()
         .hasFieldOrProperty("id")
         .hasFieldOrProperty("market")
+        .hasFieldOrPropertyWithValue("name", firstAsset.getName())
         .hasFieldOrPropertyWithValue("code", firstAsset.getCode().toUpperCase())
         .hasFieldOrPropertyWithValue("marketCode", null)
         .hasFieldOrProperty("id");
@@ -128,7 +129,8 @@ class TestAssetMvc {
     // By Market/Asset
     mvcResult = mockMvc.perform(
         get("/assets/{marketCode}/{assetCode}",
-            asset.getMarket().getCode(), asset.getCode())
+            asset.getMarket().getCode(),
+            asset.getCode())
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

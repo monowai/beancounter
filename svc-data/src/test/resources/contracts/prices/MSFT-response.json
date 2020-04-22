@@ -4,6 +4,7 @@
       "asset": {
         "id": "MSFT",
         "code": "MSFT",
+        "name": "Microsoft Inc.",
         "market": {
           "code": "NASDAQ",
           "currency": {

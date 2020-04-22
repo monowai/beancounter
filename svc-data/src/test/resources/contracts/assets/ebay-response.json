@@ -1,9 +1,9 @@
 {
   "data": {
-    "MSFT:NASDAQ": {
+    "EBAY:NASDAQ": {
       "id": "EBAY",
       "code": "EBAY",
-      "name": "Ebay",
+      "name": "eBay Inc.",
       "market": {
         "code": "NASDAQ",
         "currency": {

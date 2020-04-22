@@ -24,9 +24,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class PositionValuationService {
-  private AsyncMdService asyncMdService;
-  private MarketValue marketValue;
-  private FxUtils fxUtils;
+  private final AsyncMdService asyncMdService;
+  private final MarketValue marketValue;
+  private final FxUtils fxUtils;
 
   PositionValuationService(
       AsyncMdService asyncMdService,
@@ -58,10 +58,7 @@ public class PositionValuationService {
     Map<IsoCurrencyPair, FxRate> rates = fxResponse.getData().getRates();
 
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
-      marketValue.value(
-          positions,
-          marketData,
-          rates);
+      marketValue.value(positions, marketData, rates);
     }
     return positions;
   }

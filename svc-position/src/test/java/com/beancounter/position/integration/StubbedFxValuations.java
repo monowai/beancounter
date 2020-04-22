@@ -9,19 +9,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
+import com.beancounter.client.AssetService;
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.client.services.StaticService;
+import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
-import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,11 +69,13 @@ class StubbedFxValuations {
   private StaticService staticService;
 
   @Autowired
+  private AssetService assetService;
+
+  @Autowired
   private PortfolioServiceClient portfolioService;
 
   private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
-  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   private final ObjectMapper mapper = new ObjectMapper();
   private Jwt token;
 
@@ -124,7 +127,9 @@ class StubbedFxValuations {
 
   @Test
   void is_MvcValuingPositions() throws Exception {
-    Asset asset = AssetUtils.getAsset("NASDAQ", "EBAY");
+    Asset asset = getEbay();
+    assertThat(asset).hasFieldOrProperty("name");
+
     Positions positions = getPositions(asset);
     PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
 
@@ -141,9 +146,25 @@ class StubbedFxValuations {
         .readValue(json, PositionResponse.class);
 
     assertThat(fromJson).isNotNull().hasFieldOrProperty("data");
-    Positions mvcPositions = fromJson.getData();
-    assertThat(mvcPositions).isNotNull();
-    assertThat(mvcPositions.getPositions()).hasSize(positions.getPositions().size());
+    Positions jsonPositions = fromJson.getData();
+    assertThat(jsonPositions).isNotNull();
+    assertThat(jsonPositions.getPositions()).hasSize(positions.getPositions().size());
+
+    for (String key : jsonPositions.getPositions().keySet()) {
+      assertThat(jsonPositions.getPositions().get(key).getAsset())
+          .hasFieldOrPropertyWithValue("name", asset.getName());
+    }
+  }
+
+  private Asset getEbay() {
+    AssetUpdateResponse assetResponse = assetService.process(AssetRequest.builder()
+        .data("EBAY:NASDAQ", AssetInput.builder()
+            .code("EBAY")
+            .market("NASDAQ")
+            .build())
+        .build());
+    assertThat(assetResponse.getData()).hasSize(1);
+    return assetResponse.getData().get("EBAY:NASDAQ");
   }
 
   @Test
@@ -165,10 +186,7 @@ class StubbedFxValuations {
 
   @Test
   void is_MarketValuationCalculatedAsAt() {
-    Asset asset = AssetUtils.getAsset(Market.builder().code("NASDAQ")
-        .currency(currencyUtils.getCurrency("USD"))
-        .build(), "EBAY"
-    );
+    Asset asset = getEbay();
 
     // We need to have a Quantity in order to get the price, so create a position
     Positions positions = getValuedPositions(asset);
@@ -193,7 +211,7 @@ class StubbedFxValuations {
   @Test
   void is_AssetAndCurrencyHydratedFromValuationRequest() {
 
-    Asset asset = AssetUtils.getAsset("NASDAQ", "EBAY");
+    Asset asset = getEbay();
 
     Positions positions = getValuedPositions(asset);
     Position position = positions.get(asset);
@@ -201,7 +219,7 @@ class StubbedFxValuations {
         .hasFieldOrProperty("asset");
 
     assertThat(position.getAsset().getMarket())
-        .hasNoNullFieldsOrPropertiesExcept("aliases", "currencyId", "timezoneId", "currencyCode");
+        .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId");
 
     assertThat(position.getMoneyValues().get(Position.In.PORTFOLIO).getCurrency())
         .hasNoNullFieldsOrProperties();

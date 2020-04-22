@@ -24,14 +24,32 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
               if (headerSkipped) {
                 rows++;
                 const row = value.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                if (row && !row[0].startsWith("#")) {
+                  _axios
+                    .post<string>(
+                      "/upload/trn",
+                      { portfolio: props.portfolio, row },
+                      {
+                        headers: getBearerToken(keycloak.token),
+                      }
+                    )
+                    .catch((err) => {
+                      if (err.response) {
+                        logger.error(
+                          "axios error [%s]: [%s]",
+                          err.response.status,
+                          err.response.data.message
+                        );
+                      }
+                    });
+                }
+              } else {
+                // Something to process so we will purge the existing positions
+                // Currently not tracking primary keys so this prevents duplicate trns
                 _axios
-                  .post<string>(
-                    "/upload/trn",
-                    { portfolio: props.portfolio, row },
-                    {
-                      headers: getBearerToken(keycloak.token),
-                    }
-                  )
+                  .delete(`/bff/trns/portfolio/${props.portfolio.id}`, {
+                    headers: getBearerToken(keycloak.token),
+                  })
                   .catch((err) => {
                     if (err.response) {
                       logger.error(
@@ -41,7 +59,6 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
                       );
                     }
                   });
-              } else {
                 headerSkipped = true;
               }
             });
@@ -62,7 +79,7 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
     <div {...getRootProps()}>
       <input {...getInputProps()} />
       <span>
-        <i className="far fa-arrow-alt-circle-up fa-3x"></i>
+        <i className="far fa-arrow-alt-circle-up fa-3x" />
       </span>
     </div>
   );

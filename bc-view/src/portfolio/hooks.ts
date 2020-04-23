@@ -8,11 +8,9 @@ import { USD } from "../static/hooks";
 
 export function usePortfolios(): BcResult<Portfolio[]> {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  //const systemUser = useSystemUser();
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
   useEffect(() => {
-    //if (systemUser && systemUser.active) {
     _axios
       .get<Portfolio[]>("/bff/portfolios", {
         headers: getBearerToken(keycloak.token),
@@ -31,7 +29,6 @@ export function usePortfolios(): BcResult<Portfolio[]> {
           setError(err);
         }
       });
-    //}
   }, [keycloak]);
   return { data: portfolios, error };
 }

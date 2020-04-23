@@ -1836,22 +1836,22 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@react-keycloak/core@^1.1.1", "@react-keycloak/core@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@react-keycloak/core/-/core-1.2.1.tgz#aca9990bda4ff2b3796e0193cb97a133e8d66f2d"
-  integrity sha512-ekXRKaAoeimbWENYn6xJkzd+c5kxPNE7HOSc2GdmDTJ2Krk1+NJQ+x+wNbVSFvBABhhkFUxH3w452Zg21EYLOg==
+"@react-keycloak/core@^2.0.0", "@react-keycloak/core@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@react-keycloak/core/-/core-2.1.1.tgz#b636ec2e50753f54ba2ee4cc1a3a702cb7da7ecd"
+  integrity sha512-uLGPeMDEz1Jj6EjHbFS+kvIsOIe48TaEpaD54tUjc4QxzMVQaX+4ZvecwyBcJKPGL9f9MkTlPWz/3brIBHJ2FA==
   dependencies:
     "@babel/runtime" "^7.9.0"
     prop-types "^15.7.2"
     react-fast-compare "^3.0.1"
 
-"@react-keycloak/razzle@^1.0.0-alpha.1":
-  version "1.0.0-alpha.7"
-  resolved "https://registry.yarnpkg.com/@react-keycloak/razzle/-/razzle-1.0.0-alpha.7.tgz#46899bce3900834b298f7e72223a28bba6af9509"
-  integrity sha512-7D0864w7pIpQE+4O6+uUe3nd5kzmOQLRhoUUPWLE/SzK8FBLeoZf9bLhIze7pd3HcqM4N+THmPBheXV3y8YNtw==
+"@react-keycloak/razzle@^2.0.0-beta.3":
+  version "2.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@react-keycloak/razzle/-/razzle-2.0.0-beta.3.tgz#001338f300b66ffd731201af7aedc815a47ee636"
+  integrity sha512-rbaTu/AFKzLP7rMAKsthXSqYIjfO2jCel4fMKSPIEKqEGYA7teyDOmH3o4QiR4QhxiGs/lDp18xiG2V55yaLmQ==
   dependencies:
     "@babel/runtime" "^7.9.0"
-    "@react-keycloak/core" "^1.2.1"
+    "@react-keycloak/core" "^2.1.1"
     base-64 "^0.1.0"
     detect-node "^2.0.4"
     hoist-non-react-statics "^3.3.2"
@@ -8791,9 +8791,9 @@ kafka-node@^5.0.0:
     snappy "^6.0.1"
 
 keycloak-js@^9.0.0:
-  version "9.0.2"
-  resolved "https://registry.yarnpkg.com/keycloak-js/-/keycloak-js-9.0.2.tgz#c8c9721b43b7401b9ac2384afc84a07e8e29095c"
-  integrity sha512-1QKNYw1+wHGrbjiK2zxJzG5krq4VBhsQazCQOe1958ODWIwoUo4wLu9wgkBPwMtkl3y3osQnVSeCpYdpBLtq+A==
+  version "9.0.3"
+  resolved "https://registry.yarnpkg.com/keycloak-js/-/keycloak-js-9.0.3.tgz#cb63412df13c7c6390df5b902555866e659b24b4"
+  integrity sha512-c8FFPa8YiJmPbJEMZ/mIrHflBR6FIFUm5xTWtIDzlrnoeF4u0wDmTBfo1u71rWIL1HanLvg3T+9AgR1NqfmGbA==
   dependencies:
     base64-js "1.3.1"
     js-sha256 "0.9.0"

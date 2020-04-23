@@ -16,6 +16,7 @@ import { isDone } from "../types/typeUtils";
 import PageLoader from "../common/PageLoader";
 
 export default function ViewHoldings(code: string): JSX.Element {
+  const holdingResults = useHoldings(code);
   const [valueIn, setValueIn] = useState<ValuationOption>({
     value: ValueIn.PORTFOLIO,
     label: "Portfolio",
@@ -25,7 +26,6 @@ export default function ViewHoldings(code: string): JSX.Element {
     value: GroupBy.MARKET_CURRENCY,
     label: "Currency",
   });
-  const holdingResults = useHoldings(code);
 
   // Render where we are in the initialization process
   if (isDone(holdingResults)) {

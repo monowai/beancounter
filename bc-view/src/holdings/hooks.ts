@@ -10,6 +10,8 @@ export function useHoldings(code: string): BcResult<HoldingContract> {
   const [error, setError] = useState<AxiosError>();
   const [keycloak] = useKeycloak();
   useEffect(() => {
+    // Multiple renders due to token changing - hmm.
+    logger.debug("token %s/%s", code, keycloak.token ? keycloak.token.slice(-10) : "N/A");
     _axios
       .get<HoldingContract>(`/bff/${code}/today`, {
         headers: getBearerToken(keycloak.token),

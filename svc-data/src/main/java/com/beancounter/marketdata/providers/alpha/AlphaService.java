@@ -59,7 +59,10 @@ public class AlphaService implements MarketDataProvider {
     for (Integer batchId : providerArguments.getBatch().keySet()) {
       requests.put(
           batchId,
-          alphaProxyCache.getPrices(providerArguments.getBatch().get(batchId), apiKey));
+          alphaProxyCache.getPrices(
+              providerArguments.getBatch().get(batchId),
+              priceRequest.getDate(),
+              apiKey));
     }
 
     return getMarketData(providerArguments, requests);
@@ -72,13 +75,11 @@ public class AlphaService implements MarketDataProvider {
 
     while (!requests.isEmpty()) {
       for (Integer batch : requests.keySet()) {
-//        if (requests.get(batch).isDone()) {
         results.addAll(
             alphaAdapter.get(providerArguments, batch, requests.get(batch))
         );
         requests.remove(batch);
       }
-//      }
     }
 
     return results;

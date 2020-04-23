@@ -30,8 +30,10 @@ public class AlphaProxyCache {
     return new AsyncResult<>(alphaProxy.getPrice(code, apiKey));
   }
 
+  @SuppressWarnings("unused")
   @Cacheable("asset.prices")
-  public String getPrices(String code, String apiKey) {
+  // Date is to support caching
+  public String getPrices(String code, String date, String apiKey) {
     return alphaProxy.getPrices(code, apiKey);
   }
 }

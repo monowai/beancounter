@@ -56,7 +56,7 @@ public class MarketService implements com.beancounter.client.MarketService {
     }
     Market market = markets.get(marketCode.toUpperCase());
     String errorMessage = String.format("Unable to resolve market code %s", marketCode);
-    if (market == null && orByAlias ) {
+    if (market == null && orByAlias) {
       String byAlias = resolveAlias(marketCode);
       if (byAlias == null) {
         throw new BusinessException(errorMessage);

@@ -46,7 +46,7 @@ public class AlphaAdapter implements MarketDataAdapter {
           String assetName = marketData.getAsset().getName();
           asset.setName(assetName); // Keep the name
           marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
-          log.debug("Valued {} ", marketData.getAsset());
+          log.debug("Valued {} ", marketData.getAsset().getName());
           results.add(marketData);
         } else {
           results.add(getDefault(asset));

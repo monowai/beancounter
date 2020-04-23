@@ -2,7 +2,9 @@ package com.beancounter.marketdata;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.UtilConfig;
@@ -107,7 +109,14 @@ class TestStaticData {
   }
 
   @Test
-  void is_MarketDataAliasForWtdAndNzxResolving() {
+  void is_IgnoreAliasLookup() {
+    // Alias exists, but no PK with this code
+    assertThrows(BusinessException.class, () ->
+        marketService.getMarket("US", false));
+  }
+
+  @Test
+  void is_AliasForWtdAndNzxResolving() {
     Market market = marketService.getMarket("NZX");
     assertThat(market)
         .isNotNull()

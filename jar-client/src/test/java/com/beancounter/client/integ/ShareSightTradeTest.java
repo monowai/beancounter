@@ -111,6 +111,7 @@ class ShareSightTradeTest {
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))
+        .hasFieldOrPropertyWithValue("fees", new BigDecimal("12.99")) // No FX Rate
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("comments", null)
         .hasFieldOrProperty("asset")

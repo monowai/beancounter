@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 public class MarketService implements com.beancounter.client.MarketService {
 
   private Map<String, Market> markets;
-  private Map<String, String> aliases = new HashMap<>();
+  private final Map<String, String> aliases = new HashMap<>();
 
   /**
    * Return the Exchange code to use for the supplied input.
@@ -45,22 +45,28 @@ public class MarketService implements com.beancounter.client.MarketService {
    * @param marketCode non-null market code - can also be an alias
    * @return resolved market
    */
+
   public Market getMarket(String marketCode) {
+    return getMarket(marketCode, true);
+  }
+
+  public Market getMarket(String marketCode, boolean orByAlias) {
     if (marketCode == null) {
       throw new BusinessException("Null Market Code");
     }
     Market market = markets.get(marketCode.toUpperCase());
-    if (market == null) {
-      String errorMessage = String.format("Unable to resolve market code %s", marketCode);
+    String errorMessage = String.format("Unable to resolve market code %s", marketCode);
+    if (market == null && orByAlias ) {
       String byAlias = resolveAlias(marketCode);
       if (byAlias == null) {
         throw new BusinessException(errorMessage);
       }
       market = markets.get(byAlias);
-      if (market == null) {
-        throw new BusinessException(errorMessage);
-      }
     }
+    if (market == null) {
+      throw new BusinessException(errorMessage);
+    }
+
     return market;
   }
 

@@ -23,8 +23,8 @@ public interface WtdGateway {
       method = RequestMethod.GET,
       value = "/api/v1/history_multi_single_day?symbol={assets}&date={date}&api_token={apiKey}"
   )
-  WtdResponse getMarketDataForAssets(@PathVariable("assets") String assetId,
-                                     @PathVariable("date") String date,
-                                     @PathVariable("apiKey") String apiKey);
+  WtdResponse getPrices(@PathVariable("assets") String assetId,
+                        @PathVariable("date") String date,
+                        @PathVariable("apiKey") String apiKey);
 
 }

@@ -55,7 +55,7 @@ public class ValuationService implements Valuation {
       gains.value(position.getQuantityValues().getTotal(),
           position.getMoneyValues(Position.In.PORTFOLIO));
 
-      if (!position.getQuantityValues().getTotal().equals(BigDecimal.ZERO)) {
+      if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) ==0)) {
         assets.add(AssetInput.builder()
             .code(position.getAsset().getCode())
             .market(position.getAsset().getMarket().getCode())

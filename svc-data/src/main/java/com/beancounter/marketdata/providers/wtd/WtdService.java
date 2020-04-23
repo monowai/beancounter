@@ -56,7 +56,7 @@ public class WtdService implements MarketDataProvider {
 
     for (Integer batch : providerArguments.getBatch().keySet()) {
       batchedRequests.put(batch,
-          wtdProxy.getMarketData(
+          wtdProxy.getPrices(
               providerArguments.getBatch().get(batch),
               providerArguments.getBatchConfigs().get(batch).getDate(),
               apiKey));

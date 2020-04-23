@@ -281,7 +281,7 @@ public class ContractVerifierBase {
         .build());
     wtdResponse.setData(result);
     Mockito.when(wtdGateway
-        .getMarketDataForAssets("EBAY", "2019-10-18", "demo"))
+        .getPrices("EBAY", "2019-10-18", "demo"))
         .thenReturn(wtdResponse);
 
   }

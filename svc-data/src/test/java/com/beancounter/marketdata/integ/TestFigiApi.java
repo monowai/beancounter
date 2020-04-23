@@ -29,7 +29,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class TestFigiApi {
 
   private static WireMockRule figiApi;
-  private final String prefix = "/contracts";
 
   @Autowired
   private FigiProxy figiProxy;
@@ -41,6 +40,7 @@ public class TestFigiApi {
     if (figiApi == null) {
       figiApi = new WireMockRule(options().port(6666));
       figiApi.start();
+      String prefix = "/contracts";
       FigiMockUtils.mock(figiApi,
           new ClassPathResource(prefix + "/figi/common-stock-response.json").getFile(),
           "US",
@@ -109,6 +109,7 @@ public class TestFigiApi {
     assertThat(asset)
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR")
+        .hasNoNullFieldsOrPropertiesExcept("id") // Unknown to BC, but is known to FIGI
         .isNotNull();
   }
 

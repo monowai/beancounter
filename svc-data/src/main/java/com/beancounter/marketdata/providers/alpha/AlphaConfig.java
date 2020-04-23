@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({AlphaService.class, StaticConfig.class, AlphaProxy.class, AlphaAdapter.class})
+@Import({AlphaService.class, StaticConfig.class, AlphaProxyCache.class, AlphaAdapter.class})
 @Data
 public class AlphaConfig implements DataProviderConfig {
 

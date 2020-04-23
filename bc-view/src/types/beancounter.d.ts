@@ -132,6 +132,7 @@ interface TrnInput {
   quantity: number;
   price: number;
   tradeAmount: number;
+  fees: number;
 }
 
 interface CallerRef {

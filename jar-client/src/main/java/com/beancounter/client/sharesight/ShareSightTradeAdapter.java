@@ -77,7 +77,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     try {
       if (trnType != TrnType.SPLIT) {
         tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
-        fees = MathUtils.parse(row.get(brokerage), shareSightConfig.getNumberFormat());
+        fees = calcFees(row, tradeRate);
         tradeAmount = calcTradeAmount(row, tradeRate);
       }
       Asset asset = resolveAsset(row);
@@ -91,7 +91,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
           .callerRef(CallerRef.builder().provider(trustedTrnRequest.getPortfolio().getId()).build())
           .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
           .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))
-          .fees(MathUtils.divide(fees, tradeRate))
+          .fees(fees)
           .tradeAmount(tradeAmount)
           .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
           .cashCurrency(trustedTrnRequest.getPortfolio().getCurrency().getCode())
@@ -109,6 +109,15 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       throw new BusinessException(message);
     }
 
+  }
+
+  private BigDecimal calcFees(List<String> row, BigDecimal tradeRate) throws ParseException {
+    BigDecimal result = MathUtils.parse(row.get(brokerage), shareSightConfig.getNumberFormat());
+    if (shareSightConfig.isCalculateAmount() || result == null) {
+      return result;
+    } else {
+      return MathUtils.divide(result, tradeRate);
+    }
   }
 
   private BigDecimal getTradeCashRate(BigDecimal tradeRate) {

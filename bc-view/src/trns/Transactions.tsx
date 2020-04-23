@@ -39,6 +39,7 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                     <th>Trade Date</th>
                     <th align={"right"}>Quantity</th>
                     <th align={"right"}>Price</th>
+                    <th align={"right"}>Charges</th>
                     <th align={"right"}>Amount</th>
                     <th>Action</th>
                   </tr>
@@ -61,6 +62,15 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                       <td align={"right"}>
                         <NumberFormat
                           value={t.price}
+                          displayType={"text"}
+                          decimalScale={2}
+                          fixedDecimalScale={true}
+                          thousandSeparator={true}
+                        />
+                      </td>
+                      <td align={"right"}>
+                        <NumberFormat
+                          value={t.fees}
                           displayType={"text"}
                           decimalScale={2}
                           fixedDecimalScale={true}

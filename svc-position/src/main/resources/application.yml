@@ -54,6 +54,8 @@ feign:
   client:
     config:
       default:
+        # Loooong because of API limits with data providers
+        readTimeout: 50000
         errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
 
     # http://localhost:9500/actuator/circuitbreaker-events/marketdata

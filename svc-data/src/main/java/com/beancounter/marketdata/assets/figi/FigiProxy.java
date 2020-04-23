@@ -66,12 +66,13 @@ public class FigiProxy {
     if (response.getData() != null) {
       for (FigiAsset datum : response.getData()) {
         if (filter.contains(datum.getSecurityType2().toUpperCase())) {
-          log.debug("Found {}/{}", figiMarket, figiCode);
+          log.trace("In response to {}/{} - found {}/{}",
+              marketCode, bcAssetCode, figiMarket, figiCode);
           return figiAdapter.transform(market, bcAssetCode, datum);
         }
       }
     }
-    log.debug("Couldn't find {}/{}", figiMarket, figiCode);
+    log.debug("Couldn't find {}/{} - as {}/{}", marketCode, bcAssetCode, figiMarket, figiCode);
     return null;
   }
 

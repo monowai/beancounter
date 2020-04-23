@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +32,7 @@ public class AlphaAdapter implements MarketDataAdapter {
   }
 
   public Collection<MarketData> get(ProviderArguments providerArguments,
-                                    Integer batchId, Future<String> response) {
+                                    Integer batchId, String response) {
 
     Collection<MarketData> results = new ArrayList<>();
     try {
@@ -43,9 +41,8 @@ public class AlphaAdapter implements MarketDataAdapter {
 
       for (String dpAsset : assets) {
         Asset asset = providerArguments.getDpToBc().get(dpAsset);
-        String result = response.get();
-        if (isMdResponse(asset, result)) {
-          MarketData marketData = alphaMdMapper.readValue(response.get(), MarketData.class);
+        if (isMdResponse(asset, response)) {
+          MarketData marketData = alphaMdMapper.readValue(response, MarketData.class);
           String assetName = marketData.getAsset().getName();
           asset.setName(assetName); // Keep the name
           marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
@@ -56,7 +53,7 @@ public class AlphaAdapter implements MarketDataAdapter {
         }
       }
 
-    } catch (IOException | InterruptedException | ExecutionException e) {
+    } catch (IOException e) {
       throw new SystemException(e.getMessage());
     }
     return results;

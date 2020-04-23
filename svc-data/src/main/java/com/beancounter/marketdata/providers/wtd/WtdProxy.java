@@ -26,8 +26,8 @@ public class WtdProxy {
 
   @Async
   @Cacheable("asset.prices")
-  public Future<WtdResponse> getMarketData(String assets, String marketOpenDate, String apiKey) {
-    WtdResponse result = wtdGateway.getMarketDataForAssets(assets, marketOpenDate, apiKey);
+  public Future<WtdResponse> getPrices(String assets, String marketOpenDate, String apiKey) {
+    WtdResponse result = wtdGateway.getPrices(assets, marketOpenDate, apiKey);
     return new AsyncResult<>(result);
   }
 }

@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ public class AlphaService implements MarketDataProvider {
   private final AlphaConfig alphaConfig;
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
-  private AlphaProxy alphaProxy;
+  private AlphaProxyCache alphaProxyCache;
   private AlphaAdapter alphaAdapter;
 
   public AlphaService(AlphaConfig alphaConfig) {
@@ -39,8 +38,8 @@ public class AlphaService implements MarketDataProvider {
   }
 
   @Autowired
-  void setAlphaHelpers(AlphaProxy alphaProxy, AlphaAdapter alphaAdapter) {
-    this.alphaProxy = alphaProxy;
+  void setAlphaHelpers(AlphaProxyCache alphaProxyCache, AlphaAdapter alphaAdapter) {
+    this.alphaProxyCache = alphaProxyCache;
     this.alphaAdapter = alphaAdapter;
   }
 
@@ -55,12 +54,12 @@ public class AlphaService implements MarketDataProvider {
 
     ProviderArguments providerArguments = getInstance(priceRequest, alphaConfig);
 
-    Map<Integer, Future<String>> requests = new ConcurrentHashMap<>();
+    Map<Integer, String> requests = new ConcurrentHashMap<>();
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
       requests.put(
           batchId,
-          alphaProxy.getPrices(providerArguments.getBatch().get(batchId), apiKey));
+          alphaProxyCache.getPrices(providerArguments.getBatch().get(batchId), apiKey));
     }
 
     return getMarketData(providerArguments, requests);
@@ -68,18 +67,18 @@ public class AlphaService implements MarketDataProvider {
   }
 
   private Collection<MarketData> getMarketData(ProviderArguments providerArguments,
-                                               Map<Integer, Future<String>> requests) {
+                                               Map<Integer, String> requests) {
     Collection<MarketData> results = new ArrayList<>();
 
     while (!requests.isEmpty()) {
       for (Integer batch : requests.keySet()) {
-        if (requests.get(batch).isDone()) {
-          results.addAll(
-              alphaAdapter.get(providerArguments, batch, requests.get(batch))
-          );
-          requests.remove(batch);
-        }
+//        if (requests.get(batch).isDone()) {
+        results.addAll(
+            alphaAdapter.get(providerArguments, batch, requests.get(batch))
+        );
+        requests.remove(batch);
       }
+//      }
     }
 
     return results;

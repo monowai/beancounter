@@ -39,7 +39,7 @@ public class PositionValuationService {
 
   public Positions value(Positions positions, Collection<AssetInput> assets) {
     if (assets.isEmpty()) {
-      return positions;
+      return positions; // Nothing to value
     }
     log.debug("Valuing {} positions...", positions.getPositions().size());
 
@@ -79,7 +79,7 @@ public class PositionValuationService {
 
     return ValuationData.builder()
         .fxResponse(futureFxResponse.get(30, SECONDS))
-        .priceResponse(futurePriceResponse.get(30, SECONDS))
+        .priceResponse(futurePriceResponse.get(180, SECONDS))
         .build();
   }
 

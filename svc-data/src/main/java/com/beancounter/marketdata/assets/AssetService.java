@@ -44,7 +44,8 @@ public class AssetService implements com.beancounter.client.AssetService {
         assetInput.getCode().toUpperCase());
 
     if (foundAsset == null) {
-      Market market = marketService.getMarket(assetInput.getMarket());
+      // Is the market supported?
+      Market market = marketService.getMarket(assetInput.getMarket(), false);
 
       // Find @Bloomberg
       Asset enrichedAsset = assetEnricher.enrich(
@@ -67,7 +68,7 @@ public class AssetService implements com.beancounter.client.AssetService {
       } else {
         // Market Listed
         enrichedAsset.setId(KeyGenUtils.format(UUID.randomUUID()));
-        return assetRepository.save(enrichedAsset);
+        return hydrateAsset(assetRepository.save(enrichedAsset));
       }
 
     }
@@ -79,7 +80,7 @@ public class AssetService implements com.beancounter.client.AssetService {
     for (String key : asset.getData().keySet()) {
       assets.put(
           key,
-          create(asset.getData().get(key))
+          this.create(asset.getData().get(key))
       );
     }
     return AssetUpdateResponse.builder().data(assets).build();

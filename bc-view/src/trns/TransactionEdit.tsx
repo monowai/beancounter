@@ -121,6 +121,19 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                   </div>
                 </div>
                 <div className="field">
+                  <label className="label">Quantity</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="quantity"
+                      defaultValue={trnResult.data.quantity}
+                      name="quantity"
+                      ref={register({ required: true, maxLength: 10 })}
+                    />
+                  </div>
+                </div>
+                <div className="field">
                   <label className="label">Price</label>
                   <div className="control">
                     <input
@@ -130,6 +143,19 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       defaultValue={trnResult.data.price}
                       name="price"
                       ref={register({ required: true, maxLength: 10 })}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Charges</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="Fees and charges"
+                      defaultValue={trnResult.data.fees}
+                      name="fees"
+                      ref={register({ required: false, maxLength: 100 })}
                     />
                   </div>
                 </div>

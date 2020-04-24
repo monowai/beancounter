@@ -60,6 +60,10 @@ public class FigiProxy {
 
     if (response.getError() != null) {
       log.debug("Error {}/{} {}", figiMarket, figiCode, response.getError());
+      if (response.getError().equalsIgnoreCase("No identifier found.")) {
+        // Unknown, so don't continue to hit the service - add a name value
+        return figiAdapter.transform(market, bcAssetCode);
+      }
       return null;
     }
 

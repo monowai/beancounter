@@ -66,6 +66,7 @@ public class ShareSightRatesInTrn {
         .build();
 
     // Trade is in USD
+    row.add(ShareSightDividendAdapter.id, "ABC");
     row.add(ShareSightDividendAdapter.code, "ABBV.NYS");
     row.add(ShareSightDividendAdapter.name, "Test Asset");
     row.add(ShareSightDividendAdapter.date, "21/01/2019");
@@ -88,6 +89,7 @@ public class ShareSightRatesInTrn {
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(trn)
         // Id comes from svc-data/contracts/assets
+        .hasFieldOrPropertyWithValue("callerRef.callerId","ABC")
         .hasFieldOrPropertyWithValue("asset", "BguoVZpoRxWeWrITp7DEuw")
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",

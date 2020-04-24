@@ -29,18 +29,19 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class ShareSightTradeAdapter implements TrnAdapter {
-  public static final int market = 0;
-  public static final int code = 1;
-  public static final int name = 2;
-  public static final int type = 3;
-  public static final int date = 4;
-  public static final int quantity = 5;
-  public static final int price = 6;
-  public static final int brokerage = 7;
-  public static final int currency = 8;
-  public static final int fxRate = 9;
-  public static final int value = 10;
-  public static final int comments = 11;
+  public static final int id = 0;
+  public static final int market = 1;
+  public static final int code = 2;
+  public static final int name = 3;
+  public static final int type = 4;
+  public static final int date = 5;
+  public static final int quantity = 6;
+  public static final int price = 7;
+  public static final int brokerage = 8;
+  public static final int currency = 9;
+  public static final int fxRate = 10;
+  public static final int value = 11;
+  public static final int comments = 12;
   private final DateUtils dateUtils = new DateUtils();
   private final ShareSightConfig shareSightConfig;
   private Filter filter = new Filter(null);
@@ -68,7 +69,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     }
     TrnType trnType = TrnType.valueOf(ttype.toUpperCase());
 
-    String comment = (row.size() == 12 ? nullSafe(row.get(comments)) : null);
+    String comment = (row.size() == 13 ? nullSafe(row.get(comments)) : null);
 
     BigDecimal tradeRate = null;
     BigDecimal fees = null;
@@ -88,7 +89,10 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       return TrnInput.builder()
           .asset(asset.getId())
           .trnType(trnType)
-          .callerRef(CallerRef.builder().provider(trustedTrnRequest.getPortfolio().getId()).build())
+          .callerRef(CallerRef.builder()
+              .provider(trustedTrnRequest.getPortfolio().getId())
+              .callerId(row.get(id))
+              .build())
           .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
           .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))
           .fees(fees)

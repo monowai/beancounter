@@ -43,10 +43,8 @@ public class AlphaAdapter implements MarketDataAdapter {
         Asset asset = providerArguments.getDpToBc().get(dpAsset);
         if (isMdResponse(asset, response)) {
           MarketData marketData = alphaMdMapper.readValue(response, MarketData.class);
-          String assetName = marketData.getAsset().getName();
-          asset.setName(assetName); // Keep the name
           marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
-          log.debug("Valued {} ", marketData.getAsset().getName());
+          log.trace("Valued {} ", asset.getName());
           results.add(marketData);
         } else {
           results.add(getDefault(asset));
@@ -72,7 +70,7 @@ public class AlphaAdapter implements MarketDataAdapter {
 
     if (field != null) {
       JsonNode resultMessage = alphaMdMapper.readTree(result);
-      log.error("{} - API returned [{}]", asset, resultMessage.get(field));
+      log.error("API returned [{}] for {}",resultMessage.get(field), asset);
       return false;
     }
     return true;

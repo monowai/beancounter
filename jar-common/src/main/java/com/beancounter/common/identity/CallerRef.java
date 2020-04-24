@@ -1,6 +1,5 @@
 package com.beancounter.common.identity;
 
-import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.KeyGenUtils;
 import java.io.Serializable;
 import java.util.UUID;
@@ -32,7 +31,7 @@ public class CallerRef implements Serializable {
         .build();
 
     result.setProvider(id == null || id.getProvider() == null ? "BC" : id.provider);
-    result.setBatch(id == null || id.getBatch() == null ? new DateUtils().today() : id.batch);
+    result.setBatch(id == null || id.getBatch() == null ? "-" : id.batch);
     result.setCallerId(id == null || id.getCallerId() == null
         ? KeyGenUtils.format(UUID.randomUUID()) : id.callerId);
     return result;

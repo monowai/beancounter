@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class TestTrn {
-  private ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void is_TransactionRequestSerializing() throws Exception {
@@ -101,7 +101,11 @@ class TestTrn {
     CallerRef fromNull = CallerRef.from(null);
     assertThat(fromNull).hasNoNullFieldsOrProperties();
 
-    CallerRef id = CallerRef.builder().provider("provider").batch("batch").callerId("456").build();
+    CallerRef id = CallerRef.builder()
+        .provider("provider")
+        .batch("batch")
+        .callerId("456")
+        .build();
     assertThat(CallerRef.from(id)).isEqualToComparingFieldByField(id);
   }
 
@@ -126,7 +130,10 @@ class TestTrn {
     CallerRef callerRef = CallerRef.builder().build();
     assertThat(callerRef).hasAllNullFieldsOrProperties();
     // No values, so defaults should be created
-    assertThat(CallerRef.from(callerRef)).hasNoNullFieldsOrProperties();
+    assertThat(CallerRef.from(callerRef))
+        .hasNoNullFieldsOrProperties()
+        .hasFieldOrPropertyWithValue("batch", "-")
+    ;
 
     callerRef = CallerRef.builder().callerId("ABC").batch("ABC").provider("ABC").build();
     assertThat(CallerRef.from(callerRef))

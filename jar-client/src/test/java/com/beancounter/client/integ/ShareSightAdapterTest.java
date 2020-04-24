@@ -66,6 +66,7 @@ class ShareSightAdapterTest {
 
   private void verifyMarketCode(String code, Asset expectedAsset) {
     List<String> row = new ArrayList<>();
+    row.add("1");
     row.add(code);
     Asset asset = shareSightFactory.getShareSightDivi().resolveAsset(row);
 
@@ -77,6 +78,7 @@ class ShareSightAdapterTest {
   @Test
   void is_AssetsSetIntoTransaction() {
     List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "1");
     row.add(ShareSightTradeAdapter.market, "ASX");
     row.add(ShareSightTradeAdapter.code, "BHP");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -93,6 +95,7 @@ class ShareSightAdapterTest {
     rows.add(row);
 
     row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "2");
     row.add(ShareSightTradeAdapter.market, "NASDAQ");
     row.add(ShareSightTradeAdapter.code, "MSFT");
     row.add(ShareSightTradeAdapter.name, "Microsoft");
@@ -124,6 +127,7 @@ class ShareSightAdapterTest {
 
     for (TrnInput trn : trnInputs) {
       assertThat(trn)
+          .hasFieldOrProperty("callerRef")
           .hasFieldOrProperty("asset")
           .hasFieldOrProperty("fees")
           .hasFieldOrProperty("quantity")

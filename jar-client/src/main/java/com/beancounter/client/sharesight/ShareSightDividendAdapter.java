@@ -32,16 +32,16 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class ShareSightDividendAdapter implements TrnAdapter {
-
-  public static final int code = 0;
-  public static final int name = 1;
-  public static final int date = 2;
-  public static final int fxRate = 3;
-  public static final int currency = 4;
-  public static final int net = 5;
-  public static final int tax = 6;
-  public static final int gross = 7;
-  public static final int comments = 8;
+  public static final int id = 0;
+  public static final int code = 1;
+  public static final int name = 2;
+  public static final int date = 3;
+  public static final int fxRate = 4;
+  public static final int currency = 5;
+  public static final int net = 6;
+  public static final int tax = 7;
+  public static final int gross = 8;
+  public static final int comments = 9;
   private final ShareSightConfig shareSightConfig;
   private Filter filter = new Filter(null);
 
@@ -75,7 +75,10 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       return TrnInput.builder()
           .asset(asset.getId())
           .tradeCurrency(row.get(currency))
-          .callerRef(CallerRef.builder().provider(trustedTrnRequest.getPortfolio().getId()).build())
+          .callerRef(CallerRef.builder()
+              .provider(trustedTrnRequest.getPortfolio().getId())
+              .callerId(row.get(id))
+              .build())
           .trnType(TrnType.DIVI)
           .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
           .tradeAmount(

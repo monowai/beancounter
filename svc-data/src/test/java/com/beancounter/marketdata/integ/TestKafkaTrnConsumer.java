@@ -93,6 +93,7 @@ public class TestKafkaTrnConsumer {
 
     // A CSV row
     List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "123");
     row.add(ShareSightTradeAdapter.market, "NASDAQ");
     row.add(ShareSightTradeAdapter.code, "MSFT");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -116,6 +117,7 @@ public class TestKafkaTrnConsumer {
     assertThat(response).isNotNull();
     for (Trn trn : response.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
+      assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "123");
     }
   }
 

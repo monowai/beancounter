@@ -32,15 +32,15 @@ public class TrnService {
   }
 
   public TrnResponse save(Portfolio portfolio, TrnRequest trnRequest) {
-    TrnResponse results = trnAdapter.convert(portfolio, trnRequest);
-    Iterable<Trn> saved = trnRepository.saveAll(results.getData());
+    TrnResponse trnResponse = trnAdapter.convert(portfolio, trnRequest);
+    Iterable<Trn> saved = trnRepository.saveAll(trnResponse.getData());
     Collection<Trn> trns = new ArrayList<>();
     saved.forEach(trns::add);
-    results.setData(trns);
+    trnResponse.setData(trns);
     log.trace("Wrote {}/{} transactions for {}",
-        results.getData().size(), trnRequest.getData().size(), portfolio.getCode());
+        trnResponse.getData().size(), trnRequest.getData().size(), portfolio.getCode());
 
-    return results;
+    return trnResponse;
   }
 
   public TrnResponse find(Portfolio portfolio, String trnId) {

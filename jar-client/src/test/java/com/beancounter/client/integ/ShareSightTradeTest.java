@@ -62,7 +62,7 @@ class ShareSightTradeTest {
                              String fxRate,
                              String tradeAmount) {
     List<String> row = new ArrayList<>();
-
+    row.add(ShareSightTradeAdapter.id, "1");
     row.add(ShareSightTradeAdapter.market, market);
     row.add(ShareSightTradeAdapter.code, code);
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -81,6 +81,7 @@ class ShareSightTradeTest {
   @Test
   void is_SplitTransformerFoundForRow() {
     List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "1");
     row.add(ShareSightTradeAdapter.market, "ASX");
     row.add(ShareSightTradeAdapter.code, "SLB");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -135,6 +136,7 @@ class ShareSightTradeTest {
         .transform(trustedTrnRequest);
 
     assertThat(trn)
+        .hasFieldOrPropertyWithValue("callerRef.callerId","1")
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal("10"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))

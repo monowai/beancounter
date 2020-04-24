@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.TrnAdapter;
-import com.beancounter.client.services.StaticService;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
@@ -33,14 +32,12 @@ public class TestAdapters {
   private AssetIngestService assetIngestService;
 
   @MockBean
-  private StaticService staticService;
-
-  @MockBean
   FxService fxService;
 
   @Test
   void is_DividendIllegalNumber() {
     List<String> row = new ArrayList<>();
+    row.add(ShareSightDividendAdapter.id, "1");
     row.add(ShareSightDividendAdapter.code, "market"); // Header Row
     row.add(ShareSightDividendAdapter.name, "name");
     row.add(ShareSightDividendAdapter.date, "date");
@@ -61,7 +58,8 @@ public class TestAdapters {
   void is_NullTrnTypeCorrect() {
 
     List<String> row = new ArrayList<>();
-    row.add("");
+    row.add("");//ID
+    row.add("");//Dode
     row.add("");
     row.add(null);
     row.add("");
@@ -87,6 +85,7 @@ public class TestAdapters {
     row.add("");
     row.add("");
     row.add("");
+    row.add("");
     TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
@@ -103,6 +102,7 @@ public class TestAdapters {
   @Test
   void is_ValidTradeRow() {
     List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "1");
     row.add(ShareSightTradeAdapter.market, "market"); // Header Row
     row.add(ShareSightTradeAdapter.code, "code");
     row.add(ShareSightTradeAdapter.name, "name");
@@ -119,6 +119,7 @@ public class TestAdapters {
   @Test
   void is_TradeAmountComputed() {
     List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "1");
     row.add(ShareSightTradeAdapter.market, "NYSE"); // Header Row
     row.add(ShareSightTradeAdapter.code, "ABC");
     row.add(ShareSightTradeAdapter.name, "name");
@@ -150,6 +151,7 @@ public class TestAdapters {
   @Test
   void is_ValidDividendRow() {
     List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "1");
     row.add(ShareSightDividendAdapter.code, "code"); // Header Row
     row.add(ShareSightDividendAdapter.name, "code");
     row.add(ShareSightDividendAdapter.date, "name");

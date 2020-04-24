@@ -59,6 +59,7 @@ class StubbedTradesWithFx {
     // USD System Base
     // GBP Trade
 
+    row.add(ShareSightTradeAdapter.id, "999");
     row.add(ShareSightTradeAdapter.market, "LSE");
     row.add(ShareSightTradeAdapter.code, "BHP");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -98,6 +99,7 @@ class StubbedTradesWithFx {
     // GBP Trade
     assertThat(shareSightConfig.isCalculateRates()).isTrue();
 
+    row.add(ShareSightTradeAdapter.id, "999");
     row.add(ShareSightTradeAdapter.market, "LSE");
     row.add(ShareSightTradeAdapter.code, "BHP");
     row.add(ShareSightTradeAdapter.name, "Test Asset");
@@ -136,6 +138,7 @@ class StubbedTradesWithFx {
     List<String> row = new ArrayList<>();
 
     // Trade CCY USD
+    row.add(ShareSightTradeAdapter.id, "333");
     row.add(ShareSightTradeAdapter.market, "NASDAQ");
     row.add(ShareSightTradeAdapter.code, "MSFT");
     row.add(ShareSightTradeAdapter.name, "MSFT");
@@ -180,6 +183,7 @@ class StubbedTradesWithFx {
     String testDate = "27/07/2019";
 
     // Trade CCY USD
+    row.add(ShareSightTradeAdapter.id, "222");
     row.add(ShareSightTradeAdapter.market, "NASDAQ");
     row.add(ShareSightTradeAdapter.code, "MSFT");
     row.add(ShareSightTradeAdapter.name, "MSFT");

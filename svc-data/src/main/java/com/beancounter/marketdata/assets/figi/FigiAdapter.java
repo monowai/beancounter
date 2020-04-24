@@ -10,14 +10,19 @@ import org.springframework.stereotype.Service;
 
 public class FigiAdapter {
 
-  public Asset transform(Market market, String assetCode, FigiAsset figiAsset) {
+  public Asset transform(Market market, String assetCode) {
     return Asset.builder()
-        .name(figiAsset.getName())
         .market(market)
+        .name(assetCode)
         .marketCode(market.getCode())
         .code(assetCode)
-        .category(figiAsset.getSecurityType2())
         .build();
+  }
 
+  public Asset transform(Market market, String assetCode, FigiAsset figiAsset) {
+    Asset asset = transform(market, assetCode);
+    asset.setName(figiAsset.getName());
+    asset.setCategory(figiAsset.getSecurityType2());
+    return asset;
   }
 }

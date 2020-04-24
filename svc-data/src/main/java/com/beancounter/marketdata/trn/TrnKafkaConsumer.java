@@ -98,7 +98,14 @@ public class TrnKafkaConsumer {
   @KafkaListener(topics = "#{@topicName}", errorHandler = "trnErrorHandler")
   public TrnResponse processMessage(String message) throws JsonProcessingException {
     TrustedTrnRequest trustedRequest = objectMapper.readValue(message, TrustedTrnRequest.class);
-    return processMessage(trustedRequest);
+    if (trustedRequest.getMessage() != null) {
+      log.info("Portfolio {} {}",
+          trustedRequest.getPortfolio().getCode(),
+          trustedRequest.getMessage());
+      return TrnResponse.builder().build();
+    } else {
+      return processMessage(trustedRequest);
+    }
 
   }
 

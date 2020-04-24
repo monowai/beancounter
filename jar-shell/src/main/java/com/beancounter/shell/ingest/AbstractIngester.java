@@ -72,7 +72,7 @@ public abstract class AbstractIngester implements Ingester {
       TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
           .row(row)
           .portfolio(portfolio)
-          .callerRef(CallerRef.from(callerRef))
+          .callerRef(CallerRef.from(callerRef, portfolio))
           .build();
       writer.write(trnRequest);
     }

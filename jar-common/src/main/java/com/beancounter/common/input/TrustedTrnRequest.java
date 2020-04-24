@@ -15,5 +15,6 @@ import lombok.NoArgsConstructor;
 public class TrustedTrnRequest {
   private Portfolio portfolio;
   private CallerRef callerRef;
+  private String message;
   private List<String> row;
 }

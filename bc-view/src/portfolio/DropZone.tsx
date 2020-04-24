@@ -7,6 +7,39 @@ import { _axios, getBearerToken } from "../common/axiosUtils";
 
 export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement {
   const [keycloak] = useKeycloak();
+
+  function sendData(row: RegExpMatchArray): void {
+    _axios
+      .post<string>(
+        "/upload/trn",
+        { portfolio: props.portfolio, row },
+        {
+          headers: getBearerToken(keycloak.token),
+        }
+      )
+      .catch((err) => {
+        if (err.response) {
+          logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+        }
+      });
+  }
+
+  function sendMessage(message: string): void {
+    _axios
+      .post<string>(
+        "/upload/trn",
+        { portfolio: props.portfolio, message },
+        {
+          headers: getBearerToken(keycloak.token),
+        }
+      )
+      .catch((err) => {
+        if (err.response) {
+          logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+        }
+      });
+  }
+
   // https://github.com/react-dropzone/react-dropzone
   const onDrop = useCallback(
     (acceptedFiles) => {
@@ -25,23 +58,7 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
                 rows++;
                 const row = value.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                 if (row && !row[0].startsWith("#")) {
-                  _axios
-                    .post<string>(
-                      "/upload/trn",
-                      { portfolio: props.portfolio, row },
-                      {
-                        headers: getBearerToken(keycloak.token),
-                      }
-                    )
-                    .catch((err) => {
-                      if (err.response) {
-                        logger.error(
-                          "axios error [%s]: [%s]",
-                          err.response.status,
-                          err.response.data.message
-                        );
-                      }
-                    });
+                  sendData(row);
                 }
               } else {
                 // Something to process so we will purge the existing positions
@@ -60,15 +77,17 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
                     }
                   });
                 headerSkipped = true;
+                sendMessage("Starting Import");
               }
             });
             logger.debug("<<POST trnUpload sent %s", rows);
+            sendMessage("Finished sending " + rows + " rows");
           }
         };
         reader.readAsText(file, "utf-8");
       });
     },
-    [props.portfolio, keycloak]
+    [props.portfolio, keycloak, sendData, sendMessage]
   );
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 

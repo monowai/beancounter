@@ -1,5 +1,6 @@
 package com.beancounter.common.identity;
 
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.KeyGenUtils;
 import java.io.Serializable;
 import java.util.UUID;
@@ -26,12 +27,13 @@ public class CallerRef implements Serializable {
   private String callerId;
 
   // Fill in any missing default values from the supplied Id
-  public static CallerRef from(CallerRef id) {
+  public static CallerRef from(CallerRef id, Portfolio portfolio) {
     CallerRef result = CallerRef.builder()
         .build();
 
     result.setProvider(id == null || id.getProvider() == null ? "BC" : id.provider);
-    result.setBatch(id == null || id.getBatch() == null ? "-" : id.batch);
+    result.setBatch(id == null || id.getBatch() == null
+        ? (portfolio == null ? "-" : portfolio.getCode()) : id.batch);
     result.setCallerId(id == null || id.getCallerId() == null
         ? KeyGenUtils.format(UUID.randomUUID()) : id.callerId);
     return result;

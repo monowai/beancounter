@@ -35,7 +35,7 @@ public class TrnAdapter {
   public Trn map(Portfolio portfolio, TrnInput trnInput) {
     return Trn.builder()
         .id(KeyGenUtils.format(UUID.randomUUID()))
-        .callerRef(CallerRef.from(trnInput.getCallerRef()))
+        .callerRef(CallerRef.from(trnInput.getCallerRef(), portfolio))
         .tradeDate(trnInput.getTradeDate())
         .settleDate(trnInput.getSettleDate())
         .cashAmount(trnInput.getCashAmount())

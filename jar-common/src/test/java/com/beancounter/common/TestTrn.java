@@ -98,7 +98,7 @@ class TestTrn {
 
   @Test
   void is_TrnIdDefaulting() {
-    CallerRef fromNull = CallerRef.from(null);
+    CallerRef fromNull = CallerRef.from(null, null);
     assertThat(fromNull).hasNoNullFieldsOrProperties();
 
     CallerRef id = CallerRef.builder()
@@ -106,7 +106,7 @@ class TestTrn {
         .batch("batch")
         .callerId("456")
         .build();
-    assertThat(CallerRef.from(id)).isEqualToComparingFieldByField(id);
+    assertThat(CallerRef.from(id, null)).isEqualToComparingFieldByField(id);
   }
 
   @Test
@@ -130,13 +130,13 @@ class TestTrn {
     CallerRef callerRef = CallerRef.builder().build();
     assertThat(callerRef).hasAllNullFieldsOrProperties();
     // No values, so defaults should be created
-    assertThat(CallerRef.from(callerRef))
+    assertThat(CallerRef.from(callerRef, PortfolioUtils.getPortfolio("BLAH")))
         .hasNoNullFieldsOrProperties()
-        .hasFieldOrPropertyWithValue("batch", "-")
+        .hasFieldOrPropertyWithValue("batch", "BLAH")
     ;
 
     callerRef = CallerRef.builder().callerId("ABC").batch("ABC").provider("ABC").build();
-    assertThat(CallerRef.from(callerRef))
+    assertThat(CallerRef.from(callerRef, PortfolioUtils.getPortfolio("BLAH")))
         .hasFieldOrPropertyWithValue("batch", "ABC")
         .hasFieldOrPropertyWithValue("provider", "ABC")
         .hasFieldOrPropertyWithValue("callerId", "ABC");

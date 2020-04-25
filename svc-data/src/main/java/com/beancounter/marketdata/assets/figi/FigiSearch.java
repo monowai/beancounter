@@ -11,4 +11,6 @@ public class FigiSearch {
   private String idValue;
   private String exchCode;
   private String securityType2;
+  @Builder.Default
+  private boolean includeUnlistedEquities = true;
 }

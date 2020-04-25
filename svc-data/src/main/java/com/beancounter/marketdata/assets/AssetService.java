@@ -101,7 +101,7 @@ public class AssetService implements com.beancounter.client.AssetService {
       }
 
     }
-    return asset;
+    return hydrateAsset(asset);
   }
 
   public Asset find(String id) {

@@ -1,9 +1,10 @@
 import React from "react";
-import { render, waitForElement } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import ViewHoldings from "../holdings";
 import nock from "nock";
 import { MemoryRouter } from "react-router";
+import { waitFor } from "@testing-library/dom";
 
 const bff = "http://localhost";
 
@@ -34,7 +35,7 @@ describe("<ViewHoldings />", () => {
         <TestHoldings />
       </MemoryRouter>
     );
-    await waitForElement(() => getByText("USD"));
+    await waitFor(() => getByText("USD"));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });
@@ -44,7 +45,7 @@ describe("<ViewHoldings />", () => {
       return ViewHoldings("zero");
     };
     const { getByText, container } = render(<ZeroHoldings />);
-    await waitForElement(() => getByText("Value In"));
+    await waitFor(() => getByText("Value In"));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });

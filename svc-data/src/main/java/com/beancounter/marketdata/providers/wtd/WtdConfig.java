@@ -54,7 +54,7 @@ public class WtdConfig implements DataProviderConfig {
     return (date == null ? dateUtils.today() : date);
   }
 
-  public String getMarketDate(Market market, String startDate) {
+  public LocalDate getMarketDate(Market market, String startDate) {
     int daysToSubtract = 0;
     if (dateUtils.isToday(startDate)) {
       // If Current, price date is T-daysToSubtract
@@ -65,10 +65,9 @@ public class WtdConfig implements DataProviderConfig {
     }
 
     // If startDate is not "TODAY", assume nothing, just discount the weekends
-    LocalDate result = dateUtils.getLastMarketDate(
+    return dateUtils.getLastMarketDate(
         dateUtils.getDate(startDate == null ? dateUtils.today() : startDate),
         timeZone.toZoneId(), daysToSubtract);
 
-    return result.toString();
   }
 }

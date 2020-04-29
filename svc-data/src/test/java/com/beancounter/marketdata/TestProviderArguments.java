@@ -7,8 +7,10 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.DataProviderConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -19,9 +21,9 @@ import org.junit.jupiter.api.Test;
  * of being based on batch sizes.
  */
 class TestProviderArguments {
-  private Asset aapl = AssetUtils.getAsset("NASDAQ", "AAPL");
-  private Asset msft = AssetUtils.getAsset("NASDAQ", "MSFT");
-  private Asset intc = AssetUtils.getAsset("NASDAQ", "INTC");
+  private final Asset aapl = AssetUtils.getAsset("NASDAQ", "AAPL");
+  private final Asset msft = AssetUtils.getAsset("NASDAQ", "MSFT");
+  private final Asset intc = AssetUtils.getAsset("NASDAQ", "INTC");
 
   @Test
   void is_BatchOfOne() {
@@ -101,7 +103,7 @@ class TestProviderArguments {
 
 
   private static class TestConfig implements DataProviderConfig {
-    private Integer batchSize;
+    private final Integer batchSize;
 
     TestConfig(Integer batchSize) {
       this.batchSize = batchSize;
@@ -118,8 +120,8 @@ class TestProviderArguments {
     }
 
     @Override
-    public String getMarketDate(Market market, String date) {
-      return date;
+    public LocalDate getMarketDate(Market market, String date) {
+      return new DateUtils().getDate(date);
     }
 
   }

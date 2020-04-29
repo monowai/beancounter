@@ -77,6 +77,7 @@ public class ContractVerifierBase {
   public static final Asset MSFT = getAsset("NASDAQ", "MSFT");
   public static final Asset MSFT_INVALID = getAsset("NASDAQ", "MSFTx");
   public static final Asset AMP = getAsset("ASX", "AMP");
+  private final DateUtils dateUtils = new DateUtils();
   @MockBean
   JwtDecoder jwtDecoder;
   @MockBean
@@ -171,8 +172,8 @@ public class ContractVerifierBase {
   }
 
   private void mockTrnGetResponse() throws Exception {
-    mockTrnPostResponse(getTestPortfolio(), contractPath + "/trn/CSV-write.json",
-        contractPath + "/trn/CSV-response.json");
+    mockTrnPostResponse(getTestPortfolio()
+    );
     mockTrnGetResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
     mockTrnGetResponse(getEmptyPortfolio(), contractPath + "/trn/EMPTY-response.json");
   }
@@ -186,10 +187,10 @@ public class ContractVerifierBase {
   }
 
   @SneakyThrows
-  void mockTrnPostResponse(Portfolio portfolio, String requestFile, String responseFile) {
-    File jsonFile = new ClassPathResource(requestFile).getFile();
+  void mockTrnPostResponse(Portfolio portfolio) {
+    File jsonFile = new ClassPathResource("contracts/trn/CSV-write.json").getFile();
     TrnRequest trnRequest = objectMapper.readValue(jsonFile, TrnRequest.class);
-    jsonFile = new ClassPathResource(responseFile).getFile();
+    jsonFile = new ClassPathResource("contracts/trn/CSV-response.json").getFile();
     TrnResponse trnResponse = objectMapper.readValue(jsonFile, TrnResponse.class);
     Mockito.when(trnService.save(portfolio, trnRequest))
         .thenReturn(trnResponse);
@@ -272,7 +273,7 @@ public class ContractVerifierBase {
     WtdResponse wtdResponse = new WtdResponse();
     Map<String, MarketData> result = new HashMap<>();
     result.put("EBAY", MarketData.builder()
-        .date("2019-10-18")
+        .priceDate(dateUtils.getDate("2019-10-18"))
         .open(new BigDecimal("39.21"))
         .close(new BigDecimal("100.00"))
         .low(new BigDecimal("38.74"))

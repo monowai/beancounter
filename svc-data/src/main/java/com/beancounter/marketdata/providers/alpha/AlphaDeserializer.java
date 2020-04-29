@@ -67,7 +67,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
       String priceDate = data.get("07. latest trading day").toString();
       marketData = MarketData.builder()
           .asset(asset)
-          .date(priceDate)
+          .priceDate(dateUtils.getDate(priceDate))
           .open(open)
           .close(close)
           .high(high)
@@ -90,6 +90,8 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
 
       Optional<? extends Map.Entry<?, ? extends LinkedHashMap<String, Object>>>
           firstKey = allValues.entrySet().stream().findFirst();
+
+      // ToDo: This is not supporting "as at dates" and just returns the head
       if (firstKey.isPresent()) {
         LocalDate localDateTime = dateUtils.getLocalDate(
             firstKey.get().getKey().toString(), "yyyy-M-dd");
@@ -109,7 +111,7 @@ public class AlphaDeserializer extends JsonDeserializer<MarketData> {
       BigDecimal close = new BigDecimal(data.get("4. close").toString());
       marketData = MarketData.builder()
           .asset(asset)
-          .date(dateUtils.getDateString(priceDate))
+          .priceDate(priceDate)
           .open(open)
           .close(close)
           .high(high)

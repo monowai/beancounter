@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers;
 
 import com.beancounter.common.model.Market;
+import java.time.LocalDate;
 
 public interface DataProviderConfig {
   /**
@@ -19,5 +20,5 @@ public interface DataProviderConfig {
    */
   String translateMarketCode(Market market);
 
-  String getMarketDate(Market market, String date);
+  LocalDate getMarketDate(Market market, String date);
 }

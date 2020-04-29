@@ -85,12 +85,12 @@ class TestDateUtils {
 
   @Test
   void is_MarketDataPriceDateCalculated() {
-    String sgToday = "2019-11-01"; // Friday in Singapore
+    String sgToday = "2019-11-01"; // Friday in Singapore (past date)
     LocalDate sgDateTime = dateUtils.getDate(sgToday);
 
     LocalDate dateResult = dateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"));
 
-    assertThat(dateResult.toString()).isEqualTo("2019-10-31"); // Boo!
+    assertThat(dateResult.toString()).isEqualTo(sgToday);
 
     dateResult = dateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"), 2);
     assertThat(dateResult.toString()).isEqualTo("2019-10-30");

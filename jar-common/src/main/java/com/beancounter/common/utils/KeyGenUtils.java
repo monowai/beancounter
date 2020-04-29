@@ -7,14 +7,13 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class KeyGenUtils {
-  private static final char[] C64 =
+  private final char[] chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
-  private static final int[] I256 = new int[256];
-
+  private final int[] i256 = new int[256];
 
   static {
-    for (int i = 0; i < C64.length; i++) {
-      I256[C64[i]] = i;
+    for (int i = 0; i < chars.length; i++) {
+      i256[chars[i]] = i;
     }
   }
 
@@ -106,16 +105,16 @@ public class KeyGenUtils {
       int d = (bytes[i++] & 0xff) << 16 | (bytes[i++] & 0xff) << 8 | (bytes[i++] & 0xff);
 
       // Put them in these four characters
-      chars[j++] = C64[(d >>> 18) & 0x3f];
-      chars[j++] = C64[(d >>> 12) & 0x3f];
-      chars[j++] = C64[(d >>> 6) & 0x3f];
-      chars[j++] = C64[d & 0x3f];
+      chars[j++] = KeyGenUtils.chars[(d >>> 18) & 0x3f];
+      chars[j++] = KeyGenUtils.chars[(d >>> 12) & 0x3f];
+      chars[j++] = KeyGenUtils.chars[(d >>> 6) & 0x3f];
+      chars[j++] = KeyGenUtils.chars[d & 0x3f];
     }
 
     // The last byte of the input gets put into two characters at the end of the string.
     int d = (bytes[i] & 0xff) << 10;
-    chars[j++] = C64[d >> 12];
-    chars[j] = C64[(d >>> 6) & 0x3f];
+    chars[j++] = KeyGenUtils.chars[d >> 12];
+    chars[j] = KeyGenUtils.chars[(d >>> 6) & 0x3f];
     return new String(chars);
   }
 
@@ -139,10 +138,10 @@ public class KeyGenUtils {
 
     while (i < 15) {
       // Get the next four characters.
-      int d = I256[s.charAt(j++)] << 18
-          | I256[s.charAt(j++)] << 12
-          | I256[s.charAt(j++)] << 6
-          | I256[s.charAt(j++)];
+      int d = i256[s.charAt(j++)] << 18
+          | i256[s.charAt(j++)] << 12
+          | i256[s.charAt(j++)] << 6
+          | i256[s.charAt(j++)];
 
       // Put them in these three bytes.
       bytes[i++] = (byte) (d >> 16);
@@ -151,7 +150,11 @@ public class KeyGenUtils {
     }
 
     // Add the last two characters from the string into the last byte.
-    bytes[i] = (byte) ((I256[s.charAt(j++)] << 18 | I256[s.charAt(j)] << 12) >> 16);
+    bytes[i] = (byte) ((i256[s.charAt(j++)] << 18 | i256[s.charAt(j)] << 12) >> 16);
     return bytes;
+  }
+
+  public String getId() {
+    return format(UUID.randomUUID());
   }
 }

@@ -1,8 +1,10 @@
 package com.beancounter.marketdata.providers.alpha;
 
 import com.beancounter.common.model.Market;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.DataProviderConfig;
+import java.time.LocalDate;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,8 @@ public class AlphaConfig implements DataProviderConfig {
 
   @Value("${beancounter.marketdata.provider.ALPHA.markets}")
   private String markets;
+
+  private DateUtils dateUtils = new DateUtils();
 
   @Override
   public Integer getBatchSize() {
@@ -40,8 +44,11 @@ public class AlphaConfig implements DataProviderConfig {
   }
 
   @Override
-  public String getMarketDate(Market market, String date) {
-    return "2019-04-04";
+  public LocalDate getMarketDate(Market market, String date) {
+    if (date == null) {
+      date = dateUtils.today();
+    }
+    return dateUtils.getLastMarketDate(dateUtils.getDate(date), market.getTimezone().toZoneId());
   }
 
 }

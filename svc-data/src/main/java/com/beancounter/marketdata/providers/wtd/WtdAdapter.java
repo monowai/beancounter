@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.wtd;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.BatchConfig;
 import com.beancounter.marketdata.providers.MarketDataAdapter;
 import com.beancounter.marketdata.providers.ProviderArguments;
@@ -17,6 +18,9 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class WtdAdapter implements MarketDataAdapter {
+
+  private final DateUtils dateUtils = new DateUtils();
+
   public Collection<MarketData> get(ProviderArguments providerArguments,
                                     Integer batchId, Future<WtdResponse> response) {
     Collection<MarketData> results = new ArrayList<>();
@@ -46,8 +50,9 @@ public class WtdAdapter implements MarketDataAdapter {
         } else {
           marketData.setAsset(bcAsset);
         }
-        if (marketData.getDate() == null) {
-          marketData.setDate(wtdResponse.getDate());
+
+        if (marketData.getPriceDate() == null) {
+          marketData.setPriceDate(dateUtils.getDate(wtdResponse.getDate()));
         }
         results.add(marketData);
       }

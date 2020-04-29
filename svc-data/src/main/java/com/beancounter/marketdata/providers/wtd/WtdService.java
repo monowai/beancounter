@@ -5,6 +5,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -95,6 +96,11 @@ public class WtdService implements MarketDataProvider {
     }
     return wtdConfig.getMarkets().contains(market.getCode());
 
+  }
+
+  @Override
+  public LocalDate getDate(Market market, PriceRequest priceRequest) {
+    return wtdConfig.getMarketDate(market, priceRequest.getDate());
   }
 
 

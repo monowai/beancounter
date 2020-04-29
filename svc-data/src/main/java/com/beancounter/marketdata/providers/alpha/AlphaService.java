@@ -7,6 +7,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -61,7 +62,7 @@ public class AlphaService implements MarketDataProvider {
           batchId,
           alphaProxyCache.getPrices(
               providerArguments.getBatch().get(batchId),
-              priceRequest.getDate(),
+              providerArguments.getBatchConfigs().get(batchId).getDate(),
               apiKey));
     }
 
@@ -97,6 +98,11 @@ public class AlphaService implements MarketDataProvider {
       return false;
     }
     return alphaConfig.getMarkets().contains(market.getCode());
+  }
+
+  @Override
+  public LocalDate getDate(Market market, PriceRequest priceRequest) {
+    return alphaConfig.getMarketDate(market, priceRequest.getDate());
   }
 
 

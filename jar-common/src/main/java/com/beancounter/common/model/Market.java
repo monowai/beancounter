@@ -33,9 +33,10 @@ public class Market {
   private Currency currency;
   @JsonIgnore
   private String currencyId;
-  private TimeZone timezone;
   @JsonIgnore
   private String timezoneId;
+  @Builder.Default
+  private TimeZone timezone = TimeZone.getTimeZone("US/Eastern");
 
   @Builder.Default
   @JsonIgnore

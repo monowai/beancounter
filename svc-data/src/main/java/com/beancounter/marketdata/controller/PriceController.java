@@ -50,7 +50,7 @@ public class PriceController {
     if (asset == null) {
       throw new BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode));
     }
-    return marketDataService.getPrice(asset);
+    return marketDataService.getPriceResponse(asset);
 
   }
 
@@ -65,7 +65,7 @@ public class PriceController {
 
     }
 
-    return marketDataService.getPrice(priceRequest);
+    return marketDataService.getPriceResponse(priceRequest);
   }
 
 }

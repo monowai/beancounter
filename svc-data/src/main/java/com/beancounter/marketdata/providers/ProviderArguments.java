@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ import lombok.Data;
 public class ProviderArguments {
   private int count = 0;
   private DataProviderConfig dataProviderConfig;
+  private static final DateUtils dateUtils = new DateUtils();
   private Integer currentBatch = 0;
   private String searchBatch = null;
   private String delimiter = ",";
@@ -56,7 +58,8 @@ public class ProviderArguments {
           assetCode = assetCode + "." + marketCode;
         }
         providerArguments.addAsset(assetCode, asset,
-            (dataProviderConfig.getMarketDate(asset.getMarket(), priceRequest.getDate())));
+            dateUtils.getDateString(
+                dataProviderConfig.getMarketDate(asset.getMarket(), priceRequest.getDate())));
 
       }
       providerArguments.bumpBatch();

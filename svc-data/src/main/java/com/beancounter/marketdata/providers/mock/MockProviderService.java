@@ -6,8 +6,10 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MockProviderService implements MarketDataProvider {
   public static final String ID = "MOCK";
+  private final DateUtils dateUtils = new DateUtils();
 
   private MarketData getMarketData(Asset asset) {
     if (asset.getCode().equalsIgnoreCase("123")) {
@@ -33,7 +36,7 @@ public class MockProviderService implements MarketDataProvider {
         .asset(asset)
         .close(BigDecimal.valueOf(999.99))
         .open(BigDecimal.valueOf(999.99))
-        .date(getPriceDate())
+        .priceDate(getPriceDate())
         .build();
   }
 
@@ -57,9 +60,13 @@ public class MockProviderService implements MarketDataProvider {
 
   }
 
-  public String getPriceDate() {
-    return "2019-11-21";
+  public LocalDate getPriceDate() {
+    return dateUtils.getDate("2019-11-21");
   }
 
+  @Override
+  public LocalDate getDate(Market market, PriceRequest priceRequest) {
+    return getPriceDate();
+  }
 
 }

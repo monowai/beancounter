@@ -17,6 +17,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.utils.WtdMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class TestWorldTradingDataApi {
 
   private static WireMockRule mockInternet;
+  private final DateUtils dateUtils = new DateUtils();
 
   @Autowired
   private WtdService wtdService;
@@ -118,13 +120,13 @@ class TestWorldTradingDataApi {
     for (MarketData marketData : mdResult) {
       if (marketData.getAsset().equals(MSFT)) {
         assertThat(marketData)
-            .hasFieldOrPropertyWithValue("date", "2019-03-08")
+            .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2019-03-08"))
             .hasFieldOrPropertyWithValue("asset", MSFT)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("109.16"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("110.51"));
       } else if (marketData.getAsset().equals(AAPL)) {
         assertThat(marketData)
-            .hasFieldOrPropertyWithValue("date", "2019-03-08")
+            .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2019-03-08"))
             .hasFieldOrPropertyWithValue("asset", AAPL)
             .hasFieldOrPropertyWithValue("open", new BigDecimal("170.32"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("172.91"));
@@ -159,7 +161,7 @@ class TestWorldTradingDataApi {
             .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
       } else if (marketData.getAsset().equals(AAPL)) {
         assertThat(marketData)
-            .hasFieldOrProperty("date")
+            .hasFieldOrProperty("priceDate")
             .hasFieldOrPropertyWithValue("open", new BigDecimal("170.32"))
             .hasFieldOrPropertyWithValue("close", new BigDecimal("172.91"));
       }

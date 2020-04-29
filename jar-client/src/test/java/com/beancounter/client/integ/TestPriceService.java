@@ -38,7 +38,8 @@ public class TestPriceService {
     Asset asset = assetIngestService
         .resolveAsset("NASDAQ", "EBAY", "EBAY");
 
-    PriceRequest priceRequest = PriceRequest.of(asset)
+    PriceRequest priceRequest = PriceRequest
+        .of(asset)
         .date("2019-10-18").build();
 
     PriceResponse response = priceService.getPrices(priceRequest);
@@ -51,7 +52,7 @@ public class TestPriceService {
         .hasFieldOrProperty("open")
         .hasFieldOrProperty("high")
         .hasFieldOrProperty("low")
-        .hasFieldOrProperty("date");
+        .hasFieldOrProperty("priceDate");
   }
 
 }

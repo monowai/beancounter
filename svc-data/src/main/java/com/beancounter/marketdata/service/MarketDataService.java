@@ -4,13 +4,17 @@ import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.providers.PriceService;
+import com.beancounter.marketdata.providers.ProviderUtils;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +27,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class MarketDataService {
 
-  private final MdFactory mdFactory;
+  private final ProviderUtils providerUtils;
+  private final PriceService priceService;
 
   @Autowired
-  MarketDataService(MdFactory mdFactory) {
-    this.mdFactory = mdFactory;
+  MarketDataService(ProviderUtils providerUtils, PriceService priceService) {
+    this.providerUtils = providerUtils;
+    this.priceService = priceService;
   }
 
   /**
@@ -36,57 +42,57 @@ public class MarketDataService {
    * @param asset to query
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
-  public PriceResponse getPrice(Asset asset) {
+  public PriceResponse getPriceResponse(Asset asset) {
     List<AssetInput> inputs = new ArrayList<>();
     inputs.add(AssetInput.builder().resolvedAsset(asset).build());
-    PriceRequest priceRequest = PriceRequest.builder().assets(inputs).build();
-    return getPrice(priceRequest);
+    return getPriceResponse(PriceRequest.builder().assets(inputs).build());
   }
 
   /**
-   * MarketData for a Collection of assets.
+   * Prices for the request.
    *
-   * @param priceRequest to query
+   * @param priceRequest to process
    * @return results
    */
-  public PriceResponse getPrice(PriceRequest priceRequest) {
-    Map<String, Collection<Asset>> factories = splitProviders(priceRequest.getAssets());
-    Collection<MarketData> results = new ArrayList<>();
+  @Transactional
+  public PriceResponse getPriceResponse(PriceRequest priceRequest) {
 
-    for (String dpId : factories.keySet()) {
-      results.addAll(mdFactory.getMarketDataProvider(dpId)
-          .getMarketData(priceRequest));
-    }
-    return PriceResponse.builder().data(results).build();
-  }
+    Map<MarketDataProvider, Collection<Asset>>
+        byFactory = providerUtils.splitProviders(priceRequest.getAssets());
 
-  private Map<String, Collection<Asset>> splitProviders(Collection<AssetInput> assets) {
-    Map<String, Collection<Asset>> results = new HashMap<>();
+    Collection<MarketData> existing = new ArrayList<>();
+    Collection<MarketData> apiResults = new ArrayList<>();
 
-    for (AssetInput input : assets) {
-      Market market;
-      if (input.getResolvedAsset() != null) {
-        market = input.getResolvedAsset().getMarket();
-      } else {
-        // Asset is not known locally
-        market = Market.builder().code(input.getMarket()).build();
-        Asset resolvedAsset = Asset.builder()
-            .code(input.getCode())
-            .name(input.getName())
-            .market(market)
+    for (MarketDataProvider marketDataProvider : byFactory.keySet()) {
+      // Pull from the DB
+      Iterator<Asset> assetIterable = byFactory.get(marketDataProvider).iterator();
+      while (assetIterable.hasNext()) {
+        Asset asset = assetIterable.next();
+        LocalDate mpDate = marketDataProvider.getDate(asset.getMarket(), priceRequest);
+        Optional<MarketData> md = priceService.getMarketData(asset.getId(), mpDate);
+        if (md.isPresent()) {
+          existing.add(md.get());
+          assetIterable.remove(); // One less external query to make
+        }
+      }
+
+      // Pull the balance over external API integration
+      Collection<Asset> apiAssets = byFactory.get(marketDataProvider);
+      if (!apiAssets.isEmpty()) {
+        Collection<AssetInput> assetInputs = providerUtils.getInputs(apiAssets);
+        PriceRequest apiRequest = PriceRequest.builder()
+            .date(priceRequest.getDate())
+            .assets(assetInputs)
             .build();
-        input.setResolvedAsset(resolvedAsset);
+        apiResults = marketDataProvider.getMarketData(apiRequest);
       }
-      MarketDataProvider marketDataProvider = mdFactory.getMarketDataProvider(market);
-      Collection<Asset> mdpAssets = results.get(marketDataProvider.getId());
-      if (mdpAssets == null) {
-        mdpAssets = new ArrayList<>();
-      }
-      mdpAssets.add(input.getResolvedAsset());
-      results.put(marketDataProvider.getId(), mdpAssets);
     }
-    return results;
-  }
 
+    // Merge results into a response
+    PriceResponse response = PriceResponse.builder().data(apiResults).build();
+    priceService.write(response); // Async write
+    response.getData().addAll(existing);
+    return response;
+  }
 
 }

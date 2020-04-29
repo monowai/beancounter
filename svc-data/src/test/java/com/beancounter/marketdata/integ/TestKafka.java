@@ -7,17 +7,26 @@ import com.beancounter.client.AssetService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
+import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.contracts.TrnResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.portfolio.PortfolioService;
+import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
+import com.beancounter.marketdata.service.MarketDataService;
+import com.beancounter.marketdata.service.MdFactory;
 import com.beancounter.marketdata.trn.TrnKafkaConsumer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +46,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @EmbeddedKafka(
     partitions = 1,
-    topics = {"topicTrnCsv"},
+    topics = {"topicTrnCsv", "topicPrice"},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
         "log.dir=./kafka",
@@ -47,7 +56,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest
 @ActiveProfiles("kafka")
 @Slf4j
-public class TestKafkaTrnConsumer {
+public class TestKafka {
 
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -55,7 +64,16 @@ public class TestKafkaTrnConsumer {
   private EmbeddedKafkaBroker embeddedKafkaBroker;
 
   @Autowired
+  private MdFactory mdFactory;
+
+  @Autowired
+  private MarketDataService marketDataService;
+
+  @Autowired
   private AssetService assetService;
+
+  @Autowired
+  private PriceWriter priceWriter;
 
   @Autowired
   private PortfolioService portfolioService;
@@ -68,6 +86,11 @@ public class TestKafkaTrnConsumer {
 
   @Autowired
   private TrnKafkaConsumer trnKafkaConsumer;
+
+  @Autowired
+  private DateUtils dateUtils;
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @SneakyThrows
   @Test
@@ -121,4 +144,56 @@ public class TestKafkaTrnConsumer {
     }
   }
 
+  @Test
+  @SneakyThrows
+  void is_PricePersisted() {
+    AssetRequest assetRequest = AssetRequest.builder()
+        .data("test", AssetUtils.getAssetInput("NASDAQ", "MSFT"))
+        .build();
+
+    AssetUpdateResponse assetResult = assetService.process(assetRequest);
+    Asset asset = assetResult.getData().get("test");
+    assertThat(asset).isNotNull().hasFieldOrProperty("id");
+
+    Collection<MarketData> marketData = new ArrayList<>();
+    marketData.add(MarketData.builder()
+        .asset(asset)
+        .volume(BigDecimal.TEN)
+        .open(BigDecimal.TEN)
+        .priceDate(dateUtils.getDate("2020-02-02"))
+        .build());
+
+    PriceResponse priceResponse = PriceResponse.builder().data(marketData).build();
+
+    Collection<AssetInput> assets = new ArrayList<>();
+
+    Iterable<MarketData> results = priceWriter.processMessage(
+        objectMapper.writeValueAsString(priceResponse));
+    for (MarketData result : results) {
+      assertThat(result).hasFieldOrProperty("id");
+
+      AssetInput assetInput = AssetInput.builder()
+          .code(asset.getCode())
+          .market(asset.getMarket().getCode())
+          .resolvedAsset(asset)
+          .build();
+      assets.add(assetInput);
+    }
+
+    // Will be resolved over the mocked API
+    assets.add(AssetInput.builder()
+        .code("APPL")
+        .market("NASDAQ")
+        .resolvedAsset(AssetUtils.getAsset("NASDAQ", "AAPL"))
+        .build());
+
+    PriceRequest priceRequest = PriceRequest.builder()
+        .date("2020-02-02")
+        .assets(assets)
+        .build();
+
+    PriceResponse price = marketDataService.getPriceResponse(priceRequest);
+    assertThat(price).isNotNull();
+    assertThat(price.getData()).isNotEmpty().hasSize(2);
+  }
 }

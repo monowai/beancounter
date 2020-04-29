@@ -9,6 +9,7 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -16,7 +17,8 @@ import java.util.Collection;
 import org.junit.jupiter.api.Test;
 
 class TestMarketData {
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final DateUtils dateUtils = new DateUtils();
 
   @Test
   void is_MarketDataSerializing() throws Exception {
@@ -28,7 +30,7 @@ class TestMarketData {
         .open(BigDecimal.ONE)
         .close(BigDecimal.TEN)
         .high(BigDecimal.TEN)
-        .date("2012-10-01")
+        .priceDate(dateUtils.getDate("2012-10-01"))
         .build());
 
     PriceResponse priceResponse = PriceResponse.builder().data(marketDataCollection).build();

@@ -124,7 +124,7 @@ class MarketDataControllerTests {
     assertThat(marketData)
         .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
-        .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());
+        .hasFieldOrPropertyWithValue("priceDate", mockProviderService.getPriceDate());
   }
 
   @Test
@@ -180,7 +180,7 @@ class MarketDataControllerTests {
     assertThat(marketData)
         .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
         .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
-        .hasFieldOrPropertyWithValue("date", mockProviderService.getPriceDate());
+        .hasFieldOrPropertyWithValue("priceDate", mockProviderService.getPriceDate());
 
 
   }

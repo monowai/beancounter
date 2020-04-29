@@ -44,4 +44,11 @@ public class Asset {
   // Caller doesn't see marketCode
   @JsonIgnore
   private String marketCode;
+
+  @Transient
+  @JsonIgnore
+  // Is this asset stored locally?
+  public Boolean isKnown() {
+    return id != null && ! code.equalsIgnoreCase(id);
+  }
 }

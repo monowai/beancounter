@@ -22,11 +22,15 @@ import org.springframework.stereotype.Component;
 public class DateUtils {
 
   public ZoneId defaultZone = ZoneId.of("Asia/Singapore");
-  private String format = "yyyy-MM-dd";
-  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+  public static final String format = "yyyy-MM-dd";
+  private final SimpleDateFormat defaultFormatter = new SimpleDateFormat(format);
 
   public LocalDate getLastMarketDate(LocalDate seedDate, ZoneId targetZone) {
-    return getLastMarketDate(seedDate, targetZone, 1);
+    int days = 1;
+    if (!isToday(getDateString(seedDate))) {
+      days = 0;
+    }
+    return getLastMarketDate(seedDate, targetZone, days);
   }
 
   /**
@@ -38,11 +42,11 @@ public class DateUtils {
    * @param targetZone market to locate requestedDate on
    * @return resolved Date
    */
-  public LocalDate getLastMarketDate(LocalDate seedDate, ZoneId targetZone, int days) {
+  public LocalDate getLastMarketDate(LocalDate seedDate, ZoneId targetZone, int daysToSubtract) {
     Objects.requireNonNull(seedDate);
     Objects.requireNonNull(targetZone);
 
-    LocalDate result = seedDate.minusDays(days);
+    LocalDate result = seedDate.minusDays(daysToSubtract);
 
     while (!isWorkDay(result)) {
       result = result.minusDays(1);
@@ -105,8 +109,8 @@ public class DateUtils {
       return true; // Null date is BC is "today"
     }
     try {
-      Date today = simpleDateFormat.parse(today());
-      Date compareWith = simpleDateFormat.parse(inDate);
+      Date today = defaultFormatter.parse(today());
+      Date compareWith = defaultFormatter.parse(inDate);
       return today.compareTo(compareWith) == 0;
     } catch (ParseException e) {
       throw new BusinessException(String.format("Unable to parse the date %s", inDate));

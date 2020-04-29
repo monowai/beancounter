@@ -20,8 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.listener.KafkaListenerErrorHandler;
-import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -68,34 +66,14 @@ public class TrnKafkaConsumer {
     return new NewTopic(topicTrnCsv, 1, (short) 1);
   }
 
-  @Bean
-  public KafkaListenerErrorHandler trnErrorHandler() {
-    return (m, e) -> {
-      log.error("{}. {}. {}",
-          e.getMostSpecificCause().getMessage(),
-          findBcCause(e),
-          m.getPayload());
-      return null;
-    };
-  }
-
-  private String findBcCause(ListenerExecutionFailedException e) {
-    StackTraceElement[] stackTrace = e.getMostSpecificCause().getStackTrace();
-    for (StackTraceElement stackTraceElement : stackTrace) {
-      if (stackTraceElement.getClassName().contains("com.beancounter")) {
-        return stackTraceElement.toString();
-      }
-    }
-    return "No BC Classes Found";
-  }
 
   @Bean
-  public String topicName() {
+  public String trnTopic() {
     log.info("Topic: TRN-CSV set to {}", topicTrnCsv);
     return topicTrnCsv;
   }
 
-  @KafkaListener(topics = "#{@topicName}", errorHandler = "trnErrorHandler")
+  @KafkaListener(topics = "#{@trnTopic}", errorHandler = "bcErrorHandler")
   public TrnResponse processMessage(String message) throws JsonProcessingException {
     TrustedTrnRequest trustedRequest = objectMapper.readValue(message, TrustedTrnRequest.class);
     if (trustedRequest.getMessage() != null) {

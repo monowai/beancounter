@@ -5,11 +5,14 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.service.MarketDataProvider;
+import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.service.MdFactory;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -33,7 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("alpha")
 @Tag("slow")
 class TestAlphaVantageApi {
 
@@ -41,6 +44,12 @@ class TestAlphaVantageApi {
 
   @Autowired
   private MdFactory mdFactory;
+
+  @Autowired
+  private MarketService marketService;
+
+  @Autowired
+  private MarketDataService marketDataService;
 
   @Autowired
   void mockServices() {
@@ -97,10 +106,11 @@ class TestAlphaVantageApi {
   void is_ApiCallLimitExceededHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
+    Market nasdaq = marketService.getMarket("NASDAQ");
 
-    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API.X", jsonFile);
+    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API", jsonFile);
     Asset asset =
-        Asset.builder().code("API").market(Market.builder().code("X").build()).build();
+        Asset.builder().code("API").market(nasdaq).build();
 
     Collection<MarketData> results = mdFactory.getMarketDataProvider(AlphaService.ID)
         .getMarketData(PriceRequest.of(asset).build());
@@ -108,10 +118,14 @@ class TestAlphaVantageApi {
     assertThat(results)
         .isNotNull()
         .hasSize(1);
-
-    assertThat(results.iterator().next())
+    MarketData mdpPrice = results.iterator().next();
+    assertThat(mdpPrice)
         .hasFieldOrPropertyWithValue("asset", asset)
         .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+
+    PriceResponse priceResponse = marketDataService.getPriceResponse(asset);
+    assertThat(priceResponse).isNotNull();
+
   }
 
   @Test

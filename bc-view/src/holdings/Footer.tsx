@@ -9,7 +9,7 @@ export function Footer(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }):
   return (
     <tbody className={"holding-totals-row"}>
       <tr key={holdingGroup.group} className={"holding-footer"}>
-        <td colSpan={4} align={"right"}>
+        <td colSpan={3} align={"right"}>
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}
         </td>
         <td align={"right"}>
@@ -24,6 +24,7 @@ export function Footer(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }):
             moneyField={"marketValue"}
           />
         </td>
+        <td />
         <td align={"right"}>
           <FormatMoneyValue
             moneyValues={holdingGroup.subTotals[valueIn]}

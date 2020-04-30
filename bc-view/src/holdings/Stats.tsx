@@ -10,10 +10,10 @@ export default function StatsHeader(props: { portfolio: Portfolio }): JSX.Elemen
     <tbody key={props.portfolio.code}>
       <tr className={"stats-header"}>
         <th align={"left"}>Summary</th>
-        <th align={"right"}>{translate("dividends")}</th>
+        <th align={"right"}>{translate("value")}</th>
         <th align={"right"}>{translate("purchases")}</th>
         <th align={"right"}>{translate("sales")}</th>
-        <th align={"right"}>{translate("value")}</th>
+        <th align={"right"}>{translate("dividends")}</th>
         <th align={"right"}>{translate("strategy")}</th>
       </tr>
     </tbody>
@@ -38,7 +38,7 @@ export function StatsRow(props: {
           </div>
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"marketValue"} />
         </td>
         <td align={"right"}>
           <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
@@ -47,7 +47,7 @@ export function StatsRow(props: {
           <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"marketValue"} />
+          <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
         </td>
         <td align={"right"}>
           <FormatMoneyValue moneyValues={moneyValues} moneyField={"totalGain"} />

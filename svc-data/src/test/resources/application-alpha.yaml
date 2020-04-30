@@ -1,0 +1,19 @@
+server:
+  port: 0
+
+kafka:
+  enabled: false
+
+beancounter:
+  marketdata:
+    provider:
+      FIGI:
+        url: http://localhost:6666
+        key: demo
+      ALPHA:
+        url: http://localhost:9999
+        markets: NASDAQ,AMEX,NYSE,ASX,NZX
+      FX:
+        url: http://localhost:7777
+      MOCK:
+        markets: MOCK

@@ -147,6 +147,7 @@ public class TestKafka {
   @Test
   @SneakyThrows
   void is_PricePersisted() {
+    String priceDate = "2020-04-29";
     AssetRequest assetRequest = AssetRequest.builder()
         .data("test", AssetUtils.getAssetInput("NASDAQ", "MSFT"))
         .build();
@@ -160,7 +161,7 @@ public class TestKafka {
         .asset(asset)
         .volume(BigDecimal.TEN)
         .open(BigDecimal.TEN)
-        .priceDate(dateUtils.getDate("2020-02-02"))
+        .priceDate(dateUtils.getDate(priceDate))
         .build());
 
     PriceResponse priceResponse = PriceResponse.builder().data(marketData).build();
@@ -188,12 +189,26 @@ public class TestKafka {
         .build());
 
     PriceRequest priceRequest = PriceRequest.builder()
-        .date("2020-02-02")
+        .date(priceDate) // Mocked date - MSFT has, AAPL has no price
         .assets(assets)
         .build();
 
-    PriceResponse price = marketDataService.getPriceResponse(priceRequest);
-    assertThat(price).isNotNull();
-    assertThat(price.getData()).isNotEmpty().hasSize(2);
+    // First call will persist the result in an async manner
+    priceResponse = marketDataService.getPriceResponse(priceRequest);
+    assertThat(priceResponse).isNotNull();
+    assertThat(priceResponse.getData()).isNotEmpty().hasSize(2);
+
+    Thread.sleep(2000);
+    // Second call will retrieve from DB to assert objects are correctly hydrated
+    priceResponse = marketDataService.getPriceResponse(priceRequest);
+    assertThat(priceResponse).isNotNull();
+    assertThat(priceResponse.getData()).isNotEmpty().hasSize(2);
+    for (MarketData md : priceResponse.getData()) {
+      assertThat(md.getAsset()).isNotNull()
+          .hasFieldOrProperty("id");
+      assertThat(md.getAsset().getMarket())
+          // These are not used client side so should be ignored
+          .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId");
+    }
   }
 }

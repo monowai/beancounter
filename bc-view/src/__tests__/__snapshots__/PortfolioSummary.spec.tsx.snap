@@ -18,7 +18,7 @@ Object {
             <th
               align="right"
             >
-              dividends
+              value
             </th>
             <th
               align="right"
@@ -33,7 +33,7 @@ Object {
             <th
               align="right"
             >
-              value
+              dividends
             </th>
             <th
               align="right"
@@ -59,7 +59,7 @@ Object {
           <th
             align="right"
           >
-            dividends
+            value
           </th>
           <th
             align="right"
@@ -74,7 +74,7 @@ Object {
           <th
             align="right"
           >
-            value
+            dividends
           </th>
           <th
             align="right"

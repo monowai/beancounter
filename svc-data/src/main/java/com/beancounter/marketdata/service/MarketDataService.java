@@ -71,7 +71,9 @@ public class MarketDataService {
         LocalDate mpDate = marketDataProvider.getDate(asset.getMarket(), priceRequest);
         Optional<MarketData> md = priceService.getMarketData(asset.getId(), mpDate);
         if (md.isPresent()) {
-          existing.add(md.get());
+          MarketData mdValue = md.get();
+          mdValue.setAsset(asset);
+          existing.add(mdValue);
           assetIterable.remove(); // One less external query to make
         }
       }

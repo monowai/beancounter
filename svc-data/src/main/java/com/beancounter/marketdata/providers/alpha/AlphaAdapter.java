@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha;
 
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
@@ -27,7 +28,7 @@ public class AlphaAdapter implements MarketDataAdapter {
     SimpleModule module =
         new SimpleModule("AlphaMarketDataDeserializer",
             new Version(1, 0, 0, null, null, null));
-    module.addDeserializer(MarketData.class, new AlphaDeserializer());
+    module.addDeserializer(PriceResponse.class, new AlphaDeserializer());
     alphaMdMapper.registerModule(module);
   }
 
@@ -42,10 +43,12 @@ public class AlphaAdapter implements MarketDataAdapter {
       for (String dpAsset : assets) {
         Asset asset = providerArguments.getDpToBc().get(dpAsset);
         if (isMdResponse(asset, response)) {
-          MarketData marketData = alphaMdMapper.readValue(response, MarketData.class);
-          marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
-          log.trace("Valued {} ", asset.getName());
-          results.add(marketData);
+          PriceResponse priceResponse = alphaMdMapper.readValue(response, PriceResponse.class);
+          for (MarketData marketData : priceResponse.getData()) {
+            marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
+            log.trace("Valued {} ", asset.getName());
+            results.add(marketData);
+          }
         } else {
           results.add(getDefault(asset));
         }

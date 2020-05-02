@@ -51,5 +51,7 @@ public class MarketData {
   private BigDecimal low;
   private BigDecimal high;
   private BigDecimal volume;
+  private BigDecimal previousClose;
+  private BigDecimal change;
 
 }

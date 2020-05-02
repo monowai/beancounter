@@ -5,6 +5,7 @@ import static com.beancounter.marketdata.providers.ProviderArguments.getInstance
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class AlphaService implements MarketDataProvider {
   private String apiKey;
   private AlphaProxyCache alphaProxyCache;
   private AlphaAdapter alphaAdapter;
+  private final DateUtils dateUtils = new DateUtils();
 
   public AlphaService(AlphaConfig alphaConfig) {
     this.alphaConfig = alphaConfig;
@@ -58,16 +60,31 @@ public class AlphaService implements MarketDataProvider {
     Map<Integer, String> requests = new ConcurrentHashMap<>();
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
-      requests.put(
-          batchId,
-          alphaProxyCache.getPrices(
-              providerArguments.getBatch().get(batchId),
-              providerArguments.getBatchConfigs().get(batchId).getDate(),
-              apiKey));
+      String date = providerArguments.getBatchConfigs().get(batchId).getDate();
+      if (isCurrent(priceRequest.getDate())) {
+        requests.put(
+            batchId,
+            alphaProxyCache.getCurrent(
+                providerArguments.getBatch().get(batchId),
+                date,
+                apiKey));
+      } else {
+        requests.put(
+            batchId,
+            alphaProxyCache.getHistoric(
+                providerArguments.getBatch().get(batchId),
+                date,
+                apiKey));
+      }
+
     }
 
     return getMarketData(providerArguments, requests);
 
+  }
+
+  private boolean isCurrent(String date) {
+    return dateUtils.isToday(date);
   }
 
   private Collection<MarketData> getMarketData(ProviderArguments providerArguments,

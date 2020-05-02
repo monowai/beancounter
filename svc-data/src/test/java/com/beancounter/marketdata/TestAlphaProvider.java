@@ -2,6 +2,7 @@ package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
@@ -30,14 +31,15 @@ class TestAlphaProvider {
   void is_NullAsset() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/alphavantage-empty-response.json").getFile();
-    assertThat(mapper.readValue(jsonFile, MarketData.class)).isNull();
+
+    assertThat(mapper.readValue(jsonFile, PriceResponse.class)).isNull();
   }
 
   @Test
   void is_GlobalResponse() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/global-response.json").getFile();
-    MarketData marketData = mapper.readValue(jsonFile, MarketData.class);
+    PriceResponse marketData = mapper.readValue(jsonFile, PriceResponse.class);
     assertThat(marketData).isNotNull().hasNoNullFieldsOrPropertiesExcept("id", "requestDate");
   }
 
@@ -65,8 +67,8 @@ class TestAlphaProvider {
   }
 
   private MarketData validateResponse(File jsonFile) throws Exception {
-    MarketData marketData = mapper.readValue(jsonFile, MarketData.class);
-
+    PriceResponse priceResponse = mapper.readValue(jsonFile, PriceResponse.class);
+    MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)
         .isNotNull()
         .hasFieldOrProperty("asset")

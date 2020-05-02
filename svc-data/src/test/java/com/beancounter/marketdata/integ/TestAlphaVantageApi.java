@@ -65,7 +65,7 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API.ERR", jsonFile);
+    AlphaMockUtils.mockCurrentResponse(alphaVantage, "API.ERR", jsonFile);
     Asset asset =
         Asset.builder().code("API").market(Market.builder().code("ERR").build()).build();
 
@@ -85,13 +85,14 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API.KEY", jsonFile);
+    AlphaMockUtils.mockHistoricResponse(alphaVantage, "API.KEY", jsonFile);
     Asset asset =
         Asset.builder().code("API")
             .market(Market.builder().code("KEY").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
-    Collection<MarketData> results = alphaProvider.getMarketData(PriceRequest.of(asset).build());
+    Collection<MarketData> results = alphaProvider.getMarketData(
+        PriceRequest.of(asset).date("2020-01-01").build());
     assertThat(results)
         .isNotNull()
         .hasSize(1);
@@ -108,12 +109,14 @@ class TestAlphaVantageApi {
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
     Market nasdaq = marketService.getMarket("NASDAQ");
 
-    AlphaMockUtils.mockAlphaResponse(alphaVantage, "API", jsonFile);
+    AlphaMockUtils.mockCurrentResponse(alphaVantage, "ABC", jsonFile);
     Asset asset =
-        Asset.builder().code("API").market(nasdaq).build();
+        Asset.builder().code("ABC").market(nasdaq).build();
 
     Collection<MarketData> results = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(PriceRequest.of(asset).build());
+        .getMarketData(PriceRequest
+            .of(asset)
+            .build());
 
     assertThat(results)
         .isNotNull()
@@ -133,12 +136,16 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantage-asx.json").getFile();
 
-    AlphaMockUtils.mockAlphaResponse(alphaVantage, "ABC.AX", jsonFile);
+    AlphaMockUtils.mockHistoricResponse(alphaVantage, "ABC.AX", jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
 
     Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(PriceRequest.of(asset).build());
+        .getMarketData(
+            PriceRequest
+                .of(asset)
+                .date("2019-02-28")
+                .build());
 
     MarketData marketData = mdResult.iterator().next();
     assertThat(marketData)
@@ -148,6 +155,32 @@ class TestAlphaVantageApi {
         .hasFieldOrPropertyWithValue("open", new BigDecimal("112.0400"))
         .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
         .hasFieldOrPropertyWithValue("high", new BigDecimal("112.8800"))
+    ;
+
+  }
+
+  @Test
+  void is_CurrentPriceFound() throws Exception {
+
+    File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
+
+    AlphaMockUtils.mockCurrentResponse(alphaVantage, "MSFT", jsonFile);
+    Asset asset =
+        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
+    PriceRequest priceRequest = PriceRequest.of(asset).build();
+    Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
+        .getMarketData(priceRequest);
+
+    MarketData marketData = mdResult.iterator().next();
+    assertThat(marketData)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrProperty("close")
+        .hasFieldOrProperty("open")
+        .hasFieldOrProperty("low")
+        .hasFieldOrProperty("high")
+        .hasFieldOrProperty("previousClose")
+        .hasFieldOrProperty("change")
     ;
 
   }

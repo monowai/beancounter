@@ -42,7 +42,7 @@ public class PriceService {
       }
     }
     if (createSet.isEmpty()) {
-      return new ArrayList<>();
+      return createSet;
     }
     return marketDataRepo.saveAll(createSet);
   }

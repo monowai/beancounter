@@ -28,6 +28,7 @@ public class MarketValue {
                     Map<IsoCurrencyPair, FxRate> rates) {
 
     Asset asset = marketData.getAsset();
+    assert asset.getMarket() != null && asset.getMarket().getCurrency() != null;
     Currency trade = asset.getMarket().getCurrency();
     Position position = positions.get(asset);
     Portfolio portfolio = positions.getPortfolio();

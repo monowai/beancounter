@@ -14,12 +14,13 @@ public class AlphaProxy {
   }
 
   @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
-  public String getPrices(String code, String apiKey) {
-    return alphaGateway.getPrices(code, apiKey);
+  public String getCurrent(String code, String apiKey) {
+    return alphaGateway.getCurrent(code, apiKey);
   }
 
   @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
-  public String getPrice(String code, String apiKey) {
-    return alphaGateway.getPrice(code, apiKey);
+  public String getHistoric(String code, String apiKey) {
+    return alphaGateway.getHistoric(code, apiKey);
   }
+
 }

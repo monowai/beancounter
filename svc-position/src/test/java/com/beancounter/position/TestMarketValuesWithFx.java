@@ -10,6 +10,7 @@ import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
+import com.beancounter.common.model.PriceData;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
@@ -73,6 +74,7 @@ class TestMarketValuesWithFx {
     assertThat(position.getMoneyValues(Position.In.TRADE))
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(marketData.getClose())
+            .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
             .averageCost(new BigDecimal("20.00"))
             .currency(currencyUtils.getCurrency("USD"))
             .purchases(buyTrn.getTradeAmount())
@@ -88,6 +90,7 @@ class TestMarketValuesWithFx {
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .price(marketData.getClose())
             .averageCost(new BigDecimal("20.00"))
+            .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
             .currency(currencyUtils.getCurrency("USD"))
             .purchases(buyTrn.getTradeAmount())
             .costBasis(buyTrn.getTradeAmount())
@@ -104,6 +107,7 @@ class TestMarketValuesWithFx {
             .costBasis(new BigDecimal("10000.00"))
             .purchases(new BigDecimal("10000.00"))
             .price(new BigDecimal("2.00"))
+            .priceData(PriceData.builder().close(new BigDecimal("50.00")).build())
             .marketValue(new BigDecimal("200.00"))
             .averageCost(new BigDecimal("100.00"))
             .costValue(new BigDecimal("10000.00"))
@@ -168,9 +172,10 @@ class TestMarketValuesWithFx {
         .isEqualToComparingFieldByField(
             MoneyValues.builder()
                 .price(new BigDecimal("10.00"))
-                .marketValue(new BigDecimal("0.00"))
+                .marketValue(new BigDecimal("0"))
                 .averageCost(BigDecimal.ZERO)
                 .currency(currencyUtils.getCurrency("USD"))
+                .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
                 .purchases(buyTrn.getTradeAmount())
                 .sales(sellTrn.getTradeAmount())
                 .costValue(BigDecimal.ZERO)
@@ -184,7 +189,8 @@ class TestMarketValuesWithFx {
         .isEqualToComparingFieldByField(
             MoneyValues.builder()
                 .price(new BigDecimal("10.00"))
-                .marketValue(new BigDecimal("0.00"))
+                .marketValue(new BigDecimal("0"))
+                .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
                 .averageCost(BigDecimal.ZERO)
                 .currency(currencyUtils.getCurrency("USD"))
                 .purchases(buyTrn.getTradeAmount())
@@ -201,7 +207,8 @@ class TestMarketValuesWithFx {
             MoneyValues.builder()
                 .currency(portfolio.getCurrency())
                 .price(new BigDecimal("2.00"))
-                .marketValue(new BigDecimal("0.00"))
+                .marketValue(new BigDecimal("0"))
+                .priceData(PriceData.builder().close(new BigDecimal("50.00")).build())
                 .averageCost(BigDecimal.ZERO)
                 .purchases(MathUtils.divide(buyTrn.getTradeAmount(), simpleRate))
                 .sales(MathUtils.divide(sellTrn.getTradeAmount(), simpleRate))

@@ -10,6 +10,7 @@ import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
+import com.beancounter.common.model.PriceData;
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -45,11 +46,11 @@ public class MarketValue {
     );
   }
 
-  private void value(BigDecimal total, MoneyValues moneyValues, MarketData price, FxRate rate) {
+  private void value(BigDecimal total, MoneyValues moneyValues, MarketData mktData, FxRate rate) {
 
-    moneyValues.setPrice(MathUtils.multiply(price.getClose(), rate.getRate()));
-    moneyValues.setMarketData(price);
-    if ( total.compareTo(BigDecimal.ZERO )== 0){
+    moneyValues.setPrice(MathUtils.multiply(mktData.getClose(), rate.getRate()));
+    moneyValues.setPriceData(PriceData.of(mktData, rate.getRate()));
+    if (total.compareTo(BigDecimal.ZERO) == 0) {
       moneyValues.setMarketValue(BigDecimal.ZERO);
     } else {
       moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));

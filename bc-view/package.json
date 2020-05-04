@@ -14,6 +14,7 @@
     "test": "razzle test --env=jest-environment-jsdom-sixteen"
   },
   "dependencies": {
+    "@creativebulma/bulma-tooltip": "^1.0.2",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@react-keycloak/core": "^2.0.0",
     "@react-keycloak/razzle": "^2.0.0-beta.3",

@@ -42,6 +42,10 @@ public class MathUtils {
   }
 
   public BigDecimal changePercent(BigDecimal currentValue, BigDecimal oldValue) {
+    return changePercent(currentValue, oldValue, percentScale);
+  }
+
+  public BigDecimal changePercent(BigDecimal currentValue, BigDecimal oldValue, int percentScale) {
     if (isUnset(currentValue) || isUnset(oldValue)) {
       return null;
     }

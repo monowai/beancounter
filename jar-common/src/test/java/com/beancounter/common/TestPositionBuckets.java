@@ -14,6 +14,6 @@ class TestPositionBuckets {
         .currency(Currency.builder().code("USD").build())
         .build();
 
-    assertThat(moneyValues).hasNoNullFieldsOrProperties();
+    assertThat(moneyValues).hasNoNullFieldsOrPropertiesExcept("priceData");
   }
 }

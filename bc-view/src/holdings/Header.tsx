@@ -7,6 +7,7 @@ export function Header(props: { groupKey: string }): JSX.Element {
       <tr>
         <th>{props.groupKey}</th>
         <th align={"right"}>{translate("price")}</th>
+        <th align={"right"}>{translate("change")}</th>
         <th align={"right"}>{translate("quantity")}</th>
         <th align={"right"}>{translate("value")}</th>
         <th align={"right"}>{translate("cost")}</th>

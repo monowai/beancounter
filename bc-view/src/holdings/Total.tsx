@@ -9,7 +9,7 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
   return (
     <tbody className={"totals-row"} key={holdings.portfolio.code + "totals"}>
       <tr key={valueIn}>
-        <td colSpan={3} align={"right"}>
+        <td colSpan={4} align={"right"}>
           Totals in {valueIn} currency
         </td>
         <td align={"right"}>

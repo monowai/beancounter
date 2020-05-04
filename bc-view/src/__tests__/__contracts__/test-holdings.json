@@ -57,6 +57,17 @@
           "realisedGain": 607.18,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -76,6 +87,17 @@
           "realisedGain": 132.11,
           "unrealisedGain": -1436.44,
           "totalGain": -1178.0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "NZD",
             "name": "Dollar",
@@ -95,6 +117,17 @@
           "realisedGain": 607.18,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -144,6 +177,17 @@
           "realisedGain": 0,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -163,6 +207,17 @@
           "realisedGain": 0,
           "unrealisedGain": -1263.0,
           "totalGain": -1256.5,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "NZD",
             "name": "Dollar",
@@ -182,6 +237,17 @@
           "realisedGain": 0,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -231,6 +297,17 @@
           "realisedGain": 0,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "AUD",
             "name": "Dollar",
@@ -250,6 +327,17 @@
           "realisedGain": 0,
           "unrealisedGain": -2436.73,
           "totalGain": 161.89,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "NZD",
             "name": "Dollar",
@@ -269,6 +357,17 @@
           "realisedGain": 0,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -317,6 +416,17 @@
           "averageCost": 0,
           "realisedGain": 1176.51,
           "unrealisedGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "totalGain": 0,
           "currency": {
             "code": "USD",
@@ -337,6 +447,17 @@
           "realisedGain": 866.15,
           "unrealisedGain": 0,
           "totalGain": 902.34,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "NZD",
             "name": "Dollar",
@@ -352,6 +473,17 @@
           "sales": 2879.01,
           "price": 0,
           "marketValue": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "averageCost": 0,
           "realisedGain": 1176.51,
           "unrealisedGain": 0,
@@ -405,6 +537,17 @@
           "realisedGain": 236.37,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -424,6 +567,17 @@
           "realisedGain": 227.29,
           "unrealisedGain": -971.52,
           "totalGain": -514.37,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "NZD",
             "name": "Dollar",
@@ -443,6 +597,17 @@
           "realisedGain": 236.37,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -492,6 +657,17 @@
           "realisedGain": -174.44,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",
@@ -511,6 +687,17 @@
           "realisedGain": 26.7,
           "unrealisedGain": 0,
           "totalGain": 63.24,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "NZD",
             "name": "Dollar",
@@ -530,6 +717,17 @@
           "realisedGain": -174.44,
           "unrealisedGain": 0,
           "totalGain": 0,
+          "priceData": {
+            "priceDate": "2020-05-01",
+            "open": 106.210000,
+            "close": 132.03,
+            "low": null,
+            "high": null,
+            "previousClose": 135.35,
+            "change": -3.32,
+            "changePercent": -0.0251,
+            "volume": 13201794
+          },
           "currency": {
             "code": "USD",
             "name": "Dollar",

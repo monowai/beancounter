@@ -53,9 +53,17 @@ export interface MoneyValues {
   unrealisedGain: number;
   totalGain: number;
   price: number;
+  priceData: PriceData;
   marketValue: number;
   currency: Currency;
   valueIn: ValuationCcy;
+}
+
+export interface PriceData {
+  change: number;
+  previousClose: number;
+  changePercent: number;
+  priceDate: string;
 }
 
 export interface QuantityValues {

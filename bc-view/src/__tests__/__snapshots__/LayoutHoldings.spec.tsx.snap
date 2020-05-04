@@ -438,7 +438,7 @@ exports[`<ViewHoldings /> matches snapshot for zero getData 1`] = `
           <tr>
             <td
               align="right"
-              colspan="3"
+              colspan="4"
             >
               Totals in 
               PORTFOLIO
@@ -942,6 +942,11 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <th
               align="right"
             >
+              change
+            </th>
+            <th
+              align="right"
+            >
               quantity
             </th>
             <th
@@ -996,10 +1001,25 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               <label>
                 $
                  
-                <span>
-                  0.00
+                <span
+                  data-tooltip="2020-05-01"
+                >
+                  <span>
+                    0.00
+                  </span>
                 </span>
               </label>
+            </td>
+            <td
+              align="right"
+            >
+              <span
+                data-tooltip="P. Close 135.35"
+              >
+                (
+                -2.51
+                %)
+              </span>
             </td>
             <td
               align="right"
@@ -1071,7 +1091,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
           >
             <td
               align="right"
-              colspan="3"
+              colspan="4"
             >
               Sub-Total - 
               NZD
@@ -1136,6 +1156,11 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <th
               align="right"
             >
+              change
+            </th>
+            <th
+              align="right"
+            >
               quantity
             </th>
             <th
@@ -1190,10 +1215,25 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               <label>
                 $
                  
-                <span>
-                  0.00
+                <span
+                  data-tooltip="2020-05-01"
+                >
+                  <span>
+                    0.00
+                  </span>
                 </span>
               </label>
+            </td>
+            <td
+              align="right"
+            >
+              <span
+                data-tooltip="P. Close 135.35"
+              >
+                (
+                -2.51
+                %)
+              </span>
             </td>
             <td
               align="right"
@@ -1270,10 +1310,25 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               <label>
                 $
                  
-                <span>
-                  0.00
+                <span
+                  data-tooltip="2020-05-01"
+                >
+                  <span>
+                    0.00
+                  </span>
                 </span>
               </label>
+            </td>
+            <td
+              align="right"
+            >
+              <span
+                data-tooltip="P. Close 135.35"
+              >
+                (
+                -2.51
+                %)
+              </span>
             </td>
             <td
               align="right"
@@ -1350,10 +1405,25 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               <label>
                 $
                  
-                <span>
-                  0.00
+                <span
+                  data-tooltip="2020-05-01"
+                >
+                  <span>
+                    0.00
+                  </span>
                 </span>
               </label>
+            </td>
+            <td
+              align="right"
+            >
+              <span
+                data-tooltip="P. Close 135.35"
+              >
+                (
+                -2.51
+                %)
+              </span>
             </td>
             <td
               align="right"
@@ -1425,7 +1495,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
           >
             <td
               align="right"
-              colspan="3"
+              colspan="4"
             >
               Sub-Total - 
               NZD
@@ -1481,7 +1551,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
           <tr>
             <td
               align="right"
-              colspan="3"
+              colspan="4"
             >
               Totals in 
               PORTFOLIO

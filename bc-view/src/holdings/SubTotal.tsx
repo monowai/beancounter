@@ -9,7 +9,7 @@ export function SubTotal(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }
   return (
     <tbody className={"holding-totals-row"}>
       <tr key={holdingGroup.group} className={"holding-footer"}>
-        <td colSpan={3} align={"right"}>
+        <td colSpan={4} align={"right"}>
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}
         </td>
         <td align={"right"}>

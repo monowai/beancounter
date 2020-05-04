@@ -56,10 +56,10 @@ public class ValuationService implements Valuation {
       // There's an issue here that without a price, gains are not computed. Still
       // looks better having the current price in the front end anyway.
       //if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0)) {
-        assets.add(AssetInput.builder()
-            .code(position.getAsset().getCode())
-            .market(position.getAsset().getMarket().getCode())
-            .build());
+      assets.add(AssetInput.builder()
+          .code(position.getAsset().getCode())
+          .market(position.getAsset().getMarket().getCode())
+          .build());
       //}
     }
     Positions valuedPositions = positionValuationService.value(positions, assets);

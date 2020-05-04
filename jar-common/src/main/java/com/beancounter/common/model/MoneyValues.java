@@ -38,6 +38,8 @@ public class MoneyValues {
   @Builder.Default
   private BigDecimal marketValue = BigDecimal.ZERO;
 
+  private PriceData priceData;
+
   @Builder.Default
   private BigDecimal averageCost = BigDecimal.ZERO;
 

@@ -23,15 +23,28 @@ export function Rows(props: {
             {position.moneyValues[valueIn].currency.id}
             {position.moneyValues[valueIn].currency.symbol}
             &nbsp;
-            <NumberFormat
-              value={position.moneyValues[valueIn].price}
-              displayType={"text"}
-              decimalScale={2}
-              fixedDecimalScale={true}
-              thousandSeparator={true}
-            />
+            <span
+              data-tooltip={
+                position.moneyValues[valueIn].priceData
+                  ? position.moneyValues[valueIn].priceData.priceDate
+                  : ""
+              }
+            >
+              <NumberFormat
+                value={position.moneyValues[valueIn].price}
+                displayType={"text"}
+                decimalScale={2}
+                fixedDecimalScale={true}
+                thousandSeparator={true}
+              />
+            </span>
           </label>
         )}
+      </td>
+      <td align={"right"}>
+        <span data-tooltip={"P. Close " + position.moneyValues[valueIn].priceData.previousClose}>
+          ({(position.moneyValues[valueIn].priceData.changePercent * 100).toPrecision(3)}%)
+        </span>
       </td>
       <td align={"right"}>
         <Link to={`/trns/${props.portfolio.id}/asset/${position.asset.id}`}>

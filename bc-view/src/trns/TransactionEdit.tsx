@@ -39,7 +39,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           "/bff/trns",
           { data: [trnInput] },
           {
-            headers: getBearerToken(keycloak.token)
+            headers: getBearerToken(keycloak.token),
           }
         )
         .then(() => {
@@ -55,7 +55,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     } else {
       _axios
         .patch<Transaction>(`/bff/trns/${trnId}`, trnInput, {
-          headers: getBearerToken(keycloak.token)
+          headers: getBearerToken(keycloak.token),
         })
         .then(() => {
           logger.debug("<<patch Trn");

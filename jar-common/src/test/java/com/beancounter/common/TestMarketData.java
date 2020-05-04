@@ -27,9 +27,13 @@ class TestMarketData {
     marketDataCollection.add(MarketData.builder()
         .asset(AssetUtils.getJsonAsset("Market", "Asset"))
         .close(BigDecimal.TEN)
+        .previousClose(new BigDecimal("9.56"))
+        .changePercent(new BigDecimal("0.04"))
+        .change(new BigDecimal("1.56"))
         .open(BigDecimal.ONE)
         .close(BigDecimal.TEN)
         .high(BigDecimal.TEN)
+        .volume(10)
         .priceDate(dateUtils.getDate("2012-10-01"))
         .build());
 
@@ -38,8 +42,8 @@ class TestMarketData {
     PriceResponse fromJson = objectMapper.readValue(
         objectMapper.writeValueAsString(priceResponse),
         PriceResponse.class);
-
     assertThat(fromJson).isEqualToComparingFieldByField(priceResponse);
+    assertThat(fromJson.getData().iterator().next().getChangePercent()).isEqualTo("0.04");
   }
 
   @Test

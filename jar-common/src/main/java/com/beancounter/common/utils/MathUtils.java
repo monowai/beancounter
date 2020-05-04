@@ -13,7 +13,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class MathUtils {
 
-  private MathContext mathContext = new MathContext(10);
+  private final MathContext mathContext = new MathContext(10);
+
+  private final int moneyScale = 2;
+  private final int percentScale = 6;
 
   public BigDecimal divide(BigDecimal money, BigDecimal rate) {
     if (isUnset(rate)) {
@@ -23,7 +26,7 @@ public class MathUtils {
     if (isUnset(money)) {
       return money;
     }
-    return money.divide(rate, RoundingMode.HALF_UP);
+    return money.divide(rate, moneyScale, RoundingMode.HALF_UP);
   }
 
   public BigDecimal multiply(BigDecimal money, BigDecimal rate) {
@@ -35,7 +38,15 @@ public class MathUtils {
       return money;
     }
 
-    return money.multiply(rate).abs().setScale(2, RoundingMode.HALF_UP);
+    return money.multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP);
+  }
+
+  public BigDecimal changePercent(BigDecimal currentValue, BigDecimal oldValue) {
+    if (isUnset(currentValue) || isUnset(oldValue)) {
+      return null;
+    }
+
+    return currentValue.divide(oldValue, percentScale, RoundingMode.HALF_UP);
   }
 
   // Null and Zero are treated as "unSet"
@@ -48,7 +59,7 @@ public class MathUtils {
   }
 
   public BigDecimal add(BigDecimal value, BigDecimal amount) {
-    return value.add(amount).setScale(2, RoundingMode.HALF_UP);
+    return value.add(amount).setScale(moneyScale, RoundingMode.HALF_UP);
   }
 
   public BigDecimal parse(String value, NumberFormat numberFormat) throws ParseException {

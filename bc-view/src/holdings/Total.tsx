@@ -13,10 +13,10 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
           Totals in {valueIn} currency
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />
+          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
         </td>
         <td />
         <td align={"right"}>

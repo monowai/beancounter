@@ -9,6 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -45,13 +46,21 @@ public class MarketData {
   @JsonDeserialize(using = LocalDateDeserializer.class)
   private LocalDate priceDate;
 
+  @Column(precision = 15, scale = 6)
   private BigDecimal open;
   @Builder.Default
+  @Column(precision = 15, scale = 6)
   private BigDecimal close = BigDecimal.ZERO;
+  @Column(precision = 15, scale = 6)
   private BigDecimal low;
+  @Column(precision = 15, scale = 6)
   private BigDecimal high;
-  private BigDecimal volume;
+  @Column(precision = 15, scale = 6)
   private BigDecimal previousClose;
+  @Column(precision = 7, scale = 4)
   private BigDecimal change;
+  @Column(precision = 7, scale = 4)
+  private BigDecimal changePercent;
+  private Integer volume;
 
 }

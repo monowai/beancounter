@@ -34,21 +34,26 @@ public class MarketValue {
     Portfolio portfolio = positions.getPortfolio();
     BigDecimal total = position.getQuantityValues().getTotal();
 
-    value(total, position.getMoneyValues(Position.In.TRADE), marketData.getClose(),
+    value(total, position.getMoneyValues(Position.In.TRADE), marketData,
         FxRate.ONE
     );
-    value(total, position.getMoneyValues(Position.In.BASE), marketData.getClose(),
+    value(total, position.getMoneyValues(Position.In.BASE), marketData,
         rate(portfolio.getBase(), trade, rates)
     );
-    value(total, position.getMoneyValues(Position.In.PORTFOLIO), marketData.getClose(),
+    value(total, position.getMoneyValues(Position.In.PORTFOLIO), marketData,
         rate(portfolio.getCurrency(), trade, rates)
     );
   }
 
-  private void value(BigDecimal total, MoneyValues moneyValues, BigDecimal price, FxRate rate) {
+  private void value(BigDecimal total, MoneyValues moneyValues, MarketData price, FxRate rate) {
 
-    moneyValues.setPrice(MathUtils.multiply(price, rate.getRate()));
-    moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));
+    moneyValues.setPrice(MathUtils.multiply(price.getClose(), rate.getRate()));
+    moneyValues.setMarketData(price);
+    if ( total.compareTo(BigDecimal.ZERO )== 0){
+      moneyValues.setMarketValue(BigDecimal.ZERO);
+    } else {
+      moneyValues.setMarketValue(moneyValues.getPrice().multiply(total));
+    }
     gains.value(total, moneyValues);
   }
 

@@ -27,10 +27,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = Accumulator.class)
 class TestMoneyValues {
-  private static final BigDecimal TRADE_PORTFOLIO_RATE = new BigDecimal("100");
-  private Asset microsoft = AssetUtils.getAsset("NYSE", "MSFT");
-  private Asset intel = AssetUtils.getAsset("NYSE", "INTC");
-  private Asset bidu = AssetUtils.getAsset("NYSE", "BIDU");
+  private static final BigDecimal TRADE_PORTFOLIO_RATE = new BigDecimal("100.00");
+  private final Asset microsoft = AssetUtils.getAsset("NYSE", "MSFT");
+  private final Asset intel = AssetUtils.getAsset("NYSE", "INTC");
+  private final Asset bidu = AssetUtils.getAsset("NYSE", "BIDU");
 
   @Autowired
   private Accumulator accumulator;
@@ -51,10 +51,10 @@ class TestMoneyValues {
     Trn buyTrn = Trn.builder()
         .trnType(TrnType.BUY)
         .asset(microsoft)
-        .tradeAmount(new BigDecimal(2000))
+        .tradeAmount(new BigDecimal("2000.00"))
         .quantity(new BigDecimal(100))
-        .tradeBaseRate(BigDecimal.ONE)
-        .tradeCashRate(BigDecimal.TEN)
+        .tradeBaseRate(new BigDecimal("1.00"))
+        .tradeCashRate(new BigDecimal("10.00"))
         .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
         .build();
 
@@ -73,10 +73,10 @@ class TestMoneyValues {
     assertThat(position.getMoneyValues(Position.In.BASE).getCostBasis())
         .isEqualTo(new BigDecimal("2000.00"));
 
-    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getPurchases())
-        .isEqualTo(new BigDecimal("200000.00"));
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getCostBasis())
-        .isEqualTo(new BigDecimal("200000.00"));
+        .isEqualTo(new BigDecimal("20.00"));
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getPurchases())
+        .isEqualTo(new BigDecimal("20.00"));
 
     Trn diviTrn = Trn.builder()
         .trnType(TrnType.DIVI)
@@ -90,16 +90,17 @@ class TestMoneyValues {
 
     DividendBehaviour dividendBehaviour = new DividendBehaviour();
     dividendBehaviour.accumulate(diviTrn, positions.getPortfolio(), position);
-    assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal("100"));
+    assertThat(position.getQuantityValues().getTotal())
+        .isEqualTo(new BigDecimal("100"));
 
-    assertThat(position.getMoneyValues(Position.In.TRADE).getDividends())
-        .isEqualTo(new BigDecimal("10.00"));
+    assertThat(position.getMoneyValues(Position.In.TRADE))
+        .hasFieldOrPropertyWithValue("dividends", new BigDecimal("10.00"));
 
-    assertThat(position.getMoneyValues(Position.In.BASE).getDividends())
-        .isEqualTo(new BigDecimal("10.00"));
+    assertThat(position.getMoneyValues(Position.In.BASE))
+        .hasFieldOrPropertyWithValue("dividends", new BigDecimal("10.00"));
 
-    assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getDividends())
-        .isEqualTo(new BigDecimal("1000.00"));
+    assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
+        .hasFieldOrPropertyWithValue("dividends", new BigDecimal(".10"));
 
     ObjectMapper objectMapper = new ObjectMapper();
     String bytes = objectMapper.writeValueAsString(position);
@@ -133,7 +134,7 @@ class TestMoneyValues {
     Trn sellTrn = Trn.builder()
         .trnType(TrnType.SELL)
         .asset(microsoft)
-        .tradeAmount(new BigDecimal(4000))
+        .tradeAmount(new BigDecimal("4000.00"))
         .quantity(position.getQuantityValues().getTotal()) // Sell all
         .tradeBaseRate(BigDecimal.ONE)
         .tradeCashRate(BigDecimal.TEN)
@@ -154,9 +155,9 @@ class TestMoneyValues {
         .isEqualTo(new BigDecimal("2000.00"));
 
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getSales())
-        .isEqualTo(new BigDecimal("400000.00"));
+        .isEqualTo(new BigDecimal("40.00"));
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getRealisedGain())
-        .isEqualTo(new BigDecimal("200000.00"));
+        .isEqualTo(new BigDecimal("20.00"));
 
   }
 

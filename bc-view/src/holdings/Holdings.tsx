@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Footer } from "./Footer";
+import { SubTotal } from "./SubTotal";
 import { calculate } from "./calculate";
 import { GroupBy, groupOptions } from "../types/groupBy";
 import { GroupOption, Holdings, ValuationOption } from "../types/beancounter";
@@ -97,7 +97,7 @@ export default function ViewHoldings(code: string): JSX.Element {
                       holdingGroup={holdings.holdingGroups[groupKey]}
                       valueIn={valueIn.value}
                     />
-                    <Footer
+                    <SubTotal
                       holdingGroup={holdings.holdingGroups[groupKey]}
                       valueIn={valueIn.value}
                     />

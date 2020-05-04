@@ -3,7 +3,7 @@ import { HoldingGroup } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 
-export function Footer(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }): JSX.Element {
+export function SubTotal(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }): JSX.Element {
   const valueIn = props.valueIn;
   const holdingGroup = props.holdingGroup;
   return (
@@ -15,13 +15,13 @@ export function Footer(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }):
         <td align={"right"}>
           <FormatMoneyValue
             moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"costValue"}
+            moneyField={"marketValue"}
           />
         </td>
         <td align={"right"}>
           <FormatMoneyValue
             moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"marketValue"}
+            moneyField={"costValue"}
           />
         </td>
         <td />

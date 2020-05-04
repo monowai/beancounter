@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SellBehaviour implements AccumulationStrategy {
-  private CurrencyResolver currencyResolver = new CurrencyResolver();
-  private AverageCost averageCost = new AverageCost();
+  private final CurrencyResolver currencyResolver = new CurrencyResolver();
+  private final AverageCost averageCost = new AverageCost();
 
   public void accumulate(Trn trn, Portfolio portfolio, Position position) {
     BigDecimal soldQuantity = trn.getQuantity();
@@ -43,11 +43,11 @@ public class SellBehaviour implements AccumulationStrategy {
         currencyResolver.resolve(in, portfolio, trn));
     moneyValues.setSales(
         moneyValues.getSales().add(
-            MathUtils.multiply(trn.getTradeAmount(), rate))
+            MathUtils.divide(trn.getTradeAmount(), rate))
     );
 
-    if (!trn.getTradeAmount().equals(BigDecimal.ZERO)) {
-      BigDecimal unitCost = MathUtils.multiply(trn.getTradeAmount(), rate)
+    if (trn.getTradeAmount().compareTo(BigDecimal.ZERO) != 0) {
+      BigDecimal unitCost = MathUtils.divide(trn.getTradeAmount(), rate)
           .divide(trn.getQuantity().abs(), MathUtils.getMathContext());
       BigDecimal unitProfit = unitCost.subtract(moneyValues.getAverageCost());
       BigDecimal realisedGain = unitProfit.multiply(trn.getQuantity().abs());
@@ -56,8 +56,11 @@ public class SellBehaviour implements AccumulationStrategy {
 
     if (position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0) {
       moneyValues.setCostBasis(BigDecimal.ZERO);
+      moneyValues.setPrice(BigDecimal.ZERO);
       moneyValues.setCostValue(BigDecimal.ZERO);
       moneyValues.setAverageCost(BigDecimal.ZERO);
+      moneyValues.setMarketValue(BigDecimal.ZERO);
+      moneyValues.setUnrealisedGain(BigDecimal.ZERO);
     }
     // If quantity changes, we need to update the cost Value
     averageCost.setCostValue(position, moneyValues);

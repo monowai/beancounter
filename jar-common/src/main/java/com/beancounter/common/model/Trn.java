@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -58,8 +59,11 @@ public class Trn {
   @JsonDeserialize(using = LocalDateDeserializer.class)
   private LocalDate settleDate;
 
+  // Scale to support Mutual Fund pricing
+  @Column(precision = 15, scale = 6)
   private BigDecimal quantity;
-  // In trade Currency
+  // In trade Currency - scale is to support Mutual Fund pricing.
+  @Column(precision = 15, scale = 6)
   private BigDecimal price;
   @Builder.Default
   // In trade Currency
@@ -70,13 +74,16 @@ public class Trn {
   @Builder.Default
   // In trade Currency
   private BigDecimal tradeAmount = BigDecimal.ZERO;
+  // Trade amount in settlement currency.
   private BigDecimal cashAmount;
-
   // Trade CCY to cash settlement currency
+  @Column(precision = 10, scale = 6)
   private BigDecimal tradeCashRate;
   // Trade Currency to system Base Currency
+  @Column(precision = 10, scale = 6)
   private BigDecimal tradeBaseRate;
   // Trade CCY to portfolio reference  currency
+  @Column(precision = 10, scale = 6)
   private BigDecimal tradePortfolioRate;
 
   private String comments;

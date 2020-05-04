@@ -278,7 +278,7 @@ public class ContractVerifierBase {
         .close(new BigDecimal("100.00"))
         .low(new BigDecimal("38.74"))
         .high(new BigDecimal("39.35"))
-        .volume(new BigDecimal("6274307"))
+        .volume(Integer.decode("6274307"))
         .build());
     wtdResponse.setData(result);
     Mockito.when(wtdGateway

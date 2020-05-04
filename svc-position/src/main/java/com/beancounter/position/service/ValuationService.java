@@ -6,7 +6,6 @@ import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.valuation.Gains;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
@@ -54,13 +53,14 @@ public class ValuationService implements Valuation {
     for (Position position : positions.getPositions().values()) {
       gains.value(position.getQuantityValues().getTotal(),
           position.getMoneyValues(Position.In.PORTFOLIO));
-
-      if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0)) {
+      // There's an issue here that without a price, gains are not computed. Still
+      // looks better having the current price in the front end anyway.
+      //if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0)) {
         assets.add(AssetInput.builder()
             .code(position.getAsset().getCode())
             .market(position.getAsset().getMarket().getCode())
             .build());
-      }
+      //}
     }
     Positions valuedPositions = positionValuationService.value(positions, assets);
     return PositionResponse.builder()

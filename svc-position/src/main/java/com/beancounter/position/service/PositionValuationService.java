@@ -44,6 +44,7 @@ public class PositionValuationService {
     log.debug("Valuing {} positions...", positions.getPositions().size());
 
     // Set market data into the positions
+    // There's an issue here that without a price, gains are not computed
     ValuationData valuationData = getValuationData(positions, assets);
     if (valuationData.getPriceResponse() == null) {
       log.info("No prices found on date {}", positions.getAsAt());

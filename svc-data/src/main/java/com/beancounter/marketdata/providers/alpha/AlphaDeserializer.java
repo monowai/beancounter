@@ -24,8 +24,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Deserialize a BC MarketData object from a AlphaVantage result.
- * Only returns the "latest" price.
+ * Deserialize various AlphaVantage responses to a normalised PriceResponse.
  *
  * @author mikeh
  * @since 2019-03-03
@@ -38,7 +37,7 @@ public class AlphaDeserializer extends JsonDeserializer<PriceResponse> {
   private final DateUtils dateUtils = new DateUtils();
 
   @Override
-  public PriceResponse deserialize(JsonParser p, DeserializationContext context) throws IOException {
+  public PriceResponse deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
     JsonNode source = p.getCodec().readTree(p);
     if (source.has(TIME_SERIES_DAILY)) {
       return handleTimeSeries(source);
@@ -66,7 +65,7 @@ public class AlphaDeserializer extends JsonDeserializer<PriceResponse> {
       BigDecimal high = new BigDecimal(data.get("03. high").toString());
       BigDecimal low = new BigDecimal(data.get("04. low").toString());
       BigDecimal close = new BigDecimal(data.get("05. price").toString());
-      BigDecimal volume = new BigDecimal(data.get("06. volume").toString());
+      Integer volume = Integer.decode(data.get("06. volume").toString());
       String priceDate = data.get("07. latest trading day").toString();
       BigDecimal previousClose = MathUtils.get(data.get("08. previous close").toString());
       BigDecimal change = MathUtils.get(data.get("09. change").toString());
@@ -80,6 +79,7 @@ public class AlphaDeserializer extends JsonDeserializer<PriceResponse> {
           .volume(volume)
           .previousClose(previousClose)
           .change(change)
+          .changePercent(MathUtils.changePercent(change, previousClose))
           .build());
     }
     return PriceResponse.builder().data(marketData).build();

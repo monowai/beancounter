@@ -159,7 +159,7 @@ public class TestKafka {
     Collection<MarketData> marketData = new ArrayList<>();
     marketData.add(MarketData.builder()
         .asset(asset)
-        .volume(BigDecimal.TEN)
+        .volume(10)
         .open(BigDecimal.TEN)
         .priceDate(dateUtils.getDate(priceDate))
         .build());

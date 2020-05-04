@@ -1080,14 +1080,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span>
-                2,436.73
+                0.00
               </span>
             </td>
             <td
               align="right"
             >
               <span>
-                0.00
+                2,436.73
               </span>
             </td>
             <td />
@@ -1434,14 +1434,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span>
-                3,670.96
+                0.00
               </span>
             </td>
             <td
               align="right"
             >
               <span>
-                0.00
+                3,670.96
               </span>
             </td>
             <td />
@@ -1491,14 +1491,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span>
-                6,107.69
+                0.00
               </span>
             </td>
             <td
               align="right"
             >
               <span>
-                0.00
+                6,107.69
               </span>
             </td>
             <td />

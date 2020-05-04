@@ -34,8 +34,8 @@ import org.springframework.stereotype.Service;
     DividendBehaviour.class,
     SplitBehaviour.class})
 public class Accumulator {
-  DateUtils dateUtils = new DateUtils();
-  private TrnBehaviourFactory trnBehaviourFactory;
+  private final DateUtils dateUtils = new DateUtils();
+  private final TrnBehaviourFactory trnBehaviourFactory;
 
   public Accumulator(TrnBehaviourFactory trnBehaviourFactory) {
     this.trnBehaviourFactory = trnBehaviourFactory;

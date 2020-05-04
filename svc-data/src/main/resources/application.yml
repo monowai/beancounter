@@ -184,7 +184,7 @@ resilience4j.ratelimiter:
       eventConsumerBufferSize: 200
     alphaVantage:
       registerHealthIndicator: false
-      limitForPeriod: 5
+      limitForPeriod: 25
       limitRefreshPeriod: 65s
       timeoutDuration: 80s
       eventConsumerBufferSize: 200

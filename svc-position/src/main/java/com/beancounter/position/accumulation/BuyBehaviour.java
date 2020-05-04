@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class BuyBehaviour implements AccumulationStrategy {
-  private CurrencyResolver currencyResolver = new CurrencyResolver();
-  private AverageCost averageCost = new AverageCost();
+  private final CurrencyResolver currencyResolver = new CurrencyResolver();
+  private final AverageCost averageCost = new AverageCost();
 
   public void accumulate(Trn trn, Portfolio portfolio, Position position) {
     QuantityValues quantityValues = position.getQuantityValues();
@@ -38,11 +38,11 @@ public class BuyBehaviour implements AccumulationStrategy {
     );
 
     moneyValues.setPurchases(moneyValues.getPurchases().add(
-        MathUtils.multiply(trn.getTradeAmount(), rate))
+        MathUtils.divide(trn.getTradeAmount(), rate))
     );
 
     moneyValues.setCostBasis(moneyValues.getCostBasis().add(
-        MathUtils.multiply(trn.getTradeAmount(), rate))
+        MathUtils.divide(trn.getTradeAmount(), rate))
     );
 
     if (!moneyValues.getCostBasis().equals(BigDecimal.ZERO)) {

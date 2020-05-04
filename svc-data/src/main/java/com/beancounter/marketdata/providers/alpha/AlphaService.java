@@ -52,6 +52,10 @@ public class AlphaService implements MarketDataProvider {
     log.info("DEMO key is {}", isDemo);
   }
 
+  private boolean isCurrent(String date) {
+    return dateUtils.isToday(date);
+  }
+
   @Override
   public Collection<MarketData> getMarketData(PriceRequest priceRequest) {
 
@@ -83,10 +87,6 @@ public class AlphaService implements MarketDataProvider {
 
   }
 
-  private boolean isCurrent(String date) {
-    return dateUtils.isToday(date);
-  }
-
   private Collection<MarketData> getMarketData(ProviderArguments providerArguments,
                                                Map<Integer, String> requests) {
     Collection<MarketData> results = new ArrayList<>();
@@ -102,7 +102,6 @@ public class AlphaService implements MarketDataProvider {
 
     return results;
   }
-
 
   @Override
   public String getId() {

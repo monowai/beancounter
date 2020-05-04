@@ -40,7 +40,11 @@ class TestAlphaProvider {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/global-response.json").getFile();
     PriceResponse marketData = mapper.readValue(jsonFile, PriceResponse.class);
-    assertThat(marketData).isNotNull().hasNoNullFieldsOrPropertiesExcept("id", "requestDate");
+    assertThat(marketData)
+        .isNotNull()
+        .hasNoNullFieldsOrPropertiesExcept("id", "requestDate");
+    assertThat(marketData.getData().iterator().next().getChangePercent()).isEqualTo("0.008812");
+
   }
 
   @Test

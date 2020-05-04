@@ -52,7 +52,7 @@ public class WtdMockUtils {
         .close(new BigDecimal(close))
         .high(new BigDecimal(high))
         .low(new BigDecimal(low))
-        .volume(new BigDecimal(volume))
+        .volume(Integer.decode(volume))
         .priceDate(dateUtils.getDate(date))
         .asset(asset).build();
   }

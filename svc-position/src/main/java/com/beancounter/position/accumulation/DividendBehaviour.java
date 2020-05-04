@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DividendBehaviour implements AccumulationStrategy {
-  private CurrencyResolver currencyResolver = new CurrencyResolver();
+  private final CurrencyResolver currencyResolver = new CurrencyResolver();
 
   public void accumulate(Trn trn, Portfolio portfolio, Position position) {
     value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE);
@@ -31,7 +31,7 @@ public class DividendBehaviour implements AccumulationStrategy {
     );
     moneyValues.setDividends(
         MathUtils.add(moneyValues.getDividends(),
-            MathUtils.multiply(trn.getTradeAmount(), rate)));
+            MathUtils.divide(trn.getTradeAmount(), rate)));
 
   }
 

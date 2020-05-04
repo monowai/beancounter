@@ -9,16 +9,16 @@ public class Gains {
 
   public void value(BigDecimal total, MoneyValues moneyValues) {
 
-    if (!BigDecimal.ZERO.equals(total)) {
+    if (total.compareTo(BigDecimal.ZERO) != 0) {
       moneyValues.setUnrealisedGain(
           moneyValues.getMarketValue()
               .subtract(moneyValues.getCostValue()));
     }
-
     moneyValues.setTotalGain(
         moneyValues.getUnrealisedGain()
             .add(moneyValues.getDividends()
                 .add(moneyValues.getRealisedGain())));
+
   }
 
 }

@@ -39,7 +39,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           "/bff/trns",
           { data: [trnInput] },
           {
-            headers: getBearerToken(keycloak.token),
+            headers: getBearerToken(keycloak.token)
           }
         )
         .then(() => {
@@ -55,7 +55,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     } else {
       _axios
         .patch<Transaction>(`/bff/trns/${trnId}`, trnInput, {
-          headers: getBearerToken(keycloak.token),
+          headers: getBearerToken(keycloak.token)
         })
         .then(() => {
           logger.debug("<<patch Trn");
@@ -156,6 +156,32 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       defaultValue={trnResult.data.fees}
                       name="fees"
                       ref={register({ required: false, maxLength: 100 })}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Trade PF</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="Trade to PF"
+                      defaultValue={trnResult.data.tradePortfolioRate}
+                      name="tradePortfolioRate"
+                      ref={register({ required: true, maxLength: 100 })}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Trade Base</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="Trade to Base"
+                      defaultValue={trnResult.data.tradeBaseRate}
+                      name="tradeBaseRate"
+                      ref={register({ required: true, maxLength: 100 })}
                     />
                   </div>
                 </div>

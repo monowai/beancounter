@@ -31,7 +31,7 @@ export function Rows(props: {
               }
             >
               <NumberFormat
-                value={position.moneyValues[valueIn].price}
+                value={position.moneyValues[valueIn].priceData.close}
                 displayType={"text"}
                 decimalScale={2}
                 fixedDecimalScale={true}
@@ -42,8 +42,8 @@ export function Rows(props: {
         )}
       </td>
       <td align={"right"}>
-        <span data-tooltip={"P. Close " + position.moneyValues[valueIn].priceData.previousClose}>
-          ({(position.moneyValues[valueIn].priceData.changePercent * 100).toPrecision(3)}%)
+        <span data-tooltip={"Previous " + position.moneyValues[valueIn].priceData.previousClose}>
+          {(position.moneyValues[valueIn].priceData.changePercent * 100).toFixed(2)}%
         </span>
       </td>
       <td align={"right"}>

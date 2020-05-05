@@ -27,16 +27,40 @@ public class TestPriceData {
         .hasFieldOrPropertyWithValue("change", marketData.getChange())
         .hasFieldOrPropertyWithValue("changePercent", marketData.getChangePercent());
 
-    PriceData withFx = PriceData.of(marketData, new BigDecimal("0.5"));
+    PriceData withFx = PriceData.of(marketData, new BigDecimal("2.0"));
     assertThat(withFx)
-        .hasFieldOrPropertyWithValue("open", new BigDecimal("2.00"))
+        .hasFieldOrPropertyWithValue("open", new BigDecimal("4.00"))
         .hasFieldOrPropertyWithValue("close", new BigDecimal("4.00"))
+        .hasFieldOrPropertyWithValue("previousClose", new BigDecimal("2.00"))
         .hasFieldOrPropertyWithValue("change", new BigDecimal("2.00"))
-        .hasFieldOrPropertyWithValue("changePercent", new BigDecimal("0.5000"))
+        .hasFieldOrPropertyWithValue("changePercent", new BigDecimal("0.5000"));
+  }
+
+  @Test
+  void is_ChangeWithRatesComputing() {
+    MarketData marketData = MarketData.builder()
+        .previousClose(new BigDecimal("40.92"))
+        .close(new BigDecimal("41.35"))
+        .change(new BigDecimal("0.43"))
+        .changePercent(new BigDecimal("0.0104"))
+        .build();
+
+    PriceData noFx = PriceData.of(marketData, new BigDecimal("1.0"));
+    assertThat(noFx)
+        .hasFieldOrPropertyWithValue("previousClose", marketData.getPreviousClose())
+        .hasFieldOrPropertyWithValue("close", marketData.getClose())
+        .hasFieldOrPropertyWithValue("change", marketData.getChange())
+        .hasFieldOrPropertyWithValue("changePercent", marketData.getChangePercent());
+
+    PriceData withFx = PriceData.of(marketData, new BigDecimal("2.0"));
+    assertThat(withFx)
+        .hasFieldOrPropertyWithValue("previousClose", new BigDecimal("81.84"))
+        .hasFieldOrPropertyWithValue("close", new BigDecimal("82.70"))
+        .hasFieldOrPropertyWithValue("change", new BigDecimal("0.86"))
+        .hasFieldOrPropertyWithValue("changePercent", new BigDecimal("0.0104"))
     ;
 
   }
-
   @Test
   void is_PriceDataNullOk() {
 

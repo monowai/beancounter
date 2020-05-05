@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import javax.annotation.PostConstruct;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +63,7 @@ public class AlphaService implements MarketDataProvider {
 
     ProviderArguments providerArguments = getInstance(priceRequest, alphaConfig);
 
-    Map<Integer, String> requests = new ConcurrentHashMap<>();
+    Map<Integer, Future<String>> requests = new ConcurrentHashMap<>();
 
     for (Integer batchId : providerArguments.getBatch().keySet()) {
       String date = providerArguments.getBatchConfigs().get(batchId).getDate();
@@ -87,17 +89,21 @@ public class AlphaService implements MarketDataProvider {
 
   }
 
+  @SneakyThrows
   private Collection<MarketData> getMarketData(ProviderArguments providerArguments,
-                                               Map<Integer, String> requests) {
+                                               Map<Integer, Future<String>> requests) {
     Collection<MarketData> results = new ArrayList<>();
 
     while (!requests.isEmpty()) {
       for (Integer batch : requests.keySet()) {
-        results.addAll(
-            alphaAdapter.get(providerArguments, batch, requests.get(batch))
-        );
-        requests.remove(batch);
+        if (requests.get(batch).isDone()) {
+          results.addAll(
+              alphaAdapter.get(providerArguments, batch, requests.get(batch).get())
+          );
+          requests.remove(batch);
+        }
       }
+
     }
 
     return results;

@@ -193,7 +193,7 @@ class StubbedFxValuations {
 
     assertThat(positions.get(asset).getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("unrealisedGain", new BigDecimal("8000.00"))
-        .hasFieldOrPropertyWithValue("price", new BigDecimal("100.00"))
+        .hasFieldOrPropertyWithValue("priceData.close", new BigDecimal("100.00"))
         .hasFieldOrPropertyWithValue("marketValue", new BigDecimal("10000.00"))
         .hasFieldOrPropertyWithValue("totalGain", new BigDecimal("8000.00"))
     ;

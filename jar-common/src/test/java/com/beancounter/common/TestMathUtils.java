@@ -117,4 +117,12 @@ class TestMathUtils {
     assertThat(MathUtils.parse(value, numberFormat))
         .isEqualTo("1180.74");
   }
+
+  @Test
+  void is_ValidRate() {
+    assertThat(MathUtils.hasValidRate(null)).isFalse();
+    assertThat(MathUtils.hasValidRate(BigDecimal.ONE)).isFalse();
+    assertThat(MathUtils.hasValidRate(new BigDecimal("1.000"))).isFalse();
+    assertThat(MathUtils.hasValidRate(BigDecimal.TEN)).isTrue();
+  }
 }

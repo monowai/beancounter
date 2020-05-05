@@ -34,8 +34,6 @@ public class MoneyValues {
   @Builder.Default
   private BigDecimal sales = BigDecimal.ZERO;
   @Builder.Default
-  private BigDecimal price = BigDecimal.ZERO;
-  @Builder.Default
   private BigDecimal marketValue = BigDecimal.ZERO;
 
   private PriceData priceData;

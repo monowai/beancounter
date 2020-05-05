@@ -34,25 +34,28 @@ public class PriceData {
   private BigDecimal changePercent;
   private Integer volume;
 
+  public static PriceData of(MarketData marketData) {
+    return of(marketData, BigDecimal.ONE);
+  }
+
   public static PriceData of(MarketData mktData, BigDecimal rate) {
     PriceData result = PriceData.builder()
-        .change(MathUtils.divide(mktData.getChange(), rate))
-        .changePercent(mktData.getChangePercent())
-        .close(MathUtils.divide(mktData.getClose(), rate))
-        .open(mktData.getOpen())
         .priceDate(mktData.getPriceDate())
-        // Approximation based on current rate.
-        .previousClose(MathUtils.divide(mktData.getPreviousClose(), rate))
-        .volume(mktData.getVolume())
+        .open(MathUtils.multiply(mktData.getOpen(), rate))
+        .close(MathUtils.multiply(mktData.getClose(), rate))
+        .previousClose(MathUtils.multiply(mktData.getPreviousClose(), rate))
+        .change(MathUtils.multiply(mktData.getChange(), rate))
+        .changePercent(mktData.getChangePercent())
+        .volume(mktData.getVolume())  // Approximation based on current rate.
         .build();
 
-    if (rate.compareTo(BigDecimal.ONE) != 0 &&
-        result.previousClose != null &&
-        result.close != null) {
-      BigDecimal change = new BigDecimal("1.00").subtract(
-          MathUtils.changePercent(result.previousClose, result.close, 4));
+    if (MathUtils.hasValidRate(rate) && result.previousClose != null && result.close != null) {
+      // Convert
+      BigDecimal change = new BigDecimal("1.00")
+          .subtract(MathUtils.changePercent(result.previousClose, result.close, 4));
 
       result.setChangePercent(change);
+      result.setChange(result.close.subtract(result.previousClose));
     }
     return result;
   }

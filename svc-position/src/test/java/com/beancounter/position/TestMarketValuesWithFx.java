@@ -57,6 +57,7 @@ class TestMarketValuesWithFx {
     MarketData marketData = MarketData.builder()
         .asset(asset)
         .close(new BigDecimal("10.00"))
+        .previousClose(new BigDecimal("5.00"))
         .build();
 
     Map<IsoCurrencyPair, FxRate> fxRateMap = new HashMap<>();
@@ -73,8 +74,7 @@ class TestMarketValuesWithFx {
 
     assertThat(position.getMoneyValues(Position.In.TRADE))
         .isEqualToComparingFieldByField(MoneyValues.builder()
-            .price(marketData.getClose())
-            .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
+            .priceData(PriceData.of(marketData))
             .averageCost(new BigDecimal("20.00"))
             .currency(currencyUtils.getCurrency("USD"))
             .purchases(buyTrn.getTradeAmount())
@@ -88,9 +88,8 @@ class TestMarketValuesWithFx {
 
     assertThat(position.getMoneyValues(Position.In.BASE))
         .isEqualToComparingFieldByField(MoneyValues.builder()
-            .price(marketData.getClose())
             .averageCost(new BigDecimal("20.00"))
-            .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
+            .priceData(PriceData.of(marketData))
             .currency(currencyUtils.getCurrency("USD"))
             .purchases(buyTrn.getTradeAmount())
             .costBasis(buyTrn.getTradeAmount())
@@ -100,14 +99,12 @@ class TestMarketValuesWithFx {
             .marketValue(MathUtils.multiply(buyTrn.getQuantity(), marketData.getClose()))
             .build());
 
-    // Basically 10% of the non-portfolio values due to the simpleRate value used
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
         .isEqualToComparingFieldByField(MoneyValues.builder()
             .currency(portfolio.getCurrency())
             .costBasis(new BigDecimal("10000.00"))
             .purchases(new BigDecimal("10000.00"))
-            .price(new BigDecimal("2.00"))
-            .priceData(PriceData.builder().close(new BigDecimal("50.00")).build())
+            .priceData(PriceData.of(marketData, simpleRate))
             .marketValue(new BigDecimal("200.00"))
             .averageCost(new BigDecimal("100.00"))
             .costValue(new BigDecimal("10000.00"))
@@ -164,18 +161,20 @@ class TestMarketValuesWithFx {
     MarketData marketData = MarketData.builder()
         .asset(asset)
         .close(new BigDecimal("10.00"))
+        .previousClose(new BigDecimal("9.00"))
         .build();
+
+    PriceData fxOne = PriceData.of(marketData, BigDecimal.ONE);
 
     new MarketValue(new Gains()).value(positions, marketData, fxRateMap);
 
     assertThat(position.getMoneyValues(Position.In.TRADE))
         .isEqualToComparingFieldByField(
             MoneyValues.builder()
-                .price(new BigDecimal("10.00"))
                 .marketValue(new BigDecimal("0"))
                 .averageCost(BigDecimal.ZERO)
                 .currency(currencyUtils.getCurrency("USD"))
-                .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
+                .priceData(fxOne)
                 .purchases(buyTrn.getTradeAmount())
                 .sales(sellTrn.getTradeAmount())
                 .costValue(BigDecimal.ZERO)
@@ -188,9 +187,8 @@ class TestMarketValuesWithFx {
     assertThat(position.getMoneyValues(Position.In.BASE))
         .isEqualToComparingFieldByField(
             MoneyValues.builder()
-                .price(new BigDecimal("10.00"))
                 .marketValue(new BigDecimal("0"))
-                .priceData(PriceData.builder().close(new BigDecimal("10.00")).build())
+                .priceData(fxOne)
                 .averageCost(BigDecimal.ZERO)
                 .currency(currencyUtils.getCurrency("USD"))
                 .purchases(buyTrn.getTradeAmount())
@@ -201,14 +199,12 @@ class TestMarketValuesWithFx {
                 .totalGain(new BigDecimal("1000.00"))
                 .build());
 
-    // Basically 10% of the non-portfolio values due to the simpleRate value used
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
         .isEqualToComparingFieldByField(
             MoneyValues.builder()
                 .currency(portfolio.getCurrency())
-                .price(new BigDecimal("2.00"))
                 .marketValue(new BigDecimal("0"))
-                .priceData(PriceData.builder().close(new BigDecimal("50.00")).build())
+                .priceData(PriceData.of(marketData, simpleRate))
                 .averageCost(BigDecimal.ZERO)
                 .purchases(MathUtils.divide(buyTrn.getTradeAmount(), simpleRate))
                 .sales(MathUtils.divide(sellTrn.getTradeAmount(), simpleRate))

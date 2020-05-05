@@ -45,12 +45,12 @@ public class MathUtils {
     return changePercent(currentValue, oldValue, percentScale);
   }
 
-  public BigDecimal changePercent(BigDecimal currentValue, BigDecimal oldValue, int percentScale) {
-    if (isUnset(currentValue) || isUnset(oldValue)) {
+  public BigDecimal changePercent(BigDecimal previous, BigDecimal current, int percentScale) {
+    if (isUnset(previous) || isUnset(current)) {
       return null;
     }
 
-    return currentValue.divide(oldValue, percentScale, RoundingMode.HALF_UP);
+    return previous.divide(current, percentScale, RoundingMode.HALF_UP);
   }
 
   // Null and Zero are treated as "unSet"
@@ -81,5 +81,11 @@ public class MathUtils {
       return null;
     }
     return new BigDecimal(money);
+  }
+
+  public boolean hasValidRate(BigDecimal rate) {
+    if (rate == null ) return false;
+    if (rate.compareTo(BigDecimal.ZERO)== 0) return false;
+    return rate.compareTo(BigDecimal.ONE) != 0;
   }
 }

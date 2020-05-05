@@ -56,7 +56,6 @@ public class SellBehaviour implements AccumulationStrategy {
 
     if (position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0) {
       moneyValues.setCostBasis(BigDecimal.ZERO);
-      moneyValues.setPrice(BigDecimal.ZERO);
       moneyValues.setCostValue(BigDecimal.ZERO);
       moneyValues.setAverageCost(BigDecimal.ZERO);
       moneyValues.setMarketValue(BigDecimal.ZERO);

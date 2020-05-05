@@ -52,7 +52,6 @@ export interface MoneyValues {
   realisedGain: number;
   unrealisedGain: number;
   totalGain: number;
-  price: number;
   priceData: PriceData;
   marketValue: number;
   currency: Currency;
@@ -61,6 +60,7 @@ export interface MoneyValues {
 
 export interface PriceData {
   change: number;
+  close: number;
   previousClose: number;
   changePercent: number;
   priceDate: string;

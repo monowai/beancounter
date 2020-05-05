@@ -35,15 +35,15 @@ public class FxTransactions {
     FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
     fxRequest.setTradePf(
-        pair(trn, trn.getTradePortfolioRate(), portfolio.getCurrency())
+        pair(portfolio.getCurrency(), trn, trn.getTradePortfolioRate())
     );
 
     fxRequest.setTradeBase(
-        pair(trn, trn.getTradeBaseRate(), portfolio.getBase())
+        pair(portfolio.getBase(), trn, trn.getTradeBaseRate())
     );
 
     fxRequest.setTradeCash(
-        pair(trn, trn.getTradeCashRate(), currencyUtils.getCurrency(trn.getCashCurrency()))
+        pair(currencyUtils.getCurrency(trn.getCashCurrency()), trn, trn.getTradeCashRate())
     );
 
     return fxRequest;
@@ -70,7 +70,7 @@ public class FxTransactions {
     }
   }
 
-  private IsoCurrencyPair pair(TrnInput trn, BigDecimal tradePortfolioRate, Currency currency) {
+  private IsoCurrencyPair pair(Currency currency, TrnInput trn, BigDecimal tradePortfolioRate) {
     return currencyUtils.getCurrencyPair(
         tradePortfolioRate,
         currencyUtils.getCurrency(trn.getTradeCurrency()),

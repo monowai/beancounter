@@ -1,8 +1,10 @@
 package com.beancounter.marketdata.providers.alpha;
 
+import java.util.concurrent.Future;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,13 +27,15 @@ public class AlphaProxyCache {
   @Cacheable("asset.prices")
   @Async
   // Date is to support caching
-  public String getCurrent(String code, String date, String apiKey) {
-    return alphaProxy.getCurrent(code, apiKey);
+  @SuppressWarnings("unused")
+  public Future<String> getCurrent(String code, String date, String apiKey) {
+    return new AsyncResult<>(alphaProxy.getCurrent(code, apiKey));
   }
 
   @SuppressWarnings("unused")
   @Cacheable("asset.prices")
-  public String getHistoric(String code, String date, String apiKey) {
-    return alphaProxy.getHistoric(code, apiKey);
+  @Async
+  public Future<String> getHistoric(String code, String date, String apiKey) {
+    return new AsyncResult<>(alphaProxy.getHistoric(code, apiKey));
   }
 }

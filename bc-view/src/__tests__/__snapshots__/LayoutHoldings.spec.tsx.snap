@@ -1005,7 +1005,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
                   data-tooltip="2020-05-01"
                 >
                   <span>
-                    0.00
+                    132.03
                   </span>
                 </span>
               </label>
@@ -1014,11 +1014,10 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span
-                data-tooltip="P. Close 135.35"
+                data-tooltip="Previous 135.35"
               >
-                (
                 -2.51
-                %)
+                %
               </span>
             </td>
             <td
@@ -1219,7 +1218,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
                   data-tooltip="2020-05-01"
                 >
                   <span>
-                    0.00
+                    132.03
                   </span>
                 </span>
               </label>
@@ -1228,11 +1227,10 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span
-                data-tooltip="P. Close 135.35"
+                data-tooltip="Previous 135.35"
               >
-                (
                 -2.51
-                %)
+                %
               </span>
             </td>
             <td
@@ -1314,7 +1312,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
                   data-tooltip="2020-05-01"
                 >
                   <span>
-                    0.00
+                    132.03
                   </span>
                 </span>
               </label>
@@ -1323,11 +1321,10 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span
-                data-tooltip="P. Close 135.35"
+                data-tooltip="Previous 135.35"
               >
-                (
                 -2.51
-                %)
+                %
               </span>
             </td>
             <td
@@ -1409,7 +1406,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
                   data-tooltip="2020-05-01"
                 >
                   <span>
-                    0.00
+                    132.03
                   </span>
                 </span>
               </label>
@@ -1418,11 +1415,10 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <span
-                data-tooltip="P. Close 135.35"
+                data-tooltip="Previous 135.35"
               >
-                (
                 -2.51
-                %)
+                %
               </span>
             </td>
             <td

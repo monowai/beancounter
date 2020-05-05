@@ -21,10 +21,9 @@ function total(total: MoneyValues, position: Position, valueIn: ValueIn): MoneyV
       purchases: 0,
       sales: 0,
       costBasis: 0,
-      priceData: { change: 0, changePercent: 0, priceDate: "", previousClose: 0 },
+      priceData: { close: 0, change: 0, changePercent: 0, priceDate: "", previousClose: 0 },
       valueIn: valueIn,
       averageCost: 0,
-      price: 0,
       currency: position.moneyValues[valueIn].currency,
     };
   }

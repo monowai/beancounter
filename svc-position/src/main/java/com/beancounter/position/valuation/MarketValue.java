@@ -11,6 +11,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.PriceData;
+import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -51,7 +52,7 @@ public class MarketValue {
     if (total.compareTo(BigDecimal.ZERO) == 0) {
       moneyValues.setMarketValue(BigDecimal.ZERO);
     } else {
-      moneyValues.setMarketValue(moneyValues.getPriceData().getClose().multiply(total));
+      moneyValues.setMarketValue(MathUtils.multiply(moneyValues.getPriceData().getClose(),total));
     }
     gains.value(total, moneyValues);
   }

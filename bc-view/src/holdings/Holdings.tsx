@@ -14,6 +14,7 @@ import { Rows } from "./Rows";
 import { Header } from "./Header";
 import { isDone } from "../types/typeUtils";
 import PageLoader from "../common/PageLoader";
+import { TrnDropZone } from "../portfolio/DropZone";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const holdingResults = useHoldings(code);
@@ -31,6 +32,14 @@ export default function ViewHoldings(code: string): JSX.Element {
   if (isDone(holdingResults)) {
     if (holdingResults.error) {
       return ErrorPage(holdingResults.error.stack, holdingResults.error.message);
+    }
+    if (!holdingResults.data.positions) {
+      return (
+        <div data-testid="dropzone">
+          <label>This portfolio has no transactions. Please drop your CSV file to upload</label>
+          <TrnDropZone portfolio={holdingResults.data.portfolio} />
+        </div>
+      );
     }
     const holdings = calculate(
       holdingResults.data,

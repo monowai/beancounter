@@ -86,6 +86,9 @@ public class Trn {
   @Column(precision = 10, scale = 6)
   private BigDecimal tradePortfolioRate;
 
+  @Builder.Default
+  private String version = "1";
+
   private String comments;
 
 }

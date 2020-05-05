@@ -31,7 +31,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
     );
   };
   const handleCancel = (): void => {
-    history.push("/portfolios");
+    history.goBack();
   };
 
   const savePortfolio = handleSubmit((portfolioInput: PortfolioInput) => {
@@ -80,7 +80,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
   });
 
   if (submitted) {
-    history.push("/portfolios");
+    history.goBack();
   }
   if (portfolioResult.error) {
     if (portfolioResult.error.response.status === 401) {

@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +80,7 @@ public class AlphaAdapter implements MarketDataAdapter {
   }
 
   private MarketData getDefault(Asset asset) {
-    return MarketData.builder().asset(asset).close(BigDecimal.ZERO).build();
+    return MarketData.builder().asset(asset).build();
   }
 
   public ObjectMapper getAlphaObjectMapper() {

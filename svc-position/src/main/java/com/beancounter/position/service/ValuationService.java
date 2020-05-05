@@ -50,22 +50,28 @@ public class ValuationService implements Valuation {
       dateUtils.isValid(positions.getAsAt());
     }
     Collection<AssetInput> assets = new ArrayList<>();
-    for (Position position : positions.getPositions().values()) {
-      gains.value(position.getQuantityValues().getTotal(),
-          position.getMoneyValues(Position.In.PORTFOLIO));
-      // There's an issue here that without a price, gains are not computed. Still
-      // looks better having the current price in the front end anyway.
-      //if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0)) {
-      assets.add(AssetInput.builder()
-          .code(position.getAsset().getCode())
-          .market(position.getAsset().getMarket().getCode())
-          .build());
-      //}
+    if (positions.hasPositions()) {
+      for (Position position : positions.getPositions().values()) {
+        gains.value(position.getQuantityValues().getTotal(),
+            position.getMoneyValues(Position.In.PORTFOLIO));
+        // There's an issue here that without a price, gains are not computed. Still
+        // looks better having the current price in the front end anyway.
+        //if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0)) {
+        assets.add(AssetInput.builder()
+            .code(position.getAsset().getCode())
+            .market(position.getAsset().getMarket().getCode())
+            .build());
+        //}
+      }
+      Positions valuedPositions = positionValuationService.value(positions, assets);
+      return PositionResponse.builder()
+          .data(valuedPositions)
+          .build();
     }
-    Positions valuedPositions = positionValuationService.value(positions, assets);
     return PositionResponse.builder()
-        .data(valuedPositions)
+        .data(positions)
         .build();
+
   }
 
 

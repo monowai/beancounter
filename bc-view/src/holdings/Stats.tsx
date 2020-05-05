@@ -4,6 +4,7 @@ import { translate } from "../common/i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
 import { FormatMoneyValue } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
+import { Link } from "react-router-dom";
 
 export default function StatsHeader(props: { portfolio: Portfolio }): JSX.Element {
   return (
@@ -33,7 +34,11 @@ export function StatsRow(props: {
       <tr className={"stats-row"}>
         <td>
           <div className="left-cell">
-            {portfolio.code.toUpperCase()}:{" "}
+            <Link to={`/portfolios/${portfolio.id}`}>
+              <span className={"has-tooltip-right"} data-tooltip={portfolio.name}>
+                {portfolio.code.toUpperCase()} {": "}
+              </span>
+            </Link>
             {!moneyValues || valueIn === ValueIn.TRADE ? "N/A" : moneyValues.currency.code}
           </div>
         </td>

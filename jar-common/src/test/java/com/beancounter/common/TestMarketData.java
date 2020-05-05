@@ -47,15 +47,6 @@ class TestMarketData {
   }
 
   @Test
-  void is_MarketDataDefaults() throws Exception {
-    MarketData marketData = MarketData.builder().build();
-    assertThat(marketData.getClose().equals(BigDecimal.ZERO));
-    String json = objectMapper.writeValueAsString(marketData);
-    MarketData fromJson = objectMapper.readValue(json, MarketData.class);
-    assertThat(fromJson).isEqualToComparingFieldByField(marketData);
-  }
-
-  @Test
   void is_QuantitiesWorking() throws Exception {
     QuantityValues quantityValues = QuantityValues.builder().build();
     assertThat(quantityValues)

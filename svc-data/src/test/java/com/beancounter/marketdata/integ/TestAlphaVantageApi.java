@@ -77,7 +77,7 @@ class TestAlphaVantageApi {
 
     assertThat(results.iterator().next())
         .hasFieldOrPropertyWithValue("asset", asset)
-        .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+        .hasFieldOrPropertyWithValue("close", null);
   }
 
   @Test
@@ -99,7 +99,7 @@ class TestAlphaVantageApi {
 
     assertThat(results.iterator().next())
         .hasFieldOrPropertyWithValue("asset", asset)
-        .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+        .hasFieldOrPropertyWithValue("close", null);
 
   }
 
@@ -124,7 +124,7 @@ class TestAlphaVantageApi {
     MarketData mdpPrice = results.iterator().next();
     assertThat(mdpPrice)
         .hasFieldOrPropertyWithValue("asset", asset)
-        .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO);
+        .hasFieldOrPropertyWithValue("close", null);
 
     PriceResponse priceResponse = marketDataService.getPriceResponse(asset);
     assertThat(priceResponse).isNotNull();

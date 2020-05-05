@@ -200,15 +200,6 @@ class StubbedFxValuations {
   }
 
   @Test
-  void is_ZeroHoldingsSafe() {
-
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-    valuation.value(positions);
-    assertThat(positions.getPositions()).isEmpty();
-
-  }
-
-  @Test
   void is_AssetAndCurrencyHydratedFromValuationRequest() {
 
     Asset asset = getEbay();

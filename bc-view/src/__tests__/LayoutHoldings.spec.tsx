@@ -1,5 +1,5 @@
 import React from "react";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import ViewHoldings from "../holdings";
 import nock from "nock";
@@ -44,8 +44,8 @@ describe("<ViewHoldings />", () => {
     const ZeroHoldings = (): JSX.Element => {
       return ViewHoldings("zero");
     };
-    const { getByText, container } = render(<ZeroHoldings />);
-    await waitFor(() => getByText("Value In"));
+    const { container } = render(<ZeroHoldings />);
+    await waitFor(() => screen.findByTestId("dropzone"));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });

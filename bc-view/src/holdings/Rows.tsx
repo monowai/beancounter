@@ -16,7 +16,7 @@ export function Rows(props: {
     <tr key={props.holdingGroup.group + index} className={"holding-row"}>
       <td className={"asset"}>{position.asset.code + ": " + position.asset.name}</td>
       <td align={"right"}>
-        {!position.asset.market.currency ? (
+        {!position.moneyValues[valueIn].priceData ? (
           "-"
         ) : (
           <label>
@@ -42,9 +42,25 @@ export function Rows(props: {
         )}
       </td>
       <td align={"right"}>
-        <span data-tooltip={"Previous " + position.moneyValues[valueIn].priceData.previousClose}>
-          {(position.moneyValues[valueIn].priceData.changePercent * 100).toFixed(2)}%
-        </span>
+        {!position.moneyValues[valueIn].priceData ? (
+          "-"
+        ) : (
+          <span
+            className={
+              position.moneyValues[valueIn].priceData.changePercent < 0
+                ? "negative-gain"
+                : "positive-gain"
+            }
+            data-tooltip={
+              "Previous " +
+              position.moneyValues[valueIn].currency.symbol +
+              " " +
+              position.moneyValues[valueIn].priceData.previousClose
+            }
+          >
+            {(position.moneyValues[valueIn].priceData.changePercent * 100).toFixed(2)}%
+          </span>
+        )}
       </td>
       <td align={"right"}>
         <Link to={`/trns/${props.portfolio.id}/asset/${position.asset.id}`}>

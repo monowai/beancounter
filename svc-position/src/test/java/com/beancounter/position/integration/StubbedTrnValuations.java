@@ -49,7 +49,7 @@ class StubbedTrnValuations {
 
   private MockMvc mockMvc;
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
   void setUp() {
@@ -134,7 +134,6 @@ class StubbedTrnValuations {
         .isNotNull();
 
     assertThat(positionResponse.getData().getPositions())
-        .isNotNull()
-        .isEmpty();
+        .isNull();
   }
 }

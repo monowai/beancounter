@@ -2,6 +2,7 @@ package com.beancounter.common.model;
 
 import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,7 +21,8 @@ public class Positions {
   @NonNull
   private Portfolio portfolio;
   private String asAt;
-  private Map<String, Position> positions = new TreeMap<>();
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private Map<String, Position> positions = null;
 
   Positions() {
     super();
@@ -32,6 +34,9 @@ public class Positions {
   }
 
   public void add(Position position) {
+    if ( positions == null ) {
+      positions = new TreeMap<>();
+    }
     positions.put(AssetUtils.toKey(position.getAsset()), position);
 
   }
@@ -44,6 +49,10 @@ public class Positions {
    */
   @JsonIgnore
   public Position get(Asset asset) {
+    if ( positions == null ) {
+      positions = new TreeMap<>();
+    }
+
     Position result = positions.get(AssetUtils.toKey(asset));
     if (result != null) {
       return result;
@@ -55,11 +64,18 @@ public class Positions {
 
   @JsonIgnore
   public Position get(Asset asset, LocalDate tradeDate) {
+    if ( positions == null ) {
+      positions = new TreeMap<>();
+    }
     boolean firstTrade = !positions.containsKey(AssetUtils.toKey(asset));
     Position position = get(asset);
     if (firstTrade) {
       position.getDateValues().setOpened(tradeDate.toString());
     }
     return position;
+  }
+
+  public boolean hasPositions() {
+    return positions != null && !positions.isEmpty();
   }
 }

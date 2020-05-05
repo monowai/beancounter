@@ -48,9 +48,8 @@ public class MarketData {
 
   @Column(precision = 15, scale = 6)
   private BigDecimal open;
-  @Builder.Default
   @Column(precision = 15, scale = 6)
-  private BigDecimal close = BigDecimal.ZERO;
+  private BigDecimal close;
   @Column(precision = 15, scale = 6)
   private BigDecimal low;
   @Column(precision = 15, scale = 6)

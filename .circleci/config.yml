@@ -23,7 +23,7 @@ jobs:
             - yarn-cache-{{ checksum "./bc-view/yarn.lock" }}
       - run:
           name: Install Dependencies
-          command: cd ./bc-view && pwd && yarn install --frozen-lockfile
+          command: cd ./bc-view && pwd && yarn install
       - run:
           name: Test with coverage
           command: cd ./bc-view && yarn test --ci --coverage --reporters=default --reporters=jest-junit

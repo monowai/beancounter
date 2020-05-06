@@ -27,7 +27,6 @@ const Login = (): JSX.Element => {
           logger.debug("Logging in");
         })
         .finally(() => setLoggingIn(false));
-      //
     }
 
     return <div>KeyCloak is initializing...</div>;

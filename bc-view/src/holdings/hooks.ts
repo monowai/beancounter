@@ -26,6 +26,6 @@ export function useHoldings(code: string): BcResult<HoldingContract> {
           logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
         }
       });
-  }, [code, keycloak.token]);
+  }, [code, keycloak]);
   return { data: holdingResults, error };
 }

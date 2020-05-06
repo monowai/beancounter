@@ -9,12 +9,12 @@ import Switch from "react-switch";
 import Select, { ValueType } from "react-select";
 import { valuationOptions, ValueIn } from "../types/valueBy";
 import { useHoldings } from "./hooks";
-import ErrorPage from "../common/errors/ErrorPage";
 import { Rows } from "./Rows";
 import { Header } from "./Header";
 import { isDone } from "../types/typeUtils";
 import PageLoader from "../common/PageLoader";
 import { TrnDropZone } from "../portfolio/DropZone";
+import { checkError } from "../common/errors/handle";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const holdingResults = useHoldings(code);
@@ -31,13 +31,13 @@ export default function ViewHoldings(code: string): JSX.Element {
   // Render where we are in the initialization process
   if (isDone(holdingResults)) {
     if (holdingResults.error) {
-      return ErrorPage(holdingResults.error.stack, holdingResults.error.message);
+      return checkError(holdingResults.error);
     }
     if (!holdingResults.data.positions) {
       return (
         <div data-testid="dropzone">
           <label>This portfolio has no transactions. Please drop your CSV file to upload</label>
-          <TrnDropZone portfolio={holdingResults.data.portfolio} />
+          <TrnDropZone portfolio={holdingResults.data.portfolio}/>
         </div>
       );
     }
@@ -80,12 +80,12 @@ export default function ViewHoldings(code: string): JSX.Element {
           </div>
           <div className="filter-label">Open Only</div>
           <div className="filter-column">
-            <Switch className="react-switch" onChange={setHideEmpty} checked={hideEmpty} required />
+            <Switch className="react-switch" onChange={setHideEmpty} checked={hideEmpty} required/>
           </div>
         </div>
         <div className={"stats-container"}>
           <table>
-            <StatsHeader portfolio={holdingResults.data.portfolio} />
+            <StatsHeader portfolio={holdingResults.data.portfolio}/>
             <StatsRow
               portfolio={holdingResults.data.portfolio}
               moneyValues={holdings.totals}
@@ -100,7 +100,7 @@ export default function ViewHoldings(code: string): JSX.Element {
               .map((groupKey) => {
                 return (
                   <React.Fragment key={groupKey}>
-                    <Header groupKey={groupKey} />
+                    <Header groupKey={groupKey}/>
                     <Rows
                       portfolio={holdingResults.data.portfolio}
                       holdingGroup={holdings.holdingGroups[groupKey]}
@@ -113,7 +113,7 @@ export default function ViewHoldings(code: string): JSX.Element {
                   </React.Fragment>
                 );
               })}
-            <Total holdings={holdings} valueIn={valueIn.value} />
+            <Total holdings={holdings} valueIn={valueIn.value}/>
           </table>
         </div>
       </div>

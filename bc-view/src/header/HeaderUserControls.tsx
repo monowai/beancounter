@@ -6,9 +6,9 @@ import { useKeycloak } from "@react-keycloak/razzle";
 function HeaderUserControls(): React.ReactElement {
   const systemUser = useSystemUser();
   const [keycloak, initialized] = useKeycloak();
-  if (keycloak && initialized && systemUser && systemUser.email) {
-    const loginOrOut = systemUser.email ? (
-      <div>{systemUser.email}</div>
+  if (keycloak && initialized && keycloak.authenticated && !systemUser.error) {
+    const loginOrOut = systemUser.data.email ? (
+      <div>{systemUser.data.email}</div>
     ) : (
       <div>
         <span className="icon is-small">
@@ -21,7 +21,7 @@ function HeaderUserControls(): React.ReactElement {
       </div>
     );
 
-    const authMenu = systemUser.email ? (
+    const authMenu = systemUser.data.email ? (
       <div className="navbar-dropdown">
         <Link to={"/register"} className="navbar-item">
           <span className="icon is-small">

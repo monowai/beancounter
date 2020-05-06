@@ -1,14 +1,16 @@
-import { SystemUser } from "../types/beancounter";
+import { BcResult, SystemUser } from "../types/beancounter";
 import { useEffect, useState } from "react";
 import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/razzle";
+import { AxiosError } from "axios";
 
 export const UNKNOWN: SystemUser = { email: undefined, active: false };
 
-export function useSystemUser(): SystemUser {
+export function useSystemUser(): BcResult<SystemUser> {
   const [keycloak, initialized] = useKeycloak();
   const [systemUser, setSystemUser] = useState<SystemUser>(UNKNOWN);
+  const [error, setError] = useState<AxiosError>();
   useEffect(() => {
     //if (initialized && keycloak.token) {
     logger.debug(">>get SystemUser");
@@ -35,17 +37,10 @@ export function useSystemUser(): SystemUser {
               setSystemUser(result.data);
             })
             .catch((err) => {
-              if (err.response) {
-                logger.error(
-                  "Registration error [%s]: [%s]",
-                  err.response.status,
-                  err.response.data.message
-                );
-              }
+              setError(err);
             });
         }
       });
-    //}
   }, [keycloak, initialized]);
-  return systemUser;
+  return { data: systemUser, error };
 }

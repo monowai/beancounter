@@ -26,6 +26,7 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Market {
+  // ToDo: Separate input props from impl to make it clearer.
   @NonNull
   @ToString.Include
   private String code;
@@ -41,5 +42,8 @@ public class Market {
   @Builder.Default
   @JsonIgnore
   private Map<String, String> aliases = new HashMap<>();
+
+  @JsonIgnore
+  private String enricher;
 
 }

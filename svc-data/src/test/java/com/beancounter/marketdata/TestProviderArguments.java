@@ -115,13 +115,13 @@ class TestProviderArguments {
     }
 
     @Override
-    public String translateMarketCode(Market market) {
-      return null;
+    public LocalDate getMarketDate(Market market, String date) {
+      return new DateUtils().getDate(date);
     }
 
     @Override
-    public LocalDate getMarketDate(Market market, String date) {
-      return new DateUtils().getDate(date);
+    public String getPriceCode(Asset asset) {
+      return asset.getCode();
     }
 
   }

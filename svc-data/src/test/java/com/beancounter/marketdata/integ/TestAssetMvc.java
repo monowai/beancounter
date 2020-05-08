@@ -207,7 +207,7 @@ class TestAssetMvc {
 
     // Invalid Asset
     result = mockMvc.perform(
-        get("/assets/NASDAQ/blah")
+        get("/assets/MOCK/blah")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError());

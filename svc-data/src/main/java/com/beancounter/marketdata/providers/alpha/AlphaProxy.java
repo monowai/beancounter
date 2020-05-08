@@ -23,4 +23,9 @@ public class AlphaProxy {
     return alphaGateway.getHistoric(code, apiKey);
   }
 
+  @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
+  public String search(String symbol, String apiKey) {
+    return alphaGateway.search(symbol, apiKey);
+  }
+
 }

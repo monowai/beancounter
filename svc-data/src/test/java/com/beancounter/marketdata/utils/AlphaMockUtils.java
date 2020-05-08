@@ -20,8 +20,8 @@ import org.springframework.http.MediaType;
  */
 public class AlphaMockUtils {
 
-  public static final String alphaContracts = "/contracts/alphavantage";
-  private static ObjectMapper mapper = new ObjectMapper();
+  public static final String alphaContracts = "/contracts/alpha";
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   /**
    * Convenience function to stub a response for ABC symbol.
@@ -62,4 +62,15 @@ public class AlphaMockUtils {
   }
 
 
+  public static void mockSearchResponse(WireMockRule wireMockRule, String code, File response)
+      throws IOException {
+    wireMockRule
+        .stubFor(
+            get(urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=" + code + "&apikey=demo"))
+                .willReturn(aResponse()
+                    .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(mapper.writeValueAsString(mapper.readValue(response, HashMap.class)))
+                    .withStatus(200)));
+
+  }
 }

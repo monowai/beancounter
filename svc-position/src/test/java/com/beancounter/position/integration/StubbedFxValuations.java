@@ -55,28 +55,21 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 class StubbedFxValuations {
 
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final ObjectMapper mapper = new ObjectMapper();
   @Autowired
   private WebApplicationContext context;
   @Autowired
   private Accumulator accumulator;
-
   private MockMvc mockMvc;
-
   @Autowired
   private Valuation valuation;
-
   @Autowired
   private StaticService staticService;
-
   @Autowired
   private AssetService assetService;
-
   @Autowired
   private PortfolioServiceClient portfolioService;
-
-  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
-
-  private final ObjectMapper mapper = new ObjectMapper();
   private Jwt token;
 
   @Autowired
@@ -210,7 +203,7 @@ class StubbedFxValuations {
         .hasFieldOrProperty("asset");
 
     assertThat(position.getAsset().getMarket())
-        .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId");
+        .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
 
     assertThat(position.getMoneyValues().get(Position.In.PORTFOLIO).getCurrency())
         .hasNoNullFieldsOrProperties();

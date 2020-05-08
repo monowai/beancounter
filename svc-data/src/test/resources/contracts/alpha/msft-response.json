@@ -1,0 +1,92 @@
+{
+  "bestMatches": [
+    {
+      "1. symbol": "MSFT",
+      "2. name": "Microsoft Corporation",
+      "3. type": "Equity",
+      "4. region": "United States",
+      "5. marketOpen": "09:30",
+      "6. marketClose": "16:00",
+      "7. timezone": "UTC-05",
+      "8. currency": "USD",
+      "9. matchScore": "1.0000"
+    },
+    {
+      "1. symbol": "MSFT.ARG",
+      "2. name": "Microsoft Corporation",
+      "3. type": "Equity",
+      "4. region": "Argentina",
+      "5. marketOpen": "11:00",
+      "6. marketClose": "17:00",
+      "7. timezone": "UTC-03",
+      "8. currency": "ARS",
+      "9. matchScore": "0.7273"
+    },
+    {
+      "1. symbol": "MSFT.MEX",
+      "2. name": "Microsoft Corporation",
+      "3. type": "Equity",
+      "4. region": "Mexico",
+      "5. marketOpen": "08:30",
+      "6. marketClose": "15:00",
+      "7. timezone": "UTC-05",
+      "8. currency": "MXP",
+      "9. matchScore": "0.7273"
+    },
+    {
+      "1. symbol": "MSFT34.SAO",
+      "2. name": "Microsoft Corporation",
+      "3. type": "Equity",
+      "4. region": "Brazil/Sao Paolo",
+      "5. marketOpen": "10:00",
+      "6. marketClose": "17:30",
+      "7. timezone": "UTC-03",
+      "8. currency": "BRL",
+      "9. matchScore": "0.7273"
+    },
+    {
+      "1. symbol": "MSFT.VIE",
+      "2. name": "Microsoft Corporation",
+      "3. type": "Equity",
+      "4. region": "Vienna",
+      "5. marketOpen": "08:55",
+      "6. marketClose": "17:35",
+      "7. timezone": "UTC+02",
+      "8. currency": "EUR",
+      "9. matchScore": "0.7273"
+    },
+    {
+      "1. symbol": "MSFT.SAN",
+      "2. name": "Microsoft Corporation",
+      "3. type": "Equity",
+      "4. region": "Chile/Santiago",
+      "5. marketOpen": "09:30",
+      "6. marketClose": "16:00",
+      "7. timezone": "UTC-03",
+      "8. currency": "CLP",
+      "9. matchScore": "0.7273"
+    },
+    {
+      "1. symbol": "MSFT.MIL",
+      "2. name": "MICROSOFT CORP",
+      "3. type": "Equity",
+      "4. region": "Milan",
+      "5. marketOpen": "09:00",
+      "6. marketClose": "17:30",
+      "7. timezone": "UTC+02",
+      "8. currency": "EUR",
+      "9. matchScore": "0.6667"
+    },
+    {
+      "1. symbol": "MSFTD.ARG",
+      "2. name": "MICROSOFT CORP",
+      "3. type": "Equity",
+      "4. region": "Argentina",
+      "5. marketOpen": "11:00",
+      "6. marketClose": "17:00",
+      "7. timezone": "UTC-03",
+      "8. currency": "ARS",
+      "9. matchScore": "0.6154"
+    }
+  ]
+}

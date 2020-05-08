@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers;
 
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import java.time.LocalDate;
 
@@ -12,13 +13,7 @@ public interface DataProviderConfig {
    */
   Integer getBatchSize();
 
-  /**
-   * MarketDataProviders often have difference ways of handling Market Codes.
-   *
-   * @param market BeanCounter view of the Market Code
-   * @return DataProvider view of the same MarketCode
-   */
-  String translateMarketCode(Market market);
-
   LocalDate getMarketDate(Market market, String date);
+
+  String getPriceCode(Asset asset);
 }

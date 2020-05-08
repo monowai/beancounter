@@ -24,7 +24,6 @@ import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.service.MarketDataService;
-import com.beancounter.marketdata.service.MdFactory;
 import com.beancounter.marketdata.trn.TrnKafkaConsumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -58,39 +57,27 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Slf4j
 public class TestKafka {
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
-
-  @Autowired
-  private MdFactory mdFactory;
-
   @Autowired
   private MarketDataService marketDataService;
-
   @Autowired
   private AssetService assetService;
-
   @Autowired
   private PriceWriter priceWriter;
-
   @Autowired
   private PortfolioService portfolioService;
-
   @Autowired
   private SystemUserService systemUserService;
-
   @MockBean
   private TokenService tokenService;
-
   @Autowired
   private TrnKafkaConsumer trnKafkaConsumer;
-
   @Autowired
   private DateUtils dateUtils;
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @SneakyThrows
   @Test
@@ -208,7 +195,7 @@ public class TestKafka {
           .hasFieldOrProperty("id");
       assertThat(md.getAsset().getMarket())
           // These are not used client side so should be ignored
-          .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId");
+          .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
     }
   }
 }

@@ -51,13 +51,8 @@ public class ProviderArguments {
     for (String market : marketAssets.keySet()) {
       for (Asset asset : marketAssets.get(market)) {
 
-        String marketCode = dataProviderConfig.translateMarketCode(asset.getMarket());
-        String assetCode = asset.getCode();
-
-        if (marketCode != null && !marketCode.isEmpty()) {
-          assetCode = assetCode + "." + marketCode;
-        }
-        providerArguments.addAsset(assetCode, asset,
+        //String marketCode = dataProviderConfig.translateMarketCode(asset.getMarket());
+        providerArguments.addAsset(dataProviderConfig.getPriceCode(asset), asset,
             dateUtils.getDateString(
                 dataProviderConfig.getMarketDate(asset.getMarket(), priceRequest.getDate())));
 

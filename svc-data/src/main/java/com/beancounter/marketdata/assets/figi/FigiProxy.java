@@ -2,7 +2,6 @@ package com.beancounter.marketdata.assets.figi;
 
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
-import com.beancounter.marketdata.markets.MarketService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,17 +18,15 @@ import org.springframework.stereotype.Service;
 public class FigiProxy {
 
   public static final String FIGI = "FIGI";
-  private final MarketService marketService;
   private final FigiConfig figiConfig;
   private final Collection<String> filter = new ArrayList<>();
   private FigiGateway figiGateway;
   private FigiAdapter figiAdapter;
 
 
-  FigiProxy(FigiConfig figiConfig, MarketService marketService) {
+  FigiProxy(FigiConfig figiConfig) {
     log.info("FIGI Enabled");
     this.figiConfig = figiConfig;
-    this.marketService = marketService;
     filter.add("COMMON STOCK");
     filter.add("REIT");
     filter.add("DEPOSITARY RECEIPT");
@@ -47,10 +44,9 @@ public class FigiProxy {
   }
 
   @RateLimiter(name = "figi")
-  public Asset find(String marketCode, String bcAssetCode) {
+  public Asset find(Market market, String bcAssetCode) {
     String figiCode = bcAssetCode.replace(".", "/").toUpperCase();
 
-    Market market = marketService.getMarket(marketCode);
     String figiMarket = market.getAliases().get(FIGI);
     FigiSearch figiSearch = FigiSearch.builder()
         .exchCode(figiMarket)
@@ -71,12 +67,12 @@ public class FigiProxy {
       for (FigiAsset datum : response.getData()) {
         if (filter.contains(datum.getSecurityType2().toUpperCase())) {
           log.trace("In response to {}/{} - found {}/{}",
-              marketCode, bcAssetCode, figiMarket, figiCode);
+              market, bcAssetCode, figiMarket, figiCode);
           return figiAdapter.transform(market, bcAssetCode, datum);
         }
       }
     }
-    log.debug("Couldn't find {}/{} - as {}/{}", marketCode, bcAssetCode, figiMarket, figiCode);
+    log.debug("Couldn't find {}/{} - as {}/{}", market, bcAssetCode, figiMarket, figiCode);
     return null;
   }
 

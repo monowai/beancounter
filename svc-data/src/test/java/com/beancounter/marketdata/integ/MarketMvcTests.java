@@ -38,14 +38,11 @@ import org.springframework.web.context.WebApplicationContext;
 class MarketMvcTests {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   @Autowired
   private WebApplicationContext wac;
-
   private MockMvc mockMvc;
-
   private Jwt token;
-
-  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
   void mockServices() {
@@ -95,7 +92,7 @@ class MarketMvcTests {
     assertThat(marketResponse.getData()).hasSize(1);
 
     Market nzx = marketResponse.getData().iterator().next();
-    assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId");
+    assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
   }
 
   @Test

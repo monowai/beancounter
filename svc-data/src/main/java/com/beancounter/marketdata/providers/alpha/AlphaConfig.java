@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha;
 
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
@@ -11,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({AlphaService.class, StaticConfig.class, AlphaProxyCache.class, AlphaAdapter.class})
+@Import({AlphaService.class, StaticConfig.class, AlphaProxyCache.class, AlphaPriceAdapter.class})
 @Data
 public class AlphaConfig implements DataProviderConfig {
 
@@ -28,11 +29,11 @@ public class AlphaConfig implements DataProviderConfig {
     return 1;
   }
 
-  @Override
   public String translateMarketCode(Market market) {
 
     if (market.getCode().equalsIgnoreCase("NASDAQ")
         || market.getCode().equalsIgnoreCase("NYSE")
+        || market.getCode().equalsIgnoreCase("LON")
         || market.getCode().equalsIgnoreCase("AMEX")) {
       return null;
     }
@@ -45,10 +46,21 @@ public class AlphaConfig implements DataProviderConfig {
 
   @Override
   public LocalDate getMarketDate(Market market, String date) {
-    if (date == null) {
-      date = dateUtils.today();
+    return dateUtils.getLastMarketDate(
+        dateUtils.getDate(date == null ? dateUtils.today() : date),
+        market.getTimezone().toZoneId());
+  }
+
+  @Override
+  public String getPriceCode(Asset asset) {
+    if (asset.getPriceSymbol() != null) {
+      return asset.getPriceSymbol();
     }
-    return dateUtils.getLastMarketDate(dateUtils.getDate(date), market.getTimezone().toZoneId());
+    String marketCode = translateMarketCode(asset.getMarket());
+    if (marketCode != null && !marketCode.isEmpty()) {
+      return asset.getCode() + "." + marketCode;
+    }
+    return asset.getCode();
   }
 
 }

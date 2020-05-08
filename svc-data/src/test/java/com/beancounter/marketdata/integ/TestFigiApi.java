@@ -6,10 +6,22 @@ import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.beancounter.auth.common.TokenUtils;
+import com.beancounter.auth.server.AuthorityRoleConverter;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.SystemUser;
 import com.beancounter.marketdata.assets.figi.FigiProxy;
+import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.utils.FigiMockUtils;
+import com.beancounter.marketdata.utils.RegistrationUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Tag;
@@ -19,12 +31,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("figi")
 @Tag("slow")
 public class TestFigiApi {
 
@@ -32,6 +49,12 @@ public class TestFigiApi {
 
   @Autowired
   private FigiProxy figiProxy;
+
+  @Autowired
+  private MarketService marketService;
+
+  @Autowired
+  private WebApplicationContext context;
 
   @Autowired
   @SneakyThrows
@@ -65,6 +88,12 @@ public class TestFigiApi {
           "XLF",
           "REIT");
 
+      FigiMockUtils.mock(figiApi,
+          new ClassPathResource("/contracts" + "/figi/brkb-response.json").getFile(),
+          "US",
+          "BRK/B",
+          "Common Stock");
+
       figiApi.stubFor(any(anyUrl())
           .atPriority(10)
           .willReturn(aResponse()
@@ -78,7 +107,7 @@ public class TestFigiApi {
 
   @Test
   void is_CommonStockFound() {
-    Asset asset = figiProxy.find("NASDAQ", "MSFT");
+    Asset asset = figiProxy.find(marketService.getMarket("NASDAQ"), "MSFT");
     assertThat(asset)
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "MICROSOFT CORP")
@@ -87,7 +116,7 @@ public class TestFigiApi {
 
   @Test
   void is_AdrFound() {
-    Asset asset = figiProxy.find("NASDAQ", "BAIDU");
+    Asset asset = figiProxy.find(marketService.getMarket("NASDAQ"), "BAIDU");
     assertThat(asset)
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "BAIDU INC - SPON ADR")
@@ -96,7 +125,7 @@ public class TestFigiApi {
 
   @Test
   void is_ReitFound() {
-    Asset asset = figiProxy.find("NYSE", "OHI");
+    Asset asset = figiProxy.find(marketService.getMarket("NYSE"), "OHI");
     assertThat(asset)
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "OMEGA HEALTHCARE INVESTORS")
@@ -105,12 +134,44 @@ public class TestFigiApi {
 
   @Test
   void is_MutualFundFound() {
-    Asset asset = figiProxy.find("NYSE", "XLF");
+    Asset asset = figiProxy.find(marketService.getMarket("NYSE"), "XLF");
     assertThat(asset)
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR")
-        .hasNoNullFieldsOrPropertiesExcept("id") // Unknown to BC, but is known to FIGI
+        .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol") // Unknown to BC, but is known to FIGI
         .isNotNull();
+  }
+
+  @Test
+  void is_BrkBFound() throws Exception {
+    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        .apply(springSecurity())
+        .build();
+
+    // Authorise the caller to access the BC API
+    SystemUser user = SystemUser.builder()
+        .id("user")
+        .email("user@testing.com")
+        .build();
+    Jwt token = TokenUtils.getUserToken(user);
+    RegistrationUtils.registerUser(mockMvc, token);
+
+    MvcResult mvcResult = mockMvc.perform(
+        get("/assets/{market}/{code}", "NYSE", "BRK.B")
+            .with(jwt().jwt(token).authorities(new AuthorityRoleConverter()))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    AssetResponse assetResponse = new ObjectMapper()
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    assertThat(assetResponse.getData())
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("code", "BRK.B")
+        .hasFieldOrPropertyWithValue("name", "BERKSHIRE HATHAWAY INC-CL B");
+
   }
 
 }

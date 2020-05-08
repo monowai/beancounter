@@ -32,20 +32,20 @@ import org.springframework.stereotype.Service;
 public class AlphaService implements MarketDataProvider {
   public static final String ID = "ALPHA";
   private final AlphaConfig alphaConfig;
+  private final DateUtils dateUtils = new DateUtils();
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
   private AlphaProxyCache alphaProxyCache;
-  private AlphaAdapter alphaAdapter;
-  private final DateUtils dateUtils = new DateUtils();
+  private AlphaPriceAdapter alphaPriceAdapter;
 
   public AlphaService(AlphaConfig alphaConfig) {
     this.alphaConfig = alphaConfig;
   }
 
   @Autowired
-  void setAlphaHelpers(AlphaProxyCache alphaProxyCache, AlphaAdapter alphaAdapter) {
+  void setAlphaHelpers(AlphaProxyCache alphaProxyCache, AlphaPriceAdapter alphaPriceAdapter) {
     this.alphaProxyCache = alphaProxyCache;
-    this.alphaAdapter = alphaAdapter;
+    this.alphaPriceAdapter = alphaPriceAdapter;
   }
 
   @PostConstruct
@@ -70,17 +70,11 @@ public class AlphaService implements MarketDataProvider {
       if (isCurrent(priceRequest.getDate())) {
         requests.put(
             batchId,
-            alphaProxyCache.getCurrent(
-                providerArguments.getBatch().get(batchId),
-                date,
-                apiKey));
+            alphaProxyCache.getCurrent(providerArguments.getBatch().get(batchId), date, apiKey));
       } else {
         requests.put(
             batchId,
-            alphaProxyCache.getHistoric(
-                providerArguments.getBatch().get(batchId),
-                date,
-                apiKey));
+            alphaProxyCache.getHistoric(providerArguments.getBatch().get(batchId), date, apiKey));
       }
 
     }
@@ -98,7 +92,7 @@ public class AlphaService implements MarketDataProvider {
       for (Integer batch : requests.keySet()) {
         if (requests.get(batch).isDone()) {
           results.addAll(
-              alphaAdapter.get(providerArguments, batch, requests.get(batch).get())
+              alphaPriceAdapter.get(providerArguments, batch, requests.get(batch).get())
           );
           requests.remove(batch);
         }

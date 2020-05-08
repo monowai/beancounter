@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MarketService implements com.beancounter.client.MarketService {
 
-  private Map<String, Market> markets;
   private final Map<String, String> aliases = new HashMap<>();
+  private Map<String, Market> markets;
 
   /**
    * Return the Exchange code to use for the supplied input.
@@ -47,6 +47,7 @@ public class MarketService implements com.beancounter.client.MarketService {
    */
 
   public Market getMarket(String marketCode) {
+    assert marketCode != null;
     return getMarket(marketCode, true);
   }
 

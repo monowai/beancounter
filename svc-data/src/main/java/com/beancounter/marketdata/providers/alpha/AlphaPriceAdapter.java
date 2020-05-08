@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha;
 
+import com.beancounter.common.contracts.AssetSearchResponse;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
@@ -18,17 +19,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class AlphaAdapter implements MarketDataAdapter {
-  private final ObjectMapper alphaMdMapper;
+public class AlphaPriceAdapter implements MarketDataAdapter {
+  private final ObjectMapper alphaMapper = new ObjectMapper();
 
-  public AlphaAdapter() {
-    alphaMdMapper = new ObjectMapper();
-
+  public AlphaPriceAdapter() {
     SimpleModule module =
         new SimpleModule("AlphaMarketDataDeserializer",
             new Version(1, 0, 0, null, null, null));
-    module.addDeserializer(PriceResponse.class, new AlphaDeserializer());
-    alphaMdMapper.registerModule(module);
+    module.addDeserializer(PriceResponse.class, new AlphaPriceDeserializer());
+    module.addDeserializer(AssetSearchResponse.class, new AlphaSearchDeserializer());
+    alphaMapper.registerModule(module);
   }
 
   public Collection<MarketData> get(ProviderArguments providerArguments,
@@ -42,7 +42,7 @@ public class AlphaAdapter implements MarketDataAdapter {
       for (String dpAsset : assets) {
         Asset asset = providerArguments.getDpToBc().get(dpAsset);
         if (isMdResponse(asset, response)) {
-          PriceResponse priceResponse = alphaMdMapper.readValue(response, PriceResponse.class);
+          PriceResponse priceResponse = alphaMapper.readValue(response, PriceResponse.class);
           for (MarketData marketData : priceResponse.getData()) {
             marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
             log.trace("Valued {} ", asset.getName());
@@ -71,8 +71,8 @@ public class AlphaAdapter implements MarketDataAdapter {
     }
 
     if (field != null) {
-      JsonNode resultMessage = alphaMdMapper.readTree(result);
-      log.error("API returned [{}] for {}",resultMessage.get(field), asset);
+      JsonNode resultMessage = alphaMapper.readTree(result);
+      log.error("API returned [{}] for {}", resultMessage.get(field), asset);
       return false;
     }
     return true;
@@ -83,8 +83,8 @@ public class AlphaAdapter implements MarketDataAdapter {
     return MarketData.builder().asset(asset).build();
   }
 
-  public ObjectMapper getAlphaObjectMapper() {
-    return alphaMdMapper;
+  public ObjectMapper getAlphaMapper() {
+    return alphaMapper;
   }
 
 }

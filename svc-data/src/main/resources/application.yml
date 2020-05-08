@@ -43,7 +43,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: asset.prices, fx.rates, providers, asset.ext
+    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext
   jpa:
     open-in-view: false
     generate-ddl: true
@@ -98,11 +98,13 @@ beancounter:
     - code: SGD
       name: Dollar
       symbol: $
-
+  # Default asset enricher - FIGI/ALPHA/MOCK - can be set on a per market basis
+  enricher: ALPHA
   markets:
     - code: MOCK
       id: MOCK
       timezoneId: UTC
+      enricher: MOCK
 
     - code: NASDAQ
       id: NASDAQ
@@ -158,7 +160,14 @@ beancounter:
       aliases:
         FIGI: GB
 
+    - code: LON
+      # UK Mutual Funds
+      id: LON
+      currencyId: GBP
+      timezoneId: Europe/London
+
   marketdata:
+    # ToDo: default provider
     provider:
       MOCK:
         markets: MOCK
@@ -166,7 +175,7 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: NASDAQ,AMEX,NYSE,ASX
+        markets: NASDAQ,AMEX,NYSE,ASX,LON
 
       WTD:
         url: https://www.worldtradingdata.com

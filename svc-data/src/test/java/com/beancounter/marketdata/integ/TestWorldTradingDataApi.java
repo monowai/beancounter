@@ -43,7 +43,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("wtd")
 class TestWorldTradingDataApi {
 
   private static WireMockRule mockInternet;

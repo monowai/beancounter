@@ -45,6 +45,8 @@ public class Asset {
   @JsonIgnore
   private String marketCode;
 
+  private String priceSymbol;
+
   @Transient
   @JsonIgnore
   // Is this asset stored locally?

@@ -3,11 +3,13 @@ package com.beancounter.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.providers.alpha.AlphaAdapter;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
+import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,22 +26,22 @@ import org.springframework.core.io.ClassPathResource;
  * @author mikeh
  * @since 2019-03-03
  */
-class TestAlphaProvider {
-  private final ObjectMapper mapper = new AlphaAdapter().getAlphaObjectMapper();
+class TestAlphaPrices {
+  private final ObjectMapper priceMapper = new AlphaPriceAdapter().getAlphaMapper();
 
   @Test
   void is_NullAsset() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/alphavantage-empty-response.json").getFile();
 
-    assertThat(mapper.readValue(jsonFile, PriceResponse.class)).isNull();
+    assertThat(priceMapper.readValue(jsonFile, PriceResponse.class)).isNull();
   }
 
   @Test
   void is_GlobalResponse() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/global-response.json").getFile();
-    PriceResponse marketData = mapper.readValue(jsonFile, PriceResponse.class);
+    PriceResponse marketData = priceMapper.readValue(jsonFile, PriceResponse.class);
     assertThat(marketData)
         .isNotNull()
         .hasNoNullFieldsOrPropertiesExcept("id", "requestDate");
@@ -71,7 +73,7 @@ class TestAlphaProvider {
   }
 
   private MarketData validateResponse(File jsonFile) throws Exception {
-    PriceResponse priceResponse = mapper.readValue(jsonFile, PriceResponse.class);
+    PriceResponse priceResponse = priceMapper.readValue(jsonFile, PriceResponse.class);
     MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)
         .isNotNull()
@@ -92,17 +94,18 @@ class TestAlphaProvider {
     // No configured support to handle the market
     assertThat(alphaService.isMarketSupported(Market.builder().code("NZX").build())).isFalse();
 
-    assertThat(alphaConfig.translateMarketCode(
-        Market.builder().code("NASDAQ").build())).isNull();
+    Asset msft = AssetUtils.getAsset("NASDAQ", "MSFT");
+    assertThat(alphaConfig.getPriceCode(msft)).isEqualTo("MSFT");
 
-    assertThat(alphaConfig.translateMarketCode(
-        Market.builder().code("NYSE").build())).isNull();
+    Asset ohi = AssetUtils.getAsset("NYSE", "OHI");
+    assertThat(alphaConfig.getPriceCode(ohi)).isEqualTo("OHI");
 
-    assertThat(alphaConfig.translateMarketCode(
-        Market.builder().code("AMEX").build())).isNull();
 
-    assertThat(alphaConfig.translateMarketCode(
-        Market.builder().code("NZX").build())).isNotNull();
+    Asset abc = AssetUtils.getAsset("AMEX", "ABC");
+    assertThat(alphaConfig.getPriceCode(abc)).isEqualTo("ABC");
+
+    Asset nzx = AssetUtils.getAsset("NZX", "AIRNZ");
+    assertThat(alphaConfig.getPriceCode(nzx)).isEqualTo("AIRNZ.NZX");
 
   }
 

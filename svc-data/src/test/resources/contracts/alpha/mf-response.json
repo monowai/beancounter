@@ -1,0 +1,15 @@
+{
+  "bestMatches": [
+    {
+      "1. symbol": "0P0000XMSV.LON",
+      "2. name": "AXA Framlington Health Fund Z GBP Acc",
+      "3. type": "Mutual Fund",
+      "4. region": "United Kingdom",
+      "5. marketOpen": "08:00",
+      "6. marketClose": "16:30",
+      "7. timezone": "UTC+01",
+      "8. currency": "GBP",
+      "9. matchScore": "0.1053"
+    }
+  ]
+}

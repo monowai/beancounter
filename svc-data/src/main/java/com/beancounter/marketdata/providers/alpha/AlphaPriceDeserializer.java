@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2019-03-03
  */
 @Slf4j
-public class AlphaDeserializer extends JsonDeserializer<PriceResponse> {
+public class AlphaPriceDeserializer extends JsonDeserializer<PriceResponse> {
   public static final String GLOBAL_QUOTE = "Global Quote";
   public static final String TIME_SERIES_DAILY = "Time Series (Daily)";
   private static final ObjectMapper mapper = new ObjectMapper();
@@ -92,10 +92,10 @@ public class AlphaDeserializer extends JsonDeserializer<PriceResponse> {
     if (asset != null) {
       MapType mapType = mapper.getTypeFactory()
           .constructMapType(LinkedHashMap.class, String.class, HashMap.class);
+
       LinkedHashMap<?, ? extends LinkedHashMap<String, Object>>
           allValues = mapper.readValue(source.get("Time Series (Daily)").toString(), mapType);
 
-      // ToDo: This is not supporting "as at dates" and just returns the head
       for (Object key : allValues.keySet()) {
         Map<String, Object> rawData = allValues.get(key.toString());
         LocalDate localDateTime = dateUtils.getLocalDate(

@@ -62,14 +62,13 @@ class TestMdProviders {
 
   @Test
   void is_FoundByMarket() {
-    Asset amp = AssetUtils.getAsset(Market.builder().code("ASX").build(), "AMP");
+    Asset amp = AssetUtils.getAsset(marketService.getMarket("ASX"), "AMP");
     MarketDataProvider asxMarket = mdFactory.getMarketDataProvider(amp.getMarket());
     assertThat(asxMarket.getId()).isEqualTo(WtdService.ID);
 
-    Asset gne = AssetUtils.getAsset(Market.builder().code("NZX").build(), "GNE");
+    Asset gne = AssetUtils.getAsset(marketService.getMarket("NZX"), "GNE");
     MarketDataProvider nzxMarket = mdFactory.getMarketDataProvider(gne.getMarket());
-    assertThat(nzxMarket.getId())
-        .isEqualTo(AlphaService.ID);
+    assertThat(nzxMarket.getId()).isEqualTo(AlphaService.ID);
 
     assertThat(nzxMarket.isMarketSupported(gne.getMarket())).isTrue();
     assertThat(nzxMarket.isMarketSupported(amp.getMarket())).isFalse();

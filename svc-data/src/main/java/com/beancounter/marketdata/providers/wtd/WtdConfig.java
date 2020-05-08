@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.wtd;
 
 import static com.beancounter.marketdata.providers.wtd.WtdService.ID;
 
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.config.StaticConfig;
@@ -34,17 +35,11 @@ public class WtdConfig implements DataProviderConfig {
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired
-  void setDateUtils(DateUtils dateUtils) {
-    this.dateUtils = dateUtils;
-  }
-
-  @Autowired
   void setStaticConfig(StaticConfig staticConfig) {
     this.staticConfig = staticConfig;
   }
 
-  @Override
-  public String translateMarketCode(Market market) {
+  private String translateMarketCode(Market market) {
     return staticConfig.getMarketData().get(market.getCode()).getAliases().get(ID);
   }
 
@@ -69,5 +64,14 @@ public class WtdConfig implements DataProviderConfig {
         dateUtils.getDate(startDate == null ? dateUtils.today() : startDate),
         timeZone.toZoneId(), daysToSubtract);
 
+  }
+
+  @Override
+  public String getPriceCode(Asset asset) {
+    String marketCode = translateMarketCode(asset.getMarket());
+    if (marketCode != null && !marketCode.isEmpty()) {
+      return asset.getCode() + "." + marketCode;
+    }
+    return asset.getCode();
   }
 }

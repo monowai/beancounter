@@ -38,4 +38,11 @@ public class AlphaProxyCache {
   public Future<String> getHistoric(String code, String date, String apiKey) {
     return new AsyncResult<>(alphaProxy.getHistoric(code, apiKey));
   }
+
+  @Cacheable("asset.search")
+  @Async
+  public Future<String> search(String symbol, String apiKey) {
+    return new AsyncResult<>(alphaProxy.search(symbol, apiKey));
+  }
+
 }

@@ -5,8 +5,10 @@ kafka:
   enabled: false
 
 beancounter:
+  # All Asset enrichment via OpenFigi
+  enricher: FIGI
   marketdata:
     provider:
       FIGI:
-        url: http://localhost:6655
+        url: http://localhost:6666
         key: demo

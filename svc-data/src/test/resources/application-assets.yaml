@@ -5,6 +5,8 @@ kafka:
   enabled: false
 
 beancounter:
+  enricher: MOCK
+
   marketdata:
     provider:
       FIGI:

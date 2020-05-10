@@ -49,6 +49,7 @@ class TestDateUtils {
   @Test
   void is_NullIsoDate() {
     assertThat(dateUtils.getDate(null)).isNull();
+    assertThat(dateUtils.getDate(null, "yyyy-MM-dd")).isNull();
     assertThat(dateUtils.getLocalDate(null, "yyyy-MM-dd")).isNull();
   }
 

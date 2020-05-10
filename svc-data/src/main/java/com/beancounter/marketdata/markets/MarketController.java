@@ -2,10 +2,8 @@ package com.beancounter.marketdata.markets;
 
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.MarketResponse;
-import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
 import java.util.Collections;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,9 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class MarketController {
 
-  private MarketService marketService;
+  private final MarketService marketService;
 
-  @Autowired
   MarketController(MarketService marketService) {
     this.marketService = marketService;
   }
@@ -42,9 +39,6 @@ public class MarketController {
   MarketResponse getMarket(@PathVariable String code) {
     MarketResponse marketResponse = MarketResponse.builder().build();
     Market market = marketService.getMarket(code);
-    if (market == null) {
-      throw new BusinessException(String.format("No market could be found for %s", code));
-    }
     marketResponse.setData(Collections.singleton(market));
     return marketResponse;
   }

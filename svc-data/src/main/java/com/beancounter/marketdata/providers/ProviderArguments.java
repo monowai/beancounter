@@ -52,9 +52,8 @@ public class ProviderArguments {
       for (Asset asset : marketAssets.get(market)) {
 
         //String marketCode = dataProviderConfig.translateMarketCode(asset.getMarket());
-        providerArguments.addAsset(dataProviderConfig.getPriceCode(asset), asset,
-            dateUtils.getDateString(
-                dataProviderConfig.getMarketDate(asset.getMarket(), priceRequest.getDate())));
+        providerArguments.addAsset(asset,
+            priceRequest.getDate());
 
       }
       providerArguments.bumpBatch();
@@ -70,16 +69,19 @@ public class ProviderArguments {
   /**
    * Tracks and batches the asset for the DataProvider.
    *
-   * @param dpKey DataProvider Asset ID
    * @param asset BeanCounter Asset
    */
-  public void addAsset(String dpKey, Asset asset, String date) {
+  public void addAsset(Asset asset, String requestedDate) {
+    String dpKey = dataProviderConfig.getPriceCode(asset);
+    String valuationDate = dateUtils.getDateString(
+        dataProviderConfig.getMarketDate(asset.getMarket(), requestedDate));
+
     dpToBc.put(dpKey, asset);
     BatchConfig batchConfig = batchConfigs.get(currentBatch);
     if (batchConfig == null) {
       batchConfig = BatchConfig.builder()
           .batch(currentBatch)
-          .date(date)
+          .date(valuationDate)
           .build();
       batchConfigs.put(currentBatch, batchConfig);
     }

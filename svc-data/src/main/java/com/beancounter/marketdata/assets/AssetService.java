@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class AssetService implements com.beancounter.client.AssetService {
       return hydrateAsset(assetRepository.save(asset));
 
     }
-    return backFillMissingData(foundAsset.getId(), foundAsset);
+    return backFillMissingData(foundAsset);
   }
 
   public AssetUpdateResponse process(AssetRequest asset) {
@@ -121,14 +122,13 @@ public class AssetService implements com.beancounter.client.AssetService {
     return optionalAsset.map(this::hydrateAsset).orElse(null);
   }
 
-  public Asset backFillMissingData(String id, Asset asset) {
+  public Asset backFillMissingData(Asset asset) {
     AssetEnricher enricher = enrichmentFactory.getEnricher(asset.getMarket());
     if (enricher.canEnrich(asset)) {
       Asset enriched = enricher.enrich(asset.getMarket(), asset.getCode(), asset.getName());
 
       if (enriched != null) {
-        enriched.setId(id);
-        enriched.setMarketCode(asset.getMarket().getCode());
+        enriched.setId(asset.getId());
         assetRepository.save(enriched);
         return enriched;
       }
@@ -136,9 +136,13 @@ public class AssetService implements com.beancounter.client.AssetService {
     return asset;
   }
 
-  private Asset hydrateAsset(Asset asset) {
+  public Asset hydrateAsset(Asset asset) {
     assert asset != null;
     asset.setMarket(marketService.getMarket(asset.getMarketCode()));
     return asset;
+  }
+
+  public Stream<Asset> findAllAssets() {
+    return assetRepository.findAllAssets();
   }
 }

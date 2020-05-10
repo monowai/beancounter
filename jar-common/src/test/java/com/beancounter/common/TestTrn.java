@@ -123,6 +123,7 @@ class TestTrn {
     String json = mapper.writeValueAsString(ttr);
     TrustedTrnRequest fromJson = mapper.readValue(json, TrustedTrnRequest.class);
     assertThat(fromJson).isEqualToComparingFieldByField(ttr);
+    assertThat(new TrustedTrnRequest()).isNotNull(); // Coverage
   }
 
   @Test
@@ -140,6 +141,13 @@ class TestTrn {
         .hasFieldOrPropertyWithValue("batch", "ABC")
         .hasFieldOrPropertyWithValue("provider", "ABC")
         .hasFieldOrPropertyWithValue("callerId", "ABC");
+
+    // Called ID not specified
+    callerRef = CallerRef.builder().batch("ABC").provider("ABC").build();
+    assertThat(CallerRef.from(callerRef, PortfolioUtils.getPortfolio("BLAH")))
+        .hasFieldOrPropertyWithValue("batch", "ABC")
+        .hasFieldOrPropertyWithValue("provider", "ABC")
+        .hasFieldOrProperty("callerId");
 
   }
 }

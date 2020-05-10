@@ -32,8 +32,4 @@ public class EnrichmentFactory {
     return enrichers.get(enricher.toUpperCase());
   }
 
-  AssetEnricher getEnricher() {
-    return enrichers.get(defEnricher);
-  }
-
 }

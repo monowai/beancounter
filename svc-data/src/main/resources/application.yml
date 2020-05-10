@@ -30,6 +30,7 @@ logging:
       zaxxer: error
     org:
       springframework: error
+      springframework.scheduling: debug
       hibernate: error
       apache: error
       postgres: error
@@ -165,7 +166,6 @@ beancounter:
       id: LON
       currencyId: GBP
       timezoneId: Europe/London
-
   marketdata:
     # ToDo: default provider
     provider:

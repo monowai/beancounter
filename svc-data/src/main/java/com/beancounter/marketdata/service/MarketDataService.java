@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.providers.PriceService;
 import com.beancounter.marketdata.providers.ProviderUtils;
 import java.time.LocalDate;
@@ -14,9 +15,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.transaction.Transactional;
+import java.util.concurrent.Future;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service container for MarketData information.
@@ -25,27 +31,38 @@ import org.springframework.stereotype.Service;
  * @since 2019-01-28
  */
 @Service
+@Slf4j
 public class MarketDataService {
 
   private final ProviderUtils providerUtils;
   private final PriceService priceService;
+  private final AssetService assetService;
 
   @Autowired
-  MarketDataService(ProviderUtils providerUtils, PriceService priceService) {
+  MarketDataService(ProviderUtils providerUtils,
+                    PriceService priceService,
+                    AssetService assetService) {
     this.providerUtils = providerUtils;
     this.priceService = priceService;
+    this.assetService = assetService;
   }
 
+  @SneakyThrows
+  public PriceResponse getPriceResponse(Asset asset) {
+    return getFuturePriceResponse(asset).get();
+  }
   /**
    * Get the current MarketData values for the supplied Asset.
    *
    * @param asset to query
    * @return MarketData - Values will be ZERO if not found or an integration problem occurs
    */
-  public PriceResponse getPriceResponse(Asset asset) {
+  @Async
+  public Future<PriceResponse> getFuturePriceResponse(Asset asset) {
     List<AssetInput> inputs = new ArrayList<>();
-    inputs.add(AssetInput.builder().resolvedAsset(asset).build());
-    return getPriceResponse(PriceRequest.builder().assets(inputs).build());
+    inputs.add(AssetInput.builder()
+        .resolvedAsset(asset).build());
+    return new AsyncResult<>(getPriceResponse(PriceRequest.builder().assets(inputs).build()));
   }
 
   /**

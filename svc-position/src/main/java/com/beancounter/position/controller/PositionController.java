@@ -2,18 +2,14 @@ package com.beancounter.position.controller;
 
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.client.services.PortfolioServiceClient;
-import com.beancounter.client.services.TrnService;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
-import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,16 +33,13 @@ public class PositionController {
 
   private PositionService positionService;
   private Valuation valuationService;
-  private PortfolioServiceClient portfolioService;
-  private TrnService trnService;
+  private PortfolioServiceClient portfolioServiceClient;
 
   @Autowired
   PositionController(PositionService positionService,
-                     PortfolioServiceClient portfolioService,
-                     TrnService trnService) {
+                     PortfolioServiceClient portfolioServiceClient) {
     this.positionService = positionService;
-    this.portfolioService = portfolioService;
-    this.trnService = trnService;
+    this.portfolioServiceClient = portfolioServiceClient;
   }
 
   @Autowired
@@ -62,19 +55,9 @@ public class PositionController {
 
 
   @GetMapping(value = "/{code}/{valuationDate}", produces = "application/json")
-  PositionResponse get(final @AuthenticationPrincipal Jwt jwt,
-                       @PathVariable String code,
+  PositionResponse get(@PathVariable String code,
                        @PathVariable(required = false) String valuationDate) {
-    Portfolio portfolio = portfolioService.getPortfolioByCode(code);
-    TrnResponse trnResponse = trnService.read(portfolio);
-    PositionRequest positionRequest = PositionRequest.builder()
-        .portfolioId(portfolio.getId())
-        .trns(trnResponse.getData())
-        .build();
-    PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
-    if (valuationDate != null && !valuationDate.equalsIgnoreCase("today")) {
-      positionResponse.getData().setAsAt(valuationDate);
-    }
-    return valuationService.value(positionResponse.getData());
+    Portfolio portfolio = portfolioServiceClient.getPortfolioByCode(code);
+    return valuationService.value(portfolio, valuationDate);
   }
 }

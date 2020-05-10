@@ -14,7 +14,7 @@ import java.util.Collection;
 import org.junit.jupiter.api.Test;
 
 class TestPortfolio {
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   void is_PortfolioResultsSerializing() throws Exception {

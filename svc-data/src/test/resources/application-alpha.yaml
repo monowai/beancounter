@@ -13,3 +13,5 @@ beancounter:
         markets: NASDAQ,AMEX,NYSE,ASX,NZX
       MOCK:
         markets: MOCK
+      WTD:
+        markets:

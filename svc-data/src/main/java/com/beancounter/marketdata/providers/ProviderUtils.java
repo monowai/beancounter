@@ -18,7 +18,7 @@ public class ProviderUtils {
   private final MdFactory mdFactory;
 
   @Autowired
-  ProviderUtils(MdFactory mdFactory) {
+  public ProviderUtils(MdFactory mdFactory) {
     this.mdFactory = mdFactory;
   }
 

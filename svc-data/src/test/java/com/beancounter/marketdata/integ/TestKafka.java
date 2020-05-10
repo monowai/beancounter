@@ -25,6 +25,7 @@ import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.trn.TrnKafkaConsumer;
+import com.beancounter.marketdata.utils.KafkaUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -38,8 +39,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.listener.KafkaListenerErrorHandler;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -76,8 +81,8 @@ public class TestKafka {
   private TokenService tokenService;
   @Autowired
   private TrnKafkaConsumer trnKafkaConsumer;
-  @Autowired
-  private DateUtils dateUtils;
+
+  private final DateUtils dateUtils = new DateUtils();
 
   @SneakyThrows
   @Test
@@ -197,5 +202,18 @@ public class TestKafka {
           // These are not used client side so should be ignored
           .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
     }
+  }
+
+  @Test
+  void is_ErrorCovered() {
+    KafkaUtils kafkaUtils = new KafkaUtils();
+    ListenerExecutionFailedException failedException
+        = new ListenerExecutionFailedException("Blah");
+    String result = kafkaUtils.findBcCause(failedException);
+    assertThat(result.contains("com.beancounter"));
+    KafkaListenerErrorHandler handler = kafkaUtils.bcErrorHandler();
+    Message<?> message = new ErrorMessage(failedException);
+    Object errorResult = handler.handleError(message, failedException);
+    assertThat(errorResult).isNull();
   }
 }

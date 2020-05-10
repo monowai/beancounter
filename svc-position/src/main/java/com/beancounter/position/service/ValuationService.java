@@ -1,7 +1,11 @@
 package com.beancounter.position.service;
 
+import com.beancounter.client.services.TrnService;
+import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.AssetInput;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.utils.DateUtils;
@@ -27,17 +31,33 @@ public class ValuationService implements Valuation {
 
   private final Gains gains;
   private final PositionValuationService positionValuationService;
-  private DateUtils dateUtils = new DateUtils();
+  private final DateUtils dateUtils = new DateUtils();
+  private final TrnService trnService;
+  private final PositionService positionService;
 
   @Autowired
-  ValuationService(PositionValuationService positionValuationService, Gains gains) {
+  ValuationService(PositionValuationService positionValuationService,
+                   TrnService trnService,
+                   PositionService positionService,
+                   Gains gains) {
     this.positionValuationService = positionValuationService;
     this.gains = gains;
+    this.trnService = trnService;
+    this.positionService = positionService;
   }
 
-  @Autowired
-  void setDateUtils(DateUtils dateUtils) {
-    this.dateUtils = dateUtils;
+  public PositionResponse value(Portfolio portfolio, String valuationDate) {
+
+    TrnResponse trnResponse = trnService.read(portfolio);
+    PositionRequest positionRequest = PositionRequest.builder()
+        .portfolioId(portfolio.getId())
+        .trns(trnResponse.getData())
+        .build();
+    PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
+    if (valuationDate != null && !valuationDate.equalsIgnoreCase("today")) {
+      positionResponse.getData().setAsAt(valuationDate);
+    }
+    return value(positionResponse.getData());
   }
 
   @Override
@@ -73,6 +93,5 @@ public class ValuationService implements Valuation {
         .build();
 
   }
-
 
 }

@@ -1,6 +1,7 @@
 package com.beancounter.marketdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.input.AssetInput;
@@ -10,6 +11,9 @@ import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.DataProviderConfig;
 import com.beancounter.marketdata.providers.ProviderArguments;
+import com.beancounter.marketdata.providers.ProviderUtils;
+import com.beancounter.marketdata.service.MarketDataProvider;
+import com.beancounter.marketdata.service.MdFactory;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,16 +34,14 @@ class TestProviderArguments {
 
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(1));
 
-    providerArguments.addAsset("appl", aapl, "");
-    providerArguments.addAsset("msft", msft, "");
-    providerArguments.addAsset("intc", intc, "");
+    providerArguments.addAsset( aapl, "");
+    providerArguments.addAsset(msft, "");
+    providerArguments.addAsset(intc, "");
 
     Map<Integer, String> batch = providerArguments.getBatch();
     assertThat(batch)
         .containsOnlyKeys(0, 1, 2)
-        .containsValue("appl")
-        .containsValue("msft")
-        .containsValue("intc")
+        .containsValues("AAPL", "MSFT", "INTC")
     ;
 
 
@@ -48,30 +50,30 @@ class TestProviderArguments {
   @Test
   void is_BatchOfTwo() {
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(2));
-    providerArguments.addAsset("appl", aapl, "");
-    providerArguments.addAsset("msft", msft, "");
-    providerArguments.addAsset("intc", intc, "");
+    providerArguments.addAsset(aapl, "");
+    providerArguments.addAsset(msft, "");
+    providerArguments.addAsset(intc, "");
 
     Map<Integer, String> batch = providerArguments.getBatch();
 
     assertThat(batch)
         .containsOnlyKeys(0, 1)
-        .containsValue("appl,msft")
-        .containsValue("intc")
+        .containsValue("AAPL,MSFT")
+        .containsValue("INTC")
     ;
   }
 
   @Test
   void is_BatchOfThree() {
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(3));
-    providerArguments.addAsset("appl", aapl, "");
-    providerArguments.addAsset("msft", msft, "");
-    providerArguments.addAsset("intc", intc, "");
+    providerArguments.addAsset(aapl, "");
+    providerArguments.addAsset(msft, "");
+    providerArguments.addAsset(intc, "");
 
     Map<Integer, String> batch = providerArguments.getBatch();
     assertThat(batch)
         .containsOnlyKeys(0)
-        .containsValue("appl,msft,intc")
+        .containsValue("AAPL,MSFT,INTC")
     ;
   }
 
@@ -98,6 +100,24 @@ class TestProviderArguments {
 
     assertThat(batch)
         .containsOnlyKeys(0, 1, 2);
+
+  }
+
+  @Test
+  void is_ProviderUtils() {
+    Collection<AssetInput>assetInputs = new ArrayList<>();
+
+    assetInputs.add(AssetInput.builder()
+        .code("TWEE")
+        .market("MOCK")
+        .build());
+
+    ProviderUtils providerUtils = new ProviderUtils(mock(MdFactory.class));
+    Map<MarketDataProvider, Collection<Asset>> split = providerUtils.splitProviders(assetInputs);
+    assertThat(split).hasSize(1);
+    for (MarketDataProvider marketDataProvider : split.keySet()) {
+      assertThat (split.get(marketDataProvider)).hasSize(1);
+    }
 
   }
 

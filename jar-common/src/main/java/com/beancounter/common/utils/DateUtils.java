@@ -73,6 +73,9 @@ public class DateUtils {
   }
 
   public LocalDate getDate(String inDate) {
+    if ( inDate == null || inDate.isBlank()) {
+      return null;
+    }
     return getDate(inDate, "yyyy-MM-dd");
   }
 

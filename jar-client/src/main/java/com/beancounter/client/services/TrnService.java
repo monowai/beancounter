@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
 public class TrnService {
-  private TrnGateway trnGateway;
-  private TokenService tokenService;
+  private final TrnGateway trnGateway;
+  private final TokenService tokenService;
 
   TrnService(TrnGateway trnGateway, TokenService tokenService) {
     this.trnGateway = trnGateway;

@@ -21,6 +21,7 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
+import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.service.MdFactory;
@@ -237,11 +238,16 @@ class TestAlphaVantageApi {
     File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
 
     AlphaMockUtils.mockCurrentResponse(alphaApi, "MSFT", jsonFile);
+    Market nasdaq = Market.builder().code("NASDAQ").build();
     Asset asset =
-        Asset.builder().code("MSFT").market(Market.builder().code("NASDAQ").build()).build();
+        Asset.builder().code("MSFT").market(nasdaq).build();
     PriceRequest priceRequest = PriceRequest.of(asset).build();
     Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
         .getMarketData(priceRequest);
+
+    // Coverage - WTD does not support this market
+    assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(nasdaq)).isFalse();
+    assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(null)).isFalse();
 
     MarketData marketData = mdResult.iterator().next();
     assertThat(marketData)

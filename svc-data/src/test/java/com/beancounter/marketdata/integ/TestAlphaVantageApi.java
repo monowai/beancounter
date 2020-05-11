@@ -111,6 +111,10 @@ class TestAlphaVantageApi {
         alphaApi, "AMP.AUS",
         new ClassPathResource(alphaContracts + "/amp-global.json").getFile());
 
+    AlphaMockUtils.mockGlobalResponse(
+        alphaApi, "MSFT",
+        new ClassPathResource(alphaContracts + "/msft-global.json").getFile());
+
     this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
         .apply(springSecurity())
         .build();

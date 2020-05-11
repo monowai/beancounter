@@ -34,7 +34,7 @@ class TestProviderArguments {
 
     ProviderArguments providerArguments = new ProviderArguments(new TestConfig(1));
 
-    providerArguments.addAsset( aapl, "");
+    providerArguments.addAsset(aapl, "");
     providerArguments.addAsset(msft, "");
     providerArguments.addAsset(intc, "");
 
@@ -105,7 +105,7 @@ class TestProviderArguments {
 
   @Test
   void is_ProviderUtils() {
-    Collection<AssetInput>assetInputs = new ArrayList<>();
+    Collection<AssetInput> assetInputs = new ArrayList<>();
 
     assetInputs.add(AssetInput.builder()
         .code("TWEE")
@@ -116,7 +116,7 @@ class TestProviderArguments {
     Map<MarketDataProvider, Collection<Asset>> split = providerUtils.splitProviders(assetInputs);
     assertThat(split).hasSize(1);
     for (MarketDataProvider marketDataProvider : split.keySet()) {
-      assertThat (split.get(marketDataProvider)).hasSize(1);
+      assertThat(split.get(marketDataProvider)).hasSize(1);
     }
 
   }

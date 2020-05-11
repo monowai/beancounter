@@ -31,7 +31,7 @@ class TestAlphaAssets {
   @Test
   void is_SearchResult() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/mf-response.json").getFile();
+        + "/mf-search.json").getFile();
     AssetSearchResponse searchResponse = assetMapper.readValue(jsonFile, AssetSearchResponse.class);
     assertThat(searchResponse)
         .isNotNull()

@@ -6,9 +6,9 @@ import com.google.common.io.CharStreams;
 import feign.FeignException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -20,7 +20,7 @@ import org.springframework.http.HttpStatus;
  */
 public class SpringFeignDecoder implements ErrorDecoder {
 
-  private static ObjectMapper mapper;
+  private static final ObjectMapper mapper;
 
   static {
     mapper = new ObjectMapper();
@@ -29,7 +29,12 @@ public class SpringFeignDecoder implements ErrorDecoder {
 
   @Override
   public Exception decode(String methodKey, Response response) {
-    String reason = getMessage(response);
+    String reason = null;
+    try {
+      reason = getMessage(response);
+    } catch (IOException e) {
+      throw new SystemException(e.getMessage());
+    }
     if (response.status() == HttpStatus.UNAUTHORIZED.value()) {
       // Clearly communicate an authentication issue
       return new UnauthorizedException(reason);
@@ -49,8 +54,7 @@ public class SpringFeignDecoder implements ErrorDecoder {
     return FeignException.errorStatus(methodKey, response);
   }
 
-  @SneakyThrows
-  private String getMessage(Response response) {
+  private String getMessage(Response response) throws IOException {
     if (response.body() == null) {
       SpringExceptionMessage exceptionMessage = SpringExceptionMessage.builder()
           .message(response.reason())

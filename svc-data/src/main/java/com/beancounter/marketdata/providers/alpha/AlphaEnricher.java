@@ -19,7 +19,7 @@ public class AlphaEnricher implements AssetEnricher {
   @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
   private String apiKey;
 
-  AlphaEnricher(AlphaConfig alphaConfig) {
+  public AlphaEnricher(AlphaConfig alphaConfig) {
     this.alphaConfig = alphaConfig;
   }
 

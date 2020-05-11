@@ -34,7 +34,7 @@ public class Positions {
   }
 
   public void add(Position position) {
-    if ( positions == null ) {
+    if (positions == null) {
       positions = new TreeMap<>();
     }
     positions.put(AssetUtils.toKey(position.getAsset()), position);
@@ -49,7 +49,7 @@ public class Positions {
    */
   @JsonIgnore
   public Position get(Asset asset) {
-    if ( positions == null ) {
+    if (positions == null) {
       positions = new TreeMap<>();
     }
 
@@ -64,7 +64,7 @@ public class Positions {
 
   @JsonIgnore
   public Position get(Asset asset, LocalDate tradeDate) {
-    if ( positions == null ) {
+    if (positions == null) {
       positions = new TreeMap<>();
     }
     boolean firstTrade = !positions.containsKey(AssetUtils.toKey(asset));

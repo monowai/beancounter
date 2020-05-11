@@ -41,7 +41,7 @@ public class TestClientLogin {
   @Value("${auth.client}")
   private String client;
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
   void mockKeyCloak() throws Exception {

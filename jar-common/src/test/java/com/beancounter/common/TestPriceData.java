@@ -61,6 +61,7 @@ public class TestPriceData {
     ;
 
   }
+
   @Test
   void is_PriceDataNullOk() {
 

@@ -33,15 +33,15 @@ public class AssetIngestService {
    * @return hydrated asset with a primary key.
    */
   public Asset resolveAsset(String marketCode, String assetCode, String assetName) {
-    if (marketCode.equalsIgnoreCase("MOCK")) {
+    Market market = marketService.getMarket(marketCode);
+    if (market == null) {
+      throw new BusinessException(String.format("Unable to resolve market [%s]", marketCode));
+    }
+    if (market.inMemory()) {
       // Support unit testings where we don't really care about the asset
       Asset asset = AssetUtils.getAsset("MOCK", assetCode);
       asset.setName(assetName);
       return asset;
-    }
-    Market market = marketService.getMarket(marketCode);
-    if (market == null) {
-      throw new BusinessException(String.format("Unable to resolve market [%s]", marketCode));
     }
     String callerKey = AssetUtils.toKey(assetCode, market.getCode());
     AssetRequest assetRequest = AssetRequest.builder()

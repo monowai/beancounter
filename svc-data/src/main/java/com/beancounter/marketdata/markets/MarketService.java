@@ -90,4 +90,9 @@ public class MarketService implements com.beancounter.client.MarketService {
     }
 
   }
+
+  public boolean canPersist(Market market) {
+    // Don't persist Mock market assets
+    return !market.inMemory();
+  }
 }

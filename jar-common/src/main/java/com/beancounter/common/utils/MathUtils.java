@@ -73,7 +73,7 @@ public class MathUtils {
     if (value.isBlank()) {
       return BigDecimal.ZERO;
     }
-    return new BigDecimal(numberFormat.parse(value.replace("\"","")).toString());
+    return new BigDecimal(numberFormat.parse(value.replace("\"", "")).toString());
   }
 
   public BigDecimal get(String money) {
@@ -84,8 +84,12 @@ public class MathUtils {
   }
 
   public boolean hasValidRate(BigDecimal rate) {
-    if (rate == null ) return false;
-    if (rate.compareTo(BigDecimal.ZERO)== 0) return false;
+    if (rate == null) {
+      return false;
+    }
+    if (rate.compareTo(BigDecimal.ZERO) == 0) {
+      return false;
+    }
     return rate.compareTo(BigDecimal.ONE) != 0;
   }
 }

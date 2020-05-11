@@ -1,0 +1,15 @@
+{
+  "bestMatches": [
+    {
+      "1. symbol": "AMP.AUS",
+      "2. name": "AMP Limited",
+      "3. type": "Equity",
+      "4. region": "Australia",
+      "5. marketOpen": "10:00",
+      "6. marketClose": "16:00",
+      "7. timezone": "UTC+12",
+      "8. currency": "AUD",
+      "9. matchScore": "1.0000"
+    }
+  ]
+}

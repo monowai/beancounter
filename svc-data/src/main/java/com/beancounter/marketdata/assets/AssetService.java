@@ -95,7 +95,7 @@ public class AssetService implements com.beancounter.client.AssetService {
       if (asset == null) {
         throw new BusinessException(String.format("No asset found for %s:%s", marketCode, code));
       }
-      if (!marketCode.equalsIgnoreCase("MOCK")) {
+      if (marketService.canPersist(market)) {
         if (asset.getId() == null) {
           asset.setId(KeyGenUtils.format(UUID.randomUUID()));
         }

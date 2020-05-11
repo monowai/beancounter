@@ -171,7 +171,7 @@ class TestAsset {
         .region("Region")
         .build();
 
-    Collection<AssetSearchResult>results = new ArrayList<>();
+    Collection<AssetSearchResult> results = new ArrayList<>();
     results.add(searchResult);
     results.add(withDefaults);
     AssetSearchResponse searchResponse = AssetSearchResponse.builder()

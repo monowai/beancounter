@@ -46,4 +46,8 @@ public class Market {
   @JsonIgnore
   private String enricher;
 
+  @JsonIgnore
+  public boolean inMemory() {
+    return code.equalsIgnoreCase("MOCK");
+  }
 }

@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PriceRefresh {
   private final AssetService assetService;
-  private MarketDataService marketDataService;
+  private final MarketDataService marketDataService;
+
   PriceRefresh(AssetService assetService, MarketDataService marketDataService) {
     this.assetService = assetService;
     this.marketDataService = marketDataService;

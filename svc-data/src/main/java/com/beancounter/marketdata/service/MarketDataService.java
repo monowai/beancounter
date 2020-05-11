@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
-import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.providers.PriceService;
 import com.beancounter.marketdata.providers.ProviderUtils;
 import java.time.LocalDate;
@@ -36,33 +35,17 @@ public class MarketDataService {
 
   private final ProviderUtils providerUtils;
   private final PriceService priceService;
-  private final AssetService assetService;
 
   @Autowired
   MarketDataService(ProviderUtils providerUtils,
-                    PriceService priceService,
-                    AssetService assetService) {
+                    PriceService priceService) {
     this.providerUtils = providerUtils;
     this.priceService = priceService;
-    this.assetService = assetService;
   }
 
   @SneakyThrows
   public PriceResponse getPriceResponse(Asset asset) {
     return getFuturePriceResponse(asset).get();
-  }
-  /**
-   * Get the current MarketData values for the supplied Asset.
-   *
-   * @param asset to query
-   * @return MarketData - Values will be ZERO if not found or an integration problem occurs
-   */
-  @Async
-  public Future<PriceResponse> getFuturePriceResponse(Asset asset) {
-    List<AssetInput> inputs = new ArrayList<>();
-    inputs.add(AssetInput.builder()
-        .resolvedAsset(asset).build());
-    return new AsyncResult<>(getPriceResponse(PriceRequest.builder().assets(inputs).build()));
   }
 
   /**
@@ -112,6 +95,20 @@ public class MarketDataService {
     priceService.write(response); // Async write
     response.getData().addAll(existing);
     return response;
+  }
+
+  /**
+   * Get the current MarketData values for the supplied Asset.
+   *
+   * @param asset to query
+   * @return MarketData - Values will be ZERO if not found or an integration problem occurs
+   */
+  @Async
+  public Future<PriceResponse> getFuturePriceResponse(Asset asset) {
+    List<AssetInput> inputs = new ArrayList<>();
+    inputs.add(AssetInput.builder()
+        .resolvedAsset(asset).build());
+    return new AsyncResult<>(getPriceResponse(PriceRequest.builder().assets(inputs).build()));
   }
 
 }

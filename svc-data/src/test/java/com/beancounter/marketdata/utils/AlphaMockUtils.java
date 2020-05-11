@@ -36,7 +36,7 @@ public class AlphaMockUtils {
         "/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=demo", jsonFile);
   }
 
-  public static void mockCurrentResponse(WireMockRule wireMockRule, String symbol, File jsonFile)
+  public static void mockGlobalResponse(WireMockRule wireMockRule, String symbol, File jsonFile)
       throws IOException {
     mockGetResponse(wireMockRule,
         "/query?function=GLOBAL_QUOTE&symbol=" + symbol + "&apikey=demo", jsonFile);

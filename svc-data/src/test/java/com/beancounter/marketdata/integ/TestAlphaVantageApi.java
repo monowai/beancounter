@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
+import com.beancounter.client.AssetService;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
@@ -18,6 +19,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.marketdata.batch.ScheduledValuation;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
@@ -33,8 +35,11 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.Collection;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,6 +63,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @ActiveProfiles("alpha")
 @Tag("slow")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TestAlphaVantageApi {
 
   private static WireMockRule alphaApi;
@@ -70,6 +76,11 @@ class TestAlphaVantageApi {
   private MarketDataService marketDataService;
   @Autowired
   private AlphaConfig alphaConfig;
+  @Autowired
+  private AssetService assetService;
+  @Autowired
+  private ScheduledValuation scheduledValuation;
+
   @Autowired
   private WebApplicationContext context;
   private MockMvc mockMvc;
@@ -85,11 +96,23 @@ class TestAlphaVantageApi {
     }
     AlphaMockUtils.mockSearchResponse(alphaApi,
         "MSFT",
-        new ClassPathResource("/contracts" + "/alpha/msft-response.json").getFile());
+        new ClassPathResource(alphaContracts + "/msft-response.json").getFile());
 
     AlphaMockUtils.mockSearchResponse(alphaApi,
         "AAPL",
-        new ClassPathResource("/contracts" + "/alpha/appl-response.json").getFile());
+        new ClassPathResource(alphaContracts + "/appl-response.json").getFile());
+
+    AlphaMockUtils.mockSearchResponse(alphaApi,
+        "AMP.AX", // We search Alpha as AX
+        new ClassPathResource(alphaContracts + "/amp-search.json").getFile());
+
+    AlphaMockUtils.mockGlobalResponse(
+        alphaApi, "AMP.AX",
+        new ClassPathResource(alphaContracts + "/amp-global.json").getFile());
+
+    AlphaMockUtils.mockGlobalResponse(
+        alphaApi, "AMP.AUS",
+        new ClassPathResource(alphaContracts + "/amp-global.json").getFile());
 
     this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
         .apply(springSecurity())
@@ -106,11 +129,33 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(1)
+  void is_PriceUpdated() throws Exception {
+    MvcResult mvcResult = mockMvc.perform(
+        get("/assets/{market}/{code}", "ASX", "AMP")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    AssetResponse assetResponse = new ObjectMapper()
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    scheduledValuation.updatePrices();
+    Thread.sleep(2000); // Async reads/writes
+    PriceResponse price = marketDataService.getPriceResponse(assetResponse.getData());
+    assertThat(price).hasNoNullFieldsOrProperties();
+
+  }
+
+  @Test
+  @Order(5)
   void is_MutualFundAssetEnriched() throws Exception {
 
     AlphaMockUtils.mockSearchResponse(alphaApi,
         "B6WZJX0",
-        new ClassPathResource("/contracts" + "/alpha/mf-response.json").getFile());
+        new ClassPathResource("/contracts" + "/alpha/mf-search.json").getFile());
 
 
     MvcResult mvcResult = mockMvc.perform(
@@ -134,11 +179,36 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(5)
+  void is_EnrichedMarketCodeTranslated() throws Exception {
+
+    MvcResult mvcResult = mockMvc.perform(
+        get("/assets/{market}/{code}", "ASX", "AMP")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    AssetResponse assetResponse = new ObjectMapper()
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    assertThat(assetResponse.getData())
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("code", "AMP")
+        .hasFieldOrProperty("market")
+        .hasFieldOrPropertyWithValue("priceSymbol", "AMP.AUS")
+        .hasFieldOrPropertyWithValue("name", "AMP Limited");
+
+    assertThat(alphaConfig.getPriceCode(assetResponse.getData())).isEqualTo("AMP.AUS");
+  }
+
+  @Test
   void is_ApiErrorMessageHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
 
-    AlphaMockUtils.mockCurrentResponse(alphaApi, "API.ERR", jsonFile);
+    AlphaMockUtils.mockGlobalResponse(alphaApi, "API.ERR", jsonFile);
     Asset asset =
         Asset.builder().code("API").market(Market.builder().code("ERR").build()).build();
 
@@ -182,7 +252,7 @@ class TestAlphaVantageApi {
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
     Market nasdaq = marketService.getMarket("NASDAQ");
 
-    AlphaMockUtils.mockCurrentResponse(alphaApi, "ABC", jsonFile);
+    AlphaMockUtils.mockGlobalResponse(alphaApi, "ABC", jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(nasdaq).build();
 
@@ -237,10 +307,11 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
 
-    AlphaMockUtils.mockCurrentResponse(alphaApi, "MSFT", jsonFile);
+    AlphaMockUtils.mockGlobalResponse(alphaApi, "MSFT", jsonFile);
+
     Market nasdaq = Market.builder().code("NASDAQ").build();
-    Asset asset =
-        Asset.builder().code("MSFT").market(nasdaq).build();
+    Asset asset = Asset.builder().code("MSFT").market(nasdaq).build();
+
     PriceRequest priceRequest = PriceRequest.of(asset).build();
     Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
         .getMarketData(priceRequest);
@@ -259,5 +330,29 @@ class TestAlphaVantageApi {
         .hasFieldOrProperty("high")
         .hasFieldOrProperty("previousClose")
         .hasFieldOrProperty("change");
+
   }
+
+  @Test
+  void is_CurrentPriceAsxFound() {
+
+    Market asx = Market.builder().code("ASX").build();
+    Asset asset = Asset.builder().code("AMP").market(asx).build();
+
+    PriceRequest priceRequest = PriceRequest.of(asset).build();
+    Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
+        .getMarketData(priceRequest);
+
+    MarketData marketData = mdResult.iterator().next();
+    assertThat(marketData)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("asset", asset)
+        .hasFieldOrProperty("close")
+        .hasFieldOrProperty("open")
+        .hasFieldOrProperty("low")
+        .hasFieldOrProperty("high")
+        .hasFieldOrProperty("previousClose")
+        .hasFieldOrProperty("change");
+  }
+
 }

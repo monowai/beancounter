@@ -152,4 +152,10 @@ class TestStaticData {
     assertThat(currencyService.getBase())
         .isNotNull();
   }
+
+  @Test
+  void is_IllegalArgumentsHandled() {
+    assertThrows(BusinessException.class, ()
+        -> marketService.getMarket(null, true));
+  }
 }

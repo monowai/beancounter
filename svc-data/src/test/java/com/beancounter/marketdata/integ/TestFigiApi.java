@@ -63,33 +63,33 @@ public class TestFigiApi {
     if (figiApi == null) {
       figiApi = new WireMockRule(options().port(6666));
       figiApi.start();
-      String prefix = "/contracts";
+      String prefix = "/contracts/figi";
       FigiMockUtils.mock(figiApi,
-          new ClassPathResource(prefix + "/figi/common-stock-response.json").getFile(),
+          new ClassPathResource(prefix + "/common-stock-response.json").getFile(),
           "US",
           "MSFT",
           "Common Stock");
 
       FigiMockUtils.mock(figiApi,
-          new ClassPathResource(prefix + "/figi/adr-response.json").getFile(),
+          new ClassPathResource(prefix + "/adr-response.json").getFile(),
           "US",
           "BAIDU",
           "Depositary Receipt");
 
       FigiMockUtils.mock(figiApi,
-          new ClassPathResource(prefix + "/figi/reit-response.json").getFile(),
+          new ClassPathResource(prefix + "/reit-response.json").getFile(),
           "US",
           "OHI",
           "REIT");
 
       FigiMockUtils.mock(figiApi,
-          new ClassPathResource(prefix + "/figi/mf-response.json").getFile(),
+          new ClassPathResource(prefix + "/mf-response.json").getFile(),
           "US",
           "XLF",
           "REIT");
 
       FigiMockUtils.mock(figiApi,
-          new ClassPathResource("/contracts" + "/figi/brkb-response.json").getFile(),
+          new ClassPathResource(prefix + "/brkb-response.json").getFile(),
           "US",
           "BRK/B",
           "Common Stock");
@@ -138,7 +138,8 @@ public class TestFigiApi {
     assertThat(asset)
         .isNotNull()
         .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR")
-        .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol") // Unknown to BC, but is known to FIGI
+        // Unknown to BC, but is known to FIGI
+        .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol")
         .isNotNull();
   }
 

@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
-import com.beancounter.client.AssetService;
 import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
@@ -77,8 +76,6 @@ class TestAlphaVantageApi {
   @Autowired
   private AlphaConfig alphaConfig;
   @Autowired
-  private AssetService assetService;
-  @Autowired
   private ScheduledValuation scheduledValuation;
 
   @Autowired
@@ -131,6 +128,9 @@ class TestAlphaVantageApi {
   @Test
   @Order(1)
   void is_PriceUpdated() throws Exception {
+    // We run this first because:
+    //   1 - don't want to setup a second mock Alpha API
+    //   2 - we create dummy assets for which we don't want to mock price responses
     MvcResult mvcResult = mockMvc.perform(
         get("/assets/{market}/{code}", "ASX", "AMP")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
@@ -150,7 +150,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(5)
+  @Order(10)
   void is_MutualFundAssetEnriched() throws Exception {
 
     AlphaMockUtils.mockSearchResponse(alphaApi,
@@ -179,7 +179,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(5)
+  @Order(10)
   void is_EnrichedMarketCodeTranslated() throws Exception {
 
     MvcResult mvcResult = mockMvc.perform(
@@ -204,6 +204,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(10)
   void is_ApiErrorMessageHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
@@ -224,6 +225,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(10)
   void is_ApiInvalidKeyHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
@@ -247,6 +249,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(10)
   void is_ApiCallLimitExceededHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
@@ -275,6 +278,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(10)
   void is_SuccessHandledForAsx() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantage-asx.json").getFile();
@@ -303,6 +307,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(10)
   void is_CurrentPriceFound() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
@@ -334,6 +339,7 @@ class TestAlphaVantageApi {
   }
 
   @Test
+  @Order(10)
   void is_CurrentPriceAsxFound() {
 
     Market asx = Market.builder().code("ASX").build();

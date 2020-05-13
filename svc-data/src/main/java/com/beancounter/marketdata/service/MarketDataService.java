@@ -111,4 +111,10 @@ public class MarketDataService {
     return new AsyncResult<>(getPriceResponse(PriceRequest.builder().assets(inputs).build()));
   }
 
+  /**
+   * Delete all prices.  Supports testing
+   */
+  public void purge() {
+    priceService.purge();
+  }
 }

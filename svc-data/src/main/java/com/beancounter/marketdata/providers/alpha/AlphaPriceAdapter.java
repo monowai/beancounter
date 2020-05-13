@@ -4,7 +4,9 @@ import com.beancounter.common.contracts.AssetSearchResponse;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.marketdata.providers.MarketDataAdapter;
 import com.beancounter.marketdata.providers.ProviderArguments;
 import com.fasterxml.jackson.core.Version;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +48,7 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
           PriceResponse priceResponse = alphaMapper.readValue(response, PriceResponse.class);
           for (MarketData marketData : priceResponse.getData()) {
             marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
+            normalise(asset.getMarket(), marketData);
             log.trace("Valued {} ", asset.getName());
             results.add(marketData);
           }
@@ -60,6 +64,17 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
 
   }
 
+  private void normalise(Market market, MarketData marketData) {
+    if (market.getMultiplier().compareTo(BigDecimal.ONE) != 0){
+
+      marketData.setClose(MathUtils.multiply(marketData.getClose(), market.getMultiplier(), 4));
+      marketData.setOpen(MathUtils.multiply(marketData.getOpen(), market.getMultiplier(), 4));
+      marketData.setHigh(MathUtils.multiply(marketData.getHigh(), market.getMultiplier(), 4));
+      marketData.setLow(MathUtils.multiply(marketData.getLow(), market.getMultiplier(), 4));
+      marketData.setChange(MathUtils.multiply(marketData.getChange(), market.getMultiplier(), 4));
+    }
+  }
+
   private boolean isMdResponse(Asset asset, String result) throws IOException {
     String field = null;
     if (result.contains("Error Message")) {
@@ -72,7 +87,7 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
 
     if (field != null) {
       JsonNode resultMessage = alphaMapper.readTree(result);
-      log.error("API returned [{}] for {}", resultMessage.get(field), asset);
+      log.debug("API returned [{}] for {}", resultMessage.get(field), asset);
       return false;
     }
     return true;

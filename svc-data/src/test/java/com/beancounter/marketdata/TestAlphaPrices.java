@@ -50,6 +50,17 @@ class TestAlphaPrices {
   }
 
   @Test
+  void is_MutualFundGlobalResponse() throws Exception {
+    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
+        + "/pence-price-response.json").getFile();
+    PriceResponse marketData = priceMapper.readValue(jsonFile, PriceResponse.class);
+    assertThat(marketData)
+        .isNotNull()
+        .hasNoNullFieldsOrPropertiesExcept("id", "requestDate");
+
+  }
+
+  @Test
   void is_ResponseWithMarketCodeSerialized() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/alphavantage-asx.json").getFile();

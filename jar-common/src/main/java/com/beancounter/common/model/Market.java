@@ -2,6 +2,7 @@ package com.beancounter.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -38,6 +39,9 @@ public class Market {
   private String timezoneId;
   @Builder.Default
   private TimeZone timezone = TimeZone.getTimeZone("US/Eastern");
+
+  @Builder.Default
+  private BigDecimal multiplier = BigDecimal.ONE;
 
   @Builder.Default
   @JsonIgnore

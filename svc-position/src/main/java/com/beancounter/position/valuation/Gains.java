@@ -9,7 +9,7 @@ public class Gains {
 
   public void value(BigDecimal total, MoneyValues moneyValues) {
 
-    if (total.compareTo(BigDecimal.ZERO) != 0) {
+    if (total.compareTo(BigDecimal.ZERO) != 0 && moneyValues.getMarketValue() != null) {
       moneyValues.setUnrealisedGain(
           moneyValues.getMarketValue()
               .subtract(moneyValues.getCostValue()));

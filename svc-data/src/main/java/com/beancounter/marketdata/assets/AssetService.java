@@ -145,4 +145,8 @@ public class AssetService implements com.beancounter.client.AssetService {
   public Stream<Asset> findAllAssets() {
     return assetRepository.findAllAssets();
   }
+
+  public void purge() {
+    assetRepository.deleteAll();
+  }
 }

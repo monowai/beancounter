@@ -54,4 +54,8 @@ public class PriceService {
     Iterable<MarketData> results = process(priceResponse);
     return new AsyncResult<>(results);
   }
+
+  public void purge() {
+    marketDataRepo.deleteAll();
+  }
 }

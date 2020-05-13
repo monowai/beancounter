@@ -126,13 +126,67 @@ public class TestKafka {
         .row(row)
         .portfolio(pfResponse.iterator().next())
         .build();
-    TrnResponse response = trnKafkaConsumer.processMessage(trnRequest);
 
     Asset expectedAsset = assetResponse.getData().get("MSFT");
-    assertThat(response).isNotNull();
+
+    TrnResponse response = trnKafkaConsumer.processMessage(trnRequest);
+    assertThat(response.getData()).isNotNull().hasSize(1);
     for (Trn trn : response.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
       assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "123");
+    }
+  }
+
+  @SneakyThrows
+  @Test
+  void is_MutualFundProcessed() {
+    log.debug(embeddedKafkaBroker.getBrokersAsString());
+    SystemUser owner = systemUserService.save(SystemUser.builder().id("mike").build());
+    Mockito.when(tokenService.getSubject()).thenReturn(owner.getId());
+
+    // The asset has to exist
+    AssetRequest assetRequest = AssetRequest.builder()
+        .data("B784NS1", AssetUtils.getAssetInput("LON", "B784NS1"))
+        .build();
+    AssetUpdateResponse assetResponse = assetService.process(assetRequest);
+    assertThat(assetResponse.getData().get("B784NS1")).hasFieldOrProperty("id");
+
+    Collection<PortfolioInput> portfolios = new ArrayList<>();
+    portfolios.add(PortfolioInput.builder().code("MFTEST")
+        .currency("USD")
+        .build());
+    Collection<Portfolio> pfResponse = portfolioService.save(portfolios);
+    assertThat(pfResponse).isNotNull();
+    assertThat(pfResponse).isNotNull().hasSize(1);
+
+    // A CSV row
+    List<String> row = new ArrayList<>();
+    row.add(ShareSightTradeAdapter.id, "10");
+    row.add(ShareSightTradeAdapter.market, "LON");
+    row.add(ShareSightTradeAdapter.code, "B784NS1");
+    row.add(ShareSightTradeAdapter.name, "");
+    row.add(ShareSightTradeAdapter.type, "BUY");
+    row.add(ShareSightTradeAdapter.date, "01/01/2020");
+    row.add(ShareSightTradeAdapter.quantity, "3245.936");
+    row.add(ShareSightTradeAdapter.price, "2.4646");
+    row.add(ShareSightTradeAdapter.brokerage, "0");
+    row.add(ShareSightTradeAdapter.currency, "GBP");
+    row.add(ShareSightTradeAdapter.fxRate, BigDecimal.ONE.toString());
+    row.add(ShareSightTradeAdapter.value, "");
+    row.add(ShareSightTradeAdapter.comments, "Test Comment");
+
+    TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
+        .row(row)
+        .portfolio(pfResponse.iterator().next())
+        .build();
+
+    Asset expectedAsset = assetResponse.getData().get("B784NS1");
+
+    TrnResponse response = trnKafkaConsumer.processMessage(trnRequest);
+    assertThat(response.getData()).isNotNull().hasSize(1);
+    for (Trn trn : response.getData()) {
+      assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
+      assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "10");
     }
   }
 

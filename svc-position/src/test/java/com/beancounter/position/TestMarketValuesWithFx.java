@@ -47,7 +47,7 @@ class TestMarketValuesWithFx {
         .tradePortfolioRate(simpleRate)
         .quantity(new BigDecimal("100")).build();
 
-    BuyBehaviour buyBehaviour = new BuyBehaviour();
+    AccumulationStrategy buyBehaviour = new BuyBehaviour();
 
     Position position = Position.builder().asset(asset).build();
     buyBehaviour.accumulate(buyTrn, portfolio, position);
@@ -60,14 +60,7 @@ class TestMarketValuesWithFx {
         .previousClose(new BigDecimal("5.00"))
         .build();
 
-    Map<IsoCurrencyPair, FxRate> fxRateMap = new HashMap<>();
-
-    fxRateMap.put(
-        IsoCurrencyPair.from(
-            portfolio.getCurrency(),
-            asset.getMarket().getCurrency()
-        ),
-        FxRate.builder().rate(simpleRate).build());
+    Map<IsoCurrencyPair, FxRate> fxRateMap = getRates(portfolio, asset, simpleRate);
 
     // Revalue based on marketData prices
     new MarketValue(new Gains()).value(positions, marketData, fxRateMap);
@@ -214,5 +207,51 @@ class TestMarketValuesWithFx {
                 .totalGain(new BigDecimal("5000.00"))
                 .build());
 
+  }
+
+  @Test
+  void is_MarketValueWithNoPriceComputed() {
+    Portfolio portfolio = Portfolio.builder()
+        .code("MV")
+        .currency(currencyUtils.getCurrency("NZD"))
+        .build();
+
+    Asset asset = AssetUtils.getAsset("Test", "ABC");
+    BigDecimal simpleRate = new BigDecimal("0.20");
+
+    Trn buyTrn = Trn.builder()
+        .trnType(TrnType.BUY)
+        .asset(asset)
+        .tradeAmount(new BigDecimal("2000.00"))
+        .tradeCurrency(asset.getMarket().getCurrency())
+        .tradePortfolioRate(simpleRate)
+        .quantity(new BigDecimal("100")).build();
+
+    AccumulationStrategy buyBehaviour = new BuyBehaviour();
+
+    Position position = Position.builder().asset(asset).build();
+    buyBehaviour.accumulate(buyTrn, portfolio, position);
+    Positions positions = new Positions(portfolio);
+    positions.add(position);
+
+    MarketData marketData = MarketData.builder().asset(asset).build();
+
+    Map<IsoCurrencyPair, FxRate> fxRateMap = getRates(portfolio, asset, simpleRate);
+
+    // Revalue based on No Market data
+    new MarketValue(new Gains()).value(positions, marketData, fxRateMap);
+
+  }
+
+  private Map<IsoCurrencyPair, FxRate> getRates(Portfolio portfolio, Asset asset, BigDecimal simpleRate) {
+    Map<IsoCurrencyPair, FxRate> fxRateMap = new HashMap<>();
+
+    fxRateMap.put(
+        IsoCurrencyPair.from(
+            portfolio.getCurrency(),
+            asset.getMarket().getCurrency()
+        ),
+        FxRate.builder().rate(simpleRate).build());
+    return fxRateMap;
   }
 }

@@ -166,6 +166,8 @@ beancounter:
       id: LON
       currencyId: GBP
       timezoneId: Europe/London
+      multiplier: .01
+
   marketdata:
     # ToDo: default provider
     provider:

@@ -30,6 +30,10 @@ public class MathUtils {
   }
 
   public BigDecimal multiply(BigDecimal money, BigDecimal rate) {
+    return multiply(money, rate, moneyScale);
+  }
+
+  public BigDecimal multiply(BigDecimal money, BigDecimal rate, int moneyScale) {
     if (isUnset(rate)) {
       return money;
     }

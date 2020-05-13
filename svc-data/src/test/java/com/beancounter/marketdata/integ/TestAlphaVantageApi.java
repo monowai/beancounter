@@ -18,6 +18,8 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.batch.ScheduledValuation;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
@@ -34,11 +36,8 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.Collection;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,7 +61,6 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 @ActiveProfiles("alpha")
 @Tag("slow")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TestAlphaVantageApi {
 
   private static WireMockRule alphaApi;
@@ -77,7 +75,8 @@ class TestAlphaVantageApi {
   private AlphaConfig alphaConfig;
   @Autowired
   private ScheduledValuation scheduledValuation;
-
+  @Autowired
+  private AssetService assetService;
   @Autowired
   private WebApplicationContext context;
   private MockMvc mockMvc;
@@ -86,7 +85,6 @@ class TestAlphaVantageApi {
   @Autowired
   @SneakyThrows
   void mockServices() {
-    // ToDo: Figure out RandomPort + Feign.  Config issues :(
     if (alphaApi == null) {
       alphaApi = new WireMockRule(options().port(9999));
       alphaApi.start();
@@ -130,11 +128,9 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(1)
   void is_PriceUpdated() throws Exception {
-    // We run this first because:
-    //   1 - don't want to setup a second mock Alpha API
-    //   2 - we create dummy assets for which we don't want to mock price responses
+    marketDataService.purge();
+    assetService.purge();
     MvcResult mvcResult = mockMvc.perform(
         get("/assets/{market}/{code}", "ASX", "AMP")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
@@ -154,13 +150,15 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
-  void is_MutualFundAssetEnriched() throws Exception {
+  void is_MutualFundAssetEnrichedAndPriceReturned() throws Exception {
 
     AlphaMockUtils.mockSearchResponse(alphaApi,
         "B6WZJX0",
         new ClassPathResource("/contracts" + "/alpha/mf-search.json").getFile());
 
+    AlphaMockUtils.mockGlobalResponse(
+        alphaApi, "0P0000XMSV.LON",
+        new ClassPathResource(alphaContracts + "/pence-price-response.json").getFile());
 
     MvcResult mvcResult = mockMvc.perform(
         get("/assets/{market}/{code}", "LON", "B6WZJX0")
@@ -177,13 +175,22 @@ class TestAlphaVantageApi {
         .isNotNull()
         .hasFieldOrPropertyWithValue("code", "B6WZJX0")
         .hasFieldOrProperty("market")
+        .hasFieldOrPropertyWithValue("market.code", "LON")
         .hasFieldOrPropertyWithValue("priceSymbol", "0P0000XMSV.LON")
         .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc");
     assertThat(alphaConfig.getPriceCode(assetResponse.getData())).isEqualTo("0P0000XMSV.LON");
+    PriceResponse priceResponse = marketDataService.getPriceResponse(assetResponse.getData());
+    assertThat(priceResponse.getData().iterator().next())
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("priceDate", new DateUtils().getDate("2020-05-12"))
+        .hasFieldOrPropertyWithValue("close", new BigDecimal("3.1620"))
+        .hasFieldOrPropertyWithValue("low", new BigDecimal("3.1620"))
+        .hasFieldOrPropertyWithValue("high", new BigDecimal("3.1620"))
+        .hasFieldOrPropertyWithValue("open", new BigDecimal("3.1620"));
+
   }
 
   @Test
-  @Order(10)
   void is_EnrichedMarketCodeTranslated() throws Exception {
 
     MvcResult mvcResult = mockMvc.perform(
@@ -208,7 +215,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
   void is_ApiErrorMessageHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
@@ -229,7 +235,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
   void is_ApiInvalidKeyHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
@@ -253,7 +258,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
   void is_ApiCallLimitExceededHandled() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
@@ -282,7 +286,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
   void is_SuccessHandledForAsx() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantage-asx.json").getFile();
@@ -311,7 +314,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
   void is_CurrentPriceFound() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
@@ -343,7 +345,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  @Order(10)
   void is_CurrentPriceAsxFound() {
 
     Market asx = Market.builder().code("ASX").build();

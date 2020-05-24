@@ -427,9 +427,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -541,17 +541,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
               class="price"
             >
-              <label>
+              <span
+                data-tooltip="2020-05-01"
+              >
                 $
-                 
-                <span
-                  data-tooltip="2020-05-01"
-                >
-                  <span>
-                    132.03
-                  </span>
+                <span>
+                  132.03
                 </span>
-              </label>
+              </span>
             </td>
             <td
               align="right"
@@ -578,9 +575,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -606,9 +603,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -642,9 +639,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -664,9 +661,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -756,17 +753,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
               class="price"
             >
-              <label>
+              <span
+                data-tooltip="2020-05-01"
+              >
                 $
-                 
-                <span
-                  data-tooltip="2020-05-01"
-                >
-                  <span>
-                    132.03
-                  </span>
+                <span>
+                  132.03
                 </span>
-              </label>
+              </span>
             </td>
             <td
               align="right"
@@ -793,9 +787,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -852,17 +846,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
               class="price"
             >
-              <label>
+              <span
+                data-tooltip="2020-05-01"
+              >
                 $
-                 
-                <span
-                  data-tooltip="2020-05-01"
-                >
-                  <span>
-                    132.03
-                  </span>
+                <span>
+                  132.03
                 </span>
-              </label>
+              </span>
             </td>
             <td
               align="right"
@@ -889,9 +880,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -917,9 +908,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -948,17 +939,14 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
               class="price"
             >
-              <label>
+              <span
+                data-tooltip="2020-05-01"
+              >
                 $
-                 
-                <span
-                  data-tooltip="2020-05-01"
-                >
-                  <span>
-                    132.03
-                  </span>
+                <span>
+                  132.03
                 </span>
-              </label>
+              </span>
             </td>
             <td
               align="right"
@@ -985,9 +973,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -1049,9 +1037,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"
@@ -1106,9 +1094,9 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <div>
+              <span>
                 -
-              </div>
+              </span>
             </td>
             <td
               align="right"

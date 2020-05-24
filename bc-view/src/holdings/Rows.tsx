@@ -2,7 +2,7 @@ import { HoldingGroup, Portfolio } from "../types/beancounter";
 import { ValueIn } from "../types/valueBy";
 import NumberFormat from "react-number-format";
 import { Link } from "react-router-dom";
-import { FormatMoneyValue } from "../common/MoneyUtils";
+import { FormatNumber } from "../common/MoneyUtils";
 import React from "react";
 
 export function Rows(props: {
@@ -16,35 +16,19 @@ export function Rows(props: {
     <tr key={props.holdingGroup.group + index} className={"holding-row"}>
       <td className={"asset"}>{position.asset.code + ": " + position.asset.name}</td>
       <td className={"price"} align={"right"}>
-        {position.moneyValues[valueIn].priceData ? (
-          <label>
+        {
+          <span
+            data-tooltip={
+              position.moneyValues[valueIn].priceData
+                ? position.moneyValues[valueIn].priceData.priceDate
+                : ""
+            }
+          >
             {position.moneyValues[valueIn].currency.id}
             {position.moneyValues[valueIn].currency.symbol}
-            &nbsp;
-            <span
-              data-tooltip={
-                position.moneyValues[valueIn].priceData
-                  ? position.moneyValues[valueIn].priceData.priceDate
-                  : ""
-              }
-            >
-              {position.moneyValues[valueIn].priceData.close ? (
-                <NumberFormat
-                  value={position.moneyValues[valueIn].priceData.close}
-                  defaultValue={"-"}
-                  displayType={"text"}
-                  decimalScale={2}
-                  fixedDecimalScale={true}
-                  thousandSeparator={true}
-                />
-              ) : (
-                "-"
-              )}
-            </span>
-          </label>
-        ) : (
-          "-"
-        )}
+            <FormatNumber values={position.moneyValues[valueIn].priceData} field={"close"} />
+          </span>
+        }
       </td>
       <td align={"right"}>
         {!position.moneyValues[valueIn].priceData ? (
@@ -79,28 +63,25 @@ export function Rows(props: {
         </Link>
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"marketValue"} />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"marketValue"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"costValue"} />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"costValue"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"averageCost"} />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"averageCost"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"dividends"} />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"dividends"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"realisedGain"} />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"realisedGain"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue
-          moneyValues={position.moneyValues[valueIn]}
-          moneyField={"unrealisedGain"}
-        />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"unrealisedGain"} />
       </td>
       <td align={"right"}>
-        <FormatMoneyValue moneyValues={position.moneyValues[valueIn]} moneyField={"totalGain"} />
+        <FormatNumber values={position.moneyValues[valueIn]} field={"totalGain"} />
       </td>
     </tr>
   ));

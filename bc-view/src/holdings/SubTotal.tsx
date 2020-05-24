@@ -1,6 +1,6 @@
 import React from "react";
 import { HoldingGroup } from "../types/beancounter";
-import { FormatMoneyValue } from "../common/MoneyUtils";
+import { FormatNumber } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 
 export function SubTotal(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }): JSX.Element {
@@ -13,41 +13,23 @@ export function SubTotal(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }
           Sub-Total - {holdingGroup.subTotals[valueIn].currency.code}
         </td>
         <td align={"right"}>
-          <FormatMoneyValue
-            moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"marketValue"}
-          />
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"marketValue"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue
-            moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"costValue"}
-          />
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"costValue"} />
         </td>
         <td />
         <td align={"right"}>
-          <FormatMoneyValue
-            moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"dividends"}
-          />
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"dividends"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue
-            moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"realisedGain"}
-          />
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"realisedGain"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue
-            moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"unrealisedGain"}
-          />
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"unrealisedGain"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue
-            moneyValues={holdingGroup.subTotals[valueIn]}
-            moneyField={"totalGain"}
-          />
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"totalGain"} />
         </td>
       </tr>
     </tbody>

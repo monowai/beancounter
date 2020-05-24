@@ -2,7 +2,7 @@ import React from "react";
 import "../css/styles.sass";
 import { translate } from "../common/i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
-import { FormatMoneyValue } from "../common/MoneyUtils";
+import { FormatNumber } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 import { Link } from "react-router-dom";
 
@@ -43,19 +43,19 @@ export function StatsRow(props: {
           </div>
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"marketValue"} />
+          <FormatNumber values={moneyValues} field={"marketValue"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"purchases"} />
+          <FormatNumber values={moneyValues} field={"purchases"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"sales"} />
+          <FormatNumber values={moneyValues} field={"sales"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"dividends"} />
+          <FormatNumber values={moneyValues} field={"dividends"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={moneyValues} moneyField={"totalGain"} />
+          <FormatNumber values={moneyValues} field={"totalGain"} />
         </td>
       </tr>
     </tbody>

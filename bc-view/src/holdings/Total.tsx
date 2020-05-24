@@ -1,6 +1,6 @@
 import { Holdings } from "../types/beancounter";
 import React from "react";
-import { FormatMoneyValue } from "../common/MoneyUtils";
+import { FormatNumber } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 
 export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): JSX.Element {
@@ -13,23 +13,23 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
           Totals in {valueIn} currency
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"marketValue"} />
+          <FormatNumber values={holdings.totals[valueIn]} field={"marketValue"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"costValue"} />
+          <FormatNumber values={holdings.totals[valueIn]} field={"costValue"} />
         </td>
         <td />
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"dividends"} />
+          <FormatNumber values={holdings.totals[valueIn]} field={"dividends"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"realisedGain"} />
+          <FormatNumber values={holdings.totals[valueIn]} field={"realisedGain"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"unrealisedGain"} />
+          <FormatNumber values={holdings.totals[valueIn]} field={"unrealisedGain"} />
         </td>
         <td align={"right"}>
-          <FormatMoneyValue moneyValues={holdings.totals[valueIn]} moneyField={"totalGain"} />
+          <FormatNumber values={holdings.totals[valueIn]} field={"totalGain"} />
         </td>
       </tr>
     </tbody>

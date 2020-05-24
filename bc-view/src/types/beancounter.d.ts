@@ -11,7 +11,7 @@ declare global {
 
 export type TrnType = "BUY" | "SELL" | "DIVI" | "SPLIT";
 
-export type MoneyFields =
+export type NumericField =
   | "dividends"
   | "price"
   | "costValue"
@@ -20,6 +20,7 @@ export type MoneyFields =
   | "unrealisedGain"
   | "totalGain"
   | "sales"
+  | "close"
   | "purchases"
   | "marketValue"
   | "investmentGain";

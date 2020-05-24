@@ -1,36 +1,17 @@
 import NumberFormat from "react-number-format";
 import React from "react";
-import { MoneyFields, MoneyValues } from "../types/beancounter";
 
-export function FormatMoneyValue(props: {
-  moneyValues: MoneyValues;
-  moneyField: MoneyFields;
-}): JSX.Element {
-  if (props.moneyValues && props.moneyValues[props.moneyField]) {
+export function FormatNumber(props: { values: []; field: string; scale?: number }): JSX.Element {
+  if (props.values && props.values[props.field]) {
     return (
       <NumberFormat
-        value={props.moneyValues[props.moneyField]}
+        value={props.values[props.field]}
         displayType={"text"}
-        decimalScale={2}
+        decimalScale={props.scale ? props.scale : 2}
         fixedDecimalScale={true}
         thousandSeparator={true}
       />
     );
   }
-  return <div>-</div>;
-}
-
-export function FormatMoney(props: { moneyValue: number; precision: number }): JSX.Element {
-  if (props.moneyValue) {
-    return (
-      <NumberFormat
-        value={props.moneyValue}
-        displayType={"text"}
-        decimalScale={props.precision}
-        fixedDecimalScale={true}
-        thousandSeparator={true}
-      />
-    );
-  }
-  return <div>-</div>;
+  return <span>-</span>;
 }

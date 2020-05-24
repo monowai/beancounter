@@ -67,7 +67,7 @@ export function Rows(props: {
           <NumberFormat
             value={position.quantityValues.total}
             displayType={"text"}
-            decimalScale={0}
+            decimalScale={position.quantityValues.precision}
             fixedDecimalScale={true}
             thousandSeparator={true}
           />

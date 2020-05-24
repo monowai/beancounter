@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
+import com.beancounter.common.model.QuantityValues;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.service.Accumulator;
@@ -18,6 +19,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 class TestAccumulationOfQuantityValues {
   @Autowired
   private Accumulator accumulator;
+
+  @Test
+  void is_QuantityPrecision() {
+    QuantityValues quantityValues = QuantityValues.builder().build();
+    // Null total
+    assertThat(quantityValues.getPrecision()).isEqualTo(0);
+    quantityValues.setPurchased(new BigDecimal("100.9992"));
+    assertThat(quantityValues.getTotal()).isEqualTo("100.9992");
+    assertThat(quantityValues.getPrecision()).isEqualTo(3);
+
+    quantityValues.setPurchased(new BigDecimal("100"));
+    assertThat(quantityValues.getPrecision()).isEqualTo(0);
+
+    // User defined precision
+    quantityValues.setPrecision(40);
+    assertThat(quantityValues.getPrecision()).isEqualTo(40);
+
+  }
 
   @Test
   void is_TotalQuantityCorrect() {

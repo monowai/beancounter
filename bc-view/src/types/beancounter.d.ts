@@ -70,6 +70,7 @@ export interface QuantityValues {
   sold: number;
   purchased: number;
   total: number;
+  precision: number;
 }
 
 export interface Position {

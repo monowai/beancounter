@@ -71,6 +71,7 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
       marketData.setOpen(MathUtils.multiply(marketData.getOpen(), market.getMultiplier(), 4));
       marketData.setHigh(MathUtils.multiply(marketData.getHigh(), market.getMultiplier(), 4));
       marketData.setLow(MathUtils.multiply(marketData.getLow(), market.getMultiplier(), 4));
+      marketData.setPreviousClose(MathUtils.multiply(marketData.getPreviousClose(), market.getMultiplier(), 4));
       marketData.setChange(MathUtils.multiply(marketData.getChange(), market.getMultiplier(), 4));
     }
   }

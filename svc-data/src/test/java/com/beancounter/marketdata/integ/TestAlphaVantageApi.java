@@ -184,6 +184,7 @@ class TestAlphaVantageApi {
         .isNotNull()
         .hasFieldOrPropertyWithValue("priceDate", new DateUtils().getDate("2020-05-12"))
         .hasFieldOrPropertyWithValue("close", new BigDecimal("3.1620"))
+        .hasFieldOrPropertyWithValue("previousClose", new BigDecimal("3.1620"))
         .hasFieldOrPropertyWithValue("low", new BigDecimal("3.1620"))
         .hasFieldOrPropertyWithValue("high", new BigDecimal("3.1620"))
         .hasFieldOrPropertyWithValue("open", new BigDecimal("3.1620"));

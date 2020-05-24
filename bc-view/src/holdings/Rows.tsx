@@ -16,7 +16,7 @@ export function Rows(props: {
     <tr key={props.holdingGroup.group + index} className={"holding-row"}>
       <td className={"asset"}>{position.asset.code + ": " + position.asset.name}</td>
       <td className={"price"} align={"right"}>
-        {position.moneyValues[valueIn].priceData.close ? (
+        {position.moneyValues[valueIn].priceData ? (
           <label>
             {position.moneyValues[valueIn].currency.id}
             {position.moneyValues[valueIn].currency.symbol}
@@ -28,13 +28,18 @@ export function Rows(props: {
                   : ""
               }
             >
-              <NumberFormat
-                value={position.moneyValues[valueIn].priceData.close}
-                displayType={"text"}
-                decimalScale={2}
-                fixedDecimalScale={true}
-                thousandSeparator={true}
-              />
+              {position.moneyValues[valueIn].priceData.close ? (
+                <NumberFormat
+                  value={position.moneyValues[valueIn].priceData.close}
+                  defaultValue={"-"}
+                  displayType={"text"}
+                  decimalScale={2}
+                  fixedDecimalScale={true}
+                  thousandSeparator={true}
+                />
+              ) : (
+                "-"
+              )}
             </span>
           </label>
         ) : (

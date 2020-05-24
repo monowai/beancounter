@@ -19,3 +19,18 @@ export function FormatMoneyValue(props: {
   }
   return <div>-</div>;
 }
+
+export function FormatMoney(props: { moneyValue: number; precision: number }): JSX.Element {
+  if (props.moneyValue) {
+    return (
+      <NumberFormat
+        value={props.moneyValue}
+        displayType={"text"}
+        decimalScale={props.precision}
+        fixedDecimalScale={true}
+        thousandSeparator={true}
+      />
+    );
+  }
+  return <div>-</div>;
+}

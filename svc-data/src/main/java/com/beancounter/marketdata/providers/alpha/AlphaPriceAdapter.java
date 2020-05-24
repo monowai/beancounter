@@ -46,11 +46,15 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
         Asset asset = providerArguments.getDpToBc().get(dpAsset);
         if (isMdResponse(asset, response)) {
           PriceResponse priceResponse = alphaMapper.readValue(response, PriceResponse.class);
-          for (MarketData marketData : priceResponse.getData()) {
-            marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
-            normalise(asset.getMarket(), marketData);
-            log.trace("Valued {} ", asset.getName());
-            results.add(marketData);
+          if ( priceResponse != null ) {
+            for (MarketData marketData : priceResponse.getData()) {
+              marketData.setAsset(asset); // Return BC view of the asset, not MarketProviders
+              normalise(asset.getMarket(), marketData);
+              log.trace("Valued {} ", asset.getName());
+              results.add(marketData);
+            }
+          } else {
+            results.add(getDefault(asset));
           }
         } else {
           results.add(getDefault(asset));

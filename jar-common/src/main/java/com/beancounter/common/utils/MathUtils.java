@@ -45,11 +45,11 @@ public class MathUtils {
     return money.multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP);
   }
 
-  public BigDecimal changePercent(BigDecimal currentValue, BigDecimal oldValue) {
-    return changePercent(currentValue, oldValue, percentScale);
+  public BigDecimal percent(BigDecimal currentValue, BigDecimal oldValue) {
+    return percent(currentValue, oldValue, percentScale);
   }
 
-  public BigDecimal changePercent(BigDecimal previous, BigDecimal current, int percentScale) {
+  public BigDecimal percent(BigDecimal previous, BigDecimal current, int percentScale) {
     if (isUnset(previous) || isUnset(current)) {
       return null;
     }

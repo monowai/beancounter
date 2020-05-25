@@ -243,7 +243,10 @@ class TestMarketValuesWithFx {
 
   }
 
-  private Map<IsoCurrencyPair, FxRate> getRates(Portfolio portfolio, Asset asset, BigDecimal simpleRate) {
+  private Map<IsoCurrencyPair, FxRate> getRates(
+      Portfolio portfolio,
+      Asset asset,
+      BigDecimal simpleRate) {
     Map<IsoCurrencyPair, FxRate> fxRateMap = new HashMap<>();
 
     fxRateMap.put(

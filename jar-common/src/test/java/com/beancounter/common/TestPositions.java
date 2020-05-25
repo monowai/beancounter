@@ -15,6 +15,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.QuantityValues;
+import com.beancounter.common.model.Totals;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
@@ -135,6 +136,14 @@ class TestPositions {
 
     PositionRequest fromJson = mapper.readValue(json, PositionRequest.class);
     assertThat(fromJson).isEqualToComparingFieldByField(positionRequest);
+  }
 
+  @Test
+  void is_TotalsSerializing() throws Exception {
+    Totals totals = Totals.builder().build();
+    totals.setTotal(new BigDecimal("200.99"));
+    String json = mapper.writeValueAsString(totals);
+    Totals fromJson = mapper.readValue(json, Totals.class);
+    assertThat(fromJson).isEqualToComparingFieldByField(totals);
   }
 }

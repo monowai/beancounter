@@ -10,10 +10,15 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.MoneyValues;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
+import com.beancounter.common.model.Totals;
+import com.beancounter.common.utils.MathUtils;
 import com.beancounter.position.model.ValuationData;
 import com.beancounter.position.utils.FxUtils;
 import com.beancounter.position.valuation.MarketValue;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -57,9 +62,36 @@ public class PositionValuationService {
     }
 
     Map<IsoCurrencyPair, FxRate> rates = fxResponse.getData().getRates();
+    Totals baseTotals = Totals.builder().build();
+    Totals refTotals = Totals.builder().build();
 
     for (MarketData marketData : valuationData.getPriceResponse().getData()) {
-      marketValue.value(positions, marketData, rates);
+      Position position = marketValue.value(positions, marketData, rates);
+      BigDecimal baseAmount = position.getMoneyValues(Position.In.BASE).getMarketValue();
+      if (baseAmount != null) {
+        baseTotals.setTotal(baseTotals.getTotal().add(baseAmount));
+      }
+
+      BigDecimal refAmount = position.getMoneyValues(Position.In.PORTFOLIO).getMarketValue();
+      if (refAmount != null) {
+        refTotals.setTotal(refTotals.getTotal().add(refAmount));
+      }
+
+    }
+    positions.setTotal(Position.In.BASE, baseTotals);
+    for (Position position : positions.getPositions().values()) {
+      MoneyValues moneyValues = position.getMoneyValues(Position.In.BASE);
+      moneyValues.setWeight(
+          MathUtils.percent(moneyValues.getMarketValue(), baseTotals.getTotal()));
+
+      moneyValues = position.getMoneyValues(Position.In.PORTFOLIO);
+      moneyValues.setWeight(
+          MathUtils.percent(moneyValues.getMarketValue(), refTotals.getTotal()));
+
+      moneyValues = position.getMoneyValues(Position.In.TRADE);
+      moneyValues.setWeight(
+          MathUtils.percent(moneyValues.getMarketValue(), refTotals.getTotal()));
+
     }
     return positions;
   }

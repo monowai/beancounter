@@ -52,7 +52,7 @@ public class PriceData {
     if (MathUtils.hasValidRate(rate) && result.previousClose != null && result.close != null) {
       // Convert
       BigDecimal change = new BigDecimal("1.00")
-          .subtract(MathUtils.changePercent(result.previousClose, result.close, 4));
+          .subtract(MathUtils.percent(result.previousClose, result.close, 4));
 
       result.setChangePercent(change);
       result.setChange(result.close.subtract(result.previousClose));

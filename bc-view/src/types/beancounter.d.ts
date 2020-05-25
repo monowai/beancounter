@@ -11,20 +11,6 @@ declare global {
 
 export type TrnType = "BUY" | "SELL" | "DIVI" | "SPLIT";
 
-export type NumericField =
-  | "dividends"
-  | "price"
-  | "costValue"
-  | "averageCost"
-  | "realisedGain"
-  | "unrealisedGain"
-  | "totalGain"
-  | "sales"
-  | "close"
-  | "purchases"
-  | "marketValue"
-  | "investmentGain";
-
 export interface Market {
   code: string;
   currency: Currency;

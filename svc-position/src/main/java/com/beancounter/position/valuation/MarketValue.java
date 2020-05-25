@@ -24,7 +24,7 @@ public class MarketValue {
     this.gains = gains;
   }
 
-  public void value(Positions positions,
+  public Position value(Positions positions,
                     MarketData marketData,
                     Map<IsoCurrencyPair, FxRate> rates) {
 
@@ -44,6 +44,7 @@ public class MarketValue {
     value(total, position.getMoneyValues(Position.In.PORTFOLIO), marketData,
         rate(portfolio.getCurrency(), trade, rates)
     );
+    return position;
   }
 
   private void value(BigDecimal total, MoneyValues moneyValues, MarketData mktData, FxRate rate) {

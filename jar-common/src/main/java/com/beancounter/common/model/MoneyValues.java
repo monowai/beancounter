@@ -36,6 +36,8 @@ public class MoneyValues {
   @Builder.Default
   private BigDecimal marketValue = BigDecimal.ZERO;
 
+  private BigDecimal weight;
+
   private PriceData priceData;
 
   @Builder.Default

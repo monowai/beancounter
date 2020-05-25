@@ -4,6 +4,7 @@ import com.beancounter.common.utils.AssetUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class Positions {
   private String asAt;
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private Map<String, Position> positions = null;
+  private Map<Position.In, Totals> totals = null;
 
   Positions() {
     super();
@@ -77,5 +79,12 @@ public class Positions {
 
   public boolean hasPositions() {
     return positions != null && !positions.isEmpty();
+  }
+
+  public void setTotal(Position.In valueIn, Totals totals) {
+    if (this.totals == null) {
+      this.totals = new HashMap<>();
+    }
+    this.totals.put(valueIn, totals);
   }
 }

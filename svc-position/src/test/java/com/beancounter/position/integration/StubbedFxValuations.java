@@ -17,10 +17,12 @@ import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.MoneyValues;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.model.Totals;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.position.service.Accumulator;
@@ -142,11 +144,25 @@ class StubbedFxValuations {
     Positions jsonPositions = fromJson.getData();
     assertThat(jsonPositions).isNotNull();
     assertThat(jsonPositions.getPositions()).hasSize(positions.getPositions().size());
+    assertThat(jsonPositions.getTotals()).hasSize(1);
+    Position position = null;
 
     for (String key : jsonPositions.getPositions().keySet()) {
-      assertThat(jsonPositions.getPositions().get(key).getAsset())
+      position = jsonPositions.getPositions().get(key);
+      assertThat(position.getAsset())
           .hasFieldOrPropertyWithValue("name", asset.getName());
     }
+    assertThat(position).isNotNull();
+
+    Position.In totalKey = jsonPositions.getTotals().keySet().iterator().next();
+
+    MoneyValues moneyValues = position.getMoneyValues(totalKey);
+    assertThat(moneyValues.getWeight().compareTo(BigDecimal.ONE)).isEqualTo(0);
+
+    Totals moneyTotal = jsonPositions.getTotals().get(totalKey);
+    assertThat(moneyTotal)
+        .hasFieldOrPropertyWithValue("total", moneyValues.getMarketValue());
+
   }
 
   private Asset getEbay() {

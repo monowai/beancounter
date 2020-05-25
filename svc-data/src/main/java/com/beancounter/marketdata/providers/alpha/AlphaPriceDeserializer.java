@@ -79,7 +79,7 @@ public class AlphaPriceDeserializer extends JsonDeserializer<PriceResponse> {
           .volume(volume)
           .previousClose(previousClose)
           .change(change)
-          .changePercent(MathUtils.changePercent(change, previousClose))
+          .changePercent(MathUtils.percent(change, previousClose))
           .build());
     }
     return PriceResponse.builder().data(marketData).build();

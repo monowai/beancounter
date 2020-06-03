@@ -38,7 +38,7 @@ public class DateUtils {
    * Always takes One from seedDate. Then subtracts a day until it finds a working one.
    * For instance - Sunday 7th in Singapore will result to Friday 5th in New York
    *
-   * @param seedDate   usually Today requesting in callers timezeon timezone
+   * @param seedDate   usually Today requesting in callers timezone
    * @param targetZone market to locate requestedDate on
    * @return resolved Date
    */
@@ -115,7 +115,7 @@ public class DateUtils {
       Date today = defaultFormatter.parse(today());
       Date compareWith = defaultFormatter.parse(inDate);
       return today.compareTo(compareWith) == 0;
-    } catch (ParseException e) {
+    } catch (ParseException | NumberFormatException e) {
       throw new BusinessException(String.format("Unable to parse the date %s", inDate));
     }
   }

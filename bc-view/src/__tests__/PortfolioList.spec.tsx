@@ -1,6 +1,5 @@
 import React from "react";
-import { cleanup, render } from "@testing-library/react";
-import { waitFor } from "@testing-library/dom";
+import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import nock from "nock";
 import Portfolios from "../portfolio/Portfolios";
@@ -27,7 +26,8 @@ describe("<Portfolios />", () => {
         <Portfolios />
       </MemoryRouter>
     );
-    await waitFor(() => getByText("TEST"));
+    await screen.findByText("TEST");
+    //await waitFor(() => getByText("TEST"));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });

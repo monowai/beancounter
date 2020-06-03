@@ -1,10 +1,9 @@
 import React from "react";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import nock from "nock";
 import { MemoryRouter } from "react-router";
 import Transactions from "../trns/Transactions";
-import { waitFor } from "@testing-library/dom";
 
 afterEach(cleanup);
 
@@ -37,12 +36,12 @@ describe("<Transactions />", () => {
       return Transactions("test", "alphabet");
     };
 
-    const { getByText, container } = render(
+    const { container } = render(
       <MemoryRouter initialEntries={["/"]} keyLength={0}>
         <TestTrnForAsset />
       </MemoryRouter>
     );
-    await waitFor(() => getByText("BUY"));
+    await screen.findByText("BUY");
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });

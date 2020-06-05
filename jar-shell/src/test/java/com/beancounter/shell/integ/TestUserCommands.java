@@ -14,53 +14,57 @@ import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.shell.cli.UserCommands;
+import com.beancounter.shell.config.EnvConfig;
 import com.beancounter.shell.config.ShellConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.jline.reader.LineReader;
-import org.jline.reader.impl.LineReaderImpl;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @SpringBootTest(classes = {
-    UserCommands.class,
-    ShellConfig.class,
-    RegistrationService.class,
-    TokenService.class,
-    RegistrationService.RegistrationGateway.class,
-    LoginService.class,
-    LoginService.AuthGateway.class,
-    LineReaderImpl.class
-
+    ShellConfig.class
 })
 public class TestUserCommands {
-  @Autowired
-  private UserCommands userCommands;
 
-  @Autowired
-  private TokenService tokenService;
+  private static UserCommands userCommands;
 
-  @MockBean
-  private LineReader lineReader;
+  private static final TokenService tokenService = new TokenService();
 
-  @MockBean
-  private LoginService.AuthGateway authGateway;
+  private static LineReader lineReader;
 
-  @MockBean
-  private RegistrationService.RegistrationGateway registrationGateway;
+  private static LoginService.AuthGateway authGateway;
 
-  @MockBean
-  private JwtDecoder jwtDecoder;
+  private static RegistrationService.RegistrationGateway registrationGateway;
+
+  private static JwtDecoder jwtDecoder;
 
   @Value("${auth.client}")
   private String client;
+
+  @BeforeAll
+  static void registerMocks() {
+    registrationGateway = Mockito.mock(RegistrationService.RegistrationGateway.class);
+    authGateway = Mockito.mock(LoginService.AuthGateway.class);
+    jwtDecoder = Mockito.mock(JwtDecoder.class);
+    lineReader = Mockito.mock(LineReader.class);
+
+    EnvConfig envConfig = new EnvConfig();
+    envConfig.setClient("bc-dev");
+
+    userCommands = new UserCommands(
+        new LoginService(authGateway, jwtDecoder),
+        new RegistrationService(registrationGateway, tokenService),
+        envConfig);
+
+    userCommands.setLineReader(lineReader);
+  }
 
   @Test
   void is_UnauthorizedThrowing() {
@@ -81,7 +85,8 @@ public class TestUserCommands {
     String user = "simple";
     String password = "password";
 
-    Mockito.when(lineReader.readLine("Password: ", '*')).thenReturn(password);
+    Mockito.when(lineReader.readLine("Password: ", '*'))
+        .thenReturn(password);
 
     LoginService.Login login = LoginService.Login.builder()
         .username(user)

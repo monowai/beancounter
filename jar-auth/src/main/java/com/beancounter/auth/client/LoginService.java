@@ -15,13 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Service
 @Configuration
 @Slf4j
-@Data
 public class LoginService {
-  private AuthGateway authGateway;
+  private final AuthGateway authGateway;
 
-  private JwtDecoder jwtDecoder;
+  private final JwtDecoder jwtDecoder;
 
-  LoginService(AuthGateway authGateway, JwtDecoder jwtDecoder) {
+  public LoginService(AuthGateway authGateway, JwtDecoder jwtDecoder) {
     this.authGateway = authGateway;
     this.jwtDecoder = jwtDecoder;
   }

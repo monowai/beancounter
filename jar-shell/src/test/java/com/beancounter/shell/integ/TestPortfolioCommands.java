@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.auth.client.AuthClientConfig;
 import com.beancounter.auth.common.TokenService;
 import com.beancounter.auth.common.TokenUtils;
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw;
 import com.beancounter.client.services.RegistrationService;
 import com.beancounter.client.services.StaticService;
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.UUID;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,20 +44,30 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @ActiveProfiles("test")
 public class TestPortfolioCommands {
-  @Autowired
-  private PortfolioCommands portfolioCommands;
+
+  private static PortfolioCommands portfolioCommands;
+
   @Autowired
   private StaticService staticService;
-  @Autowired
-  private TokenService tokenService;
+
+  private static final TokenService tokenService = new TokenService();
 
   @MockBean
   private RegistrationService registrationService;
-  @MockBean
-  private PortfolioGw portfolioGw;
+
+  private static PortfolioGw portfolioGw;
+
   @MockBean
   private JwtDecoder jwtDecoder;
 
+  @BeforeAll
+  static void mockPortfolioGw() {
+    portfolioGw = Mockito.mock(PortfolioGw.class);
+    PortfolioServiceClient portfolioServiceClient =
+        new PortfolioServiceClient(portfolioGw, tokenService);
+    portfolioCommands = new PortfolioCommands(portfolioServiceClient);
+
+  }
   @Test
   @SneakyThrows
   void getPortfolios() {
@@ -67,12 +79,17 @@ public class TestPortfolioCommands {
   @Test
   @SneakyThrows
   void createPortfolio() {
-
     SystemUser owner = getSystemUser();
 
     PortfoliosResponse response = PortfoliosResponse.builder()
         .data(Collections.singletonList(getPortfolio("ABC", owner)))
         .build();
+
+    Mockito.when(portfolioGw.getPortfolioByCode(
+        Mockito.eq(tokenService.getBearerToken()),
+        Mockito.isA(String.class)))
+        .thenReturn(PortfolioResponse.builder().build());
+
     Mockito.when(portfolioGw.addPortfolios(
         Mockito.eq(tokenService.getBearerToken()),
         Mockito.isA(PortfoliosRequest.class)))

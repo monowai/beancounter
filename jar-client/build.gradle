@@ -35,15 +35,14 @@ dependencies {
             "org.projectlombok:lombok:$lombokVersion"
     )
 
-//    testImplementation("io.rest-assured:rest-assured") {
-//        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
-//    }
     testImplementation(
             "org.assertj:assertj-core:$assertJ",
             "org.projectlombok:lombok:$lombokVersion",
             "org.springframework.boot:spring-boot-starter-test:$springBootVersion",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
+            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
+            "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner"
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {

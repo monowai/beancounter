@@ -4,9 +4,9 @@ import com.beancounter.common.model.Currency;
 import com.beancounter.marketdata.config.StaticConfig;
 import java.util.Collection;
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,7 +50,7 @@ public class CurrencyService {
    * @param code non-null code
    * @return resolved currency
    */
-  public Currency getCode(@NotNull String code) {
+  public Currency getCode(@NonNull String code) {
     Objects.requireNonNull(code);
     return staticConfig.getCurrencyByCode().get(code.toUpperCase());
   }

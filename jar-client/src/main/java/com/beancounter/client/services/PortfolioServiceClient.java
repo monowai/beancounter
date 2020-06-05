@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @Slf4j
 @Service
 public class PortfolioServiceClient {
-  private PortfolioGw portfolioGw;
-  private TokenService tokenService;
+  private final PortfolioGw portfolioGw;
+  private final TokenService tokenService;
 
-  PortfolioServiceClient(PortfolioGw portfolioGw, TokenService tokenService) {
+  public PortfolioServiceClient(PortfolioGw portfolioGw, TokenService tokenService) {
     this.portfolioGw = portfolioGw;
     this.tokenService = tokenService;
   }

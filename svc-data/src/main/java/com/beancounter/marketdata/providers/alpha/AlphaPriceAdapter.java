@@ -71,12 +71,18 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
   private void normalise(Market market, MarketData marketData) {
     if (market.getMultiplier().compareTo(BigDecimal.ONE) != 0) {
 
-      marketData.setClose(MathUtils.multiply(marketData.getClose(), market.getMultiplier(), 4));
-      marketData.setOpen(MathUtils.multiply(marketData.getOpen(), market.getMultiplier(), 4));
-      marketData.setHigh(MathUtils.multiply(marketData.getHigh(), market.getMultiplier(), 4));
-      marketData.setLow(MathUtils.multiply(marketData.getLow(), market.getMultiplier(), 4));
-      marketData.setPreviousClose(MathUtils.multiply(marketData.getPreviousClose(), market.getMultiplier(), 4));
-      marketData.setChange(MathUtils.multiply(marketData.getChange(), market.getMultiplier(), 4));
+      marketData.setClose(
+          MathUtils.multiply(marketData.getClose(), market.getMultiplier(), 4));
+      marketData.setOpen(
+          MathUtils.multiply(marketData.getOpen(), market.getMultiplier(), 4));
+      marketData.setHigh(
+          MathUtils.multiply(marketData.getHigh(), market.getMultiplier(), 4));
+      marketData.setLow(
+          MathUtils.multiply(marketData.getLow(), market.getMultiplier(), 4));
+      marketData.setPreviousClose(
+          MathUtils.multiply(marketData.getPreviousClose(), market.getMultiplier(), 4));
+      marketData.setChange(
+          MathUtils.multiply(marketData.getChange(), market.getMultiplier(), 4));
     }
   }
 

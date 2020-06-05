@@ -7,6 +7,7 @@ import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.common.model.SystemUser;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
 public class RegistrationService {
-  private RegistrationGateway registrationGateway;
-  private TokenService tokenService;
+  private final RegistrationGateway registrationGateway;
+  private final TokenService tokenService;
 
-  RegistrationService(RegistrationGateway registrationGateway, TokenService tokenService) {
+  public RegistrationService(RegistrationGateway registrationGateway, TokenService tokenService) {
     this.registrationGateway = registrationGateway;
     this.tokenService = tokenService;
   }
@@ -37,6 +38,14 @@ public class RegistrationService {
       throw new UnauthorizedException("User account is not registered");
     }
     return result.getData();
+  }
+
+  public String getToken() {
+    return tokenService.getToken();
+  }
+
+  public JwtAuthenticationToken getJwtToken() {
+    return tokenService.getJwtToken();
   }
 
   @FeignClient(name = "registrationGw",

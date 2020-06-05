@@ -18,10 +18,10 @@ import org.springframework.shell.standard.ShellOption;
 @ShellComponent
 @Slf4j
 public class PortfolioCommands {
-  private PortfolioServiceClient portfolioService;
-  private ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
+  private final PortfolioServiceClient portfolioService;
+  private final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
-  PortfolioCommands(PortfolioServiceClient portfolioService) {
+  public PortfolioCommands(PortfolioServiceClient portfolioService) {
     this.portfolioService = portfolioService;
   }
 
@@ -77,6 +77,9 @@ public class PortfolioCommands {
         ))
         .build();
     PortfoliosResponse result = portfolioService.add(portfoliosRequest);
+    if (result == null) {
+      throw new BusinessException("Failed to add portfolio");
+    }
     return writer.writeValueAsString(result.getData().iterator().next());
   }
 }

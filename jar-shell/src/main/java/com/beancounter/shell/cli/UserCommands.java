@@ -1,7 +1,6 @@
 package com.beancounter.shell.cli;
 
 import com.beancounter.auth.client.LoginService;
-import com.beancounter.auth.common.TokenService;
 import com.beancounter.client.services.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.exception.UnauthorizedException;
@@ -19,20 +18,17 @@ import org.springframework.shell.standard.ShellOption;
 @ShellComponent
 public class UserCommands {
 
-  private LoginService loginService;
-  private RegistrationService registrationService;
-  private TokenService tokenService;
+  private final LoginService loginService;
+  private final RegistrationService registrationService;
   private LineReader lineReader;
-  private ObjectMapper objectMapper = new ObjectMapper();
-  private EnvConfig envConfig;
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final EnvConfig envConfig;
 
-  UserCommands(LoginService loginService,
-               RegistrationService registrationService,
-               TokenService tokenService,
-               EnvConfig envConfig) {
+  public UserCommands(LoginService loginService,
+                      RegistrationService registrationService,
+                      EnvConfig envConfig) {
     this.loginService = loginService;
     this.registrationService = registrationService;
-    this.tokenService = tokenService;
     this.envConfig = envConfig;
   }
 
@@ -52,7 +48,7 @@ public class UserCommands {
 
   @ShellMethod("What's my access token?")
   public String token() {
-    return tokenService.getToken();
+    return registrationService.getToken();
   }
 
   @ShellMethod("Who am I?")
@@ -64,7 +60,7 @@ public class UserCommands {
   @ShellMethod("Register your Account")
   @SneakyThrows
   public String register() {
-    JwtAuthenticationToken token = tokenService.getJwtToken();
+    JwtAuthenticationToken token = registrationService.getJwtToken();
     if (token == null) {
       throw new UnauthorizedException("Please login");
     }

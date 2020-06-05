@@ -53,6 +53,8 @@ dependencies {
             "org.assertj:assertj-core",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
+            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
+            "org.springframework.cloud:spring-cloud-loadbalancer:$springVerifierVersion",
             "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
             "org.springframework.kafka:spring-kafka-test",
             "org.junit.jupiter:junit-jupiter"

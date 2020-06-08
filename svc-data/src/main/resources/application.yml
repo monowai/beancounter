@@ -55,7 +55,7 @@ spring:
   h2:
     console:
       enabled: true
-      path: /h2
+      path: /h2/bc-data
   security:
     oauth2:
       resourceserver:

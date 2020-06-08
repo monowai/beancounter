@@ -57,9 +57,9 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
 
-    testImplementation("io.rest-assured:rest-assured") {
-        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
-    }
+//    testImplementation("io.rest-assured:rest-assured") {
+//        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
+//    }
     testImplementation(
             "org.projectlombok:lombok",
             "org.junit.jupiter:junit-jupiter",

@@ -41,6 +41,10 @@ public class MarketData {
   private String id;
   @ManyToOne
   private Asset asset;
+
+  @Builder.Default
+  private String source = "ALPHA";
+
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
   @JsonSerialize(using = LocalDateSerializer.class)
   @JsonDeserialize(using = LocalDateDeserializer.class)

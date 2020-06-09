@@ -30,10 +30,10 @@ public class AlphaMockUtils {
    * @param jsonFile     response file to return
    * @throws IOException anything
    */
-  public static void mockHistoricResponse(WireMockRule wireMockRule, String symbol, File jsonFile)
+  public static void mockAdjustedResponse(WireMockRule wireMockRule, String symbol, File jsonFile)
       throws IOException {
     mockGetResponse(wireMockRule,
-        "/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=demo", jsonFile);
+        "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=" + symbol + "&apikey=demo", jsonFile);
   }
 
   public static void mockGlobalResponse(WireMockRule wireMockRule, String symbol, File jsonFile)

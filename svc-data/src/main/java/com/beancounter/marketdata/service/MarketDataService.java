@@ -43,6 +43,18 @@ public class MarketDataService {
     this.priceService = priceService;
   }
 
+  @Transactional
+  @Async
+  public void backFill(Asset asset) {
+    Collection<Asset> assets = new ArrayList<>();
+    assets.add(asset);
+    Map<MarketDataProvider, Collection<Asset>>
+        byFactory = providerUtils.splitProviders(providerUtils.getInputs(assets));
+    for (MarketDataProvider marketDataProvider : byFactory.keySet()) {
+      priceService.process(marketDataProvider.backFill(asset));
+    }
+  }
+
   @SneakyThrows
   public PriceResponse getPriceResponse(Asset asset) {
     return getFuturePriceResponse(asset).get();

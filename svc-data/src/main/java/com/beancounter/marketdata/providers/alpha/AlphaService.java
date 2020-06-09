@@ -3,6 +3,8 @@ package com.beancounter.marketdata.providers.alpha;
 import static com.beancounter.marketdata.providers.ProviderArguments.getInstance;
 
 import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.DateUtils;
@@ -76,7 +78,6 @@ public class AlphaService implements MarketDataProvider {
             batchId,
             alphaProxyCache.getHistoric(providerArguments.getBatch().get(batchId), date, apiKey));
       }
-
     }
 
     return getMarketData(providerArguments, requests);
@@ -119,6 +120,21 @@ public class AlphaService implements MarketDataProvider {
   @Override
   public LocalDate getDate(Market market, PriceRequest priceRequest) {
     return alphaConfig.getMarketDate(market, priceRequest.getDate());
+  }
+
+  @Override
+  @SneakyThrows
+  public PriceResponse backFill(Asset asset) {
+    Future<String> results = alphaProxyCache.getAdjusted(asset.getCode(), apiKey);
+    String json = results.get();
+    PriceResponse priceResponse = alphaPriceAdapter.getAlphaMapper()
+        .readValue(json, PriceResponse.class);
+
+    for (MarketData marketData : priceResponse.getData()) {
+      marketData.setSource(AlphaService.ID);
+      marketData.setAsset(asset);
+    }
+    return priceResponse;
   }
 
 

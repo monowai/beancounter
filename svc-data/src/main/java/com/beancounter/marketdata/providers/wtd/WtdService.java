@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.providers.wtd;
 
 import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.marketdata.providers.ProviderArguments;
@@ -101,6 +103,11 @@ public class WtdService implements MarketDataProvider {
   @Override
   public LocalDate getDate(Market market, PriceRequest priceRequest) {
     return wtdConfig.getMarketDate(market, priceRequest.getDate());
+  }
+
+  @Override
+  public PriceResponse backFill(Asset asset) {
+    return new PriceResponse().builder().build();
   }
 
 

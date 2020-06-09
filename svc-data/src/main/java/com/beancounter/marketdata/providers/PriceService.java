@@ -1,16 +1,18 @@
 package com.beancounter.marketdata.providers;
 
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.KeyGenUtils;
+import com.beancounter.marketdata.event.EventService;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Service;
 public class PriceService {
 
   private final MarketDataRepo marketDataRepo;
+  private final EventService eventService;
 
-  PriceService(MarketDataRepo marketDataRepo) {
+  PriceService(MarketDataRepo marketDataRepo, EventService eventService) {
     this.marketDataRepo = marketDataRepo;
+    this.eventService = eventService;
   }
 
   public Optional<MarketData> getMarketData(String assetId, LocalDate date) {
@@ -41,6 +45,7 @@ public class PriceService {
           marketData.setId(KeyGenUtils.getId());
           createSet.add(marketData);
         }
+        pushCorporateEvent(marketData);
       }
     }
     if (createSet.isEmpty()) {
@@ -49,10 +54,24 @@ public class PriceService {
     return marketDataRepo.saveAll(createSet);
   }
 
+  private void pushCorporateEvent(MarketData marketData) {
+    if (marketData.getDividend() != null
+        && marketData.getDividend().compareTo(BigDecimal.ZERO) != 0) {
+
+      eventService.write(CorporateEvent.builder()
+          .asset(marketData.getAsset())
+          .trnType(TrnType.DIVI)
+          .source(marketData.getSource())
+          .recordDate(marketData.getPriceDate())
+          .rate(marketData.getDividend())
+          .split(marketData.getSplit())
+          .build());
+    }
+  }
+
   @Async
-  public Future<Iterable<MarketData>> write(PriceResponse priceResponse) {
-    Iterable<MarketData> results = process(priceResponse);
-    return new AsyncResult<>(results);
+  public void write(PriceResponse priceResponse) {
+    process(priceResponse);
   }
 
   public void purge() {

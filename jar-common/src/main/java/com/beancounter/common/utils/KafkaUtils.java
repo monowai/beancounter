@@ -1,6 +1,7 @@
-package com.beancounter.marketdata.utils;
+package com.beancounter.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@ConditionalOnProperty(value = "kafka.enabled", matchIfMissing = false)
 public class KafkaUtils {
   public String findBcCause(ListenerExecutionFailedException e) {
     StackTraceElement[] stackTrace = e.getMostSpecificCause().getStackTrace();

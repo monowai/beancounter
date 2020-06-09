@@ -68,6 +68,7 @@ public class TestPortfolioCommands {
     portfolioCommands = new PortfolioCommands(portfolioServiceClient);
 
   }
+
   @Test
   @SneakyThrows
   void getPortfolios() {

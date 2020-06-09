@@ -1,15 +1,18 @@
 package com.beancounter.marketdata.event;
 
 import com.beancounter.common.contracts.EventRequest;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.marketdata.assets.AssetService;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,15 +34,16 @@ public class EventService {
   }
 
   @Autowired
-  public void setKafkaCaProducer(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KafkaTemplate<String, EventRequest> kafkaCaProducer) {
+  public void setKafkaCaProducer(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+                                     KafkaTemplate<String, EventRequest> kafkaCaProducer) {
     this.kafkaCaProducer = kafkaCaProducer;
   }
 
   public CorporateEvent save(CorporateEvent event) {
 
-    Optional<CorporateEvent> existing = eventRepository.findByAssetAndPayDate(
+    Optional<CorporateEvent> existing = eventRepository.findByAssetAndRecordDate(
         event.getAsset(),
-        event.getPayDate());
+        event.getRecordDate());
     if (existing.isPresent()) {
       return existing.get();
     }
@@ -55,11 +59,24 @@ public class EventService {
     return result;
   }
 
-  void dispatch(CorporateEvent corporateEvent) {
-    log.info("Dispatch {} ... {}", topicEvent, corporateEvent);
-
-    kafkaCaProducer.send(
-        new ProducerRecord<>(topicEvent, EventRequest.builder().data(corporateEvent).build()));
+  @Async
+  public void write(CorporateEvent corporateEvent) {
+    save(corporateEvent);
   }
 
+  void dispatch(CorporateEvent corporateEvent) {
+    log.trace("Dispatch {} ... {}", topicEvent, corporateEvent);
+
+    kafkaCaProducer.send(
+        new ProducerRecord<>(topicEvent, EventRequest.builder().data(corporateEvent).build())
+    );
+  }
+
+  public Collection<CorporateEvent> get(Asset asset) {
+    return eventRepository.findByAsset(asset);
+  }
+
+  public void purge() {
+    eventRepository.deleteAll();
+  }
 }

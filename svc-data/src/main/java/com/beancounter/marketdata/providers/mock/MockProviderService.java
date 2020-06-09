@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.mock;
 
 import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
@@ -67,6 +68,11 @@ public class MockProviderService implements MarketDataProvider {
   @Override
   public LocalDate getDate(Market market, PriceRequest priceRequest) {
     return getPriceDate();
+  }
+
+  @Override
+  public PriceResponse backFill(Asset asset) {
+    return new PriceResponse().builder().build();
   }
 
 }

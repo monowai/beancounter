@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 public class CorporateEvent {
   @Id
   private String id;
+  private TrnType trnType;
 
   @ManyToOne
   private Asset asset;
@@ -42,4 +43,5 @@ public class CorporateEvent {
   @JsonDeserialize(using = LocalDateDeserializer.class)
   private LocalDate recordDate;
 
+  private String source;
 }

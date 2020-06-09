@@ -38,6 +38,14 @@ public interface AlphaGateway {
   @RequestMapping(
       method = RequestMethod.GET,
       headers = {"Content-Type: text/plain"},
+      value = "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}"
+  )
+  String getAdjusted(@PathVariable("assetId") String assetId,
+                     @PathVariable("apiKey") String apiKey);
+
+  @RequestMapping(
+      method = RequestMethod.GET,
+      headers = {"Content-Type: text/plain"},
       value = "/query?function=SYMBOL_SEARCH&keywords={symbol}&apikey={apiKey}"
   )
   String search(@PathVariable("symbol") String symbol,

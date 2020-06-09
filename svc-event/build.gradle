@@ -34,11 +34,14 @@ dependencies {
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.github.ben-manes.caffeine:caffeine",
-            "org.projectlombok:lombok",
             "org.springframework.kafka:spring-kafka"
     )
 
-    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+    compileOnly(
+            "org.springframework.boot:spring-boot-configuration-processor",
+            "org.projectlombok:lombok"
+    )
+
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
 

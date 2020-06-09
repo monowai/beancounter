@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.integ;
 
 import static com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts;
+import static com.beancounter.marketdata.utils.AlphaMockUtils.mockAdjustedResponse;
+import static com.beancounter.marketdata.utils.AlphaMockUtils.mockSearchResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -11,17 +13,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
+import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetResponse;
+import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.batch.ScheduledValuation;
+import com.beancounter.marketdata.event.EventService;
 import com.beancounter.marketdata.markets.MarketService;
+import com.beancounter.marketdata.providers.PriceService;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
 import com.beancounter.marketdata.providers.wtd.WtdService;
@@ -35,6 +43,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -73,6 +82,10 @@ class TestAlphaVantageApi {
   private MarketDataService marketDataService;
   @Autowired
   private AlphaConfig alphaConfig;
+  @Autowired
+  private PriceService priceService;
+  @Autowired
+  private EventService eventService;
   @Autowired
   private ScheduledValuation scheduledValuation;
   @Autowired
@@ -240,14 +253,14 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
 
-    AlphaMockUtils.mockHistoricResponse(alphaApi, "API.KEY", jsonFile);
+    AlphaMockUtils.mockGlobalResponse(alphaApi, "API.KEY", jsonFile);
     Asset asset =
         Asset.builder().code("API")
             .market(Market.builder().code("KEY").build()).build();
 
     MarketDataProvider alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID);
     Collection<MarketData> results = alphaProvider.getMarketData(
-        PriceRequest.of(asset).date("2020-01-01").build());
+        PriceRequest.of(asset).build());
     assertThat(results)
         .isNotNull()
         .hasSize(1);
@@ -341,7 +354,29 @@ class TestAlphaVantageApi {
 
   @Test
   void is_BackFillNasdaqIncludingDividendEvent() throws Exception {
-    File jsonFile = new ClassPathResource(alphaContracts + "/backfill-response.json").getFile();
+    mockSearchResponse(alphaApi, "KMI",
+        new ClassPathResource(alphaContracts + "/kmi-search.json").getFile());
+
+    mockAdjustedResponse(alphaApi, "KMI",
+        new ClassPathResource(alphaContracts + "/backfill-response.json").getFile());
+
+    AssetUpdateResponse result = assetService
+        .process(AssetRequest.builder()
+            .data("key", AssetInput.builder()
+                .code("KMI")
+                .market("NASDAQ")
+                .build()).build());
+    Asset asset = result.getData().get("key");
+
+    marketDataService.backFill(asset);
+    Thread.sleep(200);
+    DateUtils dateUtils = new DateUtils();
+    Optional<MarketData> marketData = priceService
+        .getMarketData(asset.getId(), dateUtils.getDate("2020-05-01"));
+
+    assertThat(marketData.isPresent());
+    Collection<CorporateEvent> events = eventService.get(asset);
+    assertThat(events).hasSize(1);
   }
 
 }

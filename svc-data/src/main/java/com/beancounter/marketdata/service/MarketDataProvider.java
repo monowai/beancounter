@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.service;
 
 import com.beancounter.common.contracts.PriceRequest;
+import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import java.time.LocalDate;
@@ -25,4 +27,6 @@ public interface MarketDataProvider {
   boolean isMarketSupported(Market market);
 
   LocalDate getDate(Market market, PriceRequest priceRequest);
+
+  PriceResponse backFill(Asset asset);
 }

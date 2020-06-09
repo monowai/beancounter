@@ -7,6 +7,7 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
+import com.beancounter.marketdata.event.EventService;
 import com.beancounter.marketdata.markets.MarketService;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class AssetService implements com.beancounter.client.AssetService {
   private final EnrichmentFactory enrichmentFactory;
   private AssetRepository assetRepository;
+  private EventService eventService;
   private MarketService marketService;
 
   AssetService(EnrichmentFactory enrichmentFactory) {
@@ -31,6 +33,11 @@ public class AssetService implements com.beancounter.client.AssetService {
   @Autowired
   void setAssetRepository(AssetRepository assetRepository) {
     this.assetRepository = assetRepository;
+  }
+
+  @Autowired
+  public void setEventService(EventService eventService) {
+    this.eventService = eventService;
   }
 
   @Autowired
@@ -73,15 +80,15 @@ public class AssetService implements com.beancounter.client.AssetService {
       return hydrateAsset(assetRepository.save(asset));
 
     }
-    return backFillMissingData(foundAsset);
+    return enrich(foundAsset);
   }
 
   public AssetUpdateResponse process(AssetRequest asset) {
     Map<String, Asset> assets = new HashMap<>();
-    for (String key : asset.getData().keySet()) {
+    for (String callerRef : asset.getData().keySet()) {
       assets.put(
-          key,
-          this.create(asset.getData().get(key))
+          callerRef,
+          this.create(asset.getData().get(callerRef))
       );
     }
     return AssetUpdateResponse.builder().data(assets).build();
@@ -122,7 +129,7 @@ public class AssetService implements com.beancounter.client.AssetService {
     return optionalAsset.map(this::hydrateAsset).orElse(null);
   }
 
-  public Asset backFillMissingData(Asset asset) {
+  private Asset enrich(Asset asset) {
     AssetEnricher enricher = enrichmentFactory.getEnricher(asset.getMarket());
     if (enricher.canEnrich(asset)) {
       Asset enriched = enricher.enrich(asset.getMarket(), asset.getCode(), asset.getName());
@@ -147,6 +154,7 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   public void purge() {
+    eventService.purge();
     assetRepository.deleteAll();
   }
 }

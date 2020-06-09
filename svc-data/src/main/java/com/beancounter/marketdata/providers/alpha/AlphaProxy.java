@@ -28,4 +28,7 @@ public class AlphaProxy {
     return alphaGateway.search(symbol, apiKey);
   }
 
+  public String adjusted(String code, String apiKey) {
+    return alphaGateway.getAdjusted(code, apiKey);
+  }
 }

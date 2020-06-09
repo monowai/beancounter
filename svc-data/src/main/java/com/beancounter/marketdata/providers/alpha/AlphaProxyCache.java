@@ -45,4 +45,7 @@ public class AlphaProxyCache {
     return new AsyncResult<>(alphaProxy.search(symbol, apiKey));
   }
 
+  public Future<String> getAdjusted(String code, String apiKey) {
+    return new AsyncResult<>(alphaProxy.adjusted(code, apiKey));
+  }
 }

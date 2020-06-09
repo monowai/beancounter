@@ -39,6 +39,8 @@ public class Trn {
   @Embedded
   private CallerRef callerRef;
   private TrnType trnType;
+  @Builder.Default
+  private TrnStatus status = TrnStatus.CONFIRMED;
   @ManyToOne
   private Portfolio portfolio;
   @ManyToOne

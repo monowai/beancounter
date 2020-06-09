@@ -46,7 +46,7 @@ public class TestEventService {
 
     CorporateEvent event = CorporateEvent.builder()
         .asset(assetResult.getData().get("a"))
-        .payDate(dateUtils.getDate("2019-12-20"))
+        .recordDate(dateUtils.getDate("2019-12-20"))
         .rate(new BigDecimal("2.34"))
         .build();
 

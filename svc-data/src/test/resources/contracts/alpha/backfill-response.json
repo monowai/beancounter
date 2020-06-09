@@ -1,0 +1,61 @@
+{
+  "Meta Data": {
+    "1. Information": "Daily Time Series with Splits and Dividend Events",
+    "2. Symbol": "KMI",
+    "3. Last Refreshed": "2020-06-08",
+    "4. Output Size": "Compact",
+    "5. Time Zone": "US/Eastern"
+  },
+  "Time Series (Daily)": {
+    "2020-05-04": {
+      "1. open": "14.3300",
+      "2. high": "14.7900",
+      "3. low": "14.2900",
+      "4. close": "14.6500",
+      "5. adjusted close": "14.6500",
+      "6. volume": "16133123",
+      "7. dividend amount": "0.0000",
+      "8. split coefficient": "1.0000"
+    },
+    "2020-05-01": {
+      "1. open": "14.8500",
+      "2. high": "14.9100",
+      "3. low": "14.3600",
+      "4. close": "14.5600",
+      "5. adjusted close": "14.5600",
+      "6. volume": "16489297",
+      "7. dividend amount": "0.2625",
+      "8. split coefficient": "1.0000"
+    },
+    "2020-04-30": {
+      "1. open": "15.6100",
+      "2. high": "15.6200",
+      "3. low": "15.1000",
+      "4. close": "15.2300",
+      "5. adjusted close": "14.9603",
+      "6. volume": "20839143",
+      "7. dividend amount": "0.0000",
+      "8. split coefficient": "1.0000"
+    },
+    "2020-04-29": {
+      "1. open": "15.6800",
+      "2. high": "15.9500",
+      "3. low": "15.5200",
+      "4. close": "15.7100",
+      "5. adjusted close": "15.4318",
+      "6. volume": "19461080",
+      "7. dividend amount": "0.0000",
+      "8. split coefficient": "1.0000"
+    },
+    "2020-04-28": {
+      "1. open": "15.3100",
+      "2. high": "15.4900",
+      "3. low": "14.9150",
+      "4. close": "15.1900",
+      "5. adjusted close": "14.9210",
+      "6. volume": "14502134",
+      "7. dividend amount": "0.0000",
+      "8. split coefficient": "1.0000"
+    }
+  }
+}

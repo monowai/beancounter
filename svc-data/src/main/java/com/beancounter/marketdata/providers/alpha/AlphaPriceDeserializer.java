@@ -114,6 +114,9 @@ public class AlphaPriceDeserializer extends JsonDeserializer<PriceResponse> {
       BigDecimal high = new BigDecimal(data.get("2. high").toString());
       BigDecimal low = new BigDecimal(data.get("3. low").toString());
       BigDecimal close = new BigDecimal(data.get("4. close").toString());
+      BigDecimal volume = new BigDecimal(data.get("6. volume").toString());
+      BigDecimal dividend = new BigDecimal(data.get("7. dividend amount").toString());
+      BigDecimal split = new BigDecimal(data.get("8. split coefficient").toString());
       marketData = MarketData.builder()
           .asset(asset)
           .priceDate(priceDate)
@@ -121,6 +124,9 @@ public class AlphaPriceDeserializer extends JsonDeserializer<PriceResponse> {
           .close(close)
           .high(high)
           .low(low)
+          .dividend(dividend)
+          .split(split)
+          .volume(volume.intValue())
           .build();
     }
     return marketData;

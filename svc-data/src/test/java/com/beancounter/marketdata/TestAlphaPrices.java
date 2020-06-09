@@ -1,5 +1,6 @@
 package com.beancounter.marketdata;
 
+import static com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.PriceResponse;
@@ -50,6 +51,25 @@ class TestAlphaPrices {
   }
 
   @Test
+  void is_CollectionFromResponseReturnedWithDividend() throws Exception {
+    File jsonFile = new ClassPathResource(alphaContracts + "/backfill-response.json").getFile();
+
+    PriceResponse result = priceMapper.readValue(jsonFile, PriceResponse.class);
+    assertThat(result.getData()).isNotNull().hasSize(5);
+    DateUtils dateUtils = new DateUtils();
+    for (MarketData marketData : result.getData()) {
+      assertThat(marketData)
+          .hasFieldOrProperty("volume")
+          .hasFieldOrProperty("dividend")
+          .hasFieldOrProperty("split");
+      if (marketData.getPriceDate().compareTo(dateUtils.getDate("2020-05-01")) == 0) {
+        // Dividend
+        assertThat(marketData.getDividend()).isEqualTo(new BigDecimal("0.2625"));
+      }
+    }
+  }
+
+  @Test
   void is_MutualFundGlobalResponse() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/pence-price-response.json").getFile();
@@ -61,25 +81,13 @@ class TestAlphaPrices {
   }
 
   @Test
-  void is_ResponseWithMarketCodeSerialized() throws Exception {
-    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/alphavantage-asx.json").getFile();
-    MarketData marketData = validateResponse(jsonFile);
-    assertThat(
-        marketData.getAsset())
-        .hasFieldOrPropertyWithValue("code", "MSFT")
-        .hasFieldOrPropertyWithValue("market.code", "NASDAQ");
-
-  }
-
-  @Test
   void is_ResponseWithoutMarketCodeSetToUs() throws Exception {
     File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
         + "/alphavantage-nasdaq.json").getFile();
     MarketData marketData = validateResponse(jsonFile);
     assertThat(
         marketData.getAsset())
-        .hasFieldOrPropertyWithValue("code", "MSFT")
+        .hasFieldOrPropertyWithValue("code", "NDAQ")
         .hasFieldOrPropertyWithValue("market.code", "US");
   }
 
@@ -90,10 +98,12 @@ class TestAlphaPrices {
         .isNotNull()
         .hasFieldOrProperty("asset")
         .hasFieldOrProperty("priceDate")
-        .hasFieldOrPropertyWithValue("open", new BigDecimal("112.0400"))
-        .hasFieldOrPropertyWithValue("high", new BigDecimal("112.8800"))
-        .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
-        .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"));
+        .hasFieldOrPropertyWithValue("open", new BigDecimal("119.3700"))
+        .hasFieldOrPropertyWithValue("high", new BigDecimal("121.6100"))
+        .hasFieldOrPropertyWithValue("low", new BigDecimal("119.2700"))
+        .hasFieldOrPropertyWithValue("close", new BigDecimal("121.3000"))
+        .hasFieldOrPropertyWithValue("volume", new BigDecimal("958346").intValue())
+    ;
     return marketData;
   }
 

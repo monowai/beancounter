@@ -61,5 +61,9 @@ public class MarketData {
   @Column(precision = 7, scale = 4)
   private BigDecimal changePercent;
   private Integer volume;
+  @Column(precision = 7, scale = 4)
+  private BigDecimal dividend;
+  @Column(precision = 7, scale = 4)
+  private BigDecimal split;
 
 }

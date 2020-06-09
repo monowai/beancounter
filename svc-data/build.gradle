@@ -48,7 +48,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2",
-            "org.postgresql:postgresql:42.2.12",
+            "org.postgresql:postgresql:42.2.13",
             "org.projectlombok:lombok",
             "org.springframework.kafka:spring-kafka"
     )
@@ -57,9 +57,6 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
 
-//    testImplementation("io.rest-assured:rest-assured") {
-//        exclude(group: "com.sun.xml.bind", module: "jaxb-osgi")
-//    }
     testImplementation(
             "org.projectlombok:lombok",
             "org.junit.jupiter:junit-jupiter",

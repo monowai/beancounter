@@ -287,34 +287,6 @@ class TestAlphaVantageApi {
   }
 
   @Test
-  void is_SuccessHandledForAsx() throws Exception {
-
-    File jsonFile = new ClassPathResource(alphaContracts + "/alphavantage-asx.json").getFile();
-
-    AlphaMockUtils.mockHistoricResponse(alphaApi, "ABC.AX", jsonFile);
-    Asset asset =
-        Asset.builder().code("ABC").market(Market.builder().code("ASX").build()).build();
-
-    Collection<MarketData> mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
-        .getMarketData(
-            PriceRequest
-                .of(asset)
-                .date("2019-02-28")
-                .build());
-
-    MarketData marketData = mdResult.iterator().next();
-    assertThat(marketData)
-        .isNotNull()
-        .hasFieldOrPropertyWithValue("asset", asset)
-        .hasFieldOrPropertyWithValue("close", new BigDecimal("112.0300"))
-        .hasFieldOrPropertyWithValue("open", new BigDecimal("112.0400"))
-        .hasFieldOrPropertyWithValue("low", new BigDecimal("111.7300"))
-        .hasFieldOrPropertyWithValue("high", new BigDecimal("112.8800"))
-    ;
-
-  }
-
-  @Test
   void is_CurrentPriceFound() throws Exception {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
@@ -365,6 +337,11 @@ class TestAlphaVantageApi {
         .hasFieldOrProperty("high")
         .hasFieldOrProperty("previousClose")
         .hasFieldOrProperty("change");
+  }
+
+  @Test
+  void is_BackFillNasdaqIncludingDividendEvent() throws Exception {
+    File jsonFile = new ClassPathResource(alphaContracts + "/backfill-response.json").getFile();
   }
 
 }

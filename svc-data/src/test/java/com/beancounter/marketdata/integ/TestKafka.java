@@ -7,6 +7,7 @@ import com.beancounter.client.AssetService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
+import com.beancounter.common.contracts.EventRequest;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.contracts.TrnResponse;
@@ -14,12 +15,14 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.event.EventService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
@@ -31,18 +34,24 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.ActiveProfiles;
@@ -50,7 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @EmbeddedKafka(
     partitions = 1,
-    topics = {"topicTrnCsv", "topicPrice"},
+    topics = {"topicTrnCsv", "topicPrice", "topicEvent"},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
         "log.dir=./kafka",
@@ -81,6 +90,8 @@ public class TestKafka {
   private TokenService tokenService;
   @Autowired
   private TrnKafkaConsumer trnKafkaConsumer;
+  @Autowired
+  private EventService eventService;
 
   private final DateUtils dateUtils = new DateUtils();
 
@@ -256,6 +267,50 @@ public class TestKafka {
           // These are not used client side so should be ignored
           .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
     }
+  }
+
+  @Test
+  void is_CorporateEventDispatched() throws Exception {
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps("data-test", "false", embeddedKafkaBroker);
+    consumerProps.put("session.timeout.ms", 6000);
+    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    DefaultKafkaConsumerFactory<String, String> cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+
+    Consumer<String, String> consumer = cf.createConsumer();
+
+    embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, "topicEvent");
+
+    AssetRequest assetRequest = AssetRequest.builder()
+        .data("a", AssetInput.builder()
+            .code("TWEE")
+            .name("No matter")
+            .market("NASDAQ")
+            .build())
+        .build();
+    AssetUpdateResponse assetResult = assetService.process(assetRequest);
+    assertThat(assetResult.getData()).hasSize(1);
+    Asset asset = assetResult.getData().get("a");
+    assertThat(asset.getMarket()).isNotNull();
+    CorporateEvent event = CorporateEvent.builder()
+        .asset(asset)
+        .payDate(dateUtils.getDate("2019-12-20"))
+        .recordDate(dateUtils.getDate("2019-12-10"))
+        .rate(new BigDecimal("2.34"))
+        .build();
+
+    // Compare with a serialised event
+    event = objectMapper.readValue(
+        objectMapper.writeValueAsString(eventService.save(event)), CorporateEvent.class);
+
+    ConsumerRecord<String, String>
+        consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "topicEvent");
+    assertThat(consumerRecord.value()).isNotNull();
+
+    EventRequest received = objectMapper.readValue(consumerRecord.value(), EventRequest.class);
+    assertThat(received.getData()).isEqualToComparingFieldByField(event);
+
   }
 
   @Test

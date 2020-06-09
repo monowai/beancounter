@@ -1,17 +1,27 @@
+buildscript {
+    ext {
+        contractsDir = file("mappings")
+        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+    }
+}
+
 plugins {
     id "io.spring.dependency-management" version "$springDependencyManagement"
     id "org.springframework.boot" version "$springBootVersion"
+    id "maven-publish"
 }
-
 apply from: "../javaCommon.gradle"
 
-version = '0.0.1'
+version = "0.1.1"
 
 dependencies {
     implementation(
             project(":jar-common"),
-            project(":jar-client"),
             project(":jar-auth"),
+            project(":jar-client"),
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
@@ -21,41 +31,35 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-actuator",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
-            "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion"
+            "com.github.ben-manes.caffeine:caffeine",
+            "org.projectlombok:lombok",
+            "org.springframework.kafka:spring-kafka"
     )
 
-    compileOnly(
-            "org.springframework.boot:spring-boot-configuration-processor",
-            "org.projectlombok:lombok"
-    )
+    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
 
     testImplementation(
             "org.projectlombok:lombok",
+            "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
-            "com.fasterxml.jackson.core:jackson-databind",
+            "io.rest-assured:spring-mock-mvc",
+            "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
-            "org.springframework.cloud:spring-cloud-loadbalancer",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.junit.jupiter:junit-jupiter"
+            "org.springframework.kafka:spring-kafka-test"
 
     )
-    testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
-        transitive = false
-    }
+
 }
 
 dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-    }
+    imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
 }
-
 
 idea {
     module {
@@ -64,4 +68,9 @@ idea {
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
     }
+}
+
+task pubStubs {
+    dependsOn build
+    dependsOn publishToMavenLocal
 }

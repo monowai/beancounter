@@ -26,8 +26,8 @@ public class KafkaTrnProducer implements TrnWriter {
 
   @Value("${beancounter.topics.trn.csv:bc-trn-csv-dev}")
   public String topicTrnCsv;
-  private final KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer;
   private ShareSightFactory shareSightFactory;
+  private final KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer;
 
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   public KafkaTrnProducer(KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer) {

@@ -10,20 +10,9 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.beancounter.common.input
-      group-id: data-test
+      group-id: event-test
 
 
   embedded:
     kafka:
       brokers: "localhost:${kafka.broker.port}"
-
-
-beancounter:
-  marketdata:
-    provider:
-      FIGI:
-        enabled: false
-
-  topics:
-    ca:
-      event: topicEvent

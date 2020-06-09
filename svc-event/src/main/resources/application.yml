@@ -1,0 +1,77 @@
+server:
+  port: 9520
+  servlet:
+    context-path: '/api'
+
+management:
+  server:
+    port: 9521
+  endpoint:
+    health.show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
+      base-path: "/"
+
+logging:
+  level:
+    root: debug
+    javax: error
+    sun: error
+    netflix: error
+    jdk: error
+    io:
+      github:
+        resilience4j: error
+    feign: error
+    com:
+      netfix: error
+      beancounter: debug
+      zaxxer: error
+    org:
+      springframework: error
+      springframework.scheduling: debug
+      hibernate: error
+      apache: error
+
+auth:
+  uri: "http://keycloak:9620/auth"
+  realm: "bc-dev"
+
+spring:
+  application:
+    name: bc-event
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      #      properties:
+      #        spring.json.trusted.packages: com.beancounter.common.input
+      group-id: bc-data
+
+
+resilience4j.ratelimiter:
+  instances:
+    positions:
+      registerHealthIndicator: false
+      limitForPeriod: 60
+      limitRefreshPeriod: 65s
+      timeoutDuration: 80s
+      eventConsumerBufferSize: 200
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      failureRateThreshold: 3
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      slidingWindowType: TIME_BASED
+      waitDurationInOpenState: 5s
+      registerHealthIndicator: true
+      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+

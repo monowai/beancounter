@@ -2,6 +2,7 @@ package com.beancounter.marketdata.integ;
 
 import static com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts;
 import static com.beancounter.marketdata.utils.AlphaMockUtils.mockAdjustedResponse;
+import static com.beancounter.marketdata.utils.AlphaMockUtils.mockGlobalResponse;
 import static com.beancounter.marketdata.utils.AlphaMockUtils.mockSearchResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,27 +103,27 @@ class TestAlphaVantageApi {
       alphaApi = new WireMockRule(options().port(9999));
       alphaApi.start();
     }
-    AlphaMockUtils.mockSearchResponse(alphaApi,
+    mockSearchResponse(alphaApi,
         "MSFT",
         new ClassPathResource(alphaContracts + "/msft-response.json").getFile());
 
-    AlphaMockUtils.mockSearchResponse(alphaApi,
+    mockSearchResponse(alphaApi,
         "AAPL",
         new ClassPathResource(alphaContracts + "/appl-response.json").getFile());
 
-    AlphaMockUtils.mockSearchResponse(alphaApi,
+    mockSearchResponse(alphaApi,
         "AMP.AX", // We search Alpha as AX
         new ClassPathResource(alphaContracts + "/amp-search.json").getFile());
 
-    AlphaMockUtils.mockGlobalResponse(
+    mockGlobalResponse(
         alphaApi, "AMP.AX",
         new ClassPathResource(alphaContracts + "/amp-global.json").getFile());
 
-    AlphaMockUtils.mockGlobalResponse(
+    mockGlobalResponse(
         alphaApi, "AMP.AUS",
         new ClassPathResource(alphaContracts + "/amp-global.json").getFile());
 
-    AlphaMockUtils.mockGlobalResponse(
+    mockGlobalResponse(
         alphaApi, "MSFT",
         new ClassPathResource(alphaContracts + "/msft-global.json").getFile());
 
@@ -169,7 +170,7 @@ class TestAlphaVantageApi {
         "B6WZJX0",
         new ClassPathResource("/contracts" + "/alpha/mf-search.json").getFile());
 
-    AlphaMockUtils.mockGlobalResponse(
+    mockGlobalResponse(
         alphaApi, "0P0000XMSV.LON",
         new ClassPathResource(alphaContracts + "/pence-price-response.json").getFile());
 
@@ -233,7 +234,7 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageError.json").getFile();
 
-    AlphaMockUtils.mockGlobalResponse(alphaApi, "API.ERR", jsonFile);
+    mockGlobalResponse(alphaApi, "API.ERR", jsonFile);
     Asset asset =
         Asset.builder().code("API").market(Market.builder().code("ERR").build()).build();
 
@@ -253,7 +254,7 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageInfo.json").getFile();
 
-    AlphaMockUtils.mockGlobalResponse(alphaApi, "API.KEY", jsonFile);
+    mockGlobalResponse(alphaApi, "API.KEY", jsonFile);
     Asset asset =
         Asset.builder().code("API")
             .market(Market.builder().code("KEY").build()).build();
@@ -277,7 +278,7 @@ class TestAlphaVantageApi {
     File jsonFile = new ClassPathResource(alphaContracts + "/alphavantageNote.json").getFile();
     Market nasdaq = marketService.getMarket("NASDAQ");
 
-    AlphaMockUtils.mockGlobalResponse(alphaApi, "ABC", jsonFile);
+    mockGlobalResponse(alphaApi, "ABC", jsonFile);
     Asset asset =
         Asset.builder().code("ABC").market(nasdaq).build();
 
@@ -304,7 +305,7 @@ class TestAlphaVantageApi {
 
     File jsonFile = new ClassPathResource(alphaContracts + "/global-response.json").getFile();
 
-    AlphaMockUtils.mockGlobalResponse(alphaApi, "MSFT", jsonFile);
+    mockGlobalResponse(alphaApi, "MSFT", jsonFile);
 
     Market nasdaq = Market.builder().code("NASDAQ").build();
     Asset asset = Asset.builder().code("MSFT").market(nasdaq).build();

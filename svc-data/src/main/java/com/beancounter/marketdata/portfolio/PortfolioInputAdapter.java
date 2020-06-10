@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PortfolioInputAdapter {
 
-  private CurrencyService currencyService;
+  private final CurrencyService currencyService;
 
   PortfolioInputAdapter(CurrencyService currencyService) {
     this.currencyService = currencyService;

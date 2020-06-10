@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -16,10 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -48,13 +51,14 @@ public class TestRegistrationController {
     Jwt token = TokenUtils.getUserToken(user);
     RegistrationUtils.registerUser(mockMvc, token);
 
-    mockMvc.perform(
+    MvcResult performed = mockMvc.perform(
         get("/me")
             .with(jwt().jwt(token).authorities(new AuthorityRoleConverter()))
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is2xxSuccessful())
         .andReturn();
+    assertThat(performed.getResponse().getStatus()).isEqualTo(HttpStatus.OK.value());
   }
 
   @Test
@@ -66,13 +70,14 @@ public class TestRegistrationController {
     Jwt token = TokenUtils.getUserToken(user);
     RegistrationUtils.registerUser(mockMvc, token);
 
-    mockMvc.perform(
+    MvcResult performed = mockMvc.perform(
         get("/me")
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().is4xxClientError())
         .andReturn();
 
+    assertThat(performed.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
   }
 
   @Test
@@ -83,7 +88,7 @@ public class TestRegistrationController {
         .build();
     Jwt token = TokenUtils.getUserToken(user);
 
-    mockMvc.perform(
+    MvcResult performed = mockMvc.perform(
         get("/me")
             .with(jwt().jwt(token).authorities(new AuthorityRoleConverter()))
             .with(csrf())
@@ -91,6 +96,7 @@ public class TestRegistrationController {
     ).andExpect(status().is4xxClientError())
         .andReturn();
 
+    assertThat(performed.getResponse().getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
   }
 
 }

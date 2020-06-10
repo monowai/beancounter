@@ -239,7 +239,8 @@ class TestMarketValuesWithFx {
     Map<IsoCurrencyPair, FxRate> fxRateMap = getRates(portfolio, asset, simpleRate);
 
     // Revalue based on No Market data
-    new MarketValue(new Gains()).value(positions, marketData, fxRateMap);
+    Position result = new MarketValue(new Gains()).value(positions, marketData, fxRateMap);
+    assertThat(result).isNotNull().hasFieldOrProperty("moneyValues");
 
   }
 

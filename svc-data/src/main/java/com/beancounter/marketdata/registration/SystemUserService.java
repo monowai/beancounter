@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 public class SystemUserService {
-  private SystemUserRepository systemUserRepository;
-  private TokenService tokenService;
+  private final SystemUserRepository systemUserRepository;
+  private final TokenService tokenService;
 
   SystemUserService(SystemUserRepository systemUserRepository, TokenService tokenService) {
     this.systemUserRepository = systemUserRepository;

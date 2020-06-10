@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SplitBehaviour implements AccumulationStrategy {
-  private AverageCost averageCost = new AverageCost();
+  private final AverageCost averageCost = new AverageCost();
 
-  private CurrencyResolver currencyResolver = new CurrencyResolver();
+  private final CurrencyResolver currencyResolver = new CurrencyResolver();
 
   public void accumulate(Trn trn, Portfolio portfolio, Position position) {
     BigDecimal total = position.getQuantityValues().getTotal();

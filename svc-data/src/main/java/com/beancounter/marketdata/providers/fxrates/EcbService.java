@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class EcbService {
-  private FxGateway fxGateway;
-  private CurrencyService currencyService;
-  private String currencies;
-  private EcbDate ecbDate = new EcbDate();
+  private final FxGateway fxGateway;
+  private final CurrencyService currencyService;
+  private final String currencies;
+  private final EcbDate ecbDate = new EcbDate();
   private DateUtils dateUtils = new DateUtils();
 
 

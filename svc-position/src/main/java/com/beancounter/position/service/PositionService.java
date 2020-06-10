@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PositionService implements Position {
 
-  private Accumulator accumulator;
-  private PortfolioServiceClient portfolioService;
+  private final Accumulator accumulator;
+  private final PortfolioServiceClient portfolioService;
 
   PositionService(Accumulator accumulator,
                   PortfolioServiceClient portfolioService

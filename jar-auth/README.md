@@ -109,6 +109,7 @@ A controller can be simply secured with the `@PreAuthorize` annotation, or `@Sec
 
 To unit test the above controller, you're going to do something like this:
 ```java
+```java
 @ExtendWith(SpringExtension.class)
 // This configuration is required as the jar-auth is not a SpringBoot application
 @ContextConfiguration(classes = {
@@ -131,7 +132,7 @@ public class AuthTest {
   private MockMvc mockMvc;
 
   // Needed because mock testing will not call the configured JwtRoleConverter
-  private AuthorityRoleConverter roleConverter = new AuthorityRoleConverter();
+  private final AuthorityRoleConverter roleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
   void setup() {

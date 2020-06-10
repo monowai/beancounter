@@ -31,9 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class PositionController {
 
-  private PositionService positionService;
+  private final PositionService positionService;
   private Valuation valuationService;
-  private PortfolioServiceClient portfolioServiceClient;
+  private final PortfolioServiceClient portfolioServiceClient;
 
   @Autowired
   PositionController(PositionService positionService,

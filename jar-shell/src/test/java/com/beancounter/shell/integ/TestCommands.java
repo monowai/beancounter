@@ -48,7 +48,7 @@ public class TestCommands {
   @Autowired
   private PromptProvider promptProvider;
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   void is_MarketCommandsReturning() throws Exception {

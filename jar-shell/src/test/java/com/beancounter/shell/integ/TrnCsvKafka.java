@@ -62,7 +62,7 @@ public class TrnCsvKafka {
   @MockBean
   private ShareSightFactory shareSightFactory;
 
-  private List<String> row = new ArrayList<>();
+  private final List<String> row = new ArrayList<>();
   private Consumer<String, String> consumer;
 
   @BeforeEach

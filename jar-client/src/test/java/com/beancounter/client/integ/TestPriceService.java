@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.services.PriceService;
-import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.model.Asset;
@@ -29,9 +28,6 @@ public class TestPriceService {
 
   @Autowired
   private AssetIngestService assetIngestService;
-
-  @Autowired
-  private StaticService staticService;
 
   @Test
   void is_MarketDateOnDateFound() {

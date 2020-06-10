@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TrnBehaviourFactory {
 
-  private Map<TrnType, AccumulationStrategy> trnBehaviours = new HashMap<>();
+  private final Map<TrnType, AccumulationStrategy> trnBehaviours = new HashMap<>();
 
   @Autowired(required = false)
   void setBuyBehaviour(BuyBehaviour buyBehaviour) {

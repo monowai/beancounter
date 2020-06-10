@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 class TestExceptions {
-  private RequestTemplate requestTemplate = new RequestTemplate();
+  private final RequestTemplate requestTemplate = new RequestTemplate();
 
   @Test
   void is_FeignBusinessExceptionThrown() {

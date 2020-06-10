@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class ValuationController {
 
-  private Valuation valuationService;
+  private final Valuation valuationService;
 
   @Autowired
   ValuationController(Valuation valuationService) {

@@ -37,7 +37,7 @@ public class TestIngestCommand {
   @MockBean
   private TrnWriter trnWriter;
 
-  private MockIngester mockIngester = new MockIngester();
+  private final MockIngester mockIngester = new MockIngester();
 
   @BeforeEach
   void mockServices() {

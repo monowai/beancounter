@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class FxUtils {
-  private DateUtils dateUtils = new DateUtils();
+  private final DateUtils dateUtils = new DateUtils();
 
   public FxRequest buildRequest(Currency base, Positions positions) {
     if (positions.getAsAt() == null) {

@@ -22,7 +22,7 @@ import org.springframework.core.io.ClassPathResource;
  * @since 2019-03-03
  */
 class TestWtdSerialization {
-  private ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void is_JsonGoodResponse() throws Exception {

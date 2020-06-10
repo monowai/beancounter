@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 public class ShareSightFactory {
 
   private static final Set<String> TRADE_TYPES = Set.of("BUY", "SELL", "SPLIT");
-  private ShareSightTradeAdapter shareSightTrade;
-  private ShareSightDividendAdapter shareSightDivi;
+  private final ShareSightTradeAdapter shareSightTrade;
+  private final ShareSightDividendAdapter shareSightDivi;
 
   public ShareSightFactory(ShareSightDividendAdapter shareSightDivi,
                            ShareSightTradeAdapter shareSightTrade) {

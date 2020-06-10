@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 public class AuthorityRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
   private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter
       = new JwtGrantedAuthoritiesConverter();
-  private JwtRoleConverter jwtRoleConverter;
+  private final JwtRoleConverter jwtRoleConverter;
 
   public AuthorityRoleConverter() {
     this(new JwtRoleConverter());

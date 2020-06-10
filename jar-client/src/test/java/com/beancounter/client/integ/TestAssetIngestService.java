@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.AssetIngestService;
-import com.beancounter.client.services.StaticService;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import org.junit.jupiter.api.Test;
@@ -24,9 +23,6 @@ public class TestAssetIngestService {
 
   @Autowired
   private AssetIngestService assetIngestService;
-
-  @Autowired
-  private StaticService staticService;
 
   @Test
   void is_HydratedAssetFound() {

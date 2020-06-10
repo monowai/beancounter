@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Filter {
 
-  private Collection<String> filteredAssets = new ArrayList<>();
+  private final Collection<String> filteredAssets = new ArrayList<>();
 
   public Filter(@Value("${filter:#{null}}") String filter) {
     init(filter);

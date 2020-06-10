@@ -61,7 +61,7 @@ public class AuthTest {
 
   private MockMvc mockMvc;
 
-  private AuthorityRoleConverter roleConverter = new AuthorityRoleConverter();
+  private final AuthorityRoleConverter roleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
   void setupMockMvc() {

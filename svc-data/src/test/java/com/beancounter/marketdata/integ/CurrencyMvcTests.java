@@ -32,7 +32,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 class CurrencyMvcTests {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   private WebApplicationContext context;

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class IngestionFactory {
-  private Map<String, Ingester> ingesterMap = new HashMap<>();
+  private final Map<String, Ingester> ingesterMap = new HashMap<>();
 
   @Autowired
   void setCsvIngester(CsvIngester csvIngester) {

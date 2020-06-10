@@ -32,17 +32,17 @@ class TestAlphaPrices {
 
   @Test
   void is_NullAsset() throws Exception {
-    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/alphavantage-empty-response.json").getFile();
-
-    assertThat(priceMapper.readValue(jsonFile, PriceResponse.class)).isNull();
+    assertThat(priceMapper.readValue(
+        new ClassPathResource(alphaContracts + "/alphavantage-empty-response.json").getFile(),
+        PriceResponse.class)).isNull();
   }
 
   @Test
   void is_GlobalResponse() throws Exception {
-    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/global-response.json").getFile();
-    PriceResponse marketData = priceMapper.readValue(jsonFile, PriceResponse.class);
+    PriceResponse marketData = priceMapper.readValue(
+        new ClassPathResource(alphaContracts + "/global-response.json").getFile(),
+        PriceResponse.class);
+
     assertThat(marketData)
         .isNotNull()
         .hasNoNullFieldsOrPropertiesExcept("id", "requestDate");
@@ -52,9 +52,10 @@ class TestAlphaPrices {
 
   @Test
   void is_CollectionFromResponseReturnedWithDividend() throws Exception {
-    File jsonFile = new ClassPathResource(alphaContracts + "/backfill-response.json").getFile();
+    PriceResponse result = priceMapper.readValue(
+        new ClassPathResource(alphaContracts + "/backfill-response.json").getFile(),
+        PriceResponse.class);
 
-    PriceResponse result = priceMapper.readValue(jsonFile, PriceResponse.class);
     assertThat(result.getData()).isNotNull().hasSize(5);
     DateUtils dateUtils = new DateUtils();
     for (MarketData marketData : result.getData()) {
@@ -71,9 +72,9 @@ class TestAlphaPrices {
 
   @Test
   void is_MutualFundGlobalResponse() throws Exception {
-    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/pence-price-response.json").getFile();
-    PriceResponse marketData = priceMapper.readValue(jsonFile, PriceResponse.class);
+    PriceResponse marketData = priceMapper.readValue(
+        new ClassPathResource(alphaContracts + "/pence-price-response.json").getFile(),
+        PriceResponse.class);
     assertThat(marketData)
         .isNotNull()
         .hasNoNullFieldsOrPropertiesExcept("id", "requestDate");

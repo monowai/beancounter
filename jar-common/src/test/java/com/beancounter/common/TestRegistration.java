@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 public class TestRegistration {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   @SneakyThrows

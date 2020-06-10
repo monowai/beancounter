@@ -10,7 +10,7 @@ import java.util.TimeZone;
 import org.junit.jupiter.api.Test;
 
 public class TestWtdConfig {
-  private DateUtils dateUtils = new DateUtils();
+  private final DateUtils dateUtils = new DateUtils();
 
   @Test
   void is_DateAssumptionsValid() {

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public abstract class AbstractIngester implements Ingester {
   private PortfolioServiceClient portfolioService;
-  private Map<String, TrnWriter> writers = new HashMap<>();
+  private final Map<String, TrnWriter> writers = new HashMap<>();
 
   @Autowired
   public void setPortfolioService(PortfolioServiceClient portfolioService) {

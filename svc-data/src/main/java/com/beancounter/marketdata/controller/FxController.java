@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class FxController {
 
-  private FxRateService fxRateService;
+  private final FxRateService fxRateService;
 
   @Autowired
   FxController(FxRateService fxRateService) {

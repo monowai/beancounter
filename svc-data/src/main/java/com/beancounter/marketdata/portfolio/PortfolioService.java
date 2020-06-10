@@ -17,10 +17,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class PortfolioService {
-  private PortfolioRepository portfolioRepository;
-  private TrnRepository trnRepository;
-  private SystemUserService systemUserService;
-  private PortfolioInputAdapter portfolioInputAdapter;
+  private final PortfolioRepository portfolioRepository;
+  private final TrnRepository trnRepository;
+  private final SystemUserService systemUserService;
+  private final PortfolioInputAdapter portfolioInputAdapter;
 
   PortfolioService(
       PortfolioInputAdapter portfolioInputAdapter,

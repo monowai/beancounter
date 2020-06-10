@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class FxRateService implements FxService {
-  private CurrencyService currencyService;
-  private EcbService ecbService;
+  private final CurrencyService currencyService;
+  private final EcbService ecbService;
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired

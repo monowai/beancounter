@@ -1,10 +1,13 @@
 package com.beancounter.marketdata.event;
 
-import com.beancounter.common.contracts.EventRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
+import com.beancounter.common.input.TrustedEventInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CorporateEvent;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.marketdata.assets.AssetService;
+import com.beancounter.marketdata.trn.TrnService;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +28,9 @@ public class EventService {
   private Boolean kafkaEnabled;
 
   private final AssetService assetService;
+  private TrnService trnService;
 
-  private KafkaTemplate<String, EventRequest> kafkaCaProducer;
+  private KafkaTemplate<String, TrustedEventInput> kafkaCaProducer;
 
   public EventService(EventRepository eventRepository, AssetService assetService) {
     this.eventRepository = eventRepository;
@@ -34,8 +38,13 @@ public class EventService {
   }
 
   @Autowired
+  public void setTrnService(TrnService trnService) {
+    this.trnService = trnService;
+  }
+
+  @Autowired
   public void setKafkaCaProducer(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-                                     KafkaTemplate<String, EventRequest> kafkaCaProducer) {
+                                     KafkaTemplate<String, TrustedEventInput> kafkaCaProducer) {
     this.kafkaCaProducer = kafkaCaProducer;
   }
 
@@ -66,10 +75,17 @@ public class EventService {
 
   void dispatch(CorporateEvent corporateEvent) {
     log.trace("Dispatch {} ... {}", topicEvent, corporateEvent);
+    PortfoliosResponse portfolios = trnService
+        .findWhereHeld(corporateEvent.getAsset().getId(), corporateEvent.getRecordDate());
+    for (Portfolio portfolio : portfolios.getData()) {
+      kafkaCaProducer.send(
+          new ProducerRecord<>(topicEvent, TrustedEventInput.builder()
+              .event(corporateEvent)
+              .portfolio(portfolio)
+              .build())
+      );
 
-    kafkaCaProducer.send(
-        new ProducerRecord<>(topicEvent, EventRequest.builder().data(corporateEvent).build())
-    );
+    }
   }
 
   public Collection<CorporateEvent> get(Asset asset) {

@@ -28,8 +28,11 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.figi.FigiProxy;
+import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.markets.MarketService;
+import com.beancounter.marketdata.trn.TrnService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -51,7 +54,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("test")
 @Tag("slow")
 public class TrnControllerTest {
@@ -61,13 +64,20 @@ public class TrnControllerTest {
   private WebApplicationContext wac;
   @Autowired
   private MarketService marketService;
+  @Autowired
+  private TrnService trnService;
+  @Autowired
+  private CurrencyService currencyService;
+
   private MockMvc mockMvc;
   @MockBean
   private FigiProxy figiProxy;
   private Jwt token;
+  private final DateUtils dateUtils = new DateUtils();
 
   @Autowired
   void mockServices() {
+    assertThat(currencyService.getCurrencies()).isNotEmpty();
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
         .apply(springSecurity())
         .build();
@@ -105,6 +115,114 @@ public class TrnControllerTest {
 
   }
 
+  @Test
+  void is_TrnForPortfolioInRangeFound() throws Exception {
+    Market nasdaq = marketService.getMarket("NASDAQ");
+
+    Asset msft = asset(AssetRequest.builder()
+        .data("msft", AssetUtils.getAssetInput(nasdaq.getCode(), "MSFT"))
+        .build());
+
+    Portfolio portfolioA = portfolio(PortfolioInput.builder()
+        .code("PFA")
+        .name("NZD Portfolio")
+        .currency("NZD")
+        .build());
+
+    // Creating in random order and assert retrieved in Sort Order.
+    Collection<TrnInput> trnInputs = new ArrayList<>();
+    trnInputs.add(TrnInput.builder()
+        .callerRef(CallerRef.builder()
+            .batch("0")
+            .callerId("1").build())
+        .asset(msft.getId())
+        .tradeDate(dateUtils.getDate("2018-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+    trnInputs.add(TrnInput.builder()
+        .callerRef(CallerRef.builder()
+            .batch("0")
+            .callerId("2").build())
+        .asset(msft.getId())
+        .tradeDate(dateUtils.getDate("2016-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+
+    TrnRequest trnRequest = TrnRequest.builder()
+        .data(trnInputs)
+        .portfolioId(portfolioA.getId())
+        .build();
+
+    mockMvc.perform(
+        post("/trns")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .content(new ObjectMapper().writeValueAsBytes(trnRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    trnInputs.clear();
+    trnInputs.add(TrnInput.builder()
+        .callerRef(CallerRef.builder()
+            .batch("0")
+            .callerId("3").build())
+        .asset(msft.getId())
+        .tradeDate(dateUtils.getDate("2018-10-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+    trnInputs.add(TrnInput.builder()
+        .callerRef(CallerRef.builder()
+            .batch("0")
+            .callerId("4").build())
+        .asset(msft.getId())
+        .tradeDate(dateUtils.getDate("2017-01-01"))
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+
+    Portfolio portfolioB = portfolio(PortfolioInput.builder()
+        .code("PFB")
+        .name("NZD Portfolio")
+        .currency("NZD")
+        .build());
+
+    trnRequest = TrnRequest.builder()
+        .data(trnInputs)
+        .portfolioId(portfolioB.getId())
+        .build();
+
+    mockMvc.perform(
+        post("/trns")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .content(new ObjectMapper().writeValueAsBytes(trnRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    // All transactions are now in place.
+
+    PortfoliosResponse portfolios = trnService.findWhereHeld(msft.getId(),
+        dateUtils.getDate("2018-01-01"));
+    assertThat(portfolios.getData()).hasSize(2);
+    portfolios = trnService.findWhereHeld(msft.getId(), dateUtils.getDate("2016-01-01"));
+    assertThat(portfolios.getData()).hasSize(1);
+    portfolios = trnService.findWhereHeld(msft.getId(), null);
+    assertThat(portfolios.getData()).hasSize(2);
+
+  }
 
   @Test
   void is_PersistRetrieveAndPurge() throws Exception {
@@ -128,11 +246,9 @@ public class TrnControllerTest {
     Collection<TrnInput> trnInputs = new ArrayList<>();
     trnInputs.add(TrnInput.builder()
         .callerRef(CallerRef.builder()
-            .batch("0")
-            .provider("test")
             .callerId("1").build())
         .asset(msft.getId())
-        .tradeDate(new DateUtils().getDate("2018-01-01"))
+        .tradeDate(dateUtils.getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
         .tradeCurrency(nasdaq.getCurrency().getCode())
@@ -140,11 +256,9 @@ public class TrnControllerTest {
         .build());
     trnInputs.add(TrnInput.builder()
         .callerRef(CallerRef.builder()
-            .batch("0")
-            .provider("test")
             .callerId("3").build())
         .asset(aapl.getId())
-        .tradeDate(new DateUtils().getDate("2018-01-01"))
+        .tradeDate(dateUtils.getDate("2018-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
         .tradeCurrency(nasdaq.getCurrency().getCode())
@@ -152,11 +266,9 @@ public class TrnControllerTest {
         .build());
     trnInputs.add(TrnInput.builder()
         .callerRef(CallerRef.builder()
-            .batch("0")
-            .provider("test")
             .callerId("2").build())
         .asset(msft.getId())
-        .tradeDate(new DateUtils().getDate("2017-01-01"))
+        .tradeDate(dateUtils.getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
         .tradeCurrency(nasdaq.getCurrency().getCode())
@@ -165,11 +277,9 @@ public class TrnControllerTest {
 
     trnInputs.add(TrnInput.builder()
         .callerRef(CallerRef.builder()
-            .batch("0")
-            .provider("test")
             .callerId("4").build())
         .asset(aapl.getId())
-        .tradeDate(new DateUtils().getDate("2017-01-01"))
+        .tradeDate(dateUtils.getDate("2017-01-01"))
         .quantity(BigDecimal.TEN)
         .price(BigDecimal.TEN)
         .tradeCurrency(nasdaq.getCurrency().getCode())
@@ -197,7 +307,7 @@ public class TrnControllerTest {
     }
 
     String portfolioId = trnResponse.getData().iterator().next().getPortfolio().getId();
-
+    //trnService.find()
     // Find by Portfolio, sorted by assetId and then Date
     MvcResult mvcResult = mockMvc.perform(
         get("/trns/portfolio/{portfolioId}", portfolioId)

@@ -1,11 +1,14 @@
 package com.beancounter.marketdata.trn;
 
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.portfolio.PortfolioService;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,6 +25,7 @@ public class TrnService {
   private final TrnRepository trnRepository;
   private final TrnAdapter trnAdapter;
   private final PortfolioService portfolioService;
+  private final DateUtils dateUtils = new DateUtils();
 
   TrnService(TrnRepository trnRepository,
              TrnAdapter trnAdapter,
@@ -29,6 +33,28 @@ public class TrnService {
     this.trnRepository = trnRepository;
     this.portfolioService = portfolioService;
     this.trnAdapter = trnAdapter;
+  }
+
+  public PortfoliosResponse findWhereHeld(String assetId, LocalDate tradeDate) {
+    if (tradeDate == null) {
+      tradeDate = dateUtils.getDate(dateUtils.today());
+    }
+    Collection<Portfolio> portfolios = trnRepository
+        .findDistinctPortfolioByAssetIdAndTradeDate(assetId, tradeDate);
+    log.info("Found {}", portfolios.size());
+    return PortfoliosResponse.builder().data(portfolios).build();
+  }
+
+  public TrnResponse getPortfolioTrn(Portfolio portfolio, String trnId) {
+    Optional<Trn> trn = trnRepository.findByPortfolioIdAndId(portfolio.getId(), trnId);
+    Optional<TrnResponse> result = trn.map(
+        transaction -> hydrate(Collections.singleton(transaction)));
+
+    if (result.isEmpty()) {
+      throw new BusinessException(String.format("Trn %s not found", trnId));
+    }
+    return result.get();
+
   }
 
   public TrnResponse save(Portfolio portfolio, TrnRequest trnRequest) {
@@ -42,19 +68,6 @@ public class TrnService {
 
     return trnResponse;
   }
-
-  public TrnResponse find(Portfolio portfolio, String trnId) {
-    Optional<Trn> trn = trnRepository.findByPortfolioIdAndId(portfolio.getId(), trnId);
-    Optional<TrnResponse> result = trn.map(
-        transaction -> hydrate(Collections.singleton(transaction)));
-
-    if (result.isEmpty()) {
-      throw new BusinessException(String.format("Trn %s not found", trnId));
-    }
-    return result.get();
-
-  }
-
 
   public TrnResponse findByPortfolioAsset(Portfolio portfolio, String assetId) {
     Collection<Trn> results = trnRepository.findByPortfolioIdAndAssetId(portfolio.getId(),

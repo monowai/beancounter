@@ -1,6 +1,6 @@
 package com.beancounter.event.service;
 
-import com.beancounter.common.contracts.EventRequest;
+import com.beancounter.common.input.TrustedEventInput;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +19,12 @@ public class EventConsumer {
   @Value("${beancounter.topics.ca.event:bc-ca-event-dev}")
   public String topicEvent;
 
-  private final EventService eventService;
+  private final PortfolioHandler portfolioHandler;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public EventConsumer(EventService eventService) {
-    this.eventService = eventService;
+  public EventConsumer(PortfolioHandler portfolioHandler) {
+    this.portfolioHandler = portfolioHandler;
   }
 
   @Bean
@@ -40,10 +40,11 @@ public class EventConsumer {
 
   @KafkaListener(topics = "#{@caTopic}", errorHandler = "bcErrorHandler")
   public void processMessage(String message) throws JsonProcessingException {
-    EventRequest eventRequest = objectMapper.readValue(message, EventRequest.class);
-    if (eventRequest.getData() != null) {
-      log.info("CA {}", eventRequest.getData().getAsset().getCode());
-      eventService.process(eventRequest.getData());
+    TrustedEventInput eventRequest = objectMapper.readValue(message, TrustedEventInput.class);
+    if (eventRequest.getEvent() != null) {
+      log.info("CA {}", eventRequest.getEvent().getAsset().getCode());
+      portfolioHandler.process(eventRequest);
+
     }
   }
 

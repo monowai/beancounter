@@ -48,7 +48,7 @@ public class TrnController {
   ) {
     Portfolio portfolio = portfolioService.find(portfolioId);
 
-    return trnService.find(portfolio, trnId);
+    return trnService.getPortfolioTrn(portfolio, trnId);
   }
 
   @PostMapping(

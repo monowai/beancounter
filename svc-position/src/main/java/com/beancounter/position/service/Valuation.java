@@ -22,5 +22,5 @@ public interface Valuation {
    */
   PositionResponse value(Positions positions);
 
-  PositionResponse value(Portfolio portfolio, String valuationDate);
+  PositionResponse build(Portfolio portfolio, String valuationDate);
 }

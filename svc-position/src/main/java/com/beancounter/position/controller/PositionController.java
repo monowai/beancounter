@@ -58,6 +58,7 @@ public class PositionController {
   PositionResponse get(@PathVariable String code,
                        @PathVariable(required = false) String valuationDate) {
     Portfolio portfolio = portfolioServiceClient.getPortfolioByCode(code);
-    return valuationService.value(portfolio, valuationDate);
+    return valuationService.value(
+        valuationService.build(portfolio, valuationDate).getData());
   }
 }

@@ -46,7 +46,7 @@ public class ValuationService implements Valuation {
     this.positionService = positionService;
   }
 
-  public PositionResponse value(Portfolio portfolio, String valuationDate) {
+  public PositionResponse build(Portfolio portfolio, String valuationDate) {
 
     TrnResponse trnResponse = trnService.read(portfolio);
     PositionRequest positionRequest = PositionRequest.builder()
@@ -57,7 +57,7 @@ public class ValuationService implements Valuation {
     if (valuationDate != null && !valuationDate.equalsIgnoreCase("today")) {
       positionResponse.getData().setAsAt(valuationDate);
     }
-    return value(positionResponse.getData());
+    return positionResponse;
   }
 
   @Override

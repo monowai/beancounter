@@ -18,6 +18,7 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.utils.RegistrationUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
@@ -36,7 +37,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("assets")
 @Tag("slow")
 class TestAssetMvc {

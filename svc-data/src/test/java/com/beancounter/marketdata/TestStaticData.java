@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.common.utils.UtilConfig;
-import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
@@ -26,25 +24,18 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = {
-    UtilConfig.class,
-    CurrencyService.class,
-    MarketService.class,
-    StaticConfig.class})
+@SpringBootTest(classes = {MarketDataBoot.class})
 class TestStaticData {
 
-  private final StaticConfig staticConfig;
   private final MarketService marketService;
   private final CurrencyService currencyService;
   private final DateUtils dateUtils = new DateUtils();
 
   @Autowired
-  TestStaticData(StaticConfig staticConfig,
-                 MarketService marketService,
+  TestStaticData(MarketService marketService,
                  CurrencyService currencyService
   ) {
     this.marketService = marketService;
-    this.staticConfig = staticConfig;
     this.currencyService = currencyService;
   }
 
@@ -62,8 +53,6 @@ class TestStaticData {
 
   @Test
   void does_MockMarketConfigurationExist() {
-
-    assertThat(staticConfig).isNotNull();
     Market market = marketService.getMarket(MockProviderService.ID);
     assertThat(market)
         .isNotNull()
@@ -149,7 +138,7 @@ class TestStaticData {
     assertThat(currencyService.getCode("USD"))
         .isNotNull();
 
-    assertThat(currencyService.getBase())
+    assertThat(currencyService.getBaseCurrency())
         .isNotNull();
   }
 

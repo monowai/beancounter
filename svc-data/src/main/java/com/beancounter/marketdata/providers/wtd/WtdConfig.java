@@ -5,7 +5,7 @@ import static com.beancounter.marketdata.providers.wtd.WtdService.ID;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.config.StaticConfig;
+import com.beancounter.marketdata.config.MarketConfig;
 import com.beancounter.marketdata.providers.DataProviderConfig;
 import java.time.LocalDate;
 import java.util.TimeZone;
@@ -16,31 +16,31 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({WtdService.class, StaticConfig.class, WtdProxy.class, WtdAdapter.class})
+@Import({WtdService.class, WtdProxy.class, WtdAdapter.class})
 @Data
 public class WtdConfig implements DataProviderConfig {
 
-  @Value("${beancounter.marketdata.provider.WTD.batchSize:2}")
+  @Value("${beancounter.market.providers.WTD.batchSize:2}")
   private Integer batchSize;
 
-  @Value("${beancounter.marketdata.provider.WTD.date:#{null}}")
+  @Value("${beancounter.market.providers.WTD.date:#{null}}")
   private String date; // Static date
 
-  @Value("${beancounter.marketdata.provider.WTD.markets}")
+  @Value("${beancounter.market.providers.WTD.markets}")
   private String markets;
 
   private TimeZone timeZone = TimeZone.getTimeZone("US/Eastern");
-  private StaticConfig staticConfig;
+  private MarketConfig marketConfig;
 
   private DateUtils dateUtils = new DateUtils();
 
   @Autowired
-  void setStaticConfig(StaticConfig staticConfig) {
-    this.staticConfig = staticConfig;
+  void setMarketConfig(MarketConfig marketConfig) {
+    this.marketConfig = marketConfig;
   }
 
   private String translateMarketCode(Market market) {
-    return staticConfig.getMarketData().get(market.getCode()).getAliases().get(ID);
+    return marketConfig.getProviders().get(market.getCode()).getAliases().get(ID);
   }
 
   // For testing purposes - allows us to setup a static base date for which Market Prices Dates

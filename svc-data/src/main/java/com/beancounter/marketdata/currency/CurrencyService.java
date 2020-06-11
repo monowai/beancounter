@@ -1,13 +1,17 @@
 package com.beancounter.marketdata.currency;
 
 import com.beancounter.common.model.Currency;
-import com.beancounter.marketdata.config.StaticConfig;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.PostConstruct;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Verification of Market related functions.
@@ -15,33 +19,31 @@ import org.springframework.stereotype.Service;
  * @author mikeh
  * @since 2019-03-19
  */
-@Service
+@Component
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix = "beancounter.currency")
 @Slf4j
+@Data
 public class CurrencyService {
 
-  private StaticConfig staticConfig;
-  private CurrencyRepository currencyRepository;
+  private final CurrencyRepository currencyRepository;
 
-  @Autowired
-  void setMarkets(StaticConfig staticConfig) {
-    this.staticConfig = staticConfig;
-  }
+  private String base;
+  Collection<Currency> values;
+  private Currency baseCurrency;
 
-  @Autowired(required = false)
-  void setCurrencyRepository(CurrencyRepository currencyRepository) {
+  public CurrencyService(CurrencyRepository currencyRepository) {
     this.currencyRepository = currencyRepository;
   }
 
-  public void loadDefaultCurrencies(Collection<Currency> currencies) {
-    if (currencyRepository == null) {
-      log.info("In-Memory {} default currencies", currencies.size());
-    } else {
-      log.info("Persisting {} default currencies", currencies.size());
-      Iterable<Currency> result = currencyRepository.saveAll(currencies);
-      for (Currency currency : result) {
-        log.debug("Persisted {}", currency);
-      }
+  @PostConstruct
+  private void persist() {
+    log.info("Persisting {} default currencies", getValues().size());
+    Iterable<Currency> result = currencyRepository.saveAll(getValues());
+    for (Currency currency : result) {
+      log.debug("Persisted {}", currency);
     }
+    baseCurrency = getCode(getBase()); // Default base currency
   }
 
   /**
@@ -50,16 +52,20 @@ public class CurrencyService {
    * @param code non-null code
    * @return resolved currency
    */
+  @Cacheable("currency.code")
   public Currency getCode(@NonNull String code) {
     Objects.requireNonNull(code);
-    return staticConfig.getCurrencyByCode().get(code.toUpperCase());
+    Optional<Currency> result = currencyRepository.findById(code.toUpperCase());
+    return result.orElse(null);
   }
 
-  public Currency getBase() {
-    return staticConfig.getBase();
+  public Currency getBaseCurrency() {
+    return baseCurrency;
   }
 
-  public String delimited(String delimiter) {
-    return String.join(delimiter, staticConfig.getCurrencyByCode().keySet());
+  @Cacheable("currency.all")
+  public Iterable<Currency> getCurrencies() {
+    return currencyRepository.findAllByOrderByCodeAsc();
   }
+
 }

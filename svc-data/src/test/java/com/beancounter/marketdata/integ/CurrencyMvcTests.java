@@ -11,6 +11,7 @@ import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.marketdata.MarketDataBoot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("test")
 @Tag("slow")
 class CurrencyMvcTests {

@@ -19,6 +19,7 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
@@ -38,7 +39,6 @@ import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,7 +52,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -63,8 +62,8 @@ import org.springframework.web.context.WebApplicationContext;
  * and run as stubs in other services.  Any data required from an integration call in a
  * dependent service, should be mocked in this class.
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(
+//@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = MarketDataBoot.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext
 @AutoConfigureMessageVerifier

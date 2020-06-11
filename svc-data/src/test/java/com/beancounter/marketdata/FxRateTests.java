@@ -21,11 +21,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class FxRateTests {
-  private static final IsoCurrencyPair USD_USD = IsoCurrencyPair.builder().from("USD").to("USD").build();
-  private static final IsoCurrencyPair AUD_NZD = IsoCurrencyPair.builder().from("AUD").to("NZD").build();
-  private static final IsoCurrencyPair NZD_AUD = IsoCurrencyPair.builder().from("NZD").to("AUD").build();
-  private static final IsoCurrencyPair AUD_USD = IsoCurrencyPair.builder().from("AUD").to("USD").build();
-  private static final IsoCurrencyPair USD_AUD = IsoCurrencyPair.builder().from("USD").to("AUD").build();
+  private static final IsoCurrencyPair USD_USD =
+      IsoCurrencyPair.builder().from("USD").to("USD").build();
+  private static final IsoCurrencyPair AUD_NZD =
+      IsoCurrencyPair.builder().from("AUD").to("NZD").build();
+  private static final IsoCurrencyPair NZD_AUD =
+      IsoCurrencyPair.builder().from("NZD").to("AUD").build();
+  private static final IsoCurrencyPair AUD_USD =
+      IsoCurrencyPair.builder().from("AUD").to("USD").build();
+  private static final IsoCurrencyPair USD_AUD =
+      IsoCurrencyPair.builder().from("USD").to("AUD").build();
 
   @Test
   void is_FxRateResponseSerializing() throws Exception {

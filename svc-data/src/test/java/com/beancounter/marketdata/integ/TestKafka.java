@@ -7,12 +7,13 @@ import com.beancounter.client.AssetService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
-import com.beancounter.common.contracts.EventRequest;
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.input.PortfolioInput;
+import com.beancounter.common.input.TrustedEventInput;
 import com.beancounter.common.input.TrustedTrnRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CorporateEvent;
@@ -22,12 +23,16 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.PortfolioUtils;
+import com.beancounter.marketdata.MarketDataBoot;
+import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.event.EventService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.trn.TrnKafkaConsumer;
+import com.beancounter.marketdata.trn.TrnService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,7 +45,6 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,18 +54,17 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @EmbeddedKafka(
     partitions = 1,
     topics = {"topicTrnCsv", "topicPrice", "topicEvent"},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
-        "log.dir=./kafka",
+        "log.dir=./build/kafka",
         "auto.create.topics.enable=true"}
 )
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
+//@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("kafka")
 @Slf4j
 public class TestKafka {
@@ -87,13 +90,22 @@ public class TestKafka {
   private TrnKafkaConsumer trnKafkaConsumer;
   @Autowired
   private EventService eventService;
+  @Autowired
+  private CurrencyService currencyService;
 
   private final DateUtils dateUtils = new DateUtils();
+
+  @Test
+  void is_StaticDataLoaded() {
+    assertThat(currencyService.getCurrencies()).isNotEmpty();
+
+  }
 
   @SneakyThrows
   @Test
   void is_TrnRequestReceived() {
     log.debug(embeddedKafkaBroker.getBrokersAsString());
+    assertThat(currencyService.getCurrencies()).isNotEmpty();
     SystemUser owner = systemUserService.save(SystemUser.builder().id("mike").build());
     Mockito.when(tokenService.getSubject()).thenReturn(owner.getId());
 
@@ -288,12 +300,22 @@ public class TestKafka {
     assertThat(assetResult.getData()).hasSize(1);
     Asset asset = assetResult.getData().get("a");
     assertThat(asset.getMarket()).isNotNull();
+
     CorporateEvent event = CorporateEvent.builder()
         .asset(asset)
         .payDate(dateUtils.getDate("2019-12-20"))
         .recordDate(dateUtils.getDate("2019-12-10"))
         .rate(new BigDecimal("2.34"))
         .build();
+
+    TrnService trnService = Mockito.mock(TrnService.class);
+    Collection<Portfolio> portfolios = new ArrayList<>();
+    portfolios.add(PortfolioUtils.getPortfolio("TEST"));
+    Mockito.when(
+        trnService.findWhereHeld(asset.getId(), event.getRecordDate()))
+        .thenReturn(PortfoliosResponse.builder().data(portfolios).build());
+
+    eventService.setTrnService(trnService);
 
     // Compare with a serialised event
     event = objectMapper.readValue(
@@ -303,8 +325,13 @@ public class TestKafka {
         consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "topicEvent");
     assertThat(consumerRecord.value()).isNotNull();
 
-    EventRequest received = objectMapper.readValue(consumerRecord.value(), EventRequest.class);
-    assertThat(received.getData()).isEqualToComparingFieldByField(event);
+    TrustedEventInput received = objectMapper.readValue(consumerRecord.value(),
+        TrustedEventInput.class);
+
+    assertThat(received.getEvent())
+        .isEqualToComparingFieldByField(event);
+    assertThat(received.getPortfolio())
+        .isEqualToComparingFieldByField(portfolios.iterator().next());
 
   }
 

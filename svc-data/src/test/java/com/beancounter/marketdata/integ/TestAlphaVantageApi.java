@@ -26,6 +26,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.batch.ScheduledValuation;
 import com.beancounter.marketdata.event.EventService;
@@ -68,7 +69,7 @@ import org.springframework.web.context.WebApplicationContext;
  * @since 2019-03-04
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("alpha")
 @Tag("slow")
 class TestAlphaVantageApi {

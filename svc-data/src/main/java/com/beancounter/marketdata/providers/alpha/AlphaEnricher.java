@@ -16,7 +16,7 @@ public class AlphaEnricher implements AssetEnricher {
   private final ObjectMapper objectMapper = new AlphaPriceAdapter().getAlphaMapper();
   private final AlphaConfig alphaConfig;
   private AlphaProxyCache alphaProxyCache;
-  @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
+  @Value("${beancounter.market.providers.ALPHA.key:demo}")
   private String apiKey;
 
   public AlphaEnricher(AlphaConfig alphaConfig) {

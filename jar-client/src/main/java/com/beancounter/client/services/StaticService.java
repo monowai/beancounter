@@ -8,7 +8,6 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import io.github.resilience4j.retry.annotation.Retry;
-import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -48,7 +47,7 @@ public class StaticService implements MarketService {
     if (currencyCode == null) {
       return null;
     }
-    Collection<Currency> currencies = getCurrencies().getData();
+    Iterable<Currency> currencies = getCurrencies().getData();
     for (Currency currency : currencies) {
       if (currency.getCode().equalsIgnoreCase(currencyCode)) {
         return currency;

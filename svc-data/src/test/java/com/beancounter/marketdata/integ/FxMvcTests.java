@@ -18,6 +18,7 @@ import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.providers.fxrates.EcbDate;
 import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.beancounter.marketdata.utils.RegistrationUtils;
@@ -28,21 +29,18 @@ import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("test")
 @Tag("slow")
 class FxMvcTests {
@@ -78,7 +76,7 @@ class FxMvcTests {
   }
 
   @Test
-  void is_FxRateResultsObjectReturned() throws Exception {
+  void is_FxResponseObjectReturned() throws Exception {
     File rateResponse = new ClassPathResource("contracts/ecb/fx-current-rates.json").getFile();
     AlphaMockUtils.mockGetResponse(
         mockInternet,

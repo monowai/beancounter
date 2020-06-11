@@ -2,7 +2,6 @@ package com.beancounter.marketdata.currency;
 
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.CurrencyResponse;
-import com.beancounter.marketdata.config.StaticConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,17 +21,17 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
 public class CurrencyController {
 
-  private StaticConfig staticConfig;
+  private CurrencyService currencyService;
 
   @Autowired
-  void setStaticConfig(StaticConfig staticConfig) {
-    this.staticConfig = staticConfig;
+  void setCurrencyService(CurrencyService currencyService) {
+    this.currencyService = currencyService;
   }
 
   @GetMapping
   CurrencyResponse getCurrencies() {
     return CurrencyResponse.builder()
-        .data(staticConfig.getCurrencyByCode().values())
+        .data(currencyService.getCurrencies())
         .build();
   }
 }

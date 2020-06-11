@@ -44,7 +44,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext
+    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext, currency.code, currency.all
   jpa:
     open-in-view: false
     generate-ddl: true
@@ -73,104 +73,103 @@ kafka:
   enabled: false
 
 beancounter:
-  baseCode: "USD"
+  currency:
+    base: "USD"
+    values:
+      - code: GBP
+        name: Pound
+        symbol: ￡
 
-  currencies:
-    - code: GBP
-      name: Pound
-      symbol: ￡
+      - code: USD
+        name: Dollar
+        symbol: $
 
-    - code: USD
-      name: Dollar
-      symbol: $
+      - code: NZD
+        name: Dollar
+        symbol: $
 
-    - code: NZD
-      name: Dollar
-      symbol: $
+      - code: AUD
+        name: Dollar
+        symbol: $
 
-    - code: AUD
-      name: Dollar
-      symbol: $
+      - code: EUR
+        name: Euro
+        symbol: €
 
-    - code: EUR
-      name: Euro
-      symbol: €
-
-    - code: SGD
-      name: Dollar
-      symbol: $
+      - code: SGD
+        name: Dollar
+        symbol: $
   # Default asset enricher - FIGI/ALPHA/MOCK - can be set on a per market basis
   enricher: ALPHA
-  markets:
-    - code: MOCK
-      id: MOCK
-      timezoneId: UTC
-      enricher: MOCK
+  market:
+    values:
+      - code: MOCK
+        id: MOCK
+        timezoneId: UTC
+        enricher: MOCK
 
-    - code: NASDAQ
-      id: NASDAQ
-      timezoneId: US/Eastern
-      currencyId: USD
-      aliases:
-        SHARESIGHT: NAS
-        FIGI: US
+      - code: NASDAQ
+        id: NASDAQ
+        timezoneId: US/Eastern
+        currencyId: USD
+        aliases:
+          SHARESIGHT: NAS
+          FIGI: US
 
-    - code: NYSE
-      id: NYSE
-      timezoneId: US/Eastern
-      currencyId: USD
-      aliases:
-        SHARESIGHT: NYS
-        FIGI: US
+      - code: NYSE
+        id: NYSE
+        timezoneId: US/Eastern
+        currencyId: USD
+        aliases:
+          SHARESIGHT: NYS
+          FIGI: US
 
-    - code: AMEX
-      id: AMEX
-      timezoneId: US/Eastern
-      currencyId: USD
-      aliases:
-        FIGI: US
+      - code: AMEX
+        id: AMEX
+        timezoneId: US/Eastern
+        currencyId: USD
+        aliases:
+          FIGI: US
 
-    - code: ASX
-      id: ASX
-      timezoneId: Australia/Sydney
-      currencyId: AUD
-      aliases:
-        WTD: AX
-        FIGI: AU
+      - code: ASX
+        id: ASX
+        timezoneId: Australia/Sydney
+        currencyId: AUD
+        aliases:
+          WTD: AX
+          FIGI: AU
 
-    - code: NZX
-      id: NZX
-      timezoneId: Pacific/Auckland
-      currencyId: NZD
-      aliases:
-        WTD: NZ
-        ALPHA: NZ
-        FIGI: NZ
+      - code: NZX
+        id: NZX
+        timezoneId: Pacific/Auckland
+        currencyId: NZD
+        aliases:
+          WTD: NZ
+          ALPHA: NZ
+          FIGI: NZ
 
-    - code: SGX
-      id: SGX
-      currencyId: SGD
-      timezoneId: Asia/Singapore
-      aliases:
-        FIGI: SG
+      - code: SGX
+        id: SGX
+        currencyId: SGD
+        timezoneId: Asia/Singapore
+        aliases:
+          FIGI: SG
 
-    - code: LSE
-      id: LSE
-      currencyId: GBP
-      timezoneId: Europe/London
-      aliases:
-        FIGI: GB
+      - code: LSE
+        id: LSE
+        currencyId: GBP
+        timezoneId: Europe/London
+        aliases:
+          FIGI: GB
 
-    - code: LON
-      # UK Mutual Funds
-      id: LON
-      currencyId: GBP
-      timezoneId: Europe/London
-      multiplier: .01
-
-  marketdata:
-    # ToDo: default provider
-    provider:
+      - code: LON
+        # UK Mutual Funds
+        id: LON
+        currencyId: GBP
+        timezoneId: Europe/London
+        multiplier: .01
+    providers:
+      # ToDo: default provider
       MOCK:
         markets: MOCK
 

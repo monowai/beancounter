@@ -3,7 +3,6 @@ package com.beancounter.marketdata.providers.alpha;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.marketdata.config.StaticConfig;
 import com.beancounter.marketdata.providers.DataProviderConfig;
 import java.time.LocalDate;
 import lombok.Data;
@@ -12,14 +11,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({AlphaService.class, StaticConfig.class, AlphaProxyCache.class, AlphaPriceAdapter.class})
+@Import({AlphaService.class, AlphaProxyCache.class, AlphaPriceAdapter.class})
 @Data
 public class AlphaConfig implements DataProviderConfig {
 
-  @Value("${beancounter.marketdata.provider.ALPHA.batchSize:2}")
+  @Value("${beancounter.market.providers.ALPHA.batchSize:2}")
   private Integer batchSize;
 
-  @Value("${beancounter.marketdata.provider.ALPHA.markets}")
+  @Value("${beancounter.market.providers.ALPHA.markets}")
   private String markets;
 
   private DateUtils dateUtils = new DateUtils();

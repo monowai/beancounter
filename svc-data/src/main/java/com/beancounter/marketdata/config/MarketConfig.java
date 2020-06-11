@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,19 +23,13 @@ import org.springframework.stereotype.Component;
  * @since 2019-03-19
  */
 @EnableConfigurationProperties
-@ConfigurationProperties(prefix = "beancounter")
+@ConfigurationProperties(prefix = "beancounter.market")
 @Component
 @Slf4j
 @Data
-public class StaticConfig {
-  private Collection<Currency> currencies;
-  private Collection<Market> markets;
-
-  private Map<String, Market> marketData = new HashMap<>();
-  private Map<String, Currency> currencyByCode = new HashMap<>();
-
-  private String baseCode; // System default
-  private Currency baseCurrency;
+public class MarketConfig {
+  private Collection<Market> values;
+  private Map<String, Market> providers = new HashMap<>();
   private CurrencyService currencyService;
   private MarketService marketService;
 
@@ -45,43 +38,25 @@ public class StaticConfig {
    */
   @PostConstruct
   void configure() {
-    handleCurrencies();
     handleMarkets();
-
   }
 
-  @Autowired(required = false)
-  @DependsOn("currencyRepository")
+  @Autowired
   void setCurrencyService(CurrencyService currencyService) {
     this.currencyService = currencyService;
   }
 
   private void handleMarkets() {
-    for (Market market : markets) {
+    for (Market market : values) {
       String currencyCode = market.getCurrencyId();
       Currency currency = (currencyCode == null
-          ? getBase() :
-          this.currencyByCode.get(currencyCode));
+          ? currencyService.getBaseCurrency() :
+          currencyService.getCode(currencyCode));
       market.setCurrency(currency);
       market.setTimezone(getTimeZone(market.getTimezoneId()));
-      this.marketData.put(market.getCode(), market);
+      this.providers.put(market.getCode(), market);
     }
   }
-
-  private void handleCurrencies() {
-    for (Currency currency : currencies) {
-      currencyByCode.put(currency.getCode(), currency);
-    }
-    baseCurrency = currencyByCode.get(baseCode); // Default base currency
-    if (currencyService != null) {
-      currencyService.loadDefaultCurrencies(currencies);
-    }
-  }
-
-  public Currency getBase() {
-    return baseCurrency;
-  }
-
 
   private TimeZone getTimeZone(String timezoneId) {
     if (timezoneId == null) {

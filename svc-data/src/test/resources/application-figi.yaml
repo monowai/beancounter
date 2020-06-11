@@ -11,4 +11,4 @@ beancounter:
     provider:
       FIGI:
         url: http://localhost:6666
-        key: demo
+        key: demoxx

@@ -3,11 +3,12 @@ package com.beancounter.marketdata.markets;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Market;
-import com.beancounter.marketdata.config.StaticConfig;
+import com.beancounter.marketdata.config.MarketConfig;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,10 +19,26 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@Import(MarketConfig.class)
 public class MarketService implements com.beancounter.client.MarketService {
-
   private final Map<String, String> aliases = new HashMap<>();
   private Map<String, Market> markets;
+
+  @Autowired
+  public void setMarketConfig(MarketConfig marketConfig) {
+    this.markets = marketConfig.getProviders();
+    for (String marketCode : markets.keySet()) {
+      Market market = markets.get(marketCode);
+      if (!market.getAliases().isEmpty()) {
+        for (String provider : market.getAliases().keySet()) {
+          this.aliases
+              .put(market.getAliases().get(provider).toUpperCase(), marketCode.toUpperCase());
+        }
+      }
+    }
+
+  }
+
 
   /**
    * Return the Exchange code to use for the supplied input.
@@ -72,23 +89,7 @@ public class MarketService implements com.beancounter.client.MarketService {
   }
 
   public MarketResponse getMarkets() {
-
     return MarketResponse.builder().data(markets.values()).build();
-  }
-
-  @Autowired
-  public void setMarkets(StaticConfig staticConfig) {
-    this.markets = staticConfig.getMarketData();
-    for (String marketCode : markets.keySet()) {
-      Market market = markets.get(marketCode);
-      if (!market.getAliases().isEmpty()) {
-        for (String provider : market.getAliases().keySet()) {
-          this.aliases
-              .put(market.getAliases().get(provider).toUpperCase(), marketCode.toUpperCase());
-        }
-      }
-    }
-
   }
 
   public boolean canPersist(Market market) {

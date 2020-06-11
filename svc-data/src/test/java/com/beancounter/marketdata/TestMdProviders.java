@@ -7,13 +7,9 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.AssetUtils;
-import com.beancounter.common.utils.UtilConfig;
 import com.beancounter.marketdata.markets.MarketService;
-import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
-import com.beancounter.marketdata.providers.mock.MockConfig;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
-import com.beancounter.marketdata.providers.wtd.WtdConfig;
 import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MdFactory;
@@ -28,13 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = {
-    AlphaConfig.class,
-    UtilConfig.class,
-    WtdConfig.class,
-    MockConfig.class,
-    MdFactory.class,
-    MarketService.class})
+@SpringBootTest(classes = {MarketDataBoot.class})
 @ActiveProfiles("test")
 class TestMdProviders {
   private final MdFactory mdFactory;
@@ -64,11 +54,11 @@ class TestMdProviders {
   void is_FoundByMarket() {
     Asset amp = AssetUtils.getAsset(marketService.getMarket("ASX"), "AMP");
     MarketDataProvider asxMarket = mdFactory.getMarketDataProvider(amp.getMarket());
-    assertThat(asxMarket.getId()).isEqualTo(WtdService.ID);
+    assertThat(asxMarket.getId()).isEqualTo(AlphaService.ID);
 
     Asset gne = AssetUtils.getAsset(marketService.getMarket("NZX"), "GNE");
     MarketDataProvider nzxMarket = mdFactory.getMarketDataProvider(gne.getMarket());
-    assertThat(nzxMarket.getId()).isEqualTo(AlphaService.ID);
+    assertThat(nzxMarket.getId()).isEqualTo(WtdService.ID);
 
     assertThat(nzxMarket.isMarketSupported(gne.getMarket())).isTrue();
     assertThat(nzxMarket.isMarketSupported(amp.getMarket())).isFalse();

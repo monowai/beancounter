@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Import;
 @Import({FigiProxy.class})
 @Data
 public class FigiConfig {
-  @Value("${beancounter.marketdata.provider.FIGI.key:demo}")
+  @Value("${beancounter.market.providers.FIGI.key:demo}")
   private String apiKey;
-  @Value("${beancounter.marketdata.provider.FIGI.enabled:true}")
+  @Value("${beancounter.market.providers.FIGI.enabled:true}")
   private Boolean enabled;
 
 }

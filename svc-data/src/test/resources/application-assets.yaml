@@ -7,8 +7,8 @@ kafka:
 beancounter:
   enricher: MOCK
 
-  marketdata:
-    provider:
+  market:
+    providers:
       FIGI:
         enabled: false
 

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Configuration
 @FeignClient(
     name = "worldTradingData",
-    url = "${beancounter.marketdata.provider.WTD.url:https://www.worldtradingdata.com}")
+    url = "${beancounter.market.providers.WTD.url:https://www.worldtradingdata.com}")
 
 public interface WtdGateway {
 

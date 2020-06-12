@@ -44,7 +44,7 @@ public class FigiMockUtils {
             post(
                 urlEqualTo("/v2/mapping"))
                 .withRequestBody(equalToJson(objectMapper.writeValueAsString(searchCollection)))
-                .withHeader("X-OPENFIGI-APIKEY", matching("demo"))
+                .withHeader("X-OPENFIGI-APIKEY", matching("demoxx"))
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .withBody(objectMapper

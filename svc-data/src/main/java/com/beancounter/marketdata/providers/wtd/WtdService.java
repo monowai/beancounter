@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class WtdService implements MarketDataProvider {
   public static final String ID = "WTD";
-  @Value("${beancounter.marketdata.provider.WTD.key:demo}")
+  @Value("${beancounter.market.providers.WTD.key:demo}")
   private String apiKey;
   private final WtdProxy wtdProxy;
   private final WtdConfig wtdConfig;

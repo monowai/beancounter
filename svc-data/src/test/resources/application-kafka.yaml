@@ -19,8 +19,8 @@ spring:
 
 
 beancounter:
-  marketdata:
-    provider:
+  market:
+    providers:
       FIGI:
         enabled: false
 

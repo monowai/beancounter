@@ -6,8 +6,8 @@ kafka:
 
 beancounter:
   enricher: ALPHA
-  marketdata:
-    provider:
+  market:
+    providers:
       ALPHA:
         url: http://localhost:9999
         markets: NASDAQ,AMEX,NYSE,ASX,NZX,LON

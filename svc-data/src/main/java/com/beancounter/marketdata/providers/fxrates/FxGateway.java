@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Configuration
 @FeignClient(
     name = "fxRequest",
-    url = "${beancounter.marketdata.provider.fx.url:https://api.exchangeratesapi.io}")
+    url = "${beancounter.market.providers.fx.url:https://api.exchangeratesapi.io}")
 
 public interface FxGateway {
   @RequestMapping(

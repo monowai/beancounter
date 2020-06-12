@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @FeignClient(
     name = "figi",
-    url = "${beancounter.marketdata.provider.FIGI.url:https://api.openfigi.com}")
+    url = "${beancounter.market.providers.FIGI.url:https://api.openfigi.com}")
 @Configuration
 public interface FigiGateway {
   // https://bsym.bloomberg.com/api#post-v2-search

@@ -7,8 +7,8 @@ kafka:
 beancounter:
   # All Asset enrichment via OpenFigi
   enricher: FIGI
-  marketdata:
-    provider:
+  market:
+    providers:
       FIGI:
         url: http://localhost:6666
         key: demoxx

@@ -35,7 +35,7 @@ public class AlphaService implements MarketDataProvider {
   public static final String ID = "ALPHA";
   private final AlphaConfig alphaConfig;
   private final DateUtils dateUtils = new DateUtils();
-  @Value("${beancounter.marketdata.provider.ALPHA.key:demo}")
+  @Value("${beancounter.market.providers.ALPHA.key:demo}")
   private String apiKey;
   private AlphaProxyCache alphaProxyCache;
   private AlphaPriceAdapter alphaPriceAdapter;

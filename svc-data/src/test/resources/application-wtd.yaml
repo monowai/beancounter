@@ -6,8 +6,8 @@ kafka:
 
 beancounter:
   enricher: MOCK
-  marketdata:
-    provider:
+  market:
+    providers:
       ALPHA:
         markets: NZX
       WTD:

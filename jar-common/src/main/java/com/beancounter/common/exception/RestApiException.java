@@ -14,11 +14,23 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 public class RestApiException {
 
+  @ExceptionHandler({BusinessException.class})
+  public ResponseEntity<Object> handleBusinessException(HttpServletRequest request, Throwable e) {
+
+    SpringExceptionMessage error = new SpringExceptionMessage();
+    error.setError("We are unable to process your request.");
+    error.setMessage(e.getMessage());
+    error.setPath(request.getRequestURI());
+    error.setStatus(HttpStatus.BAD_REQUEST.value());
+    return new ResponseEntity<>(error, new HttpHeaders(), HttpStatus.BAD_REQUEST);
+  }
+
+
   @ExceptionHandler({HttpMessageNotReadableException.class})
   public ResponseEntity<Object> handleBadRequest(HttpServletRequest request) {
 
     SpringExceptionMessage error = new SpringExceptionMessage();
-    error.setError("We did not understand your request. Please reformat it and try again");
+    error.setError("We did not understand your request.");
     error.setMessage("Message not readable");
     error.setPath(request.getRequestURI());
     error.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -30,10 +42,10 @@ public class RestApiException {
 
     SpringExceptionMessage error = new SpringExceptionMessage();
     log.debug(e.getMessage());
-    error.setError("Constraint violation in request. Work is not accepted");
-    error.setMessage("Integrity Violation");
+    error.setError("Request rejected.");
+    error.setMessage("Data integrity violation");
     error.setPath(request.getRequestURI());
-    error.setStatus(HttpStatus.BAD_REQUEST.value());
+    error.setStatus(HttpStatus.CONFLICT.value());
     return new ResponseEntity<>(error, new HttpHeaders(), HttpStatus.BAD_REQUEST);
   }
 

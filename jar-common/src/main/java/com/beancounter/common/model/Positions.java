@@ -72,7 +72,7 @@ public class Positions {
     boolean firstTrade = !positions.containsKey(AssetUtils.toKey(asset));
     Position position = get(asset);
     if (firstTrade) {
-      position.getDateValues().setOpened(tradeDate.toString());
+      position.getDateValues().setOpened(tradeDate);
     }
     return position;
   }

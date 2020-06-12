@@ -12,7 +12,7 @@ import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.CurrencyUtils;
@@ -98,12 +98,12 @@ class ShareSightTradeTest {
 
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTradeAdapter.comments);
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(getPortfolio("Test", currencyUtils.getCurrency("NZD")))
         .build();
 
-    TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
+    TrnInput trn = shareSightRowProcessor.transform(trustedTrnImportRequest);
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
@@ -123,13 +123,13 @@ class ShareSightTradeTest {
 
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
 
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(portfolio)
         .build();
 
     TrnInput trn = shareSightRowProcessor
-        .transform(trustedTrnRequest);
+        .transform(trustedTrnImportRequest);
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("callerRef.callerId","1")
@@ -149,13 +149,13 @@ class ShareSightTradeTest {
   void is_IllegalDateFound() {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(getPortfolio("Test", currencyUtils.getCurrency("NZD")))
         .build();
 
     assertThrows(BusinessException.class, () ->
-        shareSightRowProcessor.transform(trustedTrnRequest));
+        shareSightRowProcessor.transform(trustedTrnImportRequest));
   }
 
 }

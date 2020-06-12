@@ -69,17 +69,54 @@ public class TrnService {
     return trnResponse;
   }
 
+  /**
+   * Display order.
+   *
+   * @param portfolio fully qualified portfolio the caller is authorised to view
+   * @param assetId filter by pk
+   * @return Transactions in display order that is friendly for viewing.
+   */
   public TrnResponse findByPortfolioAsset(Portfolio portfolio, String assetId) {
-    Collection<Trn> results = trnRepository.findByPortfolioIdAndAssetId(portfolio.getId(),
-        assetId,
-        Sort.by("asset.code")
-            .and(Sort.by("tradeDate").descending()));
+    Collection<Trn> results = trnRepository
+        .findByPortfolioIdAndAssetId(
+            portfolio.getId(),
+            assetId, Sort.by("asset.code")
+                .and(Sort.by("tradeDate").descending()));
+
     log.debug("Found {} for portfolio {} and asset {}",
         results.size(),
         portfolio.getCode(),
         assetId
     );
-    return hydrate(results);
+    return hydrate(results, true);
+
+  }
+
+  /**
+   * Processing order.
+   *
+   * @param portfolio trusted
+   * @param assetId   filter by pk
+   * @param tradeDate until this date inclusive
+   * @return transactions that can be accumulated into a position
+   */
+  public TrnResponse findByPortfolioAsset(
+      Portfolio portfolio,
+      String assetId,
+      LocalDate tradeDate) {
+
+    Collection<Trn> results = trnRepository
+        .findByPortfolioIdAndAssetIdUpTo(
+            portfolio.getId(),
+            assetId,
+            tradeDate);
+
+    log.debug("Found {} for portfolio {} and asset {}",
+        results.size(),
+        portfolio.getCode(),
+        assetId
+    );
+    return hydrate(results, false);
   }
 
   public TrnResponse findForPortfolio(Portfolio portfolio) {
@@ -107,16 +144,21 @@ public class TrnService {
   }
 
   private TrnResponse hydrate(Iterable<Trn> trns) {
-    Collection<Trn> trnCollection = new ArrayList<>();
+    return hydrate(trns, true);
+  }
+
+  private TrnResponse hydrate(Iterable<Trn> trns, boolean secure) {
+    Collection<Trn> results = new ArrayList<>();
     for (Trn trn : trns) {
-      if (portfolioService.canView(trn.getPortfolio())) {
-        trnCollection.add(setAssets(trn));
+      boolean add = (!secure || portfolioService.canView(trn.getPortfolio()));
+      if (add) {
+        results.add(setAssets(trn));
       }
     }
-    if (trnCollection.isEmpty()) {
+    if (results.isEmpty()) {
       return TrnResponse.builder().build(); // Empty
     }
-    return TrnResponse.builder().data(trnCollection).build();
+    return TrnResponse.builder().data(results).build();
   }
 
 }

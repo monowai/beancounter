@@ -72,6 +72,10 @@ public class DateUtils {
     // ToDo: market holidays...
   }
 
+  public LocalDate getDate() {
+    return getDate(today());
+  }
+
   public LocalDate getDate(String inDate) {
     if (inDate == null || inDate.isBlank()) {
       return null;

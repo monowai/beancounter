@@ -4,6 +4,7 @@ import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
+import com.beancounter.common.input.TrustedTrnQuery;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.position.service.PositionService;
 import com.beancounter.position.service.Valuation;
@@ -61,4 +62,12 @@ public class PositionController {
     return valuationService.value(
         valuationService.build(portfolio, valuationDate).getData());
   }
+
+  @PostMapping(value = "/query",
+      consumes = "application/json",
+      produces = "application/json")
+  PositionResponse query(@RequestBody TrustedTrnQuery trnQuery) {
+    return valuationService.build(trnQuery);
+  }
+
 }

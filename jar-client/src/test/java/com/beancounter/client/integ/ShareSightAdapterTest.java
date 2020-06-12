@@ -9,7 +9,7 @@ import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
@@ -114,14 +114,14 @@ class ShareSightAdapterTest {
 
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
     for (List<String> columnValues : rows) {
-      TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+      TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
           .row(columnValues)
           .portfolio(portfolio)
           .callerRef(CallerRef.builder().build())
           .build();
 
       trnInputs.add(shareSightRowProcessor
-          .transform(trustedTrnRequest));
+          .transform(trustedTrnImportRequest));
     }
     assertThat(trnInputs).hasSize(2);
 

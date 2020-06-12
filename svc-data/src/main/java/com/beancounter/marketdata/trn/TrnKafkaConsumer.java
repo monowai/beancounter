@@ -7,7 +7,7 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.service.FxRateService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,7 +34,7 @@ public class TrnKafkaConsumer {
   private TrnService trnService;
   private FxRateService fxRateService;
   private PortfolioService portfolioService;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper om = new ObjectMapper();
 
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
@@ -75,7 +75,7 @@ public class TrnKafkaConsumer {
 
   @KafkaListener(topics = "#{@trnTopic}", errorHandler = "bcErrorHandler")
   public TrnResponse processMessage(String message) throws JsonProcessingException {
-    TrustedTrnRequest trustedRequest = objectMapper.readValue(message, TrustedTrnRequest.class);
+    TrustedTrnImportRequest trustedRequest = om.readValue(message, TrustedTrnImportRequest.class);
     if (trustedRequest.getMessage() != null) {
       log.info("Portfolio {} {}",
           trustedRequest.getPortfolio().getCode(),
@@ -87,7 +87,7 @@ public class TrnKafkaConsumer {
 
   }
 
-  public TrnResponse processMessage(TrustedTrnRequest trustedRequest) {
+  public TrnResponse processMessage(TrustedTrnImportRequest trustedRequest) {
     log.trace("Received Message {}", trustedRequest.toString());
     if (!portfolioService.verify(trustedRequest.getPortfolio().getId())) {
       log.debug("Portfolio no longer exists. Ignoring");

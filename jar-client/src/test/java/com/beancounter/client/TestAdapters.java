@@ -11,7 +11,7 @@ import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.math.BigDecimal;
@@ -43,7 +43,7 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.date, "date");
     row.add(ShareSightDividendAdapter.fxRate, "A.B");
 
-    TrustedTrnRequest request = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest request = TrustedTrnImportRequest.builder()
         .row(row)
         .build();
 
@@ -64,7 +64,7 @@ public class TestAdapters {
     row.add(null);
     row.add("");
 
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
         .build();
@@ -73,7 +73,7 @@ public class TestAdapters {
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
 
     assertThrows(BusinessException.class, ()
-        -> tradeAdapter.from(trustedTrnRequest));
+        -> tradeAdapter.from(trustedTrnImportRequest));
 
   }
 
@@ -86,7 +86,7 @@ public class TestAdapters {
     row.add("");
     row.add("");
     row.add("");
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
         .build();
@@ -95,7 +95,7 @@ public class TestAdapters {
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
 
     assertThrows(BusinessException.class, ()
-        -> tradeAdapter.from(trustedTrnRequest));
+        -> tradeAdapter.from(trustedTrnImportRequest));
 
   }
 
@@ -137,7 +137,7 @@ public class TestAdapters {
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
     when(assetIngestService.resolveAsset("NYSE", "ABC", "name"))
         .thenReturn(AssetUtils.getAsset("NYSE", "ABC"));
-    TrnInput result = shareSightTradeAdapter.from(TrustedTrnRequest.builder()
+    TrnInput result = shareSightTradeAdapter.from(TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
         .build());

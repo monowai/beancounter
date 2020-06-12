@@ -3,6 +3,7 @@ package com.beancounter.marketdata.controller;
 import com.beancounter.auth.server.RoleHelper;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
+import com.beancounter.common.input.TrustedTrnQuery;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.trn.TrnService;
@@ -65,11 +66,26 @@ public class TrnController {
     return trnService.purge(portfolio);
   }
 
-  @GetMapping(value = "/{portfolioId}/asset/{assetId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(
+      value = "/{portfolioId}/asset/{assetId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   TrnResponse findByAsset(
       @PathVariable("portfolioId") String portfolioId,
       @PathVariable("assetId") String assetId
   ) {
     return trnService.findByPortfolioAsset(portfolioService.find(portfolioId), assetId);
   }
+
+  @PostMapping(
+      value = "/query",
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  TrnResponse findByAsset(
+      @RequestBody TrustedTrnQuery query) {
+    return trnService.findByPortfolioAsset(
+        query.getPortfolio(),
+        query.getAssetId(),
+        query.getTradeDate());
+  }
+
 }

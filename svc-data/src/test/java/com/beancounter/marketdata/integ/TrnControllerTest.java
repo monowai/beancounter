@@ -360,7 +360,7 @@ public class TrnControllerTest {
         .readValue(findByAsset.getResponse().getContentAsString(), TrnResponse.class);
     assertThat(trnResponse.getData()).isNotEmpty().hasSize(2); // 2 MSFT transactions
 
-    // Most recent transaction first
+    // Most recent transaction first (display purposes
     assertThat(trnResponse.getData().iterator().next().getTradeDate()).isEqualTo("2018-01-01");
 
     // Purge all transactions for the Portfolio

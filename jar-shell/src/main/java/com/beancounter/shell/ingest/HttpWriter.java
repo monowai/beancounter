@@ -6,7 +6,7 @@ import com.beancounter.client.services.TrnService;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Portfolio;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,9 +46,9 @@ public class HttpWriter implements TrnWriter {
   }
 
   @Override
-  public void write(TrustedTrnRequest trustedTrnRequest) {
-    this.portfolio = trustedTrnRequest.getPortfolio();
-    TrnInput trnInput = rowAdapter.transform(trustedTrnRequest);
+  public void write(TrustedTrnImportRequest trustedTrnImportRequest) {
+    this.portfolio = trustedTrnImportRequest.getPortfolio();
+    TrnInput trnInput = rowAdapter.transform(trustedTrnImportRequest);
     if (trnInput != null) {
       trnInputs.add(trnInput);
     }

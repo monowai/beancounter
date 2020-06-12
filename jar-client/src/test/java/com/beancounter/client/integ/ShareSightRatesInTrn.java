@@ -11,7 +11,7 @@ import com.beancounter.client.sharesight.ShareSightDividendAdapter;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
@@ -79,12 +79,12 @@ public class ShareSightRatesInTrn {
     row.add(ShareSightDividendAdapter.comments, "Test Comment");
 
     TrnAdapter dividends = shareSightFactory.adapter(row);
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(portfolio)
         .build();
 
-    TrnInput trn = dividends.from(trustedTrnRequest);
+    TrnInput trn = dividends.from(trustedTrnImportRequest);
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(trn)
@@ -112,12 +112,12 @@ public class ShareSightRatesInTrn {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
     // System base currency
-    TrustedTrnRequest trustedTrnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(portfolio)
         .build();
 
-    TrnInput trn = shareSightRowProcessor.transform(trustedTrnRequest);
+    TrnInput trn = shareSightRowProcessor.transform(trustedTrnImportRequest);
 
     log.info(new ObjectMapper().writeValueAsString(trn));
     assertThat(trn)

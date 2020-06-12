@@ -14,6 +14,7 @@ public class DividendBehaviour implements AccumulationStrategy {
   private final CurrencyResolver currencyResolver = new CurrencyResolver();
 
   public void accumulate(Trn trn, Portfolio portfolio, Position position) {
+    position.getDateValues().setLastDividend(trn.getTradeDate());
     value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE);
     value(trn, portfolio, position, Position.In.BASE, trn.getTradeBaseRate());
     value(trn, portfolio, position, Position.In.PORTFOLIO,

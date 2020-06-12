@@ -7,15 +7,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.auth.server.RoleHelper;
-import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
-import com.beancounter.common.model.Positions;
-import com.beancounter.common.model.Trn;
+import com.beancounter.common.input.TrustedTrnQuery;
+import com.beancounter.common.model.Currency;
+import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.model.Position;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import java.io.File;
-import java.util.Collection;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -49,7 +47,7 @@ class StubbedTrnValuations {
 
   private MockMvc mockMvc;
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper om = new ObjectMapper();
 
   @BeforeEach
   void setUp() {
@@ -59,30 +57,36 @@ class StubbedTrnValuations {
   @SneakyThrows
   @Test
   @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
-  void is_MvcTradesToPositions() {
+  void is_SingleAssetPosition() {
+    DateUtils dateUtils = new DateUtils();
+    Portfolio portfolio = Portfolio.builder()
+        .id("TEST")
+        .code("TEST")
+        .name("NZD Portfolio")
+        .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
+        .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
+        .build();
 
-    File tradeFile = new ClassPathResource("contracts/trades.json").getFile();
-    CollectionType javaType = mapper.getTypeFactory()
-        .constructCollectionType(Collection.class, Trn.class);
+    TrustedTrnQuery query = TrustedTrnQuery.builder()
+        .portfolio(portfolio)
+        .tradeDate(dateUtils.getDate("2020-05-01"))
+        .assetId("KMI")
+        .build();
 
-    Collection<Trn> results = mapper.readValue(tradeFile, javaType);
-    PositionRequest positionRequest = PositionRequest.builder()
-        .portfolioId("TEST")
-        .trns(results).build();
-
-    String json = mockMvc.perform(post("/")
-        .contentType(MediaType.APPLICATION_JSON_VALUE)
-        .content(mapper.writeValueAsString(positionRequest))
+    String json = mockMvc.perform(post("/query")
+        .content(new ObjectMapper().writeValueAsBytes(query))
+        .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    PositionResponse positionResponse = new ObjectMapper().readValue(json, PositionResponse.class);
-    assertThat(positionResponse).hasFieldOrProperty("data");
-    Positions positions = positionResponse.getData();
+    assertThat(json).isNotNull();
+    PositionResponse positionResponse = om.readValue(json, PositionResponse.class);
+    assertThat(positionResponse.getData()).isNotNull().hasFieldOrProperty("positions");
+    assertThat(positionResponse.getData().getPositions()).hasSize(1);
+    Position position = positionResponse.getData().getPositions().get("KMI:NYSE");
+    assertThat(position).isNotNull();
 
-    assertThat(positions).isNotNull();
-    assertThat(positions.getPositions()).isNotNull().hasSize(2);
   }
 
   @Test
@@ -96,7 +100,7 @@ class StubbedTrnValuations {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    PositionResponse positionResponse = mapper.readValue(json, PositionResponse.class);
+    PositionResponse positionResponse = om.readValue(json, PositionResponse.class);
     assertThat(positionResponse).isNotNull();
     assertThat(positionResponse.getData().getPortfolio())
         .isNotNull()
@@ -122,7 +126,7 @@ class StubbedTrnValuations {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    PositionResponse positionResponse = mapper.readValue(json, PositionResponse.class);
+    PositionResponse positionResponse = om.readValue(json, PositionResponse.class);
 
     assertThat(positionResponse).isNotNull();
 

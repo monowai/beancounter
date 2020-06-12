@@ -11,6 +11,7 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.accumulation.BuyBehaviour;
 import com.beancounter.position.accumulation.DividendBehaviour;
 import com.beancounter.position.accumulation.SellBehaviour;
@@ -81,6 +82,7 @@ class TestMoneyValues {
     Trn diviTrn = Trn.builder()
         .trnType(TrnType.DIVI)
         .asset(microsoft)
+        .tradeDate(new DateUtils().getDate())
         .tradeAmount(BigDecimal.TEN)
         .cashAmount(BigDecimal.TEN)
         .tradeBaseRate(BigDecimal.ONE)
@@ -101,6 +103,8 @@ class TestMoneyValues {
 
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
         .hasFieldOrPropertyWithValue("dividends", new BigDecimal(".10"));
+
+    assertThat(position.getDateValues().getLastDividend()).isToday();
 
     ObjectMapper objectMapper = new ObjectMapper();
     String bytes = objectMapper.writeValueAsString(position);

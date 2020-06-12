@@ -6,7 +6,7 @@ import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
@@ -61,8 +61,8 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(TrustedTrnRequest trustedTrnRequest) {
-    List<String> row = trustedTrnRequest.getRow();
+  public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
+    List<String> row = trustedTrnImportRequest.getRow();
     try {
 
       Asset asset = resolveAsset(row);
@@ -76,7 +76,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
           .asset(asset.getId())
           .tradeCurrency(row.get(currency))
           .callerRef(CallerRef.builder()
-              .provider(trustedTrnRequest.getPortfolio().getId())
+              .provider(trustedTrnImportRequest.getPortfolio().getId())
               .callerId(row.get(id))
               .build())
           .trnType(TrnType.DIVI)

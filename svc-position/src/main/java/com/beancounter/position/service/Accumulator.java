@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
     DividendBehaviour.class,
     SplitBehaviour.class})
 public class Accumulator {
-  private final DateUtils dateUtils = new DateUtils();
   private final TrnBehaviourFactory trnBehaviourFactory;
 
   public Accumulator(TrnBehaviourFactory trnBehaviourFactory) {
@@ -63,9 +62,7 @@ public class Accumulator {
     }
     AccumulationStrategy accumulationStrategy = trnBehaviourFactory.get(trn.getTrnType());
     accumulationStrategy.accumulate(trn, portfolio, position);
-    if (dateSensitive) {
-      position.getDateValues().setLast(dateUtils.getDateString(trn.getTradeDate()));
-    }
+    position.getDateValues().setLast(trn.getTradeDate());
 
     return position;
   }
@@ -75,7 +72,7 @@ public class Accumulator {
     boolean validDate = false;
 
     LocalDate tradeDate = trn.getTradeDate();
-    LocalDate positionDate = dateUtils.getDate(position.getDateValues().getLast());
+    LocalDate positionDate = position.getDateValues().getLast();
 
     if (positionDate == null || (positionDate.compareTo(tradeDate) <= 0)) {
       validDate = true;

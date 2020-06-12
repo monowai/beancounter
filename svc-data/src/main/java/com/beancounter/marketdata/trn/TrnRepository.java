@@ -15,8 +15,6 @@ public interface TrnRepository extends CrudRepository<Trn, CallerRef> {
 
   Collection<Trn> findByPortfolioIdAndAssetId(String portfolioId, String assetId, Sort sort);
 
-  Optional<Trn> findByCallerRef(CallerRef callerRef);
-
   long deleteByPortfolioId(String portfolioId);
 
   Optional<Trn> findByPortfolioIdAndId(String portfolioId, String trnId);
@@ -24,4 +22,13 @@ public interface TrnRepository extends CrudRepository<Trn, CallerRef> {
   @Query("select distinct t.portfolio from Trn t where t.asset.id = ?1 and t.tradeDate <= ?2")
   Collection<Portfolio> findDistinctPortfolioByAssetIdAndTradeDate(
       String assetId, LocalDate tradeDate);
+
+  @Query(
+      "select t from Trn t where "
+          + "t.portfolio.id =?1 and "
+          + "t.asset.id = ?2 and "
+          + "t.tradeDate <= ?3 order by t.tradeDate asc "
+  )
+  Collection<Trn> findByPortfolioIdAndAssetIdUpTo(
+      String id, String assetId, LocalDate tradeDate);
 }

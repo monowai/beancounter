@@ -57,9 +57,9 @@ class TestPositions {
     Position position = positions.get(asset);
 
     DateValues dateValues = DateValues.builder()
-        .opened(dateUtils.today())
-        .closed(dateUtils.today())
-        .last(dateUtils.today())
+        .opened(dateUtils.getDate())
+        .closed(dateUtils.getDate())
+        .last(dateUtils.getDate())
         .build();
 
     position.setDateValues(dateValues);
@@ -88,7 +88,7 @@ class TestPositions {
     position = positions.get(asset, secondTradeDate);
 
     assertThat(position.getDateValues())
-        .hasFieldOrPropertyWithValue("opened", "2018-12-01")
+        .hasFieldOrPropertyWithValue("opened", dateUtils.getDate("2018-12-01"))
     ;
   }
 

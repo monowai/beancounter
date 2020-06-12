@@ -6,7 +6,7 @@ import com.beancounter.client.config.ClientConfig;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.kafka.KafkaTrnProducer;
@@ -89,7 +89,7 @@ public class TrnCsvKafka {
   @Test
   void is_TrnRequestSendingCorrectly() throws Exception {
 
-    TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(PortfolioUtils.getPortfolio("TEST"))
         .build();
@@ -100,7 +100,7 @@ public class TrnCsvKafka {
       ConsumerRecord<String, String>
           received = KafkaTestUtils.getSingleRecord(consumer, "topicTrnCsv");
       assertThat(received.value()).isNotNull();
-      assertThat(new ObjectMapper().readValue(received.value(), TrustedTrnRequest.class))
+      assertThat(new ObjectMapper().readValue(received.value(), TrustedTrnImportRequest.class))
           .isEqualToComparingFieldByField(trnRequest);
     } finally {
       consumer.close();

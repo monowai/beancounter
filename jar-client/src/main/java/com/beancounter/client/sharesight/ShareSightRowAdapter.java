@@ -3,7 +3,7 @@ package com.beancounter.client.sharesight;
 import com.beancounter.client.ingest.RowAdapter;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class ShareSightRowAdapter implements RowAdapter {
   }
 
   @Override
-  public TrnInput transform(TrustedTrnRequest trnRequest) {
+  public TrnInput transform(TrustedTrnImportRequest trnRequest) {
 
     TrnAdapter trnAdapter = shareSightFactory.adapter(trnRequest.getRow());
 

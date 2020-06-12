@@ -6,7 +6,7 @@ import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
@@ -60,8 +60,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   }
 
   @Override
-  public TrnInput from(TrustedTrnRequest trustedTrnRequest) {
-    List<String> row = trustedTrnRequest.getRow();
+  public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
+    List<String> row = trustedTrnImportRequest.getRow();
     String ttype = row.get(type);
     if (ttype == null || ttype.equalsIgnoreCase("")) {
       throw new BusinessException(String.format("Unsupported type %s",
@@ -90,7 +90,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
           .asset(asset.getId())
           .trnType(trnType)
           .callerRef(CallerRef.builder()
-              .provider(trustedTrnRequest.getPortfolio().getId())
+              .provider(trustedTrnImportRequest.getPortfolio().getId())
               .callerId(row.get(id))
               .build())
           .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
@@ -98,7 +98,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
           .fees(fees)
           .tradeAmount(tradeAmount)
           .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
-          .cashCurrency(trustedTrnRequest.getPortfolio().getCurrency().getCode())
+          .cashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode())
           .tradeCurrency(row.get(currency))
           // Zero and null are treated as "unknown"
           .tradeCashRate(getTradeCashRate(tradeRate))

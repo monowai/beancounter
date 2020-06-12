@@ -3,7 +3,7 @@ package com.beancounter.shell.ingest;
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.identity.CallerRef;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Portfolio;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +69,7 @@ public abstract class AbstractIngester implements Ingester {
           .callerId(String.valueOf(i++))
           .build();
 
-      TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
+      TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
           .row(row)
           .portfolio(portfolio)
           .callerRef(CallerRef.from(callerRef, portfolio))

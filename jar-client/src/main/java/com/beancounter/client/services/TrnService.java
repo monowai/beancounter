@@ -3,6 +3,7 @@ package com.beancounter.client.services;
 import com.beancounter.auth.common.TokenService;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
+import com.beancounter.common.input.TrustedTrnQuery;
 import com.beancounter.common.model.Portfolio;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -26,6 +27,11 @@ public class TrnService {
     return trnGateway.write(tokenService.getBearerToken(), trnRequest);
   }
 
+  // Figure out service to service tokens
+  public TrnResponse read(TrustedTrnQuery trustedTrnQuery) {
+    return trnGateway.read(tokenService.getBearerToken(), trustedTrnQuery);
+  }
+
   public TrnResponse read(Portfolio portfolio) {
     return trnGateway.read(tokenService.getBearerToken(), portfolio.getId());
   }
@@ -47,6 +53,13 @@ public class TrnService {
         @RequestHeader("Authorization") String bearerToken,
         @PathVariable("portfolioId") String portfolioId);
 
+
+    @PostMapping(value = "/trns/query",
+        produces = {MediaType.APPLICATION_JSON_VALUE},
+        consumes = {MediaType.APPLICATION_JSON_VALUE})
+    TrnResponse read(
+        @RequestHeader("Authorization") String bearerToken,
+        TrustedTrnQuery trnQuery);
 
   }
 

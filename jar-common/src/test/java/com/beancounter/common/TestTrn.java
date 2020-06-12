@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
@@ -115,15 +115,15 @@ class TestTrn {
     row.add("ABC");
     row.add("ABC");
 
-    TrustedTrnRequest ttr = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest ttr = TrustedTrnImportRequest.builder()
         .portfolio(PortfolioUtils.getPortfolio("TWEE"))
         .row(row)
         .build();
 
     String json = mapper.writeValueAsString(ttr);
-    TrustedTrnRequest fromJson = mapper.readValue(json, TrustedTrnRequest.class);
+    TrustedTrnImportRequest fromJson = mapper.readValue(json, TrustedTrnImportRequest.class);
     assertThat(fromJson).isEqualToComparingFieldByField(ttr);
-    assertThat(new TrustedTrnRequest()).isNotNull(); // Coverage
+    assertThat(new TrustedTrnImportRequest()).isNotNull(); // Coverage
   }
 
   @Test

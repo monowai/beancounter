@@ -94,7 +94,6 @@ public class ContractVerifierBase {
 
   @Autowired
   private WebApplicationContext context;
-  private final String contractPath = "contracts";
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
@@ -108,14 +107,14 @@ public class ContractVerifierBase {
     mockPortfolios();
     systemUsers();
     ecbRates();
-    mockTrnGetResponse();
+    mockTrnGetResponses();
     mockAssets();
   }
 
   @SneakyThrows
   private void systemUsers() {
     File jsonFile =
-        new ClassPathResource(contractPath + "/register/response.json").getFile();
+        new ClassPathResource("contracts/register/response.json").getFile();
     RegistrationResponse response = objectMapper.readValue(jsonFile, RegistrationResponse.class);
     String email = "blah@blah.com";
 
@@ -170,11 +169,16 @@ public class ContractVerifierBase {
 
   }
 
-  private void mockTrnGetResponse() throws Exception {
-    mockTrnPostResponse(getTestPortfolio()
-    );
-    mockTrnGetResponse(getTestPortfolio(), contractPath + "/trn/TEST-response.json");
-    mockTrnGetResponse(getEmptyPortfolio(), contractPath + "/trn/EMPTY-response.json");
+  private void mockTrnGetResponses() throws Exception {
+    mockTrnPostResponse(getTestPortfolio());
+    mockTrnGetResponse(getTestPortfolio(), "contracts/trn/TEST-response.json");
+    mockTrnGetResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
+    Mockito.when(trnService.findByPortfolioAsset(getTestPortfolio(),
+        "KMI", dateUtils.getDate("2020-05-01")))
+        .thenReturn(objectMapper.readValue(
+            new ClassPathResource("contracts/trn/trn-for-asset.json").getFile(),
+            TrnResponse.class));
+
   }
 
   @SneakyThrows
@@ -187,12 +191,11 @@ public class ContractVerifierBase {
 
   @SneakyThrows
   void mockTrnPostResponse(Portfolio portfolio) {
-    File jsonFile = new ClassPathResource("contracts/trn/CSV-write.json").getFile();
-    TrnRequest trnRequest = objectMapper.readValue(jsonFile, TrnRequest.class);
-    jsonFile = new ClassPathResource("contracts/trn/CSV-response.json").getFile();
-    TrnResponse trnResponse = objectMapper.readValue(jsonFile, TrnResponse.class);
-    Mockito.when(trnService.save(portfolio, trnRequest))
-        .thenReturn(trnResponse);
+    Mockito.when(trnService.save(portfolio, objectMapper.readValue(
+        new ClassPathResource("contracts/trn/CSV-write.json").getFile(), TrnRequest.class)))
+        .thenReturn(objectMapper.readValue(
+            new ClassPathResource("contracts/trn/CSV-response.json").getFile(), TrnResponse.class));
+
   }
 
   public void mockPortfolios() throws Exception {
@@ -200,17 +203,17 @@ public class ContractVerifierBase {
     mockPortfolio(getTestPortfolio());
     // All Portfolio
     File jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/portfolios.json").getFile();
+        new ClassPathResource("contracts/portfolio/portfolios.json").getFile();
     PortfoliosResponse response = objectMapper.readValue(jsonFile, PortfoliosResponse.class);
     Mockito.when(portfolioService.getPortfolios()).thenReturn(response.getData());
 
     jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/add-request.json").getFile();
+        new ClassPathResource("contracts/portfolio/add-request.json").getFile();
     PortfoliosRequest portfoliosRequest =
         objectMapper.readValue(jsonFile, PortfoliosRequest.class);
 
     jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/add-response.json").getFile();
+        new ClassPathResource("contracts/portfolio/add-response.json").getFile();
     PortfoliosResponse portfoliosResponse =
         objectMapper.readValue(jsonFile, PortfoliosResponse.class);
     Mockito.when(portfolioService.save(portfoliosRequest.getData()))
@@ -219,14 +222,14 @@ public class ContractVerifierBase {
 
   private Portfolio getTestPortfolio() throws IOException {
     File jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/test.json").getFile();
+        new ClassPathResource("contracts/portfolio/test.json").getFile();
 
     return getPortfolio(jsonFile);
   }
 
   private Portfolio getEmptyPortfolio() throws IOException {
     File jsonFile =
-        new ClassPathResource(contractPath + "/portfolio/empty.json").getFile();
+        new ClassPathResource("contracts/portfolio/empty.json").getFile();
 
     return getPortfolio(jsonFile);
   }
@@ -248,26 +251,26 @@ public class ContractVerifierBase {
 
   private void mockAssets() throws Exception {
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/response.json").getFile());
+        new ClassPathResource("contracts/assets/request.json").getFile(),
+        new ClassPathResource("contracts/assets/response.json").getFile());
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/ebay-request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/ebay-response.json").getFile());
+        new ClassPathResource("contracts/assets/ebay-request.json").getFile(),
+        new ClassPathResource("contracts/assets/ebay-response.json").getFile());
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/msft-request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/msft-response.json").getFile());
+        new ClassPathResource("contracts/assets/msft-request.json").getFile(),
+        new ClassPathResource("contracts/assets/msft-response.json").getFile());
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/bhp-request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/bhp-response.json").getFile());
+        new ClassPathResource("contracts/assets/bhp-request.json").getFile(),
+        new ClassPathResource("contracts/assets/bhp-response.json").getFile());
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/bhp-lse-request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/bhp-lse-response.json").getFile());
+        new ClassPathResource("contracts/assets/bhp-lse-request.json").getFile(),
+        new ClassPathResource("contracts/assets/bhp-lse-response.json").getFile());
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/abbv-request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/abbv-response.json").getFile());
+        new ClassPathResource("contracts/assets/abbv-request.json").getFile(),
+        new ClassPathResource("contracts/assets/abbv-response.json").getFile());
     mockAssetResponses(
-        new ClassPathResource(contractPath + "/assets/amp-request.json").getFile(),
-        new ClassPathResource(contractPath + "/assets/amp-response.json").getFile());
+        new ClassPathResource("contracts/assets/amp-request.json").getFile(),
+        new ClassPathResource("contracts/assets/amp-response.json").getFile());
 
     WtdResponse wtdResponse = new WtdResponse();
     Map<String, MarketData> result = new HashMap<>();

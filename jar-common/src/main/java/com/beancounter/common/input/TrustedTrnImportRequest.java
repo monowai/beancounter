@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrustedTrnRequest {
+public class TrustedTrnImportRequest {
   private Portfolio portfolio;
   private CallerRef callerRef;
   private String message;

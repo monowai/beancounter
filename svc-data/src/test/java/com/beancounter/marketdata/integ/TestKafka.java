@@ -14,7 +14,7 @@ import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrustedEventInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.MarketData;
@@ -140,7 +140,7 @@ public class TestKafka {
     row.add(ShareSightTradeAdapter.value, BigDecimal.TEN.toString());
     row.add(ShareSightTradeAdapter.comments, "Test Comment");
 
-    TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(pfResponse.iterator().next())
         .build();
@@ -193,7 +193,7 @@ public class TestKafka {
     row.add(ShareSightTradeAdapter.value, "");
     row.add(ShareSightTradeAdapter.comments, "Test Comment");
 
-    TrustedTrnRequest trnRequest = TrustedTrnRequest.builder()
+    TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
         .row(row)
         .portfolio(pfResponse.iterator().next())
         .build();

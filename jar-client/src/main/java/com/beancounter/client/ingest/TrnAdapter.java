@@ -1,7 +1,7 @@
 package com.beancounter.client.ingest;
 
 import com.beancounter.common.input.TrnInput;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
  */
 public interface TrnAdapter {
 
-  TrnInput from(TrustedTrnRequest trustedTrnRequest);
+  TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest);
 
   boolean isValid(List<String> row);
 

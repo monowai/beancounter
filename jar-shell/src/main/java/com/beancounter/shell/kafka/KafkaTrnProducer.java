@@ -2,7 +2,7 @@ package com.beancounter.shell.kafka;
 
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.client.sharesight.ShareSightFactory;
-import com.beancounter.common.input.TrustedTrnRequest;
+import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.shell.ingest.TrnWriter;
 import lombok.SneakyThrows;
@@ -27,10 +27,10 @@ public class KafkaTrnProducer implements TrnWriter {
   @Value("${beancounter.topics.trn.csv:bc-trn-csv-dev}")
   public String topicTrnCsv;
   private ShareSightFactory shareSightFactory;
-  private final KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer;
+  private final KafkaTemplate<String, TrustedTrnImportRequest> kafkaCsvTrnProducer;
 
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-  public KafkaTrnProducer(KafkaTemplate<String, TrustedTrnRequest> kafkaCsvTrnProducer) {
+  public KafkaTrnProducer(KafkaTemplate<String, TrustedTrnImportRequest> kafkaCsvTrnProducer) {
     this.kafkaCsvTrnProducer = kafkaCsvTrnProducer;
   }
 
@@ -51,16 +51,16 @@ public class KafkaTrnProducer implements TrnWriter {
 
   @Override
   @SneakyThrows
-  public void write(TrustedTrnRequest trustedTrnRequest) {
-    TrnAdapter adapter = shareSightFactory.adapter(trustedTrnRequest.getRow());
-    Asset asset = adapter.resolveAsset(trustedTrnRequest.getRow());
+  public void write(TrustedTrnImportRequest trustedTrnImportRequest) {
+    TrnAdapter adapter = shareSightFactory.adapter(trustedTrnImportRequest.getRow());
+    Asset asset = adapter.resolveAsset(trustedTrnImportRequest.getRow());
     if (asset == null) {
       return;
     }
-    ListenableFuture<SendResult<String, TrustedTrnRequest>> result =
-        kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnRequest);
+    ListenableFuture<SendResult<String, TrustedTrnImportRequest>> result =
+        kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnImportRequest);
 
-    SendResult<String, TrustedTrnRequest> sendResult = result.get();
+    SendResult<String, TrustedTrnImportRequest> sendResult = result.get();
 
     log.trace("recordMetaData: {}", sendResult.getRecordMetadata().toString());
   }

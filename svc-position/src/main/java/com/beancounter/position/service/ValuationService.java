@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PositionRequest;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.AssetInput;
+import com.beancounter.common.input.TrustedTrnQuery;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.Positions;
@@ -46,9 +47,19 @@ public class ValuationService implements Valuation {
     this.positionService = positionService;
   }
 
-  public PositionResponse build(Portfolio portfolio, String valuationDate) {
+  @Override
+  public PositionResponse build(TrustedTrnQuery trnQuery) {
+    TrnResponse trnResponse = trnService.read(trnQuery);
+    return buildPositions(trnQuery.getPortfolio(),
+        dateUtils.getDateString(trnQuery.getTradeDate()), trnResponse);
+  }
 
+  public PositionResponse build(Portfolio portfolio, String valuationDate) {
     TrnResponse trnResponse = trnService.read(portfolio);
+    return buildPositions(portfolio, valuationDate, trnResponse);
+  }
+
+  private PositionResponse buildPositions(Portfolio portfolio, String valuationDate, TrnResponse trnResponse) {
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
         .trns(trnResponse.getData())

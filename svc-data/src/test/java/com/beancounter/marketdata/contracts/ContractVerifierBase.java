@@ -94,7 +94,7 @@ public class ContractVerifierBase {
 
   @Autowired
   private WebApplicationContext context;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper om = new ObjectMapper();
 
   @BeforeEach
   @SneakyThrows
@@ -115,7 +115,7 @@ public class ContractVerifierBase {
   private void systemUsers() {
     File jsonFile =
         new ClassPathResource("contracts/register/response.json").getFile();
-    RegistrationResponse response = objectMapper.readValue(jsonFile, RegistrationResponse.class);
+    RegistrationResponse response = om.readValue(jsonFile, RegistrationResponse.class);
     String email = "blah@blah.com";
 
     Jwt jwt = TokenUtils.getUserToken(SystemUser.builder()
@@ -175,7 +175,7 @@ public class ContractVerifierBase {
     mockTrnGetResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
     Mockito.when(trnService.findByPortfolioAsset(getTestPortfolio(),
         "KMI", dateUtils.getDate("2020-05-01")))
-        .thenReturn(objectMapper.readValue(
+        .thenReturn(om.readValue(
             new ClassPathResource("contracts/trn/trn-for-asset.json").getFile(),
             TrnResponse.class));
 
@@ -184,16 +184,16 @@ public class ContractVerifierBase {
   @SneakyThrows
   void mockTrnGetResponse(Portfolio portfolio, String trnFile) {
     File jsonFile = new ClassPathResource(trnFile).getFile();
-    TrnResponse trnResponse = objectMapper.readValue(jsonFile, TrnResponse.class);
+    TrnResponse trnResponse = om.readValue(jsonFile, TrnResponse.class);
     Mockito.when(trnService.findForPortfolio(portfolio))
         .thenReturn(trnResponse);
   }
 
   @SneakyThrows
   void mockTrnPostResponse(Portfolio portfolio) {
-    Mockito.when(trnService.save(portfolio, objectMapper.readValue(
+    Mockito.when(trnService.save(portfolio, om.readValue(
         new ClassPathResource("contracts/trn/CSV-write.json").getFile(), TrnRequest.class)))
-        .thenReturn(objectMapper.readValue(
+        .thenReturn(om.readValue(
             new ClassPathResource("contracts/trn/CSV-response.json").getFile(), TrnResponse.class));
 
   }
@@ -204,18 +204,18 @@ public class ContractVerifierBase {
     // All Portfolio
     File jsonFile =
         new ClassPathResource("contracts/portfolio/portfolios.json").getFile();
-    PortfoliosResponse response = objectMapper.readValue(jsonFile, PortfoliosResponse.class);
+    PortfoliosResponse response = om.readValue(jsonFile, PortfoliosResponse.class);
     Mockito.when(portfolioService.getPortfolios()).thenReturn(response.getData());
 
     jsonFile =
         new ClassPathResource("contracts/portfolio/add-request.json").getFile();
     PortfoliosRequest portfoliosRequest =
-        objectMapper.readValue(jsonFile, PortfoliosRequest.class);
+        om.readValue(jsonFile, PortfoliosRequest.class);
 
     jsonFile =
         new ClassPathResource("contracts/portfolio/add-response.json").getFile();
     PortfoliosResponse portfoliosResponse =
-        objectMapper.readValue(jsonFile, PortfoliosResponse.class);
+        om.readValue(jsonFile, PortfoliosResponse.class);
     Mockito.when(portfolioService.save(portfoliosRequest.getData()))
         .thenReturn(portfoliosResponse.getData());
   }
@@ -235,8 +235,7 @@ public class ContractVerifierBase {
   }
 
   private Portfolio getPortfolio(File jsonFile) throws IOException {
-    PortfolioResponse portfolioResponse =
-        objectMapper.readValue(jsonFile, PortfolioResponse.class);
+    PortfolioResponse portfolioResponse = om.readValue(jsonFile, PortfolioResponse.class);
     return portfolioResponse.getData();
   }
 
@@ -292,10 +291,10 @@ public class ContractVerifierBase {
   @SneakyThrows
   private void mockAssetResponses(File jsonRequest, File jsonResponse) {
     AssetRequest assetRequest =
-        objectMapper.readValue(jsonRequest, AssetRequest.class);
+        om.readValue(jsonRequest, AssetRequest.class);
 
     AssetUpdateResponse assetUpdateResponse =
-        objectMapper.readValue(jsonResponse, AssetUpdateResponse.class);
+        om.readValue(jsonResponse, AssetUpdateResponse.class);
 
     Mockito.when(assetService.process(assetRequest)).thenReturn(assetUpdateResponse);
     Set<String> keys = assetUpdateResponse.getData().keySet();

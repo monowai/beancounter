@@ -1,12 +1,32 @@
+buildscript {
+    ext {
+        contractsDir = file("mappings")
+        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:$springVerifierVersion"
+    }
+}
+
 plugins {
     id "io.spring.dependency-management" version "$springDependencyManagement"
     id "org.springframework.boot" version "$springBootVersion"
+    id "maven-publish"
 }
-
+apply plugin: 'spring-cloud-contract'
 apply from: "../javaCommon.gradle"
 
-version = '0.0.1'
-
+version = '0.1.1'
+publishing {
+    publications {
+        stubs(MavenPublication) {
+            groupId "org.beancounter"
+            artifactId "${project.name}"
+            artifact verifierStubsJar
+        }
+    }
+}
 dependencies {
     implementation(
             project(":jar-common"),
@@ -35,9 +55,12 @@ dependencies {
     testImplementation(
             "org.projectlombok:lombok",
             "org.assertj:assertj-core",
+            "io.rest-assured:rest-assured",
+            "io.rest-assured:spring-mock-mvc",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
+            'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
@@ -56,6 +79,15 @@ dependencyManagement {
     }
 }
 
+contracts {
+    // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html#gradle-default-setup
+    testFramework = "JUNIT5"
+    testMode = "MockMvc"
+    packageWithBaseClasses = "com.beancounter.position.contracts"
+    baseClassMappings {
+        baseClassMapping(".*contract.*", "com.beancounter.position.contracts.ContractVerifierBase")
+    }
+}
 
 idea {
     module {
@@ -64,4 +96,9 @@ idea {
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
     }
+}
+
+task pubStubs {
+    dependsOn build
+    dependsOn publishToMavenLocal
 }

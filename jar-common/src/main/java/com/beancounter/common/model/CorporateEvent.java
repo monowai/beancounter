@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.NonNull;
 
 @Data
 @Builder
@@ -26,7 +27,10 @@ import lombok.NoArgsConstructor;
 public class CorporateEvent {
   @Id
   private String id;
+  @NonNull
   private TrnType trnType;
+  @NonNull
+  private String source;
 
   @ManyToOne
   private Asset asset;
@@ -43,5 +47,4 @@ public class CorporateEvent {
   @JsonDeserialize(using = LocalDateDeserializer.class)
   private LocalDate recordDate;
 
-  private String source;
 }

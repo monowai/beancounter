@@ -21,7 +21,7 @@ auth:
 
 spring:
   application:
-    name: bc-positionKeeper
+    name: bc-position
   security:
     oauth2:
       resourceserver:

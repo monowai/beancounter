@@ -14,17 +14,17 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(value = "kafka.enabled", matchIfMissing = true)
 @Service
 @Slf4j
-public class EventConsumer {
+public class EventService {
 
   @Value("${beancounter.topics.ca.event:bc-ca-event-dev}")
   public String topicEvent;
 
-  private final PortfolioHandler portfolioHandler;
+  private final PositionHandler positionHandler;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public EventConsumer(PortfolioHandler portfolioHandler) {
-    this.portfolioHandler = portfolioHandler;
+  public EventService(PositionHandler positionHandler) {
+    this.positionHandler = positionHandler;
   }
 
   @Bean
@@ -43,7 +43,7 @@ public class EventConsumer {
     TrustedEventInput eventRequest = objectMapper.readValue(message, TrustedEventInput.class);
     if (eventRequest.getEvent() != null) {
       log.info("CA {}", eventRequest.getEvent().getAsset().getCode());
-      portfolioHandler.process(eventRequest);
+      positionHandler.process(eventRequest);
 
     }
   }

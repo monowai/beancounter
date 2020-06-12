@@ -59,7 +59,10 @@ public class ValuationService implements Valuation {
     return buildPositions(portfolio, valuationDate, trnResponse);
   }
 
-  private PositionResponse buildPositions(Portfolio portfolio, String valuationDate, TrnResponse trnResponse) {
+  private PositionResponse buildPositions(
+      Portfolio portfolio,
+      String valuationDate,
+      TrnResponse trnResponse) {
     PositionRequest positionRequest = PositionRequest.builder()
         .portfolioId(portfolio.getId())
         .trns(trnResponse.getData())

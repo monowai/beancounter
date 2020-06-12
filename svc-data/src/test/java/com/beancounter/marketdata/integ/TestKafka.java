@@ -21,12 +21,13 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.currency.CurrencyService;
-import com.beancounter.marketdata.event.EventService;
+import com.beancounter.marketdata.event.EventWriter;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
@@ -89,7 +90,7 @@ public class TestKafka {
   @Autowired
   private TrnKafkaConsumer trnKafkaConsumer;
   @Autowired
-  private EventService eventService;
+  private EventWriter eventWriter;
   @Autowired
   private CurrencyService currencyService;
 
@@ -303,6 +304,8 @@ public class TestKafka {
 
     CorporateEvent event = CorporateEvent.builder()
         .asset(asset)
+        .source("ALPHA")
+        .trnType(TrnType.DIVI)
         .payDate(dateUtils.getDate("2019-12-20"))
         .recordDate(dateUtils.getDate("2019-12-10"))
         .rate(new BigDecimal("2.34"))
@@ -315,11 +318,11 @@ public class TestKafka {
         trnService.findWhereHeld(asset.getId(), event.getRecordDate()))
         .thenReturn(PortfoliosResponse.builder().data(portfolios).build());
 
-    eventService.setTrnService(trnService);
+    eventWriter.setTrnService(trnService);
 
     // Compare with a serialised event
     event = objectMapper.readValue(
-        objectMapper.writeValueAsString(eventService.save(event)), CorporateEvent.class);
+        objectMapper.writeValueAsString(eventWriter.save(event)), CorporateEvent.class);
 
     ConsumerRecord<String, String>
         consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "topicEvent");

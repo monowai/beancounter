@@ -38,6 +38,12 @@ auth:
   uri: "http://keycloak:9620/auth"
   realm: "bc-dev"
 
+marketdata:
+  url: "http://localhost:9510/api"
+
+position:
+  url: "http://localhost:9500/api"
+
 spring:
   application:
     name: bc-event
@@ -52,7 +58,7 @@ spring:
       #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       #      properties:
       #        spring.json.trusted.packages: com.beancounter.common.input
-      group-id: bc-data
+      group-id: bc-event
 
 kafka:
   enabled: "true"

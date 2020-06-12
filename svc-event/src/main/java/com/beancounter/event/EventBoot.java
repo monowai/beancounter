@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     scanBasePackages = {
         "com.beancounter.event",
         "com.beancounter.client",
+        "com.beancounter.auth",
         "com.beancounter.common"
     })
 public class EventBoot {

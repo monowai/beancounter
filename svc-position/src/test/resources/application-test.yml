@@ -3,9 +3,3 @@ server:
 
 marketdata:
   url: http://localhost:10999
-
-beancounter:
-  marketdata:
-    provider:
-      WTD:
-        date: 2019-11-16

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class EventService {
+public class EventWriter {
   private final EventRepository eventRepository;
   @Value("${beancounter.topics.ca.event:bc-ca-event-dev}")
   private String topicEvent;
@@ -32,7 +32,7 @@ public class EventService {
 
   private KafkaTemplate<String, TrustedEventInput> kafkaCaProducer;
 
-  public EventService(EventRepository eventRepository, AssetService assetService) {
+  public EventWriter(EventRepository eventRepository, AssetService assetService) {
     this.eventRepository = eventRepository;
     this.assetService = assetService;
   }

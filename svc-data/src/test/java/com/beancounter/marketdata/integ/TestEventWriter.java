@@ -7,9 +7,10 @@ import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.CorporateEvent;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
-import com.beancounter.marketdata.event.EventService;
+import com.beancounter.marketdata.event.EventWriter;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,10 +24,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @SpringBootTest(classes = MarketDataBoot.class)
 @WebAppConfiguration
 @ActiveProfiles("test")
-public class TestEventService {
+public class TestEventWriter {
 
   @Autowired
-  private EventService eventService;
+  private EventWriter eventWriter;
   @Autowired
   private AssetService assetService;
   @Autowired
@@ -46,14 +47,16 @@ public class TestEventService {
 
     CorporateEvent event = CorporateEvent.builder()
         .asset(assetResult.getData().get("a"))
+        .source("ALPHA")
+        .trnType(TrnType.DIVI)
         .recordDate(dateUtils.getDate("2019-12-20"))
         .rate(new BigDecimal("2.34"))
         .build();
 
-    CorporateEvent saved = eventService.save(event);
+    CorporateEvent saved = eventWriter.save(event);
     assertThat(saved.getId()).isNotNull();
 
-    CorporateEvent second = eventService.save(event);
+    CorporateEvent second = eventWriter.save(event);
     assertThat(second.getId()).isEqualTo(saved.getId());
   }
 }

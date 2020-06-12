@@ -13,10 +13,10 @@ import com.beancounter.event.service.Event;
 import com.beancounter.event.service.TaxService;
 import java.math.BigDecimal;
 
-public class AlphaAdapter implements Event {
+public class AlphaEventAdapter implements Event {
   private final TaxService taxService;
 
-  public AlphaAdapter(TaxService taxService) {
+  public AlphaEventAdapter(TaxService taxService) {
     this.taxService = taxService;
   }
 
@@ -42,6 +42,7 @@ public class AlphaAdapter implements Event {
         .callerRef(callerRef)
         .trnType(TrnType.DIVI)
         .status(TrnStatus.PROPOSED)
+        .quantity(currentPosition.getQuantityValues().getTotal())
         .portfolio(portfolio)
         .tradeDate(corporateEvent.getRecordDate().plusDays(18)) // Should be PayDate +1
         .asset(corporateEvent.getAsset())

@@ -15,7 +15,7 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.PortfolioUtils;
-import com.beancounter.event.service.alpha.AlphaAdapter;
+import com.beancounter.event.service.alpha.AlphaEventAdapter;
 import com.beancounter.event.service.alpha.AlphaEventConfig;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ public class TestAlphaEvents {
 
   private static final Currency USD = Currency.builder().code("USD").build();
   @Autowired
-  private AlphaAdapter alphaAdapter;
+  private AlphaEventAdapter alphaEventAdapter;
 
   @Test
   void is_UsDividendCalculated() {
@@ -40,17 +40,19 @@ public class TestAlphaEvents {
 
     CorporateEvent event = CorporateEvent.builder()
         .trnType(TrnType.DIVI)
+        .source("ALPHA")
         .asset(asset)
         .recordDate(dateUtils.getDate("2020-05-01"))
         .rate(new BigDecimal("0.2625"))
         .build();
+
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST", USD);
     Position position = Position.builder()
         .asset(asset)
         .quantityValues(QuantityValues.builder().purchased(new BigDecimal("80")).build())
         .build();
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal("80"));
-    Trn trn = alphaAdapter.generate(portfolio, position, event);
+    Trn trn = alphaEventAdapter.generate(portfolio, position, event);
     assertThat(trn)
         .hasFieldOrPropertyWithValue("portfolio.id", portfolio.getId())
         .hasFieldOrPropertyWithValue("asset.id", asset.getId())

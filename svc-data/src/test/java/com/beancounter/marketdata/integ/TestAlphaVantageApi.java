@@ -29,7 +29,7 @@ import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.batch.ScheduledValuation;
-import com.beancounter.marketdata.event.EventService;
+import com.beancounter.marketdata.event.EventWriter;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.PriceService;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
@@ -87,7 +87,7 @@ class TestAlphaVantageApi {
   @Autowired
   private PriceService priceService;
   @Autowired
-  private EventService eventService;
+  private EventWriter eventWriter;
   @Autowired
   private ScheduledValuation scheduledValuation;
   @Autowired
@@ -377,7 +377,7 @@ class TestAlphaVantageApi {
         .getMarketData(asset.getId(), dateUtils.getDate("2020-05-01"));
 
     assertThat(marketData.isPresent());
-    Collection<CorporateEvent> events = eventService.get(asset);
+    Collection<CorporateEvent> events = eventWriter.get(asset);
     assertThat(events).hasSize(1);
   }
 

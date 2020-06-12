@@ -5,7 +5,7 @@ import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.KeyGenUtils;
-import com.beancounter.marketdata.event.EventService;
+import com.beancounter.marketdata.event.EventWriter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,11 +20,11 @@ import org.springframework.stereotype.Service;
 public class PriceService {
 
   private final MarketDataRepo marketDataRepo;
-  private final EventService eventService;
+  private final EventWriter eventWriter;
 
-  PriceService(MarketDataRepo marketDataRepo, EventService eventService) {
+  PriceService(MarketDataRepo marketDataRepo, EventWriter eventWriter) {
     this.marketDataRepo = marketDataRepo;
-    this.eventService = eventService;
+    this.eventWriter = eventWriter;
   }
 
   public Optional<MarketData> getMarketData(String assetId, LocalDate date) {
@@ -58,7 +58,7 @@ public class PriceService {
     if (marketData.getDividend() != null
         && marketData.getDividend().compareTo(BigDecimal.ZERO) != 0) {
 
-      eventService.write(CorporateEvent.builder()
+      eventWriter.write(CorporateEvent.builder()
           .asset(marketData.getAsset())
           .trnType(TrnType.DIVI)
           .source(marketData.getSource())

@@ -6,6 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({TaxService.class, AlphaAdapter.class, EventBehaviourFactory.class})
+@Import({TaxService.class, AlphaEventAdapter.class, EventBehaviourFactory.class})
 public class AlphaEventConfig {
 }

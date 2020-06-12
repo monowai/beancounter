@@ -1,17 +1,6 @@
-buildscript {
-    ext {
-        contractsDir = file("mappings")
-        stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
-    }
-}
-
 plugins {
     id "io.spring.dependency-management" version "$springDependencyManagement"
     id "org.springframework.boot" version "$springBootVersion"
-    id "maven-publish"
 }
 apply from: "../javaCommon.gradle"
 
@@ -52,11 +41,17 @@ dependencies {
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
+            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
+            "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test"
 
     )
+    testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
+        transitive = false
+    }
 
 }
 
@@ -71,9 +66,4 @@ idea {
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
     }
-}
-
-task pubStubs {
-    dependsOn build
-    dependsOn publishToMavenLocal
 }

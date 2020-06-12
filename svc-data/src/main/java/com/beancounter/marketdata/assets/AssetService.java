@@ -7,7 +7,7 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
-import com.beancounter.marketdata.event.EventService;
+import com.beancounter.marketdata.event.EventWriter;
 import com.beancounter.marketdata.markets.MarketService;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class AssetService implements com.beancounter.client.AssetService {
   private final EnrichmentFactory enrichmentFactory;
   private AssetRepository assetRepository;
-  private EventService eventService;
+  private EventWriter eventWriter;
   private MarketService marketService;
 
   AssetService(EnrichmentFactory enrichmentFactory) {
@@ -36,8 +36,8 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   @Autowired
-  public void setEventService(EventService eventService) {
-    this.eventService = eventService;
+  public void setEventWriter(EventWriter eventWriter) {
+    this.eventWriter = eventWriter;
   }
 
   @Autowired
@@ -154,7 +154,7 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   public void purge() {
-    eventService.purge();
+    eventWriter.purge();
     assetRepository.deleteAll();
   }
 }

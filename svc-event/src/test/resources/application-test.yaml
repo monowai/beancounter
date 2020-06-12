@@ -1,0 +1,6 @@
+
+marketdata:
+  url: "http://localhost:11999"
+
+position:
+  url: "http://localhost:12999"

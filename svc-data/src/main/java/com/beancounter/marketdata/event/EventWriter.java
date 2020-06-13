@@ -6,8 +6,7 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.KeyGenUtils;
-import com.beancounter.marketdata.assets.AssetService;
-import com.beancounter.marketdata.trn.TrnService;
+import com.beancounter.marketdata.portfolio.PortfolioService;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -27,19 +26,22 @@ public class EventWriter {
   @Value("${kafka.enabled:true}")
   private Boolean kafkaEnabled;
 
-  private final AssetService assetService;
-  private TrnService trnService;
+  private PortfolioService portfolioService;
 
   private KafkaTemplate<String, TrustedEventInput> kafkaCaProducer;
 
-  public EventWriter(EventRepository eventRepository, AssetService assetService) {
+  public EventWriter(EventRepository eventRepository) {
     this.eventRepository = eventRepository;
-    this.assetService = assetService;
   }
 
   @Autowired
-  public void setTrnService(TrnService trnService) {
-    this.trnService = trnService;
+  public void setPortfolioService(PortfolioService portfolioService) {
+    this.portfolioService = portfolioService;
+  }
+
+  @Autowired
+  public void setTrnService(PortfolioService portfolioService) {
+    this.portfolioService = portfolioService;
   }
 
   @Autowired
@@ -61,7 +63,6 @@ public class EventWriter {
 
     CorporateEvent result = eventRepository.save(event);
     // On Save
-    result.setAsset(assetService.hydrateAsset(result.getAsset()));
     if (kafkaEnabled) {
       dispatch(result);
     }
@@ -75,7 +76,7 @@ public class EventWriter {
 
   void dispatch(CorporateEvent corporateEvent) {
     log.trace("Dispatch {} ... {}", topicEvent, corporateEvent);
-    PortfoliosResponse portfolios = trnService
+    PortfoliosResponse portfolios = portfolioService
         .findWhereHeld(corporateEvent.getAsset().getId(), corporateEvent.getRecordDate());
     for (Portfolio portfolio : portfolios.getData()) {
       kafkaCaProducer.send(
@@ -95,4 +96,5 @@ public class EventWriter {
   public void purge() {
     eventRepository.deleteAll();
   }
+
 }

@@ -1,12 +1,10 @@
 package com.beancounter.marketdata.trn;
 
-import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
-import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,7 +23,6 @@ public class TrnService {
   private final TrnRepository trnRepository;
   private final TrnAdapter trnAdapter;
   private final PortfolioService portfolioService;
-  private final DateUtils dateUtils = new DateUtils();
 
   TrnService(TrnRepository trnRepository,
              TrnAdapter trnAdapter,
@@ -33,16 +30,6 @@ public class TrnService {
     this.trnRepository = trnRepository;
     this.portfolioService = portfolioService;
     this.trnAdapter = trnAdapter;
-  }
-
-  public PortfoliosResponse findWhereHeld(String assetId, LocalDate tradeDate) {
-    if (tradeDate == null) {
-      tradeDate = dateUtils.getDate(dateUtils.today());
-    }
-    Collection<Portfolio> portfolios = trnRepository
-        .findDistinctPortfolioByAssetIdAndTradeDate(assetId, tradeDate);
-    log.info("Found {}", portfolios.size());
-    return PortfoliosResponse.builder().data(portfolios).build();
   }
 
   public TrnResponse getPortfolioTrn(Portfolio portfolio, String trnId) {

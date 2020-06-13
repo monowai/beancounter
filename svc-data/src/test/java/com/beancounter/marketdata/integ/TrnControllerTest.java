@@ -32,7 +32,7 @@ import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.figi.FigiProxy;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.markets.MarketService;
-import com.beancounter.marketdata.trn.TrnService;
+import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public class TrnControllerTest {
   @Autowired
   private MarketService marketService;
   @Autowired
-  private TrnService trnService;
+  private PortfolioService portfolioService;
   @Autowired
   private CurrencyService currencyService;
 
@@ -214,12 +214,12 @@ public class TrnControllerTest {
 
     // All transactions are now in place.
 
-    PortfoliosResponse portfolios = trnService.findWhereHeld(msft.getId(),
+    PortfoliosResponse portfolios = portfolioService.findWhereHeld(msft.getId(),
         dateUtils.getDate("2018-01-01"));
     assertThat(portfolios.getData()).hasSize(2);
-    portfolios = trnService.findWhereHeld(msft.getId(), dateUtils.getDate("2016-01-01"));
+    portfolios = portfolioService.findWhereHeld(msft.getId(), dateUtils.getDate("2016-01-01"));
     assertThat(portfolios.getData()).hasSize(1);
-    portfolios = trnService.findWhereHeld(msft.getId(), null);
+    portfolios = portfolioService.findWhereHeld(msft.getId(), null);
     assertThat(portfolios.getData()).hasSize(2);
 
   }

@@ -314,11 +314,14 @@ public class TestKafka {
     TrnService trnService = Mockito.mock(TrnService.class);
     Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(PortfolioUtils.getPortfolio("TEST"));
+
+    PortfolioService mockPortfolio = Mockito.mock(PortfolioService.class);
+    eventWriter.setPortfolioService(mockPortfolio);
     Mockito.when(
-        trnService.findWhereHeld(asset.getId(), event.getRecordDate()))
+        mockPortfolio.findWhereHeld(asset.getId(), event.getRecordDate()))
         .thenReturn(PortfoliosResponse.builder().data(portfolios).build());
 
-    eventWriter.setTrnService(trnService);
+    eventWriter.setPortfolioService(mockPortfolio);
 
     // Compare with a serialised event
     event = objectMapper.readValue(

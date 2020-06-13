@@ -1,12 +1,15 @@
 package com.beancounter.marketdata.portfolio;
 
+import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.exception.ForbiddenException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.trn.TrnRepository;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -21,6 +24,7 @@ public class PortfolioService {
   private final TrnRepository trnRepository;
   private final SystemUserService systemUserService;
   private final PortfolioInputAdapter portfolioInputAdapter;
+  private final DateUtils dateUtils = new DateUtils();
 
   PortfolioService(
       PortfolioInputAdapter portfolioInputAdapter,
@@ -131,4 +135,15 @@ public class PortfolioService {
       portfolioRepository.delete(portfolio);
     }
   }
+
+  public PortfoliosResponse findWhereHeld(String assetId, LocalDate tradeDate) {
+    if (tradeDate == null) {
+      tradeDate = dateUtils.getDate(dateUtils.today());
+    }
+    Collection<Portfolio> portfolios = portfolioRepository
+        .findDistinctPortfolioByAssetIdAndTradeDate(assetId, tradeDate);
+    log.info("Found {}", portfolios.size());
+    return PortfoliosResponse.builder().data(portfolios).build();
+  }
+
 }

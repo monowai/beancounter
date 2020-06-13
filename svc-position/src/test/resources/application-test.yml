@@ -1,5 +1,8 @@
 server:
   port: 0
 
+kafka:
+  enabled: "false"
+
 marketdata:
   url: http://localhost:10999

@@ -1,4 +1,7 @@
 
+kafka:
+  enabled: "false"
+
 marketdata:
   url: "http://localhost:11999"
 

@@ -52,10 +52,6 @@ spring:
     username: sa
     password:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-  h2:
-    console:
-      enabled: true
-      path: /h2/bc-data
   security:
     oauth2:
       resourceserver:
@@ -63,10 +59,12 @@ spring:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
   kafka:
     bootstrap-servers: kafka:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
-      #      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      #      properties:
-      #        spring.json.trusted.packages: com.beancounter.common.input
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.beancounter.common.input
       group-id: bc-data
 
 kafka:

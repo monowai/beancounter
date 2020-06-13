@@ -3,10 +3,11 @@ package com.beancounter.event.integ;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.input.TrustedEventInput;
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.model.Trn;
+import com.beancounter.common.model.TrnStatus;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
@@ -55,13 +56,16 @@ public class StubbedEvents {
         .portfolio(portfolio)
         .event(corporateEvent)
         .build();
-    Trn trn = positionHandler.process(event);
-    assertThat(trn)
+    TrustedTrnEvent trnRequest = positionHandler.process(event);
+    assertThat(trnRequest).isNotNull().hasFieldOrPropertyWithValue("portfolio", portfolio);
+
+    assertThat(trnRequest.getTrnInput())
         .isNotNull()
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal("80.000000"))
         .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("14.70"))
         .hasFieldOrPropertyWithValue("tax", new BigDecimal("6.30"))
         .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
+        .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
     ;
   }
 }

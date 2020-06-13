@@ -137,12 +137,10 @@ public class PortfolioService {
   }
 
   public PortfoliosResponse findWhereHeld(String assetId, LocalDate tradeDate) {
-    if (tradeDate == null) {
-      tradeDate = dateUtils.getDate(dateUtils.today());
-    }
+    LocalDate recordDate = (tradeDate == null ? dateUtils.getDate(dateUtils.today()) : tradeDate);
     Collection<Portfolio> portfolios = portfolioRepository
-        .findDistinctPortfolioByAssetIdAndTradeDate(assetId, tradeDate);
-    log.info("Found {}", portfolios.size());
+        .findDistinctPortfolioByAssetIdAndTradeDate(assetId, recordDate);
+    log.info("Found {} notional holders for {}", portfolios.size(), assetId);
     return PortfoliosResponse.builder().data(portfolios).build();
   }
 

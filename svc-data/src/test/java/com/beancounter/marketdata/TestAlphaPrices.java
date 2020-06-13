@@ -12,7 +12,6 @@ import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.providers.alpha.AlphaConfig;
 import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter;
 import com.beancounter.marketdata.providers.alpha.AlphaService;
-import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.math.BigDecimal;
@@ -83,9 +82,9 @@ class TestAlphaPrices {
 
   @Test
   void is_ResponseWithoutMarketCodeSetToUs() throws Exception {
-    File jsonFile = new ClassPathResource(AlphaMockUtils.alphaContracts
-        + "/alphavantage-nasdaq.json").getFile();
-    MarketData marketData = validateResponse(jsonFile);
+    MarketData marketData = validateResponse(
+        new ClassPathResource("contracts/alpha/alphavantage-nasdaq.json").getFile()
+    );
     assertThat(
         marketData.getAsset())
         .hasFieldOrPropertyWithValue("code", "NDAQ")

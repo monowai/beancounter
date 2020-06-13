@@ -38,7 +38,6 @@ import com.beancounter.marketdata.providers.wtd.WtdService;
 import com.beancounter.marketdata.service.MarketDataProvider;
 import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.service.MdFactory;
-import com.beancounter.marketdata.utils.AlphaMockUtils;
 import com.beancounter.marketdata.utils.RegistrationUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -167,9 +166,8 @@ class TestAlphaVantageApi {
   @Test
   void is_MutualFundAssetEnrichedAndPriceReturned() throws Exception {
 
-    AlphaMockUtils.mockSearchResponse(alphaApi,
-        "B6WZJX0",
-        new ClassPathResource("/contracts" + "/alpha/mf-search.json").getFile());
+    mockSearchResponse(alphaApi, "B6WZJX0",
+        new ClassPathResource("/contracts/alpha/mf-search.json").getFile());
 
     mockGlobalResponse(
         alphaApi, "0P0000XMSV.LON",

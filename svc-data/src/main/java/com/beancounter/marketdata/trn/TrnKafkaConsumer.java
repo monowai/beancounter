@@ -7,7 +7,9 @@ import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.input.TrustedTrnImportRequest;
+import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.service.FxRateService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,6 +31,9 @@ public class TrnKafkaConsumer {
 
   @Value("${beancounter.topics.trn.csv:bc-trn-csv-dev}")
   public String topicTrnCsv;
+  @Value("${beancounter.topics.trn.event:bc-trn-event-dev}")
+  public String topicTrnEvent;
+
   private RowAdapter rowAdapter;
   private FxTransactions fxTransactions;
   private TrnService trnService;
@@ -66,15 +71,25 @@ public class TrnKafkaConsumer {
     return new NewTopic(topicTrnCsv, 1, (short) 1);
   }
 
+  @Bean
+  public NewTopic topicTrnEvent() {
+    return new NewTopic(topicTrnEvent, 1, (short) 1);
+  }
 
   @Bean
-  public String trnTopic() {
+  public String trnCsvTopic() {
     log.info("Topic: TRN-CSV set to {}", topicTrnCsv);
     return topicTrnCsv;
   }
 
-  @KafkaListener(topics = "#{@trnTopic}", errorHandler = "bcErrorHandler")
-  public TrnResponse processMessage(String message) throws JsonProcessingException {
+  @Bean
+  public String trnEventTopic() {
+    log.info("Topic: TRN-EVENT set to {}", topicTrnCsv);
+    return topicTrnEvent;
+  }
+
+  @KafkaListener(topics = "#{@trnCsvTopic}", errorHandler = "bcErrorHandler")
+  public TrnResponse fromCsvImport(String message) throws JsonProcessingException {
     TrustedTrnImportRequest trustedRequest = om.readValue(message, TrustedTrnImportRequest.class);
     if (trustedRequest.getMessage() != null) {
       log.info("Portfolio {} {}",
@@ -82,29 +97,46 @@ public class TrnKafkaConsumer {
           trustedRequest.getMessage());
       return TrnResponse.builder().build();
     } else {
-      return processMessage(trustedRequest);
+      log.trace("Received Message {}", trustedRequest.toString());
+      if (isValidPortfolio(trustedRequest.getPortfolio().getId())) {
+        return null;
+      }
+      TrnInput trnInput = rowAdapter.transform(trustedRequest);
+      return writeTrn(trustedRequest.getPortfolio(), trnInput);
     }
 
   }
 
-  public TrnResponse processMessage(TrustedTrnImportRequest trustedRequest) {
-    log.trace("Received Message {}", trustedRequest.toString());
-    if (!portfolioService.verify(trustedRequest.getPortfolio().getId())) {
-      log.debug("Portfolio no longer exists. Ignoring");
+  @KafkaListener(topics = "#{@trnEventTopic}", errorHandler = "bcErrorHandler")
+  public TrnResponse fromTrnRequest(String message) throws JsonProcessingException {
+    TrustedTrnEvent trustedTrnEvent = om.readValue(message, TrustedTrnEvent.class);
+    log.trace("Received Message {}", trustedTrnEvent.toString());
+    if (isValidPortfolio(trustedTrnEvent.getPortfolio().getId())) {
       return null;
     }
-    TrnInput trnInput = rowAdapter.transform(trustedRequest);
-    FxRequest fxRequest = fxTransactions.buildRequest(trustedRequest.getPortfolio(), trnInput);
+    return writeTrn(trustedTrnEvent.getPortfolio(), trustedTrnEvent.getTrnInput());
+
+  }
+
+  private boolean isValidPortfolio(String portfolioId) {
+    if (!portfolioService.verify(portfolioId)) {
+      log.debug("Portfolio no longer exists. Ignoring");
+      return true;
+    }
+    return false;
+  }
+
+  private TrnResponse writeTrn(Portfolio portfolio, TrnInput trnInput) {
+    FxRequest fxRequest = fxTransactions.buildRequest(portfolio, trnInput);
     FxResponse fxResponse = fxRateService.getRates(fxRequest);
     fxTransactions.setRates(fxResponse.getData(), fxRequest, trnInput);
 
     TrnRequest trnRequest = TrnRequest.builder()
-        .portfolioId(trustedRequest.getPortfolio().getId())
+        .portfolioId(portfolio.getId())
         .data(Collections.singletonList(trnInput))
         .build();
 
-    return trnService.save(trustedRequest.getPortfolio(), trnRequest);
-
+    return trnService.save(portfolio, trnRequest);
   }
 
 }

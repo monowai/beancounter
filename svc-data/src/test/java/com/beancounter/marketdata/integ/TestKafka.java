@@ -33,7 +33,6 @@ import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.trn.TrnKafkaConsumer;
-import com.beancounter.marketdata.trn.TrnService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -148,7 +147,9 @@ public class TestKafka {
 
     Asset expectedAsset = assetResponse.getData().get("MSFT");
 
-    TrnResponse response = trnKafkaConsumer.processMessage(trnRequest);
+    TrnResponse response = trnKafkaConsumer.fromCsvImport(
+        objectMapper.writeValueAsString(trnRequest));
+
     assertThat(response.getData()).isNotNull().hasSize(1);
     for (Trn trn : response.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
@@ -201,7 +202,8 @@ public class TestKafka {
 
     Asset expectedAsset = assetResponse.getData().get("B784NS1");
 
-    TrnResponse response = trnKafkaConsumer.processMessage(trnRequest);
+    TrnResponse response = trnKafkaConsumer
+        .fromCsvImport(objectMapper.writeValueAsString(trnRequest));
     assertThat(response.getData()).isNotNull().hasSize(1);
     for (Trn trn : response.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
@@ -311,7 +313,6 @@ public class TestKafka {
         .rate(new BigDecimal("2.34"))
         .build();
 
-    TrnService trnService = Mockito.mock(TrnService.class);
     Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(PortfolioUtils.getPortfolio("TEST"));
 

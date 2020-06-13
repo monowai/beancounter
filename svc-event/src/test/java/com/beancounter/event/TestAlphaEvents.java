@@ -2,6 +2,7 @@ package com.beancounter.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Currency;
@@ -9,7 +10,6 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.model.QuantityValues;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnStatus;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
@@ -52,10 +52,12 @@ public class TestAlphaEvents {
         .quantityValues(QuantityValues.builder().purchased(new BigDecimal("80")).build())
         .build();
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal("80"));
-    Trn trn = alphaEventAdapter.generate(portfolio, position, event);
-    assertThat(trn)
-        .hasFieldOrPropertyWithValue("portfolio.id", portfolio.getId())
-        .hasFieldOrPropertyWithValue("asset.id", asset.getId())
+    TrustedTrnEvent trnEvent = alphaEventAdapter.generate(portfolio, position, event);
+    assertThat(trnEvent).isNotNull();
+    assertThat(trnEvent.getPortfolio()).isNotNull();
+
+    assertThat(trnEvent.getTrnInput())
+        .hasFieldOrPropertyWithValue("asset", asset.getId())
         .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
         .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
         .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2020-05-19"))

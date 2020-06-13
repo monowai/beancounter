@@ -10,7 +10,6 @@ import com.beancounter.marketdata.portfolio.PortfolioService;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -79,12 +78,10 @@ public class EventWriter {
     PortfoliosResponse portfolios = portfolioService
         .findWhereHeld(corporateEvent.getAsset().getId(), corporateEvent.getRecordDate());
     for (Portfolio portfolio : portfolios.getData()) {
-      kafkaCaProducer.send(
-          new ProducerRecord<>(topicEvent, TrustedEventInput.builder()
-              .event(corporateEvent)
-              .portfolio(portfolio)
-              .build())
-      );
+      kafkaCaProducer.send(topicEvent, TrustedEventInput.builder()
+          .event(corporateEvent)
+          .portfolio(portfolio)
+          .build());
 
     }
   }

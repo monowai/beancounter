@@ -2,10 +2,11 @@ package com.beancounter.event.service.alpha;
 
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.identity.CallerRef;
+import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
-import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnStatus;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.MathUtils;
@@ -21,16 +22,18 @@ public class AlphaEventAdapter implements Event {
   }
 
   @Override
-  public Trn generate(Portfolio portfolio,
-                      Position currentPosition, CorporateEvent corporateEvent) {
+  public TrustedTrnEvent generate(Portfolio portfolio,
+                                  Position currentPosition, CorporateEvent corporateEvent) {
     if (corporateEvent.getTrnType().equals(TrnType.DIVI)) {
-      return toDividend(portfolio, currentPosition, corporateEvent);
+      return TrustedTrnEvent.builder()
+          .portfolio(portfolio)
+          .trnInput(toDividend(currentPosition, corporateEvent)).build();
     }
     throw new SystemException(String.format("Unsupported event type %s",
         corporateEvent.getTrnType()));
   }
 
-  private Trn toDividend(Portfolio portfolio, Position currentPosition,
+  private TrnInput toDividend(Position currentPosition,
                          CorporateEvent corporateEvent) {
     BigDecimal gross = calculateGross(currentPosition, corporateEvent.getRate());
     BigDecimal tax = calculateTax(currentPosition, gross);
@@ -38,18 +41,17 @@ public class AlphaEventAdapter implements Event {
         .provider(corporateEvent.getSource())
         .batch(corporateEvent.getId())
         .build();
-    return Trn.builder()
+    return TrnInput.builder()
         .callerRef(callerRef)
         .trnType(TrnType.DIVI)
         .status(TrnStatus.PROPOSED)
         .quantity(currentPosition.getQuantityValues().getTotal())
-        .portfolio(portfolio)
         .tradeDate(corporateEvent.getRecordDate().plusDays(18)) // Should be PayDate +1
-        .asset(corporateEvent.getAsset())
+        .asset(corporateEvent.getAsset().getId())
         .price(corporateEvent.getRate())
         .tax(tax)
-        .tradeCurrency(corporateEvent.getAsset().getMarket().getCurrency())
-        .cashCurrency(corporateEvent.getAsset().getMarket().getCurrency())
+        .tradeCurrency(corporateEvent.getAsset().getMarket().getCurrency().getCode())
+        .cashCurrency(corporateEvent.getAsset().getMarket().getCurrency().getCode())
         .tradeAmount(gross.subtract(tax))
         .build();
   }

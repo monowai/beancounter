@@ -4,10 +4,10 @@ import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.ingest.Filter;
 import com.beancounter.client.ingest.TrnAdapter;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
@@ -44,9 +44,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int comments = 12;
   private final DateUtils dateUtils = new DateUtils();
   private final ShareSightConfig shareSightConfig;
-  private Filter filter = new Filter(null);
-
   private final AssetIngestService assetIngestService;
+  private Filter filter = new Filter(null);
 
   public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
                                 AssetIngestService assetIngestService) {

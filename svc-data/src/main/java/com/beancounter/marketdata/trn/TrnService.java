@@ -3,8 +3,10 @@ package com.beancounter.marketdata.trn;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.exception.BusinessException;
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class TrnService {
   private final TrnRepository trnRepository;
   private final TrnAdapter trnAdapter;
   private final PortfolioService portfolioService;
+  private final DateUtils dateUtils = new DateUtils();
 
   TrnService(TrnRepository trnRepository,
              TrnAdapter trnAdapter,
@@ -60,7 +63,7 @@ public class TrnService {
    * Display order.
    *
    * @param portfolio fully qualified portfolio the caller is authorised to view
-   * @param assetId filter by pk
+   * @param assetId   filter by pk
    * @return Transactions in display order that is friendly for viewing.
    */
   public TrnResponse findByPortfolioAsset(Portfolio portfolio, String assetId) {
@@ -107,7 +110,12 @@ public class TrnService {
   }
 
   public TrnResponse findForPortfolio(Portfolio portfolio) {
+    return findForPortfolio(portfolio, dateUtils.getDate());
+  }
+
+  public TrnResponse findForPortfolio(Portfolio portfolio, LocalDate tradeDate) {
     Collection<Trn> results = trnRepository.findByPortfolioId(portfolio.getId(),
+        tradeDate,
         Sort.by("asset.code")
             .and(Sort.by("tradeDate")));
     log.debug("trns: {}, portfolio: {}", results.size(), portfolio.getCode());
@@ -146,6 +154,19 @@ public class TrnService {
       return TrnResponse.builder().build(); // Empty
     }
     return TrnResponse.builder().data(results).build();
+  }
+
+  public boolean isExists(TrustedTrnEvent trustedTrnEvent) {
+    LocalDate endDate = trustedTrnEvent.getTrnInput().getTradeDate().plusDays(20);
+    Collection<Trn> trnResults = trnRepository.findExisting(
+        trustedTrnEvent.getPortfolio().getId(),
+        trustedTrnEvent.getTrnInput().getAsset(),
+        trustedTrnEvent.getTrnInput().getTrnType(),
+        trustedTrnEvent.getTrnInput().getTradeDate(),
+        endDate
+    );
+
+    return !trnResults.isEmpty();
   }
 
 }

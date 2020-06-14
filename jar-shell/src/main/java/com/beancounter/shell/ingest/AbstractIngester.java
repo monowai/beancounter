@@ -2,8 +2,8 @@ package com.beancounter.shell.ingest;
 
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.exception.BusinessException;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrustedTrnImportRequest;
+import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public abstract class AbstractIngester implements Ingester {
-  private PortfolioServiceClient portfolioService;
   private final Map<String, TrnWriter> writers = new HashMap<>();
+  private PortfolioServiceClient portfolioService;
 
   @Autowired
   public void setPortfolioService(PortfolioServiceClient portfolioService) {

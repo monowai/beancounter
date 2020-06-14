@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
@@ -28,6 +28,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 @SpringBootTest(classes = {
     TrnAdapter.class})
 class TestTrnAdapter {
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @MockBean
   private PortfolioService portfolioService;
   @MockBean
@@ -36,8 +37,6 @@ class TestTrnAdapter {
   private CurrencyService currencyService;
   @Autowired
   private TrnAdapter trnAdapter;
-
-  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @Test
   void is_InputToTrn() {

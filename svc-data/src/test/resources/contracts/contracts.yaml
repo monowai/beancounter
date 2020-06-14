@@ -1,3 +1,17 @@
+#/portfolios/asset/X0BNQ34fS86_sn4wmfk7qQ/2020-05-01
+---
+name: whereHeld
+priority: 1
+request:
+  method: GET
+  url: /portfolios/asset/KMI/2020-05-01
+
+response:
+  status: 200
+  bodyFromFile: "portfolio/where-held-response.json"
+  headers:
+    Content-Type: application/json
+
 ---
 name: kmiTrnForAsset
 priority: 1

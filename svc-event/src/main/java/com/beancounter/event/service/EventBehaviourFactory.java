@@ -1,6 +1,6 @@
 package com.beancounter.event.service;
 
-import com.beancounter.common.model.CorporateEvent;
+import com.beancounter.common.event.CorporateEvent;
 import com.beancounter.event.service.alpha.AlphaEventAdapter;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class EventBehaviourFactory {
   Map<String, Event> adapters = new HashMap<>();
 
-  EventBehaviourFactory() {
+  public EventBehaviourFactory() {
     adapters.put("ALPHA", new AlphaEventAdapter(new TaxService()));
   }
 

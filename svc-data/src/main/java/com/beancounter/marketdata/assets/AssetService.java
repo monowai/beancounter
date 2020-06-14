@@ -7,8 +7,8 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.utils.KeyGenUtils;
-import com.beancounter.marketdata.event.EventWriter;
 import com.beancounter.marketdata.markets.MarketService;
+import com.beancounter.marketdata.service.MarketDataService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,8 +24,8 @@ import org.springframework.stereotype.Service;
 public class AssetService implements com.beancounter.client.AssetService {
   private final EnrichmentFactory enrichmentFactory;
   private AssetRepository assetRepository;
-  private EventWriter eventWriter;
   private MarketService marketService;
+  private MarketDataService marketDataService;
 
   AssetService(EnrichmentFactory enrichmentFactory) {
     this.enrichmentFactory = enrichmentFactory;
@@ -36,8 +37,8 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   @Autowired
-  public void setEventWriter(EventWriter eventWriter) {
-    this.eventWriter = eventWriter;
+  void setMarketDataService(MarketDataService marketDataService) {
+    this.marketDataService = marketDataService;
   }
 
   @Autowired
@@ -92,6 +93,15 @@ public class AssetService implements com.beancounter.client.AssetService {
       );
     }
     return AssetUpdateResponse.builder().data(assets).build();
+  }
+
+  @Override
+  @Async
+  public void backFillEvents(Asset asset) {
+    if (asset != null) {
+      marketDataService.backFill(asset);
+    }
+
   }
 
   public Asset find(String marketCode, String code) {
@@ -154,7 +164,6 @@ public class AssetService implements com.beancounter.client.AssetService {
   }
 
   public void purge() {
-    eventWriter.purge();
     assetRepository.deleteAll();
   }
 }

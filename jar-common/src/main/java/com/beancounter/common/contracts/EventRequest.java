@@ -1,6 +1,6 @@
 package com.beancounter.common.contracts;
 
-import com.beancounter.common.model.CorporateEvent;
+import com.beancounter.common.event.CorporateEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,6 +1,5 @@
-package com.beancounter.common.identity;
+package com.beancounter.common.model;
 
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.KeyGenUtils;
 import java.io.Serializable;
 import java.util.UUID;

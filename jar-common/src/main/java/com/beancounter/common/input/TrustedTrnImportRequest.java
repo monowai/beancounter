@@ -1,6 +1,6 @@
 package com.beancounter.common.input;
 
-import com.beancounter.common.identity.CallerRef;
+import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import java.util.List;
 import lombok.AllArgsConstructor;

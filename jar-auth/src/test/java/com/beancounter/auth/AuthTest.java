@@ -72,6 +72,11 @@ public class AuthTest {
   }
 
   @Test
+  void is_BearerToken() {
+    assertThat(tokenService.getBearerToken("Test")).isEqualTo("Bearer Test");
+  }
+
+  @Test
   void are_DefaultGrantsConvertedFromToken() {
     JwtRoleConverter jwtRoleConverter = new JwtRoleConverter();
     SystemUser user = SystemUser.builder()

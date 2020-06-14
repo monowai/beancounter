@@ -12,8 +12,6 @@ import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.service.FxRateService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -39,7 +37,6 @@ public class TrnKafkaConsumer {
   private TrnService trnService;
   private FxRateService fxRateService;
   private PortfolioService portfolioService;
-  private final ObjectMapper om = new ObjectMapper();
 
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
@@ -84,13 +81,12 @@ public class TrnKafkaConsumer {
 
   @Bean
   public String trnEventTopic() {
-    log.info("Topic: TRN-EVENT set to {}", topicTrnCsv);
+    log.info("Topic: TRN-EVENT set to {}", topicTrnEvent);
     return topicTrnEvent;
   }
 
   @KafkaListener(topics = "#{@trnCsvTopic}", errorHandler = "bcErrorHandler")
-  public TrnResponse fromCsvImport(String message) throws JsonProcessingException {
-    TrustedTrnImportRequest trustedRequest = om.readValue(message, TrustedTrnImportRequest.class);
+  public TrnResponse fromCsvImport(TrustedTrnImportRequest trustedRequest) {
     if (trustedRequest.getMessage() != null) {
       log.info("Portfolio {} {}",
           trustedRequest.getPortfolio().getCode(),
@@ -98,32 +94,31 @@ public class TrnKafkaConsumer {
       return TrnResponse.builder().build();
     } else {
       log.trace("Received Message {}", trustedRequest.toString());
-      if (isValidPortfolio(trustedRequest.getPortfolio().getId())) {
-        return null;
+      if (verifyPortfolio(trustedRequest.getPortfolio().getId())) {
+        TrnInput trnInput = rowAdapter.transform(trustedRequest);
+        return writeTrn(trustedRequest.getPortfolio(), trnInput);
       }
-      TrnInput trnInput = rowAdapter.transform(trustedRequest);
-      return writeTrn(trustedRequest.getPortfolio(), trnInput);
+      return null;
     }
 
   }
 
   @KafkaListener(topics = "#{@trnEventTopic}", errorHandler = "bcErrorHandler")
-  public TrnResponse fromTrnRequest(String message) throws JsonProcessingException {
-    TrustedTrnEvent trustedTrnEvent = om.readValue(message, TrustedTrnEvent.class);
+  public TrnResponse fromTrnRequest(TrustedTrnEvent trustedTrnEvent) {
     log.trace("Received Message {}", trustedTrnEvent.toString());
-    if (isValidPortfolio(trustedTrnEvent.getPortfolio().getId())) {
-      return null;
+    if (verifyPortfolio(trustedTrnEvent.getPortfolio().getId())) {
+      if (!trnService.isExists(trustedTrnEvent)) {
+        return writeTrn(trustedTrnEvent.getPortfolio(), trustedTrnEvent.getTrnInput());
+      }
+      {
+        log.debug(
+            "Ignoring transaction on {} that already exists",
+            trustedTrnEvent.getTrnInput().getTradeDate());
+      }
     }
-    return writeTrn(trustedTrnEvent.getPortfolio(), trustedTrnEvent.getTrnInput());
+    return null;
 
-  }
 
-  private boolean isValidPortfolio(String portfolioId) {
-    if (!portfolioService.verify(portfolioId)) {
-      log.debug("Portfolio no longer exists. Ignoring");
-      return true;
-    }
-    return false;
   }
 
   private TrnResponse writeTrn(Portfolio portfolio, TrnInput trnInput) {
@@ -137,6 +132,14 @@ public class TrnKafkaConsumer {
         .build();
 
     return trnService.save(portfolio, trnRequest);
+  }
+
+  private boolean verifyPortfolio(String portfolioId) {
+    if (!portfolioService.verify(portfolioId)) {
+      log.debug("Portfolio {} no longer exists. Ignoring", portfolioId);
+      return false;
+    }
+    return true;
   }
 
 }

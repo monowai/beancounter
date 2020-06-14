@@ -4,5 +4,6 @@ import com.beancounter.common.model.Portfolio;
 
 public interface TrnImport {
   Portfolio getPortfolio();
+
   String getMessage();
 }

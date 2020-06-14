@@ -77,6 +77,7 @@ public class ContractVerifierBase {
   public static final Asset MSFT_INVALID = getAsset("NASDAQ", "MSFTx");
   public static final Asset AMP = getAsset("ASX", "AMP");
   private final DateUtils dateUtils = new DateUtils();
+  private final ObjectMapper om = new ObjectMapper();
   @MockBean
   JwtDecoder jwtDecoder;
   @MockBean
@@ -91,10 +92,8 @@ public class ContractVerifierBase {
   private AssetService assetService;
   @MockBean
   private SystemUserService systemUserService;
-
   @Autowired
   private WebApplicationContext context;
-  private final ObjectMapper om = new ObjectMapper();
 
   @BeforeEach
   @SneakyThrows
@@ -202,22 +201,29 @@ public class ContractVerifierBase {
     mockPortfolio(getEmptyPortfolio());
     mockPortfolio(getTestPortfolio());
     // All Portfolio
-    File jsonFile =
-        new ClassPathResource("contracts/portfolio/portfolios.json").getFile();
-    PortfoliosResponse response = om.readValue(jsonFile, PortfoliosResponse.class);
-    Mockito.when(portfolioService.getPortfolios()).thenReturn(response.getData());
+    Mockito.when(portfolioService.getPortfolios()).thenReturn(
+        om.readValue(
+            new ClassPathResource("contracts/portfolio/portfolios.json").getFile(),
+            PortfoliosResponse.class).getData()
+    );
 
-    jsonFile =
-        new ClassPathResource("contracts/portfolio/add-request.json").getFile();
-    PortfoliosRequest portfoliosRequest =
-        om.readValue(jsonFile, PortfoliosRequest.class);
+    Mockito.when(portfolioService.findWhereHeld(
+        "KMI",
+        dateUtils.getDate("2020-05-01")))
+        .thenReturn(
+            om.readValue(
+                new ClassPathResource("contracts/portfolio/where-held-response.json").getFile(),
+                PortfoliosResponse.class)
+        );
 
-    jsonFile =
-        new ClassPathResource("contracts/portfolio/add-response.json").getFile();
-    PortfoliosResponse portfoliosResponse =
-        om.readValue(jsonFile, PortfoliosResponse.class);
-    Mockito.when(portfolioService.save(portfoliosRequest.getData()))
-        .thenReturn(portfoliosResponse.getData());
+
+    Mockito.when(portfolioService.save(
+        om.readValue(new ClassPathResource("contracts/portfolio/add-request.json").getFile(),
+            PortfoliosRequest.class).getData()))
+        .thenReturn(
+            om.readValue(new ClassPathResource("contracts/portfolio/add-response.json").getFile(),
+                PortfoliosResponse.class)
+                .getData());
   }
 
   private Portfolio getTestPortfolio() throws IOException {

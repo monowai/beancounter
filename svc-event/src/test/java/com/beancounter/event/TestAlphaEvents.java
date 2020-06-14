@@ -2,9 +2,9 @@ package com.beancounter.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.event.CorporateEvent;
 import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
@@ -15,6 +15,7 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.PortfolioUtils;
+import com.beancounter.event.service.EventBehaviourFactory;
 import com.beancounter.event.service.alpha.AlphaEventAdapter;
 import com.beancounter.event.service.alpha.AlphaEventConfig;
 import java.math.BigDecimal;
@@ -41,7 +42,7 @@ public class TestAlphaEvents {
     CorporateEvent event = CorporateEvent.builder()
         .trnType(TrnType.DIVI)
         .source("ALPHA")
-        .asset(asset)
+        .assetId(asset.getId())
         .recordDate(dateUtils.getDate("2020-05-01"))
         .rate(new BigDecimal("0.2625"))
         .build();
@@ -52,7 +53,7 @@ public class TestAlphaEvents {
         .quantityValues(QuantityValues.builder().purchased(new BigDecimal("80")).build())
         .build();
     assertThat(position.getQuantityValues().getTotal()).isEqualTo(new BigDecimal("80"));
-    TrustedTrnEvent trnEvent = alphaEventAdapter.generate(portfolio, position, event);
+    TrustedTrnEvent trnEvent = alphaEventAdapter.calculate(portfolio, position, event);
     assertThat(trnEvent).isNotNull();
     assertThat(trnEvent.getPortfolio()).isNotNull();
 
@@ -65,5 +66,30 @@ public class TestAlphaEvents {
         .hasFieldOrPropertyWithValue("tax", new BigDecimal("6.30")) // @ 30%
         .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("14.70"))
     ;
+  }
+
+  @Test
+  void is_FutureDatedTrnIgnored() {
+    Market market = Market.builder()
+        .code("NASDAQ")
+        .currency(USD)
+        .build();
+    Asset asset = AssetUtils.getAsset(market, "KMI");
+    DateUtils dateUtils = new DateUtils();
+
+    CorporateEvent event = CorporateEvent.builder()
+        .trnType(TrnType.DIVI)
+        .source("ALPHA")
+        .assetId(asset.getId())
+        .recordDate(dateUtils.getDate())
+        .rate(new BigDecimal("0.2625"))
+        .build();
+    EventBehaviourFactory behaviourFactory = new EventBehaviourFactory();
+    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST", USD);
+
+    assertThat (behaviourFactory
+        .getAdapter(event)
+        .calculate(portfolio, Position.builder().asset(asset).build(), event).getTrnInput())
+        .isNull();
   }
 }

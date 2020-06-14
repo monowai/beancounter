@@ -72,6 +72,22 @@ public class ContractVerifierBase {
         .thenReturn(om.readValue(
             new ClassPathResource("contracts/kmi-response.json").getFile(),
             PositionResponse.class));
+
+    Mockito.when(valuationService.build(TrustedTrnQuery.builder()
+        .assetId("MSFT")
+        .tradeDate(dateUtils.getDate("2020-05-01"))
+        .portfolio(Portfolio.builder()
+            .code("TEST")
+            .id("TEST")
+            .name("NZD Portfolio")
+            .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
+            .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
+            .build())
+        .build()))
+        .thenReturn(om.readValue(
+            new ClassPathResource("contracts/msft-response.json").getFile(),
+            PositionResponse.class));
+
   }
 
   @Test

@@ -1,4 +1,4 @@
-package com.beancounter.common.json;
+package com.beancounter.common.utils;
 
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -19,12 +19,13 @@ import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.event.CorporateEvent;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
@@ -43,12 +44,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
@@ -75,6 +79,7 @@ class TestAlphaVantageApi {
 
   private static WireMockRule alphaApi;
   private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final DateUtils dateUtils = new DateUtils();
   @Autowired
   private MdFactory mdFactory;
   @Autowired
@@ -86,13 +91,13 @@ class TestAlphaVantageApi {
   @Autowired
   private PriceService priceService;
   @Autowired
-  private EventWriter eventWriter;
-  @Autowired
   private ScheduledValuation scheduledValuation;
   @Autowired
   private AssetService assetService;
   @Autowired
   private WebApplicationContext context;
+  @Spy
+  private EventWriter eventWriter;
   private MockMvc mockMvc;
   private Jwt token;
 
@@ -195,7 +200,7 @@ class TestAlphaVantageApi {
     PriceResponse priceResponse = marketDataService.getPriceResponse(assetResponse.getData());
     assertThat(priceResponse.getData().iterator().next())
         .isNotNull()
-        .hasFieldOrPropertyWithValue("priceDate", new DateUtils().getDate("2020-05-12"))
+        .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2020-05-12"))
         .hasFieldOrPropertyWithValue("close", new BigDecimal("3.1620"))
         .hasFieldOrPropertyWithValue("previousClose", new BigDecimal("3.1620"))
         .hasFieldOrPropertyWithValue("low", new BigDecimal("3.1620"))
@@ -355,10 +360,10 @@ class TestAlphaVantageApi {
   @Test
   void is_BackFillNasdaqIncludingDividendEvent() throws Exception {
     mockSearchResponse(alphaApi, "KMI",
-        new ClassPathResource(alphaContracts + "/kmi-search.json").getFile());
+        new ClassPathResource("/contracts/alpha/kmi-search.json").getFile());
 
     mockAdjustedResponse(alphaApi, "KMI",
-        new ClassPathResource(alphaContracts + "/backfill-response.json").getFile());
+        new ClassPathResource("/contracts/alpha/kmi-backfill-response.json").getFile());
 
     AssetUpdateResponse result = assetService
         .process(AssetRequest.builder()
@@ -366,17 +371,27 @@ class TestAlphaVantageApi {
                 .code("KMI")
                 .market("NASDAQ")
                 .build()).build());
-    Asset asset = result.getData().get("key");
 
+    Asset asset = result.getData().get("key");
+    priceService.setEventWriter(eventWriter);
     marketDataService.backFill(asset);
-    Thread.sleep(200);
-    DateUtils dateUtils = new DateUtils();
-    Optional<MarketData> marketData = priceService
-        .getMarketData(asset.getId(), dateUtils.getDate("2020-05-01"));
+    Thread.sleep(300);
+    LocalDate date = dateUtils.getDate("2020-05-01");
+    Optional<MarketData> marketData = priceService.getMarketData(asset.getId(), date);
 
     assertThat(marketData.isPresent());
-    Collection<CorporateEvent> events = eventWriter.get(asset);
-    assertThat(events).hasSize(1);
+
+    Mockito.verify(eventWriter, Mockito.times(1))
+        .write(
+            CorporateEvent.builder()
+                .source("ALPHA")
+                .trnType(TrnType.DIVI)
+                .assetId(asset.getId())
+                .recordDate(date)
+                .rate(new BigDecimal("0.2625"))
+                .split(new BigDecimal("1.0000"))
+                .build()
+        );
   }
 
 }

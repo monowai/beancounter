@@ -47,7 +47,6 @@ public class AssetController {
   @GetMapping(value = "/{assetId}")
   AssetResponse getAsset(@PathVariable String assetId) {
     return AssetResponse.builder().data(assetService.find(assetId)).build();
-
   }
 
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)

@@ -52,7 +52,7 @@ class TestAlphaPrices {
   @Test
   void is_CollectionFromResponseReturnedWithDividend() throws Exception {
     PriceResponse result = priceMapper.readValue(
-        new ClassPathResource(alphaContracts + "/backfill-response.json").getFile(),
+        new ClassPathResource(alphaContracts + "/kmi-backfill-response.json").getFile(),
         PriceResponse.class);
 
     assertThat(result.getData()).isNotNull().hasSize(5);

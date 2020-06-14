@@ -2,9 +2,9 @@ package com.beancounter.marketdata.trn;
 
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.KeyGenUtils;

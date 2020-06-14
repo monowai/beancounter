@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@ConditionalOnProperty(value = "kafka.enabled", matchIfMissing = false)
+@ConditionalOnProperty(value = "kafka.enabled")
 public class KafkaUtils {
   public String findBcCause(ListenerExecutionFailedException e) {
     StackTraceElement[] stackTrace = e.getMostSpecificCause().getStackTrace();

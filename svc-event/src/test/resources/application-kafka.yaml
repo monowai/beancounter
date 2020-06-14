@@ -2,17 +2,27 @@ kafka:
   enabled: "true"
   broker.port: 0
 
+stubrunner:
+  kafka:
+    enabled: false
+
 spring:
   kafka:
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: com.beancounter.common.input
       group-id: event-test
-
-
   embedded:
     kafka:
       brokers: "localhost:${kafka.broker.port}"
+
+beancounter:
+  topics:
+    trn:
+      event: testTrnEvent
+    ca:
+      event: testCaEvent
+
+marketdata:
+  url: "http://localhost:11999"
+
+position:
+  url: "http://localhost:12999"

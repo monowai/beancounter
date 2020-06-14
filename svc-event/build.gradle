@@ -13,6 +13,7 @@ dependencies {
             project(":jar-client"),
             "org.springframework.boot:spring-boot-starter-web",
             "org.springframework.boot:spring-boot-starter-logging",
+            "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "org.springframework.boot:spring-boot-starter-security",
             "org.springframework.security:spring-security-oauth2-resource-server",
@@ -22,6 +23,8 @@ dependencies {
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
+            "com.h2database:h2",
+            "org.postgresql:postgresql:42.2.13",
             "com.github.ben-manes.caffeine:caffeine",
             "org.springframework.kafka:spring-kafka"
     )
@@ -38,6 +41,7 @@ dependencies {
             "org.projectlombok:lombok",
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
+            "com.h2database:h2",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",

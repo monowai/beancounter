@@ -140,7 +140,7 @@ public class PortfolioService {
     LocalDate recordDate = (tradeDate == null ? dateUtils.getDate(dateUtils.today()) : tradeDate);
     Collection<Portfolio> portfolios = portfolioRepository
         .findDistinctPortfolioByAssetIdAndTradeDate(assetId, recordDate);
-    log.info("Found {} notional holders for {}", portfolios.size(), assetId);
+    log.trace("Found {} notional holders for assetId: {}", portfolios.size(), assetId);
     return PortfoliosResponse.builder().data(portfolios).build();
   }
 

@@ -18,14 +18,16 @@ import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.identity.CallerRef;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.Asset;
+import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
+import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
@@ -33,6 +35,7 @@ import com.beancounter.marketdata.assets.figi.FigiProxy;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
+import com.beancounter.marketdata.trn.TrnService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -60,6 +63,7 @@ import org.springframework.web.context.WebApplicationContext;
 public class TrnControllerTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
+  private final DateUtils dateUtils = new DateUtils();
   @Autowired
   private WebApplicationContext wac;
   @Autowired
@@ -68,12 +72,12 @@ public class TrnControllerTest {
   private PortfolioService portfolioService;
   @Autowired
   private CurrencyService currencyService;
-
+  @Autowired
+  private TrnService trnService;
   private MockMvc mockMvc;
   @MockBean
   private FigiProxy figiProxy;
   private Jwt token;
-  private final DateUtils dateUtils = new DateUtils();
 
   @Autowired
   void mockServices() {
@@ -112,6 +116,62 @@ public class TrnControllerTest {
     TrnResponse trnResponse = objectMapper.readValue(body, TrnResponse.class);
 
     assertThat(trnResponse.getData()).isNotNull().hasSize(0);
+
+  }
+
+  @Test
+  void is_ExistingDividendFound() throws Exception {
+    Market nasdaq = marketService.getMarket("NASDAQ");
+
+    Asset msft = asset(AssetRequest.builder()
+        .data("msft", AssetUtils.getAssetInput(nasdaq.getCode(), "MSFT"))
+        .build());
+
+    Portfolio portfolioA = portfolio(PortfolioInput.builder()
+        .code("DIV-TEST")
+        .name("NZD Portfolio")
+        .currency("NZD")
+        .build());
+
+    // Creating in random order and assert retrieved in Sort Order.
+    Collection<TrnInput> existingTrns = new ArrayList<>();
+    existingTrns.add(TrnInput.builder()
+        .callerRef(CallerRef.builder()
+            .batch("DIV-TEST")
+            .callerId("1").build())
+        .asset(msft.getId())
+        .tradeDate(dateUtils.getDate("2020-03-10"))
+        .trnType(TrnType.DIVI)
+        .quantity(BigDecimal.TEN)
+        .price(BigDecimal.TEN)
+        .tradeCurrency(nasdaq.getCurrency().getCode())
+        .tradePortfolioRate(BigDecimal.ONE)
+        .build());
+
+    TrnRequest trnRequest = TrnRequest.builder()
+        .data(existingTrns)
+        .portfolioId(portfolioA.getId())
+        .build();
+
+    trnService.save(portfolioA, trnRequest);
+    TrnInput proposedDivi = existingTrns.iterator().next();
+
+    TrustedTrnEvent trustedTrnEvent = TrustedTrnEvent.builder()
+        .portfolio(portfolioA)
+        .trnInput(proposedDivi)
+        .build();
+
+    assertThat(trnService.isExists(trustedTrnEvent))
+        .isTrue();
+
+    // Record date is earlier than an existing trn trade date
+    proposedDivi.setTradeDate(dateUtils.getDate("2020-02-25"));
+    assertThat(trnService.isExists(trustedTrnEvent))
+        .isTrue(); // Within 20 days of proposed trade date
+
+    proposedDivi.setTradeDate(dateUtils.getDate("2020-03-09"));
+    assertThat(trnService.isExists(trustedTrnEvent))
+        .isTrue(); // Within 20 days of proposed trade date
 
   }
 
@@ -214,8 +274,19 @@ public class TrnControllerTest {
 
     // All transactions are now in place.
 
-    PortfoliosResponse portfolios = portfolioService.findWhereHeld(msft.getId(),
-        dateUtils.getDate("2018-01-01"));
+    MvcResult response = mockMvc.perform(
+        get("/portfolios/asset/{assetId}/{tradeDate}",
+            msft.getId(), "2018-01-01")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+
+    PortfoliosResponse portfolios = objectMapper
+        .readValue(response.getResponse().getContentAsString(), PortfoliosResponse.class);
+
     assertThat(portfolios.getData()).hasSize(2);
     portfolios = portfolioService.findWhereHeld(msft.getId(), dateUtils.getDate("2016-01-01"));
     assertThat(portfolios.getData()).hasSize(1);

@@ -1,6 +1,5 @@
 package com.beancounter.common.model;
 
-import com.beancounter.common.identity.CallerRef;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

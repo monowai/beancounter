@@ -7,16 +7,15 @@ import com.beancounter.client.AssetService;
 import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
-import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.contracts.TrnResponse;
+import com.beancounter.common.event.CorporateEvent;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrustedEventInput;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.CorporateEvent;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
@@ -70,6 +69,7 @@ import org.springframework.test.context.ActiveProfiles;
 public class TestKafka {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final DateUtils dateUtils = new DateUtils();
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
@@ -92,8 +92,6 @@ public class TestKafka {
   private EventWriter eventWriter;
   @Autowired
   private CurrencyService currencyService;
-
-  private final DateUtils dateUtils = new DateUtils();
 
   @Test
   void is_StaticDataLoaded() {
@@ -147,10 +145,12 @@ public class TestKafka {
 
     Asset expectedAsset = assetResponse.getData().get("MSFT");
 
-    TrnResponse response = trnKafkaConsumer.fromCsvImport(
-        objectMapper.writeValueAsString(trnRequest));
+    TrnResponse response = trnKafkaConsumer.fromCsvImport(trnRequest);
 
-    assertThat(response.getData()).isNotNull().hasSize(1);
+    assertThat(response).isNotNull();
+    assertThat(response.getData())
+        .isNotNull()
+        .hasSize(1);
     for (Trn trn : response.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
       assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "123");
@@ -203,7 +203,8 @@ public class TestKafka {
     Asset expectedAsset = assetResponse.getData().get("B784NS1");
 
     TrnResponse response = trnKafkaConsumer
-        .fromCsvImport(objectMapper.writeValueAsString(trnRequest));
+        .fromCsvImport(trnRequest);
+    assertThat(response).isNotNull();
     assertThat(response.getData()).isNotNull().hasSize(1);
     for (Trn trn : response.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
@@ -305,7 +306,7 @@ public class TestKafka {
     assertThat(asset.getMarket()).isNotNull();
 
     CorporateEvent event = CorporateEvent.builder()
-        .asset(asset)
+        .assetId(asset.getId())
         .source("ALPHA")
         .trnType(TrnType.DIVI)
         .payDate(dateUtils.getDate("2019-12-20"))
@@ -316,17 +317,9 @@ public class TestKafka {
     Collection<Portfolio> portfolios = new ArrayList<>();
     portfolios.add(PortfolioUtils.getPortfolio("TEST"));
 
-    PortfolioService mockPortfolio = Mockito.mock(PortfolioService.class);
-    eventWriter.setPortfolioService(mockPortfolio);
-    Mockito.when(
-        mockPortfolio.findWhereHeld(asset.getId(), event.getRecordDate()))
-        .thenReturn(PortfoliosResponse.builder().data(portfolios).build());
-
-    eventWriter.setPortfolioService(mockPortfolio);
 
     // Compare with a serialised event
-    event = objectMapper.readValue(
-        objectMapper.writeValueAsString(eventWriter.save(event)), CorporateEvent.class);
+    eventWriter.write(event);
 
     ConsumerRecord<String, String>
         consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "topicEvent");
@@ -335,10 +328,8 @@ public class TestKafka {
     TrustedEventInput received = objectMapper.readValue(consumerRecord.value(),
         TrustedEventInput.class);
 
-    assertThat(received.getEvent())
+    assertThat(received.getData())
         .isEqualToComparingFieldByField(event);
-    assertThat(received.getPortfolio())
-        .isEqualToComparingFieldByField(portfolios.iterator().next());
 
   }
 

@@ -1,8 +1,8 @@
 package com.beancounter.common.input;
 
 
-import com.beancounter.common.model.CorporateEvent;
-import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.contracts.Payload;
+import com.beancounter.common.event.CorporateEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrustedEventInput {
-  private Portfolio portfolio;
-  private CorporateEvent event;
+public class TrustedEventInput implements Payload<CorporateEvent> {
+  private CorporateEvent data;
 }

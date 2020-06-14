@@ -11,8 +11,6 @@ spring:
       properties:
         spring.json.trusted.packages: com.beancounter.common.input
       group-id: data-test
-
-
   embedded:
     kafka:
       brokers: "localhost:${kafka.broker.port}"

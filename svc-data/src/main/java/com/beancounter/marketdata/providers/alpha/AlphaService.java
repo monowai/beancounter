@@ -129,12 +129,14 @@ public class AlphaService implements MarketDataProvider {
     String json = results.get();
     PriceResponse priceResponse = alphaPriceAdapter.getAlphaMapper()
         .readValue(json, PriceResponse.class);
-
-    for (MarketData marketData : priceResponse.getData()) {
-      marketData.setSource(AlphaService.ID);
-      marketData.setAsset(asset);
+    if (priceResponse != null) {
+      for (MarketData marketData : priceResponse.getData()) {
+        marketData.setSource(AlphaService.ID);
+        marketData.setAsset(asset);
+      }
+      return priceResponse;
     }
-    return priceResponse;
+    return PriceResponse.builder().build();
   }
 
 

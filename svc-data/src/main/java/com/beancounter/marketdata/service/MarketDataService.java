@@ -44,12 +44,12 @@ public class MarketDataService {
   }
 
   @Transactional
-  @Async
   public void backFill(Asset asset) {
     Collection<Asset> assets = new ArrayList<>();
     assets.add(asset);
-    Map<MarketDataProvider, Collection<Asset>>
-        byFactory = providerUtils.splitProviders(providerUtils.getInputs(assets));
+    Map<MarketDataProvider, Collection<Asset>>  byFactory =
+        providerUtils.splitProviders(providerUtils.getInputs(assets));
+
     for (MarketDataProvider marketDataProvider : byFactory.keySet()) {
       priceService.process(marketDataProvider.backFill(asset));
     }

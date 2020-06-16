@@ -20,7 +20,7 @@ dependencies() {
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "io.github.openfeign:feign-core:$openFeign",
-            "org.springframework.kafka:spring-kafka:2.5.1.RELEASE",
+            "org.springframework.kafka:spring-kafka:2.5.2.RELEASE",
             "com.google.guava:guava:$guava"
     )
 
@@ -35,7 +35,7 @@ dependencies() {
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "org.springframework.kafka:spring-kafka:2.5.1.RELEASE",
+            "org.springframework.kafka:spring-kafka:2.5.2.RELEASE",
             "org.projectlombok:lombok:$lombokVersion",
             "org.assertj:assertj-core:$assertJ",
             "io.github.openfeign:feign-core:$openFeign",

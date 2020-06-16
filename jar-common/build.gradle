@@ -1,9 +1,9 @@
 buildscript {
     ext {
         openFeign = "10.9"
-        springWeb = "5.2.5.RELEASE"
+        springWeb = "5.2.7.RELEASE"
         guava = "29.0-android"
-
+        springKafka = "2.5.2.RELEASE"
 
     }
 }
@@ -20,7 +20,7 @@ dependencies() {
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "io.github.openfeign:feign-core:$openFeign",
-            "org.springframework.kafka:spring-kafka:2.5.1.RELEASE",
+            "org.springframework.kafka:spring-kafka:$springKafka",
             "com.google.guava:guava:$guava"
     )
 
@@ -35,7 +35,7 @@ dependencies() {
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "org.springframework.kafka:spring-kafka:2.5.1.RELEASE",
+            "org.springframework.kafka:spring-kafka:$springKafka",
             "org.projectlombok:lombok:$lombokVersion",
             "org.assertj:assertj-core:$assertJ",
             "io.github.openfeign:feign-core:$openFeign",

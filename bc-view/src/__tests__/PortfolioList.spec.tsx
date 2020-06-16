@@ -21,7 +21,7 @@ nock(bff, {
 
 describe("<Portfolios />", () => {
   it("should match snapshot", async () => {
-    const { getByText, container } = render(
+    const { container } = render(
       <MemoryRouter initialEntries={["/"]} keyLength={0}>
         <Portfolios />
       </MemoryRouter>

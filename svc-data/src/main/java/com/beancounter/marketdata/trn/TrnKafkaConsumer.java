@@ -12,13 +12,14 @@ import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.service.FxRateService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,7 @@ public class TrnKafkaConsumer {
   private TrnService trnService;
   private FxRateService fxRateService;
   private PortfolioService portfolioService;
+  private ObjectMapper om = new ObjectMapper();
 
   @Autowired
   void setFxTransactions(FxTransactions fxTransactions) {
@@ -63,29 +65,12 @@ public class TrnKafkaConsumer {
     this.rowAdapter = rowAdapter;
   }
 
-  @Bean
-  public NewTopic topicTrnCvs() {
-    return new NewTopic(topicTrnCsv, 1, (short) 1);
-  }
-
-  @Bean
-  public NewTopic topicTrnEvent() {
-    return new NewTopic(topicTrnEvent, 1, (short) 1);
-  }
-
-  @Bean
-  public String trnCsvTopic() {
-    log.info("Topic: TRN-CSV set to {}", topicTrnCsv);
-    return topicTrnCsv;
-  }
-
-  @Bean
-  public String trnEventTopic() {
-    log.info("Topic: TRN-EVENT set to {}", topicTrnEvent);
-    return topicTrnEvent;
-  }
 
   @KafkaListener(topics = "#{@trnCsvTopic}", errorHandler = "bcErrorHandler")
+  public TrnResponse fromCsvImport(String payload) throws IOException {
+    return fromCsvImport(om.readValue(payload, TrustedTrnImportRequest.class));
+  }
+
   public TrnResponse fromCsvImport(TrustedTrnImportRequest trustedRequest) {
     if (trustedRequest.getMessage() != null) {
       log.info("Portfolio {} {}",
@@ -104,6 +89,10 @@ public class TrnKafkaConsumer {
   }
 
   @KafkaListener(topics = "#{@trnEventTopic}", errorHandler = "bcErrorHandler")
+  public TrnResponse fromTrnRequest(String payload) throws JsonProcessingException {
+    return fromTrnRequest(om.readValue(payload, TrustedTrnEvent.class));
+  }
+
   public TrnResponse fromTrnRequest(TrustedTrnEvent trustedTrnEvent) {
     log.trace("Received Message {}", trustedTrnEvent.toString());
     if (verifyPortfolio(trustedTrnEvent.getPortfolio().getId())) {

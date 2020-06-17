@@ -23,7 +23,6 @@ import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.event.EventWriter;
@@ -49,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -56,24 +56,28 @@ import org.springframework.test.context.ActiveProfiles;
 
 @EmbeddedKafka(
     partitions = 1,
-    topics = {"topicTrnCsv", "topicPrice", "topicEvent"},
+    topics = {TestKafka.TOPIC_TRN_CSV, "topicPrice", TestKafka.TOPIC_EVENT},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
         "log.dir=./build/kafka",
         "auto.create.topics.enable=true"}
 )
-//@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("kafka")
 @Slf4j
 public class TestKafka {
 
+  public static final String TOPIC_TRN_CSV = "topicTrnCsv";
+  public static final String TOPIC_EVENT = "topicEvent";
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final DateUtils dateUtils = new DateUtils();
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
+
+  @Autowired
+  private KafkaTemplate<Object, TrustedTrnImportRequest> kafkaWriter;
   @Autowired
   private MarketDataService marketDataService;
   @Autowired
@@ -96,13 +100,15 @@ public class TestKafka {
   @Test
   void is_StaticDataLoaded() {
     assertThat(currencyService.getCurrencies()).isNotEmpty();
-
   }
 
   @SneakyThrows
   @Test
-  void is_TrnRequestReceived() {
+  void is_TrnRequestSentAndReceived() {
     log.debug(embeddedKafkaBroker.getBrokersAsString());
+
+    Consumer<String, String> consumer = getKafkaConsumer("data-test", TOPIC_TRN_CSV);
+
     assertThat(currencyService.getCurrencies()).isNotEmpty();
     SystemUser owner = systemUserService.save(SystemUser.builder().id("mike").build());
     Mockito.when(tokenService.getSubject()).thenReturn(owner.getId());
@@ -143,18 +149,43 @@ public class TestKafka {
         .portfolio(pfResponse.iterator().next())
         .build();
 
-    Asset expectedAsset = assetResponse.getData().get("MSFT");
+    kafkaWriter.send(TOPIC_TRN_CSV, trnRequest);
 
-    TrnResponse response = trnKafkaConsumer.fromCsvImport(trnRequest);
+    ConsumerRecord<String, String>
+        consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_TRN_CSV);
 
-    assertThat(response).isNotNull();
-    assertThat(response.getData())
+    assertThat(consumerRecord.value()).isNotNull();
+
+    TrustedTrnImportRequest received = objectMapper
+        .readValue(consumerRecord.value(), TrustedTrnImportRequest.class);
+
+    TrnResponse trnResponse = trnKafkaConsumer.fromCsvImport(received);
+
+    assertThat(trnResponse).isNotNull();
+    assertThat(trnResponse.getData())
         .isNotNull()
         .hasSize(1);
-    for (Trn trn : response.getData()) {
+
+    Asset expectedAsset = assetResponse.getData().get("MSFT");
+
+    for (Trn trn : trnResponse.getData()) {
       assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
       assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "123");
     }
+  }
+
+  private Consumer<String, String> getKafkaConsumer(String group, String topicTrnCsv) {
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps(group, "false", embeddedKafkaBroker);
+    consumerProps.put("session.timeout.ms", 6000);
+    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    //consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    DefaultKafkaConsumerFactory<String, String> cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+
+    Consumer<String, String> consumer = cf.createConsumer();
+    embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, topicTrnCsv);
+    return consumer;
   }
 
   @SneakyThrows
@@ -282,16 +313,7 @@ public class TestKafka {
 
   @Test
   void is_CorporateEventDispatched() throws Exception {
-    Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("data-test", "false", embeddedKafkaBroker);
-    consumerProps.put("session.timeout.ms", 6000);
-    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-    DefaultKafkaConsumerFactory<String, String> cf =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-
-    Consumer<String, String> consumer = cf.createConsumer();
-
-    embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, "topicEvent");
+    Consumer<String, String> consumer = getKafkaConsumer("data-event-test", TOPIC_EVENT);
 
     AssetRequest assetRequest = AssetRequest.builder()
         .data("a", AssetInput.builder()
@@ -314,15 +336,11 @@ public class TestKafka {
         .rate(new BigDecimal("2.34"))
         .build();
 
-    Collection<Portfolio> portfolios = new ArrayList<>();
-    portfolios.add(PortfolioUtils.getPortfolio("TEST"));
-
-
     // Compare with a serialised event
     eventWriter.write(event);
 
     ConsumerRecord<String, String>
-        consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "topicEvent");
+        consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_EVENT);
     assertThat(consumerRecord.value()).isNotNull();
 
     TrustedEventInput received = objectMapper.readValue(consumerRecord.value(),

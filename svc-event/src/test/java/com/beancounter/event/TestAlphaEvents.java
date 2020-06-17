@@ -87,7 +87,7 @@ public class TestAlphaEvents {
     EventBehaviourFactory behaviourFactory = new EventBehaviourFactory();
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST", USD);
 
-    assertThat (behaviourFactory
+    assertThat(behaviourFactory
         .getAdapter(event)
         .calculate(portfolio, Position.builder().asset(asset).build(), event).getTrnInput())
         .isNull();

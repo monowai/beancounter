@@ -1,0 +1,9 @@
+{
+  "topic": "bc-trn-csv-dev",
+  "partition": 0,
+  "offset": 52,
+  "tstype": "create",
+  "ts": 1592358429301,
+  "key": null,
+  "payload": "{\"portfolio\":{\"id\":\"1tBzW4CURW6WBNdsokBvRw\",\"code\":\"USX\",\"name\":\"US Exclusive Valuentum\",\"currency\":{\"code\":\"GBP\",\"name\":\"Pound\",\"symbol\":\"￡\"},\"base\":{\"code\":\"NZD\",\"name\":\"Dollar\",\"symbol\":\"$\"},\"owner\":{\"id\":\"4b914769-4eba-4268-8766-d5d6386fea53\",\"email\":\"blah\",\"active\":true,\"since\":\"2020-06-17\"}},\"row\":[\"170\",\"NYSE\",\"BAC\",\"Corp.\",\"Buy\",\"08/06/2020\",\"40\",\"28.60\",\"10\",\"USD\",\"1.1800\"]}"
+}

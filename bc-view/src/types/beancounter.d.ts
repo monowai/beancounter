@@ -1,14 +1,6 @@
 import { GroupBy } from "./groupBy";
 import { ValuationCcy } from "./valueBy";
 
-declare global {
-  interface Window {
-    initialI18nStore: any;
-    initialLanguage: any;
-    env: any;
-  }
-}
-
 export type TrnType = "BUY" | "SELL" | "DIVI" | "SPLIT";
 
 export interface Market {
@@ -155,12 +147,3 @@ interface Transaction {
   comments: string;
 }
 
-interface BcResult<T> {
-  data: T | any;
-  error: AxiosError | any;
-}
-
-interface TransactionUpload {
-  portfolio: Portfolio;
-  row: string[];
-}

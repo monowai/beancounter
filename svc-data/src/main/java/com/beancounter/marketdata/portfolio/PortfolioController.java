@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/portfolios")
 @PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
-public class
-PortfolioController {
+public class PortfolioController {
   private final DateUtils dateUtils = new DateUtils();
   private PortfolioService portfolioService;
 

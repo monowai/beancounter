@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class PositionService {
   private final EventBehaviourFactory behaviourFactory;
   private final PositionGateway positionGateway;
-  private final TokenService tokenService ;
+  private final TokenService tokenService;
   private final PortfolioServiceClient portfolioService;
   private final AssetService assetService;
   private final DateUtils dateUtils = new DateUtils();
@@ -80,7 +80,7 @@ public class PositionService {
 
     for (String key : results.getData().getPositions().keySet()) {
       Position position = results.getData().getPositions().get(key);
-      if ( position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) != 0 ){
+      if (position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) != 0) {
         assetService.backFillEvents(position.getAsset());
       }
     }

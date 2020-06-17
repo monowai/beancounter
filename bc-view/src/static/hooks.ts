@@ -1,9 +1,10 @@
-import { BcResult, Currency } from "../types/beancounter";
+import { Currency } from "../types/beancounter";
 import { useEffect, useState } from "react";
 import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { AxiosError } from "axios";
+import { BcResult } from "../types/app";
 
 export function useCurrencies(): BcResult<Currency[]> {
   const [currencies, setCurrencies] = useState<Currency[]>([]);

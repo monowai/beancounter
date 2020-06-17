@@ -1,15 +1,14 @@
-import { TransactionUpload } from "../types/beancounter";
 import logger from "../common/configLogging";
 import express from "express";
 import kafka from "kafka-node";
 import { bcConfig } from "../common/config";
+import { TransactionUpload } from "../types/app";
 
 function writeTrn(trnRequest: TransactionUpload): void {
   try {
     const client = new kafka.KafkaClient({ kafkaHost: bcConfig.kafkaUrl });
     const HighLevelProducer = kafka.HighLevelProducer;
     const producer = new HighLevelProducer(client);
-
     const payloads = [
       {
         topic: bcConfig.topicCsvTrn,

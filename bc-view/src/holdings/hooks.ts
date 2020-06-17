@@ -1,9 +1,10 @@
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import { BcResult, HoldingContract } from "../types/beancounter";
+import { HoldingContract } from "../types/beancounter";
 import logger from "../common/configLogging";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { AxiosError } from "axios";
+import { BcResult } from "../types/app";
 
 export function useHoldings(code: string): BcResult<HoldingContract> {
   const [holdingResults, setHoldings] = useState<HoldingContract>();

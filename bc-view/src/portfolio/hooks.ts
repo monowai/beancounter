@@ -1,10 +1,11 @@
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import { BcResult, Portfolio } from "../types/beancounter";
+import { Portfolio } from "../types/beancounter";
 import logger from "../common/configLogging";
 import { useEffect, useState } from "react";
 import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { USD } from "../static/hooks";
+import { BcResult } from "../types/app";
 
 export function usePortfolios(): BcResult<Portfolio[]> {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);

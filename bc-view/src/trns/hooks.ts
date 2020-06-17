@@ -1,9 +1,10 @@
-import { BcResult, Transaction } from "../types/beancounter";
+import { Transaction } from "../types/beancounter";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import logger from "../common/configLogging";
+import { BcResult } from "../types/app";
 
 export function useAssetTransactions(
   portfolioId: string,

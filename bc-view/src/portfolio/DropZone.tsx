@@ -4,6 +4,8 @@ import { Portfolio } from "../types/beancounter";
 import { useKeycloak } from "@react-keycloak/razzle";
 import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
+import { writeRows } from "./import";
+import { DelimitedImport } from "../types/app";
 
 export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement {
   const [keycloak] = useKeycloak();
@@ -19,67 +21,13 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
           // Do whatever you want with the file contents
           if (typeof reader.result === "string") {
             const results = reader.result.split("\n");
-            let headerSkipped = false;
-            let rows = 0;
-            results.forEach(function (value) {
-              if (headerSkipped) {
-                rows++;
-                const row = value.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                if (row && !row[0].startsWith("#")) {
-                  _axios
-                    .post<string>(
-                      "/upload/trn",
-                      { portfolio: props.portfolio, row },
-                      {
-                        headers: getBearerToken(keycloak.token),
-                      }
-                    )
-                    .catch((err) => {
-                      if (err.response) {
-                        logger.error(
-                          "axios error [%s]: [%s]",
-                          err.response.status,
-                          err.response.data.message
-                        );
-                      }
-                    });
-                }
-              } else {
-                // Something to process so we will purge the existing positions
-                // Currently not tracking primary keys so this prevents duplicate trns
-                _axios
-                  .delete(`/bff/trns/portfolio/${props.portfolio.id}`, {
-                    headers: getBearerToken(keycloak.token),
-                  })
-                  .catch((err) => {
-                    if (err.response) {
-                      logger.error(
-                        "axios error [%s]: [%s]",
-                        err.response.status,
-                        err.response.data.message
-                      );
-                    }
-                  });
-                headerSkipped = true;
-                _axios
-                  .post<string>(
-                    "/upload/trn",
-                    { portfolio: props.portfolio, message: "Starting Import" },
-                    {
-                      headers: getBearerToken(keycloak.token),
-                    }
-                  )
-                  .catch((err) => {
-                    if (err.response) {
-                      logger.error(
-                        "axios error [%s]: [%s]",
-                        err.response.status,
-                        err.response.data.message
-                      );
-                    }
-                  });
-              }
-            });
+            const params: DelimitedImport = {
+              hasHeader: true,
+              portfolio: props.portfolio,
+              results,
+              token: keycloak.token,
+            };
+            const rows = writeRows(params);
             logger.debug("<<POST trnUpload sent %s", rows);
             _axios
               .post<string>(

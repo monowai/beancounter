@@ -5,6 +5,7 @@ import { DelimitedImport } from "../types/app";
 export function writeRows(params: DelimitedImport): number {
   let headerSkipped = false;
   let rows = 0;
+  let purged = false;
   params.results.forEach(function (value) {
     if (!params.hasHeader || headerSkipped) {
       rows++;
@@ -31,15 +32,22 @@ export function writeRows(params: DelimitedImport): number {
     } else {
       // Something to process so we will purge the existing positions
       // Currently not tracking primary keys so this prevents duplicate trns
-      _axios
-        .delete(`/bff/trns/portfolio/${params.portfolio.id}`, {
-          headers: getBearerToken(params.token),
-        })
-        .catch((err) => {
-          if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
-          }
-        });
+      if (!purged && params.purge) {
+        _axios
+          .delete(`/bff/trns/portfolio/${params.portfolio.id}`, {
+            headers: getBearerToken(params.token),
+          })
+          .then(() => (purged = true))
+          .catch((err) => {
+            if (err.response) {
+              logger.error(
+                "axios error [%s]: [%s]",
+                err.response.status,
+                err.response.data.message
+              );
+            }
+          });
+      }
       headerSkipped = true;
       _axios
         .post<string>(

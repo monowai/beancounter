@@ -129,6 +129,7 @@ public class TrnService {
    * @return number of deleted transactions
    */
   public long purge(Portfolio portfolio) {
+    log.debug("Purging transactions for {}", portfolio.getCode());
     return trnRepository.deleteByPortfolioId(portfolio.getId());
   }
 

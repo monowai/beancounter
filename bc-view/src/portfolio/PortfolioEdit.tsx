@@ -18,6 +18,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [pfId, setPortfolioId] = useState<string>(portfolioId);
   const portfolioResult = usePortfolio(pfId);
+  const [purgeTrn, setPurgeTrn] = useState(false);
   const currencyResult = useCurrencies();
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
@@ -95,6 +96,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
   if (errors) {
     console.log(errors);
   }
+
   if (isDone(portfolioResult) && isDone(currencyResult)) {
     if (portfolioResult.error) {
       return ErrorPage(portfolioResult.error.stack, portfolioResult.error.message);
@@ -177,7 +179,18 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
                   </div>
                 </div>
                 <div className="field">
-                  <TrnDropZone portfolio={portfolio} />
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={purgeTrn}
+                      onChange={() => setPurgeTrn(!purgeTrn)}
+                    />
+                    Delete existing transactions
+                  </label>
+                </div>
+
+                <div className="field">
+                  <TrnDropZone portfolio={portfolio} purgeTrn={purgeTrn} />
                 </div>
               </form>
             </div>

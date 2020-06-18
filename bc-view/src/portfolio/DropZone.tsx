@@ -7,9 +7,12 @@ import { _axios, getBearerToken } from "../common/axiosUtils";
 import { writeRows } from "./import";
 import { DelimitedImport } from "../types/app";
 
-export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement {
+export function TrnDropZone(props: {
+  portfolio: Portfolio;
+  purgeTrn: boolean;
+}): React.ReactElement {
   const [keycloak] = useKeycloak();
-
+  //const [purgeTrn] = useState(props.purgeTrn);
   // https://github.com/react-dropzone/react-dropzone
   const onDrop = useCallback(
     (acceptedFiles) => {
@@ -24,6 +27,7 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
             const params: DelimitedImport = {
               hasHeader: true,
               portfolio: props.portfolio,
+              purge: props.purgeTrn,
               results,
               token: keycloak.token,
             };
@@ -51,7 +55,7 @@ export function TrnDropZone(props: { portfolio: Portfolio }): React.ReactElement
         reader.readAsText(file, "utf-8");
       });
     },
-    [props.portfolio, keycloak]
+    [props.portfolio, keycloak, props.purgeTrn]
   );
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 

@@ -16,9 +16,10 @@ interface TransactionUpload {
 }
 
 export interface DelimitedImport {
-  results: string[];
   hasHeader: boolean;
   portfolio: Portfolio;
+  purge: boolean;
+  results: string[];
   token: string | undefined;
 }
 

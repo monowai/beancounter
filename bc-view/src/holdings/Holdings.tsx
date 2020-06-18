@@ -37,7 +37,7 @@ export default function ViewHoldings(code: string): JSX.Element {
       return (
         <div data-testid="dropzone">
           <label>This portfolio has no transactions. Please drop your CSV file to upload</label>
-          <TrnDropZone portfolio={holdingResults.data.portfolio} />
+          <TrnDropZone portfolio={holdingResults.data.portfolio} purgeTrn={false} />
         </div>
       );
     }

@@ -33,6 +33,8 @@ logging:
       springframework.scheduling: debug
       hibernate: error
       apache: error
+      postgres: error
+      postgresql: error
     kafa: info
 
 auth:

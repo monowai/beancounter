@@ -10,7 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-public interface TrnRepository extends CrudRepository<Trn, CallerRef> {
+public interface TrnRepository extends CrudRepository<Trn, String> {
 
   @Query(
       "select t from Trn t where "
@@ -24,6 +24,8 @@ public interface TrnRepository extends CrudRepository<Trn, CallerRef> {
   long deleteByPortfolioId(String portfolioId);
 
   Optional<Trn> findByPortfolioIdAndId(String portfolioId, String trnId);
+
+  Optional<Trn> findByCallerRef(CallerRef callerRef);
 
   @Query(
       "select t from Trn t where "

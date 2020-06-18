@@ -49,14 +49,28 @@ public class TrnService {
 
   public TrnResponse save(Portfolio portfolio, TrnRequest trnRequest) {
     TrnResponse trnResponse = trnAdapter.convert(portfolio, trnRequest);
-    Iterable<Trn> saved = trnRepository.saveAll(trnResponse.getData());
+    TrnResponse newTrn = findToCreate(trnResponse.getData());
+    // Figure out
+    Iterable<Trn> saved = trnRepository.saveAll(newTrn.getData());
     Collection<Trn> trns = new ArrayList<>();
     saved.forEach(trns::add);
     trnResponse.setData(trns);
     log.trace("Wrote {}/{} transactions for {}",
-        trnResponse.getData().size(), trnRequest.getData().size(), portfolio.getCode());
+        trnResponse.getData().size(),
+        trnRequest.getData().size(),
+        portfolio.getCode());
 
     return trnResponse;
+  }
+
+  private TrnResponse findToCreate(Collection<Trn> data) {
+    TrnResponse toCreate = TrnResponse.builder().build();
+    for (Trn trn : data) {
+      if ( trnRepository.findByCallerRef(trn.getCallerRef()).isEmpty()) {
+        toCreate.getData().add(trn);
+      }
+    }
+    return toCreate;
   }
 
   /**

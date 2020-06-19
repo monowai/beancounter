@@ -5,7 +5,9 @@ import com.beancounter.client.AssetService;
 import com.beancounter.common.contracts.AssetRequest;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.model.Asset;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
@@ -21,9 +23,17 @@ public class AssetServiceClient implements AssetService {
   private final AssetGateway assetGateway;
   private final TokenService tokenService;
 
+  @Value("${marketdata.url:http://localhost:9510/api}")
+  private String marketDataUrl;
+
   AssetServiceClient(AssetGateway assetGateway, TokenService tokenService) {
     this.tokenService = tokenService;
     this.assetGateway = assetGateway;
+  }
+
+  @PostConstruct
+  void logConfig() {
+    log.info("marketdata.url: {}", marketDataUrl);
   }
 
   @Override
@@ -35,7 +45,6 @@ public class AssetServiceClient implements AssetService {
   @Async
   public void backFillEvents(Asset asset) {
     log.debug("Back fill for {}", asset.getCode());
-
     assetGateway.backFill(tokenService.getBearerToken(), asset.getId());
   }
 
@@ -53,7 +62,7 @@ public class AssetServiceClient implements AssetService {
         produces = {MediaType.APPLICATION_JSON_VALUE},
         consumes = {MediaType.APPLICATION_JSON_VALUE})
     void backFill(@RequestHeader("Authorization") String bearerToken,
-                                @PathVariable("id") String assetId);
+                  @PathVariable("id") String assetId);
 
   }
 

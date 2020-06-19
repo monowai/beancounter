@@ -1,4 +1,4 @@
-package com.beancounter.event.integ;
+package com.beancounter.event.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -78,7 +78,7 @@ public class StubbedEvents {
     CorporateEvent second = eventService.save(event);
     assertThat(second.getId()).isEqualTo(saved.getId());
 
-    assertThat(eventService.get(event.getAssetId()))
+    assertThat(eventService.forAsset(event.getAssetId()))
         .isNotNull()
         .hasSize(1);
   }

@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"asset_id", "priceDate"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"source", "asset_id", "priceDate"}))
 public class MarketData {
   @Getter
   @Id

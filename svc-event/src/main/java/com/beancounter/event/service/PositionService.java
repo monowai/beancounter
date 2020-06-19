@@ -14,30 +14,51 @@ import com.beancounter.common.utils.DateUtils;
 import com.beancounter.event.integration.PositionGateway;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class PositionService {
   private final EventBehaviourFactory behaviourFactory;
-  private final PositionGateway positionGateway;
-  private final TokenService tokenService;
-  private final PortfolioServiceClient portfolioService;
+  private PositionGateway positionGateway;
+  private PortfolioServiceClient portfolioService;
+
+  private TokenService tokenService;
   private final AssetService assetService;
   private final DateUtils dateUtils = new DateUtils();
 
-  public PositionService(EventBehaviourFactory eventBehaviourFactory,
-                         PortfolioServiceClient portfolioService,
-                         AssetService assetService,
-                         TokenService tokenService,
-                         PositionGateway positionGateway) {
-    this.behaviourFactory = eventBehaviourFactory;
-    this.positionGateway = positionGateway;
-    this.tokenService = tokenService;
-    this.assetService = assetService;
-    this.portfolioService = portfolioService;
+  @Value("${position.url:http://localhost:9500/api}")
+  private String positionUrl;
 
+  public PositionService(EventBehaviourFactory eventBehaviourFactory,
+                         AssetService assetService) {
+    this.behaviourFactory = eventBehaviourFactory;
+    this.assetService = assetService;
+  }
+
+  @Autowired
+  public void setTokenService(TokenService tokenService) {
+    this.tokenService = tokenService;
+  }
+
+  @Autowired
+  public void setPositionGateway(PositionGateway positionGateway) {
+    this.positionGateway = positionGateway;
+  }
+
+  @Autowired
+  public void setPortfolioClientService(PortfolioServiceClient portfolioServiceClient) {
+    this.portfolioService = portfolioServiceClient;
+  }
+
+
+  @PostConstruct
+  void logConfig() {
+    log.info("position.url: {}", positionUrl);
   }
 
   public PortfoliosResponse findWhereHeld(String assetId, LocalDate date) {
@@ -74,9 +95,11 @@ public class PositionService {
       asAt = dateUtils.getDateString(dateUtils.getDate(date));
     }
 
-    PositionResponse results = positionGateway.get(tokenService.getBearerToken(),
-        portfolio.getCode(),
-        asAt);
+    PositionResponse results = positionGateway
+        .get(
+            tokenService.getBearerToken(),
+            portfolio.getCode(),
+            asAt);
 
     for (String key : results.getData().getPositions().keySet()) {
       Position position = results.getData().getPositions().get(key);
@@ -85,4 +108,5 @@ public class PositionService {
       }
     }
   }
+
 }

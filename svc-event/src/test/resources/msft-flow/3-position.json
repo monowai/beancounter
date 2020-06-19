@@ -1,0 +1,21 @@
+{
+  "data": {
+    "portfolio": {
+      "id": "TEST",
+      "code": "TEST",
+      "name": "TEST",
+      "currency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "base": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      }
+    },
+    "asAt": "2020-05-20",
+    "totals": null
+  }
+}

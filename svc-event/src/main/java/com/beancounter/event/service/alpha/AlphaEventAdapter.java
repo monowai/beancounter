@@ -37,9 +37,9 @@ public class AlphaEventAdapter implements Event {
 
   private TrnInput toDividend(Position currentPosition,
                               CorporateEvent corporateEvent) {
-    LocalDate tradeDate = corporateEvent.getRecordDate().plusDays(18);
+    LocalDate payDate = corporateEvent.getRecordDate().plusDays(18);
 
-    if (tradeDate.compareTo(dateUtils.getDate()) > 0) {
+    if (payDate.compareTo(dateUtils.getDate()) > 0) {
       return null; // Don't create forward dated transactions
     }
 
@@ -54,7 +54,7 @@ public class AlphaEventAdapter implements Event {
         .trnType(TrnType.DIVI)
         .status(TrnStatus.PROPOSED)
         .quantity(currentPosition.getQuantityValues().getTotal())
-        .tradeDate(tradeDate) // Should be PayDate +1
+        .tradeDate(payDate) // Should be PayDate +1
         .asset(corporateEvent.getAssetId())
         .price(corporateEvent.getRate())
         .tax(tax)

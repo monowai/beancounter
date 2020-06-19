@@ -66,7 +66,7 @@ public class TrnService {
   private TrnResponse findToCreate(Collection<Trn> data) {
     TrnResponse toCreate = TrnResponse.builder().build();
     for (Trn trn : data) {
-      if ( trnRepository.findByCallerRef(trn.getCallerRef()).isEmpty()) {
+      if (trnRepository.findByCallerRef(trn.getCallerRef()).isEmpty()) {
         toCreate.getData().add(trn);
       }
     }

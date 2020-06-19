@@ -107,8 +107,6 @@ public class TestKafka {
   void is_TrnRequestSentAndReceived() {
     log.debug(embeddedKafkaBroker.getBrokersAsString());
 
-    Consumer<String, String> consumer = getKafkaConsumer("data-test", TOPIC_TRN_CSV);
-
     assertThat(currencyService.getCurrencies()).isNotEmpty();
     SystemUser owner = systemUserService.save(SystemUser.builder().id("mike").build());
     Mockito.when(tokenService.getSubject()).thenReturn(owner.getId());
@@ -148,6 +146,8 @@ public class TestKafka {
         .row(row)
         .portfolio(pfResponse.iterator().next())
         .build();
+
+    Consumer<String, String> consumer = getKafkaConsumer("data-test", TOPIC_TRN_CSV);
 
     kafkaWriter.send(TOPIC_TRN_CSV, trnRequest);
 
@@ -313,7 +313,6 @@ public class TestKafka {
 
   @Test
   void is_CorporateEventDispatched() throws Exception {
-    Consumer<String, String> consumer = getKafkaConsumer("data-event-test", TOPIC_EVENT);
 
     AssetRequest assetRequest = AssetRequest.builder()
         .data("a", AssetInput.builder()
@@ -335,6 +334,8 @@ public class TestKafka {
         .recordDate(dateUtils.getDate("2019-12-10"))
         .rate(new BigDecimal("2.34"))
         .build();
+
+    Consumer<String, String> consumer = getKafkaConsumer("data-event-test", TOPIC_EVENT);
 
     // Compare with a serialised event
     eventWriter.write(event);

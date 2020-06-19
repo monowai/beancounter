@@ -6,31 +6,23 @@ import com.beancounter.common.input.TrustedEventInput;
 import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.KeyGenUtils;
+import com.beancounter.event.contract.CorporateEventResponse;
+import com.beancounter.event.contract.CorporateEventsResponse;
+import com.beancounter.event.integration.EventPublisher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-@ConditionalOnProperty(value = "kafka.enabled", matchIfMissing = true)
 @Service
 @Slf4j
 public class EventService {
 
   private final EventRepository eventRepository;
   private final PositionService positionService;
-  @Value("${beancounter.topics.ca.event:bc-ca-event-dev}")
-  public String topicCaEvent;
-  @Value("${beancounter.topics.trn.event:bc-trn-event-dev}")
-  public String topicTrnEvent;
-  private KafkaTemplate<String, TrustedTrnEvent> kafkaTemplate;
+  private EventPublisher eventPublisher;
 
   public EventService(PositionService positionService,
                       EventRepository eventRepository) {
@@ -38,47 +30,39 @@ public class EventService {
     this.eventRepository = eventRepository;
   }
 
-  @Bean
-  public NewTopic topicEvent() {
-    return new NewTopic(topicCaEvent, 1, (short) 1);
+  @Autowired(required = false)
+  public void setEventPublisher(EventPublisher eventPublisher) {
+    this.eventPublisher = eventPublisher;
   }
 
-  @Bean
-  public String caTopic() {
-    log.info("Topics: CA-EVENT: {} TRN-EVENT: {}", topicCaEvent, topicTrnEvent);
-    return topicCaEvent;
-  }
-
-  @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-  @Autowired
-  public void setKafkaTemplate(KafkaTemplate<String, TrustedTrnEvent> kafkaTemplate) {
-    this.kafkaTemplate = kafkaTemplate;
-  }
-
-  @KafkaListener(topics = "#{@caTopic}", errorHandler = "bcErrorHandler")
   public Collection<TrustedTrnEvent> processMessage(TrustedEventInput eventRequest) {
-    Collection<TrustedTrnEvent> results = new ArrayList<>();
     if (eventRequest.getData() != null) {
-      CorporateEvent event = save(eventRequest.getData());
-
-      PortfoliosResponse response = positionService.findWhereHeld(
-          event.getAssetId(),
-          event.getRecordDate());
-      if (response != null && response.getData() != null) {
-        for (Portfolio portfolio : response.getData()) {
-          TrustedTrnEvent trnEvent = positionService.process(portfolio, event);
-
-          // Don't create forward dated transactions
-          if (trnEvent != null && trnEvent.getTrnInput() != null) {
-            kafkaTemplate.send(topicTrnEvent, trnEvent);
-            results.add(trnEvent);
-          }
-
-        }
-        return results;
-      }
+      return processMessage(
+          save(eventRequest.getData())
+      );
     }
     return null;
+  }
+
+  public Collection<TrustedTrnEvent> processMessage(CorporateEvent event) {
+    Collection<TrustedTrnEvent> results = new ArrayList<>();
+    PortfoliosResponse response = positionService.findWhereHeld(
+        event.getAssetId(),
+        event.getRecordDate());
+    if (response != null && response.getData() != null) {
+      for (Portfolio portfolio : response.getData()) {
+        TrustedTrnEvent trnEvent = positionService.process(portfolio, event);
+        // Don't create forward dated transactions
+        if (trnEvent != null && trnEvent.getTrnInput() != null) {
+          if (eventPublisher != null) {
+            eventPublisher.send(trnEvent);
+          }
+          results.add(trnEvent);
+        }
+
+      }
+    }
+    return results;
   }
 
   public CorporateEvent save(CorporateEvent event) {
@@ -94,8 +78,30 @@ public class EventService {
     return eventRepository.save(event);
   }
 
-  public Collection<CorporateEvent> get(String assetId) {
+  public CorporateEventResponse get(String id) {
+    Optional<CorporateEvent> result = eventRepository.findById(id);
+    return result
+        .map(corporateEvent -> CorporateEventResponse.builder().data(corporateEvent).build())
+        .orElse(null);
+  }
+
+  public CorporateEventsResponse getAssetEvents(String assetId) {
+    Collection<CorporateEvent> events = eventRepository.findByAssetId(assetId);
+    CorporateEventsResponse response = CorporateEventsResponse.builder().build();
+
+    for (CorporateEvent event : events) {
+      response.getData().add(event);
+    }
+    return response;
+
+  }
+
+  public Collection<CorporateEvent> forAsset(String assetId) {
     return eventRepository.findByAssetId(assetId);
+  }
+
+  public void backFillEvents(String portfolioCode, String valuationDate) {
+    positionService.backFillEvents(portfolioCode, valuationDate);
   }
 
 }

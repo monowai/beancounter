@@ -32,11 +32,12 @@ public class CorporateEvent {
   private TrnType trnType;
   @NonNull
   private String source;
-
+  @NonNull
   private String assetId;
-  @Column(precision = 15, scale = 6)
+
+  @Column(precision = 15, scale = 4)
   private BigDecimal rate;
-  @Column(precision = 15, scale = 6)
+  @Column(precision = 15, scale = 4)
   private BigDecimal split;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

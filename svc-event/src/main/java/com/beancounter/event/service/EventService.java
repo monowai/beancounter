@@ -9,6 +9,7 @@ import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.event.contract.CorporateEventResponse;
 import com.beancounter.event.contract.CorporateEventsResponse;
 import com.beancounter.event.integration.EventPublisher;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -34,6 +35,7 @@ public class EventService {
   public void setEventPublisher(EventPublisher eventPublisher) {
     this.eventPublisher = eventPublisher;
   }
+
 
   public Collection<TrustedTrnEvent> processMessage(TrustedEventInput eventRequest) {
     if (eventRequest.getData() != null) {
@@ -104,4 +106,7 @@ public class EventService {
     positionService.backFillEvents(portfolioCode, valuationDate);
   }
 
+  public Collection<CorporateEvent> findInRange(LocalDate start, LocalDate end) {
+    return eventRepository.findByDateRange(start, end);
+  }
 }

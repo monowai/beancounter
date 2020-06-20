@@ -24,13 +24,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PositionService {
   private final EventBehaviourFactory behaviourFactory;
-  private PositionGateway positionGateway;
-  private PortfolioServiceClient portfolioService;
-
-  private TokenService tokenService;
   private final AssetService assetService;
   private final DateUtils dateUtils = new DateUtils();
-
+  private PositionGateway positionGateway;
+  private PortfolioServiceClient portfolioService;
+  private TokenService tokenService;
   @Value("${position.url:http://localhost:9500/api}")
   private String positionUrl;
 

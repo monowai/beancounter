@@ -30,7 +30,7 @@ logging:
       zaxxer: error
     org:
       springframework: error
-      springframework.scheduling: debug
+      springframework.scheduling: info
       hibernate: error
       apache: error
       postgres: error
@@ -54,9 +54,15 @@ spring:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
   security:
     oauth2:
+      registration:
+        custom:
+          client-id: bc-service
+          client-secret: not-set
+          authorization-grant-type: client_credentials
       resourceserver:
         jwt:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+
   kafka:
     bootstrap-servers: kafka:9092
     producer:

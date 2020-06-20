@@ -33,7 +33,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("kafka")
+@ActiveProfiles({"kafka"})
 @EmbeddedKafka(
     partitions = 1,
     topics = {StubbedEvents.TRN_EVENT, StubbedEvents.CA_EVENT},
@@ -69,7 +69,7 @@ public class StubbedEvents {
         .source("ALPHA")
         .trnType(TrnType.DIVI)
         .recordDate(new DateUtils().getDate("2019-12-20"))
-        .rate(new BigDecimal("2.34"))
+        .rate(new BigDecimal("2.3400"))
         .build();
 
     CorporateEvent saved = eventService.save(event);
@@ -81,6 +81,12 @@ public class StubbedEvents {
     assertThat(eventService.forAsset(event.getAssetId()))
         .isNotNull()
         .hasSize(1);
+
+    // Is Found?
+    Collection<CorporateEvent> events = eventService
+        .findInRange(event.getRecordDate().minusDays(2), event.getRecordDate());
+    assertThat(events).hasSize(1);
+    assertThat(events.iterator().next()).isEqualToComparingFieldByField(saved);
   }
 
   @Test

@@ -21,13 +21,14 @@ public class EventPublisher {
   void logConfig() {
     log.info("TRN-EVENT: {} ", topicTrnEvent);
   }
+
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   public void setKafkaTemplate(KafkaTemplate<String, TrustedTrnEvent> kafkaTemplate) {
     this.kafkaTemplate = kafkaTemplate;
   }
 
-  public void send(TrustedTrnEvent trnEvent){
+  public void send(TrustedTrnEvent trnEvent) {
     kafkaTemplate.send(topicTrnEvent, trnEvent);
   }
 }

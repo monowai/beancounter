@@ -1,8 +1,12 @@
 package com.beancounter.auth.client;
 
+import static org.springframework.security.oauth2.core.AuthorizationGrantType.CLIENT_CREDENTIALS;
+import static org.springframework.security.oauth2.core.AuthorizationGrantType.PASSWORD;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -19,6 +23,12 @@ public class LoginService {
   private final AuthGateway authGateway;
 
   private final JwtDecoder jwtDecoder;
+
+  @Value("${spring.security.oauth2.registration.custom.client-id:bc-service}")
+  private String clientId;
+
+  @Value("${spring.security.oauth2.registration.custom.client-secret:not-set}")
+  private String secret;
 
   public LoginService(AuthGateway authGateway, JwtDecoder jwtDecoder) {
     this.authGateway = authGateway;
@@ -38,6 +48,31 @@ public class LoginService {
     log.info("Logged in as {}", user);
   }
 
+  /**
+   * m2m login using preconfigured secret.
+   * <p>
+   * Sets the authentication token if the call is successful.
+   *
+   * @return token
+   */
+  public String login() {
+    if ("not-set".equals(secret)) {
+      return null;
+    }
+
+    Login login = Login.builder()
+        .grant_type(CLIENT_CREDENTIALS.getValue())
+        .client_id(clientId)
+        .client_secret(secret)
+        .build();
+    OAuth2Response response = authGateway.login(login);
+    assert response != null;
+    SecurityContextHolder.getContext().setAuthentication(
+        new JwtAuthenticationToken(jwtDecoder.decode(response.getToken())));
+    log.info("Service logged into {}", clientId);
+    return response.getToken();
+  }
+
   @FeignClient(name = "oauth",
       url = "${auth.uri:http://keycloak:9620/auth}", configuration = AuthBeans.class)
   public interface AuthGateway {
@@ -55,8 +90,9 @@ public class LoginService {
     private String username;
     private String password;
     private String client_id;
+    private String client_secret;
     @Builder.Default
-    private String grant_type = "password";
+    private String grant_type = PASSWORD.getValue();
   }
 
 }

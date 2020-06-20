@@ -1,6 +1,7 @@
 package com.beancounter.auth.common;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.beancounter.auth.client.LoginService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -11,11 +12,15 @@ public class TokenService {
 
   public static final String BEARER = "Bearer ";
 
-  @Value("${auth.apikey:undefined}")
-  private String apiKey;
+  private LoginService loginService;
 
   private static boolean isTokenBased(Authentication authentication) {
     return authentication.getClass().isAssignableFrom(JwtAuthenticationToken.class);
+  }
+
+  @Autowired(required = false)
+  void setLoginService(LoginService loginService) {
+    this.loginService = loginService;
   }
 
   public JwtAuthenticationToken getJwtToken() {
@@ -35,8 +40,13 @@ public class TokenService {
     if (jwt != null) {
       return jwt.getToken().getTokenValue();
     } else {
-      return apiKey;
+      if (loginService != null) {
+        // M2M token
+        return loginService.login();
+      }
+
     }
+    return null;
   }
 
   public String getBearerToken() {

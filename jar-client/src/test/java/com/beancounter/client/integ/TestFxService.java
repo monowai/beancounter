@@ -105,6 +105,20 @@ public class TestFxService {
         .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
         .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
         .hasFieldOrPropertyWithValue("tradePortfolioRate", new BigDecimal("0.66428103"));
+  }
 
+  @Test
+  void is_NoArgsWorking() {
+    FxResponse response = fxRateService.getRates(FxRequest.builder().build());
+    assertThat(response)
+        .isNotNull()
+        .hasFieldOrProperty("data");
+    assertThat(response.getData().getRates()).isNotNull().isEmpty();
+
+    response = fxRateService.getRates(FxRequest.builder().pairs(new ArrayList<>()).build());
+    assertThat(response)
+        .isNotNull()
+        .hasFieldOrProperty("data");
+    assertThat(response.getData().getRates()).isNotNull().isEmpty();
   }
 }

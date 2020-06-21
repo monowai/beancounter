@@ -10,6 +10,7 @@ import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.DateUtils;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,22 @@ public class TestPortfolioServiceClient {
     // Null returned for an Add request
     PortfoliosResponse response = portfolioService.add(request);
     assertThat(response).isNotNull().hasNoNullFieldsOrProperties();
+  }
+
+  @Test
+  void is_MyPortfolios() {
+    PortfoliosResponse myPortfolios = portfolioService.getPortfolios();
+    assertThat(myPortfolios.getData()).isNotNull().isNotEmpty();
+  }
+
+  @Test
+  void is_WhereHeld() {
+    PortfoliosResponse whereHeld = portfolioService.getWhereHeld(
+        "KMI",
+        new DateUtils().getDate("2020-05-01"));
+
+    assertThat(whereHeld.getData()).isNotNull().isNotEmpty();
+
   }
 
   @Test

@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Import;
     DateUtils.class,
     StaticService.class,
     PriceService.class,
+    TrnService.class,
     PortfolioServiceClient.class,
     RegistrationService.class,
     AssetServiceClient.class,

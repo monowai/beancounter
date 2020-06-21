@@ -28,11 +28,11 @@ public class TrnService {
   }
 
   // Figure out service to service tokens
-  public TrnResponse read(TrustedTrnQuery trustedTrnQuery) {
+  public TrnResponse query(TrustedTrnQuery trustedTrnQuery) {
     return trnGateway.read(tokenService.getBearerToken(), trustedTrnQuery);
   }
 
-  public TrnResponse read(Portfolio portfolio) {
+  public TrnResponse query(Portfolio portfolio) {
     return trnGateway.read(tokenService.getBearerToken(), portfolio.getId());
   }
 
@@ -47,8 +47,7 @@ public class TrnService {
         TrnRequest trnRequest);
 
     @GetMapping(value = "/trns/portfolio/{portfolioId}",
-        produces = {MediaType.APPLICATION_JSON_VALUE},
-        consumes = {MediaType.APPLICATION_JSON_VALUE})
+        produces = {MediaType.APPLICATION_JSON_VALUE})
     TrnResponse read(
         @RequestHeader("Authorization") String bearerToken,
         @PathVariable("portfolioId") String portfolioId);

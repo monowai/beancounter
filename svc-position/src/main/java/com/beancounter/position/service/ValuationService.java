@@ -49,13 +49,13 @@ public class ValuationService implements Valuation {
 
   @Override
   public PositionResponse build(TrustedTrnQuery trnQuery) {
-    TrnResponse trnResponse = trnService.read(trnQuery);
+    TrnResponse trnResponse = trnService.query(trnQuery);
     return buildPositions(trnQuery.getPortfolio(),
         dateUtils.getDateString(trnQuery.getTradeDate()), trnResponse);
   }
 
   public PositionResponse build(Portfolio portfolio, String valuationDate) {
-    TrnResponse trnResponse = trnService.read(portfolio);
+    TrnResponse trnResponse = trnService.query(portfolio);
     return buildPositions(portfolio, valuationDate, trnResponse);
   }
 

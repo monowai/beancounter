@@ -63,7 +63,6 @@ public class PositionController {
   @PostMapping(value = "/query",
       consumes = "application/json",
       produces = "application/json")
-    // ToDo: Secure via service->service token. Move to separate class?
   PositionResponse query(@RequestBody TrustedTrnQuery trnQuery) {
     return valuationService.build(trnQuery);
   }

@@ -26,6 +26,13 @@ public class TestStaticService {
   private StaticService staticService;
 
   @Test
+  void is_GuardChecks() {
+    assertThat(staticService.getCurrency(null)).isNull();
+    assertThrows(BusinessException.class, () ->
+        staticService.getCurrency("NOPE"));
+  }
+
+  @Test
   void are_MarketsFound() {
     MarketResponse markets = staticService.getMarkets();
     assertThat(markets).isNotNull();

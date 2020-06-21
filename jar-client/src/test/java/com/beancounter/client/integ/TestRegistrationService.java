@@ -37,10 +37,13 @@ public class TestRegistrationService {
   @Test
   void is_RegisteringAuthenticatedUser() {
     setupAuth("token");
+    assertThat(registrationService.getJwtToken()).isNotNull();
+    assertThat(registrationService.getToken()).isNotNull();
     // Currently matching is on email
     SystemUser registeredUser = registrationService
         .register(RegistrationRequest.builder().email("blah@blah.com").build());
     assertThat(registeredUser).hasNoNullFieldsOrProperties();
+    assertThrows(UnauthorizedException.class, () -> registrationService.me());
   }
 
   @Test

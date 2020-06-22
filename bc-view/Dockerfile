@@ -14,8 +14,8 @@ COPY . /app
 # There is an issue with "yarn package" with npx .
 RUN yarn build --prod --ignore-scripts --prefer-offline
 ENV NODE_ENV production
-RUN rm -rf node_modules
-RUN yarn install --production --ignore-scripts --prefer-offline
+#RUN rm -rf node_modules
+#RUN yarn install --production --ignore-scripts --prefer-offline
 
 # Runtime version of Node
 FROM node:14-alpine

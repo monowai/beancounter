@@ -33,7 +33,7 @@ public class EventDiary {
     this.positionService = positionService;
   }
 
-  @Scheduled(cron = "${beancounter.event.schedule:0 */30 7-18 ? * Tue-Sat}")
+  @Scheduled(cron = "${event.schedule:0 */30 7-18 ? * Tue-Sat}")
   void processEventsForRange() {
     if ( loginService != null ) {
       loginService.login();

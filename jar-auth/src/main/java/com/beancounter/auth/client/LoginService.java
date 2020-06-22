@@ -50,8 +50,8 @@ public class LoginService {
 
   /**
    * m2m login using preconfigured secret.
-   * <p>
-   * Sets the authentication token if the call is successful.
+   *
+   * <p>Sets the authentication token if the call is successful.
    *
    * @return token
    */

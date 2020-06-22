@@ -46,6 +46,7 @@ public class EventController {
   }
 
   @PostMapping(value = "/{id}", produces = "application/json")
+  @ResponseStatus(HttpStatus.ACCEPTED)
   CorporateEventResponse reprocess(@PathVariable String id) {
     CorporateEventResponse corporateEventResponse = eventService.get(id);
     if (corporateEventResponse == null) {

@@ -56,9 +56,6 @@ dependencyManagement {
     }
 }
 
-test {
-    useJUnitPlatform()
-}
 
 idea {
     module {

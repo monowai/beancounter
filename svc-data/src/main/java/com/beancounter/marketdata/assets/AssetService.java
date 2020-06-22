@@ -97,9 +97,10 @@ public class AssetService implements com.beancounter.client.AssetService {
 
   @Override
   @Async
-  public void backFillEvents(Asset asset) {
-    if (asset != null) {
-      marketDataService.backFill(asset);
+  public void backFillEvents(String assetId) {
+
+    if (assetId != null) {
+      marketDataService.backFill(find(assetId));
     }
 
   }

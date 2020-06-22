@@ -2,9 +2,9 @@ package com.beancounter.auth.server;
 
 
 import com.beancounter.auth.common.TokenService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
@@ -14,6 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 })
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-@Profile("!nosecurity")
+@ConditionalOnProperty(value = "auth.enabled", matchIfMissing = true)
 public class AuthServerConfig {
 }

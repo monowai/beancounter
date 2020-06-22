@@ -124,5 +124,7 @@ class TestMathUtils {
     assertThat(MathUtils.hasValidRate(BigDecimal.ONE)).isFalse();
     assertThat(MathUtils.hasValidRate(new BigDecimal("1.000"))).isFalse();
     assertThat(MathUtils.hasValidRate(BigDecimal.TEN)).isTrue();
+    assertThat(MathUtils.hasValidRate(BigDecimal.ZERO)).isFalse();
+    assertThat(MathUtils.hasValidRate(new BigDecimal("0.00"))).isFalse();
   }
 }

@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
@@ -62,14 +63,14 @@ import org.springframework.web.context.WebApplicationContext;
  * and run as stubs in other services.  Any data required from an integration call in a
  * dependent service, should be mocked in this class.
  */
-//@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = MarketDataBoot.class,
+    properties = {"auth.enabled=false"},
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext
 @AutoConfigureMessageVerifier
 @AutoConfigureWireMock(port = 0)
 @WebAppConfiguration
-@ActiveProfiles("nosecurity")
+@ActiveProfiles("contracts")
 public class ContractVerifierBase {
 
   public static final Asset AAPL = getAsset("NASDAQ", "AAPL");
@@ -79,7 +80,7 @@ public class ContractVerifierBase {
   private final DateUtils dateUtils = new DateUtils();
   private final ObjectMapper om = new ObjectMapper();
   @MockBean
-  JwtDecoder jwtDecoder;
+  private JwtDecoder jwtDecoder;
   @MockBean
   private FxGateway fxGateway;
   @MockBean
@@ -146,7 +147,7 @@ public class ContractVerifierBase {
     mockEcbRates(rates, get("2019-10-18", rates));
 
     // Current
-    mockEcbRates(rates, get(new DateUtils().today(), rates));
+    mockEcbRates(rates, get(dateUtils.today(), rates));
 
     rates = getRateMap("0.897827258", "1.3684683067", "0.8047495062",
         "1.5053869635", "1.4438857964");
@@ -255,25 +256,31 @@ public class ContractVerifierBase {
   }
 
   private void mockAssets() throws Exception {
-    mockAssetResponses(
+    Mockito.when(assetService.find("KMI"))
+        .thenReturn(
+            om.readValue(
+                new ClassPathResource("contracts/assets/kmi-asset-by-id.json").getFile(),
+                AssetResponse.class).getData());
+
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/request.json").getFile(),
         new ClassPathResource("contracts/assets/response.json").getFile());
-    mockAssetResponses(
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/ebay-request.json").getFile(),
         new ClassPathResource("contracts/assets/ebay-response.json").getFile());
-    mockAssetResponses(
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/msft-request.json").getFile(),
         new ClassPathResource("contracts/assets/msft-response.json").getFile());
-    mockAssetResponses(
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/bhp-request.json").getFile(),
         new ClassPathResource("contracts/assets/bhp-response.json").getFile());
-    mockAssetResponses(
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/bhp-lse-request.json").getFile(),
         new ClassPathResource("contracts/assets/bhp-lse-response.json").getFile());
-    mockAssetResponses(
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/abbv-request.json").getFile(),
         new ClassPathResource("contracts/assets/abbv-response.json").getFile());
-    mockAssetResponses(
+    mockAssetCreateResponses(
         new ClassPathResource("contracts/assets/amp-request.json").getFile(),
         new ClassPathResource("contracts/assets/amp-response.json").getFile());
 
@@ -291,11 +298,10 @@ public class ContractVerifierBase {
     Mockito.when(wtdGateway
         .getPrices("EBAY", "2019-10-18", "demo"))
         .thenReturn(wtdResponse);
-
   }
 
   @SneakyThrows
-  private void mockAssetResponses(File jsonRequest, File jsonResponse) {
+  private void mockAssetCreateResponses(File jsonRequest, File jsonResponse) {
     AssetRequest assetRequest =
         om.readValue(jsonRequest, AssetRequest.class);
 
@@ -317,7 +323,7 @@ public class ContractVerifierBase {
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates) {
-    mockEcbRates(rates, ecbRates, new DateUtils().getDateString(ecbRates.getDate()));
+    mockEcbRates(rates, ecbRates, dateUtils.getDateString(ecbRates.getDate()));
   }
 
   private void mockEcbRates(Map<String, BigDecimal> rates, EcbRates ecbRates, String rateDate) {

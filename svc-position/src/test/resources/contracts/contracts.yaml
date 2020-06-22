@@ -1,4 +1,16 @@
 ---
+name: testPositions
+priority: 1
+request:
+  method: GET
+  url: /TEST/2020-05-01?value=false
+
+response:
+  status: 200
+  bodyFromFile: "test-response.json"
+  headers:
+    Content-Type: application/json
+---
 name: kmiPosition
 priority: 1
 request:

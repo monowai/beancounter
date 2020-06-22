@@ -13,14 +13,19 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class EventDiary {
-  private final LoginService loginService;
+
+  private LoginService loginService;
   private final EventService eventService;
   private final DateUtils dateUtils = new DateUtils();
   PositionService positionService;
 
-  public EventDiary(LoginService loginService, EventService eventService) {
-    this.loginService = loginService;
+  public EventDiary(EventService eventService) {
     this.eventService = eventService;
+  }
+
+  @Autowired(required = false)
+  public void setLoginService(LoginService loginService) {
+    this.loginService = loginService;
   }
 
   @Autowired
@@ -29,8 +34,11 @@ public class EventDiary {
   }
 
   @Scheduled(cron = "${beancounter.event.schedule:0 */30 7-18 ? * Tue-Sat}")
-  void testAuth() {
-    loginService.login();
+  void processEventsForRange() {
+    if ( loginService != null ) {
+      loginService.login();
+    }
+
     LocalDate end = dateUtils.getDate();
     LocalDate start = end.minusDays(5);
     Collection<CorporateEvent> events = eventService.findInRange(start, end);

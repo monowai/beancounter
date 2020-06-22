@@ -24,17 +24,20 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PositionService {
   private final EventBehaviourFactory behaviourFactory;
-  private final AssetService assetService;
   private final DateUtils dateUtils = new DateUtils();
+  private AssetService assetService;
   private PositionGateway positionGateway;
   private PortfolioServiceClient portfolioService;
   private TokenService tokenService;
   @Value("${position.url:http://localhost:9500/api}")
   private String positionUrl;
 
-  public PositionService(EventBehaviourFactory eventBehaviourFactory,
-                         AssetService assetService) {
+  public PositionService(EventBehaviourFactory eventBehaviourFactory) {
     this.behaviourFactory = eventBehaviourFactory;
+  }
+
+  @Autowired
+  public void setAssetService(AssetService assetService) {
     this.assetService = assetService;
   }
 
@@ -102,7 +105,7 @@ public class PositionService {
     for (String key : results.getData().getPositions().keySet()) {
       Position position = results.getData().getPositions().get(key);
       if (position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) != 0) {
-        assetService.backFillEvents(position.getAsset());
+        assetService.backFillEvents(position.getAsset().getId());
       }
     }
   }

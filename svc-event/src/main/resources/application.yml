@@ -40,6 +40,7 @@ logging:
 auth:
   uri: "http://keycloak:9620/auth"
   realm: "bc-dev"
+  enabled: true
 
 marketdata:
   url: "http://localhost:9510/api"

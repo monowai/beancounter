@@ -7,5 +7,7 @@ import com.beancounter.common.model.Asset;
 public interface AssetService {
   AssetUpdateResponse process(AssetRequest assetRequest);
 
-  void backFillEvents(Asset asset);
+  void backFillEvents(String assetId);
+
+  Asset find(String assetId);
 }

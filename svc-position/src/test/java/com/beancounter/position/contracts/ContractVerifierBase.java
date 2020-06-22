@@ -2,6 +2,7 @@ package com.beancounter.position.contracts;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.input.TrustedTrnQuery;
 import com.beancounter.common.model.Currency;
@@ -23,31 +24,29 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(classes = PositionBoot.class,
+    properties = {"auth.enabled=false"},
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext
 @AutoConfigureMessageVerifier
 @AutoConfigureWireMock(port = 0)
 @WebAppConfiguration
-@ActiveProfiles("nosecurity")
 public class ContractVerifierBase {
-  @Autowired
-  private WebApplicationContext context;
   private final ObjectMapper om = new ObjectMapper();
   private final DateUtils dateUtils = new DateUtils();
-
-  @MockBean
-  private Valuation valuationService;
-
   @MockBean
   JwtDecoder jwtDecoder;
-
+  @Autowired
+  private WebApplicationContext context;
+  @MockBean
+  private Valuation valuationService;
+  @MockBean
+  private PortfolioServiceClient portfolioServiceClient;
 
   @BeforeEach
   @SneakyThrows
@@ -58,16 +57,23 @@ public class ContractVerifierBase {
 
     RestAssuredMockMvc.mockMvc(mockMvc);
 
+    Portfolio testPortfolio = Portfolio.builder()
+        .code("TEST")
+        .id("TEST")
+        .name("NZD Portfolio")
+        .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
+        .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
+        .build();
+    Mockito.when(portfolioServiceClient.getPortfolioByCode("TEST"))
+        .thenReturn(testPortfolio);
+
+    Mockito.when(portfolioServiceClient.getPortfolioById("TEST"))
+        .thenReturn(testPortfolio);
+
     Mockito.when(valuationService.build(TrustedTrnQuery.builder()
         .assetId("KMI")
         .tradeDate(dateUtils.getDate("2020-05-01"))
-        .portfolio(Portfolio.builder()
-            .code("TEST")
-            .id("TEST")
-            .name("NZD Portfolio")
-            .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
-            .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
-            .build())
+        .portfolio(testPortfolio)
         .build()))
         .thenReturn(om.readValue(
             new ClassPathResource("contracts/kmi-response.json").getFile(),
@@ -76,18 +82,16 @@ public class ContractVerifierBase {
     Mockito.when(valuationService.build(TrustedTrnQuery.builder()
         .assetId("MSFT")
         .tradeDate(dateUtils.getDate("2020-05-01"))
-        .portfolio(Portfolio.builder()
-            .code("TEST")
-            .id("TEST")
-            .name("NZD Portfolio")
-            .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
-            .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
-            .build())
+        .portfolio(testPortfolio)
         .build()))
         .thenReturn(om.readValue(
             new ClassPathResource("contracts/msft-response.json").getFile(),
             PositionResponse.class));
 
+    Mockito.when(valuationService.build(testPortfolio, "2020-05-01"))
+        .thenReturn(om.readValue(
+            new ClassPathResource("contracts/test-response.json").getFile(),
+            PositionResponse.class));
   }
 
   @Test

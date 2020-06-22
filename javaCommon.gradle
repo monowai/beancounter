@@ -34,7 +34,7 @@ checkstyle {
 test {
     useJUnitPlatform()
     testLogging {
-        events "passed", "failed"
+        events "failed"
     }
 }
 

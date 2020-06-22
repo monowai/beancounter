@@ -1,0 +1,19 @@
+{
+  "data": {
+    "id": "X0BNQ34fS86_sn4wmfk7qQ",
+    "code": "KMI",
+    "name": "Kinder Morgan Inc.",
+    "category": "Equity",
+    "market": {
+      "code": "NYSE",
+      "currency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "timezone": "US/Eastern",
+      "multiplier": 1
+    },
+    "priceSymbol": "KMI"
+  }
+}

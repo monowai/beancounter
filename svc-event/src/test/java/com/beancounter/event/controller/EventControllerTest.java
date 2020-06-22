@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.beancounter.common.event.CorporateEvent;
+import com.beancounter.common.exception.SpringExceptionMessage;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.event.contract.CorporateEventResponse;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -27,8 +29,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles({"test", "nosecurity"})
+@SpringBootTest(properties = {"auth.enabled=false"})
+@ActiveProfiles("test")
 @Tag("slow")
 class EventControllerTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -39,8 +41,26 @@ class EventControllerTest {
   private EventService eventService;
 
   @Test
-  void is_EventCreatedAndFound() throws Exception {
+  void is_IllegalEventBad() throws Exception {
+    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+
+    MvcResult mvcResult = mockMvc.perform(
+        get("/{eventId}", "event.getId()")
+    ).andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+    String responseBody = mvcResult.getResponse().getContentAsString();
+    SpringExceptionMessage message = objectMapper
+        .readValue(responseBody, SpringExceptionMessage.class);
+    assertThat(message).hasNoNullFieldsOrProperties();
+    assertThat(message.getStatus())
+        .isEqualTo(HttpStatus.BAD_REQUEST.value());
+  }
+
+  @Test
+  void is_EventCreatedAndFoundOk() throws Exception {
     // Create
+    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
     CorporateEvent event = CorporateEvent.builder()
         .id("ID-1")
         .source("EV-TEST")
@@ -53,8 +73,6 @@ class EventControllerTest {
 
     event = eventService.save(event);
     assertThat(event).hasFieldOrProperty("id");
-    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-        .build();
 
     // Find By PK
     MvcResult mvcResult = mockMvc.perform(

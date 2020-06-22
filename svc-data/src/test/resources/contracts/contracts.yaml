@@ -1,5 +1,18 @@
 #/portfolios/asset/X0BNQ34fS86_sn4wmfk7qQ/2020-05-01
 ---
+name: kmiAssetById
+priority: 1
+request:
+  method: GET
+  url: /assets/KMI
+
+response:
+  status: 200
+  bodyFromFile: "assets/kmi-asset-by-id.json"
+  headers:
+    Content-Type: application/json
+
+---
 name: whereHeld
 priority: 1
 request:

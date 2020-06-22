@@ -3,7 +3,9 @@ package com.beancounter.client.services;
 import com.beancounter.auth.common.TokenService;
 import com.beancounter.client.AssetService;
 import com.beancounter.common.contracts.AssetRequest;
+import com.beancounter.common.contracts.AssetResponse;
 import com.beancounter.common.contracts.AssetUpdateResponse;
+import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -43,9 +46,18 @@ public class AssetServiceClient implements AssetService {
 
   @Override
   @Async
-  public void backFillEvents(Asset asset) {
-    log.debug("Back fill for {}", asset.getCode());
-    assetGateway.backFill(tokenService.getBearerToken(), asset.getId());
+  public void backFillEvents(String assetId) {
+    log.debug("Back fill for {}", assetId);
+    assetGateway.backFill(tokenService.getBearerToken(), assetId);
+  }
+
+  @Override
+  public Asset find(String assetId) {
+    AssetResponse response = assetGateway.find(tokenService.getBearerToken(), assetId);
+    if (response == null || response.getData() == null) {
+      throw new BusinessException(String.format("Asset %s not found", assetId));
+    }
+    return response.getData();
   }
 
 
@@ -64,6 +76,10 @@ public class AssetServiceClient implements AssetService {
     void backFill(@RequestHeader("Authorization") String bearerToken,
                   @PathVariable("id") String assetId);
 
+    @GetMapping(value = "/assets/{id}",
+        consumes = {MediaType.APPLICATION_JSON_VALUE})
+    AssetResponse find(@RequestHeader("Authorization") String bearerToken,
+                       @PathVariable("id") String assetId);
   }
 
 

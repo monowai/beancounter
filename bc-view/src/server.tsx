@@ -59,7 +59,7 @@ i18n
       },
       debug: false,
       defaultNS: "translations",
-      nonExplicitWhitelist: true,
+      nonExplicitSupportedLngs: true,
       ns: ["translations"],
       preload: ["en"],
     },

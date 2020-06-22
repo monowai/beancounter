@@ -15,7 +15,7 @@ if (!i18n.isInitialized) {
       debug: false,
       defaultNS: "translations",
       fallbackLng: "en",
-      nonExplicitWhitelist: true,
+      nonExplicitSupportedLngs: true,
       whitelist: ["en"],
       interpolation: {
         escapeValue: false, // react already safes from xss

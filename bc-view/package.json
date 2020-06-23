@@ -51,7 +51,7 @@
     "react-router-dom": "^5.1.2",
     "react-select": "^3.0.8",
     "react-switch": "^5.0.1",
-    "winston": "^3.2.1",
+    "winston": "^3.3.2",
     "yup": "^0.29.1"
   },
   "devDependencies": {

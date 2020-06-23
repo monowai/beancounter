@@ -17,7 +17,6 @@ public class EventDiary {
   private LoginService loginService;
   private final EventService eventService;
   private final DateUtils dateUtils = new DateUtils();
-  PositionService positionService;
 
   public EventDiary(EventService eventService) {
     this.eventService = eventService;
@@ -26,11 +25,6 @@ public class EventDiary {
   @Autowired(required = false)
   public void setLoginService(LoginService loginService) {
     this.loginService = loginService;
-  }
-
-  @Autowired
-  void setPositionService(PositionService positionService) {
-    this.positionService = positionService;
   }
 
   @Scheduled(cron = "${event.schedule:0 */30 7-18 ? * Tue-Sat}")

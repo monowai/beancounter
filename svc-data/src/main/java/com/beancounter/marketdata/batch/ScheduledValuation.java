@@ -22,6 +22,7 @@ public class ScheduledValuation {
   @Scheduled(cron = "${beancounter.assets.schedule:0 */30 7-18 ? * Tue-Sat}")
   public void updatePrices() {
     priceRefresh.updatePrices();
+    log.info("Scheduled price update dispatched.");
   }
 
 }

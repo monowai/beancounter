@@ -15,6 +15,9 @@ export function SubTotal(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }
         <td align={"right"}>
           <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"marketValue"} />
         </td>
+        <td align={"right"}>
+          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"unrealisedGain"} />
+        </td>
         <td />
         <td align={"right"}>
           <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"costValue"} />
@@ -25,9 +28,6 @@ export function SubTotal(props: { holdingGroup: HoldingGroup; valueIn: ValueIn }
         </td>
         <td align={"right"}>
           <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"realisedGain"} />
-        </td>
-        <td align={"right"}>
-          <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"unrealisedGain"} />
         </td>
         <td align={"right"}>
           <FormatNumber values={holdingGroup.subTotals[valueIn]} field={"totalGain"} />

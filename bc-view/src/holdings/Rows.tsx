@@ -66,6 +66,9 @@ export function Rows(props: {
         <FormatNumber values={position.moneyValues[valueIn]} field={"marketValue"} />
       </td>
       <td align={"right"}>
+        <FormatNumber values={position.moneyValues[valueIn]} field={"unrealisedGain"} />
+      </td>
+      <td align={"right"}>
         <FormatNumber values={position.moneyValues[valueIn]} field={"weight"} multiplier={100} />
       </td>
       <td align={"right"}>
@@ -79,9 +82,6 @@ export function Rows(props: {
       </td>
       <td align={"right"}>
         <FormatNumber values={position.moneyValues[valueIn]} field={"realisedGain"} />
-      </td>
-      <td align={"right"}>
-        <FormatNumber values={position.moneyValues[valueIn]} field={"unrealisedGain"} />
       </td>
       <td align={"right"}>
         <FormatNumber values={position.moneyValues[valueIn]} field={"totalGain"} />

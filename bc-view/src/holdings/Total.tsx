@@ -15,6 +15,9 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
         <td align={"right"}>
           <FormatNumber values={holdings.totals[valueIn]} field={"marketValue"} />
         </td>
+        <td align={"right"}>
+          <FormatNumber values={holdings.totals[valueIn]} field={"unrealisedGain"} />
+        </td>
         <td />
         <td align={"right"}>
           <FormatNumber values={holdings.totals[valueIn]} field={"costValue"} />
@@ -25,9 +28,6 @@ export default function Total(props: { holdings: Holdings; valueIn: ValueIn }): 
         </td>
         <td align={"right"}>
           <FormatNumber values={holdings.totals[valueIn]} field={"realisedGain"} />
-        </td>
-        <td align={"right"}>
-          <FormatNumber values={holdings.totals[valueIn]} field={"unrealisedGain"} />
         </td>
         <td align={"right"}>
           <FormatNumber values={holdings.totals[valueIn]} field={"totalGain"} />

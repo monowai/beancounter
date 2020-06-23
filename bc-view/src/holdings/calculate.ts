@@ -20,6 +20,7 @@ function total(total: MoneyValues, position: Position, valueIn: ValueIn): MoneyV
       fees: 0,
       purchases: 0,
       sales: 0,
+      tax: 0,
       costBasis: 0,
       priceData: { close: 0, change: 0, changePercent: 0, priceDate: "", previousClose: 0 },
       valueIn: valueIn,

@@ -184,4 +184,19 @@ public class TrnService {
     return !trnResults.isEmpty();
   }
 
+  public TrnResponse delete(String trnId) {
+    Optional<Trn> result = trnRepository.findById(trnId);
+    if (result.isEmpty()) {
+      throw new BusinessException(String.format("Transaction not found %s", trnId));
+    }
+    Trn trn = result.get();
+    Collection<Trn> deleted = new ArrayList<>();
+    deleted.add(trn);
+    TrnResponse trnResponse = TrnResponse.builder().data(deleted).build();
+    if (portfolioService.canView(result.get().getPortfolio())) {
+      trnRepository.delete(result.get());
+    }
+    return trnResponse;
+
+  }
 }

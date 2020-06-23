@@ -86,6 +86,7 @@ i18n
         .patch("/bff/portfolios/*", patchData)
         .get("/bff/trns/*", getData)
         .delete("/bff/trns/portfolio/*", deleteData)
+        .delete("/bff/trns/*", deleteData)
         .get("/bff/assets/*", getData)
         .get("/*", (req: express.Request, res: express.Response) => {
           logger.debug("Get %s", req.url);

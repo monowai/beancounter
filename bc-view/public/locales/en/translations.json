@@ -21,5 +21,6 @@
   "groupby.unknown": "Unknown",
   "valuein.trade": "Trade",
   "valuein.base": "Base",
-  "valuein.portfolio": "Portfolio"
+  "valuein.portfolio": "Portfolio",
+  "delete.trn": "Permanently delete this transaction?"
 }

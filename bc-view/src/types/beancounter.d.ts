@@ -24,6 +24,7 @@ export interface MoneyValues {
   dividends: number;
   costValue: number;
   fees: number;
+  tax: number;
   purchases: number;
   sales: number;
   costBasis: number;

@@ -66,6 +66,15 @@ public class TrnController {
     return trnService.purge(portfolio);
   }
 
+  @DeleteMapping(
+      value = "/{trnId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  TrnResponse delete(
+      @PathVariable("trnId") String trnId
+  ) {
+    return trnService.delete(trnId);
+  }
+
   @GetMapping(
       value = "/{portfolioId}/asset/{assetId}",
       produces = MediaType.APPLICATION_JSON_VALUE)

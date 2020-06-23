@@ -56,6 +56,11 @@ exports[`<Transactions /> should match snapshot 1`] = `
               <th
                 align="right"
               >
+                Tax
+              </th>
+              <th
+                align="right"
+              >
                 Amount
               </th>
               <th>
@@ -99,6 +104,13 @@ exports[`<Transactions /> should match snapshot 1`] = `
                 align="right"
               >
                 <span>
+                  0.00
+                </span>
+              </td>
+              <td
+                align="right"
+              >
+                <span>
                   2,160.01
                 </span>
               </td>
@@ -106,13 +118,6 @@ exports[`<Transactions /> should match snapshot 1`] = `
                 <a
                   class="fa fa-edit"
                   href="/trns/test/68"
-                />
-                <span>
-                   
-                </span>
-                <a
-                  class="fa fa-remove has-padding-left-6"
-                  href="/portfolio/delete/test/68"
                 />
               </td>
             </tr>

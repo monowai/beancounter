@@ -11,10 +11,23 @@ import ErrorPage from "../common/errors/ErrorPage";
 import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
+import { translate } from "../common/i18nConfig";
+import * as yup from "yup";
 
 export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
-  const { register, handleSubmit } = useForm<TrnInput>();
+
+  const schema = yup.object().shape({
+    trnType: yup.string(),
+    quantity: yup.number().required(),
+    // fees: yup.number(),
+    // tax: yup.number(),
+    // price: yup.number(),
+    // tradeDate: yup.date(),
+  });
+  const { register, handleSubmit } = useForm<TrnInput>({
+    validationSchema: schema,
+  });
   const trnResult = useTransaction(portfolioId, trnId);
   const currencyResult = useCurrencies();
   const [stateError, setError] = useState<AxiosError>();
@@ -28,9 +41,29 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
       </section>
     );
   };
+
   const handleCancel = (): void => {
     history.goBack();
   };
+
+  const deleteTransaction = handleSubmit(() => {
+    if (confirm(translate("delete.trn"))) {
+      _axios
+        .delete<Transaction>(`/bff/trns/${trnId}`, {
+          headers: getBearerToken(keycloak.token),
+        })
+        .then(() => {
+          logger.debug("<<delete Trn");
+          setSubmitted(true);
+        })
+        .catch((err) => {
+          setError(err);
+          if (err.response) {
+            logger.error("deleteTrn [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+        });
+    }
+  });
 
   const saveTransaction = handleSubmit((trnInput: TrnInput) => {
     if (trnId === "new") {
@@ -104,7 +137,6 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                     placeholder="Type"
                     name="type"
                     defaultValue={trnResult.data.trnType}
-                    ref={register({ required: true, maxLength: 10 })}
                   />
                 </div>
                 <div className="field">
@@ -116,7 +148,6 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="Date of trade"
                       defaultValue={trnResult.data.tradeDate}
                       name="tradeDate"
-                      ref={register({ required: true, maxLength: 100 })}
                     />
                   </div>
                 </div>
@@ -129,7 +160,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="quantity"
                       defaultValue={trnResult.data.quantity}
                       name="quantity"
-                      ref={register({ required: true, maxLength: 10 })}
+                      ref={register()}
                     />
                   </div>
                 </div>
@@ -142,12 +173,11 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="price"
                       defaultValue={trnResult.data.price}
                       name="price"
-                      ref={register({ required: true, maxLength: 10 })}
                     />
                   </div>
                 </div>
                 <div className="field">
-                  <label className="label">Charges</label>
+                  <label className="label">Fees</label>
                   <div className="control">
                     <input
                       className="input"
@@ -155,7 +185,18 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="Fees and charges"
                       defaultValue={trnResult.data.fees}
                       name="fees"
-                      ref={register({ required: false, maxLength: 100 })}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="label">Tax</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="Tax Paid"
+                      defaultValue={trnResult.data.tax}
+                      name="tax"
                     />
                   </div>
                 </div>
@@ -168,7 +209,6 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="Trade to PF"
                       defaultValue={trnResult.data.tradePortfolioRate}
                       name="tradePortfolioRate"
-                      ref={register({ required: true, maxLength: 100 })}
                     />
                   </div>
                 </div>
@@ -181,7 +221,6 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="Trade to Base"
                       defaultValue={trnResult.data.tradeBaseRate}
                       name="tradeBaseRate"
-                      ref={register({ required: true, maxLength: 100 })}
                     />
                   </div>
                 </div>
@@ -194,7 +233,6 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       placeholder="Amount in Trade Currency"
                       defaultValue={trnResult.data.tradeAmount}
                       name="tradeAmount"
-                      ref={register({ required: true, maxLength: 100 })}
                     />
                   </div>
                 </div>
@@ -206,7 +244,6 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                       className={"select"}
                       name={"tradeCurrency"}
                       defaultValue={trnResult.data.tradeCurrency.code}
-                      ref={register({ required: true })}
                     >
                       {currencyOptions(currencies, trnResult.data.tradeCurrency.code)}
                     </select>
@@ -214,11 +251,16 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
                 </div>
                 <div className="field is-grouped">
                   <div className="control">
-                    <button className="button is-link">Submit</button>
+                    <button className="button is-link">Save</button>
                   </div>
                   <div className="control">
                     <button className="button is-link is-light" onClick={handleCancel}>
                       Cancel
+                    </button>
+                  </div>
+                  <div className="control">
+                    <button className="button is-link is-danger" onClick={deleteTransaction}>
+                      Delete
                     </button>
                   </div>
                 </div>

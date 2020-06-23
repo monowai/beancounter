@@ -432,9 +432,23 @@ public class TrnControllerTest {
     assertThat(trnResponse.getData()).isNotEmpty().hasSize(2); // 2 MSFT transactions
 
     // Most recent transaction first (display purposes
-    assertThat(trnResponse.getData().iterator().next().getTradeDate()).isEqualTo("2018-01-01");
+    Trn toDelete = trnResponse.getData().iterator().next();
+    assertThat(toDelete.getTradeDate()).isEqualTo("2018-01-01");
 
-    // Purge all transactions for the Portfolio
+    // Delete a single transaction by primary key
+    mvcResult = mockMvc.perform(
+        delete("/trns/{trnId}", toDelete.getId())
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+    ).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+    TrnResponse deletedResponse = objectMapper
+        .readValue(mvcResult.getResponse().getContentAsByteArray(), TrnResponse.class);
+    assertThat(deletedResponse.getData()).hasSize(1);
+    Trn deleted = deletedResponse.getData().iterator().next();
+    assertThat(deleted.getId()).isEqualTo(toDelete.getId());
+
+    // Delete all remaining transactions for the Portfolio
     mvcResult = mockMvc.perform(
         delete("/trns/portfolio/{portfolioId}", portfolioId)
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
@@ -442,7 +456,7 @@ public class TrnControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andReturn();
 
-    assertThat(mvcResult.getResponse().getContentAsString()).isNotNull().isEqualTo("4");
+    assertThat(mvcResult.getResponse().getContentAsString()).isNotNull().isEqualTo("3");
   }
 
   private Portfolio portfolio(PortfolioInput portfolio) throws Exception {

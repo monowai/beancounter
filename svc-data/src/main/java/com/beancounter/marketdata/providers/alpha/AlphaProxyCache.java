@@ -26,14 +26,12 @@ public class AlphaProxyCache {
 
   @Cacheable("asset.prices")
   @Async
-  // Date is to support caching
   @SuppressWarnings("unused")
-  public Future<String> getCurrent(String code, String date, String apiKey) {
+  public Future<String> getCurrent(String code, String apiKey) {
     return new AsyncResult<>(alphaProxy.getCurrent(code, apiKey));
   }
 
   @SuppressWarnings("unused")
-  @Cacheable("asset.prices")
   @Async
   public Future<String> getHistoric(String code, String date, String apiKey) {
     return new AsyncResult<>(alphaProxy.getHistoric(code, apiKey));

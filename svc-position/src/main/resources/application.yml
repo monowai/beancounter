@@ -37,6 +37,7 @@ logging:
     javax: error
     sun: error
     io: error
+    #io.github.resilience4j: debug
     netflix: error
     jdk: error
     feign: fatal
@@ -56,6 +57,7 @@ feign:
       default:
         # Loooong because of API limits with data providers
         readTimeout: 50000
+        connectTimeout: 5000
         errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
 
     # http://localhost:9500/actuator/circuitbreaker-events/marketdata
@@ -70,3 +72,21 @@ resilience4j.circuitbreaker:
       waitDurationInOpenState: 5s
       registerHealthIndicator: true
       recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+
+resilience4j.retry:
+  configs:
+    default:
+      maxRetryAttempts: 3
+      waitDuration: 20s
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+        - feign.RetryableException
+      ignoreExceptions:
+        - com.beancounter.common.exception.BusinessException
+    instances:
+      bcData:
+        baseConfig: default
+        maxRetryAttempts: 3

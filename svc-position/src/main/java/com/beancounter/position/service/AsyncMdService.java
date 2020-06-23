@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import io.github.resilience4j.retry.annotation.Retry;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class AsyncMdService {
   }
 
   @Async
+  @Retry(name = "bcData")
   public CompletableFuture<PriceResponse> getMarketData(PriceRequest priceRequest) {
     return CompletableFuture.completedFuture(priceService.getPrices(priceRequest));
   }

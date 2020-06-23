@@ -29,7 +29,7 @@ public class EventDiary {
 
   @Scheduled(cron = "${event.schedule:0 */30 7-18 ? * Tue-Sat}")
   void processEventsForRange() {
-    if ( loginService != null ) {
+    if (loginService != null) {
       loginService.login();
     }
 

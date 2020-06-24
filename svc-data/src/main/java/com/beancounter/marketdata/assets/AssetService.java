@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 public class AssetService implements com.beancounter.client.AssetService {
+  public static final String UNLISTED = "UNLISTED";
   private final EnrichmentFactory enrichmentFactory;
   private AssetRepository assetRepository;
   private MarketService marketService;
@@ -73,6 +74,7 @@ public class AssetService implements com.beancounter.client.AssetService {
         asset.setMarketCode(market.getCode());
         asset.setMarket(market);
         asset.setName(defaultName);
+        asset.setPriceSymbol(UNLISTED);
       } else {
         // Market Listed
         asset.setMarket(market);

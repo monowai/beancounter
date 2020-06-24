@@ -200,10 +200,10 @@ resilience4j.ratelimiter:
       timeoutDuration: 80s
       eventConsumerBufferSize: 200
     alphaVantage:
-      registerHealthIndicator: false
-      limitForPeriod: 25
-      limitRefreshPeriod: 65s
-      timeoutDuration: 80s
+      registerHealthIndicator: true
+      limitForPeriod: 30
+      limitRefreshPeriod: 60s
+      timeoutDuration: 70s
       eventConsumerBufferSize: 200
 
 resilience4j.circuitbreaker:

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha;
 
+import com.beancounter.marketdata.assets.AssetService;
 import java.util.concurrent.Future;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,6 +29,9 @@ public class AlphaProxyCache {
   @Async
   @SuppressWarnings("unused")
   public Future<String> getCurrent(String code, String apiKey) {
+    if (AssetService.UNLISTED.equals(code)) {
+      return new AsyncResult<>(null);
+    }
     return new AsyncResult<>(alphaProxy.getCurrent(code, apiKey));
   }
 

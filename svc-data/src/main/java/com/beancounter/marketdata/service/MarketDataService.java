@@ -101,7 +101,6 @@ public class MarketDataService {
         apiResults = marketDataProvider.getMarketData(apiRequest);
       }
     }
-
     // Merge results into a response
     PriceResponse response = PriceResponse.builder().data(apiResults).build();
     priceService.write(response); // Async write

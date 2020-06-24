@@ -26,6 +26,7 @@ import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
@@ -46,6 +47,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Tag;
@@ -113,6 +115,10 @@ class TestAlphaVantageApi {
         new ClassPathResource(alphaContracts + "/msft-response.json").getFile());
 
     mockSearchResponse(alphaApi,
+        "BRK-B",
+        new ClassPathResource(alphaContracts + "/brkb-response.json").getFile());
+
+    mockSearchResponse(alphaApi,
         "AAPL",
         new ClassPathResource(alphaContracts + "/appl-response.json").getFile());
 
@@ -166,6 +172,29 @@ class TestAlphaVantageApi {
     PriceResponse price = marketDataService.getPriceResponse(assetResponse.getData());
     assertThat(price).hasNoNullFieldsOrProperties();
 
+  }
+
+  @Test
+  void is_BrkBTranslated() throws Exception {
+    MvcResult mvcResult = mockMvc.perform(
+        get("/assets/{market}/{code}", "NYSE", "BRK.B")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    AssetResponse assetResponse = new ObjectMapper()
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    assertThat(assetResponse.getData())
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("code", "BRK.B")
+        .hasFieldOrProperty("market")
+        .hasFieldOrPropertyWithValue("priceSymbol", "BRK-B")
+        .hasFieldOrPropertyWithValue("name", "Berkshire Hathaway Inc.");
+
+    assertThat(alphaConfig.getPriceCode(assetResponse.getData())).isEqualTo("BRK-B");
   }
 
   @Test
@@ -355,6 +384,37 @@ class TestAlphaVantageApi {
         .hasFieldOrProperty("high")
         .hasFieldOrProperty("previousClose")
         .hasFieldOrProperty("change");
+  }
+
+  @Test
+  void is_PriceNotFoundSetIntoAsset() throws Exception {
+    mockSearchResponse(alphaApi, "BWLD",
+        new ClassPathResource("/contracts/alpha/bwld-search.json").getFile());
+
+    mockGlobalResponse(alphaApi, "BWLD",
+        new ClassPathResource("/contracts/alpha/price-not-found.json").getFile());
+    AssetUpdateResponse result = assetService
+        .process(AssetRequest.builder()
+            .data("key", AssetInput.builder()
+                .code("BWLD")
+                .market("NYSE")
+                .build()).build());
+
+    Asset asset = result.getData().get("key");
+    assertThat(asset.getPriceSymbol()).isEqualTo("UNLISTED");
+    Optional<MarketData> priceResult = priceService.getMarketData(
+        asset.getId(), dateUtils.getDate());
+
+    assertThat(priceResult.isEmpty()).isTrue();
+
+    PriceRequest priceRequest = PriceRequest.builder()
+        .assets(Collections.singletonList(AssetUtils.getAssetInput(asset)))
+        .build();
+    PriceResponse priceResponse = marketDataService.getPriceResponse(priceRequest);
+    assertThat(priceResponse).isNotNull().hasFieldOrProperty("data");
+    MarketData price = priceResponse.getData().iterator().next();
+    assertThat(price).hasFieldOrProperty("priceDate");
+
   }
 
   @Test

@@ -6,6 +6,7 @@ import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.common.model.MarketData;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.marketdata.providers.MarketDataAdapter;
 import com.beancounter.marketdata.providers.ProviderArguments;
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AlphaPriceAdapter implements MarketDataAdapter {
   private final ObjectMapper alphaMapper = new ObjectMapper();
+  private final DateUtils dateUtils = new DateUtils();
 
   public AlphaPriceAdapter() {
     SimpleModule module =
@@ -54,10 +57,10 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
               results.add(marketData);
             }
           } else {
-            results.add(getDefault(asset));
+            results.add(getDefault(asset, providerArguments));
           }
         } else {
-          results.add(getDefault(asset));
+          results.add(getDefault(asset, providerArguments));
         }
       }
 
@@ -88,6 +91,9 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
 
   private boolean isMdResponse(Asset asset, String result) throws IOException {
     String field = null;
+    if (result == null) {
+      return false;
+    }
     if (result.contains("Error Message")) {
       field = "Error Message";
     } else if (result.contains("\"Note\":")) {
@@ -105,8 +111,15 @@ public class AlphaPriceAdapter implements MarketDataAdapter {
 
   }
 
-  private MarketData getDefault(Asset asset) {
-    return MarketData.builder().asset(asset).build();
+  private MarketData getDefault(Asset asset, ProviderArguments providerArguments) {
+    LocalDate date = dateUtils.getDate(providerArguments.getDate());
+    if (date == null) {
+      date = dateUtils.getDate();
+    }
+    return MarketData.builder()
+        .asset(asset)
+        .priceDate(date)
+        .build();
   }
 
   public ObjectMapper getAlphaMapper() {

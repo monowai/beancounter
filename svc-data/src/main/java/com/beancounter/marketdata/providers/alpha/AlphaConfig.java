@@ -62,4 +62,7 @@ public class AlphaConfig implements DataProviderConfig {
     return asset.getCode();
   }
 
+  public String translateSymbol(String code) {
+    return code.replace(".", "-");
+  }
 }

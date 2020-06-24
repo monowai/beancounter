@@ -32,7 +32,7 @@ public class AlphaEnricher implements AssetEnricher {
   @Override
   public Asset enrich(Market market, String code, String name) {
     String marketCode = alphaConfig.translateMarketCode(market);
-    String symbol = code;
+    String symbol = alphaConfig.translateSymbol(code);
     if (marketCode != null) {
       symbol = symbol + "." + marketCode;
     }

@@ -22,6 +22,7 @@ public class ProviderArguments {
   private DataProviderConfig dataProviderConfig;
   private static final DateUtils dateUtils = new DateUtils();
   private Integer currentBatch = 0;
+  private String date;
   private String searchBatch = null;
   private String delimiter = ",";
   private Map<Integer, BatchConfig> batchConfigs = new HashMap<>();
@@ -45,7 +46,7 @@ public class ProviderArguments {
   public static ProviderArguments getInstance(PriceRequest priceRequest,
                                               DataProviderConfig dataProviderConfig) {
     ProviderArguments providerArguments = new ProviderArguments(dataProviderConfig);
-
+    providerArguments.setDate(priceRequest.getDate());
     // Data providers can have market dependent price dates. Batch first by market, then by size
     Map<String, Collection<Asset>> marketAssets = AssetUtils.split(priceRequest.getAssets());
     for (String market : marketAssets.keySet()) {

@@ -12,13 +12,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class EventDiary {
+public class EventSchedule {
 
   private LoginService loginService;
   private final EventService eventService;
   private final DateUtils dateUtils = new DateUtils();
 
-  public EventDiary(EventService eventService) {
+  public EventSchedule(EventService eventService) {
     this.eventService = eventService;
   }
 
@@ -29,6 +29,7 @@ public class EventDiary {
 
   @Scheduled(cron = "${event.schedule:0 */30 7-18 ? * Tue-Sat}")
   void processEventsForRange() {
+    log.info("Checking for corporate events to process");
     if (loginService != null) {
       loginService.login();
     }
@@ -39,7 +40,9 @@ public class EventDiary {
     for (CorporateEvent event : events) {
       eventService.processMessage(event);
     }
-
+    if (!events.isEmpty()) {
+      log.info("Processed {} events", events.size());
+    }
   }
 
 }

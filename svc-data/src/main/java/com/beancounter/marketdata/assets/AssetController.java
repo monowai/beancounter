@@ -49,6 +49,11 @@ public class AssetController {
     return AssetResponse.builder().data(assetService.find(assetId)).build();
   }
 
+  @PostMapping(value = "/{assetId}/enrich")
+  AssetResponse enrichAsset(@PathVariable String assetId) {
+    return AssetResponse.builder().data(assetService.enrich(assetId)).build();
+  }
+
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   AssetUpdateResponse update(@RequestBody AssetRequest assetRequest) {
     return assetService.process(assetRequest);

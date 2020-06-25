@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.AssetSearchResult;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Market;
 import com.beancounter.marketdata.assets.AssetEnricher;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +38,10 @@ public class AlphaEnricher implements AssetEnricher {
       symbol = symbol + "." + marketCode;
     }
     String result = alphaProxyCache.search(symbol, apiKey).get();
-    AssetSearchResponse assetSearchResponse =
-        objectMapper.readValue(result, AssetSearchResponse.class);
-    if (assetSearchResponse.getData() == null || assetSearchResponse.getData().isEmpty()) {
+    AssetSearchResult assetResult = getAssetSearchResult(market, result);
+    if (assetResult == null) {
       return null;
     }
-    AssetSearchResult assetResult = assetSearchResponse.getData().iterator().next();
     return Asset.builder()
         .code(code.toUpperCase())
         .name(assetResult.getName())
@@ -51,6 +50,22 @@ public class AlphaEnricher implements AssetEnricher {
         .marketCode(market.getCode().toUpperCase())
         .category(assetResult.getType())
         .build();
+  }
+
+  private AssetSearchResult getAssetSearchResult(Market market, String result)
+      throws JsonProcessingException {
+
+    AssetSearchResponse assetSearchResponse =
+        objectMapper.readValue(result, AssetSearchResponse.class);
+    if (assetSearchResponse.getData() == null || assetSearchResponse.getData().isEmpty()) {
+      return null;
+    }
+    AssetSearchResult assetResult = assetSearchResponse.getData().iterator().next();
+    if (!assetResult.getCurrency().equals(market.getCurrencyId())) {
+      // Fuzzy search result returned and asset from a different exchange
+      return null;
+    }
+    return assetResult;
   }
 
   @Override

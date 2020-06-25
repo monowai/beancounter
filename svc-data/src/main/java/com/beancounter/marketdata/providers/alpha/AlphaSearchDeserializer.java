@@ -34,6 +34,7 @@ public class AlphaSearchDeserializer extends JsonDeserializer<AssetSearchRespons
             .symbol(row.get("1. symbol"))
             .name(row.get("2. name"))
             .type(row.get("3. type"))
+            .currency(row.get("8. currency"))
             .build());
       }
 

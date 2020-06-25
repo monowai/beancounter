@@ -1,0 +1,15 @@
+{
+  "bestMatches": [
+    {
+      "1. symbol": "DTV.BER",
+      "2. name": "F-SECURE OYJ",
+      "3. type": "Equity",
+      "4. region": "Berlin",
+      "5. marketOpen": "08:00",
+      "6. marketClose": "20:00",
+      "7. timezone": "UTC+02",
+      "8. currency": "EUR",
+      "9. matchScore": "0.7500"
+    }
+  ]
+}

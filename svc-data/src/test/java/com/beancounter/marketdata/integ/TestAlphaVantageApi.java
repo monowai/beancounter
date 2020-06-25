@@ -126,6 +126,10 @@ class TestAlphaVantageApi {
         "AMP.AX", // We search Alpha as AX
         new ClassPathResource(alphaContracts + "/amp-search.json").getFile());
 
+    mockSearchResponse(alphaApi,
+        "DTV", // Unlisted in the US, but code exists in EUR
+        new ClassPathResource(alphaContracts + "/dtv-search.json").getFile());
+
     mockGlobalResponse(
         alphaApi, "AMP.AX",
         new ClassPathResource(alphaContracts + "/amp-global.json").getFile());
@@ -260,6 +264,36 @@ class TestAlphaVantageApi {
         .hasFieldOrPropertyWithValue("name", "AMP Limited");
 
     assertThat(alphaConfig.getPriceCode(assetResponse.getData())).isEqualTo("AMP.AUS");
+  }
+
+  @Test
+  void is_MismatchExchangeEnrichmentHandled() throws Exception {
+    // De-listed asset that can be found on the non-requested market
+    AssetUpdateResponse result = assetService
+        .process(AssetRequest.builder()
+            .data("key", AssetInput.builder()
+                .code("DTV")
+                .market("NYSE")
+                .build()).build());
+
+    Asset asset = result.getData().get("key");
+    assertThat(asset.getPriceSymbol()).isNull();
+
+    MvcResult mvcResult = mockMvc.perform(
+        get("/assets/{market}/{code}", "NYSE", "DTV")
+            .with(jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn();
+
+    AssetResponse assetResponse = new ObjectMapper()
+        .readValue(mvcResult.getResponse().getContentAsString(), AssetResponse.class);
+
+    assertThat(assetResponse.getData())
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("name", null);
+
   }
 
   @Test
@@ -401,7 +435,7 @@ class TestAlphaVantageApi {
                 .build()).build());
 
     Asset asset = result.getData().get("key");
-    assertThat(asset.getPriceSymbol()).isEqualTo("UNLISTED");
+    assertThat(asset.getPriceSymbol()).isNull();
     Optional<MarketData> priceResult = priceService.getMarketData(
         asset.getId(), dateUtils.getDate());
 

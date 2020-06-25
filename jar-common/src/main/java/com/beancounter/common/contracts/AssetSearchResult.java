@@ -14,4 +14,5 @@ public class AssetSearchResult {
   private String name;
   private String type;
   private String region;
+  private String currency;
 }

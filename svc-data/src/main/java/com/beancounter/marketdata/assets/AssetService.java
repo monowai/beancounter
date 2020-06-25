@@ -74,7 +74,6 @@ public class AssetService implements com.beancounter.client.AssetService {
         asset.setMarketCode(market.getCode());
         asset.setMarket(market);
         asset.setName(defaultName);
-        asset.setPriceSymbol(UNLISTED);
       } else {
         // Market Listed
         asset.setMarket(market);
@@ -140,6 +139,10 @@ public class AssetService implements com.beancounter.client.AssetService {
     Optional<Asset> optionalAsset =
         assetRepository.findByMarketCodeAndCode(marketCode.toUpperCase(), code.toUpperCase());
     return optionalAsset.map(this::hydrateAsset).orElse(null);
+  }
+
+  public Asset enrich(String assetId) {
+    return enrich(find(assetId));
   }
 
   private Asset enrich(Asset asset) {

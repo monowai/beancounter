@@ -41,17 +41,7 @@ exports[`<Transactions /> should match snapshot 1`] = `
               <th
                 align="right"
               >
-                Quantity
-              </th>
-              <th
-                align="right"
-              >
-                Price
-              </th>
-              <th
-                align="right"
-              >
-                Charges
+                Amount
               </th>
               <th
                 align="right"
@@ -61,7 +51,17 @@ exports[`<Transactions /> should match snapshot 1`] = `
               <th
                 align="right"
               >
-                Amount
+                Charges
+              </th>
+              <th
+                align="right"
+              >
+                Quantity
+              </th>
+              <th
+                align="right"
+              >
+                Price
               </th>
               <th>
                 Action
@@ -83,6 +83,27 @@ exports[`<Transactions /> should match snapshot 1`] = `
                 align="right"
               >
                 <span>
+                  2,160.01
+                </span>
+              </td>
+              <td
+                align="right"
+              >
+                <span>
+                  0.00
+                </span>
+              </td>
+              <td
+                align="right"
+              >
+                <span>
+                  0.00
+                </span>
+              </td>
+              <td
+                align="right"
+              >
+                <span>
                   2
                 </span>
               </td>
@@ -91,27 +112,6 @@ exports[`<Transactions /> should match snapshot 1`] = `
               >
                 <span>
                   1,080.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  0.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  0.00
-                </span>
-              </td>
-              <td
-                align="right"
-              >
-                <span>
-                  2,160.01
                 </span>
               </td>
               <td>

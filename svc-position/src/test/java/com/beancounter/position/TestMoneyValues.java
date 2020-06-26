@@ -104,7 +104,10 @@ class TestMoneyValues {
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO))
         .hasFieldOrPropertyWithValue("dividends", new BigDecimal(".10"));
 
-    assertThat(position.getDateValues().getLastDividend()).isToday();
+
+    DateUtils dateUtils = new DateUtils();
+    assertThat(dateUtils.isToday(
+        dateUtils.getDateString(position.getDateValues().getLastDividend())));
 
     ObjectMapper objectMapper = new ObjectMapper();
     String bytes = objectMapper.writeValueAsString(position);

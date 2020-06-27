@@ -26,8 +26,9 @@ public class AlphaProxyCache {
 
   @Cacheable("asset.prices")
   @Async
-  @SuppressWarnings("unused")
-  public Future<String> getCurrent(String code, String apiKey) {
+  public Future<String> getCurrent(String code,
+                                   @SuppressWarnings("unused") String date,
+                                   String apiKey) {
     if (code == null) {
       return new AsyncResult<>(null);
     }

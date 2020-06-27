@@ -72,7 +72,8 @@ public class AlphaService implements MarketDataProvider {
       if (isCurrent(priceRequest.getDate())) {
         requests.put(
             batchId,
-            alphaProxyCache.getCurrent(providerArguments.getBatch().get(batchId), apiKey));
+            alphaProxyCache.getCurrent(providerArguments.getBatch().get(batchId),
+                priceRequest.getDate(), apiKey));
       } else {
         requests.put(
             batchId,

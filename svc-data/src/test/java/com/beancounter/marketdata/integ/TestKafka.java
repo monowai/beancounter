@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.auth.common.TokenService;
@@ -10,7 +11,6 @@ import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
 import com.beancounter.common.contracts.TrnResponse;
-import com.beancounter.common.event.CorporateEvent;
 import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.input.TrustedEventInput;
@@ -20,7 +20,6 @@ import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
-import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
@@ -35,15 +34,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -64,18 +64,19 @@ import org.springframework.test.context.ActiveProfiles;
 )
 @SpringBootTest(classes = MarketDataBoot.class)
 @ActiveProfiles("kafka")
-@Slf4j
 public class TestKafka {
 
   public static final String TOPIC_TRN_CSV = "topicTrnCsv";
   public static final String TOPIC_EVENT = "topicEvent";
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(TestKafka.class);
+  private final ObjectMapper objectMapper = getObjectMapper();
   private final DateUtils dateUtils = new DateUtils();
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
 
+  @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private KafkaTemplate<Object, TrustedTrnImportRequest> kafkaWriter;
   @Autowired
@@ -100,28 +101,25 @@ public class TestKafka {
   @Test
   void is_StaticDataLoaded() {
     assertThat(currencyService.getCurrencies()).isNotEmpty();
+    assertThat(eventWriter.getKafkaEnabled()).isTrue();
   }
 
-  @SneakyThrows
   @Test
-  void is_TrnRequestSentAndReceived() {
+  void is_TrnRequestSentAndReceived() throws Exception {
     log.debug(embeddedKafkaBroker.getBrokersAsString());
 
     assertThat(currencyService.getCurrencies()).isNotEmpty();
-    SystemUser owner = systemUserService.save(SystemUser.builder().id("mike").build());
+    SystemUser owner = systemUserService.save(new SystemUser("mike"));
     Mockito.when(tokenService.getSubject()).thenReturn(owner.getId());
 
     // The asset has to exist
-    AssetRequest assetRequest = AssetRequest.builder()
-        .data("MSFT", AssetUtils.getAssetInput("NASDAQ", "MSFT"))
-        .build();
+    AssetRequest assetRequest = new AssetRequest();
+    assetRequest.getData().put("MSFT", AssetUtils.getAssetInput("NASDAQ", "MSFT"));
     AssetUpdateResponse assetResponse = assetService.process(assetRequest);
     assertThat(assetResponse.getData().get("MSFT")).hasFieldOrProperty("id");
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
-    portfolios.add(PortfolioInput.builder().code("KTEST")
-        .currency("USD")
-        .build());
+    portfolios.add(new PortfolioInput("KTEST", "KTEST", "USD"));
     Collection<Portfolio> pfResponse = portfolioService.save(portfolios);
     assertThat(pfResponse).isNotNull();
     assertThat(pfResponse).isNotNull().hasSize(1);
@@ -142,10 +140,8 @@ public class TestKafka {
     row.add(ShareSightTradeAdapter.value, BigDecimal.TEN.toString());
     row.add(ShareSightTradeAdapter.comments, "Test Comment");
 
-    TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(pfResponse.iterator().next())
-        .build();
+    TrustedTrnImportRequest trnRequest =
+        new TrustedTrnImportRequest(pfResponse.iterator().next(), row);
 
     Consumer<String, String> consumer = getKafkaConsumer("data-test", TOPIC_TRN_CSV);
 
@@ -188,24 +184,20 @@ public class TestKafka {
     return consumer;
   }
 
-  @SneakyThrows
   @Test
   void is_MutualFundProcessed() {
     log.debug(embeddedKafkaBroker.getBrokersAsString());
-    SystemUser owner = systemUserService.save(SystemUser.builder().id("mike").build());
+    SystemUser owner = systemUserService.save(new SystemUser("mike"));
     Mockito.when(tokenService.getSubject()).thenReturn(owner.getId());
 
     // The asset has to exist
-    AssetRequest assetRequest = AssetRequest.builder()
-        .data("B784NS1", AssetUtils.getAssetInput("LON", "B784NS1"))
-        .build();
+    AssetRequest assetRequest = new AssetRequest();
+    assetRequest.getData().put("B784NS1", AssetUtils.getAssetInput("LON", "B784NS1"));
     AssetUpdateResponse assetResponse = assetService.process(assetRequest);
     assertThat(assetResponse.getData().get("B784NS1")).hasFieldOrProperty("id");
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
-    portfolios.add(PortfolioInput.builder().code("MFTEST")
-        .currency("USD")
-        .build());
+    portfolios.add(new PortfolioInput("MFTEST", "MFTST", "USD"));
     Collection<Portfolio> pfResponse = portfolioService.save(portfolios);
     assertThat(pfResponse).isNotNull();
     assertThat(pfResponse).isNotNull().hasSize(1);
@@ -226,11 +218,8 @@ public class TestKafka {
     row.add(ShareSightTradeAdapter.value, "");
     row.add(ShareSightTradeAdapter.comments, "Test Comment");
 
-    TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(pfResponse.iterator().next())
-        .build();
-
+    TrustedTrnImportRequest trnRequest = new TrustedTrnImportRequest(
+        pfResponse.iterator().next(), row);
     Asset expectedAsset = assetResponse.getData().get("B784NS1");
 
     TrnResponse response = trnKafkaConsumer
@@ -244,26 +233,25 @@ public class TestKafka {
   }
 
   @Test
-  @SneakyThrows
-  void is_PricePersisted() {
+  void is_PricePersisted() throws Exception {
     String priceDate = "2020-04-29";
-    AssetRequest assetRequest = AssetRequest.builder()
-        .data("test", AssetUtils.getAssetInput("NASDAQ", "MSFT"))
-        .build();
+    AssetRequest assetRequest = new AssetRequest();
+    assetRequest.getData().put("test", AssetUtils.getAssetInput("NASDAQ", "MSFT"));
 
     AssetUpdateResponse assetResult = assetService.process(assetRequest);
     Asset asset = assetResult.getData().get("test");
     assertThat(asset).isNotNull().hasFieldOrProperty("id");
 
-    Collection<MarketData> marketData = new ArrayList<>();
-    marketData.add(MarketData.builder()
-        .asset(asset)
-        .volume(10)
-        .open(BigDecimal.TEN)
-        .priceDate(dateUtils.getDate(priceDate))
-        .build());
+    MarketData marketData = new MarketData(
+        asset,
+        Objects.requireNonNull(dateUtils.getDate(priceDate)));
+    marketData.setVolume(10);
+    marketData.setOpen(BigDecimal.TEN);
+    marketData.setDividend(BigDecimal.ZERO);
+    Collection<MarketData> mdCollection = new ArrayList<>();
+    mdCollection.add(marketData);
 
-    PriceResponse priceResponse = PriceResponse.builder().data(marketData).build();
+    PriceResponse priceResponse = new PriceResponse(mdCollection);
 
     Collection<AssetInput> assets = new ArrayList<>();
 
@@ -272,25 +260,15 @@ public class TestKafka {
     for (MarketData result : results) {
       assertThat(result).hasFieldOrProperty("id");
 
-      AssetInput assetInput = AssetInput.builder()
-          .code(asset.getCode())
-          .market(asset.getMarket().getCode())
-          .resolvedAsset(asset)
-          .build();
+      AssetInput assetInput = new AssetInput(asset.getMarket().getCode(), asset.getCode(), asset);
       assets.add(assetInput);
     }
 
     // Will be resolved over the mocked API
-    assets.add(AssetInput.builder()
-        .code("APPL")
-        .market("NASDAQ")
-        .resolvedAsset(AssetUtils.getAsset("NASDAQ", "AAPL"))
-        .build());
+    assets.add(new AssetInput("NASDAQ", "APPL",
+        AssetUtils.getAsset("NASDAQ", "AAPL")));
 
-    PriceRequest priceRequest = PriceRequest.builder()
-        .date(priceDate) // Mocked date - MSFT has, AAPL has no price
-        .assets(assets)
-        .build();
+    PriceRequest priceRequest = new PriceRequest(priceDate, assets);
 
     // First call will persist the result in an async manner
     priceResponse = marketDataService.getPriceResponse(priceRequest);
@@ -301,10 +279,12 @@ public class TestKafka {
     // Second call will retrieve from DB to assert objects are correctly hydrated
     priceResponse = marketDataService.getPriceResponse(priceRequest);
     assertThat(priceResponse).isNotNull();
-    assertThat(priceResponse.getData()).isNotEmpty().hasSize(2);
+    assertThat(priceResponse.getData()).isNotNull().isNotEmpty().hasSize(2);
+
     for (MarketData md : priceResponse.getData()) {
       assertThat(md.getAsset()).isNotNull()
           .hasFieldOrProperty("id");
+
       assertThat(md.getAsset().getMarket())
           // These are not used client side so should be ignored
           .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
@@ -314,31 +294,25 @@ public class TestKafka {
   @Test
   void is_CorporateEventDispatched() throws Exception {
 
-    AssetRequest assetRequest = AssetRequest.builder()
-        .data("a", AssetInput.builder()
-            .code("TWEE")
-            .name("No matter")
-            .market("NASDAQ")
-            .build())
-        .build();
-    AssetUpdateResponse assetResult = assetService.process(assetRequest);
+    Map<String, AssetInput> data = new HashMap<>();
+    data.put("a", new AssetInput("NASDAQ", "TWEE"));
+
+    AssetUpdateResponse assetResult = assetService.process(new AssetRequest(data));
     assertThat(assetResult.getData()).hasSize(1);
     Asset asset = assetResult.getData().get("a");
+    assertThat(asset.getId()).isNotNull();
     assertThat(asset.getMarket()).isNotNull();
-
-    CorporateEvent event = CorporateEvent.builder()
-        .assetId(asset.getId())
-        .source("ALPHA")
-        .trnType(TrnType.DIVI)
-        .payDate(dateUtils.getDate("2019-12-20"))
-        .recordDate(dateUtils.getDate("2019-12-10"))
-        .rate(new BigDecimal("2.34"))
-        .build();
+    MarketData marketData = new MarketData(
+        asset,
+        Objects.requireNonNull(dateUtils.getDate("2019-12-10")));
+    marketData.setSource("ALPHA");
+    marketData.setDividend(new BigDecimal("2.34"));
+    marketData.setSplit(new BigDecimal("1.000"));
 
     Consumer<String, String> consumer = getKafkaConsumer("data-event-test", TOPIC_EVENT);
 
     // Compare with a serialised event
-    eventWriter.write(event);
+    eventWriter.write(marketData);
 
     ConsumerRecord<String, String>
         consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_EVENT);
@@ -348,7 +322,9 @@ public class TestKafka {
         TrustedEventInput.class);
 
     assertThat(received.getData())
-        .isEqualToComparingFieldByField(event);
+        .hasFieldOrPropertyWithValue("rate", marketData.getDividend())
+        .hasFieldOrPropertyWithValue("assetId", asset.getId())
+        .hasFieldOrProperty("recordDate");
 
   }
 

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static com.beancounter.marketdata.utils.RegistrationUtils.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -37,7 +38,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 class MarketMvcTests {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = getObjectMapper();
   private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   @Autowired
   private WebApplicationContext wac;
@@ -49,10 +50,7 @@ class MarketMvcTests {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
         .apply(springSecurity())
         .build();
-    SystemUser user = SystemUser.builder()
-        .id("MarketMvcTests")
-        .email("MarketMvcTests@testing.com")
-        .build();
+    SystemUser user = new SystemUser("MarketMvcTests", "MarketMvcTests@testing.com");
 
     token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token);
@@ -89,8 +87,7 @@ class MarketMvcTests {
     MarketResponse marketResponse = objectMapper
         .readValue(mvcResult.getResponse().getContentAsString(), MarketResponse.class);
     assertThat(marketResponse).isNotNull().hasFieldOrProperty("data");
-    assertThat(marketResponse.getData()).hasSize(1);
-
+    assertThat(marketResponse.getData()).isNotNull().hasSize(1);
     Market nzx = marketResponse.getData().iterator().next();
     assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher");
   }

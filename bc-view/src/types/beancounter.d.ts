@@ -116,7 +116,7 @@ interface SystemUser {
 interface TrnInput {
   trnType: TrnType;
   portfolioId: string;
-  asset: string;
+  assetId: string;
   tradeDate: string;
   quantity: number;
   price: number;

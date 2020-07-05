@@ -10,9 +10,11 @@ buildscript {
 }
 
 plugins {
-    id "io.spring.dependency-management" version "$springDependencyManagement"
-    id "org.springframework.boot" version "$springBootVersion"
+    id "io.spring.dependency-management"
+    id "org.springframework.boot"
     id "maven-publish"
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
 }
 apply plugin: 'spring-cloud-contract'
 apply from: "../javaCommon.gradle"
@@ -42,39 +44,38 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
             "com.github.ben-manes.caffeine:caffeine",
-            "com.h2database:h2",
+            "com.h2database:h2", // Dev
             "org.postgresql:postgresql:42.2.14",
-            "org.projectlombok:lombok",
             "org.springframework.kafka:spring-kafka"
     )
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor "org.projectlombok:lombok"
-
     testImplementation(
-            "org.projectlombok:lombok",
             "io.rest-assured:rest-assured",
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
             "io.rest-assured:spring-mock-mvc",
-            "com.h2database:h2",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
-            // Not strictly needed, but pulling into build cache
+            // Not needed for this project; pulling into build cache
             "org.springframework.cloud:spring-cloud-contract-stub-runner"
             // End not strictly needed
 
     )
+
 
 }
 
@@ -104,4 +105,15 @@ idea {
 task pubStubs {
     dependsOn build
     dependsOn publishToMavenLocal
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }

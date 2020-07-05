@@ -3,18 +3,20 @@ package com.beancounter.common.utils;
 import com.beancounter.common.exception.BusinessException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
-public class KeyGenUtils {
-  private final char[] chars =
+public final class KeyGenUtils {
+  private static final char[] chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
-  private final int[] i256 = new int[256];
+  private static final int[] i256 = new int[256];
 
   static {
     for (int i = 0; i < chars.length; i++) {
       i256[chars[i]] = i;
     }
+  }
+
+  private KeyGenUtils() {
+    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
 
   /**
@@ -26,7 +28,7 @@ public class KeyGenUtils {
    * @throws BusinessException  if the UUID instance is null.
    * @throws IllegalArgumentException if the underlying UUID implementation is not 16 bytes.
    */
-  public String format(UUID uuid) {
+  public static String format(UUID uuid) {
     if (uuid == null) {
       throw new BusinessException("Null UUID");
     }
@@ -47,7 +49,7 @@ public class KeyGenUtils {
    * @throws IllegalArgumentException if the uuidString is not a valid UUID representation.
    * @throws BusinessException     if the uuidString is null.
    */
-  public UUID parse(String uuidString) {
+  public static UUID parse(String uuidString) {
     if (uuidString == null || uuidString.isEmpty()) {
       throw new BusinessException("Invalid UUID string");
     }
@@ -73,7 +75,7 @@ public class KeyGenUtils {
    * @param uuid a UUID instance.
    * @return the bytes from the UUID instance.
    */
-  private byte[] toByteArray(UUID uuid) {
+  private static byte[] toByteArray(UUID uuid) {
     ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
     bb.putLong(uuid.getMostSignificantBits());
     bb.putLong(uuid.getLeastSignificantBits());
@@ -92,7 +94,7 @@ public class KeyGenUtils {
    * @param bytes a UUID byte array.
    * @return a URL-safe base64-encoded string.
    */
-  private String encodeBase64(byte[] bytes) {
+  private static String encodeBase64(byte[] bytes) {
 
     // Output is always 22 characters.
     char[] chars = new char[22];
@@ -129,7 +131,7 @@ public class KeyGenUtils {
    * @param s key
    * @return bytes
    */
-  private byte[] decodeBase64(String s) {
+  private static byte[] decodeBase64(String s) {
 
     // Output is always 16 bytes (UUID).
     byte[] bytes = new byte[16];
@@ -154,7 +156,7 @@ public class KeyGenUtils {
     return bytes;
   }
 
-  public String getId() {
+  public static String getId() {
     return format(UUID.randomUUID());
   }
 }

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static com.beancounter.marketdata.utils.RegistrationUtils.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -27,11 +28,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -46,16 +46,14 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 @SpringBootTest
 @WebAppConfiguration
-@Slf4j
 class PortfolioMvcTests {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(PortfolioMvcTests.class);
+  private final ObjectMapper objectMapper = getObjectMapper();
+  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private MockMvc mockMvc;
-
   @Autowired
   private WebApplicationContext context;
-
-  private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
 
   @BeforeEach
   void mockServices() {
@@ -68,11 +66,11 @@ class PortfolioMvcTests {
   void is_findingByIdCode() throws Exception {
     SystemUser user = SysUserUtils.getSystemUser();
 
-    PortfolioInput portfolio = PortfolioInput.builder()
-        .code(UUID.randomUUID().toString().toUpperCase())
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+    PortfolioInput portfolio = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     Jwt token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token);
@@ -81,10 +79,8 @@ class PortfolioMvcTests {
         post("/portfolios")
             // Mocking does not use the JwtRoleConverter configured in ResourceServerConfig
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(new ObjectMapper()
-                .writeValueAsBytes(PortfoliosRequest.builder()
-                    .data(Collections.singleton(portfolio))
-                    .build()))
+            .content(getObjectMapper()
+                .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolio))))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isOk())
@@ -171,21 +167,19 @@ class PortfolioMvcTests {
     registerUser(mockMvc, token);
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
-    PortfolioInput portfolioInput = PortfolioInput.builder()
-        .code(UUID.randomUUID().toString().toUpperCase())
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+    PortfolioInput portfolioInput = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     portfolios.add(portfolioInput);
-    PortfoliosRequest createRequest = PortfoliosRequest.builder()
-        .data(portfolios)
-        .build();
+    PortfoliosRequest createRequest = new PortfoliosRequest(portfolios);
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(new ObjectMapper().writeValueAsBytes(createRequest))
+            .content(getObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -216,19 +210,17 @@ class PortfolioMvcTests {
   void is_OwnerHonoured() throws Exception {
     SystemUser userA = SysUserUtils.getSystemUser();
 
-    PortfolioInput portfolioInput = PortfolioInput.builder()
-        .code(UUID.randomUUID().toString())
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+    PortfolioInput portfolioInput = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     mockMvc.perform(
         post("/portfolios")
             // No Token
-            .content(new ObjectMapper()
-                .writeValueAsBytes(PortfoliosRequest.builder()
-                    .data(Collections.singleton(portfolioInput))
-                    .build()))
+            .content(getObjectMapper()
+                .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolioInput))))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isForbidden())
@@ -241,10 +233,8 @@ class PortfolioMvcTests {
     MvcResult mvcResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(tokenA).authorities(authorityRoleConverter))
-            .content(new ObjectMapper()
-                .writeValueAsBytes(PortfoliosRequest.builder()
-                    .data(Collections.singleton(portfolioInput))
-                    .build()))
+            .content(getObjectMapper()
+                .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolioInput))))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isOk())
@@ -302,10 +292,7 @@ class PortfolioMvcTests {
         .hasSize(1);
 
     // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
-    SystemUser userB = SystemUser.builder()
-        .id("user2")
-        .email("user2@testing.com")
-        .build();
+    SystemUser userB = new SystemUser("user2", "user2@testing.com");
 
     Jwt tokenB = TokenUtils.getUserToken(userB);
     registerUser(mockMvc, tokenB);
@@ -338,13 +325,12 @@ class PortfolioMvcTests {
   }
 
   @Test
-  @SneakyThrows
-  void is_DeletePortfolio() {
-    PortfolioInput portfolioInput = PortfolioInput.builder()
-        .code(UUID.randomUUID().toString())
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+  void is_DeletePortfolio() throws Exception {
+    PortfolioInput portfolioInput = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     SystemUser userA = SysUserUtils.getSystemUser();
 
@@ -355,10 +341,8 @@ class PortfolioMvcTests {
     MvcResult mvcResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(new ObjectMapper()
-                .writeValueAsBytes(PortfoliosRequest.builder()
-                    .data(Collections.singleton(portfolioInput))
-                    .build()))
+            .content(getObjectMapper()
+                .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolioInput))))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isOk())
@@ -383,18 +367,17 @@ class PortfolioMvcTests {
     assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("ok");
   }
 
-  @SneakyThrows
   @Test
-  void is_UniqueConstraintInPlace() {
-    PortfolioInput portfolio = PortfolioInput.builder()
-        .code("Code")
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+  void is_UniqueConstraintInPlace() throws Exception {
+    PortfolioInput portfolioInput = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
-    portfolios.add(portfolio);
-    portfolios.add(portfolio); // Code and Owner are the same so, reject
+    portfolios.add(portfolioInput);
+    portfolios.add(portfolioInput); // Code and Owner are the same so, reject
 
     SystemUser userA = SysUserUtils.getSystemUser();
     Jwt token = TokenUtils.getUserToken(userA);
@@ -404,10 +387,8 @@ class PortfolioMvcTests {
         post("/portfolios")
             .with(
                 jwt().jwt(token).authorities(authorityRoleConverter)
-            ).content(new ObjectMapper()
-            .writeValueAsBytes(PortfoliosRequest.builder()
-                .data(portfolios)
-                .build()))
+            ).content(getObjectMapper()
+            .writeValueAsBytes(new PortfoliosRequest(portfolios)))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isBadRequest())
@@ -420,17 +401,16 @@ class PortfolioMvcTests {
 
   }
 
-  @SneakyThrows
   @Test
-  void is_UnregisteredUserRejected() {
-    PortfolioInput portfolio = PortfolioInput.builder()
-        .code("Code")
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+  void is_UnregisteredUserRejected() throws Exception {
+    PortfolioInput portfolioInput = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
-    portfolios.add(portfolio);
+    portfolios.add(portfolioInput);
 
     SystemUser userA = SysUserUtils.getSystemUser();
     Jwt token = TokenUtils.getUserToken(userA);
@@ -440,10 +420,8 @@ class PortfolioMvcTests {
         post("/portfolios")
             .with(
                 jwt().jwt(token).authorities(authorityRoleConverter)
-            ).content(new ObjectMapper()
-            .writeValueAsBytes(PortfoliosRequest.builder()
-                .data(portfolios)
-                .build()))
+            ).content(getObjectMapper()
+            .writeValueAsBytes(new PortfoliosRequest(portfolios)))
             .contentType(MediaType.APPLICATION_JSON)
 
     ).andExpect(status().isForbidden())
@@ -456,30 +434,27 @@ class PortfolioMvcTests {
 
   }
 
-  @SneakyThrows
   @Test
-  void is_UpdatePortfolioWorking() {
+  void is_UpdatePortfolioWorking() throws Exception {
     SystemUser user = SysUserUtils.getSystemUser();
 
     Jwt token = TokenUtils.getUserToken(user);
     registerUser(mockMvc, token);
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
-    PortfolioInput portfolioInput = PortfolioInput.builder()
-        .code(UUID.randomUUID().toString().toUpperCase())
-        .name("NZD Portfolio")
-        .currency("NZD")
-        .build();
+    PortfolioInput portfolioInput = new PortfolioInput(
+        UUID.randomUUID().toString().toUpperCase(),
+        "NZD Portfolio",
+        "NZD",
+        "USD");
 
     portfolios.add(portfolioInput);
-    PortfoliosRequest createRequest = PortfoliosRequest.builder()
-        .data(portfolios)
-        .build();
+    PortfoliosRequest createRequest = new PortfoliosRequest(portfolios);
 
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(new ObjectMapper().writeValueAsBytes(createRequest))
+            .content(getObjectMapper().writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -490,17 +465,13 @@ class PortfolioMvcTests {
 
     Portfolio portfolio = portfoliosResponse.getData().iterator().next();
 
-    PortfolioInput updateTo = PortfolioInput.builder()
-        .code("123")
-        .name("Mikey")
-        .base("SGD")
-        .currency("SGD")
-        .build();
+    PortfolioInput updateTo = new PortfolioInput(
+        "123", "Mikey", "SGD", "USD");
 
     MvcResult patchResult = mockMvc.perform(
         patch("/portfolios/{id}", portfolio.getId())
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(new ObjectMapper().writeValueAsBytes(updateTo))
+            .content(getObjectMapper().writeValueAsBytes(updateTo))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

@@ -16,7 +16,9 @@ import com.google.common.base.Splitter;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +32,6 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Slf4j
 public class ShareSightDividendAdapter implements TrnAdapter {
   public static final int id = 0;
   public static final int code = 1;
@@ -46,6 +47,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   private final DateUtils dateUtils = new DateUtils();
   private final AssetIngestService assetIngestService;
   private Filter filter = new Filter(null);
+  private static final Logger log = LoggerFactory.getLogger(ShareSightDividendAdapter.class);
 
   public ShareSightDividendAdapter(ShareSightConfig shareSightConfig,
                                    AssetIngestService assetIngestService) {
@@ -62,7 +64,6 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
     List<String> row = trustedTrnImportRequest.getRow();
     try {
-
       Asset asset = resolveAsset(row);
       if (asset == null) {
         log.error("Unable to resolve asset [{}]", row);
@@ -70,27 +71,26 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       }
 
       BigDecimal tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
-      return TrnInput.builder()
-          .asset(asset.getId())
-          .tradeCurrency(row.get(currency))
-          .callerRef(CallerRef.builder()
-              .provider(trustedTrnImportRequest.getPortfolio().getId())
-              .callerId(row.get(id))
-              .build())
-          .trnType(TrnType.DIVI)
-          .tax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate))
-          .tradeAmount(
-              MathUtils.multiply(
-                  MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
-                  tradeRate))
-          .cashAmount(MathUtils.multiply(
+      TrnInput trnInput = new TrnInput(
+          new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
+          Objects.requireNonNull(asset.getId()),
+          TrnType.DIVI
+      );
+
+      trnInput.setTradeCurrency(row.get(currency));
+      trnInput.setTax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate));
+      trnInput.setTradeAmount(
+          MathUtils.multiply(
               MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
-              tradeRate))
-          .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
-          .comments(row.get(comments))
-          .tradeCashRate(shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
-              ? null : tradeRate)
-          .build();
+              tradeRate));
+      trnInput.setCashAmount(MathUtils.multiply(
+          MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
+          tradeRate));
+      trnInput.setTradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()));
+      trnInput.setComments(row.get(comments));
+      trnInput.setTradeCashRate(shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
+          ? null : tradeRate);
+      return trnInput;
     } catch (NumberFormatException | ParseException e) {
       String message = e.getMessage();
       log.error("{} - {} Parsing row {}",

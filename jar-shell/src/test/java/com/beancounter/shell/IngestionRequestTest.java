@@ -2,8 +2,8 @@ package com.beancounter.shell;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.shell.ingest.IngestionRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 class IngestionRequestTest {
@@ -20,9 +20,8 @@ class IngestionRequestTest {
 
     assertThat(ingestionRequest.isRatesIgnored()).isTrue();
 
-    ObjectMapper objectMapper = new ObjectMapper();
-    String json = objectMapper.writeValueAsString(ingestionRequest);
-    assertThat(objectMapper.readValue(json, IngestionRequest.class))
+    String json = BcJson.getObjectMapper().writeValueAsString(ingestionRequest);
+    assertThat(BcJson.getObjectMapper().readValue(json, IngestionRequest.class))
         .isEqualToComparingFieldByField(ingestionRequest);
 
   }

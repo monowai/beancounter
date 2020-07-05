@@ -6,7 +6,6 @@ import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.common.utils.DateUtils;
 import java.text.NumberFormat;
 import java.util.Locale;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -22,20 +21,33 @@ import org.springframework.context.annotation.Import;
     Filter.class,
     ShareSightRowAdapter.class
 })
-@Data
 public class ShareSightConfig {
 
-  private NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
+  private final NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
   @Value("${date.format:dd/MM/yyyy}")
   private String dateFormat;
 
+  // Backfill FX rates ignoring source file values
   @Value("${rates:true}")
-  // Backfill FX rates and ignore source file value
   private boolean calculateRates = true;
 
-  @Value("${amount:true}")
   // Calculate the tradeAmount field and ignore source file value
+  @Value("${amount:true}")
   private boolean calculateAmount = true;
 
+  public NumberFormat getNumberFormat() {
+    return numberFormat;
+  }
 
+  public String getDateFormat() {
+    return dateFormat;
+  }
+
+  public boolean isCalculateRates() {
+    return calculateRates;
+  }
+
+  public boolean isCalculateAmount() {
+    return calculateAmount;
+  }
 }

@@ -17,14 +17,14 @@ public class FxUtils {
       positions.setAsAt(dateUtils.today());
     }
 
-    FxRequest fxRequest = FxRequest.builder()
-        .rateDate(positions.getAsAt())
-        .build();
+    FxRequest fxRequest = new FxRequest(positions.getAsAt());
 
     Currency portfolio = positions.getPortfolio().getCurrency();
     for (Position position : positions.getPositions().values()) {
-      fxRequest.add(IsoCurrencyPair.from(base, position.getAsset().getMarket().getCurrency()));
-      fxRequest.add(IsoCurrencyPair.from(portfolio, position.getAsset().getMarket().getCurrency()));
+      fxRequest.add(IsoCurrencyPair.toPair(base,
+          position.getAsset().getMarket().getCurrency()));
+      fxRequest.add(IsoCurrencyPair.toPair(portfolio,
+          position.getAsset().getMarket().getCurrency()));
     }
     return fxRequest;
   }

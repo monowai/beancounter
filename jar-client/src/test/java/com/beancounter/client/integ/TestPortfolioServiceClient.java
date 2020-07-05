@@ -38,23 +38,18 @@ public class TestPortfolioServiceClient {
 
   @Test
   void is_AddFailing() {
-    PortfoliosRequest request = PortfoliosRequest.builder()
-        .data(Collections.singleton(PortfolioInput.builder().code("ABC").build()))
-        .build();
+    PortfoliosRequest request = new PortfoliosRequest(
+        (Collections.singleton(
+            new PortfolioInput("ABC", "name", "NZD", "USD"))));
     // Null returned for an Add request
     assertThat(portfolioService.add(request)).isNull();
   }
 
   @Test
   void is_PortfolioAddRequest() {
-    PortfoliosRequest request = PortfoliosRequest.builder()
-        .data(Collections.singleton(PortfolioInput.builder()
-            .code("SGD")
-            .name("SGD Balanced")
-            .currency("SGD")
-            .base("USD")
-            .build()))
-        .build();
+    PortfoliosRequest request = new PortfoliosRequest(
+        Collections.singleton(
+            new PortfolioInput("SGD", "SGD Balanced", "SGD", "USD")));
     // Null returned for an Add request
     PortfoliosResponse response = portfolioService.add(request);
     assertThat(response).isNotNull().hasNoNullFieldsOrProperties();

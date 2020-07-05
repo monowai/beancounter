@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.integ;
 
 import static com.beancounter.common.utils.AssetUtils.getAssetInput;
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -20,7 +21,6 @@ import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.markets.MarketService;
 import com.beancounter.marketdata.providers.mock.MockProviderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,11 +51,10 @@ class MarketDataControllerTests {
   // Represents dummy after it has been Jackson'ized
   private final Asset dummyJsonAsset;
   private final WebApplicationContext wac;
+  private final MockProviderService mockProviderService;
   @MockBean
   private AssetService assetService;
-  private final MockProviderService mockProviderService;
   private MockMvc mockMvc;
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   private MarketDataControllerTests(WebApplicationContext webApplicationContext,
@@ -67,7 +66,8 @@ class MarketDataControllerTests {
     dummy = AssetUtils.getAsset(
         marketService.getMarket("mock"), "dummy"
     );
-    dummyJsonAsset = objectMapper.readValue(objectMapper.writeValueAsString(dummy), Asset.class);
+    dummyJsonAsset = getObjectMapper()
+        .readValue(getObjectMapper().writeValueAsString(dummy), Asset.class);
   }
 
   @BeforeEach
@@ -75,8 +75,9 @@ class MarketDataControllerTests {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
     Mockito.when(
         assetService.find(dummy.getId())).thenReturn(dummy);
+    assertThat(dummy.getId()).isNotNull();
     Mockito.when(
-        assetService.findLocally(dummy.getMarket().getCode(), dummy.getId()))
+        assetService.findLocally(dummy.getMarket().getCode(), dummy.getCode()))
         .thenReturn(dummy);
   }
 
@@ -96,7 +97,7 @@ class MarketDataControllerTests {
             content().contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn()
         .getResponse().getContentAsString();
-    MarketResponse marketResponse = objectMapper.readValue(json, MarketResponse.class);
+    MarketResponse marketResponse = getObjectMapper().readValue(json, MarketResponse.class);
     assertThat(marketResponse.getData()).isNotNull().isNotEmpty();
   }
 
@@ -117,9 +118,8 @@ class MarketDataControllerTests {
             content().contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().getResponse().getContentAsString();
 
-    PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
-    assertThat(priceResponse.getData()).hasSize(1);
-
+    PriceResponse priceResponse = getObjectMapper().readValue(json, PriceResponse.class);
+    assertThat(priceResponse.getData()).isNotNull().hasSize(1);
     MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)
         .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
@@ -142,8 +142,8 @@ class MarketDataControllerTests {
     String json = mockMvc.perform(
         post("/prices")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper
-                .writeValueAsString(PriceRequest.builder().assets(assetInputs).build())
+            .content(getObjectMapper().writeValueAsString(
+                new PriceRequest(assetInputs))
             ))
         .andExpect(
             status().isOk()
@@ -153,7 +153,7 @@ class MarketDataControllerTests {
         .getResponse()
         .getContentAsString();
 
-    PriceResponse mdResponse = objectMapper.readValue(json, PriceResponse.class);
+    PriceResponse mdResponse = getObjectMapper().readValue(json, PriceResponse.class);
     assertThat(mdResponse.getData()).hasSize(assetInputs.size());
   }
 
@@ -173,8 +173,9 @@ class MarketDataControllerTests {
         .getResponse()
         .getContentAsString();
 
-    PriceResponse priceResponse = objectMapper.readValue(json, PriceResponse.class);
-    assertThat(priceResponse.getData()).hasSize(1);
+    PriceResponse priceResponse = getObjectMapper().readValue(json, PriceResponse.class);
+
+    assertThat(priceResponse.getData()).isNotNull().hasSize(1);
 
     MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)

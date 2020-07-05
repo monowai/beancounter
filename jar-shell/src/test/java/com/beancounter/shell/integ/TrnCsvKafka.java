@@ -8,9 +8,9 @@ import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.kafka.KafkaTrnProducer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     topics = {"topicTrnCsv"},
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = {
-        "log.dir=./kafka",
+        "log.dir=./build/kafka",
         "listeners=PLAINTEXT://localhost:${kafka.broker.port}",
         "auto.create.topics.enable=true"}
 )
@@ -53,16 +53,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Slf4j
 public class TrnCsvKafka {
 
+  private final List<String> row = new ArrayList<>();
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
-
   @Autowired
   private KafkaTrnProducer kafkaTrnProducer;
-
   @MockBean
   private ShareSightFactory shareSightFactory;
-
-  private final List<String> row = new ArrayList<>();
   private Consumer<String, String> consumer;
 
   @BeforeEach
@@ -89,10 +86,8 @@ public class TrnCsvKafka {
   @Test
   void is_TrnRequestSendingCorrectly() throws Exception {
 
-    TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(PortfolioUtils.getPortfolio("TEST"))
-        .build();
+    TrustedTrnImportRequest trnRequest =
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
     kafkaTrnProducer.write(trnRequest);
 
     log.info("Waiting for Result");
@@ -100,7 +95,9 @@ public class TrnCsvKafka {
       ConsumerRecord<String, String>
           received = KafkaTestUtils.getSingleRecord(consumer, "topicTrnCsv");
       assertThat(received.value()).isNotNull();
-      assertThat(new ObjectMapper().readValue(received.value(), TrustedTrnImportRequest.class))
+      assertThat(BcJson.getObjectMapper().readValue(
+          received.value(),
+          TrustedTrnImportRequest.class))
           .isEqualToComparingFieldByField(trnRequest);
     } finally {
       consumer.close();

@@ -42,7 +42,7 @@ public class PositionService implements Position {
     for (Trn trn : positionRequest.getTrns()) {
       positions.add(accumulator.accumulate(trn, positions));
     }
-    return PositionResponse.builder().data(positions).build();
+    return new PositionResponse(positions);
   }
 
 }

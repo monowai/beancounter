@@ -10,9 +10,11 @@ buildscript {
 }
 
 plugins {
-    id "io.spring.dependency-management" version "$springDependencyManagement"
-    id "org.springframework.boot" version "$springBootVersion"
+    id "io.spring.dependency-management"
+    id "org.springframework.boot"
     id "maven-publish"
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
 }
 apply plugin: 'spring-cloud-contract'
 apply from: "../javaCommon.gradle"
@@ -39,6 +41,8 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
@@ -101,4 +105,15 @@ idea {
 task pubStubs {
     dependsOn build
     dependsOn publishToMavenLocal
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }

@@ -8,6 +8,7 @@ import com.beancounter.client.sharesight.ShareSightConfig;
 import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.shell.cli.DataCommands;
 import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.cli.UtilCommands;
@@ -38,26 +39,21 @@ import org.springframework.test.context.ActiveProfiles;
 public class TestCommands {
   @Autowired
   private DataCommands dataCommands;
-
   @Autowired
   private UtilCommands utilCommands;
-
   @Autowired
   private PortfolioCommands portfolioCommands;
-
   @Autowired
   private PromptProvider promptProvider;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
   @Test
   void is_MarketCommandsReturning() throws Exception {
-    String json = dataCommands.markets("MOCK");
-    MarketResponse marketResponse = objectMapper.readValue(json, MarketResponse.class);
+    String json = dataCommands.markets("NASDAQ");
+    MarketResponse marketResponse = BcJson.getObjectMapper().readValue(json, MarketResponse.class);
     assertThat(marketResponse.getData()).isNotNull().hasSize(1);
 
     json = dataCommands.markets(null);
-    marketResponse = objectMapper.readValue(json, MarketResponse.class);
+    marketResponse = BcJson.getObjectMapper().readValue(json, MarketResponse.class);
     assertThat(marketResponse.getData()).isNotNull().hasSizeGreaterThan(3);
     assertThrows(BusinessException.class, () -> dataCommands.markets("Illegal"));
   }
@@ -65,7 +61,7 @@ public class TestCommands {
   @Test
   void is_PortfolioByCode() throws Exception {
     String json = portfolioCommands.code("TEST");
-    Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
+    Portfolio portfolio = BcJson.getObjectMapper().readValue(json, Portfolio.class);
     assertThat(portfolio).isNotNull();
 
     assertThrows(BusinessException.class, () -> portfolioCommands.code("ILLEGAL"));
@@ -74,7 +70,7 @@ public class TestCommands {
   @Test
   void is_PortfolioById() throws Exception {
     String json = portfolioCommands.id("TEST");
-    Portfolio portfolio = objectMapper.readValue(json, Portfolio.class);
+    Portfolio portfolio = BcJson.getObjectMapper().readValue(json, Portfolio.class);
     assertThat(portfolio).isNotNull();
 
     assertThrows(BusinessException.class, () -> portfolioCommands.code("ILLEGAL"));

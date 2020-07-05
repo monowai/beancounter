@@ -14,11 +14,11 @@ import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.common.utils.KeyGenUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.cli.PortfolioCommands;
 import com.beancounter.shell.config.ShellConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -45,18 +45,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public class TestPortfolioCommands {
 
+  private static final TokenService tokenService = new TokenService();
   private static PortfolioCommands portfolioCommands;
-
+  private static PortfolioGw portfolioGw;
   @Autowired
   private StaticService staticService;
-
-  private static final TokenService tokenService = new TokenService();
-
   @MockBean
   private RegistrationService registrationService;
-
-  private static PortfolioGw portfolioGw;
-
   @MockBean
   private JwtDecoder jwtDecoder;
 
@@ -82,14 +77,13 @@ public class TestPortfolioCommands {
   void createPortfolio() {
     SystemUser owner = getSystemUser();
 
-    PortfoliosResponse response = PortfoliosResponse.builder()
-        .data(Collections.singletonList(getPortfolio("ABC", owner)))
-        .build();
+    PortfoliosResponse response = new PortfoliosResponse(
+        Collections.singletonList(getPortfolio("ABC", owner)));
 
     Mockito.when(portfolioGw.getPortfolioByCode(
         Mockito.eq(tokenService.getBearerToken()),
         Mockito.isA(String.class)))
-        .thenReturn(PortfolioResponse.builder().build());
+        .thenReturn(new PortfolioResponse(PortfolioUtils.getPortfolio("ABC")));
 
     Mockito.when(portfolioGw.addPortfolios(
         Mockito.eq(tokenService.getBearerToken()),
@@ -99,8 +93,9 @@ public class TestPortfolioCommands {
     String result = portfolioCommands
         .add("ABC", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
-    Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
-    assertThat(portfolio).isEqualTo(response.getData().iterator().next());
+    Portfolio portfolio = BcJson.getObjectMapper().readValue(result, Portfolio.class);
+    assertThat(portfolio).isEqualToIgnoringGivenFields(response.getData().iterator().next(),
+        "owner");
   }
 
   @Test
@@ -109,23 +104,22 @@ public class TestPortfolioCommands {
 
     SystemUser owner = getSystemUser();
     Portfolio existing = getPortfolio("ZZZ", owner);
-    PortfolioResponse response = PortfolioResponse.builder().data(existing).build();
+    PortfolioResponse portfolioResponse = new PortfolioResponse(existing);
     Mockito.when(portfolioGw.getPortfolioByCode(tokenService.getBearerToken(), existing.getCode()))
-        .thenReturn(response); // Portfolio exists
+        .thenReturn(portfolioResponse); // Portfolio exists
 
     String result = portfolioCommands
         .add("ZZZ", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
-    Portfolio portfolio = new ObjectMapper().readValue(result, Portfolio.class);
-    assertThat(portfolio).isEqualTo(response.getData());
+    Portfolio portfolio = BcJson.getObjectMapper().readValue(result, Portfolio.class);
+    assertThat(portfolio).isEqualToIgnoringGivenFields(portfolioResponse.getData(),
+        "owner");
   }
 
   private SystemUser getSystemUser() {
-    Jwt jwt = TokenUtils.getUserToken(SystemUser.builder()
-        .id(KeyGenUtils.format(UUID.randomUUID()))
-        .build());
+    SystemUser owner = new SystemUser(KeyGenUtils.format(UUID.randomUUID()));
+    Jwt jwt = TokenUtils.getUserToken(owner);
     Mockito.when(jwtDecoder.decode("token")).thenReturn(jwt);
-    SystemUser owner = SystemUser.builder().build();
     Mockito.when(registrationService.me()).thenReturn(owner);
 
     SecurityContextHolder.getContext().setAuthentication(
@@ -135,10 +129,7 @@ public class TestPortfolioCommands {
 
   private Portfolio getPortfolio(String code, SystemUser owner) {
     Portfolio toReturn = PortfolioUtils.getPortfolio(code);
-    toReturn.setId("createdId");
     toReturn.setOwner(owner);
-    toReturn.setCurrency(staticService.getCurrency("NZD"));
-    toReturn.setBase(staticService.getCurrency("USD"));
     return toReturn;
   }
 

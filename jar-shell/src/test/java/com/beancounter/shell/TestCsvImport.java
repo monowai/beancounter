@@ -19,7 +19,6 @@ public class TestCsvImport {
   void importCsv() {
     CsvIngester csvIngester = new CsvIngester();
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
-    portfolio.setId("test");
     csvIngester.prepare(
         IngestionRequest.builder()
             .file("/trades.csv").build(),

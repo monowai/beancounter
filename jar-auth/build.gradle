@@ -6,6 +6,10 @@ buildscript {
     }
 }
 
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
+}
 
 apply from: "../javaCommon.gradle"
 
@@ -24,7 +28,9 @@ dependencies {
             "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.2.RELEASE",
             "org.springframework.security:spring-security-config:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion"
+            "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
+            "org.jetbrains.kotlin:kotlin-reflect"
+
     )
     compileOnly(
             "org.projectlombok:lombok:$lombokVersion"
@@ -51,5 +57,16 @@ idea {
         downloadSources = true
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }

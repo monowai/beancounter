@@ -12,7 +12,6 @@ import com.beancounter.client.sharesight.ShareSightTradeAdapter;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.CurrencyUtils;
@@ -37,16 +36,13 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
 class StubbedTradesWithFx {
 
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @Autowired
   private FxTransactions fxTransactions;
-
   @Autowired
   private ShareSightFactory shareSightFactory;
-
   @Autowired
   private ShareSightConfig shareSightConfig;
-
-  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @Test
   void is_FxRatesSetFromCurrencies() {
@@ -77,10 +73,7 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("TEST", currencyUtils.getCurrency("NZD"));
 
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
 
     TrnInput trn = trades.from(trustedTrnImportRequest);
 
@@ -118,10 +111,7 @@ class StubbedTradesWithFx {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
 
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
 
     TrnInput trn = trades.from(trustedTrnImportRequest);
 
@@ -154,13 +144,12 @@ class StubbedTradesWithFx {
     TrnAdapter trades = shareSightFactory.adapter(row);
 
     // Testing all currency buckets
-    Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
-    portfolio.setBase(currencyUtils.getCurrency("GBP"));
+    Portfolio portfolio = new Portfolio(
+        "Test",
+        new Currency("NZD"),
+        new Currency("GBP"));
 
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
 
     TrnInput trn = trades.from(trustedTrnImportRequest);
 
@@ -199,13 +188,9 @@ class StubbedTradesWithFx {
     TrnAdapter trades = shareSightFactory.adapter(row);
 
     // Testing all currency buckets
-    Portfolio portfolio = getPortfolio("TEST", Currency.builder()
-        .code("USD").build());
+    Portfolio portfolio = getPortfolio("TEST", currencyUtils.getCurrency("USD"));
 
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
 
     TrnInput trn = trades.from(trustedTrnImportRequest);
 
@@ -215,9 +200,9 @@ class StubbedTradesWithFx {
     // No currencies are defined so rate defaults to 1
     assertThat(trn)
         .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
-        .hasFieldOrPropertyWithValue("tradeBaseRate", FxRate.ONE.getRate())
-        .hasFieldOrPropertyWithValue("tradeCashRate", FxRate.ONE.getRate())
-        .hasFieldOrPropertyWithValue("tradePortfolioRate", FxRate.ONE.getRate());
+        .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
+        .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
+        .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE);
 
   }
 

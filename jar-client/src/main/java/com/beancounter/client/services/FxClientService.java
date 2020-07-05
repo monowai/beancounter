@@ -5,7 +5,6 @@ import com.beancounter.client.FxService;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 @Service
-@Slf4j
 public class FxClientService implements FxService {
 
   private final FxGateway fxGateway;
@@ -27,8 +25,8 @@ public class FxClientService implements FxService {
 
   @Cacheable("fx-request")
   public FxResponse getRates(FxRequest fxRequest) {
-    if (fxRequest.getPairs() == null || fxRequest.getPairs().isEmpty()) {
-      return FxResponse.builder().data(new FxPairResults()).build();
+    if (fxRequest.getPairs().isEmpty()) {
+      return new FxResponse(new FxPairResults());
     }
     return fxGateway.getRates(tokenService.getBearerToken(), fxRequest);
   }

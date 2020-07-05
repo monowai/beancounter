@@ -6,3 +6,5 @@ kafka:
 
 beancounter:
   enricher: MOCK
+
+  market.providers.fx.url: http://localhost:7777

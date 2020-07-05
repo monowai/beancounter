@@ -44,10 +44,7 @@ public class TestRegistrationController {
 
   @Test
   void is_RegisterMeWorking() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .email("user@testing.com")
-        .build();
+    SystemUser user = new SystemUser("user", "user@testing.com");
     Jwt token = TokenUtils.getUserToken(user);
     RegistrationUtils.registerUser(mockMvc, token);
 
@@ -63,10 +60,7 @@ public class TestRegistrationController {
 
   @Test
   void is_MeWithNoToken() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .email("user@testing.com")
-        .build();
+    SystemUser user = new SystemUser("user", "user@testing.com");
     Jwt token = TokenUtils.getUserToken(user);
     RegistrationUtils.registerUser(mockMvc, token);
 
@@ -82,10 +76,9 @@ public class TestRegistrationController {
 
   @Test
   void is_MeUnregistered() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .id("is_MeUnregistered")
-        .email("is_MeUnregistered@testing.com")
-        .build();
+    SystemUser user = new SystemUser(
+        "is_MeUnregistered",
+        "is_MeUnregistered@testing.com");
     Jwt token = TokenUtils.getUserToken(user);
 
     MvcResult performed = mockMvc.perform(

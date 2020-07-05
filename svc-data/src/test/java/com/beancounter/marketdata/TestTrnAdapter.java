@@ -6,11 +6,11 @@ import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.CallerRef;
-import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.currency.CurrencyService;
 import com.beancounter.marketdata.portfolio.PortfolioService;
@@ -40,35 +40,33 @@ class TestTrnAdapter {
 
   @Test
   void is_InputToTrn() {
-    TrnInput trnInput = TrnInput.builder()
-        .callerRef(CallerRef.builder().batch("1").callerId("1").provider("ABC").build())
-        .trnType(TrnType.BUY)
-        .asset(AssetUtils.toKey("MSFT", "NASDAQ"))
-        .cashAsset(AssetUtils.toKey("USD-X", "USER"))
-        .tradeDate(new DateUtils().getDate("2019-10-10"))
-        .settleDate(new DateUtils().getDate("2019-10-10"))
-        .fees(BigDecimal.ONE)
-        .cashAmount(new BigDecimal("100.99"))
-        .tradeAmount(new BigDecimal("100.99"))
-        .price(new BigDecimal("10.99"))
-        .tradeBaseRate(new BigDecimal("1.99"))
-        .tradeCashRate(new BigDecimal("1.99"))
-        .tradePortfolioRate(new BigDecimal("10.99"))
-        .tradeBaseRate(BigDecimal.ONE)
-        .tradeCurrency("USD")
-        .cashCurrency("USD")
-        .comments("Comment")
-        .build();
+    TrnInput trnInput = new TrnInput(
+        new CallerRef("ABC", "1", "1"),
+        AssetUtils.toKey("MSFT", "NASDAQ"),
+        TrnType.BUY);
+
+    trnInput.setCashAsset(AssetUtils.toKey("USD-X", "USER"));
+    trnInput.setTradeDate(new DateUtils().getDate("2019-10-10"));
+    trnInput.setSettleDate(new DateUtils().getDate("2019-10-10"));
+    trnInput.setFees(BigDecimal.ONE);
+    trnInput.setCashAmount(new BigDecimal("100.99"));
+    trnInput.setTradeAmount(new BigDecimal("100.99"));
+    trnInput.setPrice(new BigDecimal("10.99"));
+    trnInput.setTradeBaseRate(new BigDecimal("1.99"));
+    trnInput.setTradeCashRate(new BigDecimal("1.99"));
+    trnInput.setTradePortfolioRate(new BigDecimal("10.99"));
+    trnInput.setTradeBaseRate(BigDecimal.ONE);
+    trnInput.setTradeCurrency("USD");
+    trnInput.setCashCurrency("USD");
+    trnInput.setComments("Comment");
     Collection<TrnInput> trnInputCollection = new ArrayList<>();
     trnInputCollection.add(trnInput);
-    TrnRequest trnRequest = TrnRequest.builder()
-        .portfolioId("abc")
-        .data(trnInputCollection).build();
+    TrnRequest trnRequest = new TrnRequest("abc", trnInputCollection);
 
     Mockito.when(portfolioService.find("abc"))
-        .thenReturn(Portfolio.builder().id("ABC").build());
-    Mockito.when(assetService.find(trnInput.getAsset()))
-        .thenReturn(AssetUtils.fromKey(trnInput.getAsset()));
+        .thenReturn(PortfolioUtils.getPortfolio("abc"));
+    Mockito.when(assetService.find(trnInput.getAssetId()))
+        .thenReturn(AssetUtils.fromKey(trnInput.getAssetId()));
     Mockito.when(currencyService.getCode("USD"))
         .thenReturn(currencyUtils.getCurrency("USD"));
 

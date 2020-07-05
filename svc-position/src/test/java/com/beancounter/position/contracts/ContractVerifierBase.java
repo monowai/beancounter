@@ -1,16 +1,16 @@
 package com.beancounter.position.contracts;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.common.contracts.PositionResponse;
 import com.beancounter.common.input.TrustedTrnQuery;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.PositionBoot;
 import com.beancounter.position.service.Valuation;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,8 +37,8 @@ import org.springframework.web.context.WebApplicationContext;
 @AutoConfigureWireMock(port = 0)
 @WebAppConfiguration
 public class ContractVerifierBase {
-  private final ObjectMapper om = new ObjectMapper();
   private final DateUtils dateUtils = new DateUtils();
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @MockBean
   JwtDecoder jwtDecoder;
   @Autowired
@@ -57,39 +57,37 @@ public class ContractVerifierBase {
 
     RestAssuredMockMvc.mockMvc(mockMvc);
 
-    Portfolio testPortfolio = Portfolio.builder()
-        .code("TEST")
-        .id("TEST")
-        .name("NZD Portfolio")
-        .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
-        .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
-        .build();
+    Portfolio testPortfolio = new Portfolio(
+        "TEST",
+        "TEST",
+        "NZD Portfolio",
+        currencyUtils.getCurrency("NZD"),
+        currencyUtils.getCurrency("USD"),
+        null);
     Mockito.when(portfolioServiceClient.getPortfolioByCode("TEST"))
         .thenReturn(testPortfolio);
 
     Mockito.when(portfolioServiceClient.getPortfolioById("TEST"))
         .thenReturn(testPortfolio);
 
-    Mockito.when(valuationService.build(TrustedTrnQuery.builder()
-        .assetId("KMI")
-        .tradeDate(dateUtils.getDate("2020-05-01"))
-        .portfolio(testPortfolio)
-        .build()))
-        .thenReturn(om.readValue(
+    Mockito.when(
+        valuationService.build(
+            new TrustedTrnQuery(testPortfolio,
+                dateUtils.getDate("2020-05-01"), "KMI")))
+        .thenReturn(getObjectMapper().readValue(
             new ClassPathResource("contracts/kmi-response.json").getFile(),
             PositionResponse.class));
 
-    Mockito.when(valuationService.build(TrustedTrnQuery.builder()
-        .assetId("MSFT")
-        .tradeDate(dateUtils.getDate("2020-05-01"))
-        .portfolio(testPortfolio)
-        .build()))
-        .thenReturn(om.readValue(
+    Mockito.when(
+        valuationService.build(
+            new TrustedTrnQuery(testPortfolio,
+                dateUtils.getDate("2020-05-01"), "MSFT")))
+        .thenReturn(getObjectMapper().readValue(
             new ClassPathResource("contracts/msft-response.json").getFile(),
             PositionResponse.class));
 
     Mockito.when(valuationService.build(testPortfolio, "2020-05-01"))
-        .thenReturn(om.readValue(
+        .thenReturn(getObjectMapper().readValue(
             new ClassPathResource("contracts/test-response.json").getFile(),
             PositionResponse.class));
   }

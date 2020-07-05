@@ -13,10 +13,10 @@ import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.exception.UnauthorizedException;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.shell.cli.UserCommands;
 import com.beancounter.shell.config.EnvConfig;
 import com.beancounter.shell.config.ShellConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.jline.reader.LineReader;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,10 +33,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 })
 public class TestUserCommands {
 
-  private static UserCommands userCommands;
-
   private static final TokenService tokenService = new TokenService();
-
+  private static UserCommands userCommands;
   private static LineReader lineReader;
 
   private static LoginService.AuthGateway authGateway;
@@ -74,7 +72,7 @@ public class TestUserCommands {
     assertThrows(UnauthorizedException.class, () -> userCommands.me());
 
     Mockito.when(registrationGateway
-        .register(tokenService.getBearerToken(), RegistrationRequest.builder().build()))
+        .register(tokenService.getBearerToken(), new RegistrationRequest(null)))
         .thenReturn(null);
     assertThrows(UnauthorizedException.class, () -> userCommands.register());
   }
@@ -82,51 +80,46 @@ public class TestUserCommands {
   @Test
   @SneakyThrows
   void is_LoginReturningMe() {
-    String user = "simple";
+    String userId = "simple";
     String password = "password";
 
     Mockito.when(lineReader.readLine("Password: ", '*'))
         .thenReturn(password);
 
     LoginService.Login login = LoginService.Login.builder()
-        .username(user)
+        .username(userId)
         .password(password)
         .client_id(client)
         .build();
 
-    Jwt jwt = TokenUtils.getUserToken(
-        SystemUser.builder()
-            .id(user)
-            .email("someone@nowhere.com")
-            .build());
+    SystemUser systemUser = new SystemUser(userId, "blah@blah.com");
+    Jwt jwt = TokenUtils.getUserToken(systemUser);
 
     OAuth2Response authResponse = new OAuth2Response();
-    authResponse.setToken(user);
+    authResponse.setToken(userId);
     Mockito.when(authGateway.login(login)).thenReturn(authResponse);
     Mockito.when(jwtDecoder.decode(authResponse.getToken())).thenReturn(jwt);
     // Can I login?
-    userCommands.login(user);
+    userCommands.login(userId);
 
     // Is my token in the SecurityContext and am I Me?
     Mockito.when(registrationGateway.me(tokenService.getBearerToken()))
-        .thenReturn(RegistrationResponse.builder().data(SystemUser.builder()
-            .id(user)
-            .email("someone@nowhere.com")
-            .build()).build());
-    SystemUser me = new ObjectMapper().readValue(userCommands.me(), SystemUser.class);
-    assertThat(me).isNotNull();
+        .thenReturn(new RegistrationResponse(systemUser));
+
+    SystemUser me = BcJson.getObjectMapper().readValue(userCommands.me(), SystemUser.class);
+    assertThat(me).isNotNull().hasFieldOrPropertyWithValue("id", systemUser.getId());
 
     assertThat(userCommands.token()).isEqualTo(authResponse.getToken());
 
-    Mockito.when(registrationGateway.register(tokenService.getBearerToken(),
-        RegistrationRequest.builder().build()))
-        .thenReturn(RegistrationResponse.builder().data(SystemUser.builder()
-            .id(user)
-            .build()).build());
+    Mockito.when(registrationGateway.register(
+        tokenService.getBearerToken(),
+        new RegistrationRequest(systemUser.getEmail())))
+        .thenReturn(new RegistrationResponse(systemUser));
 
-    SystemUser registered = new ObjectMapper().readValue(userCommands.register(),
-        SystemUser.class);
+    String registrationResponse = userCommands.register();
+    SystemUser registered = BcJson.getObjectMapper()
+        .readValue(registrationResponse, SystemUser.class);
 
-    assertThat(registered).isNotNull().hasFieldOrPropertyWithValue("id", user);
+    assertThat(registered).isNotNull().hasFieldOrPropertyWithValue("id", userId);
   }
 }

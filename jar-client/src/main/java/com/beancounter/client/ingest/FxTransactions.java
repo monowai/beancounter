@@ -6,13 +6,13 @@ import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.contracts.FxResponse;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.model.Currency;
-import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.IsoCurrencyPair;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;
@@ -34,17 +34,19 @@ public class FxTransactions {
 
     FxRequest fxRequest = getFxRequest(fxRequestMap, tradeDate);
 
-    fxRequest.setTradePf(
+    fxRequest.addTradePf(
         pair(portfolio.getCurrency(), trn, trn.getTradePortfolioRate())
     );
 
-    fxRequest.setTradeBase(
+    fxRequest.addTradeBase(
         pair(portfolio.getBase(), trn, trn.getTradeBaseRate())
     );
 
-    fxRequest.setTradeCash(
-        pair(currencyUtils.getCurrency(trn.getCashCurrency()), trn, trn.getTradeCashRate())
-    );
+    if (trn.getCashCurrency() != null) {
+      fxRequest.addTradeCash(
+          pair(currencyUtils.getCurrency(trn.getCashCurrency()), trn, trn.getTradeCashRate())
+      );
+    }
 
     return fxRequest;
   }
@@ -56,23 +58,23 @@ public class FxTransactions {
     if (fxRequest.getTradePf() != null && MathUtils.isUnset(trn.getTradePortfolioRate())) {
       trn.setTradePortfolioRate(rates.getRates().get(fxRequest.getTradePf()).getRate());
     } else {
-      trn.setTradePortfolioRate(FxRate.ONE.getRate());
+      trn.setTradePortfolioRate(BigDecimal.ONE);
     }
     if (fxRequest.getTradeBase() != null && MathUtils.isUnset(trn.getTradeBaseRate())) {
       trn.setTradeBaseRate(rates.getRates().get(fxRequest.getTradeBase()).getRate());
     } else {
-      trn.setTradeBaseRate(FxRate.ONE.getRate());
+      trn.setTradeBaseRate(BigDecimal.ONE);
     }
     if (fxRequest.getTradeCash() != null && MathUtils.isUnset(trn.getTradeCashRate())) {
       trn.setTradeCashRate(rates.getRates().get(fxRequest.getTradeCash()).getRate());
     } else {
-      trn.setTradeCashRate(FxRate.ONE.getRate());
+      trn.setTradeCashRate(BigDecimal.ONE);
     }
   }
 
-  private IsoCurrencyPair pair(Currency currency, TrnInput trn, BigDecimal tradePortfolioRate) {
+  private IsoCurrencyPair pair(Currency currency, TrnInput trn, BigDecimal rate) {
     return currencyUtils.getCurrencyPair(
-        tradePortfolioRate,
+        rate,
         currencyUtils.getCurrency(trn.getTradeCurrency()),
         currency);
   }
@@ -81,9 +83,7 @@ public class FxTransactions {
     FxRequest fxRequest = fxRequests.get(tradeDate);
 
     if (fxRequest == null) {
-      fxRequest = FxRequest.builder()
-          .rateDate(tradeDate)
-          .build();
+      fxRequest = new FxRequest(tradeDate, new ArrayList<>());
       fxRequests.put(tradeDate, fxRequest);
     }
     return fxRequest;

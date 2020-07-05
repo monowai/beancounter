@@ -1,0 +1,37 @@
+package com.beancounter.common
+
+import com.beancounter.common.contracts.RegistrationRequest
+import com.beancounter.common.contracts.RegistrationResponse
+import com.beancounter.common.model.SystemUser
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import java.util.*
+
+class TestRegistration {
+    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
+
+    @Test
+    @Throws(Exception::class)
+    fun is_RegistrationSerialization() {
+        val registrationRequest = RegistrationRequest("someone@somewhere.com")
+        val json = objectMapper.writeValueAsString(registrationRequest)
+        assertThat(objectMapper.readValue(json, RegistrationRequest::class.java))
+                .isEqualToComparingFieldByField(registrationRequest)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun is_SystemUserSerialization() {
+        val systemUser = SystemUser(UUID.randomUUID().toString(), "someone@somewhere.com")
+        var json = objectMapper.writeValueAsString(systemUser)
+        assertThat(objectMapper.readValue(json, SystemUser::class.java))
+                .isEqualToComparingFieldByField(systemUser)
+
+        val response = RegistrationResponse(systemUser)
+        json = objectMapper.writeValueAsString(response)
+        assertThat(objectMapper.readValue(json, RegistrationResponse::class.java).data)
+                .isEqualToComparingFieldByField(response.data)
+    }
+}

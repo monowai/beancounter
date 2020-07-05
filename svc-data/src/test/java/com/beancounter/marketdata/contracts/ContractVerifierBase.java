@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.contracts;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static com.beancounter.marketdata.utils.EcbMockUtils.get;
 import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +17,6 @@ import com.beancounter.common.contracts.RegistrationResponse;
 import com.beancounter.common.contracts.TrnRequest;
 import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Asset;
-import com.beancounter.common.model.MarketData;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.utils.DateUtils;
@@ -26,6 +26,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.fxrates.EcbRates;
 import com.beancounter.marketdata.providers.fxrates.FxGateway;
 import com.beancounter.marketdata.providers.wtd.WtdGateway;
+import com.beancounter.marketdata.providers.wtd.WtdMarketData;
 import com.beancounter.marketdata.providers.wtd.WtdResponse;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.trn.TrnService;
@@ -36,8 +37,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -78,7 +79,7 @@ public class ContractVerifierBase {
   public static final Asset MSFT_INVALID = getAsset("NASDAQ", "MSFTx");
   public static final Asset AMP = getAsset("ASX", "AMP");
   private final DateUtils dateUtils = new DateUtils();
-  private final ObjectMapper om = new ObjectMapper();
+  private final ObjectMapper om = getObjectMapper();
   @MockBean
   private JwtDecoder jwtDecoder;
   @MockBean
@@ -97,8 +98,7 @@ public class ContractVerifierBase {
   private WebApplicationContext context;
 
   @BeforeEach
-  @SneakyThrows
-  public void initMocks() {
+  public void initMocks() throws Exception {
     MockMvc mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
         .build();
@@ -111,18 +111,13 @@ public class ContractVerifierBase {
     mockAssets();
   }
 
-  @SneakyThrows
-  private void systemUsers() {
+  private void systemUsers() throws Exception {
     File jsonFile =
         new ClassPathResource("contracts/register/response.json").getFile();
     RegistrationResponse response = om.readValue(jsonFile, RegistrationResponse.class);
     String email = "blah@blah.com";
 
-    Jwt jwt = TokenUtils.getUserToken(SystemUser.builder()
-        .id(email)
-        .email(email)
-        .build());
-
+    Jwt jwt = TokenUtils.getUserToken(new SystemUser(email, email));
     Mockito.when(jwtDecoder.decode(email)).thenReturn(jwt);
 
     SecurityContextHolder.getContext().setAuthentication(
@@ -181,16 +176,15 @@ public class ContractVerifierBase {
 
   }
 
-  @SneakyThrows
-  void mockTrnGetResponse(Portfolio portfolio, String trnFile) {
+  void mockTrnGetResponse(Portfolio portfolio, String trnFile) throws Exception {
     File jsonFile = new ClassPathResource(trnFile).getFile();
     TrnResponse trnResponse = om.readValue(jsonFile, TrnResponse.class);
-    Mockito.when(trnService.findForPortfolio(portfolio))
-        .thenReturn(trnResponse);
+    Mockito.when(trnService.findForPortfolio(
+        portfolio,
+        Objects.requireNonNull(dateUtils.getDate()))).thenReturn(trnResponse);
   }
 
-  @SneakyThrows
-  void mockTrnPostResponse(Portfolio portfolio) {
+  void mockTrnPostResponse(Portfolio portfolio) throws Exception {
     Mockito.when(trnService.save(portfolio, om.readValue(
         new ClassPathResource("contracts/trn/CSV-write.json").getFile(), TrnRequest.class)))
         .thenReturn(om.readValue(
@@ -284,24 +278,23 @@ public class ContractVerifierBase {
         new ClassPathResource("contracts/assets/amp-request.json").getFile(),
         new ClassPathResource("contracts/assets/amp-response.json").getFile());
 
-    WtdResponse wtdResponse = new WtdResponse();
-    Map<String, MarketData> result = new HashMap<>();
-    result.put("EBAY", MarketData.builder()
-        .priceDate(dateUtils.getDate("2019-10-18"))
-        .open(new BigDecimal("39.21"))
-        .close(new BigDecimal("100.00"))
-        .low(new BigDecimal("38.74"))
-        .high(new BigDecimal("39.35"))
-        .volume(Integer.decode("6274307"))
-        .build());
-    wtdResponse.setData(result);
+    Map<String, WtdMarketData> result = new HashMap<>();
+    WtdMarketData ebayMd = new WtdMarketData(
+        new BigDecimal("39.21"),
+        new BigDecimal("100.00"),
+        new BigDecimal("38.74"),
+        new BigDecimal("39.35"),
+        Integer.decode("6274307")
+    );
+
+    result.put("EBAY", ebayMd);
+    WtdResponse wtdResponse = new WtdResponse("2019-10-18", result);
     Mockito.when(wtdGateway
         .getPrices("EBAY", "2019-10-18", "demo"))
         .thenReturn(wtdResponse);
   }
 
-  @SneakyThrows
-  private void mockAssetCreateResponses(File jsonRequest, File jsonResponse) {
+  private void mockAssetCreateResponses(File jsonRequest, File jsonResponse) throws Exception {
     AssetRequest assetRequest =
         om.readValue(jsonRequest, AssetRequest.class);
 

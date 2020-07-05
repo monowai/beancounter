@@ -62,33 +62,38 @@ public class PositionValuationService {
     }
 
     Map<IsoCurrencyPair, FxRate> rates = fxResponse.getData().getRates();
-    Totals baseTotals = Totals.builder().build();
-    Totals refTotals = Totals.builder().build();
+    Totals baseTotals = new Totals();
+    Totals refTotals = new Totals();
+    if (valuationData.getPriceResponse() != null
+        && valuationData.getPriceResponse().getData() != null) {
 
-    for (MarketData marketData : valuationData.getPriceResponse().getData()) {
-      Position position = marketValue.value(positions, marketData, rates);
-      BigDecimal baseAmount = position.getMoneyValues(Position.In.BASE).getMarketValue();
-      if (baseAmount != null) {
+      for (MarketData marketData : valuationData.getPriceResponse().getData()) {
+        Position position = marketValue.value(positions, marketData, rates);
+        BigDecimal baseAmount = position.getMoneyValues(
+            Position.In.BASE, positions.getPortfolio().getBase()).getMarketValue();
+
         baseTotals.setTotal(baseTotals.getTotal().add(baseAmount));
-      }
 
-      BigDecimal refAmount = position.getMoneyValues(Position.In.PORTFOLIO).getMarketValue();
-      if (refAmount != null) {
+        BigDecimal refAmount = position.getMoneyValues(
+            Position.In.PORTFOLIO, position.getAsset().getMarket().getCurrency()).getMarketValue();
         refTotals.setTotal(refTotals.getTotal().add(refAmount));
-      }
 
+      }
     }
     positions.setTotal(Position.In.BASE, baseTotals);
     for (Position position : positions.getPositions().values()) {
       MoneyValues moneyValues = position.getMoneyValues(Position.In.BASE);
+      assert moneyValues != null;
       moneyValues.setWeight(
           MathUtils.percent(moneyValues.getMarketValue(), baseTotals.getTotal()));
 
       moneyValues = position.getMoneyValues(Position.In.PORTFOLIO);
+      assert moneyValues != null;
       moneyValues.setWeight(
           MathUtils.percent(moneyValues.getMarketValue(), refTotals.getTotal()));
 
       moneyValues = position.getMoneyValues(Position.In.TRADE);
+      assert moneyValues != null;
       moneyValues.setWeight(
           MathUtils.percent(moneyValues.getMarketValue(), refTotals.getTotal()));
 
@@ -105,15 +110,10 @@ public class PositionValuationService {
 
     CompletableFuture<PriceResponse> futurePriceResponse =
         asyncMdService.getMarketData(
-            PriceRequest.builder()
-                .date(positions.getAsAt())
-                .assets(assets).build()
-        );
+            new PriceRequest(positions.getAsAt(), assets));
 
-    return ValuationData.builder()
-        .fxResponse(futureFxResponse.get(30, SECONDS))
-        .priceResponse(futurePriceResponse.get(180, SECONDS))
-        .build();
+    return new ValuationData(futurePriceResponse.get(180, SECONDS),
+        futureFxResponse.get(30, SECONDS));
   }
 
 }

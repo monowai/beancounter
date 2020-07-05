@@ -6,9 +6,8 @@ import com.beancounter.common.contracts.PortfoliosResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.BcJson;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.shell.standard.ShellComponent;
@@ -19,7 +18,6 @@ import org.springframework.shell.standard.ShellOption;
 @Slf4j
 public class PortfolioCommands {
   private final PortfolioServiceClient portfolioService;
-  private final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
   public PortfolioCommands(PortfolioServiceClient portfolioService) {
     this.portfolioService = portfolioService;
@@ -30,17 +28,17 @@ public class PortfolioCommands {
       @ShellOption(help = "Code - case insensitive") String portfolioCode)
       throws JsonProcessingException {
     Portfolio portfolio = portfolioService.getPortfolioByCode(portfolioCode);
-    return writer.writeValueAsString(portfolio);
+    return BcJson.getWriter().writeValueAsString(portfolio);
   }
 
   @ShellMethod("My Portfolios")
   public String get()
       throws JsonProcessingException {
     PortfoliosResponse portfolio = portfolioService.getPortfolios();
-    if (portfolio == null || portfolio.getData() == null) {
+    if (portfolio == null || portfolio.getData().isEmpty()) {
       return "No portfolios";
     }
-    return writer.writeValueAsString(portfolio.getData());
+    return BcJson.getWriter().writeValueAsString(portfolio.getData());
   }
 
   @ShellMethod("Find by id")
@@ -48,7 +46,7 @@ public class PortfolioCommands {
       @ShellOption(help = "Primary key - case sensitive") String portfolioId)
       throws JsonProcessingException {
     Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
-    return writer.writeValueAsString(portfolio);
+    return BcJson.getWriter().writeValueAsString(portfolio);
   }
 
   @ShellMethod(key = "add", value = "Add portfolio")
@@ -61,25 +59,19 @@ public class PortfolioCommands {
     Portfolio portfolio;
     try {
       portfolio = portfolioService.getPortfolioByCode(code);
-      return writer.writeValueAsString(portfolio);
+      return BcJson.getWriter().writeValueAsString(portfolio);
     } catch (BusinessException e) {
       log.info("Creating portfolio {}", code);
     }
 
-    PortfoliosRequest portfoliosRequest = PortfoliosRequest.builder()
-        .data(Collections.singleton(
-            PortfolioInput.builder()
-                .base(baseCurrency)
-                .currency(currencyCode)
-                .code(code)
-                .name(name)
-                .build()
-        ))
-        .build();
+    PortfoliosRequest portfoliosRequest = new PortfoliosRequest(
+        Collections.singleton(
+            new PortfolioInput(code, name, currencyCode, baseCurrency))
+    );
     PortfoliosResponse result = portfolioService.add(portfoliosRequest);
     if (result == null) {
       throw new BusinessException("Failed to add portfolio");
     }
-    return writer.writeValueAsString(result.getData().iterator().next());
+    return BcJson.getWriter().writeValueAsString(result.getData().iterator().next());
   }
 }

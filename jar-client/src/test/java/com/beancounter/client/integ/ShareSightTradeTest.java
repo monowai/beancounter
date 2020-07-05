@@ -19,7 +19,6 @@ import com.beancounter.common.utils.CurrencyUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +32,6 @@ import org.springframework.test.context.ActiveProfiles;
  * @author mikeh
  * @since 2019-02-12
  */
-@Slf4j
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -41,13 +39,11 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
 class ShareSightTradeTest {
 
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @Autowired
   private ShareSightRowAdapter shareSightRowProcessor;
-
   @Autowired
   private ShareSightFactory shareSightFactory;
-
-  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   static List<String> getRow(String tranType, String fxRate, String tradeAmount) {
     return getRow("AMP", "ASX", tranType, fxRate, tradeAmount);
@@ -98,11 +94,9 @@ class ShareSightTradeTest {
 
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTradeAdapter.comments);
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(getPortfolio("Test", currencyUtils.getCurrency("NZD")))
-        .build();
-
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(
+        getPortfolio("Test", currencyUtils.getCurrency("NZD")), row
+    );
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnImportRequest);
 
     assertThat(trn)
@@ -111,7 +105,7 @@ class ShareSightTradeTest {
         .hasFieldOrPropertyWithValue("fees", new BigDecimal("12.99")) // No FX Rate
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("comments", null)
-        .hasFieldOrProperty("asset")
+        .hasFieldOrProperty("assetId")
         .hasFieldOrProperty("tradeDate");
 
   }
@@ -123,23 +117,17 @@ class ShareSightTradeTest {
 
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
 
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
-
-    TrnInput trn = shareSightRowProcessor
-        .transform(trustedTrnImportRequest);
+    TrnInput trn = shareSightRowProcessor.transform(new TrustedTrnImportRequest(portfolio, row));
 
     assertThat(trn)
-        .hasFieldOrPropertyWithValue("callerRef.callerId","1")
+        .hasFieldOrPropertyWithValue("callerRef.callerId", "1")
         .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal("10"))
         .hasFieldOrPropertyWithValue("price", new BigDecimal("12.23"))
         .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
         .hasFieldOrPropertyWithValue("comments", "Test Comment")
         .hasFieldOrPropertyWithValue("tradeCurrency", "AUD")
-        .hasFieldOrProperty("asset")
+        .hasFieldOrProperty("assetId")
         .hasFieldOrProperty("tradeDate")
     ;
 
@@ -149,13 +137,11 @@ class ShareSightTradeTest {
   void is_IllegalDateFound() {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.add(ShareSightTradeAdapter.date, "21/01/2019'");
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(getPortfolio("Test", currencyUtils.getCurrency("NZD")))
-        .build();
 
     assertThrows(BusinessException.class, () ->
-        shareSightRowProcessor.transform(trustedTrnImportRequest));
+        shareSightRowProcessor.transform(new TrustedTrnImportRequest(
+            getPortfolio("Test", currencyUtils.getCurrency("NZD")), row))
+    );
   }
 
 }

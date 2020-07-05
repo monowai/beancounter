@@ -1,8 +1,11 @@
 plugins {
-    id "io.spring.dependency-management" version "$springDependencyManagement"
-    id "org.springframework.boot" version "$springBootVersion"
+    id "io.spring.dependency-management"
+    id "org.springframework.boot"
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
 }
 apply from: "../javaCommon.gradle"
+apply plugin: "kotlin-jpa"
 
 version = "0.1.1"
 
@@ -19,6 +22,8 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
@@ -44,6 +49,7 @@ dependencies {
             "com.h2database:h2",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.+",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
@@ -70,4 +76,19 @@ idea {
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
     }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+noArg {
+    annotation("com.beancounter.common.contracts.BcData")
 }

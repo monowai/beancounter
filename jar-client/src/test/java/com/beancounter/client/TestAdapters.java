@@ -43,9 +43,8 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.date, "date");
     row.add(ShareSightDividendAdapter.fxRate, "A.B");
 
-    TrustedTrnImportRequest request = TrustedTrnImportRequest.builder()
-        .row(row)
-        .build();
+    TrustedTrnImportRequest request =
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
 
     TrnAdapter dividendAdapter =
         new ShareSightDividendAdapter(shareSightConfig, assetIngestService);
@@ -64,10 +63,8 @@ public class TestAdapters {
     row.add(null);
     row.add("");
 
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(PortfolioUtils.getPortfolio("TEST"))
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest =
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
 
     ShareSightTradeAdapter tradeAdapter =
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
@@ -86,10 +83,9 @@ public class TestAdapters {
     row.add("");
     row.add("");
     row.add("");
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(PortfolioUtils.getPortfolio("TEST"))
-        .build();
+
+    TrustedTrnImportRequest trustedTrnImportRequest =
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
 
     ShareSightTradeAdapter tradeAdapter =
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
@@ -137,14 +133,11 @@ public class TestAdapters {
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
     when(assetIngestService.resolveAsset("NYSE", "ABC", "name"))
         .thenReturn(AssetUtils.getAsset("NYSE", "ABC"));
-    TrnInput result = shareSightTradeAdapter.from(TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(PortfolioUtils.getPortfolio("TEST"))
-        .build());
+    TrnInput result = shareSightTradeAdapter.from(
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row));
 
     assertThat(result)
-        .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("105.00"))
-    ;
+        .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("105.00"));
 
   }
 

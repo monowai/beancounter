@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.integ;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -33,7 +34,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 class CurrencyMvcTests {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = getObjectMapper();
 
   @Autowired
   private WebApplicationContext context;
@@ -49,7 +50,7 @@ class CurrencyMvcTests {
   @Test
   void is_CurrencyDataReturning() throws Exception {
     Jwt token = TokenUtils.getUserToken(
-        SystemUser.builder().id("currencies").build());
+        new SystemUser("currencies"));
 
     MvcResult mvcResult = mockMvc.perform(
         get("/currencies/")

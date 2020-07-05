@@ -7,8 +7,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import lombok.Data;
-import lombok.NonNull;
 
 /**
  * A container for Position objects.
@@ -16,10 +14,8 @@ import lombok.NonNull;
  * @author mikeh
  * @since 2019-02-07
  */
-@Data()
 public class Positions {
 
-  @NonNull
   private Portfolio portfolio;
   private String asAt;
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -59,9 +55,7 @@ public class Positions {
     if (result != null) {
       return result;
     }
-    return Position.builder()
-        .asset(asset)
-        .build();
+    return new Position(asset);
   }
 
   @JsonIgnore
@@ -87,4 +81,33 @@ public class Positions {
     }
     this.totals.put(valueIn, totals);
   }
+
+  public Portfolio getPortfolio() {
+    return this.portfolio;
+  }
+
+  public String getAsAt() {
+    return this.asAt;
+  }
+
+  public Map<String, Position> getPositions() {
+    return this.positions;
+  }
+
+  public Map<Position.In, Totals> getTotals() {
+    return this.totals;
+  }
+
+  public void setPortfolio(Portfolio portfolio) {
+    this.portfolio = portfolio;
+  }
+
+  public void setAsAt(String asAt) {
+    this.asAt = asAt;
+  }
+
+  public void setPositions(Map<String, Position> positions) {
+    this.positions = positions;
+  }
+
 }

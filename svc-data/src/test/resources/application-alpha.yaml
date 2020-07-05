@@ -9,7 +9,7 @@ beancounter:
   market:
     providers:
       ALPHA:
-        url: http://localhost:9999
+        url: http://localhost:7777
         markets: NASDAQ,AMEX,NYSE,ASX,NZX,LON
       MOCK:
         markets: MOCK

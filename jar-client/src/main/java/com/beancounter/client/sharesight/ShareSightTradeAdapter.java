@@ -14,7 +14,8 @@ import com.beancounter.common.utils.MathUtils;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,6 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Slf4j
 public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int id = 0;
   public static final int market = 1;
@@ -42,6 +42,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int fxRate = 10;
   public static final int value = 11;
   public static final int comments = 12;
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(ShareSightTradeAdapter.class);
   private final DateUtils dateUtils = new DateUtils();
   private final ShareSightConfig shareSightConfig;
   private final AssetIngestService assetIngestService;
@@ -85,24 +86,23 @@ public class ShareSightTradeAdapter implements TrnAdapter {
         log.error("Unable to resolve asset [{}]", row);
         return null;
       }
-      return TrnInput.builder()
-          .asset(asset.getId())
-          .trnType(trnType)
-          .callerRef(CallerRef.builder()
-              .provider(trustedTrnImportRequest.getPortfolio().getId())
-              .callerId(row.get(id))
-              .build())
-          .quantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()))
-          .price(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()))
-          .fees(fees)
-          .tradeAmount(tradeAmount)
-          .tradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()))
-          .cashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode())
-          .tradeCurrency(row.get(currency))
-          // Zero and null are treated as "unknown"
-          .tradeCashRate(getTradeCashRate(tradeRate))
-          .comments(comment)
-          .build();
+      TrnInput trnInput = new TrnInput(
+          new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
+          Objects.requireNonNull(asset.getId()),
+          trnType
+      );
+
+      trnInput.setQuantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()));
+      trnInput.setPrice(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()));
+      trnInput.setFees(fees);
+      trnInput.setTradeAmount(tradeAmount);
+      trnInput.setTradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()));
+      trnInput.setCashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode());
+      trnInput.setTradeCurrency(row.get(currency));
+      // Zero and null are treated as "unknown"
+      trnInput.setTradeCashRate(getTradeCashRate(tradeRate));
+      trnInput.setComments(comment);
+      return trnInput;
     } catch (ParseException e) {
       String message = e.getMessage();
       log.error("{} - {} Parsing row {}",
@@ -135,7 +135,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       BigDecimal p = new BigDecimal(row.get(price));
       BigDecimal f = MathUtils.get(row.get(brokerage));
       result = MathUtils.multiply(q, p);
-      if (!MathUtils.isUnset(f)) {
+      if (result != null && !MathUtils.isUnset(f)) {
         result = result.add(f);
       }
     } else {

@@ -1,5 +1,7 @@
 plugins {
-    id "io.spring.dependency-management" version "$springDependencyManagement"
+    id "io.spring.dependency-management"
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
 }
 
 apply from: '../javaCommon.gradle'
@@ -16,6 +18,8 @@ dependencies {
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",
@@ -23,21 +27,8 @@ dependencies {
             "org.springframework.cloud:spring-cloud-starter-openfeign"
     )
 
-    compileOnly(
-            "org.projectlombok:lombok:$lombokVersion"
-    )
-
-    annotationProcessor(
-            "org.projectlombok:lombok:$lombokVersion",
-    )
-
-    testAnnotationProcessor(
-            "org.projectlombok:lombok:$lombokVersion"
-    )
-
     testImplementation(
             "org.assertj:assertj-core:$assertJ",
-            "org.projectlombok:lombok:$lombokVersion",
             "org.springframework.boot:spring-boot-starter-test:$springBootVersion",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
@@ -63,5 +54,16 @@ idea {
         downloadSources = true
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }

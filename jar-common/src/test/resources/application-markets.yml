@@ -1,0 +1,13 @@
+
+data:
+  - code: LSE
+    currencyId: GBP
+    timezoneId: Europe/London
+    aliases:
+      FIGI: GB
+
+  - code: LON
+    # UK Mutual Funds
+    currencyId: GBP
+    timezoneId: Europe/London
+    multiplier: .01

@@ -8,7 +8,7 @@ import com.beancounter.common.contracts.AssetUpdateResponse;
 import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Asset;
 import javax.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -19,13 +19,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@Slf4j
 @Service
 public class AssetServiceClient implements AssetService {
 
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(AssetServiceClient.class);
   private final AssetGateway assetGateway;
   private final TokenService tokenService;
-
   @Value("${marketdata.url:http://localhost:9510/api}")
   private String marketDataUrl;
 
@@ -54,7 +53,7 @@ public class AssetServiceClient implements AssetService {
   @Override
   public Asset find(String assetId) {
     AssetResponse response = assetGateway.find(tokenService.getBearerToken(), assetId);
-    if (response == null || response.getData() == null) {
+    if (response == null) {
       throw new BusinessException(String.format("Asset %s not found", assetId));
     }
     return response.getData();

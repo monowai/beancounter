@@ -11,13 +11,12 @@ import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.CallerRef;
-import com.beancounter.common.model.Market;
 import com.beancounter.common.model.Portfolio;
+import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +24,6 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.test.context.ActiveProfiles;
 
-@Slf4j
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -44,18 +42,10 @@ class ShareSightAdapterTest {
 
   @Test
   void is_ExchangeAliasReturnedInAssetCode() {
-    Asset expectedAsset = Asset.builder()
-        .code("ABBV")
-        .market(Market.builder().code("NYSE").build())
-        .build();
-
+    Asset expectedAsset = AssetUtils.getAsset("NYSE", "ABBV");
     verifyMarketCode("ABBV.NYSE", expectedAsset);
 
-    expectedAsset = Asset.builder()
-        .code("AMP")
-        .market(Market.builder().code("ASX").build())
-        .build();
-
+    expectedAsset = AssetUtils.getAsset("ASX", "AMP");
     verifyMarketCode("AMP.AX", expectedAsset);
   }
 
@@ -114,11 +104,8 @@ class ShareSightAdapterTest {
 
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
     for (List<String> columnValues : rows) {
-      TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-          .row(columnValues)
-          .portfolio(portfolio)
-          .callerRef(CallerRef.builder().build())
-          .build();
+      TrustedTrnImportRequest trustedTrnImportRequest =
+          new TrustedTrnImportRequest(portfolio, new CallerRef(), null, columnValues);
 
       trnInputs.add(shareSightRowProcessor
           .transform(trustedTrnImportRequest));
@@ -128,7 +115,7 @@ class ShareSightAdapterTest {
     for (TrnInput trn : trnInputs) {
       assertThat(trn)
           .hasFieldOrProperty("callerRef")
-          .hasFieldOrProperty("asset")
+          .hasFieldOrProperty("assetId")
           .hasFieldOrProperty("fees")
           .hasFieldOrProperty("quantity")
           .hasFieldOrProperty("tradeCurrency")

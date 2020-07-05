@@ -25,10 +25,13 @@ import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Totals;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.position.service.Accumulator;
 import com.beancounter.position.service.Valuation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;
@@ -81,21 +84,16 @@ class StubbedFxValuations {
         .build();
 
     // Setup a user account
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .email("user@testing.com")
-        .build();
+    SystemUser user = new SystemUser("user", "user@testing.com");
     token = TokenUtils.getUserToken(user);
 
   }
 
   private Positions getPositions(Asset asset) {
 
-    Trn trn = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(asset)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(100)).build();
+    Trn trn = new Trn(TrnType.BUY, asset);
+    trn.setTradeAmount(new BigDecimal(2000));
+    trn.setQuantity(new BigDecimal(100));
 
     Portfolio portfolio = portfolioService.getPortfolioByCode("TEST");
     trn.setTradeCurrency(
@@ -104,10 +102,9 @@ class StubbedFxValuations {
     Positions positions = new Positions(portfolio);
     positions.setAsAt("2019-10-18");
 
-    Position position = accumulator.accumulate(trn, portfolio,
-        Position.builder().asset(asset).build());
-
-    positions.add(position);
+    positions.add(
+        accumulator.accumulate(trn, portfolio,
+            new Position(asset)));
     return positions;
   }
 
@@ -126,7 +123,7 @@ class StubbedFxValuations {
     assertThat(asset).hasFieldOrProperty("name");
 
     Positions positions = getPositions(asset);
-    PositionResponse positionResponse = PositionResponse.builder().data(positions).build();
+    PositionResponse positionResponse = new PositionResponse(positions);
 
     assertThat(mockMvc).isNotNull();
     String json = mockMvc.perform(post("/value")
@@ -137,8 +134,7 @@ class StubbedFxValuations {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    PositionResponse fromJson = new ObjectMapper()
-        .readValue(json, PositionResponse.class);
+    PositionResponse fromJson = BcJson.getObjectMapper().readValue(json, PositionResponse.class);
 
     assertThat(fromJson).isNotNull().hasFieldOrProperty("data");
     Positions jsonPositions = fromJson.getData();
@@ -166,12 +162,10 @@ class StubbedFxValuations {
   }
 
   private Asset getEbay() {
-    AssetUpdateResponse assetResponse = assetService.process(AssetRequest.builder()
-        .data("EBAY:NASDAQ", AssetInput.builder()
-            .code("EBAY")
-            .market("NASDAQ")
-            .build())
-        .build());
+    Map<String, AssetInput> assetInputMap = new HashMap<>();
+    assetInputMap.put("EBAY:NASDAQ", new AssetInput("NASDAQ", "EBAY"));
+    AssetRequest assetRequest = new AssetRequest(assetInputMap);
+    AssetUpdateResponse assetResponse = assetService.process(assetRequest);
     assertThat(assetResponse.getData()).hasSize(1);
     return assetResponse.getData().get("EBAY:NASDAQ");
   }

@@ -1,0 +1,50 @@
+package com.beancounter.marketdata.controller
+
+import com.beancounter.auth.server.RoleHelper
+import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.service.MarketDataService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.*
+
+/**
+ * Market Data MVC.
+ *
+ * @author mikeh
+ * @since 2019-01-29
+ */
+@RestController
+@RequestMapping("/prices")
+@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+class PriceController @Autowired internal constructor(private val marketDataService: MarketDataService, private val assetService: AssetService) {
+
+    /**
+     * Market:Asset i.e. NYSE:MSFT.
+     *
+     * @param marketCode BC Market Code or alias
+     * @param assetCode  BC Asset Code
+     * @return Market Dat information for the supplied asset
+     */
+    @GetMapping(value = ["/{marketCode}/{assetCode}"])
+    fun getPrice(@PathVariable("marketCode") marketCode: String,
+                 @PathVariable("assetCode") assetCode: String): PriceResponse {
+        val asset = assetService.findLocally(marketCode, assetCode)
+                ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
+        return marketDataService.getPriceResponse(asset)
+    }
+
+    @PostMapping
+    fun prices(@RequestBody priceRequest: PriceRequest): PriceResponse {
+        for (requestedAsset in priceRequest.assets) {
+            val asset = assetService.findLocally(requestedAsset.market, requestedAsset.code)
+            if (asset != null) {
+                requestedAsset.resolvedAsset = asset
+            }
+        }
+        return marketDataService.getPriceResponse(priceRequest)
+    }
+
+}

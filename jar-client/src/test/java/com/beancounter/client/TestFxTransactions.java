@@ -6,8 +6,11 @@ import com.beancounter.client.ingest.FxTransactions;
 import com.beancounter.common.contracts.FxPairResults;
 import com.beancounter.common.contracts.FxRequest;
 import com.beancounter.common.input.TrnInput;
+import com.beancounter.common.model.CallerRef;
+import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.FxRate;
 import com.beancounter.common.model.IsoCurrencyPair;
+import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.DateUtils;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -22,24 +25,24 @@ public class TestFxTransactions {
 
   @Test
   void is_TrnDefaultsSetting() {
-    IsoCurrencyPair tradeBase = IsoCurrencyPair.builder().from("USD").to("NZD").build();
-    IsoCurrencyPair tradePf = IsoCurrencyPair.builder().from("USD").to("NZD").build();
-    IsoCurrencyPair tradeCash = IsoCurrencyPair.builder().from("USD").to("NZD").build();
+    IsoCurrencyPair tradeBase = new IsoCurrencyPair("USD", "NZD");
+    IsoCurrencyPair tradePf = new IsoCurrencyPair("USD", "NZD");
+    IsoCurrencyPair tradeCash = new IsoCurrencyPair("USD", "NZD");
     Map<IsoCurrencyPair, FxRate> mapRates = new HashMap<>();
-    mapRates.put(tradeBase, FxRate.ONE);
-    mapRates.put(tradePf, FxRate.ONE);
-    mapRates.put(tradeCash, FxRate.ONE);
+    Currency temp = new CurrencyUtils().getCurrency("TEMP");
+    FxRate one = new FxRate(temp, temp, BigDecimal.ONE, null);
+    mapRates.put(tradeBase, one);
+    mapRates.put(tradePf, one);
+    mapRates.put(tradeCash, one);
 
     FxPairResults pairResults = new FxPairResults();
     pairResults.setRates(mapRates);
 
-    FxRequest fxRequest = FxRequest.builder()
-        .tradeBase(tradeBase)
-        .tradePf(tradePf)
-        .tradeCash(tradeCash)
-        .build();
-    TrnInput trnInput = TrnInput.builder()
-        .build();
+    FxRequest fxRequest = new FxRequest();
+    fxRequest.addTradeBase(tradeBase);
+    fxRequest.addTradePf(tradePf);
+    fxRequest.addTradeCash(tradeCash);
+    TrnInput trnInput = new TrnInput(new CallerRef(), "ABC");
     FxTransactions fxTransactions = new FxTransactions(fxService, new DateUtils());
     fxTransactions.setRates(pairResults, fxRequest, trnInput);
     assertThat(trnInput)

@@ -12,47 +12,44 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.client.sharesight.ShareSightRowAdapter;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnImportRequest;
-import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.beancounter.common.utils.PortfolioUtils;
+import com.github.tomakehurst.wiremock.common.Json;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties;
 import org.springframework.test.context.ActiveProfiles;
 
-@Slf4j
 @ActiveProfiles("infile")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
 public class ShareSightRatesInTrn {
-
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(ShareSightRatesInTrn.class);
+  private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @Autowired
   private ShareSightFactory shareSightFactory;
-
   @Autowired
   private ShareSightConfig shareSightConfig;
-
   @Autowired
   private ShareSightRowAdapter shareSightRowProcessor;
-
-  private final CurrencyUtils currencyUtils = new CurrencyUtils();
 
   @BeforeEach
   void is_IgnoreRatesDefaultCorrect() {
     // Assumptions for all tests in this class
     assertThat(shareSightConfig.isCalculateRates()).isFalse();
+    assertThat(shareSightConfig.isCalculateAmount()).isFalse();
   }
 
   @Test
@@ -60,10 +57,7 @@ public class ShareSightRatesInTrn {
     List<String> row = new ArrayList<>();
 
     // Portfolio is in NZD
-    Portfolio portfolio = Portfolio.builder()
-        .code("TEST")
-        .currency(Currency.builder().code("NZD").build())
-        .build();
+    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
 
     // Trade is in USD
     row.add(ShareSightDividendAdapter.id, "ABC");
@@ -79,18 +73,15 @@ public class ShareSightRatesInTrn {
     row.add(ShareSightDividendAdapter.comments, "Test Comment");
 
     TrnAdapter dividends = shareSightFactory.adapter(row);
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
 
     TrnInput trn = dividends.from(trustedTrnImportRequest);
 
     BigDecimal fxRate = new BigDecimal(rate);
     assertThat(trn)
         // Id comes from svc-data/contracts/assets
-        .hasFieldOrPropertyWithValue("callerRef.callerId","ABC")
-        .hasFieldOrPropertyWithValue("asset", "BguoVZpoRxWeWrITp7DEuw")
+        .hasFieldOrPropertyWithValue("callerRef.callerId", "ABC")
+        .hasFieldOrPropertyWithValue("assetId", "BguoVZpoRxWeWrITp7DEuw")
         .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
         .hasFieldOrPropertyWithValue("tradeAmount",
             MathUtils.multiply(new BigDecimal("15.85"), fxRate))
@@ -112,14 +103,11 @@ public class ShareSightRatesInTrn {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
     // System base currency
-    TrustedTrnImportRequest trustedTrnImportRequest = TrustedTrnImportRequest.builder()
-        .row(row)
-        .portfolio(portfolio)
-        .build();
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnImportRequest);
 
-    log.info(new ObjectMapper().writeValueAsString(trn));
+    log.info(Json.getObjectMapper().writeValueAsString(trn));
     assertThat(trn)
         .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
         .hasFieldOrPropertyWithValue("quantity", new BigDecimal(10))

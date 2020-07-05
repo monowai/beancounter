@@ -1,5 +1,6 @@
 package com.beancounter.position.integration;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,7 +15,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.Position;
 import com.beancounter.common.utils.AssetUtils;
 import com.beancounter.common.utils.DateUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,8 +47,6 @@ class StubbedTrnValuations {
 
   private MockMvc mockMvc;
 
-  private final ObjectMapper om = new ObjectMapper();
-
   @BeforeEach
   void setUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
@@ -59,29 +57,28 @@ class StubbedTrnValuations {
   @WithMockUser(username = "test-user", roles = {RoleHelper.OAUTH_USER})
   void is_SingleAssetPosition() {
     DateUtils dateUtils = new DateUtils();
-    Portfolio portfolio = Portfolio.builder()
-        .id("TEST")
-        .code("TEST")
-        .name("NZD Portfolio")
-        .currency(Currency.builder().code("NZD").name("Dollar").symbol("$").build())
-        .base(Currency.builder().code("USD").name("Dollar").symbol("$").build())
-        .build();
+    Portfolio portfolio = new Portfolio(
+        "TEST",
+        "TEST",
+        "NZD Portfolio",
+        new Currency("NZD"),
+        new Currency("USD"),
+        null);
 
-    TrustedTrnQuery query = TrustedTrnQuery.builder()
-        .portfolio(portfolio)
-        .tradeDate(dateUtils.getDate("2020-05-01"))
-        .assetId("KMI")
-        .build();
+    TrustedTrnQuery query = new TrustedTrnQuery(
+        portfolio,
+        dateUtils.getDate("2020-05-01"),
+        "KMI");
 
     String json = mockMvc.perform(post("/query")
-        .content(new ObjectMapper().writeValueAsBytes(query))
+        .content(getObjectMapper().writeValueAsBytes(query))
         .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
     assertThat(json).isNotNull();
-    PositionResponse positionResponse = om.readValue(json, PositionResponse.class);
+    PositionResponse positionResponse = getObjectMapper().readValue(json, PositionResponse.class);
     assertThat(positionResponse.getData()).isNotNull().hasFieldOrProperty("positions");
     assertThat(positionResponse.getData().getPositions()).hasSize(1);
     Position position = positionResponse.getData().getPositions().get("KMI:NYSE");
@@ -100,7 +97,7 @@ class StubbedTrnValuations {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    PositionResponse positionResponse = om.readValue(json, PositionResponse.class);
+    PositionResponse positionResponse = getObjectMapper().readValue(json, PositionResponse.class);
     assertThat(positionResponse).isNotNull();
     assertThat(positionResponse.getData().getPortfolio())
         .isNotNull()
@@ -126,7 +123,7 @@ class StubbedTrnValuations {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
         .andReturn().getResponse().getContentAsString();
 
-    PositionResponse positionResponse = om.readValue(json, PositionResponse.class);
+    PositionResponse positionResponse = getObjectMapper().readValue(json, PositionResponse.class);
 
     assertThat(positionResponse).isNotNull();
 

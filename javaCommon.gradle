@@ -16,6 +16,7 @@ apply plugin: 'idea'
 apply plugin: "checkstyle"
 apply plugin: 'jacoco'
 
+
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 

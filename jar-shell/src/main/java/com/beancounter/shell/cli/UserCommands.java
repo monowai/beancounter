@@ -4,8 +4,9 @@ import com.beancounter.auth.client.LoginService;
 import com.beancounter.client.services.RegistrationService;
 import com.beancounter.common.contracts.RegistrationRequest;
 import com.beancounter.common.exception.UnauthorizedException;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.shell.config.EnvConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import org.jline.reader.LineReader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +21,8 @@ public class UserCommands {
 
   private final LoginService loginService;
   private final RegistrationService registrationService;
-  private LineReader lineReader;
-  private final ObjectMapper objectMapper = new ObjectMapper();
   private final EnvConfig envConfig;
+  private LineReader lineReader;
 
   public UserCommands(LoginService loginService,
                       RegistrationService registrationService,
@@ -54,19 +54,19 @@ public class UserCommands {
   @ShellMethod("Who am I?")
   @SneakyThrows
   public String me() {
-    return objectMapper.writeValueAsString(this.registrationService.me());
+    return BcJson.getWriter().writeValueAsString(this.registrationService.me());
   }
 
   @ShellMethod("Register your Account")
-  @SneakyThrows
-  public String register() {
+  public String register() throws JsonProcessingException {
     JwtAuthenticationToken token = registrationService.getJwtToken();
     if (token == null) {
       throw new UnauthorizedException("Please login");
     }
-    return objectMapper
+    return BcJson.getWriter()
         .writeValueAsString(
-            this.registrationService.register(RegistrationRequest.builder().build())
+            this.registrationService
+                .register(new RegistrationRequest(token.getToken().getClaim("email")))
         );
 
 

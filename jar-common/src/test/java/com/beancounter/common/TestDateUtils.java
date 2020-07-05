@@ -26,7 +26,7 @@ class TestDateUtils {
   @Test
   void is_TodayAnIso8601String() {
     Calendar calendar = new Calendar.Builder()
-        .setTimeZone(TimeZone.getTimeZone(dateUtils.defaultZone))
+        .setTimeZone(TimeZone.getTimeZone(DateUtils.getZoneId()))
         .setInstant(new Date()).build();
     String now = dateUtils.today();
     calendar.get(Calendar.YEAR);
@@ -37,13 +37,13 @@ class TestDateUtils {
         .contains("-" + String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH)))
     ;
     assertThat(dateUtils.getDate("2019-11-29")).isNotNull();
-    dateUtils.isValid("2019-11-29");
+    dateUtils.getOrThrow("2019-11-29");
   }
 
   @Test
   void is_InvalidDateDetected() {
     String invalidDate = "2019-11-07'";
-    assertThrows(BusinessException.class, () -> dateUtils.isValid(invalidDate));
+    assertThrows(BusinessException.class, () -> dateUtils.getOrThrow(invalidDate));
   }
 
   @Test
@@ -56,7 +56,7 @@ class TestDateUtils {
   @Test
   void is_LocalDateEqualToToday() {
     String today = dateUtils.today();
-    LocalDate nowInTz = LocalDate.now(dateUtils.defaultZone);
+    LocalDate nowInTz = LocalDate.now(DateUtils.getZoneId());
     assertThat(nowInTz.toString()).isEqualTo(today);
   }
 
@@ -88,7 +88,7 @@ class TestDateUtils {
   void is_MarketDataPriceDateCalculated() {
     String sgToday = "2019-11-01"; // Friday in Singapore (past date)
     LocalDate sgDateTime = dateUtils.getDate(sgToday);
-
+    assertThat(sgDateTime).isNotNull();
     LocalDate dateResult = dateUtils.getLastMarketDate(sgDateTime, ZoneId.of("US/Eastern"));
 
     assertThat(dateResult.toString()).isEqualTo(sgToday);

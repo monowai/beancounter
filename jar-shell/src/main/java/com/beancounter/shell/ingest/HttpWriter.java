@@ -68,14 +68,15 @@ public class HttpWriter implements TrnWriter {
           rows,
           portfolio.getCode());
 
-      TrnRequest trnRequest = TrnRequest.builder()
-          .portfolioId(portfolio.getId())
-          .data(trnInputs)
-          .build();
 
-      TrnResponse response = trnService.write(trnRequest);
-      if (response != null && response.getData() != null) {
-        log.info("Wrote {}", response.getData().size());
+      if (portfolio != null) {
+        TrnRequest trnRequest = new TrnRequest(portfolio.getId(), trnInputs);
+
+        TrnResponse response = trnService.write(trnRequest);
+        if (response != null) {
+          log.info("Wrote {}", response.getData().size());
+        }
+
       }
       log.info("Complete!");
     }

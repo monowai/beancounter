@@ -1,5 +1,6 @@
 package com.beancounter.client.integ;
 
+import static com.beancounter.common.utils.AssetUtils.getAssetInput;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
@@ -7,8 +8,11 @@ import com.beancounter.client.ingest.AssetIngestService;
 import com.beancounter.client.services.PriceService;
 import com.beancounter.common.contracts.PriceRequest;
 import com.beancounter.common.contracts.PriceResponse;
+import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -30,13 +34,14 @@ public class TestPriceService {
   private AssetIngestService assetIngestService;
 
   @Test
-  void is_MarketDateOnDateFound() {
+  void is_MarketDataFoundOnDate() {
     Asset asset = assetIngestService
         .resolveAsset("NASDAQ", "EBAY", "EBAY");
 
-    PriceRequest priceRequest = PriceRequest
-        .of(asset)
-        .date("2019-10-18").build();
+    Collection<AssetInput> assets = new ArrayList<>();
+    assets.add(getAssetInput(asset));
+
+    PriceRequest priceRequest = new PriceRequest("2019-10-18", assets);
 
     PriceResponse response = priceService.getPrices(priceRequest);
     assertThat(response).isNotNull();

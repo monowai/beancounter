@@ -1,6 +1,16 @@
+buildscript {
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion"
+    }
+}
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion" apply false
+    id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion" apply false
+    id "io.spring.dependency-management" version "$springDependencyManagement" apply false
+    id "org.springframework.boot" version "$springBootVersion"  apply false
+
+}
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
-
-
 
 

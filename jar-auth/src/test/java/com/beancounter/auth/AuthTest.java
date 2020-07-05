@@ -79,9 +79,7 @@ public class AuthTest {
   @Test
   void are_DefaultGrantsConvertedFromToken() {
     JwtRoleConverter jwtRoleConverter = new JwtRoleConverter();
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .build();
+    SystemUser user = new SystemUser("user");
 
     Jwt token = TokenUtils.getUserToken(user);
 
@@ -111,10 +109,7 @@ public class AuthTest {
 
   @Test
   public void has_AuthorityToSayHelloButNotToSayWhat() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .build();
-
+    SystemUser user = new SystemUser("user");
     Jwt token = TokenUtils.getUserToken(user);
 
     mockMvc.perform(
@@ -136,9 +131,7 @@ public class AuthTest {
 
   @Test
   public void has_tokenButNoRoleToSayAnything() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .build();
+    SystemUser user = new SystemUser("user");
 
     Jwt token = TokenUtils.getUserToken(user, TokenUtils.getRoles("blah"));
 
@@ -165,9 +158,7 @@ public class AuthTest {
 
   @Test
   public void has_NoIdentityCrisis() throws Exception {
-    SystemUser user = SystemUser.builder()
-        .id("user")
-        .build();
+    SystemUser user = new SystemUser("user");
 
     Jwt token = TokenUtils.getUserToken(user);
 

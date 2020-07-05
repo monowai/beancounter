@@ -62,18 +62,13 @@ public abstract class AbstractIngester implements Ingester {
     List<List<String>> rows = getValues();
     int i = 0;
     for (List<String> row : rows) {
-      CallerRef callerRef = CallerRef.builder()
-          .provider(ingestionRequest.getProvider() == null
-              ? portfolio.getId() : ingestionRequest.getProvider())
-          .batch(String.valueOf(i))
-          .callerId(String.valueOf(i++))
-          .build();
+      CallerRef callerRef = new CallerRef(
+          ingestionRequest.getProvider() == null
+              ? portfolio.getId() : ingestionRequest.getProvider(),
+          String.valueOf(i), String.valueOf(i++));
 
-      TrustedTrnImportRequest trnRequest = TrustedTrnImportRequest.builder()
-          .row(row)
-          .portfolio(portfolio)
-          .callerRef(CallerRef.from(callerRef, portfolio))
-          .build();
+      TrustedTrnImportRequest trnRequest = new TrustedTrnImportRequest(
+          portfolio, callerRef, null, row);
       writer.write(trnRequest);
     }
 

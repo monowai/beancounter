@@ -11,13 +11,14 @@ import com.beancounter.common.model.Positions;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.common.utils.DateUtils;
+import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.position.accumulation.BuyBehaviour;
 import com.beancounter.position.accumulation.DividendBehaviour;
 import com.beancounter.position.accumulation.SellBehaviour;
 import com.beancounter.position.accumulation.SplitBehaviour;
 import com.beancounter.position.service.Accumulator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -46,20 +47,17 @@ class TestMoneyValues {
    */
   @Test
   void is_ValuedInTrackedCurrencies() throws IOException {
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
-    Position position = positions.get(microsoft);
 
-    Trn buyTrn = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("2000.00"))
-        .quantity(new BigDecimal(100))
-        .tradeBaseRate(new BigDecimal("1.00"))
-        .tradeCashRate(new BigDecimal("10.00"))
-        .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
-        .build();
+    Trn buyTrn = new Trn(TrnType.BUY, microsoft);
+    buyTrn.setTradeAmount(new BigDecimal("2000.00"));
+    buyTrn.setQuantity(new BigDecimal(100));
+    buyTrn.setTradeBaseRate(new BigDecimal("1.00"));
+    buyTrn.setTradeCashRate(new BigDecimal("10.00"));
+    buyTrn.setTradePortfolioRate(TRADE_PORTFOLIO_RATE);
 
     BuyBehaviour buyBehaviour = new BuyBehaviour();
+    Positions positions = new Positions(PortfolioUtils.getPortfolio("TEST"));
+    Position position = positions.get(microsoft);
     buyBehaviour.accumulate(buyTrn, positions.getPortfolio(), position);
     assertThat(position.getQuantityValues().getTotal())
         .isEqualTo(new BigDecimal("100"));
@@ -79,16 +77,13 @@ class TestMoneyValues {
     assertThat(position.getMoneyValues(Position.In.PORTFOLIO).getPurchases())
         .isEqualTo(new BigDecimal("20.00"));
 
-    Trn diviTrn = Trn.builder()
-        .trnType(TrnType.DIVI)
-        .asset(microsoft)
-        .tradeDate(new DateUtils().getDate())
-        .tradeAmount(BigDecimal.TEN)
-        .cashAmount(BigDecimal.TEN)
-        .tradeBaseRate(BigDecimal.ONE)
-        .tradeCashRate(BigDecimal.TEN)
-        .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
-        .build();
+    Trn diviTrn = new Trn(TrnType.DIVI, microsoft);
+    diviTrn.setTradeDate(new DateUtils().getDate());
+    diviTrn.setTradeAmount(BigDecimal.TEN);
+    diviTrn.setCashAmount(BigDecimal.TEN);
+    diviTrn.setTradeBaseRate(BigDecimal.ONE);
+    diviTrn.setTradeCashRate(BigDecimal.TEN);
+    diviTrn.setTradePortfolioRate(TRADE_PORTFOLIO_RATE);
 
     DividendBehaviour dividendBehaviour = new DividendBehaviour();
     dividendBehaviour.accumulate(diviTrn, positions.getPortfolio(), position);
@@ -109,24 +104,20 @@ class TestMoneyValues {
     assertThat(dateUtils.isToday(
         dateUtils.getDateString(position.getDateValues().getLastDividend())));
 
-    ObjectMapper objectMapper = new ObjectMapper();
-    String bytes = objectMapper.writeValueAsString(position);
-    Position deepCopy = objectMapper.readValue(bytes, Position.class);
+    Trn splitTrn = new Trn(TrnType.SPLIT, microsoft);
+    splitTrn.setQuantity(BigDecimal.TEN);
+    splitTrn.setCashAmount(BigDecimal.TEN);
+    splitTrn.setTradeBaseRate(BigDecimal.ONE);
+    splitTrn.setTradeCashRate(BigDecimal.TEN);
+    splitTrn.setTradePortfolioRate(TRADE_PORTFOLIO_RATE);
 
-    SplitBehaviour splitBehaviour = new SplitBehaviour();
-    Trn splitTrn = Trn.builder()
-        .trnType(TrnType.DIVI)
-        .asset(microsoft)
-        .quantity(BigDecimal.TEN)
-        .cashAmount(BigDecimal.TEN)
-        .tradeBaseRate(BigDecimal.ONE)
-        .tradeCashRate(BigDecimal.TEN)
-        .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
-        .build();
-
-    splitBehaviour.accumulate(splitTrn, positions.getPortfolio(), position);
+    new SplitBehaviour().accumulate(splitTrn, positions.getPortfolio(), position);
 
     MoneyValues tradeValues = position.getMoneyValues(Position.In.TRADE);
+    assertThat(tradeValues).isNotNull();
+
+    byte[] bytes = BcJson.getObjectMapper().writeValueAsBytes(position);
+    Position deepCopy = BcJson.getObjectMapper().readValue(bytes, Position.class);
     assertThat(tradeValues.getCostBasis())
         .isEqualTo(deepCopy.getMoneyValues(Position.In.TRADE).getCostBasis());
 
@@ -138,15 +129,12 @@ class TestMoneyValues {
     assertThat(tradeValues.getCostBasis())
         .isEqualTo(deepCopy.getMoneyValues(Position.In.PORTFOLIO).getCostBasis());
 
-    Trn sellTrn = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("4000.00"))
-        .quantity(position.getQuantityValues().getTotal()) // Sell all
-        .tradeBaseRate(BigDecimal.ONE)
-        .tradeCashRate(BigDecimal.TEN)
-        .tradePortfolioRate(TRADE_PORTFOLIO_RATE)
-        .build();
+    Trn sellTrn = new Trn(TrnType.SELL, microsoft);
+    sellTrn.setTradeAmount(new BigDecimal("4000.00"));
+    sellTrn.setQuantity(position.getQuantityValues().getTotal()); // Sell All
+    sellTrn.setTradeBaseRate(BigDecimal.ONE);
+    sellTrn.setTradeCashRate(BigDecimal.TEN);
+    sellTrn.setTradePortfolioRate(TRADE_PORTFOLIO_RATE);
 
     SellBehaviour sellBehaviour = new SellBehaviour();
     sellBehaviour.accumulate(sellTrn, positions.getPortfolio(), position);
@@ -171,18 +159,16 @@ class TestMoneyValues {
   @Test
   void is_QuantityAndMarketValueCalculated() {
 
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    Positions positions = new Positions(PortfolioUtils.getPortfolio("TEST"));
 
     Position position = positions.get(microsoft);
 
     assertThat(position)
         .isNotNull();
 
-    Trn buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(100)).build();
+    Trn buy = new Trn(TrnType.BUY, microsoft);
+    buy.setTradeAmount(new BigDecimal(2000));
+    buy.setQuantity(new BigDecimal(100));
 
     Portfolio portfolio = getPortfolio("TEST");
     position = accumulator.accumulate(buy, portfolio, position);
@@ -199,29 +185,25 @@ class TestMoneyValues {
 
   @Test
   void is_RealisedGainCalculated() {
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    Positions positions = new Positions(PortfolioUtils.getPortfolio("TEST"));
 
     Position position = positions.get(microsoft);
 
     assertThat(position)
         .isNotNull();
 
-    Trn buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(100)).build();
+    Trn buy = new Trn(TrnType.BUY, microsoft);
+    buy.setTradeAmount(new BigDecimal(2000));
+    buy.setQuantity(new BigDecimal(100));
 
     position = accumulator.accumulate(buy, positions.getPortfolio(), position);
     positions.add(position);
 
     position = positions.get(microsoft);
 
-    Trn sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal(2000))
-        .quantity(new BigDecimal(50)).build();
+    Trn sell = new Trn(TrnType.SELL, microsoft);
+    sell.setTradeAmount(new BigDecimal(2000));
+    sell.setQuantity(new BigDecimal(50));
 
     position = accumulator.accumulate(sell, positions.getPortfolio(), position);
 
@@ -235,19 +217,16 @@ class TestMoneyValues {
   @Test
   void is_RealisedGainWithSignedQuantitiesCalculated() {
 
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    Positions positions = new Positions(PortfolioUtils.getPortfolio("TEST"));
 
     Position position = positions.get(bidu);
 
     assertThat(position)
         .isNotNull();
 
-    Trn buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("1695.02"))
-        .quantity(new BigDecimal("8"))
-        .build();
+    Trn buy = new Trn(TrnType.BUY, bidu);
+    buy.setTradeAmount(new BigDecimal("1695.02"));
+    buy.setQuantity(new BigDecimal("8"));
 
     Portfolio portfolio = getPortfolio("TEST");
     position = accumulator.accumulate(buy, portfolio, position);
@@ -255,12 +234,9 @@ class TestMoneyValues {
 
     position = positions.get(bidu);
 
-    buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("405.21"))
-        .quantity(new BigDecimal("2"))
-        .build();
+    buy = new Trn(TrnType.BUY, bidu);
+    buy.setTradeAmount(new BigDecimal("405.21"));
+    buy.setQuantity(new BigDecimal("2"));
 
     position = accumulator.accumulate(buy, portfolio, position);
 
@@ -271,11 +247,9 @@ class TestMoneyValues {
         .isEqualTo(localMoney.getCostBasis());
 
 
-    Trn sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("841.63"))
-        .quantity(new BigDecimal("-3")).build();
+    Trn sell = new Trn(TrnType.SELL, bidu);
+    sell.setTradeAmount(new BigDecimal("841.63"));
+    sell.setQuantity(new BigDecimal("-3"));
 
     position = accumulator.accumulate(sell, portfolio, position);
 
@@ -289,11 +263,9 @@ class TestMoneyValues {
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
     ;
 
-    sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(bidu)
-        .tradeAmount(new BigDecimal("1871.01"))
-        .quantity(new BigDecimal("-7")).build();
+    sell = new Trn(TrnType.SELL, bidu);
+    sell.setTradeAmount(new BigDecimal("1871.01"));
+    sell.setQuantity(new BigDecimal("-7"));
 
     position = accumulator.accumulate(sell, portfolio, position);
 
@@ -310,30 +282,25 @@ class TestMoneyValues {
   @Test
   void is_RealisedGainAfterSellingToZeroCalculated() {
 
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    Positions positions = new Positions(PortfolioUtils.getPortfolio("TEST"));
 
     Position position = positions.get(microsoft);
 
     assertThat(position)
         .isNotNull();
 
-    Trn buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("1695.02"))
-        .quantity(new BigDecimal("8")).build();
+    Trn buy = new Trn(TrnType.BUY, microsoft);
+    buy.setTradeAmount(new BigDecimal("1695.02"));
+    buy.setQuantity(new BigDecimal("8"));
 
     position = accumulator.accumulate(buy, positions.getPortfolio(), position);
     positions.add(position);
 
-    buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("405.21"))
-        .quantity(new BigDecimal("2")).build();
+    buy = new Trn(TrnType.BUY, microsoft);
+    buy.setTradeAmount(new BigDecimal("405.21"));
+    buy.setQuantity(new BigDecimal("2"));
 
     accumulator.accumulate(buy, positions.getPortfolio(), position);
-
     position = positions.get(microsoft);
 
     assertThat(position.getQuantityValues())
@@ -345,11 +312,9 @@ class TestMoneyValues {
         .hasFieldOrPropertyWithValue("realisedGain", BigDecimal.ZERO)
     ;
 
-    Trn sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("841.63"))
-        .quantity(new BigDecimal("3.0")).build();
+    Trn sell = new Trn(TrnType.SELL, microsoft);
+    sell.setTradeAmount(new BigDecimal("841.63"));
+    sell.setQuantity(new BigDecimal("3.0"));
 
     accumulator.accumulate(sell, positions.getPortfolio(), position);
 
@@ -360,11 +325,9 @@ class TestMoneyValues {
         .hasFieldOrPropertyWithValue("realisedGain", new BigDecimal("211.56"))
     ;
 
-    sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(microsoft)
-        .tradeAmount(new BigDecimal("1871.01"))
-        .quantity(new BigDecimal("7")).build();
+    sell = new Trn(TrnType.SELL, microsoft);
+    sell.setTradeAmount(new BigDecimal("1871.01"));
+    sell.setQuantity(new BigDecimal("7"));
 
     accumulator.accumulate(sell, positions.getPortfolio(), position);
 
@@ -378,27 +341,23 @@ class TestMoneyValues {
 
   @Test
   void is_RealisedGainAfterReenteringAPositionCalculated() {
-    Positions positions = new Positions(Portfolio.builder().code("TEST").build());
+    Positions positions = new Positions(PortfolioUtils.getPortfolio("TEST"));
 
     Position position = positions.get(intel);
 
     assertThat(position)
         .isNotNull();
 
-    Trn buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("2646.08"))
-        .quantity(new BigDecimal("80")).build();
+    Trn buy = new Trn(TrnType.BUY, intel);
+    buy.setTradeAmount(new BigDecimal("2646.08"));
+    buy.setQuantity(new BigDecimal("80"));
 
     position = accumulator.accumulate(buy, positions.getPortfolio(), position);
     positions.add(position);
 
-    Trn sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("2273.9"))
-        .quantity(new BigDecimal("80")).build();
+    Trn sell = new Trn(TrnType.SELL, intel);
+    sell.setTradeAmount(new BigDecimal("2273.9"));
+    sell.setQuantity(new BigDecimal("80"));
 
     accumulator.accumulate(sell, positions.getPortfolio(), position);
 
@@ -414,11 +373,9 @@ class TestMoneyValues {
     ;
 
     // Re-enter the position
-    buy = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("1603.32"))
-        .quantity(new BigDecimal("60")).build();
+    buy = new Trn(TrnType.BUY, intel);
+    buy.setTradeAmount(new BigDecimal("1603.32"));
+    buy.setQuantity(new BigDecimal("60"));
 
     accumulator.accumulate(buy, positions.getPortfolio(), position);
 
@@ -435,14 +392,13 @@ class TestMoneyValues {
 
     // Second sell taking us back to zero. Verify that the accumulated gains.
 
-    sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(intel)
-        .tradeAmount(new BigDecimal("1664.31"))
-        .quantity(new BigDecimal("60")).build();
+    sell = new Trn(TrnType.SELL, intel);
+    sell.setTradeAmount(new BigDecimal("1664.31"));
+    sell.setQuantity(new BigDecimal("60"));
 
-    BigDecimal previousGain = position.getMoneyValues(Position.In.TRADE)
-        .getRealisedGain(); // Track the previous gain
+    MoneyValues tradeMoney = position.getMoneyValues(Position.In.TRADE);
+    assertThat(tradeMoney).isNotNull();
+    BigDecimal previousGain = tradeMoney.getRealisedGain(); // Track the previous gain
 
     accumulator.accumulate(sell, positions.getPortfolio(), position);
 

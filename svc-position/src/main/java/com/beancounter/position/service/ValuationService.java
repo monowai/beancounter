@@ -63,10 +63,7 @@ public class ValuationService implements Valuation {
       Portfolio portfolio,
       String valuationDate,
       TrnResponse trnResponse) {
-    PositionRequest positionRequest = PositionRequest.builder()
-        .portfolioId(portfolio.getId())
-        .trns(trnResponse.getData())
-        .build();
+    PositionRequest positionRequest = new PositionRequest(portfolio.getId(), trnResponse.getData());
     PositionResponse positionResponse = positionService.build(portfolio, positionRequest);
     if (valuationDate != null && !valuationDate.equalsIgnoreCase("today")) {
       positionResponse.getData().setAsAt(valuationDate);
@@ -78,10 +75,10 @@ public class ValuationService implements Valuation {
   public PositionResponse value(Positions positions) {
 
     if (positions == null) {
-      return PositionResponse.builder().build();
+      return new PositionResponse(new Positions(null));
     }
     if (positions.getAsAt() != null) {
-      dateUtils.isValid(positions.getAsAt());
+      dateUtils.getOrThrow(positions.getAsAt());
     }
     Collection<AssetInput> assets = new ArrayList<>();
     if (positions.hasPositions()) {
@@ -90,21 +87,14 @@ public class ValuationService implements Valuation {
             position.getMoneyValues(Position.In.PORTFOLIO));
         // There's an issue here that without a price, gains are not computed. Still
         // looks better having the current price in the front end anyway.
-        //if (!(position.getQuantityValues().getTotal().compareTo(BigDecimal.ZERO) == 0)) {
-        assets.add(AssetInput.builder()
-            .code(position.getAsset().getCode())
-            .market(position.getAsset().getMarket().getCode())
-            .build());
-        //}
+        assets.add(
+            new AssetInput(position.getAsset().getMarket().getCode(), position.getAsset().getCode()
+            ));
       }
       Positions valuedPositions = positionValuationService.value(positions, assets);
-      return PositionResponse.builder()
-          .data(valuedPositions)
-          .build();
+      return new PositionResponse(valuedPositions);
     }
-    return PositionResponse.builder()
-        .data(positions)
-        .build();
+    return new PositionResponse(positions);
 
   }
 

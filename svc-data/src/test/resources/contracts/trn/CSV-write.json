@@ -6,7 +6,7 @@
       "callerId" : null
     },
     "trnType" : "BUY",
-    "asset" : "BguoVZpoRxWjWrITp7DEuw",
+    "assetId" : "BguoVZpoRxWjWrITp7DEuw",
     "cashAsset" : null,
     "tradeCurrency" : "USD",
     "cashCurrency" : "NZD",
@@ -29,7 +29,7 @@
       "callerId" : null
     },
     "trnType" : "DIVI",
-    "asset" : "BguoVZpoRxWjWrITp7DEuw",
+    "assetId" : "BguoVZpoRxWjWrITp7DEuw",
     "cashAsset" : null,
     "tradeCurrency" : "USD",
     "cashCurrency" : null,

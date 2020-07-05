@@ -111,12 +111,10 @@ beancounter:
   market:
     values:
       - code: MOCK
-        id: MOCK
         timezoneId: UTC
         enricher: MOCK
 
       - code: NASDAQ
-        id: NASDAQ
         timezoneId: US/Eastern
         currencyId: USD
         aliases:
@@ -124,7 +122,6 @@ beancounter:
           FIGI: US
 
       - code: NYSE
-        id: NYSE
         timezoneId: US/Eastern
         currencyId: USD
         aliases:
@@ -132,14 +129,12 @@ beancounter:
           FIGI: US
 
       - code: AMEX
-        id: AMEX
         timezoneId: US/Eastern
         currencyId: USD
         aliases:
           FIGI: US
 
       - code: ASX
-        id: ASX
         timezoneId: Australia/Sydney
         currencyId: AUD
         aliases:
@@ -147,7 +142,6 @@ beancounter:
           FIGI: AU
 
       - code: NZX
-        id: NZX
         timezoneId: Pacific/Auckland
         currencyId: NZD
         aliases:
@@ -156,14 +150,12 @@ beancounter:
           FIGI: NZ
 
       - code: SGX
-        id: SGX
         currencyId: SGD
         timezoneId: Asia/Singapore
         aliases:
           FIGI: SG
 
       - code: LSE
-        id: LSE
         currencyId: GBP
         timezoneId: Europe/London
         aliases:
@@ -171,7 +163,6 @@ beancounter:
 
       - code: LON
         # UK Mutual Funds
-        id: LON
         currencyId: GBP
         timezoneId: Europe/London
         multiplier: .01

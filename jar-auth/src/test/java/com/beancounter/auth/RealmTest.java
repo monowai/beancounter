@@ -13,14 +13,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class RealmTest {
   @Test
   void is_RoleConverterValid() {
-    JwtRoleConverter jwtRoleConverter =
-        new JwtRoleConverter("empty", "nothing");
-
-    assertThat(jwtRoleConverter.getAuthorities(
-        TokenUtils.getUserToken(
-            SystemUser.builder()
-                .id(KeyGenUtils.format(UUID.randomUUID()))
-                .build())))
+    JwtRoleConverter jwtRoleConverter = new JwtRoleConverter("empty", "nothing");
+    SystemUser su = new SystemUser(KeyGenUtils.format(UUID.randomUUID()));
+    assertThat(
+        jwtRoleConverter.getAuthorities(
+            TokenUtils.getUserToken(su)))
         .hasSize(3)
         .containsExactlyInAnyOrder(
             // Default scopes

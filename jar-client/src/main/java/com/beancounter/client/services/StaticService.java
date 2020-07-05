@@ -8,7 +8,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Currency;
 import com.beancounter.common.model.Market;
 import io.github.resilience4j.retry.annotation.Retry;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@Slf4j
 @Service
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
 public class StaticService implements MarketService {
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(StaticService.class);
   public final StaticGateway staticGateway;
   private final TokenService tokenService;
 

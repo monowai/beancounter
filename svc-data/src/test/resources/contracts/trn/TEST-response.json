@@ -8,7 +8,21 @@
         "callerId": "123"
       },
       "trnType": "BUY",
-      "portfolio": {"code": "FT-vUCChRwOXDP7itcp5Kw"},
+      "portfolio": {
+        "id": "TEST",
+        "code": "TEST",
+        "name": "NZD Portfolio",
+        "currency": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        }
+      },
       "asset": {
         "id": "6VjYIJFKSCu7BtphC2GVSw",
         "code": "AAPL",
@@ -56,7 +70,21 @@
         "callerId": "456"
       },
       "trnType": "DIVI",
-      "portfolio": {"code": "FT-vUCChRwOXDP7itcp5Kw"},
+      "portfolio": {
+        "id": "TEST",
+        "code": "TEST",
+        "name": "NZD Portfolio",
+        "currency": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        }
+      },
       "asset": {
         "id": "6VjYIJFKSCu7BtphC2GVSw",
         "code": "AAPL",

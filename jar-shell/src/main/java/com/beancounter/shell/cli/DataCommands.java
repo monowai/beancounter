@@ -5,6 +5,8 @@ import com.beancounter.common.contracts.MarketResponse;
 import com.beancounter.common.model.Market;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import java.util.ArrayList;
+import java.util.Collection;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.shell.standard.ShellComponent;
@@ -28,15 +30,15 @@ public class DataCommands {
       @ShellOption(help = "Optional market code", defaultValue = "__NULL__")
           String marketCode) {
     if (marketCode != null) {
-      MarketResponse marketResponse = MarketResponse.builder().build();
       Market market = staticService.getMarket(
           marketCode
       );
-
       if (market != null) {
-        marketResponse.getData().add(market);
+        Collection<Market> markets = new ArrayList<>();
+        markets.add(market);
+        return writer.writeValueAsString(new MarketResponse(markets));
       }
-      return writer.writeValueAsString(marketResponse);
+      return "Not Found";
     } else {
       return writer.writeValueAsString(staticService.getMarkets());
     }

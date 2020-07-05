@@ -15,6 +15,7 @@ import com.beancounter.position.accumulation.SellBehaviour;
 import com.beancounter.position.accumulation.SplitBehaviour;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -33,34 +34,24 @@ class TestStockSplits {
     Positions positions = new Positions(getPortfolio("TEST"));
 
     Position position = positions.get(apple);
-
-    assertThat(position)
-        .isNotNull();
+    assertThat(position).isNotNull();
 
     LocalDate today = LocalDate.now();
 
-    Trn buyTrn = Trn.builder()
-        .trnType(TrnType.BUY)
-        .asset(apple)
-        .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(new DateUtils().convert(today))
-        .quantity(new BigDecimal("100")).build();
+    Trn buyTrn = new Trn(TrnType.BUY, apple);
+    buyTrn.setTradeAmount(new BigDecimal("2000"));
+    buyTrn.setTradeDate(new DateUtils().convert(today));
+    buyTrn.setQuantity(new BigDecimal("100"));
 
     BuyBehaviour buyBehaviour = new BuyBehaviour();
     buyBehaviour.accumulate(buyTrn, positions.getPortfolio(), position);
 
     assertThat(position.getQuantityValues())
-        .hasFieldOrPropertyWithValue("total", new BigDecimal(100))
-    ;
+        .hasFieldOrPropertyWithValue("total", new BigDecimal(100));
 
-    BigDecimal costBasis = position.getMoneyValues(Position.In.TRADE).getCostBasis();
-
-    Trn stockSplit = Trn.builder()
-        .trnType(TrnType.SPLIT)
-        .asset(apple)
-        .tradeDate(new DateUtils().convert(today))
-        .quantity(new BigDecimal("7"))
-        .build();
+    Trn stockSplit = new Trn(TrnType.SPLIT, apple);
+    stockSplit.setTradeDate(new DateUtils().convert(today));
+    stockSplit.setQuantity(new BigDecimal("7"));
 
     SplitBehaviour splitBehaviour = new SplitBehaviour();
     splitBehaviour.accumulate(stockSplit, positions.getPortfolio(), position);
@@ -68,6 +59,9 @@ class TestStockSplits {
     // 7 for one split
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(700));
+
+    BigDecimal costBasis = Objects.requireNonNull(
+        position.getMoneyValues(Position.In.TRADE)).getCostBasis();
 
     assertThat(position.getMoneyValues(Position.In.TRADE))
         .hasFieldOrPropertyWithValue("costBasis", costBasis);
@@ -79,12 +73,10 @@ class TestStockSplits {
     assertThat(position.getQuantityValues())
         .hasFieldOrPropertyWithValue("total", new BigDecimal(800));
 
-    Trn sell = Trn.builder()
-        .trnType(TrnType.SELL)
-        .asset(apple)
-        .tradeAmount(new BigDecimal("2000"))
-        .tradeDate(new DateUtils().convert(today))
-        .quantity(new BigDecimal("800")).build();
+    Trn sell = new Trn(TrnType.SELL, apple);
+    sell.setTradeAmount(new BigDecimal("2000"));
+    sell.setTradeDate(new DateUtils().convert(today));
+    sell.setQuantity(new BigDecimal("800"));
 
     // Sell the entire position
     new SellBehaviour().accumulate(sell, positions.getPortfolio(), position);

@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping
 @Slf4j
 @CrossOrigin("*")
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize(value = "hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 public class PositionController {
 
   private Valuation valuationService;
@@ -56,8 +56,7 @@ public class PositionController {
     if (value) {
       return valuationService.value(positions);
     }
-    return PositionResponse.builder().data(positions).build();
-
+    return new PositionResponse(positions);
   }
 
   @PostMapping(value = "/query",

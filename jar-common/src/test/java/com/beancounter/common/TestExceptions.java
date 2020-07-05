@@ -10,6 +10,7 @@ import com.beancounter.common.exception.SpringExceptionMessage;
 import com.beancounter.common.exception.SpringFeignDecoder;
 import com.beancounter.common.exception.SystemException;
 import com.beancounter.common.exception.UnauthorizedException;
+import com.beancounter.common.utils.BcJson;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
@@ -124,17 +125,17 @@ class TestExceptions {
   @Test
   void is_ServiceIntegrationErrorDecoded() throws JsonProcessingException {
     SpringFeignDecoder springFeignDecoder = new SpringFeignDecoder();
-    ObjectMapper objectMapper = new ObjectMapper();
-    SpringExceptionMessage springExceptionMessage = SpringExceptionMessage.builder()
-        .message("Integration Error")
-        .build();
+    SpringExceptionMessage springExceptionMessage = new SpringExceptionMessage();
+
+    springExceptionMessage.setMessage("Integration Error");
     Response response = Response.builder()
         .reason("Integration Reason")
         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
         .request(Request.create(
             Request.HttpMethod.GET, "/test", new HashMap<>(),
             Request.Body.empty(), requestTemplate))
-        .body(objectMapper.writeValueAsString(springExceptionMessage), Charset.defaultCharset())
+        .body(BcJson.getObjectMapper().writeValueAsString(springExceptionMessage),
+            Charset.defaultCharset())
         .build();
     assertThrows(SystemException.class, () -> validIntegrationException(
         springFeignDecoder.decode("test", response)));
@@ -162,13 +163,11 @@ class TestExceptions {
 
   @Test
   void is_SpringErrorSerializable() throws Exception {
-    SpringExceptionMessage springExceptionMessage = SpringExceptionMessage
-        .builder()
-        .message("Message")
-        .status(418)
-        .path("/test")
-        .error("I'm a teapot")
-        .build();
+    SpringExceptionMessage springExceptionMessage = new SpringExceptionMessage();
+    springExceptionMessage.setMessage("Message");
+    springExceptionMessage.setStatus(418);
+    springExceptionMessage.setPath("/test");
+    springExceptionMessage.setError("I'm a teapot");
 
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(springExceptionMessage);

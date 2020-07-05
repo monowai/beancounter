@@ -8,7 +8,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.DateUtils;
 import java.time.LocalDate;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@Slf4j
 @Service
 public class PortfolioServiceClient {
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(PortfolioServiceClient.class);
   private final PortfolioGw portfolioGw;
   private final TokenService tokenService;
   private final DateUtils dateUtils = new DateUtils();

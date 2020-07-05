@@ -143,4 +143,10 @@ internal class TestAsset {
         assertThat(fromJson.data).isNotEmpty
         assertThat(fromJson.data.iterator().next().type).isNotNull()
     }
+    @Test
+    fun is_Something () {
+        val assetInput = AssetInput("ABC", "123")
+        val ar = AssetRequest("ABC", assetInput)
+        assertThat(ar.data).containsKey("ABC")
+    }
 }

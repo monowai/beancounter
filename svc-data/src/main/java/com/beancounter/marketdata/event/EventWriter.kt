@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import javax.annotation.PostConstruct
 
 @Service
 class EventWriter {
@@ -20,6 +21,11 @@ class EventWriter {
     @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")
     private var topicEvent: String = "bc-ca-event-dev"
     private lateinit var kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>
+
+    @PostConstruct
+    fun logConfig() {
+        log.info("ca.event: {}", topicEvent)
+    }
 
     @Autowired
     fun setKafkaCaProducer(kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>) {

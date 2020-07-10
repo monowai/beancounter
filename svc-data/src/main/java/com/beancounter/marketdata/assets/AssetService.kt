@@ -106,11 +106,11 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
                 asset = assetRepository.save<Asset>(asset)
             }
         }
-        return hydrateAsset(asset)
+        return hydrateAsset(asset!!)
     }
 
     override fun find(id: String): Asset {
-        val result: Optional<Asset> = assetRepository.findById(id).map { asset: Asset? -> hydrateAsset(asset) }
+        val result: Optional<Asset> = assetRepository.findById(id).map { asset: Asset -> hydrateAsset(asset) }
         if (result.isPresent) {
             return result.get()
         }
@@ -121,7 +121,7 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         // Search Local
         log.trace("Search for {}/{}", marketCode, code)
         val optionalAsset = assetRepository.findByMarketCodeAndCode(marketCode.toUpperCase(), code.toUpperCase())
-        return optionalAsset.map { asset: Asset? -> hydrateAsset(asset) }.orElse(null)
+        return optionalAsset.map { asset: Asset -> hydrateAsset(asset) }.orElse(null)
     }
 
     fun enrich(assetId: String): Asset {
@@ -141,9 +141,8 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         return asset
     }
 
-    fun hydrateAsset(asset: Asset?): Asset? {
-        assert(asset != null)
-        asset!!.market = marketService.getMarket(asset.marketCode!!)
+    fun hydrateAsset(asset: Asset): Asset {
+        asset.market = marketService.getMarket(asset.marketCode!!)
         return asset
     }
 

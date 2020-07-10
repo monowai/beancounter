@@ -86,6 +86,7 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
         }
         // Merge results into a response
         val response = PriceResponse(apiResults)
+        log.debug("From DB: {}, from API: {}", existing.size, apiResults.size)
         priceService.write(response) // Async write
         existing.addAll(apiResults)
         return PriceResponse(existing)

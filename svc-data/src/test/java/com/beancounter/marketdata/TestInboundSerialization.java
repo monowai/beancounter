@@ -3,6 +3,7 @@ package com.beancounter.marketdata;
 import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.HashMap;
@@ -33,4 +34,19 @@ public class TestInboundSerialization {
     assertThat(fromMsg.getRow()).contains(payload.getRow().toArray(new String[] {}));
     assertThat(fromMsg.getCallerRef()).isNull();
   }
+
+  @Test
+  void is_InboundMessagePayloadConverted() throws Exception {
+    TrustedTrnImportRequest payload = getObjectMapper().readValue(
+        new ClassPathResource("/kafka/bc-view-message.json").getFile(),
+        TrustedTrnImportRequest.class);
+  }
+
+  @Test
+  void is_IncomingTrustedEvent() throws Exception {
+    TrustedTrnEvent inbound = getObjectMapper().readValue(
+        new ClassPathResource("/kafka/event-incoming.json").getFile(), TrustedTrnEvent.class);
+    assertThat(inbound).isNotNull();
+  }
+
 }

@@ -62,11 +62,11 @@ class TrnControllerTest {
 
     @Autowired
     private lateinit var trnService: TrnService
-    private lateinit var mockMvc: MockMvc
 
     @MockBean
     private lateinit var figiProxy: FigiProxy
     private lateinit var token: Jwt
+    private lateinit var mockMvc: MockMvc
 
     @Autowired
     fun mockServices() {
@@ -123,8 +123,7 @@ class TrnControllerTest {
         val divi = existingTrns.iterator().next()
 
         val trustedTrnEvent = TrustedTrnEvent(portfolioA, divi)
-        assertThat(trnService.isExists(trustedTrnEvent))
-                .isTrue()
+        assertThat(trnService.isExists(trustedTrnEvent)).isTrue()
 
         // Record date is earlier than an existing trn trade date
         divi.tradeDate = dateUtils.getDate("2020-02-25")
@@ -133,6 +132,21 @@ class TrnControllerTest {
         divi.tradeDate = dateUtils.getDate("2020-03-09")
         assertThat(trnService.isExists(trustedTrnEvent))
                 .isTrue() // Within 20 days of proposed trade date
+
+        val findByAsset = mockMvc.perform(
+                MockMvcRequestBuilders.get("/trns/{portfolioId}/asset/{assetId}/events",
+                        portfolioA.id, msft.id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt()
+                                .jwt(token).authorities(authorityRoleConverter))
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val trnResponse = objectMapper
+                .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
+        assertThat(trnResponse.data).isNotEmpty.hasSize(1) // 1 MSFT dividend
+
     }
 
     @Test
@@ -334,7 +348,7 @@ class TrnControllerTest {
 
         // Find by portfolio and asset
         val findByAsset = mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/{portfolioId}/asset/{assetId}",
+                MockMvcRequestBuilders.get("/trns/{portfolioId}/asset/{assetId}/trades",
                         portfolioId, msft.id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))

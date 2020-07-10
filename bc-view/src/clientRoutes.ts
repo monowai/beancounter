@@ -7,8 +7,9 @@ import Portfolios from "./portfolio/Portfolios";
 import Registration from "./common/auth/Registration";
 import { PortfolioEdit } from "./portfolio/PortfolioEdit";
 import { DeletePortfolio } from "./portfolio/DeletePortfolio";
-import Transactions from "./trns/Transactions";
+import Trades from "./trns/Trades";
 import { TransactionEdit } from "./trns/TransactionEdit";
+import Events from "./trns/Events";
 
 const __new__ = "new";
 const RouteHoldings = (): JSX.Element => {
@@ -23,11 +24,18 @@ const RoutePortfolio = (): JSX.Element => {
   return PortfolioEdit(pfId);
 };
 
-const RouteAssetTrnList = (): JSX.Element => {
+const RouteTradeList = (): JSX.Element => {
   const { portfolioId, assetId } = useParams();
   const portfolio = portfolioId == undefined ? __new__ : portfolioId;
   const asset = assetId == undefined ? __new__ : assetId;
-  return Transactions(portfolio, asset);
+  return Trades(portfolio, asset);
+};
+
+const RouteEventList = (): JSX.Element => {
+  const { portfolioId, assetId } = useParams();
+  const portfolio = portfolioId == undefined ? __new__ : portfolioId;
+  const asset = assetId == undefined ? __new__ : assetId;
+  return Events(portfolio, asset);
 };
 
 const RouteTrnEdit = (): JSX.Element => {
@@ -78,8 +86,12 @@ const ClientRoutes = [
     component: RouteHoldings,
   },
   {
-    path: "/trns/:portfolioId/asset/:assetId",
-    component: RouteAssetTrnList,
+    path: "/trns/:portfolioId/asset/:assetId/trades",
+    component: RouteTradeList,
+  },
+  {
+    path: "/trns/:portfolioId/asset/:assetId/events",
+    component: RouteEventList,
   },
   {
     path: "/trns/:portfolioId/:trnId",

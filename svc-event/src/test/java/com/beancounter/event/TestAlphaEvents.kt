@@ -17,7 +17,7 @@ import java.math.BigDecimal
 @SpringBootTest(classes = [AlphaEventConfig::class])
 class TestAlphaEvents {
     @Autowired
-    private val alphaEventAdapter: AlphaEventAdapter? = null
+    private lateinit var alphaEventAdapter: AlphaEventAdapter
 
     @Test
     fun is_UsDividendCalculated() {
@@ -40,10 +40,11 @@ class TestAlphaEvents {
                 BigDecimal("0.2625")
         )
         val portfolio = getPortfolio("TEST", USD)
-        val trnEvent = alphaEventAdapter!!.calculate(portfolio, position, event)
+        val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull
-        assertThat(trnEvent!!.portfolio).isNotNull
-        assertThat(trnEvent.trnInput)
+        assertThat(trnEvent?.portfolio).isNotNull
+        assertThat(trnEvent?.trnInput)
+                .isNotNull
                 .hasFieldOrPropertyWithValue("assetId", asset.id)
                 .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
                 .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)

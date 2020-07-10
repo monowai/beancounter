@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import nock from "nock";
 import { MemoryRouter } from "react-router";
-import Transactions from "../trns/Transactions";
+import Trades from "../trns/Trades";
 
 afterEach(cleanup);
 
@@ -13,7 +13,7 @@ nock(bff, {
     authorization: "Bearer undefined",
   },
 })
-  .get("/bff/trns/test/asset/alphabet")
+  .get("/bff/trns/test/asset/alphabet/trades")
   .replyWithFile(200, __dirname + "/__contracts__/trans-for-asset.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json",
@@ -30,10 +30,10 @@ nock(bff, {
     "Content-type": "application/json",
   });
 
-describe("<Transactions />", () => {
-  it("should match snapshot", async () => {
+describe("<Trades />", () => {
+  it("trades should match snapshot", async () => {
     const TestTrnForAsset = (): JSX.Element => {
-      return Transactions("test", "alphabet");
+      return Trades("test", "alphabet");
     };
 
     const { container } = render(

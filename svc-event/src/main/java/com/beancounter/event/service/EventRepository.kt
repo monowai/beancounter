@@ -13,4 +13,8 @@ interface EventRepository : CrudRepository<CorporateEvent, String> {
     @Query("select e from CorporateEvent e "
             + "where e.recordDate >= ?1 and e.recordDate <= ?2 order by e.recordDate asc ")
     fun findByDateRange(start: LocalDate?, end: LocalDate?): Collection<CorporateEvent>
+
+    @Query("select e from CorporateEvent e "
+            + "where e.recordDate >= ?1 order by e.recordDate desc ")
+    fun findByStartDate(start: LocalDate): Collection<CorporateEvent>
 }

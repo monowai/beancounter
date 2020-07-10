@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<Transactions /> should match snapshot 1`] = `
+exports[`<Trades /> trades should match snapshot 1`] = `
 <div>
   <div>
     <nav

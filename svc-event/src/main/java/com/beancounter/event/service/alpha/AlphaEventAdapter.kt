@@ -13,17 +13,17 @@ import java.math.BigDecimal
 
 class AlphaEventAdapter(private val taxService: TaxService) : Event {
     private val dateUtils = DateUtils()
-    override fun calculate(portfolio: Portfolio?,
-                           currentPosition: Position?, corporateEvent: CorporateEvent?): TrustedTrnEvent? {
-        if (corporateEvent!!.trnType == TrnType.DIVI) {
+    override fun calculate(portfolio: Portfolio,
+                           currentPosition: Position, corporateEvent: CorporateEvent): TrustedTrnEvent? {
+        if (corporateEvent.trnType == TrnType.DIVI) {
             val trnInput = toDividend(currentPosition, corporateEvent)
                     ?: return null // We didn't create anything
-            return TrustedTrnEvent(portfolio!!, trnInput)
+            return TrustedTrnEvent(portfolio, trnInput)
         }
         throw SystemException(String.format("Unsupported event type %s", corporateEvent.trnType))
     }
 
-    private fun toDividend(currentPosition: Position?,
+    private fun toDividend(currentPosition: Position,
                            corporateEvent: CorporateEvent?): TrnInput? {
         if ( corporateEvent == null ) {
             return null
@@ -43,7 +43,7 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
                 TrnType.DIVI
         )
         result.status = TrnStatus.PROPOSED
-        result.quantity = currentPosition!!.quantityValues.getTotal()
+        result.quantity = currentPosition.quantityValues.getTotal()
         result.tradeDate = payDate // Should be PayDate +1
         result.price = corporateEvent.rate
         result.tax = tax

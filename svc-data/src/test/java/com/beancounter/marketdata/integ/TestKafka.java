@@ -29,6 +29,7 @@ import com.beancounter.marketdata.portfolio.PortfolioService;
 import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.service.MarketDataService;
+import com.beancounter.marketdata.trn.TrnImport;
 import com.beancounter.marketdata.trn.TrnKafkaConsumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -94,6 +95,8 @@ public class TestKafka {
   @Autowired
   private TrnKafkaConsumer trnKafkaConsumer;
   @Autowired
+  private TrnImport trnImport;
+  @Autowired
   private EventWriter eventWriter;
   @Autowired
   private CurrencyService currencyService;
@@ -155,7 +158,7 @@ public class TestKafka {
     TrustedTrnImportRequest received = objectMapper
         .readValue(consumerRecord.value(), TrustedTrnImportRequest.class);
 
-    TrnResponse trnResponse = trnKafkaConsumer.fromCsvImport(received);
+    TrnResponse trnResponse = trnImport.fromCsvImport(received);
 
     assertThat(trnResponse).isNotNull();
     assertThat(trnResponse.getData())
@@ -222,8 +225,7 @@ public class TestKafka {
         pfResponse.iterator().next(), row);
     Asset expectedAsset = assetResponse.getData().get("B784NS1");
 
-    TrnResponse response = trnKafkaConsumer
-        .fromCsvImport(trnRequest);
+    TrnResponse response = trnImport.fromCsvImport(trnRequest);
     assertThat(response).isNotNull();
     assertThat(response.getData()).isNotNull().hasSize(1);
     for (Trn trn : response.getData()) {
@@ -257,6 +259,8 @@ public class TestKafka {
 
     Iterable<MarketData> results = priceWriter.processMessage(
         objectMapper.writeValueAsString(priceResponse));
+    assertThat(results).isNotNull().isNotEmpty();
+
     for (MarketData result : results) {
       assertThat(result).hasFieldOrProperty("id");
 

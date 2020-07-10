@@ -57,7 +57,11 @@ export interface Position {
   asset: Asset;
   moneyValues: MoneyValues[];
   quantityValues: QuantityValues;
+  dateValues: DateValues;
   lastTradeDate: string;
+}
+export interface Interface {
+  lastDividend: string;
 }
 
 export interface Portfolio {

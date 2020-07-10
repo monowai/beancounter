@@ -8,7 +8,8 @@ import { BcResult } from "../types/app";
 
 export function useAssetTransactions(
   portfolioId: string,
-  assetId: string
+  assetId: string,
+  filter: string
 ): BcResult<Transaction[]> {
   const [transactions, setTransactions] = useState<Transaction[]>();
   const [error, setError] = useState<AxiosError>();
@@ -16,7 +17,7 @@ export function useAssetTransactions(
   useEffect(() => {
     console.debug("Hook-AssetTrn");
     _axios
-      .get<Transaction[]>(`/bff/trns/${portfolioId}/asset/${assetId}`, {
+      .get<Transaction[]>(`/bff/trns/${portfolioId}/asset/${assetId}/${filter}`, {
         headers: getBearerToken(keycloak.token),
       })
       .then((result) => {
@@ -28,7 +29,7 @@ export function useAssetTransactions(
         }
         setError(err);
       });
-  }, [keycloak, assetId, portfolioId]);
+  }, [keycloak, assetId, portfolioId, filter]);
   return { data: transactions, error };
 }
 

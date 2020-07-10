@@ -570,7 +570,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/asset/0OKznUxcT9WlNWIAp2dn2Q"
+                href="/trns/test/asset/0OKznUxcT9WlNWIAp2dn2Q/trades"
               >
                 <span>
                   637
@@ -615,8 +615,16 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                2,598.62
+              <span
+                data-tooltip="Last Event: undefined"
+              >
+                <a
+                  href="/trns/test/asset/0OKznUxcT9WlNWIAp2dn2Q/events"
+                >
+                  <span>
+                    2,598.62
+                  </span>
+                </a>
               </span>
             </td>
             <td
@@ -795,7 +803,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/asset/pw1dIdlhSx2x8tnlA2qNhw"
+                href="/trns/test/asset/pw1dIdlhSx2x8tnlA2qNhw/trades"
               >
                 <span>
                   12
@@ -840,8 +848,16 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                126.33
+              <span
+                data-tooltip="Last Event: undefined"
+              >
+                <a
+                  href="/trns/test/asset/pw1dIdlhSx2x8tnlA2qNhw/events"
+                >
+                  <span>
+                    126.33
+                  </span>
+                </a>
               </span>
             </td>
             <td
@@ -895,7 +911,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/asset/QyZk-QioSRqyq1alwSf5Tw"
+                href="/trns/test/asset/QyZk-QioSRqyq1alwSf5Tw/trades"
               >
                 <span>
                   25
@@ -940,8 +956,16 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                6.50
+              <span
+                data-tooltip="Last Event: undefined"
+              >
+                <a
+                  href="/trns/test/asset/QyZk-QioSRqyq1alwSf5Tw/events"
+                >
+                  <span>
+                    6.50
+                  </span>
+                </a>
               </span>
             </td>
             <td
@@ -995,7 +1019,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               align="right"
             >
               <a
-                href="/trns/test/asset/HQuFW0B9RUW9bML5r2x0pA"
+                href="/trns/test/asset/HQuFW0B9RUW9bML5r2x0pA/trades"
               >
                 <span>
                   55
@@ -1040,8 +1064,16 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             <td
               align="right"
             >
-              <span>
-                229.86
+              <span
+                data-tooltip="Last Event: undefined"
+              >
+                <a
+                  href="/trns/test/asset/HQuFW0B9RUW9bML5r2x0pA/events"
+                >
+                  <span>
+                    229.86
+                  </span>
+                </a>
               </span>
             </td>
             <td

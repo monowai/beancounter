@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(
     scanBasePackageClasses = {
@@ -23,7 +22,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan("com.beancounter.common.event")
 @EnableAsync
 @EnableCaching
-@EnableScheduling
 public class EventBoot {
   public static void main(String[] args) {
     SpringApplication.run(EventBoot.class, args);

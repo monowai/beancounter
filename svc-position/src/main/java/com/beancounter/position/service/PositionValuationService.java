@@ -46,7 +46,9 @@ public class PositionValuationService {
     if (assets.isEmpty()) {
       return positions; // Nothing to value
     }
-    log.debug("Valuing {} positions...", positions.getPositions().size());
+    log.debug("Requested valuation of {} positions for {}...",
+        positions.getPositions().size(),
+        positions.getPortfolio().getCode());
 
     // Set market data into the positions
     // There's an issue here that without a price, gains are not computed
@@ -64,8 +66,8 @@ public class PositionValuationService {
     Map<IsoCurrencyPair, FxRate> rates = fxResponse.getData().getRates();
     Totals baseTotals = new Totals();
     Totals refTotals = new Totals();
-    if (valuationData.getPriceResponse() != null
-        && valuationData.getPriceResponse().getData() != null) {
+    if (valuationData.getPriceResponse() != null) {
+      valuationData.getPriceResponse().getData();
 
       for (MarketData marketData : valuationData.getPriceResponse().getData()) {
         Position position = marketValue.value(positions, marketData, rates);
@@ -98,6 +100,10 @@ public class PositionValuationService {
           MathUtils.percent(moneyValues.getMarketValue(), refTotals.getTotal()));
 
     }
+    log.debug("Completed valuation of {} positions for {}...",
+        positions.getPositions().size(),
+        positions.getPortfolio().getCode());
+
     return positions;
   }
 

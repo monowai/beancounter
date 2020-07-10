@@ -20,6 +20,7 @@ class EventReceiver(private val eventService: EventService) {
 
     @Bean
     fun topicEvent(): NewTopic {
+        log.info("topics.ca.event: {}", topicCaEvent)
         return NewTopic(topicCaEvent, 1, 1.toShort())
     }
 

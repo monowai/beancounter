@@ -6,6 +6,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -23,8 +24,7 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
 
     fun getPortfolioTrn(portfolio: Portfolio, trnId: String): TrnResponse {
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
-        val result = trn.map {
-            transaction: Trn -> hydrate(setOf(transaction)) }
+        val result = trn.map { transaction: Trn -> hydrate(setOf(transaction)) }
         if (result.isEmpty) {
             throw BusinessException(String.format("Trn %s not found", trnId))
         }
@@ -63,12 +63,28 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
      * @param assetId   filter by pk
      * @return Transactions in display order that is friendly for viewing.
      */
-    fun findByPortfolioAsset(portfolio: Portfolio, assetId: String): TrnResponse {
+    fun findPortfolioAssetEvents(portfolio: Portfolio, assetId: String): TrnResponse {
+        val typeFilter = ArrayList<TrnType>()
+        typeFilter.add(TrnType.DIVI)
+        typeFilter.add(TrnType.SPLIT)
+        return trnResponse(portfolio, assetId, typeFilter)
+    }
+
+    fun findPortfolioAssetTrades(portfolio: Portfolio, assetId: String): TrnResponse {
+        val typeFilter = ArrayList<TrnType>()
+        typeFilter.add(TrnType.BUY)
+        typeFilter.add(TrnType.SELL)
+        return trnResponse(portfolio, assetId, typeFilter)
+    }
+
+    private fun trnResponse(portfolio: Portfolio, assetId: String, typeFilter: ArrayList<TrnType>): TrnResponse {
         val results = trnRepository
-                .findByPortfolioIdAndAssetId(
+                .findByPortfolioIdAndAssetIdAndTrnType(
                         portfolio.id,
-                        assetId, Sort.by("asset.code")
-                        .and(Sort.by("tradeDate").descending()))
+                        assetId,
+                        typeFilter,
+                        Sort.by("asset.code")
+                                .and(Sort.by("tradeDate").descending()))
         log.debug("Found {} for portfolio {} and asset {}",
                 results.size,
                 portfolio.code,

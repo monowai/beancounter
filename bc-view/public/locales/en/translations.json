@@ -10,7 +10,7 @@
   "value": "Market Value",
   "purchases": "Purchases",
   "sales": "Sales",
-  "dividends": "Dividends",
+  "dividends": "Income",
   "change": "Change",
   "gain.realised": "Realised Gain",
   "gain.unrealised": "Unrealised Gain",
@@ -22,5 +22,9 @@
   "valuein.trade": "Trade",
   "valuein.base": "Base",
   "valuein.portfolio": "Portfolio",
-  "delete.trn": "Permanently delete this transaction?"
+  "delete.trn": "Permanently delete this transaction?",
+  "event.amount": "Amount",
+  "event.tax": "Tax",
+  "event.quantity": "Affected Quantity",
+  "event.price": "Per Unit"
 }

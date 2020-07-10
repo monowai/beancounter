@@ -1,9 +1,8 @@
-
 {
   "portfolio": {
-    "id": "1tBzW4CURW6WBNdsokBvRw",
-    "code": "USX",
-    "name": "US Exclusive Valuentum",
+    "id": "Su38yfF8Rz2hRL80-Ea8pQ",
+    "code": "GBF",
+    "name": "UK Mutual funds",
     "currency": {
       "code": "GBP",
       "name": "Pound",
@@ -16,22 +15,10 @@
     },
     "owner": {
       "id": "4b914769-4eba-4268-8766-d5d6386fea53",
-      "email": "blah",
+      "email": "mike@monowai.com",
       "active": true,
-      "since": "2020-06-17"
+      "since": "2020-07-08"
     }
   },
-  "row": [
-    "170",
-    "NYSE",
-    "BAC",
-    "Corp.",
-    "Buy",
-    "08/06/2020",
-    "40",
-    "28.60",
-    "10",
-    "USD",
-    "1.1800"
-  ]
+  "message": "Starting Import"
 }

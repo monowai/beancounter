@@ -52,7 +52,7 @@ export function Rows(props: {
         )}
       </td>
       <td align={"right"}>
-        <Link to={`/trns/${props.portfolio.id}/asset/${position.asset.id}`}>
+        <Link to={`/trns/${props.portfolio.id}/asset/${position.asset.id}/trades`}>
           <NumberFormat
             value={position.quantityValues.total}
             displayType={"text"}
@@ -78,7 +78,17 @@ export function Rows(props: {
         <FormatNumber values={position.moneyValues[valueIn]} field={"averageCost"} />
       </td>
       <td align={"right"}>
-        <FormatNumber values={position.moneyValues[valueIn]} field={"dividends"} />
+        {
+          <span
+            data-tooltip={
+              position.dateValues ? "Last Event: " + position.dateValues.lastDividend : "N/A"
+            }
+          >
+            <Link to={`/trns/${props.portfolio.id}/asset/${position.asset.id}/events`}>
+              <FormatNumber values={position.moneyValues[valueIn]} field={"dividends"} />
+            </Link>
+          </span>
+        }
       </td>
       <td align={"right"}>
         <FormatNumber values={position.moneyValues[valueIn]} field={"realisedGain"} />

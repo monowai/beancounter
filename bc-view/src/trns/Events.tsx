@@ -6,9 +6,10 @@ import ErrorPage from "../common/errors/ErrorPage";
 import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
 import { isDone } from "../types/typeUtils";
+import { translate } from "../common/i18nConfig";
 
-export function Transactions(portfolioId: string, assetId: string): React.ReactElement {
-  const trnsResult = useAssetTransactions(portfolioId, assetId);
+export function Trades(portfolioId: string, assetId: string): React.ReactElement {
+  const trnsResult = useAssetTransactions(portfolioId, assetId, "events");
   const assetResult = useAsset(assetId);
 
   if (isDone(trnsResult) && isDone(assetResult)) {
@@ -37,11 +38,10 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                     <th>Type</th>
                     <th>Currency</th>
                     <th>Trade Date</th>
-                    <th align={"right"}>Amount</th>
-                    <th align={"right"}>Tax</th>
-                    <th align={"right"}>Charges</th>
-                    <th align={"right"}>Quantity</th>
-                    <th align={"right"}>Price</th>
+                    <th align={"right"}>{translate("event.amount")}</th>
+                    <th align={"right"}>{translate("event.tax")}</th>
+                    <th align={"right"}>{translate("event.quantity")}</th>
+                    <th align={"right"}>{translate("event.price")}</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -63,15 +63,6 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
                       <td align={"right"}>
                         <NumberFormat
                           value={t.tax}
-                          displayType={"text"}
-                          decimalScale={2}
-                          fixedDecimalScale={true}
-                          thousandSeparator={true}
-                        />
-                      </td>
-                      <td align={"right"}>
-                        <NumberFormat
-                          value={t.fees}
                           displayType={"text"}
                           decimalScale={2}
                           fixedDecimalScale={true}
@@ -112,4 +103,4 @@ export function Transactions(portfolioId: string, assetId: string): React.ReactE
   return <div id="root">Loading...</div>;
 }
 
-export default Transactions;
+export default Trades;

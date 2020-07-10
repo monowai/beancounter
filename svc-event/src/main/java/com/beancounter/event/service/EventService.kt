@@ -29,10 +29,10 @@ class EventService(private val positionService: PositionService,
         )
     }
 
-    fun processMessage(event: CorporateEvent?): Collection<TrustedTrnEvent> {
+    fun processMessage(event: CorporateEvent): Collection<TrustedTrnEvent> {
         val results: MutableCollection<TrustedTrnEvent> = ArrayList()
         val response = positionService.findWhereHeld(
-                event!!.assetId,
+                event.assetId,
                 event.recordDate)
         for (portfolio in response.data) {
             val trnEvent = positionService.process(portfolio, event)
@@ -72,7 +72,7 @@ class EventService(private val positionService: PositionService,
         val result = eventRepository.findById(id)
         return result
                 .map { data: CorporateEvent? -> CorporateEventResponse(data!!) }
-                .orElseThrow { BusinessException("\$Not found {id}") }
+                .orElseThrow { BusinessException("Not found $id") }
     }
 
     fun getAssetEvents(assetId: String): CorporateEventsResponse {
@@ -93,6 +93,11 @@ class EventService(private val positionService: PositionService,
 
     fun findInRange(start: LocalDate, end: LocalDate): Collection<CorporateEvent> {
         return eventRepository.findByDateRange(start, end)
+    }
+
+    fun getScheduledEvents(start: LocalDate): CorporateEventsResponse {
+        val events = eventRepository.findByStartDate(start)
+        return CorporateEventsResponse(events)
     }
 
 }

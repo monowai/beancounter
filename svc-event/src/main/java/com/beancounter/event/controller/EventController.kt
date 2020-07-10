@@ -1,6 +1,7 @@
 package com.beancounter.event.controller
 
 import com.beancounter.auth.server.RoleHelper
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventsResponse
 import com.beancounter.event.service.EventService
@@ -38,5 +39,9 @@ class EventController(private val eventService: EventService) {
         return eventService.getAssetEvents(id)
     }
 
+    @GetMapping(value = ["/scheduled/{date}"], produces = ["application/json"])
+    fun getScheduledEvents(@PathVariable date: String): CorporateEventsResponse {
+        return eventService.getScheduledEvents(DateUtils().getDate(date)!!)
+    }
 
 }

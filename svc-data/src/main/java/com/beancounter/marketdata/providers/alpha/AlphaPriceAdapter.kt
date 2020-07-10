@@ -70,12 +70,16 @@ class AlphaPriceAdapter : MarketDataAdapter {
         if (result == null) {
             return false
         }
-        if (result.contains("Error Message")) {
-            field = "Error Message"
-        } else if (result.contains("\"Note\":")) {
-            field = "Note"
-        } else if (result.contains("\"Information\":")) {
-            field = "Information"
+        when {
+            result.contains("Error Message") -> {
+                field = "Error Message"
+            }
+            result.contains("\"Note\":") -> {
+                field = "Note"
+            }
+            result.contains("\"Information\":") -> {
+                field = "Information"
+            }
         }
         if (field != null) {
             val resultMessage = alphaMapper.readTree(result)

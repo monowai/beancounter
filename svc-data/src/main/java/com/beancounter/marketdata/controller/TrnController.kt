@@ -60,12 +60,20 @@ class TrnController {
         return trnService.delete(trnId)
     }
 
-    @GetMapping(value = ["/{portfolioId}/asset/{assetId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun findByAsset(
+    @GetMapping(value = ["/{portfolioId}/asset/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun findAssetEvents(
             @PathVariable("portfolioId") portfolioId: String,
             @PathVariable("assetId") assetId: String
     ): TrnResponse {
-        return trnService.findByPortfolioAsset(portfolioService.find(portfolioId), assetId)
+        return trnService.findPortfolioAssetEvents(portfolioService.find(portfolioId), assetId)
+    }
+
+    @GetMapping(value = ["/{portfolioId}/asset/{assetId}/trades"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun findAssetTrades(
+            @PathVariable("portfolioId") portfolioId: String,
+            @PathVariable("assetId") assetId: String
+    ): TrnResponse {
+        return trnService.findPortfolioAssetTrades(portfolioService.find(portfolioId), assetId)
     }
 
     @PostMapping(value = ["/query"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])

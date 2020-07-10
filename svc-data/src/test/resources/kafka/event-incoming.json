@@ -1,0 +1,49 @@
+{
+  "portfolio": {
+    "id": "2-yXnKQNQQqpt48DdOt1Hw",
+    "code": "USV",
+    "name": "US Valuentum",
+    "currency": {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "base": {
+      "code": "NZD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "owner": {
+      "id": "4b914769-4eba-4268-8766-d5d6386fea53",
+      "email": "mike@monowai.com",
+      "active": true,
+      "since": "2020-06-03"
+    }
+  },
+  "message": null,
+  "trnInput": {
+    "callerRef": {
+      "provider": "ALPHA",
+      "batch": "jSyvERb-RvCQQudKDgERBQ",
+      "callerId": null
+    },
+    "assetId": "EYBIKD22RIOl5obfe6ApvA",
+    "trnType": "DIVI",
+    "status": "PROPOSED",
+    "cashAsset": null,
+    "tradeCurrency": "USD",
+    "cashCurrency": "USD",
+    "tradeDate": "2020-06-20",
+    "settleDate": null,
+    "quantity": 45.000000,
+    "price": 0.1250,
+    "fees": 0,
+    "tax": 1.69,
+    "tradeAmount": 3.94,
+    "cashAmount": null,
+    "tradeCashRate": null,
+    "tradeBaseRate": null,
+    "tradePortfolioRate": null,
+    "comments": null
+  }
+}

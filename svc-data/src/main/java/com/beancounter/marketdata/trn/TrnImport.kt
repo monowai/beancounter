@@ -57,7 +57,9 @@ class TrnImport {
             log.trace("Received Message {}", trustedRequest.toString())
             if (verifyPortfolio(trustedRequest.portfolio.id)) {
                 val trnInput = rowAdapter.transform(trustedRequest)
-                return writeTrn(trustedRequest.portfolio, trnInput)
+                if (trnInput != null) {
+                    return writeTrn(trustedRequest.portfolio, trnInput)
+                }
             }
             null
         }

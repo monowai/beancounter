@@ -62,6 +62,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   @Override
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
     List<String> row = trustedTrnImportRequest.getRow();
+    assert row != null;
     String ttype = row.get(type);
     if (ttype == null || ttype.equalsIgnoreCase("")) {
       throw new BusinessException(String.format("Unsupported type %s",
@@ -89,10 +90,11 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       TrnInput trnInput = new TrnInput(
           new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
           Objects.requireNonNull(asset.getId()),
-          trnType
+          trnType,
+          Objects.requireNonNull(MathUtils.parse(row.get(quantity),
+              shareSightConfig.getNumberFormat()))
       );
 
-      trnInput.setQuantity(MathUtils.parse(row.get(quantity), shareSightConfig.getNumberFormat()));
       trnInput.setPrice(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()));
       trnInput.setFees(fees);
       trnInput.setTradeAmount(tradeAmount);
@@ -161,7 +163,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     String assetCode = row.get(code);
     String marketCode = row.get(market);
 
-    Asset asset = assetIngestService.resolveAsset(marketCode, assetCode, assetName);
+    Asset asset = assetIngestService.resolveAsset(marketCode, assetCode);
 
     if (!filter.inFilter(asset)) {
       return null;

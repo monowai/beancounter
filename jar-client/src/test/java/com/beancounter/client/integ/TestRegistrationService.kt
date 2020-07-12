@@ -33,7 +33,7 @@ class TestRegistrationService {
     @Test
     fun is_RegisteringAuthenticatedUser() {
         setupAuth("token")
-        assertThat(registrationService!!.jwtToken).isNotNull()
+        assertThat(registrationService!!.jwtToken).isNotNull
         assertThat(registrationService.token).isNotNull()
         // Currently matching is on email
         val registeredUser = registrationService

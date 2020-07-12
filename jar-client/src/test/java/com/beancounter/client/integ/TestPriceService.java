@@ -36,7 +36,7 @@ public class TestPriceService {
   @Test
   void is_MarketDataFoundOnDate() {
     Asset asset = assetIngestService
-        .resolveAsset("NASDAQ", "EBAY", "EBAY");
+        .resolveAsset("NASDAQ", "EBAY");
 
     Collection<AssetInput> assets = new ArrayList<>();
     assets.add(getAssetInput(asset));

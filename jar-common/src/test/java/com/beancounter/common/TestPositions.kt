@@ -5,27 +5,22 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.BcJson.objectMapper
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.util.*
 
 internal class TestPositions {
-    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
     private val dateUtils = DateUtils()
     private val currencyUtils = CurrencyUtils()
 
     @Test
     @Throws(Exception::class)
     fun is_PositionResponseChainSerializing() {
-//        val moneyValuesMap: MutableMap<Position.In, MoneyValues> = EnumMap(Position.In::class.java)
-//        moneyValuesMap[Position.In.TRADE] = MoneyValues(Currency("USD"))
-//        moneyValuesMap[Position.In.TRADE]?.apply { dividends = BigDecimal("100") }
 
         val positions = Positions(PortfolioUtils.getPortfolio("T", Currency("SGD")))
         val asset = AssetUtils.getJsonAsset("TEST", "TEST")
@@ -76,8 +71,6 @@ internal class TestPositions {
         val asset = AssetUtils.getAsset("Twee", "Twee")
         val position = Position(asset)
 
-        // Requesting a non existent MV.  Without a currency, it can't be created
-        assertThat(position.getMoneyValues(Position.In.TRADE)).isNull()
         // Retrieve with a currency will create if missing
         assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
                 .isNotNull

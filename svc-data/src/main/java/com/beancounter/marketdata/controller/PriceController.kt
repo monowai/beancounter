@@ -4,7 +4,9 @@ import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.PriceRefresh
 import com.beancounter.marketdata.service.MarketDataService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,7 +21,11 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/prices")
 @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
-class PriceController @Autowired internal constructor(private val marketDataService: MarketDataService, private val assetService: AssetService) {
+class PriceController @Autowired internal constructor(
+        private val marketDataService: MarketDataService,
+        private val assetService: AssetService,
+        private val priceRefresh: PriceRefresh
+) {
 
     /**
      * Market:Asset i.e. NYSE:MSFT.
@@ -33,7 +39,7 @@ class PriceController @Autowired internal constructor(private val marketDataServ
                  @PathVariable("assetCode") assetCode: String): PriceResponse {
         val asset = assetService.findLocally(marketCode, assetCode)
                 ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
-        return marketDataService.getPriceResponse(asset)
+        return marketDataService.getPriceResponse(AssetInput(asset))
     }
 
     @PostMapping
@@ -45,6 +51,11 @@ class PriceController @Autowired internal constructor(private val marketDataServ
             }
         }
         return marketDataService.getPriceResponse(priceRequest)
+    }
+
+    @PostMapping("/refresh")
+    fun refreshPrices() {
+        priceRefresh.updatePrices()
     }
 
 }

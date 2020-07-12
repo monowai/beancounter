@@ -62,8 +62,10 @@ public class ShareSightDividendAdapter implements TrnAdapter {
 
   @Override
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
+    assert trustedTrnImportRequest != null;
     List<String> row = trustedTrnImportRequest.getRow();
     try {
+      assert row != null;
       Asset asset = resolveAsset(row);
       if (asset == null) {
         log.error("Unable to resolve asset [{}]", row);
@@ -74,7 +76,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       TrnInput trnInput = new TrnInput(
           new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
           Objects.requireNonNull(asset.getId()),
-          TrnType.DIVI
+          TrnType.DIVI, BigDecimal.ZERO
       );
 
       trnInput.setTradeCurrency(row.get(currency));
@@ -114,8 +116,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   public Asset resolveAsset(List<String> row) {
     List<String> values = parseAsset(row.get(code));
     Asset asset = assetIngestService.resolveAsset(
-        values.get(1).toUpperCase(), values.get(0),
-        null
+        values.get(1).toUpperCase(), values.get(0)
     );
 
     if (!filter.inFilter(asset)) {

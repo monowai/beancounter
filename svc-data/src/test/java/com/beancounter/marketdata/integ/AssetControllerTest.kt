@@ -82,7 +82,7 @@ internal class AssetControllerTest {
         // marketCode is for persistence only,  Clients should rely on the
         //   hydrated Market object
         assertThat(data[toKey(firstAsset)])
-                .isNotNull()
+                .isNotNull
                 .hasFieldOrProperty("id")
                 .hasFieldOrProperty("market")
                 .hasFieldOrPropertyWithValue("name", firstAsset.name)
@@ -90,7 +90,7 @@ internal class AssetControllerTest {
                 .hasFieldOrPropertyWithValue("marketCode", null)
                 .hasFieldOrProperty("id")
         assertThat(data[toKey(secondAsset)])
-                .isNotNull()
+                .isNotNull
                 .hasFieldOrProperty("id")
                 .hasFieldOrProperty("market")
                 .hasFieldOrPropertyWithValue("code", secondAsset.code.toUpperCase())
@@ -145,7 +145,7 @@ internal class AssetControllerTest {
                 .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         val createdAsset = assetUpdateResponse.data[toKey(asset)]
         assertThat(createdAsset)
-                .isNotNull()
+                .isNotNull
                 .hasFieldOrProperty("id")
                 .hasFieldOrPropertyWithValue("name", "quotes should be removed")
                 .hasFieldOrProperty("market")

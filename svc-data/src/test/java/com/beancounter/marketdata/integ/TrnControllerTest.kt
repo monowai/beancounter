@@ -111,9 +111,8 @@ class TrnControllerTest {
         val trnInput = TrnInput(
                 CallerRef(null, "DIV-TEST", "1"),
                 msft.id!!,
-                TrnType.DIVI)
+                TrnType.DIVI,  BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2020-03-10")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -159,11 +158,12 @@ class TrnControllerTest {
         val (id) = portfolio(PortfolioInput("PFA", "NZD Portfolio", "NZD"))
         // Creating in random order and assert retrieved in Sort Order.
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
-        var trnInput = TrnInput(CallerRef(null, "0", "1"),
-                msft.id!!,
-                TrnType.BUY)
+
+        var trnInput = TrnInput(
+                CallerRef(null, "0", "1"),
+                msft.id!!, TrnType.BUY,  BigDecimal.TEN)
+
         trnInput.tradeDate = dateUtils.getDate("2018-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -171,9 +171,8 @@ class TrnControllerTest {
 
         trnInput = TrnInput(CallerRef(null, "0", "2"),
                 msft.id!!,
-                TrnType.BUY)
+                TrnType.BUY, BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2016-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -190,18 +189,16 @@ class TrnControllerTest {
         trnInputs.clear()
         trnInput = TrnInput(CallerRef(null, "0", "3"),
                 msft.id!!,
-                TrnType.BUY)
+                TrnType.BUY,  BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2018-10-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputs.add(trnInput)
         trnInput = TrnInput(CallerRef(null, "0", "34"),
                 msft.id!!,
-                TrnType.BUY)
+                TrnType.BUY,  BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2017-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -252,9 +249,8 @@ class TrnControllerTest {
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
         var trnInput = TrnInput(CallerRef(null, null, "1"),
                 msft.id!!,
-                TrnType.BUY)
+                TrnType.BUY,  BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2018-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -262,9 +258,8 @@ class TrnControllerTest {
 
         trnInput = TrnInput(CallerRef(null, null, "3"),
                 aapl.id!!,
-                TrnType.BUY)
+                TrnType.BUY, BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2018-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -272,9 +267,8 @@ class TrnControllerTest {
 
         trnInput = TrnInput(CallerRef(null, null, "2"),
                 msft.id!!,
-                TrnType.BUY)
+                TrnType.BUY, BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2017-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -282,9 +276,8 @@ class TrnControllerTest {
 
         trnInput = TrnInput(CallerRef(null, null, "4"),
                 aapl.id!!,
-                TrnType.BUY)
+                TrnType.BUY, BigDecimal.TEN)
         trnInput.tradeDate = dateUtils.getDate("2017-01-01")
-        trnInput.quantity = BigDecimal.TEN
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE

@@ -16,7 +16,7 @@ internal class TestDividends {
     private val currencyUtils = CurrencyUtils()
 
     @Autowired
-    private val accumulator: Accumulator? = null
+    private lateinit var accumulator: Accumulator
 
     @Test
     fun is_CashDividendAccumulated() {
@@ -27,8 +27,8 @@ internal class TestDividends {
         trn.tradeAmount = BigDecimal("12.99")
         val positions = Positions(getPortfolio("TEST"))
         val position = positions[asset]
-        accumulator!!.accumulate(trn, positions.portfolio, position)
-        assertThat(position.getMoneyValues(Position.In.TRADE))
+        accumulator.accumulate(trn, positions.portfolio, position)
+        assertThat(position.getMoneyValues(Position.In.TRADE, asset.market.currency))
                 .hasFieldOrPropertyWithValue("dividends", trn.tradeAmount)
     }
 }

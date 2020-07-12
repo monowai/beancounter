@@ -1,5 +1,6 @@
 package com.beancounter.auth;
 
+import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -11,7 +12,6 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import com.beancounter.auth.client.AuthClientConfig;
 import com.beancounter.auth.client.LoginService;
 import com.beancounter.auth.client.OAuth2Response;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +25,9 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(classes = {LoginService.class, LoginService.AuthGateway.class})
-@ImportAutoConfiguration({
-    AuthClientConfig.class,})
+@SpringBootTest(classes = {LoginService.class, LoginService.AuthGateway.class},
+    properties = {"auth.enabled=true"})
+@ImportAutoConfiguration({AuthClientConfig.class})
 @ActiveProfiles("auth")
 public class TestClientLogin {
 
@@ -40,8 +40,6 @@ public class TestClientLogin {
 
   @Value("${auth.client}")
   private String client;
-
-  private final ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
   void mockKeyCloak() throws Exception {
@@ -56,8 +54,8 @@ public class TestClientLogin {
             get("/auth/realms/bc-test/protocol/openid-connect/certs")
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withBody(mapper.writeValueAsString(
-                        mapper.readValue(new ClassPathResource("./kc-certs.json")
+                    .withBody(getObjectMapper().writeValueAsString(
+                        getObjectMapper().readValue(new ClassPathResource("./kc-certs.json")
                             .getFile(), HashMap.class))
                     )
                     .withStatus(200)));
@@ -68,8 +66,8 @@ public class TestClientLogin {
             post("/auth/realms/bc-test/protocol/openid-connect/token")
                 .willReturn(aResponse()
                     .withHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .withBody(mapper.writeValueAsString(
-                        mapper.readValue(new ClassPathResource("./kc-response.json")
+                    .withBody(getObjectMapper().writeValueAsString(
+                        getObjectMapper().readValue(new ClassPathResource("./kc-response.json")
                             .getFile(), HashMap.class))
                     )
 
@@ -92,7 +90,7 @@ public class TestClientLogin {
   }
 
   @Test
-  void is_TokenExpiredThrowing() {
+  void  is_TokenExpiredThrowing() {
     assertThrows(JwtValidationException.class, () ->
         loginService.login("demo", "test", "test")
     );

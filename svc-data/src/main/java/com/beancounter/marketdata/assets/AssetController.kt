@@ -4,7 +4,6 @@ import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.marketdata.service.MarketDataService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -25,8 +24,7 @@ import org.springframework.web.bind.annotation.*
 class AssetController @Autowired internal constructor(private val assetService: AssetService, private val marketDataService: MarketDataService) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse {
-        val result = assetService.find(market, code) ?: throw BusinessException("Not Found")
-        return AssetResponse(result)
+        return AssetResponse(assetService.find(market, code))
     }
 
     @GetMapping(value = ["/{assetId}"])

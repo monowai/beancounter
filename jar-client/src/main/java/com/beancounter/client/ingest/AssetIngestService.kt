@@ -18,19 +18,15 @@ class AssetIngestService internal constructor(private val assetService: AssetSer
      *
      * @param marketCode exchange code
      * @param assetCode  Code on the exchange
-     * @param assetName  Name to set the asset to
      * @return hydrated asset with a primary key.
      */
-    fun resolveAsset(marketCode: String?, assetCode: String?, assetName: String?): Asset {
+    fun resolveAsset(marketCode: String, assetCode: String): Asset {
         val market = marketService.getMarket(marketCode)
-                ?: throw BusinessException(String.format("Unable to resolve market [%s]", marketCode))
         if (market.inMemory()) {
             // Support unit testings where we don't really care about the asset
-            val asset = getAsset("MOCK", assetCode!!)
-            asset.name = assetName
-            return asset
+            return getAsset("MOCK", assetCode)
         }
-        val callerKey = toKey(assetCode!!, market.code)
+        val callerKey = toKey(assetCode, market.code)
 
         val assets = HashMap<String, AssetInput>()
         assets[callerKey] = AssetInput(market.code, assetCode)

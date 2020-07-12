@@ -5,16 +5,14 @@ import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.utils.BcJson.objectMapper
 import com.beancounter.common.utils.RateCalculator
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.util.*
 
 internal class TestFx {
-    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
 
     @Test
     fun is_DefaultPropertiesSet() {

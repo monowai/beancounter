@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -17,7 +18,20 @@ import javax.persistence.*
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "batch", "callerId"])])
-data class Trn constructor(val trnType: TrnType, @ManyToOne var asset: Asset) {
+data class Trn constructor(
+        val trnType: TrnType,
+        @ManyToOne
+        var asset: Asset,
+        @Column(precision = 15, scale = 6)
+        val quantity: BigDecimal = BigDecimal.ZERO,
+        @ManyToOne
+        val tradeCurrency: Currency = asset.market.currency,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        @JsonSerialize(using = LocalDateSerializer::class)
+        @JsonDeserialize(using = LocalDateDeserializer::class)
+        var tradeDate: LocalDate = DateUtils().date!!
+
+) {
 
     @Id
     var id: String? = null
@@ -33,24 +47,12 @@ data class Trn constructor(val trnType: TrnType, @ManyToOne var asset: Asset) {
     var cashAsset: Asset? = null
 
     @ManyToOne
-    var tradeCurrency: Currency? = asset.market.currency
-
-    @ManyToOne
     var cashCurrency: Currency? = null
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var tradeDate: LocalDate? = null
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null
-
-    // Scale to support Mutual Fund pricing
-    @Column(precision = 15, scale = 6)
-    var quantity: BigDecimal? = null
 
     // In trade Currency - scale is to support Mutual Fund pricing.
     @Column(precision = 15, scale = 6)
@@ -83,21 +85,18 @@ data class Trn constructor(val trnType: TrnType, @ManyToOne var asset: Asset) {
     var comments: String? = null
 
     constructor(id: String?, callerRef: CallerRef?, trnType: TrnType, status: TrnStatus?,
-                portfolio: Portfolio, asset: Asset, cashAsset: Asset?, tradeCurrency: Currency?,
-                cashCurrency: Currency?, tradeDate: LocalDate?, settleDate: LocalDate?, quantity: BigDecimal?,
+                portfolio: Portfolio, asset: Asset, cashAsset: Asset?, tradeCurrency: Currency,
+                cashCurrency: Currency?, tradeDate: LocalDate, settleDate: LocalDate?, quantity: BigDecimal,
                 price: BigDecimal?, fees: BigDecimal?, tax: BigDecimal?, tradeAmount: BigDecimal?,
                 cashAmount: BigDecimal?, tradeCashRate: BigDecimal?, tradeBaseRate: BigDecimal?,
-                tradePortfolioRate: BigDecimal?, version: String?, comments: String?) : this(trnType, asset) {
+                tradePortfolioRate: BigDecimal?, version: String?, comments: String?) : this(trnType, asset, quantity, tradeCurrency, tradeDate) {
         this.id = id
         this.callerRef = callerRef
         this.status = status
         this.portfolio = portfolio
         this.cashAsset = cashAsset
-        this.tradeCurrency = tradeCurrency
         this.cashCurrency = cashCurrency
-        this.tradeDate = tradeDate
         this.settleDate = settleDate
-        this.quantity = quantity
         this.price = price
         this.fees = fees
         this.tax = tax

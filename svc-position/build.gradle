@@ -50,14 +50,10 @@ dependencies {
     )
 
     compileOnly(
-            "org.springframework.boot:spring-boot-configuration-processor",
-            "org.projectlombok:lombok"
+            "org.springframework.boot:spring-boot-configuration-processor"
     )
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor "org.projectlombok:lombok"
 
     testImplementation(
-            "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:rest-assured",
             "io.rest-assured:spring-mock-mvc",

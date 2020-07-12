@@ -12,7 +12,7 @@ import com.beancounter.common.utils.DateUtils;
 import com.beancounter.position.PositionBoot;
 import com.beancounter.position.service.Valuation;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
-import lombok.SneakyThrows;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -49,8 +49,7 @@ public class ContractVerifierBase {
   private PortfolioServiceClient portfolioServiceClient;
 
   @BeforeEach
-  @SneakyThrows
-  public void initMocks() {
+  public void initMocks() throws Exception {
     MockMvc mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
         .build();
@@ -73,7 +72,7 @@ public class ContractVerifierBase {
     Mockito.when(
         valuationService.build(
             new TrustedTrnQuery(testPortfolio,
-                dateUtils.getDate("2020-05-01"), "KMI")))
+                Objects.requireNonNull(dateUtils.getDate("2020-05-01")), "KMI")))
         .thenReturn(getObjectMapper().readValue(
             new ClassPathResource("contracts/kmi-response.json").getFile(),
             PositionResponse.class));
@@ -81,7 +80,7 @@ public class ContractVerifierBase {
     Mockito.when(
         valuationService.build(
             new TrustedTrnQuery(testPortfolio,
-                dateUtils.getDate("2020-05-01"), "MSFT")))
+                Objects.requireNonNull(dateUtils.getDate("2020-05-01")), "MSFT")))
         .thenReturn(getObjectMapper().readValue(
             new ClassPathResource("contracts/msft-response.json").getFile(),
             PositionResponse.class));

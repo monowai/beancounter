@@ -9,15 +9,17 @@ object EcbMockUtils {
     private val dateUtils = DateUtils()
     @JvmStatic
     operator fun get(date: String, rates: Map<String, BigDecimal>): EcbRates {
-        val ecbRates = EcbRates()
-        ecbRates.date = dateUtils.getDate(date)
-        ecbRates.rates = rates
-        return ecbRates
+        return EcbRates("USD", dateUtils.getDate(date)!!, rates)
     }
 
     @JvmStatic
     fun getRateMap(
-            eur: String?, sgd: String?, gbp: String?, nzd: String?, aud: String?): Map<String, BigDecimal> {
+            eur: String?,
+            sgd: String?,
+            gbp: String?,
+            nzd: String?,
+            aud: String?
+    ): Map<String, BigDecimal> {
         val ratesTest: MutableMap<String, BigDecimal> = TreeMap()
         ratesTest["AUD"] = BigDecimal(aud)
         ratesTest["EUR"] = BigDecimal(eur)

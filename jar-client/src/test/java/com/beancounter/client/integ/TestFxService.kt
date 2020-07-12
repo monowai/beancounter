@@ -83,7 +83,7 @@ class TestFxService {
 
     @Test
     fun is_fxTransactionsSettingCorrectRates() {
-        val trnInput = TrnInput(CallerRef(), "MSFT", TrnType.BUY)
+        val trnInput = TrnInput(CallerRef(), "MSFT", TrnType.BUY, BigDecimal.TEN)
         trnInput.tradeCurrency = "USD"
         trnInput.cashCurrency = "USD"
         trnInput.tradeDate = DateUtils().getDate("2019-07-26")

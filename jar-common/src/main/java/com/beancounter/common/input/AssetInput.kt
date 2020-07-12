@@ -16,4 +16,6 @@ data class AssetInput(var market: String,
                 asset: Asset?)
             : this(market, code, null, asset)
 
+    constructor(asset: Asset) : this(asset.market.code, asset.code, asset)
+
 }

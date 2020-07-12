@@ -6,6 +6,6 @@ import java.math.BigDecimal
 data class FxRate @ConstructorBinding constructor(
         val from: Currency,
         val to: Currency,
-        val rate: BigDecimal?,
+        val rate: BigDecimal = BigDecimal.ONE,
         val date: String?
 )

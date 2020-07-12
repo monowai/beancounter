@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -36,7 +37,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         } catch (e: InterruptedException) {
             throw SystemException("This shouldn't have happened")
         } catch (e: ExecutionException) {
-            throw SystemException("This shouldn't have happened")
+            throw BusinessException("Not Found!")
         }
         //var assetResult: AssetSearchResult? = null
         val assetResult = try {

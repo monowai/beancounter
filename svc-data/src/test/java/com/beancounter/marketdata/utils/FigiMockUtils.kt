@@ -23,27 +23,27 @@ object FigiMockUtils {
             this.figiApi.start()
             val prefix = "/contracts/figi"
 
-            mock(ClassPathResource(prefix + "/common-stock-response.json").getFile(),
+            mock(ClassPathResource(prefix + "/common-stock-response.json").file,
                     "US",
                     "MSFT",
                     "Common Stock")
 
-            mock(ClassPathResource(prefix + "/adr-response.json").getFile(),
+            mock(ClassPathResource(prefix + "/adr-response.json").file,
                     "US",
                     "BAIDU",
                     "Depositary Receipt")
 
-            mock(ClassPathResource(prefix + "/reit-response.json").getFile(),
+            mock(ClassPathResource(prefix + "/reit-response.json").file,
                     "US",
                     "OHI",
                     "REIT")
 
-            mock(ClassPathResource(prefix + "/mf-response.json").getFile(),
+            mock(ClassPathResource(prefix + "/mf-response.json").file,
                     "US",
                     "XLF",
                     "REIT")
 
-            mock(ClassPathResource(prefix + "/brkb-response.json").getFile(),
+            mock(ClassPathResource(prefix + "/brkb-response.json").file,
                     "US",
                     "BRK/B",
                     "Common Stock")

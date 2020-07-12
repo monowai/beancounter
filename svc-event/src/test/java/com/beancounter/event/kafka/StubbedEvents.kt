@@ -135,7 +135,7 @@ class StubbedEvents {
         val eventsResponse = om.readValue(
                 mvcResult.response.contentAsString,
                 CorporateEventResponse::class.java)
-        Assertions.assertThat(eventsResponse).isNotNull().hasFieldOrProperty("data")
+        Assertions.assertThat(eventsResponse).isNotNull.hasFieldOrProperty("data")
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
 
         // Back-fill Portfolio events up to, and as at, the supplied date
@@ -166,11 +166,11 @@ class StubbedEvents {
         assertThat(portfolio1)
                 .isEqualToComparingFieldByField(portfolio)
         assertThat(received)
-                .isNotNull()
+                .isNotNull
                 .hasFieldOrProperty("trnInput")
                 .hasFieldOrPropertyWithValue("portfolio.id", portfolio1.id)
         assertThat(trnInput)
-                .isNotNull()
+                .isNotNull
                 .hasFieldOrPropertyWithValue("quantity", BigDecimal("80.000000"))
                 .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("14.70"))
                 .hasFieldOrPropertyWithValue("tax", BigDecimal("6.30"))

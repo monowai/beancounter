@@ -8,13 +8,12 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class EcbRates {
-    var base: String? = null
+data class EcbRates constructor(
+        val base: String,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        @JsonSerialize(using = LocalDateSerializer::class)
+        @JsonDeserialize(using = LocalDateDeserializer::class)
+        val date: LocalDate,
+        val rates: Map<String, BigDecimal>
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
-    var date: LocalDate? = null
-    var rates: Map<String, BigDecimal>? = null
-
-}
+)

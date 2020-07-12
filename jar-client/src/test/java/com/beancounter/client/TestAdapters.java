@@ -131,7 +131,7 @@ public class TestAdapters {
 
     ShareSightTradeAdapter shareSightTradeAdapter =
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
-    when(assetIngestService.resolveAsset("NYSE", "ABC", "name"))
+    when(assetIngestService.resolveAsset("NYSE", "ABC"))
         .thenReturn(AssetUtils.getAsset("NYSE", "ABC"));
     TrnInput result = shareSightTradeAdapter.from(
         new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row));

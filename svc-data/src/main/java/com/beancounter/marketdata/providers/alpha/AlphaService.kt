@@ -55,30 +55,29 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val pargs = getInstance(priceRequest, alphaConfig)
+        val providerArguments = getInstance(priceRequest, alphaConfig)
         val requests: MutableMap<Int, Future<String?>?> = ConcurrentHashMap()
-        for (batchId in pargs.batch.keys) {
-            val date = pargs.getBatchConfigs()[batchId]!!.date
+        for (batchId in providerArguments.batch.keys) {
+            val date = providerArguments.getBatchConfigs()[batchId]!!.date
             if (isCurrent(priceRequest.date)) {
-                requests[batchId] = alphaProxyCache.getCurrent(pargs.batch[batchId],
+                requests[batchId] = alphaProxyCache.getCurrent(providerArguments.batch[batchId],
                         priceRequest.date, apiKey)
             } else {
-                requests[batchId] = alphaProxyCache.getHistoric(pargs.batch[batchId], date, apiKey)
+                requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId], date, apiKey)
             }
         }
-        return getMarketData(pargs, requests)
+        return getMarketData(providerArguments, requests)
     }
 
     private fun getMarketData(providerArguments: ProviderArguments,
                               requests: MutableMap<Int, Future<String?>?>): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
-        while (!requests.isEmpty()) {
+        while (requests.isNotEmpty()) {
             for (batch in requests.keys) {
                 if (requests[batch]!!.isDone) {
                     try {
                         results.addAll(
-                                alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()]
-                        )
+                                alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()])
                     } catch (e: InterruptedException) {
                         log.error(e.message)
                         throw SystemException("This shouldn't have happened")

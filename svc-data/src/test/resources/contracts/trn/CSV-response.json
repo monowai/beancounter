@@ -119,7 +119,7 @@
       "cashCurrency": null,
       "tradeDate": "2019-07-26",
       "settleDate": null,
-      "quantity": null,
+      "quantity": 0.00,
       "price": null,
       "fees": 0,
       "tax": 0.00,

@@ -29,17 +29,17 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
                                                         private val priceService: PriceService) {
     @Transactional
     fun backFill(asset: Asset) {
-        val assets: MutableCollection<Asset>? = ArrayList()
-        assets?.add(asset)
+        val assets: MutableCollection<Asset> = ArrayList()
+        assets.add(asset)
         val byFactory = providerUtils.splitProviders(providerUtils.getInputs(assets))
         for (marketDataProvider in byFactory.keys) {
             priceService.process(marketDataProvider.backFill(asset))
         }
     }
 
-    fun getPriceResponse(asset: Asset): PriceResponse {
+    fun getPriceResponse(assetInput: AssetInput): PriceResponse {
         return try {
-            getFuturePriceResponse(asset).get()
+            getFuturePriceResponse(assetInput).get()
         } catch (e: InterruptedException) {
             log.error(e.message)
             throw SystemException("This shouldn't have happened")
@@ -66,8 +66,8 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
                 val mpDate = marketDataProvider.getDate(asset.market, priceRequest)
-                val md = priceService.getMarketData(asset.id, mpDate)
-                if (md!!.isPresent) {
+                val md = priceService.getMarketData(asset.id!!, mpDate)
+                if (md.isPresent) {
                     val mdValue = md.get()
                     mdValue.asset = asset
                     existing.add(mdValue)
@@ -99,9 +99,9 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
      * @return MarketData - Values will be ZERO if not found or an integration problem occurs
      */
     @Async
-    fun getFuturePriceResponse(asset: Asset): Future<PriceResponse> {
+    fun getFuturePriceResponse(asset: AssetInput): Future<PriceResponse> {
         val inputs: MutableList<AssetInput> = ArrayList()
-        inputs.add(AssetInput(asset.market.code, asset.code, asset))
+        inputs.add(asset)
         return AsyncResult(getPriceResponse(PriceRequest(inputs)))
     }
 

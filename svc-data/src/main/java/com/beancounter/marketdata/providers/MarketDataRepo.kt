@@ -5,6 +5,6 @@ import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
 import java.util.*
 
-interface MarketDataRepo : CrudRepository<MarketData?, String?> {
-    fun findByAssetIdAndPriceDate(assetId: String?, date: LocalDate?): Optional<MarketData?>?
+interface MarketDataRepo : CrudRepository<MarketData, String> {
+    fun findByAssetIdAndPriceDate(assetId: String, date: LocalDate?): Optional<MarketData>
 }

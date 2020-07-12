@@ -4,10 +4,10 @@ import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.config.KafkaConfig
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
@@ -16,18 +16,14 @@ import javax.annotation.PostConstruct
 
 @Service
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
-class TrnKafkaConsumer {
-    @Value("\${beancounter.topics.trn.csv:bc-trn-csv-dev}")
-    var topicTrnCsv: String? = null
+class TrnKafkaConsumer (private val kafkaConfig: KafkaConfig) {
 
-    @Value("\${beancounter.topics.trn.event:bc-trn-event-dev}")
-    var topicTrnEvent: String? = null
     private lateinit var trnImport: TrnImport
     private val om = BcJson.objectMapper
 
     @PostConstruct
     fun logSettings() {
-        log.info("trn.csv {}, trn.event {}", topicTrnCsv, topicTrnEvent)
+        log.info("trn.csv {}, trn.event {}", kafkaConfig.topicTrnCsv, kafkaConfig.topicTrnEvent)
     }
 
     @Autowired

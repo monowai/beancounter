@@ -76,10 +76,10 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         return enrich(foundAsset)
     }
 
-    override fun process(asset: AssetRequest): AssetUpdateResponse {
+    override fun process(assetRequest: AssetRequest): AssetUpdateResponse {
         val assets: MutableMap<String, Asset> = HashMap()
-        for (callerRef in asset.data.keys) {
-            val createdAsset = create(asset.data[callerRef]!!)
+        for (callerRef in assetRequest.data.keys) {
+            val createdAsset = create(assetRequest.data[callerRef]!!)
             if (createdAsset != null)
                 assets[callerRef] = createdAsset
         }
@@ -91,7 +91,7 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         marketDataService.backFill(find(assetId))
     }
 
-    fun find(marketCode: String, code: String): Asset? {
+    fun find(marketCode: String, code: String): Asset {
         var asset: Asset? = findLocally(marketCode, code)
         if (asset == null) {
             val market = marketService.getMarket(marketCode)
@@ -109,12 +109,12 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         return hydrateAsset(asset!!)
     }
 
-    override fun find(id: String): Asset {
-        val result: Optional<Asset> = assetRepository.findById(id).map { asset: Asset -> hydrateAsset(asset) }
+    override fun find(assetId: String): Asset {
+        val result: Optional<Asset> = assetRepository.findById(assetId).map { asset: Asset -> hydrateAsset(asset) }
         if (result.isPresent) {
             return result.get()
         }
-        throw BusinessException(String.format("Asset.id %s not found", id))
+        throw BusinessException(String.format("Asset %s not found", assetId))
     }
 
     fun findLocally(marketCode: String, code: String): Asset? {

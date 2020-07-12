@@ -133,7 +133,7 @@ internal class AlphaVantageApiTest {
                 .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         scheduledValuation.updatePrices()
         Thread.sleep(2000) // Async reads/writes
-        val price = marketDataService.getPriceResponse(data)
+        val price = marketDataService.getPriceResponse(AssetInput(data))
         assertThat(price).hasNoNullFieldsOrProperties()
     }
 
@@ -142,7 +142,8 @@ internal class AlphaVantageApiTest {
     fun is_BrkBTranslated() {
         val mvcResult = mockMvc.perform(
                 MockMvcRequestBuilders.get("/assets/{market}/{code}", "NYSE", "BRK.B")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                        .with(SecurityMockMvcRequestPostProcessors.jwt()
+                                .jwt(token).authorities(authorityRoleConverter))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -181,7 +182,7 @@ internal class AlphaVantageApiTest {
                 .hasFieldOrPropertyWithValue("priceSymbol", "0P0000XMSV.LON")
                 .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc")
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo("0P0000XMSV.LON")
-        val priceResponse = marketDataService.getPriceResponse(data)
+        val priceResponse = marketDataService.getPriceResponse(AssetInput(data))
         assertThat(priceResponse.data).isNotNull
         assertThat(priceResponse.data.iterator().next())
                 .isNotNull
@@ -276,12 +277,17 @@ internal class AlphaVantageApiTest {
     @Test
     @Throws(Exception::class)
     fun is_ApiCallLimitExceededHandled() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file
         val nasdaq = marketService.getMarket("NASDAQ")
-        AlphaMockUtils.mockGlobalResponse("ABC", jsonFile)
+        AlphaMockUtils.mockGlobalResponse("ABC",
+                ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file)
         val asset = Asset("ABC", nasdaq)
+        asset.id = "ABC"
+        assertThat(asset).isNotNull
+        val assetInput = AssetInput(asset)
+
         val results = mdFactory.getMarketDataProvider(AlphaService.ID)
-                .getMarketData(of(asset))
+                .getMarketData(
+                        of(assetInput))
         assertThat(results)
                 .isNotNull
                 .hasSize(1)
@@ -289,7 +295,7 @@ internal class AlphaVantageApiTest {
         assertThat(mdpPrice)
                 .hasFieldOrPropertyWithValue("asset", asset)
                 .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
-        val priceResponse = marketDataService.getPriceResponse(asset)
+        val priceResponse = marketDataService.getPriceResponse(assetInput)
         assertThat(priceResponse).isNotNull
     }
 
@@ -350,9 +356,9 @@ internal class AlphaVantageApiTest {
         val asset = data["key"]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
-                asset.id,
+                asset.id!!,
                 dateUtils.date)
-        if (priceResult != null && priceResult.isPresent) {
+        if (priceResult.isPresent) {
             val priceRequest = of(asset)
             val priceResponse = marketDataService.getPriceResponse(priceRequest)
             assertThat(priceResponse).isNotNull.hasFieldOrProperty("data")
@@ -380,8 +386,8 @@ internal class AlphaVantageApiTest {
         Thread.sleep(300)
         val date = dateUtils.getDate("2020-05-01")
         assertThat(date).isNotNull()
-        val marketData = priceService.getMarketData(asset.id, date)
-        if (marketData != null && marketData.isPresent) {
+        val marketData = priceService.getMarketData(asset.id!!, date)
+        if (marketData.isPresent) {
             marketData.ifPresent { data: MarketData ->
                 Mockito.verify(mockEventWriter,
                         Mockito.times(priceResponse.data.size)).write(data)

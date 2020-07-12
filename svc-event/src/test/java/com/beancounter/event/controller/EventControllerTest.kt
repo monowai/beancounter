@@ -86,7 +86,7 @@ internal class EventControllerTest {
                 .andReturn()
         val events = objectMapper.readValue(mvcResult.response.contentAsString,
                 CorporateEventsResponse::class.java)
-        assertThat(events).isNotNull()
+        assertThat(events).isNotNull
         assertThat(events.data).hasSize(1)
         assertThat(events.data.iterator().next()).isEqualToComparingFieldByField(event)
     }

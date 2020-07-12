@@ -97,14 +97,12 @@ class AssetUtils private constructor() {
         }
 
         @JvmStatic
-        fun split(assets: Collection<AssetInput>): Map<String, MutableCollection<Asset>> {
-            val results: MutableMap<String, MutableCollection<Asset>> = HashMap()
+        fun split(assets: Collection<AssetInput>): Map<String, MutableCollection<AssetInput>> {
+            val results: MutableMap<String, MutableCollection<AssetInput>> = HashMap()
             for (input in assets) {
-                val market = Objects.requireNonNull(input.resolvedAsset)!!.market
-                val marketAssets = results.computeIfAbsent(market.code) { ArrayList() }
-                if ( input.resolvedAsset != null ) {
-                    marketAssets.add(input.resolvedAsset!!)
-                }
+
+                val marketAssets = results.computeIfAbsent(input.market) { ArrayList() }
+                marketAssets.add(input)
             }
             return results
         }

@@ -31,7 +31,7 @@ internal class TestPositionBuckets {
         val positionResponse = PositionResponse(Positions(getPortfolio("ABC")))
         json = mapper.writeValueAsString(positionResponse)
         assertThat(mapper.readValue(json, PositionResponse::class.java))
-                .isNotNull()
+                .isNotNull
                 .hasFieldOrProperty("data")
     }
 

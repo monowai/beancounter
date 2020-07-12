@@ -12,18 +12,18 @@ class EcbService @Autowired internal constructor(private val fxGateway: FxGatewa
     private val ecbDate = EcbDate()
     private val dateUtils = DateUtils()
     fun getRates(asAt: String): Collection<FxRate> {
-        val rates = fxGateway.getRatesForSymbols(
+        val ecbRates = fxGateway.getRatesForSymbols(
                 ecbDate.getValidDate(asAt),
                 currencyService.baseCurrency!!.code,
                 currencies)
         val results: MutableCollection<FxRate> = ArrayList()
-        if (rates?.rates != null) {
-            for (code in rates.rates!!.keys) {
+        if (ecbRates?.rates != null) {
+            for (code in ecbRates.rates.keys) {
                 results.add(
                         FxRate(currencyService.baseCurrency!!,
                                 currencyService.getCode(code)!!,
-                                rates.rates!![code],
-                                dateUtils.getDateString(rates.date))
+                                ecbRates.rates[code] ?: error("No rate"),
+                                dateUtils.getDateString(ecbRates.date))
                 )
             }
         }

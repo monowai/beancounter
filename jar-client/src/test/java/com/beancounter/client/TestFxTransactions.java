@@ -16,12 +16,9 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mockito;
 
 public class TestFxTransactions {
-
-  @MockBean
-  private FxService fxService;
 
   @Test
   void is_TrnDefaultsSetting() {
@@ -43,7 +40,8 @@ public class TestFxTransactions {
     fxRequest.addTradePf(tradePf);
     fxRequest.addTradeCash(tradeCash);
     TrnInput trnInput = new TrnInput(new CallerRef(), "ABC");
-    FxTransactions fxTransactions = new FxTransactions(fxService, new DateUtils());
+    FxTransactions fxTransactions = new FxTransactions(Mockito.mock(FxService.class),
+        new DateUtils());
     fxTransactions.setRates(pairResults, fxRequest, trnInput);
     assertThat(trnInput)
         .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)

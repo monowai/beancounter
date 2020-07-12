@@ -43,7 +43,7 @@ class TestTrnAdapter {
     TrnInput trnInput = new TrnInput(
         new CallerRef("ABC", "1", "1"),
         AssetUtils.toKey("MSFT", "NASDAQ"),
-        TrnType.BUY);
+        TrnType.BUY, BigDecimal.TEN);
 
     trnInput.setCashAsset(AssetUtils.toKey("USD-X", "USER"));
     trnInput.setTradeDate(new DateUtils().getDate("2019-10-10"));
@@ -81,6 +81,8 @@ class TestTrnAdapter {
         .hasFieldOrPropertyWithValue("cashAmount", trnInput.getCashAmount())
         .hasFieldOrPropertyWithValue("tradeAmount", trnInput.getTradeAmount())
         .hasFieldOrPropertyWithValue("price", trnInput.getPrice())
+        .hasFieldOrPropertyWithValue("quantity", trnInput.getQuantity())
+        .hasFieldOrPropertyWithValue("version", "1")
         .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.getTradeBaseRate())
         .hasFieldOrPropertyWithValue("tradeCashRate", trnInput.getTradeCashRate())
         .hasFieldOrPropertyWithValue("tradePortfolioRate", trnInput.getTradePortfolioRate())

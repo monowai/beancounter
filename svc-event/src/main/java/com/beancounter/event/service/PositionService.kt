@@ -54,7 +54,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         log.info("position.url: {}", positionUrl)
     }
 
-    fun findWhereHeld(assetId: String?, date: LocalDate?): PortfoliosResponse {
+    fun findWhereHeld(assetId: String, date: LocalDate?): PortfoliosResponse {
         return portfolioService.getWhereHeld(assetId, date)
     }
 
@@ -75,7 +75,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         return null
     }
 
-    fun backFillEvents(code: String?, date: String?) {
+    fun backFillEvents(code: String, date: String?) {
         val (_, code1) = portfolioService.getPortfolioByCode(code)
         val asAt: String? = if (date == null || date.equals("today", ignoreCase = true)) {
             dateUtils.today()
@@ -89,7 +89,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]
             if (position!!.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
-                assetService.backFillEvents(position.asset.id)
+                assetService.backFillEvents(position.asset.id!!)
             }
         }
     }

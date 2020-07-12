@@ -11,8 +11,8 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class TrnInput(val callerRef: CallerRef, val assetId: String, val trnType: TrnType) {
-    constructor(callerRef: CallerRef, asset: String) : this(callerRef, asset, TrnType.BUY)
+data class TrnInput(val callerRef: CallerRef, val assetId: String, val trnType: TrnType, val quantity: BigDecimal) {
+    constructor(callerRef: CallerRef, assetId: String) : this(callerRef, assetId, TrnType.BUY, BigDecimal.ZERO)
 
     var status: TrnStatus? = null
     var cashAsset: String? = null
@@ -28,7 +28,6 @@ data class TrnInput(val callerRef: CallerRef, val assetId: String, val trnType: 
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null
-    var quantity: BigDecimal? = null
     var price // In trade Currency
             : BigDecimal? = null
     var fees = BigDecimal.ZERO // In trade Currency

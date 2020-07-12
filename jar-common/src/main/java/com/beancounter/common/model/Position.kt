@@ -19,15 +19,11 @@ data class Position(val asset: Asset) {
         TRADE, PORTFOLIO, BASE
     }
 
-    @JsonIgnore
-    fun getMoneyValues(reportCurrency: In): MoneyValues? {
-        return moneyValues[reportCurrency]
-    }
-
     /**
      * MoneyValues are tracked in various currencies.
      *
-     * @param reportCurrency which model
+     * @param reportCurrency hint as to which bucket currency represents
+     * @param currency the actual currency for the reportCurrency
      * @return init reportCurrency "moneyValues" as tracking valueCurrency.
      */
     @JsonIgnore

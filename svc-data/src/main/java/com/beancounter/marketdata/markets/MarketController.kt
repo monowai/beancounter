@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*
 class MarketController internal constructor(private val marketService: MarketService) {
     @get:GetMapping
     val markets: MarketResponse
-        get() = marketService.markets
+        get() = marketService.getMarkets()
 
     @GetMapping(value = ["/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getMarket(@PathVariable code: String): MarketResponse {

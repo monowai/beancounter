@@ -63,13 +63,12 @@ internal class TestTrn {
         val asset = AssetUtils.getAsset(nyse, "TEST")
         val portfolio = getPortfolio("TWEE")
         portfolio.owner = SystemUser("123", "whee", true)
-        val trn = Trn(trnType, asset)
+        val trn = Trn(trnType, asset, BigDecimal("100.01"))
         trn.id = "PK"
         trn.callerRef = CallerRef("10", "10", "TEST")
         trn.portfolio = portfolio
         trn.tradeDate = LocalDate.now()
         trn.settleDate = LocalDate.now()
-        trn.quantity = BigDecimal("100.01")
         trn.price = BigDecimal("22.11")
         trn.fees = BigDecimal("10")
         trn.tradeAmount = BigDecimal("999.99")
@@ -141,6 +140,6 @@ internal class TestTrn {
     fun is_TradeCurrencySetFromAsset() {
         val trn = Trn(TrnType.BUY, AssetUtils.getAsset("NYSE", "ABC"))
         assertThat(trn.asset.market.currency).isNotNull
-        assertThat(trn.tradeCurrency?.code).isEqualTo(trn.asset.market.currency.code)
+        assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
     }
 }

@@ -17,37 +17,36 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 @SpringBootTest(classes = [ClientConfig::class])
 class StaticServiceTest {
     @Autowired
-    private val staticService: StaticService? = null
+    private lateinit var staticService: StaticService
 
     @Test
     fun is_GuardChecks() {
-        Assertions.assertThat(staticService!!.getCurrency(null)).isNull()
+        Assertions.assertThat(staticService.getCurrency(null)).isNull()
         assertThrows(BusinessException::class.java) { staticService.getCurrency("NOPE") }
     }
 
     @Test
     fun are_MarketsFound() {
-        val markets = staticService!!.markets
-        Assertions.assertThat(markets).isNotNull()
+        val markets = staticService.getMarkets()
+        Assertions.assertThat(markets).isNotNull
         Assertions.assertThat(markets.data).isNotEmpty
     }
 
     @Test
     fun is_MarketIllegalArgumentsThrowing() {
-        assertThrows(BusinessException::class.java) { staticService!!.getMarket(null) }
-        assertThrows(BusinessException::class.java) { staticService!!.getMarket("ERR") }
+        assertThrows(BusinessException::class.java) { staticService.getMarket("ERR") }
     }
 
     @Test
     fun are_CurrenciesFound() {
-        val currencies = staticService!!.currencies
+        val currencies = staticService.currencies
         Assertions.assertThat(currencies).isNotNull
         Assertions.assertThat(currencies.data).isNotEmpty
     }
 
     @Test
     fun is_CurrencyFound() {
-        val currency = staticService!!.getCurrency("USD")
+        val currency = staticService.getCurrency("USD")
         Assertions.assertThat(currency).isNotNull
         Assertions.assertThat(currency).hasNoNullFieldsOrProperties()
     }

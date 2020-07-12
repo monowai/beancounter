@@ -21,7 +21,7 @@ class PriceService internal constructor(private val marketDataRepo: MarketDataRe
         this.eventWriter = eventWriter
     }
 
-    fun getMarketData(assetId: String?, date: LocalDate?): Optional<MarketData?>? {
+    fun getMarketData(assetId: String, date: LocalDate?): Optional<MarketData> {
         return marketDataRepo.findByAssetIdAndPriceDate(assetId, date)
     }
 
@@ -35,9 +35,9 @@ class PriceService internal constructor(private val marketDataRepo: MarketDataRe
         for (marketData in priceResponse.data) {
             if (marketData.asset.isKnown) {
                 val existing = marketDataRepo.findByAssetIdAndPriceDate(
-                        marketData.asset.id,
+                        marketData.asset.id!!,
                         marketData.priceDate)
-                if (existing!!.isEmpty) {
+                if (existing.isEmpty) {
                     // Create
                     marketData.id = KeyGenUtils.getId()
                     createSet.add(marketData)

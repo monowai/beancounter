@@ -42,7 +42,7 @@ dependencies {
     testImplementation(
             "org.junit.jupiter:junit-jupiter:$junitVersion",
             "org.assertj:assertj-core:$assertJ",
-            "io.rest-assured:spring-mock-mvc:4.3.0",
+            "io.rest-assured:spring-mock-mvc:4.3.1",
             "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",
             "org.springframework.boot:spring-boot-test:$springBootVersion",
             "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",

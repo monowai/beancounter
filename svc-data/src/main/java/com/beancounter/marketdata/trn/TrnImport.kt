@@ -68,7 +68,8 @@ class TrnImport {
     fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): TrnResponse? {
         log.trace("Received Message {}", trustedTrnEvent.toString())
         if (verifyPortfolio(trustedTrnEvent.portfolio.id)) {
-            if (!trnService.isExists(trustedTrnEvent)) {
+            val existing = trnService.existing(trustedTrnEvent)
+            if (existing.isEmpty()) {
                 return writeTrn(trustedTrnEvent.portfolio, trustedTrnEvent.trnInput)
             }
             run {
@@ -77,7 +78,7 @@ class TrnImport {
                         trustedTrnEvent.trnInput.tradeDate)
             }
         }
-        return null
+        return TrnResponse()
     }
 
     private fun writeTrn(portfolio: Portfolio, trnInput: TrnInput): TrnResponse {

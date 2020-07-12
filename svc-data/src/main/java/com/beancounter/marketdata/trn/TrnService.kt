@@ -157,16 +157,15 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
         } else TrnResponse(results)
     }
 
-    fun isExists(trustedTrnEvent: TrustedTrnEvent): Boolean {
+    fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
         val endDate = trustedTrnEvent.trnInput.tradeDate!!.plusDays(20)
-        val trnResults = trnRepository.findExisting(
+        return trnRepository.findExisting(
                 trustedTrnEvent.portfolio.id,
                 trustedTrnEvent.trnInput.assetId,
                 trustedTrnEvent.trnInput.trnType,
                 trustedTrnEvent.trnInput.tradeDate!!,
                 endDate
         )
-        return !trnResults.isEmpty()
     }
 
     fun delete(trnId: String): TrnResponse {

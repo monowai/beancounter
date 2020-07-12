@@ -122,15 +122,15 @@ class TrnControllerTest {
         val divi = existingTrns.iterator().next()
 
         val trustedTrnEvent = TrustedTrnEvent(portfolioA, divi)
-        assertThat(trnService.isExists(trustedTrnEvent)).isTrue()
+        assertThat(trnService.existing(trustedTrnEvent)).isNotNull().isNotEmpty()
 
         // Record date is earlier than an existing trn trade date
         divi.tradeDate = dateUtils.getDate("2020-02-25")
-        assertThat(trnService.isExists(trustedTrnEvent))
-                .isTrue() // Within 20 days of proposed trade date
+        assertThat(trnService.existing(trustedTrnEvent))
+                .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
         divi.tradeDate = dateUtils.getDate("2020-03-09")
-        assertThat(trnService.isExists(trustedTrnEvent))
-                .isTrue() // Within 20 days of proposed trade date
+        assertThat(trnService.existing(trustedTrnEvent))
+                .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
 
         val findByAsset = mockMvc.perform(
                 MockMvcRequestBuilders.get("/trns/{portfolioId}/asset/{assetId}/events",

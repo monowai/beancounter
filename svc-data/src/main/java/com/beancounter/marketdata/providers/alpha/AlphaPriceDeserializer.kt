@@ -53,7 +53,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
 
     private fun getMdFromGlobal(asset: Asset?, data: Map<String, Any>?): PriceResponse {
         val results: MutableCollection<MarketData> = ArrayList()
-        if (data != null) {
+        if (data != null && asset != null ) {
             val open = BigDecimal(data["02. open"].toString())
             val high = BigDecimal(data["03. high"].toString())
             val low = BigDecimal(data["04. low"].toString())
@@ -62,7 +62,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
             val priceDate = data["07. latest trading day"].toString()
             val previousClose = get(data["08. previous close"].toString())
             val change = get(data["09. change"].toString())
-            val price = MarketData(asset!!,
+            val price = MarketData(asset,
                     Objects.requireNonNull(dateUtils.getDate(priceDate))!!)
             price.open = open
             price.close = close
@@ -118,7 +118,8 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     private fun getAsset(nodeValue: JsonNode, assetField: String): Asset? {
         var asset: Asset? = null
         if (!isNull(nodeValue)) {
-            val symbols = nodeValue[assetField]
+            val symbols = nodeValue[assetField] ?: return null
+
             val values = symbols.asText().split(":").toTypedArray()
             var market = Market("US", Currency("USD"))
             if (values.size > 1) {

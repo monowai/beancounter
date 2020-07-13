@@ -259,6 +259,25 @@ internal class AlphaVantageApiTest {
 
     @Test
     @Throws(Exception::class)
+    fun is_EmptyGlobalResponseHandled() {
+        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
+        AlphaMockUtils.mockGlobalResponse("API.EMPTY", jsonFile)
+        val asset = Asset("API", Market("EMPTY", Currency("USD")))
+        val results = mdFactory
+                .getMarketDataProvider(AlphaService.ID)
+                .getMarketData(of(asset))
+
+        assertThat(results) // Contains a default price
+                .isNotNull
+                .hasSize(1)
+        assertThat(results.iterator().next())
+                .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+                .hasFieldOrProperty("asset")
+
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("API.KEY", jsonFile)

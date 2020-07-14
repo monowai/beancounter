@@ -90,11 +90,16 @@ class AlphaPriceAdapter : MarketDataAdapter {
     }
 
     private fun getDefault(asset: Asset?, providerArguments: ProviderArguments): MarketData {
-        var date = dateUtils.getDate(providerArguments.date)
+        var date = providerArguments.getBatchConfigs()[0]?.date
+
         if (date == null) {
-            date = dateUtils.date
+            date = providerArguments.date
+            if (date == null)
+                date = dateUtils.today()
         }
-        return MarketData(asset!!, date!!)
+        val priceDate = dateUtils.getDate(date)
+
+        return MarketData(asset!!, priceDate!!)
     }
 
     companion object {

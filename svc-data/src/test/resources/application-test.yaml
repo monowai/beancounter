@@ -7,4 +7,11 @@ kafka:
 beancounter:
   enricher: MOCK
 
-  market.providers.fx.url: http://localhost:7777
+  market.providers:
+    ALPHA:
+      markets: NASDAQ,AMEX,NYSE,ASX,LON
+
+    WTD:
+      markets: NZX
+
+    fx.url: http://localhost:7777

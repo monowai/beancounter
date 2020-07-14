@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.Future
+import javax.transaction.Transactional
 
 @Service
+@Transactional
 class PriceService internal constructor(private val marketDataRepo: MarketDataRepo) {
     private lateinit var eventWriter: EventWriter
 
@@ -25,7 +27,7 @@ class PriceService internal constructor(private val marketDataRepo: MarketDataRe
         return marketDataRepo.findByAssetIdAndPriceDate(assetId, date)
     }
 
-    @Async
+    @Async("priceExecutor")
     fun write(priceResponse: PriceResponse): Future<Iterable<MarketData>?> {
         return AsyncResult(process(priceResponse))
     }

@@ -19,12 +19,12 @@ class EventWriter {
     var kafkaEnabled: Boolean = false
 
     @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")
-    private var topicEvent: String = "bc-ca-event-dev"
+    private lateinit var topicEvent: String
     private lateinit var kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>
 
     @PostConstruct
     fun logConfig() {
-        log.info("ca.event: {}", topicEvent)
+        log.info("BEANCOUNTER_TOPICS_CA_EVENT: {}", topicEvent)
     }
 
     @Autowired

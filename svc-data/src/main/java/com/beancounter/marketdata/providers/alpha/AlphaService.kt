@@ -34,7 +34,7 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
     private val dateUtils = DateUtils()
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
-    private val apiKey: String? = null
+    private lateinit var apiKey: String
     private lateinit var alphaProxyCache: AlphaProxyCache
     private lateinit var alphaPriceAdapter: AlphaPriceAdapter
 
@@ -46,8 +46,8 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
 
     @PostConstruct
     fun logStatus() {
-        val isDemo = apiKey!!.substring(0, 4).equals("demo", ignoreCase = true)
-        log.info("DEMO key is {}", isDemo)
+        val isDemo = apiKey.substring(0, 4).equals("demo", ignoreCase = true)
+        log.info("BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}", if (isDemo) "demo" else "** Redacted **")
     }
 
     private fun isCurrent(date: String): Boolean {

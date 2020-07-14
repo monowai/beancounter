@@ -23,24 +23,23 @@ class AlphaProxyCache {
     }
 
     @Cacheable("asset.prices")
-    @Async
+    @Async("priceExecutor")
     fun getCurrent(code: String?,
                    date: String?,
-                   apiKey: String?): Future<String?> {
+                   apiKey: String): Future<String?> {
         return if (code == null) {
             AsyncResult(null)
         } else AsyncResult(alphaProxy!!.getCurrent(code, apiKey))
     }
 
-    @Async
+    @Async("priceExecutor")
     fun getHistoric(code: String?, date: String?, apiKey: String?): Future<String?> {
         return AsyncResult(alphaProxy!!.getHistoric(code, apiKey))
     }
 
     @Cacheable("asset.search")
-    @Async
-    fun search(symbol: String?, apiKey: String?): Future<String?> {
-        return AsyncResult(alphaProxy!!.search(symbol, apiKey))
+    fun search(symbol: String?, apiKey: String?): String? {
+        return alphaProxy!!.search(symbol, apiKey)
     }
 
     fun getAdjusted(code: String?, apiKey: String?): Future<String?> {

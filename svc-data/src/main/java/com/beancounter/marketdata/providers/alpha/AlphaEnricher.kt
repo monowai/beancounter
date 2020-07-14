@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -11,7 +10,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.concurrent.ExecutionException
 
 @Service
 class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
@@ -32,13 +30,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         if (marketCode != null) {
             symbol = "$symbol.$marketCode"
         }
-        val result = try {
-            alphaProxyCache!!.search(symbol, apiKey).get()
-        } catch (e: InterruptedException) {
-            throw SystemException("This shouldn't have happened")
-        } catch (e: ExecutionException) {
-            throw BusinessException("Not Found!")
-        }
+        val result = alphaProxyCache!!.search(symbol, apiKey)
         //var assetResult: AssetSearchResult? = null
         val assetResult = try {
             getAssetSearchResult(market, result)

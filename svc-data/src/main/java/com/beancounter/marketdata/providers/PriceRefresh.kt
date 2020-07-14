@@ -5,6 +5,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.service.MarketDataService
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -16,15 +17,16 @@ class PriceRefresh internal constructor(
         private val marketDataService: MarketDataService
 ) {
     @Transactional(readOnly = true)
+    @Async("priceExecutor")
     fun updatePrices() {
         log.info("Updating Prices {}", LocalDateTime.now(DateUtils.getZoneId()))
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets!!) {
-            marketDataService.getFuturePriceResponse(AssetInput(assetService.hydrateAsset(asset)))
+            marketDataService.getPriceResponse(AssetInput(assetService.hydrateAsset(asset)))
             assetCount.getAndIncrement()
         }
-        log.info("Async price update for {} assets @ {}", assetCount.get(), LocalDateTime.now(DateUtils.getZoneId()))
+        log.info("Price update completed for {} assets @ {}", assetCount.get(), LocalDateTime.now(DateUtils.getZoneId()))
     }
 
     companion object {

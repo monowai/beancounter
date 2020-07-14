@@ -33,7 +33,8 @@ class WtdService @Autowired internal constructor(private val wtdProxy: WtdProxy,
 
     @PostConstruct
     fun logStatus() {
-        log.info("APIKey is [{}}", if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "DEFINED")
+        log.info("BEANCOUNTER_MARKET_PROVIDERS_WTD_KEY: {}",
+                if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **")
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
@@ -57,13 +58,14 @@ class WtdService @Autowired internal constructor(private val wtdProxy: WtdProxy,
             for (batch in requests.keys) {
                 if (requests[batch]!!.isDone) {
                     val batchResult = wtdAdapter[providerArguments, batch, requests[batch]]
-                    if ( !batchResult.isNullOrEmpty()){
+                    if (!batchResult.isNullOrEmpty()) {
                         results.addAll(batchResult)
                     }
                     requests.remove(batch)
                 }
                 empty = requests.isEmpty()
             }
+            Thread.sleep(1000)
         }
         return results
     }

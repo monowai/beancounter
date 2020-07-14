@@ -30,13 +30,13 @@ class KafkaConfig {
 
     @Bean
     fun trnCsvTopic(): String? {
-        log.info("Topic: TRN-CSV set to {}", topicTrnCsv)
+        log.info("BEANCOUNTER_TOPICS_TRN_CSV: {}", topicTrnCsv)
         return topicTrnCsv
     }
 
     @Bean
     fun trnEventTopic(): String? {
-        log.info("Topic: TRN-EVENT set to {}", topicTrnEvent)
+        log.info("BEANCOUNTER_TOPICS_TRN_EVENT: {}", topicTrnEvent)
         return topicTrnEvent
     }
 

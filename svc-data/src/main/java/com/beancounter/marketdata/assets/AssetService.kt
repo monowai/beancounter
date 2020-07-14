@@ -86,7 +86,7 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         return AssetUpdateResponse(assets)
     }
 
-    @Async
+    @Async("priceExecutor")
     override fun backFillEvents(assetId: String) {
         marketDataService.backFill(find(assetId))
     }

@@ -22,7 +22,7 @@ class WtdProxy {
         this.wtdGateway = wtdGateway
     }
 
-    @Async
+    @Async("priceExecutor")
     @Cacheable("asset.prices")
     fun getPrices(assets: String?, marketOpenDate: String?, apiKey: String?): Future<WtdResponse> {
         val result = wtdGateway.getPrices(assets, marketOpenDate, apiKey)

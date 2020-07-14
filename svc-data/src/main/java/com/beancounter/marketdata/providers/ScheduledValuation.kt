@@ -14,13 +14,13 @@ import java.time.LocalDateTime
 class ScheduledValuation(private val priceRefresh: PriceRefresh) {
 
     @Bean
-    fun assetSchedule ( @Value("\${assets.schedule:0 */30 7-18 ? * Tue-Sat}") schedule: String): String {
-        log.info("beancounter.assets.schedule: {}", schedule)
+    fun assetsSchedule ( @Value("\${assets.schedule:0 */30 7-18 ? * Tue-Sat}") schedule: String): String {
+        log.info("ASSETS_SCHEDULE: {}", schedule)
         return schedule
     }
 
 
-    @Scheduled(cron = "#{@assetSchedule}")
+    @Scheduled(cron = "#{@assetsSchedule}")
     fun updatePrices() {
         priceRefresh.updatePrices()
         log.info("Scheduled price update started {}", LocalDateTime.now(DateUtils.getZoneId()))

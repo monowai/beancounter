@@ -34,7 +34,7 @@ class PriceWriter {
 
     @Bean
     fun priceTopic(): String? {
-        log.info("Topic: TRN-CSV set to {}", topicPrice)
+        log.info("BEANCOUNTER_TOPICS_PRICE: {}", topicPrice)
         return topicPrice
     }
 

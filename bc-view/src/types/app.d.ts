@@ -35,3 +35,8 @@ interface BcResult<T> {
   data: T | any;
   error: AxiosError | any;
 }
+
+export interface DevMessage {
+  debug: boolean;
+  errorMessage: string;
+}

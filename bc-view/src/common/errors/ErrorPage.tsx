@@ -4,14 +4,8 @@ import { serverEnv } from "../utils";
 import { useHistory } from "react-router";
 import { translate } from "../i18nConfig";
 
-const DevMessage = ({
-  debug,
-  errorMessage,
-}: {
-  debug: boolean;
-  errorMessage: string;
-}): JSX.Element | null =>
-  debug ? (
+function DevMessage(debug: boolean, errorMessage: string): JSX.Element | null {
+  return debug ? (
     <div className="rockstar">
       <h1 className="mono">Details Dire Dév!</h1>
       <pre>
@@ -20,6 +14,7 @@ const DevMessage = ({
       </pre>
     </div>
   ) : null;
+}
 
 export default function ErrorPage(stack: string | undefined, message: string): JSX.Element {
   const debug = serverEnv("NODE_ENV", "development") !== "production";
@@ -44,7 +39,7 @@ export default function ErrorPage(stack: string | undefined, message: string): J
       <button className="bc-button active rounded" onClick={handleClick()}>
         {"error-tryagain"}
       </button>
-      <DevMessage debug={debug} errorMessage={errorMessage} />
+      {DevMessage(debug, errorMessage)}
     </div>
   );
 }

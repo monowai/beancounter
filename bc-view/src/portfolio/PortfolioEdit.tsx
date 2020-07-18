@@ -8,10 +8,11 @@ import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
-import ErrorPage from "../common/errors/ErrorPage";
+import { ErrorPage } from "../common/errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
 import { TrnDropZone } from "./DropZone";
+import { ShowError } from "../common/errors/ShowError";
 
 export function PortfolioEdit(portfolioId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
@@ -84,11 +85,7 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
     history.goBack();
   }
   if (portfolioResult.error) {
-    if (portfolioResult.error.response.status === 401) {
-      history.push("/login");
-    } else if (portfolioResult.error.response.status === 400) {
-      history.push("/portfolios");
-    }
+    return <ShowError error={portfolioResult.error} />;
   }
   if (error) {
     return ErrorPage(error.stack, error.message);

@@ -7,12 +7,13 @@ import { useCurrencies } from "../static/hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/razzle";
-import ErrorPage from "../common/errors/ErrorPage";
+import { ErrorPage } from "../common/errors/ErrorPage";
 import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
 import { translate } from "../common/i18nConfig";
 import * as yup from "yup";
+import { ShowError } from "../common/errors/ShowError";
 
 export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
   const [keycloak] = useKeycloak();
@@ -109,7 +110,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
   }
 
   if (stateError) {
-    return ErrorPage(stateError.stack, stateError.message);
+    return <ShowError error={stateError} />;
   }
 
   if (trnResult.error) {

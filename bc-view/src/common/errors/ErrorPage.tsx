@@ -3,20 +3,21 @@ import "./Error.scss";
 import { serverEnv } from "../utils";
 import { useHistory } from "react-router";
 import { translate } from "../i18nConfig";
+import { DevMessage } from "../../types/app";
 
-function DevMessage(debug: boolean, errorMessage: string): JSX.Element | null {
-  return debug ? (
+function ErrorDetail(devMessage: DevMessage): JSX.Element | null {
+  return devMessage.debug ? (
     <div className="rockstar">
       <h1 className="mono">Details Dire Dév!</h1>
       <pre>
         <span>Your request failed with the following response:</span>
-        {errorMessage}
+        {devMessage.errorMessage}
       </pre>
     </div>
   ) : null;
 }
 
-export default function ErrorPage(stack: string | undefined, message: string): JSX.Element {
+export function ErrorPage(stack: string | undefined, message: string): JSX.Element {
   const debug = serverEnv("NODE_ENV", "development") !== "production";
   const history = useHistory();
   const errorMessage = debug ? JSON.stringify({ message, stack }, null, 2) : message;
@@ -31,6 +32,7 @@ export default function ErrorPage(stack: string | undefined, message: string): J
   function label(key: string): string {
     return translate(key);
   }
+
   return (
     <div className="centered">
       <img src="/assets/error-global-icon.svg" alt={"Error!"} />
@@ -39,7 +41,7 @@ export default function ErrorPage(stack: string | undefined, message: string): J
       <button className="bc-button active rounded" onClick={handleClick()}>
         {"error-tryagain"}
       </button>
-      {DevMessage(debug, errorMessage)}
+      <ErrorDetail debug={debug} errorMessage={errorMessage} />
     </div>
   );
 }

@@ -2,11 +2,11 @@ import React from "react";
 import "../css/styles.sass";
 import { Link } from "react-router-dom";
 import { useAssetTransactions } from "./hooks";
-import ErrorPage from "../common/errors/ErrorPage";
 import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
 import { isDone } from "../types/typeUtils";
 import { translate } from "../common/i18nConfig";
+import { ShowError } from "../common/errors/ShowError";
 
 export function Trades(portfolioId: string, assetId: string): React.ReactElement {
   const trnsResult = useAssetTransactions(portfolioId, assetId, "events");
@@ -14,10 +14,10 @@ export function Trades(portfolioId: string, assetId: string): React.ReactElement
 
   if (isDone(trnsResult) && isDone(assetResult)) {
     if (assetResult.error) {
-      return ErrorPage(assetResult.error.stack, assetResult.error.message);
+      return <ShowError error={assetResult.error} />;
     }
     if (trnsResult.error) {
-      return ErrorPage(trnsResult.error.stack, trnsResult.error.message);
+      return <ShowError error={trnsResult.error} />;
     }
 
     if (trnsResult.data.length > 0) {

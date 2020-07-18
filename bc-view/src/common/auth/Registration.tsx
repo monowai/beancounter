@@ -4,7 +4,7 @@ import logger from "../configLogging";
 import { AxiosError } from "axios";
 import { SystemUser } from "../../types/beancounter";
 import { _axios, getBearerToken } from "../axiosUtils";
-import ErrorPage from "../errors/ErrorPage";
+import { ShowError } from "../errors/ShowError";
 
 const Registration = (): JSX.Element => {
   const [systemUser, setSystemUser] = useState<SystemUser>();
@@ -36,7 +36,7 @@ const Registration = (): JSX.Element => {
   }, [keycloak]);
 
   if (error) {
-    return ErrorPage(error.stack, error.message);
+    return <ShowError error={error} />;
   }
   if (systemUser) {
     return <div>Registered - {systemUser?.email}</div>;

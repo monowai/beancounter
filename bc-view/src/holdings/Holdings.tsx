@@ -14,7 +14,7 @@ import { Header } from "./Header";
 import { isDone } from "../types/typeUtils";
 import PageLoader from "../common/PageLoader";
 import { TrnDropZone } from "../portfolio/DropZone";
-import { checkError } from "../common/errors/handle";
+import { ShowError } from "../common/errors/ShowError";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const holdingResults = useHoldings(code);
@@ -31,7 +31,7 @@ export default function ViewHoldings(code: string): JSX.Element {
   // Render where we are in the initialization process
   if (isDone(holdingResults)) {
     if (holdingResults.error) {
-      return checkError(holdingResults.error);
+      return <ShowError error={holdingResults.error} />;
     }
     if (!holdingResults.data.positions) {
       return (
@@ -119,5 +119,5 @@ export default function ViewHoldings(code: string): JSX.Element {
       </div>
     );
   }
-  return PageLoader({ message: "Crunching numeric goodness...", show: true });
+  return <PageLoader message={"Crunching data..."} show={true} />;
 }

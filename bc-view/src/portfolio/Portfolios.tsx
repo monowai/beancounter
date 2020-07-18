@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useHistory } from "react-router";
 import { usePortfolios } from "./hooks";
 import { isDone } from "../types/typeUtils";
-import { checkError } from "../common/errors/handle";
+import { ShowError } from "../common/errors/ShowError";
 
 export function Portfolios(): React.ReactElement {
   const portfolioResults = usePortfolios();
@@ -11,7 +11,7 @@ export function Portfolios(): React.ReactElement {
 
   if (isDone(portfolioResults)) {
     if (portfolioResults.error) {
-      return checkError(portfolioResults.error);
+      return <ShowError error={portfolioResults.error} />;
     }
     const portfolios = portfolioResults.data;
     if (portfolios.length > 0) {

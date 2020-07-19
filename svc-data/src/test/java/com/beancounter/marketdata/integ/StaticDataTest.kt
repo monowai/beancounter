@@ -2,7 +2,7 @@ package com.beancounter.marketdata.integ
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
-import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.config.MarketConfig
 import com.beancounter.marketdata.currency.CurrencyRepository
 import com.beancounter.marketdata.currency.CurrencyService
@@ -34,7 +34,7 @@ import java.util.*
 @EnableJpaRepositories(basePackageClasses = [CurrencyRepository::class])
 internal class StaticDataTest @Autowired constructor(private val marketService: MarketService,
                                                      private val currencyService: CurrencyService) {
-    private val dateUtils = DateUtils()
+    private val marketUtils = MarketUtils()
 
     @Test
     fun is_FoundForAlias() {
@@ -71,13 +71,13 @@ internal class StaticDataTest @Autowired constructor(private val marketService: 
         // Users requested date "today in timezone"
         val sunday = LocalDate
                 .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat))
-        var resolvedDate = dateUtils.getLastMarketDate(
-                sunday,
-                marketService.getMarket("NYSE").timezone.toZoneId())
+        var resolvedDate = marketUtils.getLastMarketDate(
+                sunday.atStartOfDay(),
+                marketService.getMarket("NYSE"))
         AssertionsForClassTypes.assertThat(resolvedDate)
                 .isEqualTo(LocalDate.of(2019, 4, 12))
-        resolvedDate = dateUtils.getLastMarketDate(sunday,
-                marketService.getMarket("NYSE").timezone.toZoneId())
+        resolvedDate = marketUtils.getLastMarketDate(sunday.atStartOfDay(),
+                marketService.getMarket("NYSE"))
         AssertionsForClassTypes.assertThat(resolvedDate)
                 .isEqualTo(LocalDate.of(2019, 4, 12))
     }

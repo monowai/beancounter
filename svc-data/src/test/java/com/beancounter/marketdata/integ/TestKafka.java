@@ -119,6 +119,7 @@ public class TestKafka {
     AssetRequest assetRequest = new AssetRequest();
     assetRequest.getData().put("MSFT", AssetUtils.getAssetInput("NASDAQ", "MSFT"));
     AssetUpdateResponse assetResponse = assetService.process(assetRequest);
+    assert assetResponse != null;
     assertThat(assetResponse.getData().get("MSFT")).hasFieldOrProperty("id");
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
@@ -197,6 +198,7 @@ public class TestKafka {
     AssetRequest assetRequest = new AssetRequest();
     assetRequest.getData().put("B784NS1", AssetUtils.getAssetInput("LON", "B784NS1"));
     AssetUpdateResponse assetResponse = assetService.process(assetRequest);
+    assert assetResponse != null;
     assertThat(assetResponse.getData().get("B784NS1")).hasFieldOrProperty("id");
 
     Collection<PortfolioInput> portfolios = new ArrayList<>();
@@ -236,17 +238,19 @@ public class TestKafka {
 
   @Test
   void is_PricePersisted() throws Exception {
-    String priceDate = "2020-04-29";
     AssetRequest assetRequest = new AssetRequest();
     assetRequest.getData().put("test", AssetUtils.getAssetInput("NASDAQ", "MSFT"));
 
     AssetUpdateResponse assetResult = assetService.process(assetRequest);
+    assert assetResult != null;
     Asset asset = assetResult.getData().get("test");
     assertThat(asset).isNotNull().hasFieldOrProperty("id");
 
+    String priceDate = "2020-04-29";
+
     MarketData marketData = new MarketData(
         asset,
-        Objects.requireNonNull(dateUtils.getDate(priceDate)));
+        dateUtils.getDate(priceDate, DateUtils.getZoneId()));
     marketData.setVolume(10);
     marketData.setOpen(BigDecimal.TEN);
     marketData.setDividend(BigDecimal.ZERO);
@@ -302,13 +306,14 @@ public class TestKafka {
     data.put("a", new AssetInput("NASDAQ", "TWEE"));
 
     AssetUpdateResponse assetResult = assetService.process(new AssetRequest(data));
+    assert assetResult != null;
     assertThat(assetResult.getData()).hasSize(1);
     Asset asset = assetResult.getData().get("a");
     assertThat(asset.getId()).isNotNull();
     assertThat(asset.getMarket()).isNotNull();
     MarketData marketData = new MarketData(
         asset,
-        Objects.requireNonNull(dateUtils.getDate("2019-12-10")));
+        Objects.requireNonNull(dateUtils.getDate("2019-12-10", DateUtils.getZoneId())));
     marketData.setSource("ALPHA");
     marketData.setDividend(new BigDecimal("2.34"));
     marketData.setSplit(new BigDecimal("1.000"));

@@ -2,10 +2,13 @@ package com.beancounter.marketdata.utils
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.getZoneId
+import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
 import com.beancounter.marketdata.providers.wtd.WtdResponse
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -28,7 +31,8 @@ object WtdMockUtils {
     const val WTD_PATH = "/contracts/wtd"
     private val mapper = objectMapper
     private val dateUtils = DateUtils()
-    private val zonedDateTime = LocalDate.now(getZoneId())
+    private val marketUtils = MarketUtils()
+    private val zonedDateTime = LocalDate.now(getZoneId()).atStartOfDay()
 
     @JvmStatic
     private val wtdApi = WireMockRule(WireMockConfiguration.options().port(8888))
@@ -41,9 +45,11 @@ object WtdMockUtils {
         return this.wtdApi
     }
 
+    @JvmStatic
+    val sgx = Market("SGX", Currency("SGD"), ZoneId.systemDefault().id)
 
     @JvmStatic
-    val priceDate = dateUtils.getLastMarketDate(zonedDateTime, ZoneId.systemDefault()).toString()
+    val priceDate = marketUtils.getLastMarketDate(zonedDateTime, sgx).toString()
 
     @JvmStatic
     operator fun get(date: String, prices: Map<String, WtdMarketData>): WtdResponse {

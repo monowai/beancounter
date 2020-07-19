@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
@@ -16,6 +17,8 @@ class AlphaConfig : DataProviderConfig {
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
     var dateUtils = DateUtils()
+    var marketUtils = MarketUtils()
+
     override fun getBatchSize(): Int {
         return 1
     }
@@ -34,9 +37,7 @@ class AlphaConfig : DataProviderConfig {
 
 
     override fun getMarketDate(market: Market, date: String): LocalDate {
-        return dateUtils.getLastMarketDate(
-                dateUtils.getDate(date)!!,
-                market.timezone.toZoneId())
+        return marketUtils.getLastMarketDate(dateUtils.getDate(date)!!.atStartOfDay(), market)
     }
 
     override fun getPriceCode(asset: Asset): String {

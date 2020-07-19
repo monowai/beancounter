@@ -4,6 +4,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson.objectMapper
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdConfig
 import com.beancounter.marketdata.providers.wtd.WtdResponse
 import com.beancounter.marketdata.utils.WtdMockUtils
@@ -13,10 +14,10 @@ import org.springframework.core.io.ClassPathResource
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
 
 class WtdConfigTest {
     private val dateUtils = DateUtils()
+    private val marketUtils = MarketUtils()
 
     private val mapper = objectMapper
 
@@ -76,8 +77,8 @@ class WtdConfigTest {
                 .isEqualTo(date)
 
         // On Today, it should subtract 2 days
-        val expectedDate = dateUtils.getLastMarketDate(
-                dateUtils.getDate(today)!!, TimeZone.getTimeZone("US/Eastern").toZoneId(), 2)
+        val expectedDate = marketUtils.getLastMarketDate(
+                dateUtils.getDate(today)!!, 2)
         wtdConfig.date = today
         assertThat(wtdConfig.getMarketDate(nzx, today)).isEqualTo(expectedDate.toString())
     }

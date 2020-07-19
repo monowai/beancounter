@@ -61,12 +61,12 @@ public class ShareSightTradeAdapter implements TrnAdapter {
 
   @Override
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
+    assert trustedTrnImportRequest != null;
     List<String> row = trustedTrnImportRequest.getRow();
     assert row != null;
     String ttype = row.get(type);
     if (ttype == null || ttype.equalsIgnoreCase("")) {
-      throw new BusinessException(String.format("Unsupported type %s",
-          row.get(type)));
+      throw new BusinessException(String.format("Unsupported type %s", row.get(type)));
     }
     TrnType trnType = TrnType.valueOf(ttype.toUpperCase());
 
@@ -98,7 +98,9 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       trnInput.setPrice(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()));
       trnInput.setFees(fees);
       trnInput.setTradeAmount(tradeAmount);
-      trnInput.setTradeDate(dateUtils.getDate(row.get(date), shareSightConfig.getDateFormat()));
+      trnInput.setTradeDate(dateUtils.getDate(row.get(date),
+          shareSightConfig.getDateFormat(),
+          DateUtils.getZoneId()));
       trnInput.setCashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode());
       trnInput.setTradeCurrency(row.get(currency));
       // Zero and null are treated as "unknown"
@@ -159,7 +161,6 @@ public class ShareSightTradeAdapter implements TrnAdapter {
 
   @Override
   public Asset resolveAsset(List<String> row) {
-    String assetName = row.get(name);
     String assetCode = row.get(code);
     String marketCode = row.get(market);
 

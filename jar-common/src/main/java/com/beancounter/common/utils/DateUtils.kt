@@ -4,11 +4,9 @@ import com.beancounter.common.exception.BusinessException
 import org.springframework.stereotype.Component
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 /**
  * Date based helper functions.
@@ -21,53 +19,17 @@ class DateUtils {
     //var defaultZone: ZoneId = ZoneId.of("Asia/Singapore")
 
     private val defaultFormatter = SimpleDateFormat(format)
-    fun getLastMarketDate(seedDate: LocalDate, targetZone: ZoneId?): LocalDate {
-        var days = 1
-        if (!isToday(getDateString(seedDate))) {
-            days = 0
-        }
-        return getLastMarketDate(seedDate, targetZone, days)
-    }
 
-    /**
-     * Identify a date to query a market on taking into account timezones and working days.
-     * Always takes One from seedDate. Then subtracts a day until it finds a working one.
-     * For instance - Sunday 7th in Singapore will result to Friday 5th in New York
-     *
-     * @param seedDate   usually Today requesting in callers timezone
-     * @param targetZone market to locate requestedDate on
-     * @return resolved Date
-     */
-    fun getLastMarketDate(seedDate: LocalDate, targetZone: ZoneId?, daysToSubtract: Int): LocalDate {
-        Objects.requireNonNull(seedDate)
-        Objects.requireNonNull(targetZone)
-        var result = seedDate.minusDays(daysToSubtract.toLong())
-        while (!isWorkDay(result)) {
-            result = result.minusDays(1)
-        }
-        return result
-    }
 
     fun convert(localDate: LocalDate): LocalDate? {
         val zoned = localDate.atStartOfDay(getZoneId())
         return getDate(zoned.toLocalDate().toString())
     }
 
-    fun isWorkDay(evaluate: LocalDate): Boolean {
-        // Naive implementation that is only aware of Western markets
-        return if (evaluate.dayOfWeek == DayOfWeek.SUNDAY) {
-            false
-        } else {
-            evaluate.dayOfWeek != DayOfWeek.SATURDAY
-        }
-
-        // ToDo: market holidays...
-    }
-
     val date: LocalDate?
         get() = getDate(today())
 
-    fun getDate(inDate: String?): LocalDate? {
+    fun getDate(inDate: String?, zoneId: ZoneId = getZoneId()): LocalDate? {
         return when (inDate) {
             null -> {
                 null
@@ -75,15 +37,15 @@ class DateUtils {
             "today" -> {
                 return date
             }
-            else -> getDate(inDate, "yyyy-MM-dd")
+            else -> getDate(inDate, "yyyy-MM-dd", zoneId)
         }
     }
 
-    fun getDate(inDate: String?, format: String?): LocalDate? {
+    fun getDate(inDate: String?, format: String?, zoneId: ZoneId = getZoneId()): LocalDate? {
         return if (inDate == null) {
             null
         } else getLocalDate(inDate, format)
-                ?.atStartOfDay(getZoneId())?.toLocalDate()
+                ?.atStartOfDay(zoneId)?.toLocalDate()
     }
 
     fun getLocalDate(inDate: String?, dateFormat: String?): LocalDate? {
@@ -113,12 +75,15 @@ class DateUtils {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
     }
-
     fun isToday(inDate: String?): Boolean {
+        return isToday(inDate, getZoneId())
+    }
+
+    fun isToday(inDate: String?, tz: ZoneId): Boolean {
         return if (inDate == null || inDate.isBlank() || "today" == inDate.toLowerCase()) {
             true // Null date is BC is "today"
         } else try {
-            val today = defaultFormatter.parse(today())
+            val today = defaultFormatter.parse(LocalDate.now(tz).toString())
             val compareWith = defaultFormatter.parse(inDate)
             today.compareTo(compareWith) == 0
         } catch (e: ParseException) {

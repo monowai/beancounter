@@ -169,7 +169,7 @@ public class ContractVerifierBase {
     mockTrnGetResponse(getTestPortfolio(), "contracts/trn/TEST-response.json");
     mockTrnGetResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
     Mockito.when(trnService.findByPortfolioAsset(getTestPortfolio(),
-        "KMI", Objects.requireNonNull(dateUtils.getDate("2020-05-01"))))
+        "KMI", Objects.requireNonNull(dateUtils.getDate("2020-05-01", DateUtils.getZoneId()))))
         .thenReturn(om.readValue(
             new ClassPathResource("contracts/trn/trn-for-asset.json").getFile(),
             TrnResponse.class));
@@ -204,7 +204,7 @@ public class ContractVerifierBase {
 
     Mockito.when(portfolioService.findWhereHeld(
         "KMI",
-        dateUtils.getDate("2020-05-01")))
+        dateUtils.getDate("2020-05-01", DateUtils.getZoneId())))
         .thenReturn(
             om.readValue(
                 new ClassPathResource("contracts/portfolio/where-held-response.json").getFile(),

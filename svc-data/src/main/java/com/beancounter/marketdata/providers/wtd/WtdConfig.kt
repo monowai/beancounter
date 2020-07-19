@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers.wtd
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.config.MarketConfig
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
-import java.util.*
 
 @Configuration
 @Import(WtdService::class, WtdProxy::class, WtdAdapter::class)
@@ -28,14 +28,14 @@ class WtdConfig : DataProviderConfig {
 
     @Value("\${beancounter.market.providers.WTD.markets}")
     var markets: String? = null
-    var timeZone = TimeZone.getTimeZone("US/Eastern")
 
     @set:Autowired
     var marketConfig: MarketConfig? = null
     var dateUtils = DateUtils()
+    var marketUtils = MarketUtils()
 
     private fun translateMarketCode(market: Market): String? {
-        return marketConfig!!.getProviders()[market.code]!!.aliases[WtdService.ID]
+        return (marketConfig!!.getProviders()[market.code] ?: error("Missing Market")).aliases[WtdService.ID]
     }
 
     override fun getMarketDate(market: Market, date: String): LocalDate {
@@ -49,8 +49,8 @@ class WtdConfig : DataProviderConfig {
         }
 
         // If startDate is not "today", assume nothing.  Discount the weekends
-        return dateUtils.getLastMarketDate(
-                dateUtils.getDate(date)!!, timeZone.toZoneId(), daysToSubtract)
+        return marketUtils.getLastMarketDate(
+                dateUtils.getDate(date)!!.atStartOfDay(), daysToSubtract)
     }
 
     override fun getPriceCode(asset: Asset): String {

@@ -1,9 +1,15 @@
 package com.beancounter.common.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.math.BigDecimal
+import java.time.LocalTime
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -18,6 +24,11 @@ data class Market @ConstructorBinding constructor(
         val code: String,
         val currencyId: String = "USD",
         val timezoneId: String = TimeZone.getDefault().id,
+        @JsonSerialize(using = LocalTimeSerializer::class)
+        @JsonDeserialize(using = LocalTimeDeserializer::class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+        val priceTime: LocalTime = LocalTime.of(18, 0),
+        val daysToSubtract: Int = 1,
         val aliases: Map<String, String> = HashMap(),
         val enricher: String? = null,
         val multiplier: BigDecimal = BigDecimal("1.0")) {

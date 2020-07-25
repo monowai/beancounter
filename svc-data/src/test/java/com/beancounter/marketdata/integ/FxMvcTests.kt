@@ -39,7 +39,9 @@ import java.util.*
 @Tag("slow")
 internal class FxMvcTests {
     private val authorityRoleConverter = AuthorityRoleConverter()
-    private val dateUtils = DateUtils()
+
+    @Autowired
+    private lateinit var dateUtils: DateUtils
 
     @Autowired
     private lateinit var context: WebApplicationContext
@@ -136,7 +138,7 @@ internal class FxMvcTests {
 
     @Test
     fun is_EarliestRateDateValid() {
-        val ecbDate = EcbDate()
+        val ecbDate = EcbDate(dateUtils)
         Assertions.assertThat(ecbDate.getValidDate("1990-01-01"))
                 .isEqualTo(EcbDate.earliest)
     }

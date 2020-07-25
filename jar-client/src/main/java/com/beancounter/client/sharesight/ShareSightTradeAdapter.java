@@ -43,15 +43,16 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int value = 11;
   public static final int comments = 12;
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(ShareSightTradeAdapter.class);
-  private final DateUtils dateUtils = new DateUtils();
+  private final DateUtils dateUtils;
   private final ShareSightConfig shareSightConfig;
   private final AssetIngestService assetIngestService;
   private Filter filter = new Filter(null);
 
   public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
-                                AssetIngestService assetIngestService) {
+                                AssetIngestService assetIngestService, DateUtils dateUtils) {
     this.assetIngestService = assetIngestService;
     this.shareSightConfig = shareSightConfig;
+    this.dateUtils = dateUtils;
   }
 
   @Autowired(required = false)
@@ -100,7 +101,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       trnInput.setTradeAmount(tradeAmount);
       trnInput.setTradeDate(dateUtils.getDate(row.get(date),
           shareSightConfig.getDateFormat(),
-          DateUtils.getZoneId()));
+          dateUtils.getZoneId()));
       trnInput.setCashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode());
       trnInput.setTradeCurrency(row.get(currency));
       // Zero and null are treated as "unknown"

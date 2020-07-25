@@ -17,7 +17,7 @@ internal class MarketUtilsTest {
 
     @Test
     fun is_MarketDateCalculated() {
-        val lastPriceDate = dateUtils.getDate("2020-07-17", DateUtils.getZoneId())!! // Expect Fridays Price
+        val lastPriceDate = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())!! // Expect Fridays Price
 
         // When requesting on a Monday in SG, you won't have COB prices until Tuesday in SG
         assertThat(marketUtils.getLastMarketDate(LocalDateTime.of(2020, 7, 20, 8, 0), nasdaq, true))

@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class EcbService @Autowired internal constructor(private val fxGateway: FxGateway, private val currencyService: CurrencyService) {
-    private val ecbDate = EcbDate()
-    private val dateUtils = DateUtils()
+class EcbService @Autowired internal constructor(
+        private val fxGateway: FxGateway,
+        private val currencyService: CurrencyService,
+        private val dateUtils: DateUtils
+) {
+    private val ecbDate = EcbDate(dateUtils)
     fun getRates(asAt: String): Collection<FxRate> {
         val ecbRates = fxGateway.getRatesForSymbols(
                 ecbDate.getValidDate(asAt),

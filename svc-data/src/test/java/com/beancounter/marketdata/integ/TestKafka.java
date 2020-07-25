@@ -71,7 +71,8 @@ public class TestKafka {
   public static final String TOPIC_EVENT = "topicEvent";
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(TestKafka.class);
   private final ObjectMapper objectMapper = getObjectMapper();
-  private final DateUtils dateUtils = new DateUtils();
+  @Autowired
+  private DateUtils dateUtils ;
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
@@ -250,7 +251,7 @@ public class TestKafka {
 
     MarketData marketData = new MarketData(
         asset,
-        dateUtils.getDate(priceDate, DateUtils.getZoneId()));
+        dateUtils.getDate(priceDate, dateUtils.getZoneId()));
     marketData.setVolume(10);
     marketData.setOpen(BigDecimal.TEN);
     marketData.setDividend(BigDecimal.ZERO);
@@ -313,7 +314,7 @@ public class TestKafka {
     assertThat(asset.getMarket()).isNotNull();
     MarketData marketData = new MarketData(
         asset,
-        Objects.requireNonNull(dateUtils.getDate("2019-12-10", DateUtils.getZoneId())));
+        Objects.requireNonNull(dateUtils.getDate("2019-12-10", dateUtils.getZoneId())));
     marketData.setSource("ALPHA");
     marketData.setDividend(new BigDecimal("2.34"));
     marketData.setSplit(new BigDecimal("1.000"));

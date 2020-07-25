@@ -1,12 +1,14 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.exception.BusinessException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 /**
  * Date based helper functions.
@@ -14,12 +16,14 @@ import java.time.format.DateTimeFormatter
  * @author mikeh
  * @since 2019-03-12
  */
+
 @Component
 class DateUtils {
-    //var defaultZone: ZoneId = ZoneId.of("Asia/Singapore")
+
+    @Value("\${beancounter.zone:#{null}}")
+    var defaultZone: String = TimeZone.getDefault().id
 
     private val defaultFormatter = SimpleDateFormat(format)
-
 
     fun convert(localDate: LocalDate): LocalDate? {
         val zoned = localDate.atStartOfDay(getZoneId())
@@ -75,6 +79,7 @@ class DateUtils {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
     }
+
     fun isToday(inDate: String?): Boolean {
         return isToday(inDate, getZoneId())
     }
@@ -97,13 +102,12 @@ class DateUtils {
         return date?.toString()
     }
 
-    companion object {
-        @JvmStatic
-        fun getZoneId(): ZoneId {
-            return ZoneId.of("Asia/Singapore")
-        }
-
-        const val format = "yyyy-MM-dd"
-        //public var defaultZone: ZoneId = ZoneId.of("Asia/Singapore")
+    fun getZoneId(): ZoneId {
+        return ZoneId.of(defaultZone)
     }
+
+    companion object {
+        const val format = "yyyy-MM-dd"
+    }
+
 }

@@ -2,7 +2,6 @@ package com.beancounter.common
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.getZoneId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -10,7 +9,7 @@ import java.time.LocalDate
 import java.util.*
 
 internal class DateUtilsTest {
-    private var dateUtils = DateUtils()
+    val dateUtils = DateUtils()
 
     @Test
     fun is_Today() {
@@ -23,7 +22,7 @@ internal class DateUtilsTest {
     @Test
     fun is_TodayAnIso8601String() {
         val calendar = Calendar.Builder()
-                .setTimeZone(TimeZone.getTimeZone(getZoneId()))
+                .setTimeZone(TimeZone.getTimeZone(dateUtils.getZoneId()))
                 .setInstant(Date()).build()
         val now = dateUtils.today()
         calendar[Calendar.YEAR]
@@ -52,7 +51,7 @@ internal class DateUtilsTest {
     @Test
     fun is_LocalDateEqualToToday() {
         val today = dateUtils.today()
-        val nowInTz = LocalDate.now(getZoneId())
+        val nowInTz = LocalDate.now(dateUtils.getZoneId())
         assertThat(nowInTz.toString()).isEqualTo(today)
     }
 

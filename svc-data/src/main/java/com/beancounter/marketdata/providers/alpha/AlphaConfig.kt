@@ -37,7 +37,7 @@ class AlphaConfig : DataProviderConfig {
 
 
     override fun getMarketDate(market: Market, date: String): LocalDate {
-        return marketUtils.getLastMarketDate(dateUtils.getDate(date)!!.atStartOfDay(), market)
+        return marketUtils.getLastMarketDate(dateUtils.getDate(date)!!, market)
     }
 
     override fun getPriceCode(asset: Asset): String {

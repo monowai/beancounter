@@ -13,6 +13,7 @@ import java.time.LocalDateTime
 @Service
 class ScheduledValuation(private val priceRefresh: PriceRefresh) {
 
+    private val dateUtils = DateUtils()
     @Bean
     fun assetsSchedule ( @Value("\${assets.schedule:0 */30 7-18 ? * Tue-Sat}") schedule: String): String {
         log.info("ASSETS_SCHEDULE: {}", schedule)
@@ -20,10 +21,10 @@ class ScheduledValuation(private val priceRefresh: PriceRefresh) {
     }
 
 
-    @Scheduled(cron = "#{@assetsSchedule}")
+    @Scheduled(cron = "#{@assetsSchedule}", zone = "#{@scheduleZone}")
     fun updatePrices() {
+        log.info("Scheduled price update starting {}", LocalDateTime.now(dateUtils.getZoneId()))
         priceRefresh.updatePrices()
-        log.info("Scheduled price update started {}", LocalDateTime.now(DateUtils.getZoneId()))
     }
 
     companion object {

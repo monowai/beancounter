@@ -19,13 +19,14 @@ import org.springframework.web.bind.annotation.*
 class TrnController {
     private lateinit var trnService: TrnService
     private lateinit var portfolioService: PortfolioService
-    private final var dateUtils = DateUtils()
+    private lateinit var dateUtils: DateUtils
 
     @Autowired
     fun setServices(trnService: TrnService,
-                    portfolioService: PortfolioService) {
+                    portfolioService: PortfolioService, dateUtils: DateUtils) {
         this.trnService = trnService
         this.portfolioService = portfolioService
+        this.dateUtils = dateUtils
     }
 
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])

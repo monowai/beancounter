@@ -78,7 +78,8 @@ public class ContractVerifierBase {
   public static final Asset MSFT = getAsset("NASDAQ", "MSFT");
   public static final Asset MSFT_INVALID = getAsset("NASDAQ", "MSFTx");
   public static final Asset AMP = getAsset("ASX", "AMP");
-  private final DateUtils dateUtils = new DateUtils();
+  @Autowired
+  private DateUtils dateUtils;
   private final ObjectMapper om = getObjectMapper();
   @MockBean
   private JwtDecoder jwtDecoder;
@@ -169,7 +170,7 @@ public class ContractVerifierBase {
     mockTrnGetResponse(getTestPortfolio(), "contracts/trn/TEST-response.json");
     mockTrnGetResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
     Mockito.when(trnService.findByPortfolioAsset(getTestPortfolio(),
-        "KMI", Objects.requireNonNull(dateUtils.getDate("2020-05-01", DateUtils.getZoneId()))))
+        "KMI", Objects.requireNonNull(dateUtils.getDate("2020-05-01", dateUtils.getZoneId()))))
         .thenReturn(om.readValue(
             new ClassPathResource("contracts/trn/trn-for-asset.json").getFile(),
             TrnResponse.class));
@@ -204,7 +205,7 @@ public class ContractVerifierBase {
 
     Mockito.when(portfolioService.findWhereHeld(
         "KMI",
-        dateUtils.getDate("2020-05-01", DateUtils.getZoneId())))
+        dateUtils.getDate("2020-05-01", dateUtils.getZoneId())))
         .thenReturn(
             om.readValue(
                 new ClassPathResource("contracts/portfolio/where-held-response.json").getFile(),

@@ -7,7 +7,6 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson.objectMapper
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.getZoneId
 import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
 import com.beancounter.marketdata.providers.wtd.WtdResponse
@@ -32,7 +31,7 @@ object WtdMockUtils {
     private val mapper = objectMapper
     private val dateUtils = DateUtils()
     private val marketUtils = MarketUtils()
-    private val zonedDateTime = LocalDate.now(getZoneId()).atStartOfDay()
+    private val zonedDateTime = LocalDate.now(dateUtils.getZoneId()).atStartOfDay()
 
     @JvmStatic
     private val wtdApi = WireMockRule(WireMockConfiguration.options().port(8888))

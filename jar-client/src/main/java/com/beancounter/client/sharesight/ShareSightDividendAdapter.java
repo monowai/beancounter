@@ -90,7 +90,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
           tradeRate));
       trnInput.setTradeDate(dateUtils.getDate(row.get(date),
           shareSightConfig.getDateFormat(),
-          DateUtils.getZoneId()));
+          dateUtils.getZoneId()));
       trnInput.setComments(row.get(comments));
       trnInput.setTradeCashRate(shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
           ? null : tradeRate);

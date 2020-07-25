@@ -8,13 +8,17 @@ import java.time.*
 class MarketUtils {
     private val dateUtils = DateUtils()
 
+    fun getLastMarketDate(date: LocalDate, market: Market): LocalDate {
+        return getLastMarketDate(date.atTime(LocalTime.now()), market)
+    }
+
     fun getLastMarketDate(localDateTime: LocalDateTime, // Callers date/time
                           market: Market,
                           isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localDateTime.toLocalDate()))
     ): LocalDate {
         return if (isCurrent) {
             // Resolve if "today" has prices available taking into account all variables
-            val zonedLocal = ZonedDateTime.ofLocal(localDateTime, DateUtils.getZoneId(), ZoneOffset.UTC)
+            val zonedLocal = ZonedDateTime.ofLocal(localDateTime, ZoneId.systemDefault(), ZoneOffset.UTC)
             val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
             val zonedRemote = ZonedDateTime.ofLocal(
                     LocalDateTime.of(marketLocal.toLocalDate(), market.priceTime),
@@ -23,7 +27,7 @@ class MarketUtils {
 
             var daysToSubtract = market.daysToSubtract
             // Is requested date on or after when prices are available?
-            if (zonedLocal >= zonedRemote.withZoneSameInstant(DateUtils.getZoneId())) {
+            if (zonedLocal >= zonedRemote.withZoneSameInstant(ZoneId.systemDefault())) {
                 daysToSubtract = 0
             }
             getLastMarketDate(marketLocal.toLocalDateTime(), daysToSubtract)
@@ -32,6 +36,10 @@ class MarketUtils {
             getLastMarketDate(localDateTime, 0)
         }
 
+    }
+
+    fun getLastMarketDate(date: LocalDate, daysToSubtract: Int): Any {
+        return getLastMarketDate(date.atStartOfDay(), daysToSubtract)
     }
 
     /**
@@ -56,10 +64,6 @@ class MarketUtils {
         } else {
             evaluate.dayOfWeek != DayOfWeek.SATURDAY
         }
-    }
-
-    fun getLastMarketDate(date: LocalDate, daysToSubtract: Int): Any {
-        return getLastMarketDate(date.atStartOfDay(), daysToSubtract)
     }
 
 }

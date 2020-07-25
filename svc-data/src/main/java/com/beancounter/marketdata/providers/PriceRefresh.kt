@@ -16,17 +16,19 @@ class PriceRefresh internal constructor(
         private val assetService: AssetService,
         private val marketDataService: MarketDataService
 ) {
+    private val dateUtils = DateUtils()
+
     @Transactional(readOnly = true)
     @Async("priceExecutor")
     fun updatePrices() {
-        log.info("Updating Prices {}", LocalDateTime.now(DateUtils.getZoneId()))
+        log.info("Updating Prices {}", LocalDateTime.now(dateUtils.getZoneId()))
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets!!) {
             marketDataService.getPriceResponse(AssetInput(assetService.hydrateAsset(asset)))
             assetCount.getAndIncrement()
         }
-        log.info("Price update completed for {} assets @ {}", assetCount.get(), LocalDateTime.now(DateUtils.getZoneId()))
+        log.info("Price update completed for {} assets @ {}", assetCount.get(), LocalDateTime.now(dateUtils.getZoneId()))
     }
 
     companion object {

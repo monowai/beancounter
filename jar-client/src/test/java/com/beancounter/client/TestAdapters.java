@@ -13,6 +13,7 @@ import com.beancounter.common.exception.BusinessException;
 import com.beancounter.common.input.TrnInput;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.PortfolioUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -27,6 +28,9 @@ public class TestAdapters {
 
   @Autowired
   private ShareSightConfig shareSightConfig;
+
+  @Autowired
+  private DateUtils dateUtils;
 
   @MockBean
   private AssetIngestService assetIngestService;
@@ -67,7 +71,7 @@ public class TestAdapters {
         new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
 
     ShareSightTradeAdapter tradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, dateUtils);
 
     assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(trustedTrnImportRequest));
@@ -88,7 +92,7 @@ public class TestAdapters {
         new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
 
     ShareSightTradeAdapter tradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, dateUtils);
 
     assertThrows(BusinessException.class, ()
         -> tradeAdapter.from(trustedTrnImportRequest));
@@ -107,7 +111,7 @@ public class TestAdapters {
     row.add(ShareSightTradeAdapter.quantity, "quantity");
     row.add(ShareSightTradeAdapter.price, "price");
     ShareSightTradeAdapter shareSightTradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, dateUtils);
     assertThat(shareSightTradeAdapter.isValid(row)).isTrue();
 
   }
@@ -130,7 +134,7 @@ public class TestAdapters {
     row.add(ShareSightTradeAdapter.comments, null);
 
     ShareSightTradeAdapter shareSightTradeAdapter =
-        new ShareSightTradeAdapter(shareSightConfig, assetIngestService);
+        new ShareSightTradeAdapter(shareSightConfig, assetIngestService, dateUtils);
     when(assetIngestService.resolveAsset("NYSE", "ABC"))
         .thenReturn(AssetUtils.getAsset("NYSE", "ABC"));
     TrnInput result = shareSightTradeAdapter.from(

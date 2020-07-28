@@ -72,7 +72,7 @@ public class TestKafka {
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(TestKafka.class);
   private final ObjectMapper objectMapper = getObjectMapper();
   @Autowired
-  private DateUtils dateUtils ;
+  private DateUtils dateUtils;
   // Setup so that the wiring is tested
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired

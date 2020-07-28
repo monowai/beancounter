@@ -12,11 +12,12 @@ import java.time.LocalDateTime
 @EnableTransactionManagement
 @Service
 class ScheduledValuation(private val priceRefresh: PriceRefresh) {
+    lateinit var dateUtils: DateUtils
 
-    private val dateUtils = DateUtils()
     @Bean
-    fun assetsSchedule ( @Value("\${assets.schedule:0 */30 7-18 ? * Tue-Sat}") schedule: String): String {
-        log.info("ASSETS_SCHEDULE: {}", schedule)
+    fun assetsSchedule ( @Value("\${assets.schedule:0 */30 7-18 ? * Tue-Sat}") schedule: String, dateUtils: DateUtils): String {
+        log.info("ASSETS_SCHEDULE: {}, ZONE: {}", schedule, dateUtils.defaultZone)
+        this.dateUtils = dateUtils
         return schedule
     }
 

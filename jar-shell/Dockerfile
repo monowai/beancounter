@@ -10,6 +10,8 @@ ENV GIT_COMMIT ${GIT_COMMIT}
 ENV VERSION ${VERSION}
 ENV API_PATH /secrets/google-api/
 
+VOLUME /tmp
+
 RUN mkdir /app && \
     mkdir /demo && \
     mkdir /import && \

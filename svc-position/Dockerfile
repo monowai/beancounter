@@ -8,12 +8,14 @@ ARG VERSION
 ENV GIT_COMMIT ${GIT_COMMIT}
 ENV VERSION ${VERSION}
 
-RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
+VOLUME /tmp
 
 RUN mkdir /app
 WORKDIR /app
 
 EXPOSE 9500 9501
+
+RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
 
 COPY ${JAR_FILE} app.jar
 COPY build/resources/main/application.yml .

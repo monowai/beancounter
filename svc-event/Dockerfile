@@ -10,8 +10,9 @@ ENV VERSION ${VERSION}
 
 EXPOSE 9520 9521
 
-RUN mkdir /app
+VOLUME /tmp
 
+RUN mkdir /app
 WORKDIR /app
 
 COPY ${JAR_FILE} app.jar

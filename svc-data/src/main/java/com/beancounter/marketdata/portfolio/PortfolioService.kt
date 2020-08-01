@@ -90,7 +90,7 @@ class PortfolioService internal constructor(
         val found = portfolioRepository
                 .findByCodeAndOwner(code.toUpperCase(), systemUser)
         val portfolio = found.orElseThrow {
-            BusinessException(String.format("Could not find a portfolio with code %s for %s",
+            BusinessException(String.format("Could not find a portfolio with code %s owned by %s",
                     code,
                     systemUser.id))
         }

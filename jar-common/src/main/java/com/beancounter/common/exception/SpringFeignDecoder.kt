@@ -58,14 +58,10 @@ class SpringFeignDecoder : ErrorDecoder {
             exceptionMessage.status = response.status()
             return exceptionMessage.message
         }
-        response.body().asReader(StandardCharsets.UTF_8)
-                .use { reader ->
-                    val result = CharStreams.toString(reader)
+        val readr = CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
+        val exceptionMessage = mapper.readValue(readr,
+                SpringExceptionMessage::class.java)
+        return exceptionMessage.message
 
-                    //init the Pojo
-                    val exceptionMessage = mapper.readValue(result,
-                            SpringExceptionMessage::class.java)
-                    return exceptionMessage.message
-                }
     }
 }

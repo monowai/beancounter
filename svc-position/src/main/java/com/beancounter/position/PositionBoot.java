@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
     scanBasePackageClasses = {
         AuthServerConfig.class,
         ClientConfig.class},
-    scanBasePackages = {"com.beancounter.position"})
+    scanBasePackages = {"com.beancounter.position", "com.beancounter.common.exception"})
 @EnableFeignClients
 public class PositionBoot {
   public static void main(String[] args) {

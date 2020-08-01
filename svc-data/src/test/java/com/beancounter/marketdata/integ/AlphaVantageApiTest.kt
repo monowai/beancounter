@@ -13,10 +13,10 @@ import com.beancounter.common.utils.BcJson.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.config.PriceSchedule
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.providers.ScheduledValuation
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter
 import com.beancounter.marketdata.providers.alpha.AlphaService
@@ -80,7 +80,7 @@ internal class AlphaVantageApiTest {
     private lateinit var priceService: PriceService
 
     @Autowired
-    private lateinit var scheduledValuation: ScheduledValuation
+    private lateinit var priceSchedule: PriceSchedule
 
     @Autowired
     private lateinit var assetService: AssetService
@@ -131,7 +131,7 @@ internal class AlphaVantageApiTest {
                 .andReturn()
         val (data) = objectMapper
                 .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        scheduledValuation.updatePrices()
+        priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes
         val price = marketDataService.getPriceResponse(AssetInput(data))
         assertThat(price).hasNoNullFieldsOrProperties()

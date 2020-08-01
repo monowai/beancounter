@@ -6,13 +6,26 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.EnableAsync
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
-class EventSchedule(private val eventService: EventService) {
+@EnableScheduling
+@EnableAsync
+@Configuration
+class EventSchedule(private val eventService: EventService, private val dateUtils: DateUtils) {
+
     private var loginService: LoginService? = null
-    private lateinit var dateUtils: DateUtils
+
+    @Bean
+    fun scheduleZone(): String {
+        log.info("BEANCOUNTER_ZONE: {}", dateUtils.defaultZone)
+        return dateUtils.defaultZone
+    }
+
 
     @Autowired(required = false)
     fun setLoginService(loginService: LoginService?) {
@@ -20,8 +33,7 @@ class EventSchedule(private val eventService: EventService) {
     }
 
     @Bean
-    fun eventsSchedule (@Value("\${events.schedule:0 */30 7-18 ? * Mon-Sat}") schedule: String, dateUtils: DateUtils): String {
-        this.dateUtils = dateUtils
+    fun eventsSchedule (@Value("\${events.schedule:0 */30 7-18 ? * Mon-Sat}") schedule: String): String {
         log.info("EVENT_SCHEDULE: {}, ZONE: {}", schedule, dateUtils.defaultZone)
         return schedule
     }

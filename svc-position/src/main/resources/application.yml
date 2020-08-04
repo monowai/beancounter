@@ -6,11 +6,19 @@ server:
 management:
   server:
     port: 9501
+    servlet:
+      context-path: /
   endpoint:
-    health.show-details: always
+    health:
+      show-details: always
   endpoints:
     web:
-      exposure.include: '*'
+      exposure:
+        include: "*"
+
+# Requires bearer auth in default config
+# http://localhost:9501/actuator/circuitbreakerevents
+
 
 marketdata:
   url: "http://localhost:9510/api"
@@ -59,8 +67,6 @@ feign:
         readTimeout: 50000
         connectTimeout: 5000
         errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
-
-    # http://localhost:9500/actuator/circuitbreaker-events/marketdata
 
 resilience4j.circuitbreaker:
   configs:

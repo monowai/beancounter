@@ -10,8 +10,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @ComponentScan("com.beancounter.auth.server")
 public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
   private final JwtRoleConverter jwtRoleConverter;
-  @Value("${auth.pattern:/**}")
+  @Value("${auth.pattern:/api/**}")
   private String authPattern;
+
+  @Value("${management.server.servlet.context-path:/management}")
+  private String actuatorPattern;
 
   public ResourceServerConfig(JwtRoleConverter jwtRoleConverter) {
     this.jwtRoleConverter = jwtRoleConverter;
@@ -22,8 +25,9 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
     http.cors().and()
         .authorizeRequests()
         // Scope permits access to the API - basically, "caller is authorised"
+        .mvcMatchers(actuatorPattern + "/actuator/**").hasRole(RoleHelper.OAUTH_ADMIN)
         .mvcMatchers(authPattern).hasAuthority(RoleHelper.SCOPE_BC)
-        .anyRequest().permitAll()
+        .anyRequest().authenticated()
         .and()
         .oauth2ResourceServer()
         .jwt()

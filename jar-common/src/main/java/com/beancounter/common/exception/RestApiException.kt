@@ -1,5 +1,6 @@
 package com.beancounter.common.exception
 
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -7,11 +8,29 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import java.net.ConnectException
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @ControllerAdvice
 class RestApiException {
+    companion object {
+        private val log = LoggerFactory.getLogger(RestApiException::class.java)
+    }
+
+    @ExceptionHandler(ConnectException::class)
+    fun handleSystemException(request: HttpServletRequest, e: Throwable): ResponseEntity<Any> {
+        val error = SpringExceptionMessage(
+                Date(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Unable to contact dependent system.",
+                e.message, request.requestURI
+
+        )
+        log.error(e.message)
+        return ResponseEntity(error, HttpHeaders(), HttpStatus.BAD_REQUEST)
+    }
+
     @ExceptionHandler(BusinessException::class)
     fun handleBusinessException(request: HttpServletRequest, e: Throwable): ResponseEntity<Any> {
         val error = SpringExceptionMessage(

@@ -6,12 +6,14 @@ server:
 management:
   server:
     port: 9511
+    servlet:
+      context-path: /
   endpoint:
     health.show-details: always
   endpoints:
     web:
-      exposure.include: '*'
-      base-path: "/"
+      exposure:
+        include: "*"
 
 logging:
   level:
@@ -69,11 +71,6 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: bc-data
-#      properties:
-#        spring.json.trusted.packages: com.beancounter.common.input
-#        spring.json.use.type.headers: false
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-
 
 
 kafka:

@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -22,7 +23,7 @@ class TrnService internal constructor(
         return trnGateway.write(tokenService.bearerToken, trnRequest)
     }
 
-    // Figure out service to service tokens
+    @CircuitBreaker(name = "default")
     fun query(trustedTrnQuery: TrustedTrnQuery): TrnResponse {
         return trnGateway.read(tokenService.bearerToken, trustedTrnQuery)
     }

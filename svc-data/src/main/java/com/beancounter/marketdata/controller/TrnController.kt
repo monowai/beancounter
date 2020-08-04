@@ -3,6 +3,7 @@ package com.beancounter.marketdata.controller
 import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -80,6 +81,9 @@ class TrnController {
     @PostMapping(value = ["/query"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun findByAsset(
             @RequestBody query: TrustedTrnQuery): TrnResponse {
+        if ( query.portfolio.id == "abc") {
+            throw SystemException("You can't touch this")
+        }
         return trnService.findByPortfolioAsset(
                 query.portfolio,
                 query.assetId,

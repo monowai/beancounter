@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping
 @CrossOrigin("*")
 @PreAuthorize(value = "hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
-class PositionController
-@Autowired
-internal constructor(private val portfolioServiceClient: PortfolioServiceClient) {
+class PositionController constructor(private val portfolioServiceClient: PortfolioServiceClient) {
     private lateinit var valuationService: Valuation
 
     @Autowired

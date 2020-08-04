@@ -7,8 +7,8 @@ const SVC_DATA = "SVC_DATA";
 const KAFKA_URL = "KAFKA_URL";
 const KAFKA_TOPIC_TRN = "KAFKA_TOPIC_TRN";
 const KC_URL = "KC_URL";
-const KC_REALM = "KC_REALM";
-const KC_CLIENT = "KC_CLIENT";
+const AUTH_REALM = "AUTH_REALM";
+const AUTH_CLIENT = "AUTH_CLIENT";
 
 function runtimeConfig(): BcOptions {
   return typeof window !== "undefined" && window.env !== "undefined"
@@ -19,8 +19,8 @@ function runtimeConfig(): BcOptions {
         kafkaUrl: "undefined",
         topicCsvTrn: "undefined",
         kcUrl: window.env ? window.env.kcUrl : serverEnv(KC_URL, "http://keycloak:9620/auth"),
-        kcRealm: window.env ? window.env.kcRealm : serverEnv(KC_REALM, "bc-dev"),
-        kcClient: window.env ? window.env.kcClient : serverEnv(KC_CLIENT, "bc-dev"),
+        kcRealm: window.env ? window.env.kcRealm : serverEnv(AUTH_REALM, "bc-dev"),
+        kcClient: window.env ? window.env.kcClient : serverEnv(AUTH_CLIENT, "bc-dev"),
       }
     : {
         // server
@@ -29,8 +29,8 @@ function runtimeConfig(): BcOptions {
         kafkaUrl: serverEnv(KAFKA_URL, "kafka:9092"),
         topicCsvTrn: serverEnv(KAFKA_TOPIC_TRN, "bc-trn-csv-dev"),
         kcUrl: serverEnv(KC_URL, "http://keycloak:9620/auth"),
-        kcRealm: serverEnv(KC_REALM, "bc-dev"),
-        kcClient: serverEnv(KC_CLIENT, "bc-dev"),
+        kcRealm: serverEnv(AUTH_REALM, "bc-dev"),
+        kcClient: serverEnv(AUTH_CLIENT, "bc-dev"),
       };
 }
 

@@ -32,7 +32,7 @@ class WtdConfig : DataProviderConfig {
     @set:Autowired
     var marketConfig: MarketConfig? = null
     var dateUtils = DateUtils()
-    var marketUtils = MarketUtils()
+    var marketUtils = MarketUtils(dateUtils)
 
     private fun translateMarketCode(market: Market): String? {
         return (marketConfig!!.getProviders()[market.code] ?: error("Missing Market")).aliases[WtdService.ID]

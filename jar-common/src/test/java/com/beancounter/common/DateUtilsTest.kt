@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.util.*
 
 internal class DateUtilsTest {
-    val dateUtils = DateUtils()
+    private val dateUtils = DateUtils()
 
     @Test
     fun is_Today() {
@@ -17,6 +17,15 @@ internal class DateUtilsTest {
         assertThat(dateUtils.isToday(null)).isTrue()
         assertThat(dateUtils.isToday("")).isTrue()
         assertThat(dateUtils.isToday(" ")).isTrue()
+    }
+
+    @Test
+    fun is_ZonedDateCorrect() {
+        assertThat(dateUtils.getZoneId().id).isEqualTo(TimeZone.getDefault().id)
+        val laTz = TimeZone.getTimeZone("America/Los_Angeles")
+        val laDates = DateUtils("America/Los_Angeles")
+        assertThat(laDates.defaultZone).isEqualTo(laTz.id)
+        assertThat(laDates.getZoneId().id).isEqualTo(TimeZone.getTimeZone("America/Los_Angeles").id)
     }
 
     @Test

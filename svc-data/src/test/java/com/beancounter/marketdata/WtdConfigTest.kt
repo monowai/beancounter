@@ -17,7 +17,7 @@ import java.time.ZonedDateTime
 
 class WtdConfigTest {
     private val dateUtils = DateUtils()
-    private val marketUtils = MarketUtils()
+    private val marketUtils = MarketUtils(dateUtils)
 
     private val mapper = objectMapper
 

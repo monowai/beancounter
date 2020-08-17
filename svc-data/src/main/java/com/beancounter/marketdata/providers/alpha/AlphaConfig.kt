@@ -17,7 +17,7 @@ class AlphaConfig : DataProviderConfig {
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
     var dateUtils = DateUtils()
-    var marketUtils = MarketUtils()
+    var marketUtils = MarketUtils(dateUtils)
 
     override fun getBatchSize(): Int {
         return 1

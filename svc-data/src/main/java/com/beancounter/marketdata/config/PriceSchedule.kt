@@ -22,14 +22,12 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
 
     @Bean
     fun scheduleZone(): String {
-        log.info("Scheduling enabled")
-        log.info("SCHEDULE_ZONE: {}", dateUtils.defaultZone)
         return dateUtils.defaultZone
     }
 
     @Bean
     fun assetsSchedule (@Value("\${assets.schedule:0 */30 7-18 ? * Tue-Sat}") schedule: String): String {
-        log.info("ASSETS_SCHEDULE: {}, ZONE: {}", schedule, dateUtils.defaultZone)
+        log.info("ASSETS_SCHEDULE: {}, BEANCOUNTER_ZONE: {}", schedule, dateUtils.defaultZone)
         return schedule
     }
 

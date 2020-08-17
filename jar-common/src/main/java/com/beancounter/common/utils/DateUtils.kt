@@ -18,10 +18,8 @@ import java.util.*
  */
 
 @Component
-class DateUtils {
-
-    @Value("\${beancounter.zone:#{null}}")
-    var defaultZone: String = TimeZone.getDefault().id
+class DateUtils ( @Value("\${beancounter.zone:#{null}}")
+                     val defaultZone: String = TimeZone.getDefault().id) {
 
     private val defaultFormatter = SimpleDateFormat(format)
 

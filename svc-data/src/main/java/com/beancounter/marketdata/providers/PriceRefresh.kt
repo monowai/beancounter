@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger
 @Service
 class PriceRefresh internal constructor(
         private val assetService: AssetService,
-        private val marketDataService: MarketDataService
+        private val marketDataService: MarketDataService,
+        private val dateUtils: DateUtils
 ) {
-    private val dateUtils = DateUtils()
 
     @Transactional(readOnly = true)
     @Async("priceExecutor")

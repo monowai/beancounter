@@ -30,7 +30,7 @@ object WtdMockUtils {
     const val WTD_PATH = "/contracts/wtd"
     private val mapper = objectMapper
     private val dateUtils = DateUtils()
-    private val marketUtils = MarketUtils()
+    private val marketUtils = MarketUtils(dateUtils)
     private val zonedDateTime = LocalDate.now(dateUtils.getZoneId()).atStartOfDay()
 
     @JvmStatic

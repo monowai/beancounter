@@ -12,7 +12,7 @@ import java.time.LocalTime
 
 internal class MarketUtilsTest {
     private var dateUtils = DateUtils()
-    private var marketUtils = MarketUtils()
+    private var marketUtils = MarketUtils(dateUtils)
     private val nasdaq = Market("NASDAQ", Currency("USD"), "US/Eastern")
 
     @Test

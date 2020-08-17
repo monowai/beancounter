@@ -21,9 +21,10 @@ class PortfolioService internal constructor(
         private val portfolioInputAdapter: PortfolioInputAdapter,
         private val portfolioRepository: PortfolioRepository,
         private val trnRepository: TrnRepository,
-        private val systemUserService: SystemUserService
+        private val systemUserService: SystemUserService,
+        private val dateUtils: DateUtils
 ) {
-    private val dateUtils = DateUtils()
+
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = orThrow
         val results: MutableCollection<Portfolio> = ArrayList()

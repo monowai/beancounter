@@ -5,8 +5,7 @@ import org.springframework.stereotype.Component
 import java.time.*
 
 @Component
-class MarketUtils {
-    private val dateUtils = DateUtils()
+class MarketUtils(private val dateUtils: DateUtils) {
 
     fun getLastMarketDate(date: LocalDate, market: Market): LocalDate {
         return getLastMarketDate(date.atTime(LocalTime.now()), market)

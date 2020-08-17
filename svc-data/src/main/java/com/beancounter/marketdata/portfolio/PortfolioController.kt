@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/portfolios")
 @PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
-class PortfolioController internal constructor(private val portfolioService: PortfolioService) {
-    private val dateUtils = DateUtils()
+class PortfolioController internal constructor(private val portfolioService: PortfolioService,
+                                               private val dateUtils: DateUtils) {
 
     @get:GetMapping
     val portfolios: PortfoliosResponse

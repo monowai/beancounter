@@ -2,6 +2,7 @@ package com.beancounter.marketdata.integ
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.config.MarketConfig
 import com.beancounter.marketdata.currency.CurrencyRepository
@@ -28,13 +29,15 @@ import java.util.*
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = [MarketService::class, CurrencyService::class, MarketConfig::class])
+@SpringBootTest(classes = [MarketService::class, CurrencyService::class, MarketConfig::class, DateUtils::class])
 @EntityScan(basePackageClasses = [Currency::class])
 @EnableAutoConfiguration
 @EnableJpaRepositories(basePackageClasses = [CurrencyRepository::class])
 internal class StaticDataTest @Autowired constructor(private val marketService: MarketService,
-                                                     private val currencyService: CurrencyService) {
-    private val marketUtils = MarketUtils()
+                                                     private val currencyService: CurrencyService,
+                                                     private val dateUtils: DateUtils) {
+
+    private val marketUtils = MarketUtils(dateUtils)
 
     @Test
     fun is_FoundForAlias() {

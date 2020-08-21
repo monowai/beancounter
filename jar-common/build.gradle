@@ -23,7 +23,7 @@ dependencies() {
             "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion",
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.+",
             "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.openfeign:feign-core:$openFeign",
             "org.springframework.kafka:spring-kafka:$springKafka",

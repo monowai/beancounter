@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        openFeign = "10.9"
+        openFeign = "11.0"
         springWeb = "5.2.7.RELEASE"
         guava = "29.0-android"
         springKafka = "2.5.2.RELEASE"

@@ -13,17 +13,17 @@ executors:
 jobs:
   build-app:
     docker:
-      - image: circleci/node
+      - image: circleci/node:14
     environment:
       IMAGE_NAME: bc-app
     steps:
       - checkout
       - restore_cache:
           keys:
-            - yarn-cache-{{ checksum "./bc-view/yarn.lock" }}
+            - yarn-cache2-{{ checksum "~/project/bc-view/yarn.lock" }}
       - run:
           name: Install Dependencies
-          command: cd ./bc-view && pwd && yarn install
+          command: cd ./bc-view && yarn install
       - run:
           name: Test with coverage
           command: cd ./bc-view && yarn test --ci --coverage --reporters=default --reporters=jest-junit
@@ -31,7 +31,7 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: "./reports/junit"
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-cache-{{ checksum "~/project/bc-view/yarn.lock" }}
+          key: yarn-cache2-{{ checksum "~/project/bc-view/yarn.lock" }}
           paths:
             - ~/.cache/yarn
             - ./bc-view/node_modules
@@ -39,7 +39,8 @@ jobs:
           path: bc-view/reports/junit
       - store_artifacts:
           path: bc-view/reports/junit
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 18.09.3
       - run:
           name: Package BC-VIEW
           command: |
@@ -57,6 +58,10 @@ jobs:
       IMAGE_NAME: bc-data
 
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87
+"
       - checkout
       - restore_cache:
           keys:
@@ -88,7 +93,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
@@ -116,7 +121,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
@@ -154,7 +159,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
 
       - restore_cache:
           keys:
@@ -189,7 +194,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
 
       - restore_cache:
           keys:
@@ -224,7 +229,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "3c:d5:17:fb:41:7c:f2:b1:fe:cd:e4:75:99:34:2e:e2"
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
 
       - restore_cache:
           keys:

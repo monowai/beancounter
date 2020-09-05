@@ -28,7 +28,10 @@ class PriceRefresh internal constructor(
             marketDataService.getPriceResponse(AssetInput(assetService.hydrateAsset(asset)))
             assetCount.getAndIncrement()
         }
-        log.info("Price update completed for {} assets @ {}", assetCount.get(), LocalDateTime.now(dateUtils.getZoneId()))
+        log.info("Price update completed for {} assets @ {} - {}",
+                assetCount.get(),
+                LocalDateTime.now(dateUtils.getZoneId()),
+                dateUtils.getZoneId().id)
     }
 
     companion object {

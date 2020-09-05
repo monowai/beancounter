@@ -22,6 +22,7 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
 
     @Bean
     fun scheduleZone(): String {
+        log.debug("Schedule zone {}, zoneId: {}", dateUtils.defaultZone, dateUtils.getZoneId().id)
         return dateUtils.defaultZone
     }
 
@@ -34,7 +35,9 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
 
     @Scheduled(cron = "#{@assetsSchedule}", zone = "#{@scheduleZone}")
     fun updatePrices() {
-        log.info("Scheduled price update starting {}", LocalDateTime.now(dateUtils.getZoneId()))
+        log.info("Scheduled price update starting {} - {}",
+                LocalDateTime.now(dateUtils.getZoneId()),
+                dateUtils.defaultZone)
         priceRefresh.updatePrices()
     }
 

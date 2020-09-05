@@ -52,6 +52,9 @@ class SellBehaviour : AccumulationStrategy {
             moneyValues.averageCost = BigDecimal.ZERO
             moneyValues.marketValue = BigDecimal.ZERO
             moneyValues.unrealisedGain = BigDecimal.ZERO
+            position.quantityValues.sold = BigDecimal.ZERO
+            position.quantityValues.adjustment = BigDecimal.ZERO
+            position.quantityValues.purchased = BigDecimal.ZERO
         }
         // If quantity changes, we need to update the cost Value
         averageCost.setCostValue(position, moneyValues)

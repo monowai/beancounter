@@ -51,16 +51,19 @@ internal class TestAccumulationOfQuantityValues {
                 .hasFieldOrPropertyWithValue("purchased", BigDecimal(200))
                 .hasFieldOrPropertyWithValue("sold", BigDecimal.ZERO)
                 .hasFieldOrPropertyWithValue("total", BigDecimal(200))
+        // Sell to zero
         val sell = Trn(TrnType.SELL, buyTrn.asset, BigDecimal(100))
         position = accumulator.accumulate(sell, portfolio, position)
+        // Track the money
         assertThat(position.quantityValues)
                 .hasFieldOrPropertyWithValue("sold", BigDecimal(-100))
                 .hasFieldOrPropertyWithValue("purchased", BigDecimal(200))
                 .hasFieldOrPropertyWithValue("total", BigDecimal(100))
         position = accumulator.accumulate(sell, portfolio, position)
+        // But reset the quantities
         assertThat(position.quantityValues)
-                .hasFieldOrPropertyWithValue("sold", BigDecimal(-200))
-                .hasFieldOrPropertyWithValue("purchased", BigDecimal(200))
+                .hasFieldOrPropertyWithValue("sold", BigDecimal(0))
+                .hasFieldOrPropertyWithValue("purchased", BigDecimal(0))
                 .hasFieldOrPropertyWithValue("total", BigDecimal(0))
     }
 }

@@ -33,7 +33,7 @@ class EventSchedule(private val eventService: EventService, private val dateUtil
     }
 
     @Bean
-    fun eventsSchedule (@Value("\${events.schedule:0 */30 7-18 ? * Mon-Sat}") schedule: String): String {
+    fun eventsSchedule (@Value("\${events.schedule:0 0/15 6-9 * * Tue-Sat}") schedule: String): String {
         log.info("EVENT_SCHEDULE: {}, ZONE: {}", schedule, dateUtils.defaultZone)
         return schedule
     }

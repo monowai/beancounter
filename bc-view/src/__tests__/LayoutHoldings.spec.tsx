@@ -21,8 +21,7 @@ nock(bff, {
   .replyWithFile(200, __dirname + "/__contracts__/zero-holdings.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json",
-  })
-  .log(console.log);
+  });
 
 describe("<ViewHoldings />", () => {
   it("matches snapshot when getData present", async () => {

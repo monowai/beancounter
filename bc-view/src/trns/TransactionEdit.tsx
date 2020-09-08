@@ -27,7 +27,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     // tradeDate: yup.date(),
   });
   const { register, handleSubmit } = useForm<TrnInput>({
-    validationSchema: schema,
+    resolver: schema,
   });
   const trnResult = useTransaction(portfolioId, trnId);
   const currencyResult = useCurrencies();

@@ -6,7 +6,7 @@ import React from "react";
 import { useKeycloak } from "@react-keycloak/razzle";
 
 export function ShowError(props: { error: AxiosError }): JSX.Element {
-  const { keycloak, initialized } = useKeycloak();
+  const { keycloak } = useKeycloak();
   if (props.error.code === "401" || props.error.response?.status === 401) {
     logger.debug("Login Redirect...");
     keycloak?.clearToken();

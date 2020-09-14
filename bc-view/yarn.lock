@@ -3385,10 +3385,10 @@ bulma-pageloader@^0.3.0:
   resolved "https://registry.yarnpkg.com/bulma-pageloader/-/bulma-pageloader-0.3.0.tgz#94a4ff7d9129cbe01dbc5cae4e64508e13563cf1"
   integrity sha512-lbahiqhBCov5AYdziHFnC5/JOhCrJWFTpdRiAkwW49IM/mf0whCWHVe8MuejZFu2PEs1mtH8Gnz8exEks4Q+7g==
 
-bulma-spacing@^1.0.2:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bulma-spacing/-/bulma-spacing-1.2.1.tgz#100b605d42e2f3811a8803288bea75872d976a10"
-  integrity sha512-vEFBsv9nwuLmxNe57rdMkLP59CJ9PGcKfNgxv7FgkvXfcw7pjLWnJoUlXQV71pLnSFYiPg6eub56eN9k2ATFhw==
+bulma-spacing@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/bulma-spacing/-/bulma-spacing-2.1.4.tgz#d1db697f9781f72e1b8a627d9da5bb71c8b482b4"
+  integrity sha512-p2/NluGToppikpAbG07AvQfek8osCG13p925gVov6MLw3FnAVkO8ipnyyAYopd6s1oGDsDKkZDowisubSrdmMQ==
 
 bulma@^0.9.0:
   version "0.9.0"

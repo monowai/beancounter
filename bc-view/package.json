@@ -60,7 +60,7 @@
     "@babel/preset-env": "^7.7.1",
     "@testing-library/dom": "^7.5.7",
     "@testing-library/jest-dom": "^5.5.0",
-    "@testing-library/react": "^11.0.0",
+    "@testing-library/react": "^11.0.4",
     "@types/axios": "^0.14.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.6",

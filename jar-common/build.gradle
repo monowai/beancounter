@@ -3,7 +3,7 @@ buildscript {
         openFeign = "10.9"
         springWeb = "5.2.7.RELEASE"
         guava = "29.0-android"
-        springKafka = "2.5.2.RELEASE"
+        springKafka = "2.6.1"
 
     }
 }

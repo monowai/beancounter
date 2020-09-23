@@ -79,7 +79,7 @@
     "@types/react-select": "^3.0.8",
     "@types/store": "^2.0.2",
     "@types/webpack": "^4.39.3",
-    "@types/webpack-env": "^1.14.0",
+    "@types/webpack-env": "^1.15.3",
     "@typescript-eslint/eslint-plugin": "^3.4",
     "@typescript-eslint/parser": "^2.33",
     "autoprefixer": "^9.7.0",

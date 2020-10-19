@@ -32,7 +32,7 @@ dependencies {
             "org.jetbrains.kotlin:kotlin-reflect",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "com.github.ben-manes.caffeine:caffeine:2.8.1",
-            "com.google.api-client:google-api-client:1.30.7",
+            "com.google.api-client:google-api-client:1.30.11",
             "com.google.oauth-client:google-oauth-client-jetty:1.30.6",
             "com.google.apis:google-api-services-sheets:v4-rev20200424-1.30.9",
             "org.springframework.kafka:spring-kafka",

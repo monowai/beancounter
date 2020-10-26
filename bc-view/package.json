@@ -80,7 +80,7 @@
     "@types/store": "^2.0.2",
     "@types/webpack": "^4.39.3",
     "@types/webpack-env": "^1.15.3",
-    "@typescript-eslint/eslint-plugin": "^3.4",
+    "@typescript-eslint/eslint-plugin": "^4.6",
     "@typescript-eslint/parser": "^2.33",
     "autoprefixer": "^9.7.0",
     "babel-jest": "^26.3.0",

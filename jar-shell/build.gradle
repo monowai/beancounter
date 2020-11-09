@@ -22,7 +22,7 @@ dependencies {
             project(":jar-client"),
             project(":jar-auth"),
             "org.springframework.shell:spring-shell-starter:2.0.1.RELEASE",
-            "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.5.RELEASE",
+            "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.6.RELEASE",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
             "org.springframework.security:spring-security-config:$springSecurityVersion",

@@ -32,6 +32,11 @@ spring:
     name: bc-position
   security:
     oauth2:
+      registration:
+        custom:
+          client-id: bc-service
+          client-secret: not-set
+          authorization-grant-type: client_credentials
       resourceserver:
         jwt:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"

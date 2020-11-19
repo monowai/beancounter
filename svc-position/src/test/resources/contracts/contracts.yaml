@@ -3,7 +3,7 @@ name: testPositions
 priority: 1
 request:
   method: GET
-  url: /TEST/2020-05-01?value=false
+  url: /id/TEST/2020-05-01?value=false
 
 response:
   status: 200

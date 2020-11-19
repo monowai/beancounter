@@ -17,8 +17,8 @@ interface PositionGateway {
     fun query(
             @RequestHeader("Authorization") bearerToken: String?, trnQuery: TrustedTrnQuery?): PositionResponse?
 
-    @RequestMapping(method = [RequestMethod.GET], value = ["/{code}/{asAt}?value=false"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @RequestMapping(method = [RequestMethod.GET], value = ["/id/{id}/{asAt}?value=false"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     operator fun get(
             @RequestHeader("Authorization") bearerToken: String?,
-            @PathVariable("code") code: String?, @PathVariable("asAt") asAt: String?): PositionResponse?
+            @PathVariable("id") code: String?, @PathVariable("asAt") asAt: String?): PositionResponse?
 }

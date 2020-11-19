@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("/prices")
-@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 class PriceController @Autowired internal constructor(
         private val marketDataService: MarketDataService,
         private val assetService: AssetService,

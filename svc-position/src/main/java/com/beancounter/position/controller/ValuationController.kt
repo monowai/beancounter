@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/value")
-@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 class ValuationController @Autowired internal constructor(private val valuationService: Valuation) {
     @PostMapping
     fun value(@RequestBody positions: PositionResponse): PositionResponse {

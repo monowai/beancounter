@@ -1,6 +1,7 @@
 package com.beancounter.auth.common;
 
 import com.beancounter.auth.client.LoginService;
+import com.beancounter.auth.server.RoleHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,5 +64,14 @@ public class TokenService {
       return null;
     }
     return token.getToken().getSubject();
+  }
+
+  public boolean isServiceToken() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null) {
+      return false;
+    }
+
+    return authentication.getAuthorities().contains(RoleHelper.AUTH_M2M);
   }
 }

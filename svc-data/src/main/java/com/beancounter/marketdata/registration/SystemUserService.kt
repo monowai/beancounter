@@ -17,6 +17,9 @@ class SystemUserService internal constructor(
         return systemUserRepository.save(systemUser)
     }
 
+    fun isServiceAccount(): Boolean {
+        return tokenService.isServiceToken()
+    }
     fun find(id: String): SystemUser? {
         return systemUserRepository.findById(id).orElse(null)
     }

@@ -75,8 +75,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         return null
     }
 
-    fun backFillEvents(code: String, date: String?) {
-        val (_, code1) = portfolioService.getPortfolioByCode(code)
+    fun backFillEvents(id: String, date: String?) {
         val asAt: String? = if (date == null || date.equals("today", ignoreCase = true)) {
             dateUtils.today()
         } else {
@@ -84,7 +83,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         }
         val results = positionGateway.get(
                         tokenService.bearerToken,
-                        code1,
+                        id,
                         asAt)
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]

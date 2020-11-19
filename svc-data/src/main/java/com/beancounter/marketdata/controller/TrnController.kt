@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/trns")
 @CrossOrigin
-@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 class TrnController {
     private lateinit var trnService: TrnService
     private lateinit var portfolioService: PortfolioService

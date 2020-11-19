@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -50,6 +49,7 @@ class StubbedEvents {
     @Autowired
     private lateinit var eventService: EventService
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
 
@@ -86,10 +86,10 @@ class StubbedEvents {
                 Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
                 BigDecimal("2.3400"))
         val saved = eventService.save(event)
-        Assertions.assertThat(saved.id).isNotNull()
+        assertThat(saved.id).isNotNull()
         val (id) = eventService.save(event)
-        Assertions.assertThat(id).isEqualTo(saved.id)
-        Assertions.assertThat(eventService.forAsset(event.assetId))
+        assertThat(id).isEqualTo(saved.id)
+        assertThat(eventService.forAsset(event.assetId))
                 .isNotNull
                 .hasSize(1)
 
@@ -98,8 +98,8 @@ class StubbedEvents {
                 .findInRange(
                         Objects.requireNonNull(event.recordDate).minusDays(2),
                         event.recordDate)
-        Assertions.assertThat(events).hasSize(1)
-        Assertions.assertThat(events.iterator().next()).isEqualToComparingFieldByField(saved)
+        assertThat(events).hasSize(1)
+        assertThat(events.iterator().next()).isEqualToComparingFieldByField(saved)
     }
 
     @Test
@@ -118,12 +118,12 @@ class StubbedEvents {
         )
         val eventInput = TrustedEventInput(corporateEvent)
         val trnEvents = eventService.processMessage(eventInput)
-        Assertions.assertThat(trnEvents).isNotNull.hasSize(1)
+        assertThat(trnEvents).isNotNull.hasSize(1)
 
         // Check the receiver gets what we send
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
         val events = eventService.forAsset("KMI")
-        Assertions.assertThat(events).hasSize(1)
+        assertThat(events).hasSize(1)
         val (id) = events.iterator().next()
         val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
 
@@ -135,14 +135,14 @@ class StubbedEvents {
         val eventsResponse = om.readValue(
                 mvcResult.response.contentAsString,
                 CorporateEventResponse::class.java)
-        Assertions.assertThat(eventsResponse).isNotNull.hasFieldOrProperty("data")
+        assertThat(eventsResponse).isNotNull.hasFieldOrProperty("data")
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
 
         // Back-fill Portfolio events up to, and as at, the supplied date
         val assetSpy = Mockito.spy(AssetService::class.java)
         positionService.setAssetService(assetSpy)
         mockMvc.perform(
-                MockMvcRequestBuilders.post("/backfill/{portfolioCode}/2020-05-01", portfolio.code)
+                MockMvcRequestBuilders.post("/backfill/{portfolioId}/2020-05-01", portfolio.id)
         ).andExpect(MockMvcResultMatchers.status().isAccepted)
                 .andReturn()
         Thread.sleep(400)
@@ -160,7 +160,7 @@ class StubbedEvents {
             portfolio: Portfolio,
             trnEvents: Collection<TrustedTrnEvent>,
             consumerRecord: ConsumerRecord<String, String>) {
-        Assertions.assertThat(consumerRecord.value()).isNotNull()
+        assertThat(consumerRecord.value()).isNotNull()
         val received = om.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
         val (portfolio1, _, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)

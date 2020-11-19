@@ -4,6 +4,7 @@ import com.beancounter.auth.server.RoleHelper
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.model.Portfolio
 import com.beancounter.position.service.Valuation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
@@ -27,11 +28,23 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
         this.valuationService = valuationService
     }
 
+    @GetMapping(value = ["/id/{id}/{valuationDate}"], produces = ["application/json"])
+    fun byId(@PathVariable id: String,
+                     @PathVariable(required = false) valuationDate: String?,
+                     @RequestParam(value = "value", defaultValue = "true") value: Boolean): PositionResponse {
+        val portfolio = portfolioServiceClient.getPortfolioById(id)
+        return getPositions(portfolio, valuationDate, value)
+    }
+
     @GetMapping(value = ["/{code}/{valuationDate}"], produces = ["application/json"])
-    operator fun get(@PathVariable code: String,
+    fun get(@PathVariable code: String,
                      @PathVariable(required = false) valuationDate: String?,
                      @RequestParam(value = "value", defaultValue = "true") value: Boolean): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
+        return getPositions(portfolio, valuationDate, value)
+    }
+
+    fun getPositions(portfolio: Portfolio, valuationDate: String?, value: Boolean): PositionResponse {
         var valDate = valuationDate
         if (valDate == null) {
             valDate = "today"

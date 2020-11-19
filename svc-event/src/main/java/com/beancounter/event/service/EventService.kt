@@ -87,8 +87,8 @@ class EventService(private val positionService: PositionService,
         return eventRepository.findByAssetId(assetId)
     }
 
-    fun backFillEvents(portfolioCode: String, valuationDate: String) {
-        positionService.backFillEvents(portfolioCode, valuationDate)
+    fun backFillEvents(portfolioId: String, valuationDate: String) {
+        positionService.backFillEvents(portfolioId, valuationDate)
     }
 
     fun findInRange(start: LocalDate, end: LocalDate): Collection<CorporateEvent> {

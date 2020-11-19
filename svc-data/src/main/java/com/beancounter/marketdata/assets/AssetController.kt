@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/assets")
 @CrossOrigin
-@PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 class AssetController @Autowired internal constructor(private val assetService: AssetService, private val marketDataService: MarketDataService) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse {

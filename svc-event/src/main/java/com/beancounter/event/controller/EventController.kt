@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.*
 @CrossOrigin("*")
 @PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 class EventController(private val eventService: EventService) {
-    @PostMapping(value = ["/backfill/{portfolioCode}/{valuationDate}"], produces = ["application/json"])
+    @PostMapping(value = ["/backfill/{portfolioId}/{valuationDate}"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.ACCEPTED)
-    operator fun get(@PathVariable portfolioCode: String,
+    operator fun get(@PathVariable portfolioId: String,
                      @PathVariable(required = false) valuationDate: String = "today") {
-        eventService.backFillEvents(portfolioCode, valuationDate)
+        eventService.backFillEvents(portfolioId, valuationDate)
     }
 
     @GetMapping(value = ["/{id}"], produces = ["application/json"])

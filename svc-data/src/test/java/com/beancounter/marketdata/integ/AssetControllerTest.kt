@@ -109,7 +109,7 @@ internal class AssetControllerTest {
                 mvcResult.response.contentAsString, AssetResponse::class.java
         )
         assertThat(data1)
-                .isEqualToComparingFieldByField(asset)
+                .usingRecursiveComparison().isEqualTo(asset)
 
         // By Market/Asset
         mvcResult = mockMvc.perform(
@@ -123,7 +123,7 @@ internal class AssetControllerTest {
         assertThat(objectMapper.readValue(
                 mvcResult.response.contentAsString, AssetResponse::class.java)
                 .data)
-                .isEqualToComparingFieldByField(asset)
+                .usingRecursiveComparison().isEqualTo(asset)
     }
 
     @Test
@@ -166,7 +166,7 @@ internal class AssetControllerTest {
         assetUpdateResponse = objectMapper
                 .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         val updatedAsset = assetUpdateResponse.data[toKey(asset)]
-        assertThat(updatedAsset).isEqualToComparingFieldByField(createdAsset)
+        assertThat(updatedAsset).usingRecursiveComparison().isEqualTo(createdAsset)
     }
 
     @Test

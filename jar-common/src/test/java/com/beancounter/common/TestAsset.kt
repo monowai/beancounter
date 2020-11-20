@@ -40,7 +40,7 @@ internal class TestAsset {
         val json = objectMapper.writeValueAsString(assetResponse)
         val fromJson = objectMapper.readValue(json, AssetResponse::class.java)
         assertThat(fromJson.data)
-                .isEqualToIgnoringGivenFields(assetResponse.data, "market")
+                .usingRecursiveComparison().isEqualTo(assetResponse.data)
     }
 
     @Test
@@ -58,7 +58,7 @@ internal class TestAsset {
         assertThat(data).hasSize(assetRequest.data.size)
         for (key in data.keys) {
             assertThat(data[key])
-                    .isEqualToComparingFieldByField(assetRequest.data[key])
+                    .usingRecursiveComparison().isEqualTo(assetRequest.data[key])
         }
     }
 
@@ -92,9 +92,7 @@ internal class TestAsset {
         assertThat(toKey(assetInput))
                 .isEqualTo(keyIn)
         assertThat(fromKey(keyIn))
-                .isEqualToIgnoringGivenFields(asset, "market")
-        assertThat(fromKey(keyIn).market)
-                .isEqualToComparingFieldByField(asset.market)
+                .usingRecursiveComparison().isEqualTo(asset)
     }
 
     @Test
@@ -138,8 +136,8 @@ internal class TestAsset {
         val json = objectMapper.writeValueAsString(searchResponse)
         val fromJson = objectMapper.readValue(json, AssetSearchResponse::class.java)
         assertThat(fromJson)
-                .isEqualToComparingFieldByField(searchResponse)
                 .hasNoNullFieldsOrProperties()
+                .usingRecursiveComparison().isEqualTo(searchResponse)
         assertThat(fromJson.data).isNotEmpty
         assertThat(fromJson.data.iterator().next().type).isNotNull()
     }

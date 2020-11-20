@@ -2,6 +2,7 @@ server:
   port: 9520
   servlet:
     context-path: '/api'
+  shutdown: graceful
 
 management:
   server:

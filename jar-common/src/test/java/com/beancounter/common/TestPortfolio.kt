@@ -27,7 +27,7 @@ internal class TestPortfolio {
         val portfoliosRequest = PortfoliosRequest(portfolioInputs)
         var json = objectMapper.writeValueAsString(portfoliosRequest)
         assertThat(objectMapper.readValue(json, PortfoliosRequest::class.java))
-                .isEqualToComparingFieldByField(portfoliosRequest)
+                .usingRecursiveComparison().isEqualTo(portfoliosRequest)
         val portfolios: MutableCollection<Portfolio> = ArrayList()
         portfolios.add(getPortfolio("TEST"))
         val portfoliosResponse = PortfoliosResponse(portfolios)
@@ -35,7 +35,7 @@ internal class TestPortfolio {
         val fromJson = objectMapper.readValue(json, PortfoliosResponse::class.java).data
         assertThat(fromJson).hasSize(portfoliosResponse.data.size)
         assertThat(fromJson.iterator().next())
-                .isEqualToIgnoringGivenFields(portfolios.iterator().next())
+                .usingRecursiveComparison().isEqualTo(portfolios.iterator().next())
     }
 
     @Test
@@ -43,7 +43,7 @@ internal class TestPortfolio {
         val portfolioResponse = PortfolioResponse(getPortfolio("TEST"))
         val json = objectMapper.writeValueAsString(portfolioResponse)
         assertThat(objectMapper.readValue(json, PortfolioResponse::class.java).data)
-                .isEqualToComparingFieldByField(portfolioResponse.data)
+                .usingRecursiveComparison().isEqualTo(portfolioResponse.data)
     }
 
     @Test

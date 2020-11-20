@@ -78,7 +78,7 @@ internal class EventControllerTest {
         val (data) = objectMapper.readValue(
                 mvcResult.response.contentAsString,
                 CorporateEventResponse::class.java)
-        assertThat(data).isEqualToComparingFieldByField(event)
+        assertThat(data).usingRecursiveComparison().isEqualTo(event)
         mvcResult = mockMvc.perform(
                 MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -88,6 +88,6 @@ internal class EventControllerTest {
                 CorporateEventsResponse::class.java)
         assertThat(events).isNotNull
         assertThat(events.data).hasSize(1)
-        assertThat(events.data.iterator().next()).isEqualToComparingFieldByField(event)
+        assertThat(events.data.iterator().next()).usingRecursiveComparison().isEqualTo(event)
     }
 }

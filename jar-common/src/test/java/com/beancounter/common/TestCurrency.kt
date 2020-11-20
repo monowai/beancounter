@@ -52,7 +52,7 @@ internal class TestCurrency {
         val report = "USD"
         val byCode = IsoCurrencyPair(report, trade)
         val byCurrency = toPair(currencyUtils.getCurrency(report), currencyUtils.getCurrency(trade))
-        assertThat(byCode).isEqualToComparingFieldByField(byCurrency)
+        assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
         assertThat(toPair(
                 currencyUtils.getCurrency(report), currencyUtils.getCurrency(report)))
                 .isNull()

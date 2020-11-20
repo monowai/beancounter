@@ -141,7 +141,7 @@ class PortfolioMvcTests {
         .andReturn().getResponse().getContentAsString();
 
     assertThat(objectMapper.readValue(result, PortfolioResponse.class))
-        .isEqualToComparingFieldByField(portfolioResponseByCode);
+        .usingRecursiveComparison().isEqualTo(portfolioResponseByCode);
 
     MvcResult mvcResult = mockMvc.perform(
         get("/portfolios")

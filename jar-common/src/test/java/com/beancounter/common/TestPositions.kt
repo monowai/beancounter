@@ -103,6 +103,7 @@ internal class TestPositions {
         val totals = Totals(BigDecimal("200.99"))
         val json = objectMapper.writeValueAsString(totals)
         val fromJson = objectMapper.readValue(json, Totals::class.java)
-        assertThat(fromJson).isEqualToComparingFieldByField(totals)
+        assertThat(fromJson)
+                .usingRecursiveComparison().isEqualTo(totals)
     }
 }

@@ -13,40 +13,55 @@ import Events from "./trns/Events";
 
 const __new__ = "new";
 const RouteHoldings = (): JSX.Element => {
-  const { portfolioId } = useParams();
+  const { portfolioId } = useParams<{
+    portfolioId: string;
+  }>();
   const pfId = portfolioId == undefined ? __new__ : portfolioId;
   return ViewHoldings(pfId);
 };
 
 const RoutePortfolio = (): JSX.Element => {
-  const { portfolioId } = useParams();
+  const { portfolioId } = useParams<{
+    portfolioId: string;
+  }>();
   const pfId = portfolioId == undefined ? __new__ : portfolioId;
   return PortfolioEdit(pfId);
 };
 
 const RouteTradeList = (): JSX.Element => {
-  const { portfolioId, assetId } = useParams();
+  const { portfolioId, assetId } = useParams<{
+    portfolioId: string;
+    assetId: string;
+  }>();
   const portfolio = portfolioId == undefined ? __new__ : portfolioId;
   const asset = assetId == undefined ? __new__ : assetId;
   return Trades(portfolio, asset);
 };
 
 const RouteEventList = (): JSX.Element => {
-  const { portfolioId, assetId } = useParams();
+  const { portfolioId, assetId } = useParams<{
+    portfolioId: string;
+    assetId: string;
+  }>();
   const portfolio = portfolioId == undefined ? __new__ : portfolioId;
   const asset = assetId == undefined ? __new__ : assetId;
   return Events(portfolio, asset);
 };
 
 const RouteTrnEdit = (): JSX.Element => {
-  const { portfolioId, trnId } = useParams();
+  const { portfolioId, trnId } = useParams<{
+    portfolioId: string;
+    trnId: string;
+  }>();
   const pId = portfolioId == undefined ? __new__ : portfolioId;
   const tId = trnId == undefined ? __new__ : trnId;
   return TransactionEdit(pId, tId);
 };
 
 const RoutePortfolioDelete = (): JSX.Element => {
-  const { portfolioId } = useParams();
+  const { portfolioId } = useParams<{
+    portfolioId: string;
+  }>();
   const pfId = portfolioId == undefined ? __new__ : portfolioId;
   return DeletePortfolio(pfId);
 };

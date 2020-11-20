@@ -5,6 +5,9 @@ import { MemoryRouter } from "react-router";
 
 describe("<App />", () => {
   test("renders without exploding", () => {
+    jest.mock("react-i18next", () => ({
+      useTranslation: () => ({ t: (key) => key }),
+    }));
     const div = document.createElement("div");
     ReactDOM.render(
       <MemoryRouter>

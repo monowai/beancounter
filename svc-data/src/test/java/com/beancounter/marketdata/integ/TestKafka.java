@@ -170,7 +170,7 @@ public class TestKafka {
     Asset expectedAsset = assetResponse.getData().get("MSFT");
 
     for (Trn trn : trnResponse.getData()) {
-      assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
+      assertThat(trn.getAsset()).usingRecursiveComparison().isEqualTo(expectedAsset);
       assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "123");
     }
   }
@@ -232,7 +232,7 @@ public class TestKafka {
     assertThat(response).isNotNull();
     assertThat(response.getData()).isNotNull().hasSize(1);
     for (Trn trn : response.getData()) {
-      assertThat(trn.getAsset()).isEqualToComparingFieldByField(expectedAsset);
+      assertThat(trn.getAsset()).usingRecursiveComparison().isEqualTo(expectedAsset);
       assertThat(trn.getCallerRef()).hasFieldOrPropertyWithValue("callerId", "10");
     }
   }

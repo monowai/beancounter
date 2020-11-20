@@ -49,10 +49,9 @@ internal class TestTrn {
         val fromJson = mapper.readValue(json, TrnRequest::class.java)
         assertThat<TrnInput>(fromJson.data).hasSize(1)
         val fromTrn: TrnInput = fromJson.data.iterator().next()
-        assertThat(fromTrn.callerRef).isEqualToComparingFieldByField(trnInput.callerRef)
+        assertThat(fromTrn.callerRef).usingRecursiveComparison().isEqualTo(trnInput.callerRef)
         assertThat(fromTrn)
-                .isEqualToIgnoringGivenFields(trnInput
-                        , "callerRef")
+                .usingRecursiveComparison().isEqualTo(trnInput)
     }
 
     @Test
@@ -95,7 +94,7 @@ internal class TestTrn {
         val fromNull: CallerRef = CallerRef.from(null, null)
         assertThat(fromNull).hasNoNullFieldsOrProperties()
         val id = CallerRef("provider", "batch", "456")
-        assertThat(CallerRef.from(id, null)).isEqualToComparingFieldByField(id)
+        assertThat(CallerRef.from(id, null)).usingRecursiveComparison().isEqualTo(id)
     }
 
     @Test

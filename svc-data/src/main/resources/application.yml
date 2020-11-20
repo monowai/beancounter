@@ -2,6 +2,7 @@ server:
   port: 9510
   servlet:
     context-path: '/api'
+  shutdown: graceful
 
 management:
   server:
@@ -43,6 +44,9 @@ auth:
   realm: "bc-dev"
 
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
   application:
     name: bc-data
   cache:

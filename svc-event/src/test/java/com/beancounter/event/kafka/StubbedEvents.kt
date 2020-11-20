@@ -99,7 +99,7 @@ class StubbedEvents {
                         Objects.requireNonNull(event.recordDate).minusDays(2),
                         event.recordDate)
         assertThat(events).hasSize(1)
-        assertThat(events.iterator().next()).isEqualToComparingFieldByField(saved)
+        assertThat(events.iterator().next()).usingRecursiveComparison().isEqualTo(saved)
     }
 
     @Test
@@ -164,7 +164,7 @@ class StubbedEvents {
         val received = om.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
         val (portfolio1, _, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)
-                .isEqualToComparingFieldByField(portfolio)
+                .usingRecursiveComparison().isEqualTo(portfolio)
         assertThat(received)
                 .isNotNull
                 .hasFieldOrProperty("trnInput")

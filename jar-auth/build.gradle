@@ -1,7 +1,8 @@
 buildscript {
     ext {
         springWebVersion = "5.2.9.RELEASE"
-        jackson = "2.10.2"
+        jacksonVersion = "2.11.+"
+        lombokVersion = "1.18.16"
 
     }
 }
@@ -24,12 +25,12 @@ dependencies {
             "javax.servlet:javax.servlet-api:4.0.1",
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
             "org.springframework:spring-webmvc:$springWebVersion",
             "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudOpenFeign",
             "org.springframework.security:spring-security-config:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.+",
             "org.jetbrains.kotlin:kotlin-reflect"
 
     )
@@ -40,7 +41,7 @@ dependencies {
     testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     testImplementation(
-            "org.junit.jupiter:junit-jupiter:$junitVersion",
+            "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core:$assertJ",
             "io.rest-assured:spring-mock-mvc:4.3.0",
             "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",

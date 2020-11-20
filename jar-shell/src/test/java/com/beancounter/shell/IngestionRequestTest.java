@@ -22,7 +22,7 @@ class IngestionRequestTest {
 
     String json = BcJson.getObjectMapper().writeValueAsString(ingestionRequest);
     assertThat(BcJson.getObjectMapper().readValue(json, IngestionRequest.class))
-        .isEqualToComparingFieldByField(ingestionRequest);
+        .usingRecursiveComparison().isEqualTo(ingestionRequest);
 
   }
 }

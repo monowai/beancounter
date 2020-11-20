@@ -172,7 +172,7 @@ class TestExceptions {
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(springExceptionMessage);
     SpringExceptionMessage fromJson = mapper.readValue(json, SpringExceptionMessage.class);
-    assertThat(fromJson).isEqualToComparingFieldByField(springExceptionMessage);
+    assertThat(fromJson).usingRecursiveComparison().isEqualTo(springExceptionMessage);
   }
 
 

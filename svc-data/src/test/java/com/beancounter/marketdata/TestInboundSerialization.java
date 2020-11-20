@@ -30,7 +30,7 @@ public class TestInboundSerialization {
         message.get("payload").toString(),
         TrustedTrnImportRequest.class);
 
-    assertThat(fromMsg.getPortfolio()).isEqualToComparingFieldByField(payload.getPortfolio());
+    assertThat(fromMsg.getPortfolio()).usingRecursiveComparison().isEqualTo(payload.getPortfolio());
     assertThat(fromMsg.getRow()).contains(payload.getRow().toArray(new String[] {}));
     assertThat(fromMsg.getCallerRef()).isNull();
   }

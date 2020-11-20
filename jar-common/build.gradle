@@ -3,7 +3,8 @@ buildscript {
         openFeign = "10.9"
         springWeb = "5.2.9.RELEASE"
         guava = "29.0-android"
-        springKafka = "2.6.1"
+        springKafka = "2.6.3"
+        jacksonVersion = "2.11.+"
 
     }
 }
@@ -23,7 +24,7 @@ dependencies() {
             "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion",
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.+",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
             "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.openfeign:feign-core:$openFeign",
             "org.springframework.kafka:spring-kafka:$springKafka",
@@ -36,10 +37,10 @@ dependencies() {
             "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion",
             "org.springframework.kafka:spring-kafka:$springKafka",
             "org.assertj:assertj-core:$assertJ",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.+",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
             "io.github.openfeign:feign-core:$openFeign",
             "org.springframework:spring-web:$springWeb",
-            "org.junit.jupiter:junit-jupiter:$junitVersion",
+            "org.junit.jupiter:junit-jupiter:5+",
             "com.google.guava:guava:$guava"
     )
 }

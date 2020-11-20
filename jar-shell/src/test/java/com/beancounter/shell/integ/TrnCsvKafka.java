@@ -98,7 +98,7 @@ public class TrnCsvKafka {
       assertThat(BcJson.getObjectMapper().readValue(
           received.value(),
           TrustedTrnImportRequest.class))
-          .isEqualToComparingFieldByField(trnRequest);
+          .usingRecursiveComparison().isEqualTo(trnRequest);
     } finally {
       consumer.close();
       embeddedKafkaBroker.destroy();

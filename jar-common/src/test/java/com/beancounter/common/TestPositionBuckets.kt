@@ -27,7 +27,7 @@ internal class TestPositionBuckets {
         val positionRequest = PositionRequest("ABC", ArrayList())
         var json: String = mapper.writeValueAsString(positionRequest)
         assertThat(mapper.readValue(json, PositionRequest::class.java))
-                .isEqualToComparingFieldByField(positionRequest)
+                .usingRecursiveComparison().isEqualTo(positionRequest)
         val positionResponse = PositionResponse(Positions(getPortfolio("ABC")))
         json = mapper.writeValueAsString(positionResponse)
         assertThat(mapper.readValue(json, PositionResponse::class.java))

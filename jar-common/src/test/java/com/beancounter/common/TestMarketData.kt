@@ -59,7 +59,7 @@ internal class TestMarketData {
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
         val json = objectMapper.writeValueAsString(quantityValues)
         AssertionsForClassTypes.assertThat(objectMapper.readValue(json, QuantityValues::class.java))
-                .isEqualToComparingFieldByField(quantityValues)
+                .usingRecursiveComparison().isEqualTo(quantityValues)
     }
 
     @Test
@@ -71,8 +71,8 @@ internal class TestMarketData {
         val json = objectMapper.writeValueAsString(priceRequest)
         val (_, assets1) = objectMapper.readValue(json, PriceRequest::class.java)
         AssertionsForClassTypes.assertThat(assets1.iterator().next())
-                .isEqualToIgnoringGivenFields(
-                        priceRequest.assets.iterator().next(), "market")
+                .usingRecursiveComparison().isEqualTo(
+                        priceRequest.assets.iterator().next())
     }
 
     companion object {

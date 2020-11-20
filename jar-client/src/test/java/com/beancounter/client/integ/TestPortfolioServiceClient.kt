@@ -26,7 +26,7 @@ class TestPortfolioServiceClient {
     fun is_PortfolioFinders() {
         val portfolioByCode = portfolioService.getPortfolioByCode("TEST")
         val portfolioById = portfolioService.getPortfolioById("TEST")
-        assertThat(portfolioByCode).isEqualToComparingFieldByField(portfolioById)
+        assertThat(portfolioByCode).usingRecursiveComparison().isEqualTo(portfolioById)
     }
 
     @Test

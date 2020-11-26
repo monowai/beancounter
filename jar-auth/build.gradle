@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springWebVersion = "5.2.9.RELEASE"
+        springWebVersion = "5.3.1"
         jacksonVersion = "2.11.+"
         lombokVersion = "1.18.16"
 

@@ -1,3 +1,10 @@
+buildscript {
+    ext {
+        jacksonVersion = "2.11.+"
+        lombokVersion = "1.18.+"
+    }
+}
+
 plugins {
     id "io.spring.dependency-management"
     id 'org.jetbrains.kotlin.jvm'
@@ -14,12 +21,12 @@ dependencies {
             project(":jar-common"),
             project(":jar-auth"),
             "com.google.guava:guava:29.0-android",
-            "com.fasterxml.jackson.core:jackson-databind:2.11.+",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.+",
+            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin",
-            "org.jetbrains.kotlin:kotlin-reflect",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
+            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
             "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",

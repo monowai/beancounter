@@ -45,12 +45,11 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
-            "org.jetbrains.kotlin:kotlin-reflect",
+            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
-            "org.jetbrains.kotlin:kotlin-reflect",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2", // Dev

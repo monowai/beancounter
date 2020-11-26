@@ -70,10 +70,10 @@ internal class TestAsset {
         assetMap[toKey(asset)] = asset
         assetMap["second"] = getJsonAsset("Whee", "Twee")
         val assetUpdateResponse = AssetUpdateResponse(assetMap)
-        assertThat<String, Asset>(assetUpdateResponse.data).containsKeys(toKey(asset))
+        assertThat(assetUpdateResponse.data).containsKeys(toKey(asset))
         val json = objectMapper.writeValueAsString(assetUpdateResponse)
         val fromJson = objectMapper.readValue(json, AssetUpdateResponse::class.java)
-        assertThat<String, Asset>(fromJson.data).containsKeys(toKey(asset))
+        assertThat(fromJson.data).containsKeys(toKey(asset))
     }
 
     @Test
@@ -98,7 +98,7 @@ internal class TestAsset {
     @Test
     fun is_AssetKeyExceptionsBeingThrown() {
         assertThrows(BusinessException::class.java) { fromKey("CodeWithNoMarket") }
-        assertThrows(KotlinNullPointerException::class.java
+        assertThrows(NullPointerException::class.java
         ) { getAsset((null as Market?)!!, "Twee") }
     }
 
@@ -126,8 +126,20 @@ internal class TestAsset {
     @Test
     @Throws(JsonProcessingException::class)
     fun is_SearchResponse() {
-        val searchResult = AssetSearchResult("Some Symbol", "Some Name", "Non Default", "Some Region", "USD")
-        val withDefaults = AssetSearchResult("Symbol", "Name", null, "Some Region", "USD")
+        val searchResult = AssetSearchResult(
+                "Some Symbol",
+                "Some Name",
+                "Non Default",
+                "Some Region",
+                "USD"
+        )
+        val withDefaults = AssetSearchResult(
+                "Symbol",
+                "Name",
+                null,
+                "Some Region",
+                "USD"
+        )
 
         val results: MutableCollection<AssetSearchResult> = ArrayList()
         results.add(searchResult)
@@ -139,7 +151,7 @@ internal class TestAsset {
                 .hasNoNullFieldsOrProperties()
                 .usingRecursiveComparison().isEqualTo(searchResponse)
         assertThat(fromJson.data).isNotEmpty
-        assertThat(fromJson.data.iterator().next().type).isNotNull()
+        assertThat(fromJson.data.iterator().next().type).isNotNull
     }
     @Test
     fun is_Something () {

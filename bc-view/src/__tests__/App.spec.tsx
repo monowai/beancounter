@@ -3,15 +3,16 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { MemoryRouter } from "react-router";
 
+jest.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (key) => key })
+}));
+
 describe("<App />", () => {
   test("renders without exploding", () => {
-    jest.mock("react-i18next", () => ({
-      useTranslation: () => ({ t: (key) => key }),
-    }));
     const div = document.createElement("div");
     ReactDOM.render(
       <MemoryRouter>
-        <App />
+        <App/>
       </MemoryRouter>,
       div
     );

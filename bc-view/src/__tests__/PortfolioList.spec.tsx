@@ -7,7 +7,7 @@ import { MemoryRouter } from "react-router";
 
 afterEach(cleanup);
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key) => key })
+  useTranslation: () => ({ t: (key) => key }),
 }));
 
 const bff = "http://localhost";

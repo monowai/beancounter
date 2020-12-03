@@ -10,7 +10,7 @@ const usd: Currency = { code: "USD", symbol: "$" };
 
 describe("<PortfolioStats />", () => {
   jest.mock("react-i18next", () => ({
-    useTranslation: () => ({ t: (key) => key })
+    useTranslation: () => ({ t: (key) => key }),
   }));
 
   it("should match snapshot", () => {
@@ -21,7 +21,7 @@ describe("<PortfolioStats />", () => {
       name: "",
       currency: usd,
       base: usd,
-      owner: owner
+      owner: owner,
     };
     const container = render(
       <table>

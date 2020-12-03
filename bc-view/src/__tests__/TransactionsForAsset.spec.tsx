@@ -9,18 +9,18 @@ afterEach(cleanup);
 
 const bff = "http://localhost";
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key) => key })
+  useTranslation: () => ({ t: (key) => key }),
 }));
 
 nock(bff, {
   reqheaders: {
-    authorization: "Bearer undefined"
-  }
+    authorization: "Bearer undefined",
+  },
 })
   .get("/bff/trns/test/asset/alphabet/trades")
   .replyWithFile(200, __dirname + "/__contracts__/trans-for-asset.json", {
     "Access-Control-Allow-Origin": "*",
-    "Content-type": "application/json"
+    "Content-type": "application/json",
   });
 
 nock(bff, {

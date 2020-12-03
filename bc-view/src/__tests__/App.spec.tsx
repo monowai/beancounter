@@ -4,7 +4,7 @@ import ReactDOM from "react-dom";
 import { MemoryRouter } from "react-router";
 
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key) => key })
+  useTranslation: () => ({ t: (key) => key }),
 }));
 
 describe("<App />", () => {
@@ -12,7 +12,7 @@ describe("<App />", () => {
     const div = document.createElement("div");
     ReactDOM.render(
       <MemoryRouter>
-        <App/>
+        <App />
       </MemoryRouter>,
       div
     );

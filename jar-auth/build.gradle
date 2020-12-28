@@ -3,7 +3,7 @@ buildscript {
         springWebVersion = "5.3.1"
         jacksonVersion = "2.11.+"
         lombokVersion = "1.18.+"
-        springCloudOpenFeign= "2.2.6.RELEASE"
+        springCloudOpenFeign= "3.0.0"
     }
 }
 

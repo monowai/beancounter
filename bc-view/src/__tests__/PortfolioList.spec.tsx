@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/extend-expect";
 import nock from "nock";
 import Portfolios from "../portfolio/Portfolios";
 import { MemoryRouter } from "react-router";
-
+//https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
 afterEach(cleanup);
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key) => key }),
@@ -30,7 +30,6 @@ describe("<Portfolios />", () => {
       </MemoryRouter>
     );
     await screen.findByText("TEST");
-    //await waitFor(() => getByText("TEST"));
     expect(nock.isDone());
     expect(container).toMatchSnapshot();
   });

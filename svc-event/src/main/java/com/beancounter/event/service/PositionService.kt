@@ -1,5 +1,6 @@
 package com.beancounter.event.service
 
+import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.common.TokenService
 import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
@@ -25,6 +26,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     private lateinit var positionGateway: PositionGateway
     private lateinit var portfolioService: PortfolioServiceClient
     private lateinit var tokenService: TokenService
+    private lateinit var loginService: LoginService
 
     @Value("\${position.url:http://localhost:9500/api}")
     private lateinit var positionUrl: String
@@ -47,6 +49,11 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     @Autowired
     fun setPortfolioClientService(portfolioServiceClient: PortfolioServiceClient) {
         portfolioService = portfolioServiceClient
+    }
+
+    @Autowired
+    fun setLoginService(loginService: LoginService) {
+        this.loginService = loginService
     }
 
     @PostConstruct
@@ -81,10 +88,13 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         } else {
             dateUtils.getDateString(dateUtils.getDate(date))
         }
+        loginService.login()
+
         val results = positionGateway.get(
-                        tokenService.bearerToken,
-                        id,
-                        asAt)
+            tokenService.bearerToken,
+            id,
+            asAt
+        )
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]
             if (position!!.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {

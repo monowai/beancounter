@@ -31,7 +31,7 @@ dependencies {
             "com.h2database:h2",
             "org.postgresql:postgresql:42.2.14",
             "com.github.ben-manes.caffeine:caffeine",
-            "org.springframework.kafka:spring-kafka"
+            "org.springframework.kafka:spring-kafka:$springKafka"
     )
 
     compileOnly(
@@ -51,7 +51,7 @@ dependencies {
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            "org.springframework.kafka:spring-kafka-test"
+            "org.springframework.kafka:spring-kafka-test:$springKafka"
 
     )
     testImplementation("org.beancounter:svc-position:0.1.1:stubs") {

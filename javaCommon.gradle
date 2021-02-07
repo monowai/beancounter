@@ -38,6 +38,10 @@ test {
         events "failed"
     }
 }
+jacoco {
+    // https://stackoverflow.com/questions/64816410/how-to-configure-build-gradle-using-junit5-and-jacoco-for-test-coverage
+    toolVersion = "0.8.6"
+}
 
 jacocoTestReport {
     reports {

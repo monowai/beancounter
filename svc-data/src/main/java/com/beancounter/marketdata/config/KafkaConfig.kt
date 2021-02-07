@@ -13,31 +13,45 @@ import org.springframework.kafka.annotation.EnableKafka
 @Configuration
 class KafkaConfig {
     @Value("\${beancounter.topics.trn.csv:bc-trn-csv-dev}")
-    var topicTrnCsv: String? = null
+    lateinit var topicTrnCsvName: String
 
     @Value("\${beancounter.topics.trn.event:bc-trn-event-dev}")
-    var topicTrnEvent: String? = null
+    lateinit var topicTrnEventName: String
+
+    @Value("\${beancounter.topics.price:bc-price-dev}")
+    lateinit var topicPriceName: String
 
     @Bean
     fun topicTrnCvs(): NewTopic {
-        return NewTopic(topicTrnCsv, 1, 1.toShort())
+        return NewTopic(topicTrnCsvName, 1, 1.toShort())
     }
 
     @Bean
     fun topicTrnEvent(): NewTopic {
-        return NewTopic(topicTrnEvent, 1, 1.toShort())
+        return NewTopic(topicTrnEventName, 1, 1.toShort())
     }
 
     @Bean
     fun trnCsvTopic(): String? {
-        log.info("BEANCOUNTER_TOPICS_TRN_CSV: {}", topicTrnCsv)
-        return topicTrnCsv
+        log.info("BEANCOUNTER_TOPICS_TRN_CSV: {}", topicTrnCsvName)
+        return topicTrnCsvName
     }
 
     @Bean
     fun trnEventTopic(): String? {
-        log.info("BEANCOUNTER_TOPICS_TRN_EVENT: {}", topicTrnEvent)
-        return topicTrnEvent
+        log.info("BEANCOUNTER_TOPICS_TRN_EVENT: {}", topicTrnEventName)
+        return topicTrnEventName
+    }
+
+    @Bean
+    fun topicPrice(kafaConfig: KafkaConfig): NewTopic {
+        return NewTopic(topicPriceName, 1, 1.toShort())
+    }
+
+    @Bean
+    fun priceTopic(): String {
+        log.info("BEANCOUNTER_TOPICS_PRICE: {}", topicPriceName)
+        return topicPriceName
     }
 
     companion object {

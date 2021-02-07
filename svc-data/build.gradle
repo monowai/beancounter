@@ -54,7 +54,7 @@ dependencies {
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2", // Dev
             "org.postgresql:postgresql:42.2.14",
-            "org.springframework.kafka:spring-kafka"
+            "org.springframework.kafka:spring-kafka:$springKafka"
     )
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
@@ -68,7 +68,7 @@ dependencies {
             "org.springframework.security:spring-security-test",
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            "org.springframework.kafka:spring-kafka-test",
+            "org.springframework.kafka:spring-kafka-test:$springKafka",
             // Not needed for this project; pulling into build cache
             "org.springframework.cloud:spring-cloud-contract-stub-runner"
             // End not strictly needed

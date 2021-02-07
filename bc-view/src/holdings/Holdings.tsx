@@ -57,7 +57,7 @@ export default function ViewHoldings(code: string): JSX.Element {
               defaultValue={valueIn}
               isSearchable={false}
               isClearable={false}
-              onChange={(newValue: ValueType<ValuationOption>) => {
+              onChange={(newValue: ValueType<ValuationOption, false>) => {
                 if (newValue) {
                   setValueIn(newValue as ValuationOption);
                 }
@@ -71,7 +71,7 @@ export default function ViewHoldings(code: string): JSX.Element {
               defaultValue={groupBy}
               isSearchable={false}
               isClearable={false}
-              onChange={(newValue: ValueType<GroupOption>) => {
+              onChange={(newValue: ValueType<GroupOption, false>) => {
                 if (newValue) {
                   setGroupBy(newValue as GroupOption);
                 }

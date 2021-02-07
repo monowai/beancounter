@@ -53,7 +53,7 @@ dependencies {
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2", // Dev
-            "org.postgresql:postgresql:42.2.14",
+            "org.postgresql:postgresql:42.2.18",
             "org.springframework.kafka:spring-kafka:$springKafka"
     )
 

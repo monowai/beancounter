@@ -78,7 +78,6 @@ public class TestKafka {
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
 
-  @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private KafkaTemplate<Object, TrustedTrnImportRequest> kafkaWriter;
   @Autowired

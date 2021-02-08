@@ -1,62 +1,67 @@
 /* eslint-disable */
-const { findIndex, has, remove } = require("ramda");
+const { findIndex, has, remove } = require('ramda');
 
 module.exports = {
   plugins: [
     {
-      name: "scss",
+      name: 'scss',
       options: {
         dev: {
           sourceMap: true,
-          ident: 'postcss',
+          ident: 'postcss'
         },
         prod: {
           sourceMap: false,
-          ident: 'postcss',
+          ident: 'postcss'
         },
         plugins: [
-          require("postcss-flexbugs-fixes"),
-          require("autoprefixer")({
+          require('postcss-flexbugs-fixes'),
+          require('autoprefixer')({
             // overrideBrowserslist: ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'],
-            flexbox: 'no-2009',
-          }),
-        ],
+            flexbox: 'no-2009'
+          })
+        ]
       }
     },
     {
-      name: "typescript",
+      name: 'typescript',
       options: {
         useBabel: true,
         useEslint: true,
         forkTsChecker: {
-          tsconfig: "./tsconfig.json",
+          tsconfig: './tsconfig.json',
           tslint: false, // All linting is via ESLINT
-          watch: "./src",
+          watch: './src',
           typeCheck: true
         }
       }
     }
   ],
-  modify(config, { target }) {
+  modifyWebpackConfig({
+                        env: {
+                          target // the target 'node' or 'web'
+                        },
+                        webpackConfig: config // the created webpack config
+                      }) {
     const { module } = config;
     const { rules } = module;
     const fileLoaderIdx = findIndex(item => {
-      return has("exclude", item) && item.exclude.length > 10;
+      return has('exclude', item) && item.exclude.length > 10;
     }, rules);
     const fileLoader = rules[fileLoaderIdx];
     fileLoader.exclude = [...fileLoader.exclude, /\.woff$/, /\.woff2$/];
     const newRule = {
       include: [/\.woff$/, /\.woff2$/],
-      loader: require.resolve("file-loader"),
+      loader: require.resolve('file-loader'),
       options: {
-        name: "static/media/[name].[ext]",
-        emitFile: target === "web"
+        name: 'static/media/[name].[ext]',
+        emitFile: target === 'web'
       }
     };
 
     return {
       ...config,
-      node: { fs: "empty"},
+      node: { fs: 'empty' },
       module: {
         ...module,
         rules: [...remove(fileLoaderIdx, 1, rules), fileLoader, newRule]

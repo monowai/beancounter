@@ -76,7 +76,7 @@
     "@types/react-router": "^5.1.2",
     "@types/react-router-config": "^5.0",
     "@types/react-router-dom": "^5.1.3",
-    "@types/react-select": "^3.0.8",
+    "@types/react-select": "^4.0.13",
     "@types/store": "^2.0.2",
     "@types/webpack": "^4",
     "@types/webpack-env": "^1.15.3",

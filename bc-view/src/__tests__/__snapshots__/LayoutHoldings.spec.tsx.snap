@@ -60,7 +60,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               </div>
               <input
                 aria-autocomplete="list"
-                class="css-62g3xt-dummyInput"
+                class="css-wmatm6-dummyInput-DummyInput"
                 id="react-select-2-input"
                 readonly=""
                 tabindex="0"
@@ -79,7 +79,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  class="css-6q0nyr-Svg"
+                  class="css-tj5bde-Svg"
                   focusable="false"
                   height="20"
                   viewBox="0 0 20 20"
@@ -118,7 +118,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               </div>
               <input
                 aria-autocomplete="list"
-                class="css-62g3xt-dummyInput"
+                class="css-wmatm6-dummyInput-DummyInput"
                 id="react-select-3-input"
                 readonly=""
                 tabindex="0"
@@ -137,7 +137,7 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  class="css-6q0nyr-Svg"
+                  class="css-tj5bde-Svg"
                   focusable="false"
                   height="20"
                   viewBox="0 0 20 20"

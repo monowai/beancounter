@@ -44,7 +44,7 @@ internal class TestMarketData {
                 PriceResponse::class.java)
         assertThat(data).isNotNull
         val mdResponse = data.iterator().next()
-        compare(marketData, mdResponse)
+        compare(mdResponse)
         assertThat(data.iterator().next().changePercent).isEqualTo("0.04")
     }
 
@@ -76,13 +76,13 @@ internal class TestMarketData {
     }
 
     companion object {
-        fun compare(marketData: MarketData, mdResponse: MarketData) {
+        fun compare(mdResponse: MarketData) {
             AssertionsForClassTypes.assertThat(mdResponse)
-                    .isEqualToIgnoringGivenFields(marketData, "asset")
+                    .usingRecursiveComparison().ignoringFields("marketData", "asset")
             AssertionsForClassTypes.assertThat(mdResponse.asset.market)
-                    .isEqualToIgnoringGivenFields(marketData.asset.market)
+                    .usingRecursiveComparison().ignoringFields("marketData.asset.market")
             AssertionsForClassTypes.assertThat(mdResponse.asset)
-                    .isEqualToIgnoringGivenFields(marketData.asset, "market")
+                    .usingRecursiveComparison().ignoringFields("marketData.asset", "market")
         }
     }
 }

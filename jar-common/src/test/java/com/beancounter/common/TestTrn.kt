@@ -77,16 +77,14 @@ internal class TestTrn {
 
         val fromJson = mapper.readValue(mapper.writeValueAsString(trnResponse), TrnResponse::class.java)
         val fromAsset: Asset = fromJson.data.iterator().next().asset
-        val responseAsset: Asset = trnResponse.data.iterator().next().asset
         // Market.aliases are not serialized
         assertThat(fromAsset.market)
-                .isEqualToIgnoringGivenFields(responseAsset.market, "aliases")
+                .usingRecursiveComparison().ignoringFields("market", "aliases")
         assertThat(fromAsset)
-                .isEqualToIgnoringGivenFields(responseAsset, "market")
+                .usingRecursiveComparison()
         assertThat(fromJson.data).hasSize(1)
         assertThat(fromJson.data.iterator().next())
-                .isEqualToIgnoringGivenFields(trnResponse.data.iterator().next(),
-                        "asset")
+                .usingRecursiveComparison().ignoringFields("asset")
     }
 
     @Test
@@ -106,7 +104,7 @@ internal class TestTrn {
         val ttr = TrustedTrnImportRequest(getPortfolio("TWEE"), row)
         val json = mapper.writeValueAsString(ttr)
         val fromJson = mapper.readValue(json, TrustedTrnImportRequest::class.java)
-        assertThat(fromJson).isEqualToIgnoringGivenFields(ttr, "portfolio")
+        assertThat(fromJson).usingRecursiveComparison().ignoringFields("portfolio")
     }
 
     @Test

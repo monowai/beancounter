@@ -34,6 +34,6 @@ class TestEvent {
         val eventRequest = EventRequest(event)
         val json = objectMapper.writeValueAsBytes(eventRequest)
         val fromJson = objectMapper.readValue(json, EventRequest::class.java)
-        assertThat(fromJson.data).isEqualToIgnoringGivenFields(event, "id")
+        assertThat(fromJson.data).usingRecursiveComparison().ignoringFields("id")
     }
 }

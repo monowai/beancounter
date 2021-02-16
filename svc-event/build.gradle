@@ -44,9 +44,9 @@ dependencies {
             "com.h2database:h2",
             "io.rest-assured:spring-mock-mvc",
             "io.rest-assured:json-schema-validator",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.+",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
             "org.springframework.boot:spring-boot-starter-test",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner:$springVerifierVersion",
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.security:spring-security-test",
@@ -64,15 +64,6 @@ dependencyManagement {
     imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
 }
 
-idea {
-    module {
-        inheritOutputDirs = false
-        downloadSources = true
-        outputDir = file("$buildDir/classes/main/")
-        testOutputDir = file("$buildDir/classes/main/")
-    }
-}
-
 compileKotlin {
     kotlinOptions {
         jvmTarget = "11"
@@ -84,6 +75,3 @@ compileTestKotlin {
     }
 }
 
-noArg {
-    annotation("com.beancounter.common.contracts.BcData")
-}

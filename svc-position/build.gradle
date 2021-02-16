@@ -89,27 +89,8 @@ contracts {
     }
 }
 
-idea {
-    module {
-        inheritOutputDirs = false
-        downloadSources = true
-        outputDir = file("$buildDir/classes/main/")
-        testOutputDir = file("$buildDir/classes/main/")
-    }
-}
-
 task pubStubs {
     dependsOn build
     dependsOn publishToMavenLocal
 }
 
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}

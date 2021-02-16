@@ -29,8 +29,8 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
-            "org.jetbrains.kotlin:kotlin-reflect",
-            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
             "com.github.ben-manes.caffeine:caffeine:2.8.1",
             "com.google.api-client:google-api-client:1.31.1",
             "com.google.oauth-client:google-oauth-client-jetty:1.30.6",
@@ -67,11 +67,13 @@ dependencies {
 
 }
 
-idea {
-    module {
-        inheritOutputDirs = false
-        downloadSources = true
-        outputDir = file("$buildDir/classes/main/")
-        testOutputDir = file("$buildDir/classes/main/")
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }

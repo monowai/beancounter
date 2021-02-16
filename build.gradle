@@ -1,4 +1,22 @@
 buildscript {
+    ext{
+        springWebVersion = '5.2.12.RELEASE'
+        jacksonVersion = '2.11.4'
+        lombokVersion = '1.18.12'
+        springCloudOpenFeign= '2.2.6.RELEASE'
+        springBootVersion='2.3.8.RELEASE'
+        springCloudVersion='Hoxton.SR9'
+        springDependencyManagement='1.0.9.RELEASE'
+        springVerifierVersion='2.2.6.RELEASE'
+        springSecurityVersion='5.3.6.RELEASE'
+        springKafka='2.6.5'
+        openFeignVersion='10.9'
+        resilience4jVersion='1.3.1'
+        assertJ='3.18.1'
+        kotlinVersion='1.4.30'
+        guavaVersion='30.1-android'
+    }
+
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion"
     }
@@ -12,5 +30,4 @@ plugins {
 }
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
-
 

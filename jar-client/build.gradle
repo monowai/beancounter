@@ -1,9 +1,3 @@
-buildscript {
-    ext {
-        jacksonVersion = "2.11.+"
-        lombokVersion = "1.18.+"
-    }
-}
 
 plugins {
     id "io.spring.dependency-management"

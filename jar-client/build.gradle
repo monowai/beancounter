@@ -10,6 +10,12 @@ apply from: '../javaCommon.gradle'
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
 
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
+}
+
 dependencies {
     implementation(
             project(":jar-common"),
@@ -42,12 +48,6 @@ dependencies {
     }
 
 }
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-    }
-}
-
 
 idea {
     module {

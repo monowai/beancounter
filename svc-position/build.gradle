@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
-        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:$springVerifierVersion"
+        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:2.2.6.RELEASE"
     }
 }
 
@@ -55,8 +55,6 @@ dependencies {
 
     testImplementation(
             "org.assertj:assertj-core",
-            "io.rest-assured:rest-assured",
-            "io.rest-assured:spring-mock-mvc",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",

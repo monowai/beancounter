@@ -1,3 +1,4 @@
+
 plugins {
     id "io.spring.dependency-management"
     id 'org.jetbrains.kotlin.jvm'
@@ -9,6 +10,9 @@ apply from: '../javaCommon.gradle'
 version = "0.1.1"
 
 dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
     dependencies {
         dependency "org.eclipse.jetty:jetty-server:8+"
         dependency "org.eclipse.jetty:jetty-http:8+"
@@ -22,7 +26,7 @@ dependencies {
             project(":jar-client"),
             project(":jar-auth"),
             "org.springframework.shell:spring-shell-starter:2.0.1.RELEASE",
-            "org.springframework.cloud:spring-cloud-starter-openfeign:2.2.6.RELEASE",
+            "org.springframework.cloud:spring-cloud-starter-openfeign",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
             "org.springframework.security:spring-security-config:$springSecurityVersion",
@@ -54,8 +58,8 @@ dependencies {
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
-            "org.springframework.cloud:spring-cloud-loadbalancer:$springVerifierVersion",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
+            "org.springframework.cloud:spring-cloud-loadbalancer",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.kafka:spring-kafka-test:$springKafka",
 //            "org.scala-lang:scala-library:2.12.11",
             "org.junit.jupiter:junit-jupiter"

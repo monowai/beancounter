@@ -42,11 +42,9 @@ dependencies {
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
             "com.h2database:h2",
-            "io.rest-assured:spring-mock-mvc",
-            "io.rest-assured:json-schema-validator",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
             "org.springframework.boot:spring-boot-starter-test",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner:$springVerifierVersion",
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.security:spring-security-test",

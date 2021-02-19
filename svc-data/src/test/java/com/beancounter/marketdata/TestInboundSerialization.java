@@ -1,32 +1,35 @@
 package com.beancounter.marketdata;
 
-import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.common.input.TrustedTrnEvent;
 import com.beancounter.common.input.TrustedTrnImportRequest;
+import com.beancounter.common.utils.BcJson;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 public class TestInboundSerialization {
+  private final ObjectMapper objectMapper = new BcJson().getObjectMapper();
+
   @Test
   void is_InboundPayloadConverted() throws Exception {
-    TrustedTrnImportRequest payload = getObjectMapper().readValue(
+    TrustedTrnImportRequest payload = objectMapper.readValue(
         new ClassPathResource("/kafka/bc-view-send.json").getFile(),
         TrustedTrnImportRequest.class);
 
     assertThat(payload).isNotNull();
 
-    HashMap<String, Object> message = getObjectMapper().readValue(
+    HashMap<String, Object> message = objectMapper.readValue(
         new ClassPathResource("/kafka/csv-import-message.json").getFile(),
         new TypeReference<>() {
         }
     );
 
     assertThat(message).hasFieldOrProperty("payload");
-    TrustedTrnImportRequest fromMsg = getObjectMapper().readValue(
+    TrustedTrnImportRequest fromMsg = objectMapper.readValue(
         message.get("payload").toString(),
         TrustedTrnImportRequest.class);
 
@@ -37,14 +40,14 @@ public class TestInboundSerialization {
 
   @Test
   void is_InboundMessagePayloadConverted() throws Exception {
-    TrustedTrnImportRequest payload = getObjectMapper().readValue(
+    TrustedTrnImportRequest payload = objectMapper.readValue(
         new ClassPathResource("/kafka/bc-view-message.json").getFile(),
         TrustedTrnImportRequest.class);
   }
 
   @Test
   void is_IncomingTrustedEvent() throws Exception {
-    TrustedTrnEvent inbound = getObjectMapper().readValue(
+    TrustedTrnEvent inbound = objectMapper.readValue(
         new ClassPathResource("/kafka/event-incoming.json").getFile(), TrustedTrnEvent.class);
     assertThat(inbound).isNotNull();
   }

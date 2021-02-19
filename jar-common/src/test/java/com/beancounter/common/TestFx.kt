@@ -5,7 +5,7 @@ import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.RateCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -27,8 +27,8 @@ internal class TestFx {
         fxRequest.addTradeBase(pair)
         fxRequest.addTradePf(pair)
         assertThat(fxRequest.pairs).size().isEqualTo(1)
-        val json = objectMapper.writeValueAsString(fxRequest)
-        val fromJson = objectMapper.readValue(json, FxRequest::class.java)
+        val json = BcJson().objectMapper.writeValueAsString(fxRequest)
+        val fromJson = BcJson().objectMapper.readValue(json, FxRequest::class.java)
         assertThat(fromJson.pairs).hasSize(1)
         assertThat(fromJson.tradeBase).isNull()
         assertThat(fromJson.tradePf).isNull()
@@ -63,8 +63,8 @@ internal class TestFx {
         val fxPairResults = RateCalculator.compute("2019/08/27", pairs, rateMap)
 
         val fxResponse = FxResponse(fxPairResults)
-        val json = objectMapper.writeValueAsString(fxResponse)
-        val fromJson = objectMapper.readValue(json, FxResponse::class.java)
+        val json = BcJson().objectMapper.writeValueAsString(fxResponse)
+        val fromJson = BcJson().objectMapper.readValue(json, FxResponse::class.java)
 
         assertThat(fromJson.data).isNotNull
         assertThat(fromJson.data.rates).hasSize(2).containsKeys(nzdUsd, usdUsd)

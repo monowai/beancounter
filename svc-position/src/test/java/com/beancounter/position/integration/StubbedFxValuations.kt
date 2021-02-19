@@ -9,9 +9,10 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.*
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.position.service.Accumulator
 import com.beancounter.position.service.Valuation
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -42,6 +43,7 @@ import java.util.*
 @SpringBootTest
 internal class StubbedFxValuations {
     private val authorityRoleConverter = AuthorityRoleConverter()
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var context: WebApplicationContext

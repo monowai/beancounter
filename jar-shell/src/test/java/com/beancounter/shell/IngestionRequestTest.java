@@ -7,6 +7,7 @@ import com.beancounter.shell.ingest.IngestionRequest;
 import org.junit.jupiter.api.Test;
 
 class IngestionRequestTest {
+  private final BcJson bcJson = new BcJson();
 
   @Test
   void is_SerializationWorking() throws Exception {
@@ -20,8 +21,8 @@ class IngestionRequestTest {
 
     assertThat(ingestionRequest.isRatesIgnored()).isTrue();
 
-    String json = BcJson.getObjectMapper().writeValueAsString(ingestionRequest);
-    assertThat(BcJson.getObjectMapper().readValue(json, IngestionRequest.class))
+    String json = bcJson.getObjectMapper().writeValueAsString(ingestionRequest);
+    assertThat(bcJson.getObjectMapper().readValue(json, IngestionRequest.class))
         .usingRecursiveComparison().isEqualTo(ingestionRequest);
 
   }

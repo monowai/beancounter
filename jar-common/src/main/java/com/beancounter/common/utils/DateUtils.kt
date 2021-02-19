@@ -17,7 +17,7 @@ import java.util.*
  * @since 2019-03-12
  */
 
-@Component
+@Service
 class DateUtils ( @Value("\${beancounter.zone:#{null}}")
                      val defaultZone: String = TimeZone.getDefault().id) {
 

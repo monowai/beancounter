@@ -2,7 +2,7 @@ package com.beancounter.common.exception
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.io.CharStreams
 import feign.FeignException
 import feign.Response
@@ -20,14 +20,13 @@ import java.nio.charset.StandardCharsets
  */
 class SpringFeignDecoder : ErrorDecoder {
     companion object {
-        private val mapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule())
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
     }
 
     override fun decode(methodKey: String, response: Response): Exception {
-        val reason: String?
-        reason = try {
+        val reason: String? = try {
             getMessage(response)
         } catch (e: IOException) {
             throw SystemException(e.message)

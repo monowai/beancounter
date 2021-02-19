@@ -11,9 +11,10 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -40,6 +41,7 @@ import java.util.*
 @Tag("slow")
 internal class AssetControllerTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var context: WebApplicationContext
@@ -49,8 +51,8 @@ internal class AssetControllerTest {
     @Autowired
     fun mockServices() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build()
+            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+            .build()
 
         // Setup a user account
         val user = SystemUser("user", "user@testing.com")

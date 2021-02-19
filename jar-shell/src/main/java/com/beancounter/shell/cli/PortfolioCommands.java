@@ -18,6 +18,7 @@ import org.springframework.shell.standard.ShellOption;
 @Slf4j
 public class PortfolioCommands {
   private final PortfolioServiceClient portfolioService;
+  private final BcJson bcJson = new BcJson();
 
   public PortfolioCommands(PortfolioServiceClient portfolioService) {
     this.portfolioService = portfolioService;
@@ -28,7 +29,7 @@ public class PortfolioCommands {
       @ShellOption(help = "Code - case insensitive") String portfolioCode)
       throws JsonProcessingException {
     Portfolio portfolio = portfolioService.getPortfolioByCode(portfolioCode);
-    return BcJson.getWriter().writeValueAsString(portfolio);
+    return bcJson.getWriter().writeValueAsString(portfolio);
   }
 
   @ShellMethod("My Portfolios")
@@ -38,7 +39,7 @@ public class PortfolioCommands {
     if (portfolio == null || portfolio.getData().isEmpty()) {
       return "No portfolios";
     }
-    return BcJson.getWriter().writeValueAsString(portfolio.getData());
+    return bcJson.getWriter().writeValueAsString(portfolio.getData());
   }
 
   @ShellMethod("Find by id")
@@ -46,7 +47,7 @@ public class PortfolioCommands {
       @ShellOption(help = "Primary key - case sensitive") String portfolioId)
       throws JsonProcessingException {
     Portfolio portfolio = portfolioService.getPortfolioById(portfolioId);
-    return BcJson.getWriter().writeValueAsString(portfolio);
+    return bcJson.getWriter().writeValueAsString(portfolio);
   }
 
   @ShellMethod(key = "add", value = "Add portfolio")
@@ -59,7 +60,7 @@ public class PortfolioCommands {
     Portfolio portfolio;
     try {
       portfolio = portfolioService.getPortfolioByCode(code);
-      return BcJson.getWriter().writeValueAsString(portfolio);
+      return bcJson.getWriter().writeValueAsString(portfolio);
     } catch (BusinessException e) {
       log.info("Creating portfolio {}", code);
     }
@@ -69,9 +70,6 @@ public class PortfolioCommands {
             new PortfolioInput(code, name, currencyCode, baseCurrency))
     );
     PortfoliosResponse result = portfolioService.add(portfoliosRequest);
-    if (result == null) {
-      throw new BusinessException("Failed to add portfolio");
-    }
-    return BcJson.getWriter().writeValueAsString(result.getData().iterator().next());
+    return bcJson.getWriter().writeValueAsString(result.getData().iterator().next());
   }
 }

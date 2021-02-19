@@ -3,14 +3,13 @@ package com.beancounter.common
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.SystemUser
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.beancounter.common.utils.BcJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.*
 
 class TestRegistration {
-    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
+    private val objectMapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)

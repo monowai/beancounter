@@ -3,6 +3,7 @@ package com.beancounter.common
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
+import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -12,7 +13,7 @@ import org.springframework.core.io.ClassPathResource
 import java.util.*
 
 internal class TestMarkets {
-    var jsonMapper = ObjectMapper().registerModule(KotlinModule())
+    var jsonMapper = BcJson().objectMapper
     var yamlMapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule())
 
     @Test

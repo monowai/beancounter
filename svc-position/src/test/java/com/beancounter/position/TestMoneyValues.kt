@@ -5,7 +5,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.accumulation.BuyBehaviour
@@ -13,6 +13,7 @@ import com.beancounter.position.accumulation.DividendBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
 import com.beancounter.position.accumulation.SplitBehaviour
 import com.beancounter.position.service.Accumulator
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,6 +27,7 @@ internal class TestMoneyValues {
     private val microsoft = getAsset("NYSE", "MSFT")
     private val intel = getAsset("NYSE", "INTC")
     private val bidu = getAsset("NYSE", "BIDU")
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var accumulator: Accumulator

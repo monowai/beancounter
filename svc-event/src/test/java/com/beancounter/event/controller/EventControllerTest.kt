@@ -3,11 +3,12 @@ package com.beancounter.event.controller
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventsResponse
 import com.beancounter.event.service.EventService
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -37,15 +38,17 @@ internal class EventControllerTest {
     @Autowired
     private lateinit var eventService: EventService
 
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
+
     @Test
     @Throws(Exception::class)
     fun is_IllegalEventBad() {
         val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
+            MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val responseBody = mvcResult.response.contentAsString
         val message = objectMapper
                 .readValue(responseBody, SpringExceptionMessage::class.java)

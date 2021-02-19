@@ -2,12 +2,13 @@ package com.beancounter.marketdata
 
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdConfig
 import com.beancounter.marketdata.providers.wtd.WtdResponse
 import com.beancounter.marketdata.utils.WtdMockUtils
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
@@ -18,16 +19,15 @@ import java.time.ZonedDateTime
 class WtdConfigTest {
     private val dateUtils = DateUtils()
     private val marketUtils = MarketUtils(dateUtils)
-
-    private val mapper = objectMapper
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)
     fun is_JsonGoodResponse() {
         val jsonFile = ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").file
-        val response = mapper.readValue(jsonFile, WtdResponse::class.java)
+        val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         val compareTo = ZonedDateTime.of(
-                LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC")
+            LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC")
         )
         assertThat(response)
                 .isNotNull
@@ -40,7 +40,7 @@ class WtdConfigTest {
     @Throws(Exception::class)
     fun is_JsonResponseWithMessage() {
         val jsonFile = ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").file
-        val response = mapper.readValue(jsonFile, WtdResponse::class.java)
+        val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         assertThat(response)
                 .isNotNull
                 .hasFieldOrProperty("message")

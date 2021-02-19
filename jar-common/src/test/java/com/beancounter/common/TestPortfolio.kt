@@ -6,17 +6,16 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolioInput
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
 
 internal class TestPortfolio {
-    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
+    private val objectMapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)

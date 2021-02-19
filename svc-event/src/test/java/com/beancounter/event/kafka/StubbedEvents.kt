@@ -8,14 +8,13 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.EventBoot
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
@@ -44,7 +43,7 @@ import java.util.*
 @SpringBootTest(classes = [EventBoot::class], properties = ["auth.enabled=false"])
 @ActiveProfiles("kafka")
 class StubbedEvents {
-    private val om = ObjectMapper().registerModule(KotlinModule())
+    private val om = BcJson().objectMapper
 
     @Autowired
     private lateinit var eventService: EventService

@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.auth.common.TokenService;
@@ -21,6 +20,7 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
 import com.beancounter.common.model.Trn;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.currency.CurrencyService;
@@ -70,7 +70,8 @@ public class TestKafka {
   public static final String TOPIC_TRN_CSV = "topicTrnCsv";
   public static final String TOPIC_EVENT = "topicEvent";
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(TestKafka.class);
-  private final ObjectMapper objectMapper = getObjectMapper();
+  private final BcJson bcJson = new BcJson();
+  private final ObjectMapper objectMapper = bcJson.getObjectMapper();
   @Autowired
   private DateUtils dateUtils;
   // Setup so that the wiring is tested
@@ -250,7 +251,7 @@ public class TestKafka {
 
     MarketData marketData = new MarketData(
         asset,
-        dateUtils.getDate(priceDate, dateUtils.getZoneId()));
+        Objects.requireNonNull(dateUtils.getDate(priceDate, dateUtils.getZoneId())));
     marketData.setVolume(10);
     marketData.setOpen(BigDecimal.TEN);
     marketData.setDividend(BigDecimal.ZERO);

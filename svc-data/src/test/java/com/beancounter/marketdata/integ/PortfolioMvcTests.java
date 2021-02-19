@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static com.beancounter.marketdata.utils.RegistrationUtils.registerUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -22,6 +21,7 @@ import com.beancounter.common.exception.ForbiddenException;
 import com.beancounter.common.input.PortfolioInput;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.marketdata.utils.SysUserUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ import org.springframework.web.context.WebApplicationContext;
 class PortfolioMvcTests {
 
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(PortfolioMvcTests.class);
-  private final ObjectMapper objectMapper = getObjectMapper();
+  private final ObjectMapper objectMapper = new BcJson().getObjectMapper();
   private final AuthorityRoleConverter authorityRoleConverter = new AuthorityRoleConverter();
   private MockMvc mockMvc;
   @Autowired
@@ -79,7 +79,7 @@ class PortfolioMvcTests {
         post("/portfolios")
             // Mocking does not use the JwtRoleConverter configured in ResourceServerConfig
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(getObjectMapper()
+            .content(objectMapper
                 .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolio))))
             .contentType(MediaType.APPLICATION_JSON)
 
@@ -179,7 +179,7 @@ class PortfolioMvcTests {
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(getObjectMapper().writeValueAsBytes(createRequest))
+            .content(objectMapper.writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -219,7 +219,7 @@ class PortfolioMvcTests {
     mockMvc.perform(
         post("/portfolios")
             // No Token
-            .content(getObjectMapper()
+            .content(objectMapper
                 .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolioInput))))
             .contentType(MediaType.APPLICATION_JSON)
 
@@ -233,7 +233,7 @@ class PortfolioMvcTests {
     MvcResult mvcResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(tokenA).authorities(authorityRoleConverter))
-            .content(getObjectMapper()
+            .content(objectMapper
                 .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolioInput))))
             .contentType(MediaType.APPLICATION_JSON)
 
@@ -341,7 +341,7 @@ class PortfolioMvcTests {
     MvcResult mvcResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(getObjectMapper()
+            .content(objectMapper
                 .writeValueAsBytes(new PortfoliosRequest(Collections.singleton(portfolioInput))))
             .contentType(MediaType.APPLICATION_JSON)
 
@@ -387,7 +387,7 @@ class PortfolioMvcTests {
         post("/portfolios")
             .with(
                 jwt().jwt(token).authorities(authorityRoleConverter)
-            ).content(getObjectMapper()
+            ).content(objectMapper
             .writeValueAsBytes(new PortfoliosRequest(portfolios)))
             .contentType(MediaType.APPLICATION_JSON)
 
@@ -420,7 +420,7 @@ class PortfolioMvcTests {
         post("/portfolios")
             .with(
                 jwt().jwt(token).authorities(authorityRoleConverter)
-            ).content(getObjectMapper()
+            ).content(objectMapper
             .writeValueAsBytes(new PortfoliosRequest(portfolios)))
             .contentType(MediaType.APPLICATION_JSON)
 
@@ -454,7 +454,7 @@ class PortfolioMvcTests {
     MvcResult portfolioResult = mockMvc.perform(
         post("/portfolios")
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(getObjectMapper().writeValueAsBytes(createRequest))
+            .content(objectMapper.writeValueAsBytes(createRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -471,7 +471,7 @@ class PortfolioMvcTests {
     MvcResult patchResult = mockMvc.perform(
         patch("/portfolios/{id}", portfolio.getId())
             .with(jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(getObjectMapper().writeValueAsBytes(updateTo))
+            .content(objectMapper.writeValueAsBytes(updateTo))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

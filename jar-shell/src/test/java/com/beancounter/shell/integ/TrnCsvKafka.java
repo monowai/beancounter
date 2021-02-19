@@ -61,6 +61,7 @@ public class TrnCsvKafka {
   @MockBean
   private ShareSightFactory shareSightFactory;
   private Consumer<String, String> consumer;
+  private final BcJson bcJson = new BcJson();
 
   @BeforeEach
   void mockBeans() {
@@ -95,7 +96,7 @@ public class TrnCsvKafka {
       ConsumerRecord<String, String>
           received = KafkaTestUtils.getSingleRecord(consumer, "topicTrnCsv");
       assertThat(received.value()).isNotNull();
-      assertThat(BcJson.getObjectMapper().readValue(
+      assertThat(bcJson.getObjectMapper().readValue(
           received.value(),
           TrustedTrnImportRequest.class))
           .usingRecursiveComparison().isEqualTo(trnRequest);

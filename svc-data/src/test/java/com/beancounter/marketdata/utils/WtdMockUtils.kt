@@ -5,11 +5,12 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
 import com.beancounter.marketdata.providers.wtd.WtdResponse
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit.WireMockRule
@@ -28,7 +29,7 @@ import java.util.*
  */
 object WtdMockUtils {
     const val WTD_PATH = "/contracts/wtd"
-    private val mapper = objectMapper
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
     private val dateUtils = DateUtils()
     private val marketUtils = MarketUtils(dateUtils)
     private val zonedDateTime = LocalDate.now(dateUtils.getZoneId()).atStartOfDay()
@@ -105,9 +106,10 @@ object WtdMockUtils {
                         "/api/v1/history_multi_single_day?symbol=" + assetArg
                                 + "&date=" + asAt
                                 + "&api_token=demo"))
-                        .willReturn(WireMock.aResponse()
+                        .willReturn(
+                            WireMock.aResponse()
                                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .withBody(mapper.writeValueAsString(response))
+                                .withBody(objectMapper.writeValueAsString(response))
                                 .withStatus(200)))
     }
 
@@ -121,8 +123,8 @@ object WtdMockUtils {
     @Throws(IOException::class)
     @JvmStatic
     fun getResponseMap(jsonFile: File?): HashMap<String, Any> {
-        val mapType = mapper.typeFactory
-                .constructMapType(LinkedHashMap::class.java, String::class.java, Any::class.java)
-        return mapper.readValue(jsonFile, mapType)
+        val mapType = objectMapper.typeFactory
+            .constructMapType(LinkedHashMap::class.java, String::class.java, Any::class.java)
+        return objectMapper.readValue(jsonFile, mapType)
     }
 }

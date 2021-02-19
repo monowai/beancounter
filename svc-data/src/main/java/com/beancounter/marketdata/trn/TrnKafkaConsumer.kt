@@ -3,8 +3,9 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
@@ -16,6 +17,7 @@ import java.io.IOException
 class TrnKafkaConsumer() {
 
     private lateinit var trnImport: TrnImport
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     fun setTrnImportService(trnImport: TrnImport) {

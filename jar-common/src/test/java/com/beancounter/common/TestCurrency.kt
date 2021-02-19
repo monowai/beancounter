@@ -4,9 +4,8 @@ import com.beancounter.common.contracts.CurrencyResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.CurrencyUtils
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -15,7 +14,8 @@ import kotlin.collections.ArrayList
 
 internal class TestCurrency {
     private val currencyUtils = CurrencyUtils()
-    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
+    private val bcJson = BcJson()
+    private val objectMapper = bcJson.objectMapper
 
     @Test
     @Throws(Exception::class)

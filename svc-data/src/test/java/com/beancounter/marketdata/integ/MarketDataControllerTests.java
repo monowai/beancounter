@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.integ;
 
 import static com.beancounter.common.utils.AssetUtils.getAssetInput;
-import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -16,6 +15,7 @@ import com.beancounter.common.input.AssetInput;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.MarketData;
 import com.beancounter.common.utils.AssetUtils;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
 import com.beancounter.marketdata.markets.MarketService;
@@ -55,24 +55,27 @@ class MarketDataControllerTests {
   @MockBean
   private AssetService assetService;
   private MockMvc mockMvc;
+  private final BcJson bcJson;
 
   @Autowired
   private MarketDataControllerTests(WebApplicationContext webApplicationContext,
                                     MarketService marketService,
-                                    MockProviderService mockProviderService)
+                                    MockProviderService mockProviderService, BcJson bcJson)
       throws JsonProcessingException {
     this.wac = webApplicationContext;
     this.mockProviderService = mockProviderService;
     dummy = AssetUtils.getAsset(
         marketService.getMarket("mock"), "dummy"
     );
-    dummyJsonAsset = getObjectMapper()
-        .readValue(getObjectMapper().writeValueAsString(dummy), Asset.class);
+    this.bcJson = bcJson;
+    dummyJsonAsset = this.bcJson.getObjectMapper()
+        .readValue(this.bcJson.getObjectMapper().writeValueAsString(dummy), Asset.class);
   }
 
   @BeforeEach
   void setUp() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    assertThat(dummy.getId()).isNotNull();
     Mockito.when(
         assetService.find(dummy.getId())).thenReturn(dummy);
     assertThat(dummy.getId()).isNotNull();
@@ -97,7 +100,7 @@ class MarketDataControllerTests {
             content().contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn()
         .getResponse().getContentAsString();
-    MarketResponse marketResponse = getObjectMapper().readValue(json, MarketResponse.class);
+    MarketResponse marketResponse = bcJson.getObjectMapper().readValue(json, MarketResponse.class);
     assertThat(marketResponse.getData()).isNotNull().isNotEmpty();
   }
 
@@ -118,7 +121,8 @@ class MarketDataControllerTests {
             content().contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andReturn().getResponse().getContentAsString();
 
-    PriceResponse priceResponse = getObjectMapper().readValue(json, PriceResponse.class);
+    PriceResponse priceResponse = bcJson.getObjectMapper().readValue(json, PriceResponse.class);
+
     assertThat(priceResponse.getData()).isNotNull().hasSize(1);
     MarketData marketData = priceResponse.getData().iterator().next();
     assertThat(marketData)
@@ -142,7 +146,7 @@ class MarketDataControllerTests {
     String json = mockMvc.perform(
         post("/prices")
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(getObjectMapper().writeValueAsString(
+            .content(bcJson.getObjectMapper().writeValueAsString(
                 new PriceRequest(assetInputs))
             ))
         .andExpect(
@@ -153,8 +157,10 @@ class MarketDataControllerTests {
         .getResponse()
         .getContentAsString();
 
-    PriceResponse mdResponse = getObjectMapper().readValue(json, PriceResponse.class);
-    assertThat(mdResponse.getData()).hasSize(assetInputs.size());
+    PriceResponse mdResponse = bcJson.getObjectMapper().readValue(json, PriceResponse.class);
+    assertThat(mdResponse.getData())
+        .isNotNull()
+        .hasSize(assetInputs.size());
   }
 
   @Test
@@ -173,7 +179,7 @@ class MarketDataControllerTests {
         .getResponse()
         .getContentAsString();
 
-    PriceResponse priceResponse = getObjectMapper().readValue(json, PriceResponse.class);
+    PriceResponse priceResponse = bcJson.getObjectMapper().readValue(json, PriceResponse.class);
 
     assertThat(priceResponse.getData()).isNotNull().hasSize(1);
 

@@ -6,8 +6,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import java.util.*
 
 /**
@@ -19,7 +17,7 @@ import java.util.*
 class AssetUtils private constructor() {
 
     companion object {
-        private val objectMapper = ObjectMapper().registerModule(KotlinModule())
+        private val objectMapper = BcJson().objectMapper
         val USD = Currency("USD")
 
         /**

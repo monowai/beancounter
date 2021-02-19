@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.integ;
 
-import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -12,6 +11,7 @@ import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.auth.server.AuthorityRoleConverter;
 import com.beancounter.common.contracts.CurrencyResponse;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
@@ -34,7 +34,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Tag("slow")
 class CurrencyMvcTests {
 
-  private final ObjectMapper objectMapper = getObjectMapper();
+  private final ObjectMapper objectMapper = new BcJson().getObjectMapper();
 
   @Autowired
   private WebApplicationContext context;

@@ -54,6 +54,7 @@ public class TestPortfolioCommands {
   private RegistrationService registrationService;
   @MockBean
   private JwtDecoder jwtDecoder;
+  private final BcJson bcJson = new BcJson();
 
   @BeforeAll
   static void mockPortfolioGw() {
@@ -93,7 +94,7 @@ public class TestPortfolioCommands {
     String result = portfolioCommands
         .add("ABC", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
-    Portfolio portfolio = BcJson.getObjectMapper().readValue(result, Portfolio.class);
+    Portfolio portfolio = bcJson.getObjectMapper().readValue(result, Portfolio.class);
     assertThat(portfolio).isEqualToIgnoringGivenFields(response.getData().iterator().next(),
         "owner");
   }
@@ -111,7 +112,7 @@ public class TestPortfolioCommands {
     String result = portfolioCommands
         .add("ZZZ", "ABC", "NZD", "USD");
     assertThat(result).isNotNull();
-    Portfolio portfolio = BcJson.getObjectMapper().readValue(result, Portfolio.class);
+    Portfolio portfolio = bcJson.getObjectMapper().readValue(result, Portfolio.class);
     assertThat(portfolio).isEqualToIgnoringGivenFields(portfolioResponse.getData(),
         "owner");
   }

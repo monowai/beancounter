@@ -8,10 +8,9 @@ import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -19,7 +18,7 @@ import java.time.LocalDate
 import java.util.*
 
 internal class TestTrn {
-    private val mapper = ObjectMapper().registerModule(KotlinModule())
+    private val mapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)

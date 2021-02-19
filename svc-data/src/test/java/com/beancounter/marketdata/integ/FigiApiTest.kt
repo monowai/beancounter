@@ -4,12 +4,13 @@ import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.utils.FigiMockUtils.getFigiApi
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
@@ -45,13 +46,15 @@ class FigiApiTest {
     @Autowired
     private lateinit var context: WebApplicationContext
 
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
+
     @Test
     fun is_CommonStockFound() {
         val asset = figiProxy!!.find(marketService!!.getMarket("NASDAQ"), "MSFT")
         assertThat(asset)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("name", "MICROSOFT CORP")
-                .isNotNull
+            .isNotNull
+            .hasFieldOrPropertyWithValue("name", "MICROSOFT CORP")
+            .isNotNull
     }
 
     @Test

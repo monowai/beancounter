@@ -3,7 +3,7 @@ package com.beancounter.marketdata.integ
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.contracts.ContractVerifierBase
 import com.beancounter.marketdata.providers.wtd.WtdService
@@ -11,6 +11,7 @@ import com.beancounter.marketdata.utils.WtdMockUtils
 import com.beancounter.marketdata.utils.WtdMockUtils.getResponseMap
 import com.beancounter.marketdata.utils.WtdMockUtils.mockWtdResponse
 import com.beancounter.marketdata.utils.WtdMockUtils.priceDate
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -40,7 +41,7 @@ internal class WorldTradingDataApiTest {
 
     @Autowired
     private lateinit var wtdService: WtdService
-
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
     companion object {
         val api = WtdMockUtils.getWtdApi()
 

@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.get
 import com.beancounter.common.utils.MathUtils.Companion.percent
@@ -13,8 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import java.io.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -138,6 +137,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     companion object {
         const val GLOBAL_QUOTE = "Global Quote"
         const val TIME_SERIES_DAILY = "Time Series (Daily)"
-        private val mapper = ObjectMapper().registerModule(KotlinModule())
+        private val mapper = BcJson().objectMapper
     }
 }

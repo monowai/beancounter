@@ -4,11 +4,12 @@ import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.PositionBoot
 import com.beancounter.position.service.Valuation
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -33,6 +34,7 @@ import org.springframework.web.context.WebApplicationContext
 class ContractVerifierBase {
     private val dateUtils = DateUtils()
     private val currencyUtils = CurrencyUtils()
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var context: WebApplicationContext

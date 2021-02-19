@@ -33,9 +33,11 @@ import java.util.*
 @EntityScan(basePackageClasses = [Currency::class])
 @EnableAutoConfiguration
 @EnableJpaRepositories(basePackageClasses = [CurrencyRepository::class])
-internal class StaticDataTest @Autowired constructor(private val marketService: MarketService,
-                                                     private val currencyService: CurrencyService,
-                                                     private val dateUtils: DateUtils) {
+internal class StaticDataTest @Autowired constructor(
+    private val marketService: MarketService,
+    private val currencyService: CurrencyService,
+    dateUtils: DateUtils
+) {
 
     private val marketUtils = MarketUtils(dateUtils)
 

@@ -23,6 +23,7 @@ public class UserCommands {
   private final RegistrationService registrationService;
   private final EnvConfig envConfig;
   private LineReader lineReader;
+  private final BcJson bcJson = new BcJson();
 
   public UserCommands(LoginService loginService,
                       RegistrationService registrationService,
@@ -54,7 +55,7 @@ public class UserCommands {
   @ShellMethod("Who am I?")
   @SneakyThrows
   public String me() {
-    return BcJson.getWriter().writeValueAsString(this.registrationService.me());
+    return bcJson.getWriter().writeValueAsString(this.registrationService.me());
   }
 
   @ShellMethod("Register your Account")
@@ -63,7 +64,7 @@ public class UserCommands {
     if (token == null) {
       throw new UnauthorizedException("Please login");
     }
-    return BcJson.getWriter()
+    return bcJson.getWriter()
         .writeValueAsString(
             this.registrationService
                 .register(new RegistrationRequest(token.getToken().getClaim("email")))

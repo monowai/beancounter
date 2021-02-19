@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.contracts;
 
 import static com.beancounter.common.utils.AssetUtils.getAsset;
-import static com.beancounter.common.utils.BcJson.getObjectMapper;
 import static com.beancounter.marketdata.utils.EcbMockUtils.get;
 import static com.beancounter.marketdata.utils.EcbMockUtils.getRateMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,6 +18,7 @@ import com.beancounter.common.contracts.TrnResponse;
 import com.beancounter.common.model.Asset;
 import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.SystemUser;
+import com.beancounter.common.utils.BcJson;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.marketdata.MarketDataBoot;
 import com.beancounter.marketdata.assets.AssetService;
@@ -80,7 +80,7 @@ public class ContractVerifierBase {
   public static final Asset AMP = getAsset("ASX", "AMP");
   @Autowired
   private DateUtils dateUtils;
-  private final ObjectMapper om = getObjectMapper();
+  private final ObjectMapper objectMapper = new BcJson().getObjectMapper();
   @MockBean
   private JwtDecoder jwtDecoder;
   @MockBean
@@ -115,7 +115,7 @@ public class ContractVerifierBase {
   private void systemUsers() throws Exception {
     File jsonFile =
         new ClassPathResource("contracts/register/response.json").getFile();
-    RegistrationResponse response = om.readValue(jsonFile, RegistrationResponse.class);
+    RegistrationResponse response = objectMapper.readValue(jsonFile, RegistrationResponse.class);
     String email = "blah@blah.com";
 
     Jwt jwt = TokenUtils.getUserToken(new SystemUser(email, email));
@@ -170,8 +170,9 @@ public class ContractVerifierBase {
     mockTrnGetResponse(getTestPortfolio(), "contracts/trn/TEST-response.json");
     mockTrnGetResponse(getEmptyPortfolio(), "contracts/trn/EMPTY-response.json");
     Mockito.when(trnService.findByPortfolioAsset(getTestPortfolio(),
-        "KMI", Objects.requireNonNull(dateUtils.getDate("2020-05-01", dateUtils.getZoneId()))))
-        .thenReturn(om.readValue(
+        "KMI", Objects.requireNonNull(
+            dateUtils.getDate("2020-05-01", dateUtils.getZoneId()))))
+        .thenReturn(objectMapper.readValue(
             new ClassPathResource("contracts/trn/trn-for-asset.json").getFile(),
             TrnResponse.class));
 
@@ -179,16 +180,16 @@ public class ContractVerifierBase {
 
   void mockTrnGetResponse(Portfolio portfolio, String trnFile) throws Exception {
     File jsonFile = new ClassPathResource(trnFile).getFile();
-    TrnResponse trnResponse = om.readValue(jsonFile, TrnResponse.class);
+    TrnResponse trnResponse = objectMapper.readValue(jsonFile, TrnResponse.class);
     Mockito.when(trnService.findForPortfolio(
         portfolio,
         Objects.requireNonNull(dateUtils.getDate()))).thenReturn(trnResponse);
   }
 
   void mockTrnPostResponse(Portfolio portfolio) throws Exception {
-    Mockito.when(trnService.save(portfolio, om.readValue(
+    Mockito.when(trnService.save(portfolio, objectMapper.readValue(
         new ClassPathResource("contracts/trn/CSV-write.json").getFile(), TrnRequest.class)))
-        .thenReturn(om.readValue(
+        .thenReturn(objectMapper.readValue(
             new ClassPathResource("contracts/trn/CSV-response.json").getFile(), TrnResponse.class));
 
   }
@@ -198,7 +199,7 @@ public class ContractVerifierBase {
     mockPortfolio(getTestPortfolio());
     // All Portfolio
     Mockito.when(portfolioService.getPortfolios()).thenReturn(
-        om.readValue(
+        objectMapper.readValue(
             new ClassPathResource("contracts/portfolio/portfolios.json").getFile(),
             PortfoliosResponse.class).getData()
     );
@@ -207,17 +208,19 @@ public class ContractVerifierBase {
         "KMI",
         dateUtils.getDate("2020-05-01", dateUtils.getZoneId())))
         .thenReturn(
-            om.readValue(
+            objectMapper.readValue(
                 new ClassPathResource("contracts/portfolio/where-held-response.json").getFile(),
                 PortfoliosResponse.class)
         );
 
 
     Mockito.when(portfolioService.save(
-        om.readValue(new ClassPathResource("contracts/portfolio/add-request.json").getFile(),
+        objectMapper.readValue(new ClassPathResource("contracts/portfolio/add-request.json")
+                .getFile(),
             PortfoliosRequest.class).getData()))
         .thenReturn(
-            om.readValue(new ClassPathResource("contracts/portfolio/add-response.json").getFile(),
+            objectMapper.readValue(new ClassPathResource("contracts/portfolio/add-response.json")
+                    .getFile(),
                 PortfoliosResponse.class)
                 .getData());
   }
@@ -237,7 +240,7 @@ public class ContractVerifierBase {
   }
 
   private Portfolio getPortfolio(File jsonFile) throws IOException {
-    PortfolioResponse portfolioResponse = om.readValue(jsonFile, PortfolioResponse.class);
+    PortfolioResponse portfolioResponse = objectMapper.readValue(jsonFile, PortfolioResponse.class);
     return portfolioResponse.getData();
   }
 
@@ -253,7 +256,7 @@ public class ContractVerifierBase {
   private void mockAssets() throws Exception {
     Mockito.when(assetService.find("KMI"))
         .thenReturn(
-            om.readValue(
+            objectMapper.readValue(
                 new ClassPathResource("contracts/assets/kmi-asset-by-id.json").getFile(),
                 AssetResponse.class).getData());
 
@@ -297,10 +300,10 @@ public class ContractVerifierBase {
 
   private void mockAssetCreateResponses(File jsonRequest, File jsonResponse) throws Exception {
     AssetRequest assetRequest =
-        om.readValue(jsonRequest, AssetRequest.class);
+        objectMapper.readValue(jsonRequest, AssetRequest.class);
 
     AssetUpdateResponse assetUpdateResponse =
-        om.readValue(jsonResponse, AssetUpdateResponse.class);
+        objectMapper.readValue(jsonResponse, AssetUpdateResponse.class);
 
     Mockito.when(assetService.process(assetRequest)).thenReturn(assetUpdateResponse);
     Set<String> keys = assetUpdateResponse.getData().keySet();

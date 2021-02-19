@@ -2,8 +2,9 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @DependsOn("kafkaConfig")
 class PriceWriter {
     private var priceService: PriceService? = null
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     fun setPriceService(priceService: PriceService?) {

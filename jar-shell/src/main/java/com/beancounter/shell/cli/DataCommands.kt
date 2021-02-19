@@ -3,7 +3,7 @@ package com.beancounter.shell.cli
 import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import lombok.SneakyThrows
 import lombok.extern.slf4j.Slf4j
 import org.springframework.shell.standard.ShellComponent
@@ -14,7 +14,7 @@ import java.util.*
 @ShellComponent
 @Slf4j
 class DataCommands internal constructor(private val staticService: StaticService) {
-    private val writer = objectMapper.writerWithDefaultPrettyPrinter()
+    private val writer = BcJson().objectMapper.writerWithDefaultPrettyPrinter()
 
     @ShellMethod("Supported markets")
     @SneakyThrows

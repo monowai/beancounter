@@ -3,9 +3,10 @@ package com.beancounter.marketdata
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.RateCalculator
 import com.beancounter.marketdata.providers.fxrates.EcbRates
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
@@ -14,6 +15,7 @@ import java.math.RoundingMode
 import java.util.*
 
 internal class FxRateTests {
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
     @Test
     @Throws(Exception::class)
     fun is_FxRateResponseSerializing() {

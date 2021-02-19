@@ -6,8 +6,9 @@ import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -35,6 +36,7 @@ internal class StubbedTrnValuations {
     @Autowired
     private lateinit var wac: WebApplicationContext
     private lateinit var mockMvc: MockMvc
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @BeforeEach
     fun setUp() {

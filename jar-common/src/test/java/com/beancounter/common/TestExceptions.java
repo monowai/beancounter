@@ -134,7 +134,7 @@ class TestExceptions {
         .request(Request.create(
             Request.HttpMethod.GET, "/test", new HashMap<>(),
             Request.Body.empty(), requestTemplate))
-        .body(BcJson.getObjectMapper().writeValueAsString(springExceptionMessage),
+        .body(new BcJson().getObjectMapper().writeValueAsString(springExceptionMessage),
             Charset.defaultCharset())
         .build();
     assertThrows(SystemException.class, () -> validIntegrationException(

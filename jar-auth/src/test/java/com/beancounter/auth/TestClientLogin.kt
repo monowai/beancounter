@@ -19,8 +19,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtValidationException
 import org.springframework.test.context.ActiveProfiles
-import java.lang.Exception
-import java.util.HashMap
+import java.util.*
 
 @SpringBootTest(classes = [LoginService::class, LoginService.AuthGateway::class], properties = ["auth.enabled=true"])
 @ImportAutoConfiguration(

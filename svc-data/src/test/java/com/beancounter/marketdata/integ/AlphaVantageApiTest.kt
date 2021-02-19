@@ -9,7 +9,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
@@ -25,6 +25,7 @@ import com.beancounter.marketdata.service.MarketDataService
 import com.beancounter.marketdata.service.MdFactory
 import com.beancounter.marketdata.utils.AlphaMockUtils
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
@@ -63,6 +64,7 @@ import java.util.*
 internal class AlphaVantageApiTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var mdFactory: MdFactory

@@ -6,6 +6,7 @@ import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.marketdata.providers.MarketDataAdapter
@@ -13,7 +14,6 @@ import com.beancounter.marketdata.providers.ProviderArguments
 import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.IOException
@@ -22,7 +22,7 @@ import java.util.*
 
 @Service
 class AlphaPriceAdapter : MarketDataAdapter {
-    final val alphaMapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule())
+    final val alphaMapper: ObjectMapper = BcJson().objectMapper
     private val dateUtils = DateUtils()
     operator fun get(providerArguments: ProviderArguments,
                      batchId: Int?, response: String?): Collection<MarketData> {

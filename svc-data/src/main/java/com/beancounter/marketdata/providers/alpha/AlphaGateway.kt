@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
 import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.context.annotation.Configuration
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMethod
  * @author mikeh
  * @since 2019-03-03
  */
-@Configuration
 @FeignClient(name = "alphaVantage", url = "\${beancounter.market.providers.ALPHA.url:https://www.alphavantage.co}")
 interface AlphaGateway {
     @RequestMapping(method = [RequestMethod.GET], headers = ["Content-Type: text/plain"], value = ["/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"])

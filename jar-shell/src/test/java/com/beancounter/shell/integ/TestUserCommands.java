@@ -42,6 +42,7 @@ public class TestUserCommands {
   private static RegistrationService.RegistrationGateway registrationGateway;
 
   private static JwtDecoder jwtDecoder;
+  private final BcJson bcJson = new BcJson();
 
   @Value("${auth.client}")
   private String client;
@@ -106,7 +107,7 @@ public class TestUserCommands {
     Mockito.when(registrationGateway.me(tokenService.getBearerToken()))
         .thenReturn(new RegistrationResponse(systemUser));
 
-    SystemUser me = BcJson.getObjectMapper().readValue(userCommands.me(), SystemUser.class);
+    SystemUser me = bcJson.getObjectMapper().readValue(userCommands.me(), SystemUser.class);
     assertThat(me).isNotNull().hasFieldOrPropertyWithValue("id", systemUser.getId());
 
     assertThat(userCommands.token()).isEqualTo(authResponse.getToken());
@@ -117,7 +118,7 @@ public class TestUserCommands {
         .thenReturn(new RegistrationResponse(systemUser));
 
     String registrationResponse = userCommands.register();
-    SystemUser registered = BcJson.getObjectMapper()
+    SystemUser registered = bcJson.getObjectMapper()
         .readValue(registrationResponse, SystemUser.class);
 
     assertThat(registered).isNotNull().hasFieldOrPropertyWithValue("id", userId);

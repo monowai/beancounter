@@ -1,9 +1,10 @@
 package com.beancounter.marketdata.utils
 
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit.WireMockRule
@@ -16,7 +17,7 @@ import java.util.*
 object FigiMockUtils {
     @JvmStatic
     private val figiApi = WireMockRule(WireMockConfiguration.options().port(6666))
-
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
     @JvmStatic
     fun getFigiApi(): WireMockRule {
         if (!figiApi.isRunning) {

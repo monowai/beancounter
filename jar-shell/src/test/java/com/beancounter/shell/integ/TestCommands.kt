@@ -5,7 +5,7 @@ import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.cli.DataCommands
 import com.beancounter.shell.cli.PortfolioCommands
 import com.beancounter.shell.cli.UtilCommands
@@ -40,6 +40,7 @@ class TestCommands {
 
     @Autowired
     private val promptProvider: PromptProvider? = null
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)

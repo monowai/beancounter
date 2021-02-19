@@ -4,11 +4,7 @@ import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
-import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.BcJson.objectMapper
-import com.beancounter.common.utils.CurrencyUtils
-import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.PortfolioUtils
+import com.beancounter.common.utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -17,6 +13,7 @@ import java.util.*
 internal class TestPositions {
     private val dateUtils = DateUtils()
     private val currencyUtils = CurrencyUtils()
+    private val bcJson = BcJson()
 
     @Test
     @Throws(Exception::class)
@@ -31,11 +28,11 @@ internal class TestPositions {
         position.quantityValues.purchased = BigDecimal(200)
 
         position.dateValues = DateValues()
-                .apply { opened = dateUtils.date; closed = dateUtils.date; last = dateUtils.date; }
+            .apply { opened = dateUtils.date; closed = dateUtils.date; last = dateUtils.date; }
 
         val positionResponse = PositionResponse(positions)
-        val json = objectMapper.writeValueAsString(positionResponse)
-        val fromJson = objectMapper.readValue(json, PositionResponse::class.java)
+        val json = bcJson.objectMapper.writeValueAsString(positionResponse)
+        val fromJson = bcJson.objectMapper.readValue(json, PositionResponse::class.java)
         fromJson.data.positions.forEach { inPosition ->
             assertThat(inPosition.value.dateValues).isNotNull
             assertThat(inPosition.value.moneyValues).isNotNull
@@ -88,8 +85,8 @@ internal class TestPositions {
         trns.add(trn)
         val positionRequest = PositionRequest("TWEE", trns)
 
-        val json = objectMapper.writeValueAsString(positionRequest)
-        val fromJson = objectMapper.readValue(json, PositionRequest::class.java)
+        val json = bcJson.objectMapper.writeValueAsString(positionRequest)
+        val fromJson = bcJson.objectMapper.readValue(json, PositionRequest::class.java)
         assertThat(fromJson.portfolioId).isEqualTo(positionRequest.portfolioId)
         assertThat(fromJson.trns).hasSize(positionRequest.trns.size)
         for (trnJson in fromJson.trns) {
@@ -101,9 +98,9 @@ internal class TestPositions {
     @Throws(Exception::class)
     fun is_TotalsSerializing() {
         val totals = Totals(BigDecimal("200.99"))
-        val json = objectMapper.writeValueAsString(totals)
-        val fromJson = objectMapper.readValue(json, Totals::class.java)
+        val json = bcJson.objectMapper.writeValueAsString(totals)
+        val fromJson = bcJson.objectMapper.readValue(json, Totals::class.java)
         assertThat(fromJson)
-                .usingRecursiveComparison().isEqualTo(totals)
+            .usingRecursiveComparison().isEqualTo(totals)
     }
 }

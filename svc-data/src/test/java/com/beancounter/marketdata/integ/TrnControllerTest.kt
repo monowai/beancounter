@@ -8,7 +8,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.*
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
-import com.beancounter.common.utils.BcJson.objectMapper
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.figi.FigiProxy
@@ -67,6 +67,7 @@ class TrnControllerTest {
     private lateinit var figiProxy: FigiProxy
     private lateinit var token: Jwt
     private lateinit var mockMvc: MockMvc
+    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     fun mockServices() {

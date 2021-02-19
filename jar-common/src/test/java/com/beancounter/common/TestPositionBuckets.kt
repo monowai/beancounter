@@ -5,16 +5,15 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class TestPositionBuckets {
-    private val mapper = ObjectMapper().registerModule(KotlinModule())
+    private val mapper = BcJson().objectMapper
     @Test
     fun is_DefaultMoneyValuesSet() {
         val moneyValues = MoneyValues(USD)

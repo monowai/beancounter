@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
-import java.util.*
 import javax.annotation.PostConstruct
 
 /**
@@ -49,5 +48,4 @@ class MarketConfig {
     fun setProviders(providers: MutableMap<String, Market>) {
         this.providers = providers
     }
-
 }

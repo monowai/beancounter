@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import java.io.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
+import java.util.Objects
 
 /**
  * Deserialize various AlphaVantage responses to a normalised PriceResponse.
@@ -35,8 +35,8 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
             return handleTimeSeries(source)
         } else if (source.has(GLOBAL_QUOTE)) {
             return handleGlobal(source)
-            //nodeValue = source.get("Global Quote");
-            //marketData =getMarketData(asset, )
+            // nodeValue = source.get("Global Quote");
+            // marketData =getMarketData(asset, )
         }
         return null
     }
@@ -46,13 +46,13 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         val metaData = source["Global Quote"]
         val asset = getAsset(metaData, "01. symbol")
         val mapType = mapper.typeFactory
-                .constructMapType(LinkedHashMap::class.java, String::class.java, String::class.java)
+            .constructMapType(LinkedHashMap::class.java, String::class.java, String::class.java)
         return getMdFromGlobal(asset, mapper.readValue<Map<String, Any>>(metaData.toString(), mapType))
     }
 
     private fun getMdFromGlobal(asset: Asset?, data: Map<String, Any>?): PriceResponse {
         val results: MutableCollection<MarketData> = ArrayList()
-        if (data != null && asset != null ) {
+        if (data != null && asset != null) {
             val open = BigDecimal(data["02. open"].toString())
             val high = BigDecimal(data["03. high"].toString())
             val low = BigDecimal(data["04. low"].toString())
@@ -61,8 +61,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
             val priceDate = data["07. latest trading day"].toString()
             val previousClose = get(data["08. previous close"].toString())
             val change = get(data["09. change"].toString())
-            val price = MarketData(asset,
-                    Objects.requireNonNull(dateUtils.getDate(priceDate))!!)
+            val price = MarketData(asset, Objects.requireNonNull(dateUtils.getDate(priceDate))!!)
             price.open = open
             price.close = close
             price.high = high
@@ -83,17 +82,17 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         val asset = getAsset(metaData, "2. Symbol")
         if (asset != null) {
             val mapType = mapper.typeFactory
-                    .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
+                .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
             val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(source["Time Series (Daily)"].toString(), mapType)
             for (key in allValues.keys) {
                 val rawData: Map<String, Any>? = allValues[key.toString()]
                 val localDateTime = dateUtils.getLocalDate(
-                        key.toString(), "yyyy-M-dd")
+                    key.toString(), "yyyy-M-dd"
+                )
                 val priceData = getPrice(asset, localDateTime, rawData)
-                if ( priceData != null ) {
+                if (priceData != null) {
                     results.add(priceData)
                 }
-
             }
         }
         return PriceResponse(results)

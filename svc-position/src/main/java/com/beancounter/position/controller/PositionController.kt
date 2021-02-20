@@ -8,7 +8,14 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.position.service.Valuation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Still thinking on this.
@@ -29,17 +36,21 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     }
 
     @GetMapping(value = ["/id/{id}/{valuationDate}"], produces = ["application/json"])
-    fun byId(@PathVariable id: String,
-                     @PathVariable(required = false) valuationDate: String?,
-                     @RequestParam(value = "value", defaultValue = "true") value: Boolean): PositionResponse {
+    fun byId(
+        @PathVariable id: String,
+        @PathVariable(required = false) valuationDate: String?,
+        @RequestParam(value = "value", defaultValue = "true") value: Boolean
+    ): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioById(id)
         return getPositions(portfolio, valuationDate, value)
     }
 
     @GetMapping(value = ["/{code}/{valuationDate}"], produces = ["application/json"])
-    fun get(@PathVariable code: String,
-                     @PathVariable(required = false) valuationDate: String?,
-                     @RequestParam(value = "value", defaultValue = "true") value: Boolean): PositionResponse {
+    fun get(
+        @PathVariable code: String,
+        @PathVariable(required = false) valuationDate: String?,
+        @RequestParam(value = "value", defaultValue = "true") value: Boolean
+    ): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
         return getPositions(portfolio, valuationDate, value)
     }
@@ -59,5 +70,4 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     fun query(@RequestBody trnQuery: TrustedTrnQuery): PositionResponse {
         return valuationService.build(trnQuery)
     }
-
 }

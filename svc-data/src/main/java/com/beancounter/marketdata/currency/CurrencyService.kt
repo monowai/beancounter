@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.ArrayList
 import javax.annotation.PostConstruct
 
 /**
@@ -44,7 +44,7 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
     @Cacheable("currency.code")
     fun getCode(code: String): Currency? {
         val result = currencyRepository.findById(code.toUpperCase())
-        if ( result.isPresent) {
+        if (result.isPresent) {
             return result.get()
         }
         return null
@@ -57,5 +57,4 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
     companion object {
         private val log = LoggerFactory.getLogger(CurrencyService::class.java)
     }
-
 }

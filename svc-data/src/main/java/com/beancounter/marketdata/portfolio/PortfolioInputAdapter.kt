@@ -7,7 +7,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.currency.CurrencyService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class PortfolioInputAdapter internal constructor(private val currencyService: CurrencyService) {
@@ -22,28 +22,27 @@ class PortfolioInputAdapter internal constructor(private val currencyService: Cu
     private fun prepare(owner: SystemUser, portfolioInput: PortfolioInput): Portfolio {
         log.debug("Creating for {}", owner.id)
         return Portfolio(
-                KeyGenUtils.format(UUID.randomUUID()),
-                portfolioInput.code.toUpperCase(),
-                portfolioInput.name,
-                currencyService.getCode(portfolioInput.currency)!!,
-                currencyService.getCode(portfolioInput.base)!!,
-                owner
+            KeyGenUtils.format(UUID.randomUUID()),
+            portfolioInput.code.toUpperCase(),
+            portfolioInput.name,
+            currencyService.getCode(portfolioInput.currency)!!,
+            currencyService.getCode(portfolioInput.base)!!,
+            owner
         )
     }
 
     fun fromInput(data: PortfolioInput, existing: Portfolio): Portfolio {
         return Portfolio(
-                existing.id,
-                data.code.toUpperCase(),
-                data.name,
-                currencyService.getCode(data.currency)!!,
-                currencyService.getCode(data.base)!!,
-                existing.owner
+            existing.id,
+            data.code.toUpperCase(),
+            data.name,
+            currencyService.getCode(data.currency)!!,
+            currencyService.getCode(data.base)!!,
+            existing.owner
         )
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(PortfolioInputAdapter::class.java)
     }
-
 }

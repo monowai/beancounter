@@ -10,7 +10,6 @@ import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.*
 
 internal class TestPositionBuckets {
     private val mapper = BcJson().objectMapper
@@ -26,12 +25,12 @@ internal class TestPositionBuckets {
         val positionRequest = PositionRequest("ABC", ArrayList())
         var json: String = mapper.writeValueAsString(positionRequest)
         assertThat(mapper.readValue(json, PositionRequest::class.java))
-                .usingRecursiveComparison().isEqualTo(positionRequest)
+            .usingRecursiveComparison().isEqualTo(positionRequest)
         val positionResponse = PositionResponse(Positions(getPortfolio("ABC")))
         json = mapper.writeValueAsString(positionResponse)
         assertThat(mapper.readValue(json, PositionResponse::class.java))
-                .isNotNull
-                .hasFieldOrProperty("data")
+            .isNotNull
+            .hasFieldOrProperty("data")
     }
 
     companion object {

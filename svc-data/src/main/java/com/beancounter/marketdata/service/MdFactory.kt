@@ -7,7 +7,6 @@ import com.beancounter.marketdata.providers.wtd.WtdService
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import java.util.*
 
 /**
  * Return a MarketData provider from a registered collection.
@@ -16,9 +15,11 @@ import java.util.*
  * @since 2019-03-01
  */
 @Service
-class MdFactory internal constructor(mockProviderService: MockProviderService,
-                                     alphaService: AlphaService,
-                                     wtdService: WtdService) {
+class MdFactory internal constructor(
+    mockProviderService: MockProviderService,
+    alphaService: AlphaService,
+    wtdService: WtdService
+) {
     private val providers: MutableMap<String, MarketDataProvider> = HashMap()
 
     /**

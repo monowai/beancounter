@@ -21,7 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.TimeZone
 
 /**
  * Market related tests.
@@ -57,11 +57,11 @@ internal class StaticDataTest @Autowired constructor(
     fun does_MockMarketConfigurationExist() {
         val market = marketService.getMarket(MockProviderService.ID)
         AssertionsForClassTypes.assertThat(market)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(ZoneOffset.UTC))
-                .hasFieldOrProperty("currency")
+            .isNotNull
+            .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(ZoneOffset.UTC))
+            .hasFieldOrProperty("currency")
         AssertionsForClassTypes.assertThat(market.currency)
-                .hasFieldOrPropertyWithValue("code", "USD")
+            .hasFieldOrPropertyWithValue("code", "USD")
     }
 
     @Test
@@ -75,16 +75,19 @@ internal class StaticDataTest @Autowired constructor(
         val dateInString = "2019-04-14 10:30:00"
         // Users requested date "today in timezone"
         val sunday = LocalDate
-                .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat))
+            .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat))
         var resolvedDate = marketUtils.getLastMarketDate(
-                sunday.atStartOfDay(),
-                marketService.getMarket("NYSE"))
+            sunday.atStartOfDay(),
+            marketService.getMarket("NYSE")
+        )
         AssertionsForClassTypes.assertThat(resolvedDate)
-                .isEqualTo(LocalDate.of(2019, 4, 12))
-        resolvedDate = marketUtils.getLastMarketDate(sunday.atStartOfDay(),
-                marketService.getMarket("NYSE"))
+            .isEqualTo(LocalDate.of(2019, 4, 12))
+        resolvedDate = marketUtils.getLastMarketDate(
+            sunday.atStartOfDay(),
+            marketService.getMarket("NYSE")
+        )
         AssertionsForClassTypes.assertThat(resolvedDate)
-                .isEqualTo(LocalDate.of(2019, 4, 12))
+            .isEqualTo(LocalDate.of(2019, 4, 12))
     }
 
     @Test
@@ -97,36 +100,35 @@ internal class StaticDataTest @Autowired constructor(
     fun is_AliasForWtdAndNzxResolving() {
         val market = marketService.getMarket("NZX")
         AssertionsForClassTypes.assertThat(market)
-                .isNotNull
-                .hasFieldOrProperty("aliases")
+            .isNotNull
+            .hasFieldOrProperty("aliases")
         AssertionsForClassTypes.assertThat(market.currency)
-                .hasFieldOrPropertyWithValue("code", "NZD")
+            .hasFieldOrPropertyWithValue("code", "NZD")
         AssertionsForClassTypes.assertThat(market.aliases[WtdService.ID])
-                .isEqualTo("NZ")
-                .isNotNull()
+            .isEqualTo("NZ")
+            .isNotNull()
     }
 
     @Test
     fun does_MarketDataAliasNasdaqResolveToNull() {
         val market = marketService.getMarket("NASDAQ")
         AssertionsForClassTypes.assertThat(market)
-                .isNotNull
-                .hasFieldOrProperty("aliases")
+            .isNotNull
+            .hasFieldOrProperty("aliases")
         AssertionsForClassTypes.assertThat(market.aliases[WtdService.ID])
-                .isBlank()
+            .isBlank()
     }
 
     @Test
     fun is_CurrencyDataLoading() {
         AssertionsForClassTypes.assertThat(currencyService.getCode("USD"))
-                .isNotNull
+            .isNotNull
         AssertionsForClassTypes.assertThat(currencyService.baseCurrency)
-                .isNotNull
+            .isNotNull
     }
 
     @Test
     fun is_IllegalArgumentsHandled() {
         Assertions.assertThrows(BusinessException::class.java) { marketService.getMarket(null, true) }
     }
-
 }

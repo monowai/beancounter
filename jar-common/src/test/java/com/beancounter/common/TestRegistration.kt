@@ -6,7 +6,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.util.UUID
 
 class TestRegistration {
     private val objectMapper = BcJson().objectMapper
@@ -17,7 +17,7 @@ class TestRegistration {
         val registrationRequest = RegistrationRequest("someone@somewhere.com")
         val json = objectMapper.writeValueAsString(registrationRequest)
         assertThat(objectMapper.readValue(json, RegistrationRequest::class.java))
-                .usingRecursiveComparison().isEqualTo(registrationRequest)
+            .usingRecursiveComparison().isEqualTo(registrationRequest)
     }
 
     @Test
@@ -26,11 +26,11 @@ class TestRegistration {
         val systemUser = SystemUser(UUID.randomUUID().toString(), "someone@somewhere.com")
         var json = objectMapper.writeValueAsString(systemUser)
         assertThat(objectMapper.readValue(json, SystemUser::class.java))
-                .usingRecursiveComparison().isEqualTo(systemUser)
+            .usingRecursiveComparison().isEqualTo(systemUser)
 
         val response = RegistrationResponse(systemUser)
         json = objectMapper.writeValueAsString(response)
         assertThat(objectMapper.readValue(json, RegistrationResponse::class.java).data)
-                .usingRecursiveComparison().isEqualTo(response.data)
+            .usingRecursiveComparison().isEqualTo(response.data)
     }
 }

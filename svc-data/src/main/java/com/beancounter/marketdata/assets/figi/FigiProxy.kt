@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 @ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
@@ -31,10 +30,12 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
     fun find(market: Market, bcAssetCode: String): Asset? {
         val figiCode = bcAssetCode.replace(".", "/").toUpperCase()
         val figiMarket = market.aliases[FIGI]
-        val figiSearch = FigiSearch(figiCode,
-                figiMarket!!,
-                "Common Stock",
-                true)
+        val figiSearch = FigiSearch(
+            figiCode,
+            figiMarket!!,
+            "Common Stock",
+            true
+        )
         val response = resolve(figiSearch)
         if (response?.error != null) {
             log.debug("Error {}/{} {}", figiMarket, figiCode, response.error)
@@ -46,8 +47,10 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
         if (response?.data != null) {
             for (datum in response.data!!) {
                 if (filter.contains(datum.securityType2.toUpperCase())) {
-                    log.trace("In response to {}/{} - found {}/{}",
-                            market, bcAssetCode, figiMarket, figiCode)
+                    log.trace(
+                        "In response to {}/{} - found {}/{}",
+                        market, bcAssetCode, figiMarket, figiCode
+                    )
                     return figiAdapter.transform(market, bcAssetCode, datum)
                 }
             }

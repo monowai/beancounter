@@ -24,7 +24,7 @@ class TestTrnService {
 
         init {
             portfolio = getPortfolio(
-                    "TEST", "NZD Portfolio", Currency("NZD")
+                "TEST", "NZD Portfolio", Currency("NZD")
             )
         }
     }
@@ -42,7 +42,8 @@ class TestTrnService {
     @Test
     fun is_TrnsReturnedForPortfolioAssetId() {
         val query = TrustedTrnQuery(
-                portfolio!!, DateUtils().getDate("2020-05-01")!!, "KMI")
+            portfolio!!, DateUtils().getDate("2020-05-01")!!, "KMI"
+        )
         val queryResults = trnService!!.query(query)
         assertThat(queryResults).isNotNull().hasFieldOrProperty("data")
         assertThat(queryResults.data).isNotEmpty // Don't care about the contents here.

@@ -8,7 +8,6 @@ import com.beancounter.marketdata.service.MarketDataProvider
 import com.beancounter.marketdata.service.MdFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
@@ -31,7 +30,6 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
                     mdpAssetResults[marketDataProvider] = mdpAssets
                 }
                 mdpAssets.add(input.resolvedAsset!!)
-
             }
         }
         return mdpAssetResults
@@ -44,5 +42,4 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
         }
         return results
     }
-
 }

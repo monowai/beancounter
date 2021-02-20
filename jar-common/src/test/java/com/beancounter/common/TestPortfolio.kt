@@ -12,7 +12,6 @@ import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolioInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.*
 
 internal class TestPortfolio {
     private val objectMapper = BcJson().objectMapper
@@ -26,7 +25,7 @@ internal class TestPortfolio {
         val portfoliosRequest = PortfoliosRequest(portfolioInputs)
         var json = objectMapper.writeValueAsString(portfoliosRequest)
         assertThat(objectMapper.readValue(json, PortfoliosRequest::class.java))
-                .usingRecursiveComparison().isEqualTo(portfoliosRequest)
+            .usingRecursiveComparison().isEqualTo(portfoliosRequest)
         val portfolios: MutableCollection<Portfolio> = ArrayList()
         portfolios.add(getPortfolio("TEST"))
         val portfoliosResponse = PortfoliosResponse(portfolios)
@@ -34,7 +33,7 @@ internal class TestPortfolio {
         val fromJson = objectMapper.readValue(json, PortfoliosResponse::class.java).data
         assertThat(fromJson).hasSize(portfoliosResponse.data.size)
         assertThat(fromJson.iterator().next())
-                .usingRecursiveComparison().isEqualTo(portfolios.iterator().next())
+            .usingRecursiveComparison().isEqualTo(portfolios.iterator().next())
     }
 
     @Test
@@ -42,7 +41,7 @@ internal class TestPortfolio {
         val portfolioResponse = PortfolioResponse(getPortfolio("TEST"))
         val json = objectMapper.writeValueAsString(portfolioResponse)
         assertThat(objectMapper.readValue(json, PortfolioResponse::class.java).data)
-                .usingRecursiveComparison().isEqualTo(portfolioResponse.data)
+            .usingRecursiveComparison().isEqualTo(portfolioResponse.data)
     }
 
     @Test
@@ -51,10 +50,10 @@ internal class TestPortfolio {
         val portfolios = ArrayList<Portfolio>()
         val portfolio = getPortfolio("TEST")
         portfolio.owner = SystemUser(
-                "id",
-                "email",
-                false,
-                LocalDate.now().minusDays(5)
+            "id",
+            "email",
+            false,
+            LocalDate.now().minusDays(5)
         )
         portfolios.add(portfolio)
         val portfoliosResponse = PortfoliosResponse(portfolios)
@@ -63,5 +62,4 @@ internal class TestPortfolio {
         assertThat(fromJson.data).isNotNull.hasSize(1)
         assertThat(fromJson.data.iterator().next()).isEqualTo(portfolio)
     }
-
 }

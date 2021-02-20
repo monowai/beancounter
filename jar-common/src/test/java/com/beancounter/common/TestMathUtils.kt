@@ -12,54 +12,85 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 internal class TestMathUtils {
     @Test
     fun is_MultiplySafe() {
-        Assertions.assertThat(multiply(
+        Assertions.assertThat(
+            multiply(
                 BigDecimal("1000.00"),
-                BigDecimal("0")))
-                .isEqualTo("1000.00")
-        Assertions.assertThat(multiply(
+                BigDecimal("0")
+            )
+        )
+            .isEqualTo("1000.00")
+        Assertions.assertThat(
+            multiply(
                 BigDecimal("1000.00"),
-                BigDecimal("0.00")))
-                .isEqualTo("1000.00")
-        Assertions.assertThat(multiply(
+                BigDecimal("0.00")
+            )
+        )
+            .isEqualTo("1000.00")
+        Assertions.assertThat(
+            multiply(
                 BigDecimal("1000.00"),
-                null))
-                .isEqualTo("1000.00")
-        Assertions.assertThat(multiply(
+                null
+            )
+        )
+            .isEqualTo("1000.00")
+        Assertions.assertThat(
+            multiply(
                 BigDecimal("1000.00"),
-                BigDecimal("10.00")))
-                .isEqualTo("10000.00")
-        Assertions.assertThat(multiply(
+                BigDecimal("10.00")
+            )
+        )
+            .isEqualTo("10000.00")
+        Assertions.assertThat(
+            multiply(
                 null,
-                BigDecimal("10.00")))
-                .isNull()
+                BigDecimal("10.00")
+            )
+        )
+            .isNull()
     }
 
     @Test
     fun is_DivideSafe() {
-        Assertions.assertThat(divide(
+        Assertions.assertThat(
+            divide(
                 BigDecimal("1000.00"),
-                BigDecimal("0")))
-                .isEqualTo("1000.00")
-        Assertions.assertThat(divide(
+                BigDecimal("0")
+            )
+        )
+            .isEqualTo("1000.00")
+        Assertions.assertThat(
+            divide(
                 BigDecimal("1000.00"),
-                BigDecimal("0.00")))
-                .isEqualTo("1000.00")
-        Assertions.assertThat(divide(
+                BigDecimal("0.00")
+            )
+        )
+            .isEqualTo("1000.00")
+        Assertions.assertThat(
+            divide(
                 BigDecimal("1000.00"),
-                null))
-                .isEqualTo("1000.00")
-        Assertions.assertThat(divide(
+                null
+            )
+        )
+            .isEqualTo("1000.00")
+        Assertions.assertThat(
+            divide(
                 null,
-                BigDecimal("10.00")))
-                .isNull()
-        Assertions.assertThat(divide(BigDecimal("1000.00"),
-                BigDecimal("10.00")))
-                .isEqualTo("100.00")
+                BigDecimal("10.00")
+            )
+        )
+            .isNull()
+        Assertions.assertThat(
+            divide(
+                BigDecimal("1000.00"),
+                BigDecimal("10.00")
+            )
+        )
+            .isEqualTo("100.00")
     }
 
     @Test
@@ -87,10 +118,10 @@ internal class TestMathUtils {
         val costBasis = BigDecimal("1000")
         var total = BigDecimal("500.00")
         Assertions.assertThat(costBasis.divide(total, getMathContext()))
-                .isEqualTo(BigDecimal("2"))
+            .isEqualTo(BigDecimal("2"))
         total = BigDecimal("555.00")
         Assertions.assertThat(costBasis.divide(total, getMathContext()))
-                .isEqualTo(BigDecimal("1.801801802"))
+            .isEqualTo(BigDecimal("1.801801802"))
     }
 
     @Test
@@ -107,7 +138,7 @@ internal class TestMathUtils {
         val numberFormat = NumberFormat.getInstance(Locale.US)
         val value = "\"1,180.74\""
         Assertions.assertThat(parse(value, numberFormat))
-                .isEqualTo("1180.74")
+            .isEqualTo("1180.74")
     }
 
     @Test

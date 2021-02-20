@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import java.util.Collections
 
 /**
  * Service container for MarketData information.
@@ -20,8 +20,10 @@ import java.util.*
  * @since 2019-01-28
  */
 @Service
-class MarketDataService @Autowired internal constructor(private val providerUtils: ProviderUtils,
-                                                        private val priceService: PriceService) {
+class MarketDataService @Autowired internal constructor(
+    private val providerUtils: ProviderUtils,
+    private val priceService: PriceService
+) {
     @Transactional
     fun backFill(asset: Asset) {
         val assets: MutableCollection<Asset> = ArrayList()
@@ -71,7 +73,7 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
             }
         }
         // Merge results into a response
-        if ( fromDb.size + apiResults.size > 1) {
+        if (fromDb.size + apiResults.size > 1) {
             log.debug("From DB: {}, from API: {}", fromDb.size, apiResults.size)
         }
         if (apiResults.isNotEmpty()) {
@@ -80,7 +82,6 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
         fromDb.addAll(apiResults)
         return PriceResponse(fromDb)
     }
-
 
     /**
      * Delete all prices.  Supports testing
@@ -92,5 +93,4 @@ class MarketDataService @Autowired internal constructor(private val providerUtil
     companion object {
         private val log = LoggerFactory.getLogger(MarketDataService::class.java)
     }
-
 }

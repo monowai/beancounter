@@ -37,11 +37,12 @@ class EventWriter {
             return
         }
         val corporateEvent = CorporateEvent(
-                TrnType.DIVI,
-                marketData.source,
-                marketData.asset.id!!,
-                marketData.priceDate!!,
-                marketData.dividend!!)
+            TrnType.DIVI,
+            marketData.source,
+            marketData.asset.id!!,
+            marketData.priceDate!!,
+            marketData.dividend!!
+        )
         log.trace("Dispatch {} ... {}", topicEvent, marketData)
         kafkaCaProducer.send(topicEvent, TrustedEventInput(corporateEvent))
     }

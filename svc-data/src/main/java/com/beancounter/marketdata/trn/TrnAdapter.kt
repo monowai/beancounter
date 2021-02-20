@@ -11,7 +11,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class TrnAdapter internal constructor(var assetService: AssetService, var currencyService: CurrencyService) {
@@ -24,28 +24,29 @@ class TrnAdapter internal constructor(var assetService: AssetService, var curren
     }
 
     fun map(portfolio: Portfolio?, trnInput: TrnInput): Trn {
-        return Trn(KeyGenUtils.format(UUID.randomUUID()),
-                from(trnInput.callerRef, portfolio),
-                trnInput.trnType,
-                trnInput.status,
-                portfolio!!,
-                assetService.find(trnInput.assetId),
-                if (trnInput.cashAsset == null) null else assetService.find(trnInput.cashAsset!!),
-                currencyService.getCode(trnInput.tradeCurrency!!)!!,
-                if (trnInput.cashCurrency == null) null else currencyService.getCode(trnInput.cashCurrency!!),
-                trnInput.tradeDate!!,
-                trnInput.settleDate,
-                trnInput.quantity,
-                trnInput.price,
-                trnInput.fees,
-                trnInput.tax,
-                trnInput.tradeAmount,
-                trnInput.cashAmount,
-                trnInput.tradeCashRate,
-                trnInput.tradeBaseRate,
-                trnInput.tradePortfolioRate,
-                "1",
-                trnInput.comments
+        return Trn(
+            KeyGenUtils.format(UUID.randomUUID()),
+            from(trnInput.callerRef, portfolio),
+            trnInput.trnType,
+            trnInput.status,
+            portfolio!!,
+            assetService.find(trnInput.assetId),
+            if (trnInput.cashAsset == null) null else assetService.find(trnInput.cashAsset!!),
+            currencyService.getCode(trnInput.tradeCurrency!!)!!,
+            if (trnInput.cashCurrency == null) null else currencyService.getCode(trnInput.cashCurrency!!),
+            trnInput.tradeDate!!,
+            trnInput.settleDate,
+            trnInput.quantity,
+            trnInput.price,
+            trnInput.fees,
+            trnInput.tax,
+            trnInput.tradeAmount,
+            trnInput.cashAmount,
+            trnInput.tradeCashRate,
+            trnInput.tradeBaseRate,
+            trnInput.tradePortfolioRate,
+            "1",
+            trnInput.comments
         )
     }
 
@@ -54,5 +55,4 @@ class TrnAdapter internal constructor(var assetService: AssetService, var curren
             null
         } else assetService.find(asset.id!!)
     }
-
 }

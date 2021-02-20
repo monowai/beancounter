@@ -5,7 +5,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils.Companion.split
 import com.beancounter.common.utils.DateUtils
-import java.util.*
 
 /**
  * MarketDataProviders have different ways to provide keys. THis helps us track our
@@ -16,9 +15,9 @@ import java.util.*
  */
 class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
     private var count = 0
-    var currentBatch = 0
+    private var currentBatch = 0
     var date: String? = null
-    var delimiter = ","
+    private var delimiter = ","
     private var batchConfigs: MutableMap<Int, BatchConfig?> = HashMap()
     private var dpToBc: MutableMap<String, Asset> = HashMap()
 
@@ -39,7 +38,8 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
     fun addAsset(asset: Asset, requestedDate: String) {
         val dpKey = dataProviderConfig.getPriceCode(asset)
         val valuationDate = dateUtils.getDateString(
-                dataProviderConfig.getMarketDate(asset.market, requestedDate))
+            dataProviderConfig.getMarketDate(asset.market, requestedDate)
+        )
         dpToBc[dpKey] = asset
         var batchConfig = batchConfigs[currentBatch]
         if (batchConfig == null) {
@@ -82,18 +82,21 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
          * @param dataProviderConfig Who our provider is
          * @return This class with various keys cross indexed for convenience
          */
-        fun getInstance(priceRequest: PriceRequest,
-                        dataProviderConfig: DataProviderConfig): ProviderArguments {
+        fun getInstance(
+            priceRequest: PriceRequest,
+            dataProviderConfig: DataProviderConfig
+        ): ProviderArguments {
             val providerArguments = ProviderArguments(dataProviderConfig)
             providerArguments.date = priceRequest.date
             // Data providers can have market dependent price dates. Batch first by market, then by size
             val marketAssets: Map<String, Collection<AssetInput>> = split(priceRequest.assets)
             for (market in marketAssets.keys) {
                 for (asset in marketAssets[market] ?: error("This should not happen")) {
-                    if ( asset.resolvedAsset != null ) {
+                    if (asset.resolvedAsset != null) {
                         providerArguments.addAsset(
-                                asset.resolvedAsset!!,
-                                priceRequest.date)
+                            asset.resolvedAsset!!,
+                            priceRequest.date
+                        )
                     }
                 }
                 providerArguments.bumpBatch()

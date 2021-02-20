@@ -7,7 +7,11 @@ import com.beancounter.common.exception.ForbiddenException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/")
@@ -21,10 +25,9 @@ class RegistrationController internal constructor(private val systemUserService:
 
     @PostMapping(value = ["/register"])
     fun register(
-            @AuthenticationPrincipal jwt: Jwt,
-            @RequestBody(required = false) registrationRequest: RegistrationRequest
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestBody(required = false) registrationRequest: RegistrationRequest
     ): RegistrationResponse {
         return systemUserService.register(jwt)
     }
-
 }

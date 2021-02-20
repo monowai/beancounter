@@ -1,7 +1,7 @@
 package com.beancounter.common.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import java.util.*
+import java.util.EnumMap
 
 /**
  * Represents an Asset held in a Portfolio.
@@ -35,5 +35,4 @@ data class Position(val asset: Asset) {
         }
         return result
     }
-
 }

@@ -7,7 +7,13 @@ import com.beancounter.event.contract.CorporateEventsResponse
 import com.beancounter.event.service.EventService
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping
@@ -16,8 +22,10 @@ import org.springframework.web.bind.annotation.*
 class EventController(private val eventService: EventService) {
     @PostMapping(value = ["/backfill/{portfolioId}/{valuationDate}"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.ACCEPTED)
-    operator fun get(@PathVariable portfolioId: String,
-                     @PathVariable(required = false) valuationDate: String = "today") {
+    operator fun get(
+        @PathVariable portfolioId: String,
+        @PathVariable(required = false) valuationDate: String = "today"
+    ) {
         eventService.backFillEvents(portfolioId, valuationDate)
     }
 
@@ -43,5 +51,4 @@ class EventController(private val eventService: EventService) {
     fun getScheduledEvents(@PathVariable date: String): CorporateEventsResponse {
         return eventService.getScheduledEvents(DateUtils().getDate(date)!!)
     }
-
 }

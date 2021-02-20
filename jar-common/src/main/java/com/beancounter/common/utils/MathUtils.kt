@@ -88,7 +88,7 @@ class MathUtils private constructor() {
 
         @JvmStatic
         fun nullSafe(value: BigDecimal?): BigDecimal {
-            if (value == null ){
+            if (value == null) {
                 return BigDecimal.ZERO
             }
             return value

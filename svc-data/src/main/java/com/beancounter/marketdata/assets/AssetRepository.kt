@@ -4,7 +4,7 @@ import com.beancounter.common.model.Asset
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import java.util.Optional
 import java.util.stream.Stream
 
 interface AssetRepository : CrudRepository<Asset, String> {

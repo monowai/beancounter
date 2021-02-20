@@ -2,13 +2,21 @@ package com.beancounter.common
 
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
-import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
-import com.beancounter.common.utils.*
+import com.beancounter.common.model.DateValues
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
+import com.beancounter.common.model.Totals
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.CurrencyUtils
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.*
 
 internal class TestPositions {
     private val dateUtils = DateUtils()
@@ -52,7 +60,7 @@ internal class TestPositions {
         // Calling this should not set the "first" trade date.
         position = positions[asset, secondTradeDate]
         assertThat(position.dateValues)
-                .hasFieldOrPropertyWithValue("opened", dateUtils.getDate("2018-12-01"))
+            .hasFieldOrPropertyWithValue("opened", dateUtils.getDate("2018-12-01"))
     }
 
     @Test
@@ -70,10 +78,10 @@ internal class TestPositions {
 
         // Retrieve with a currency will create if missing
         assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
-                .isNotNull
-                .hasFieldOrPropertyWithValue("currency", currencyUtils.getCurrency("SGD"))
+            .isNotNull
+            .hasFieldOrPropertyWithValue("currency", currencyUtils.getCurrency("SGD"))
         assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
-                .isNotNull
+            .isNotNull
     }
 
     @Test

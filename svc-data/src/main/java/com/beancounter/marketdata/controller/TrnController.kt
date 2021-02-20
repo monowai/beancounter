@@ -11,7 +11,14 @@ import com.beancounter.marketdata.trn.TrnService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/trns")
@@ -23,8 +30,11 @@ class TrnController {
     private lateinit var dateUtils: DateUtils
 
     @Autowired
-    fun setServices(trnService: TrnService,
-                    portfolioService: PortfolioService, dateUtils: DateUtils) {
+    fun setServices(
+        trnService: TrnService,
+        portfolioService: PortfolioService,
+        dateUtils: DateUtils
+    ) {
         this.trnService = trnService
         this.portfolioService = portfolioService
         this.dateUtils = dateUtils
@@ -38,8 +48,8 @@ class TrnController {
 
     @GetMapping(value = ["/{portfolioId}/{trnId}"])
     fun find(
-            @PathVariable("portfolioId") portfolioId: String,
-            @PathVariable("trnId") trnId: String
+        @PathVariable("portfolioId") portfolioId: String,
+        @PathVariable("trnId") trnId: String
     ): TrnResponse {
         val portfolio = portfolioService.find(portfolioId)
         return trnService.getPortfolioTrn(portfolio, trnId)
@@ -64,29 +74,31 @@ class TrnController {
 
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAssetEvents(
-            @PathVariable("portfolioId") portfolioId: String,
-            @PathVariable("assetId") assetId: String
+        @PathVariable("portfolioId") portfolioId: String,
+        @PathVariable("assetId") assetId: String
     ): TrnResponse {
         return trnService.findPortfolioAssetEvents(portfolioService.find(portfolioId), assetId)
     }
 
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/trades"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAssetTrades(
-            @PathVariable("portfolioId") portfolioId: String,
-            @PathVariable("assetId") assetId: String
+        @PathVariable("portfolioId") portfolioId: String,
+        @PathVariable("assetId") assetId: String
     ): TrnResponse {
         return trnService.findPortfolioAssetTrades(portfolioService.find(portfolioId), assetId)
     }
 
     @PostMapping(value = ["/query"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun findByAsset(
-            @RequestBody query: TrustedTrnQuery): TrnResponse {
-        if ( query.portfolio.id == "abc") {
+        @RequestBody query: TrustedTrnQuery
+    ): TrnResponse {
+        if (query.portfolio.id == "abc") {
             throw SystemException("You can't touch this")
         }
         return trnService.findByPortfolioAsset(
-                query.portfolio,
-                query.assetId,
-                query.tradeDate)
+            query.portfolio,
+            query.assetId,
+            query.tradeDate
+        )
     }
 }

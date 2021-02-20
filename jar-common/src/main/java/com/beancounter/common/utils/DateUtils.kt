@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.TimeZone
 
 /**
  * Date based helper functions.
@@ -18,8 +18,10 @@ import java.util.*
  */
 
 @Service
-class DateUtils ( @Value("\${beancounter.zone:#{null}}")
-                     val defaultZone: String = TimeZone.getDefault().id) {
+class DateUtils(
+    @Value("\${beancounter.zone:#{null}}")
+    val defaultZone: String = TimeZone.getDefault().id
+) {
 
     private val defaultFormatter = SimpleDateFormat(format)
 
@@ -47,7 +49,7 @@ class DateUtils ( @Value("\${beancounter.zone:#{null}}")
         return if (inDate == null) {
             null
         } else getLocalDate(inDate, format)
-                ?.atStartOfDay(zoneId)?.toLocalDate()
+            ?.atStartOfDay(zoneId)?.toLocalDate()
     }
 
     fun getLocalDate(inDate: String?, dateFormat: String?): LocalDate? {
@@ -107,5 +109,4 @@ class DateUtils ( @Value("\${beancounter.zone:#{null}}")
     companion object {
         const val format = "yyyy-MM-dd"
     }
-
 }

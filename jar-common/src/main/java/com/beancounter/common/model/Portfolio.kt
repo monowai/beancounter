@@ -1,7 +1,11 @@
 package com.beancounter.common.model
 
 import org.springframework.boot.context.properties.ConstructorBinding
-import javax.persistence.*
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.ManyToOne
+import javax.persistence.Table
+import javax.persistence.UniqueConstraint
 
 /**
  * Owner of a collection of Positions.
@@ -12,13 +16,13 @@ import javax.persistence.*
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "owner_id"])])
 data class Portfolio @ConstructorBinding constructor(
-        @Id val id: String,
-        val code: String,
-        val name: String,
-        @ManyToOne val currency: Currency,
-        @ManyToOne val base: Currency,
-        @ManyToOne
-        var owner: SystemUser? = null
+    @Id val id: String,
+    val code: String,
+    val name: String,
+    @ManyToOne val currency: Currency,
+    @ManyToOne val base: Currency,
+    @ManyToOne
+    var owner: SystemUser? = null
 
 ) {
 
@@ -27,6 +31,4 @@ data class Portfolio @ConstructorBinding constructor(
     constructor(code: String, currency: Currency) : this(code, code, code, currency, currency)
 
     constructor(code: String, currency: Currency, base: Currency) : this(code, code, code, currency, base)
-
-
 }

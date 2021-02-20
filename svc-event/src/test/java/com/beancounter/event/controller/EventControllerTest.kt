@@ -51,10 +51,10 @@ internal class EventControllerTest {
             .andReturn()
         val responseBody = mvcResult.response.contentAsString
         val message = objectMapper
-                .readValue(responseBody, SpringExceptionMessage::class.java)
+            .readValue(responseBody, SpringExceptionMessage::class.java)
         assertThat(message).hasNoNullFieldsOrProperties()
         assertThat(message.status)
-                .isEqualTo(HttpStatus.BAD_REQUEST.value())
+            .isEqualTo(HttpStatus.BAD_REQUEST.value())
     }
 
     @Test
@@ -63,32 +63,35 @@ internal class EventControllerTest {
         // Create
         val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
         var event = CorporateEvent(
-                TrnType.DIVI,
-                "SOURCE",
-                "ABC123",
-                dateUtils.getDate("2020-10-10")!!,
-                BigDecimal("0.1234")
+            TrnType.DIVI,
+            "SOURCE",
+            "ABC123",
+            dateUtils.getDate("2020-10-10")!!,
+            BigDecimal("0.1234")
         )
         event = eventService.save(event)
         assertThat(event).hasFieldOrProperty("id")
 
         // Find By PK
         var mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/{eventId}", event.id)
+            MockMvcRequestBuilders.get("/{eventId}", event.id)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (data) = objectMapper.readValue(
-                mvcResult.response.contentAsString,
-                CorporateEventResponse::class.java)
+            mvcResult.response.contentAsString,
+            CorporateEventResponse::class.java
+        )
         assertThat(data).usingRecursiveComparison().isEqualTo(event)
         mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
+            MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
-        val events = objectMapper.readValue(mvcResult.response.contentAsString,
-                CorporateEventsResponse::class.java)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
+        val events = objectMapper.readValue(
+            mvcResult.response.contentAsString,
+            CorporateEventsResponse::class.java
+        )
         assertThat(events).isNotNull
         assertThat(events.data).hasSize(1)
         assertThat(events.data.iterator().next()).usingRecursiveComparison().isEqualTo(event)

@@ -24,8 +24,9 @@ class FxClientService internal constructor(private val fxGateway: FxGateway, pri
     @FeignClient(name = "fxrates", url = "\${marketdata.url:http://localhost:9510/api}")
     interface FxGateway {
         @PostMapping(value = ["/fx"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-        fun getRates(@RequestHeader("Authorization") bearerToken: String?,
-                     fxRequest: FxRequest?): FxResponse
+        fun getRates(
+            @RequestHeader("Authorization") bearerToken: String?,
+            fxRequest: FxRequest?
+        ): FxResponse
     }
-
 }

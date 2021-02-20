@@ -3,11 +3,11 @@ package com.beancounter.common.contracts
 import com.beancounter.common.model.IsoCurrencyPair
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.boot.context.properties.ConstructorBinding
-import java.util.*
+import java.util.ArrayList
 
 data class FxRequest @ConstructorBinding constructor(
-        val rateDate: String = "today",
-        val pairs: ArrayList<IsoCurrencyPair> = ArrayList()
+    val rateDate: String = "today",
+    val pairs: ArrayList<IsoCurrencyPair> = ArrayList()
 ) {
     constructor() : this("today", ArrayList())
     constructor(rateDate: String) : this(rateDate, ArrayList())
@@ -20,7 +20,6 @@ data class FxRequest @ConstructorBinding constructor(
 
     @JsonIgnore
     var tradeBase: IsoCurrencyPair? = null
-
 
     @JsonIgnore
     fun add(isoCurrencyPair: IsoCurrencyPair?): FxRequest {

@@ -19,7 +19,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtValidationException
 import org.springframework.test.context.ActiveProfiles
-import java.util.*
+import java.util.HashMap
 
 @SpringBootTest(classes = [LoginService::class, LoginService.AuthGateway::class], properties = ["auth.enabled=true"])
 @ImportAutoConfiguration(
@@ -54,7 +54,8 @@ class TestClientLogin {
                                 getObjectMapper().writeValueAsString(
                                     getObjectMapper().readValue(
                                         ClassPathResource("./kc-certs.json")
-                                            .file, HashMap::class.java
+                                            .file,
+                                        HashMap::class.java
                                     )
                                 )
                             )
@@ -73,7 +74,8 @@ class TestClientLogin {
                                 getObjectMapper().writeValueAsString(
                                     getObjectMapper().readValue(
                                         ClassPathResource("./kc-response.json")
-                                            .file, HashMap::class.java
+                                            .file,
+                                        HashMap::class.java
                                     )
                                 )
                             )

@@ -4,7 +4,11 @@ import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.contracts.MarketResponse
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Market Data MVC.
@@ -26,5 +30,4 @@ class MarketController internal constructor(private val marketService: MarketSer
         val market = marketService.getMarket(code)
         return MarketResponse(setOf(market))
     }
-
 }

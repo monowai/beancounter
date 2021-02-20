@@ -2,7 +2,7 @@ package com.beancounter.common.model
 
 import com.beancounter.common.utils.KeyGenUtils
 import java.io.Serializable
-import java.util.*
+import java.util.UUID
 import javax.persistence.Embeddable
 
 /**
@@ -12,8 +12,11 @@ import javax.persistence.Embeddable
  * @since 2019-02-10
  */
 @Embeddable
-data class CallerRef(var provider: String? = null, var batch: String? = null,
-                     var callerId: String? = null) : Serializable {
+data class CallerRef(
+    var provider: String? = null,
+    var batch: String? = null,
+    var callerId: String? = null
+) : Serializable {
 
     companion object {
         @JvmStatic

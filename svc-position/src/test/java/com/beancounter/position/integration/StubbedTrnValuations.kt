@@ -48,22 +48,25 @@ internal class StubbedTrnValuations {
     fun is_SingleAssetPosition() {
         val dateUtils = DateUtils()
         val portfolio = Portfolio(
-                "TEST",
-                "TEST",
-                "NZD Portfolio",
-                Currency("NZD"),
-                Currency("USD"),
-                null)
+            "TEST",
+            "TEST",
+            "NZD Portfolio",
+            Currency("NZD"),
+            Currency("USD"),
+            null
+        )
         val query = TrustedTrnQuery(
-                portfolio,
-                dateUtils.getDate("2020-05-01")!!,
-                "KMI")
-        val json = mockMvc.perform(MockMvcRequestBuilders.post("/query")
+            portfolio,
+            dateUtils.getDate("2020-05-01")!!,
+            "KMI"
+        )
+        val json = mockMvc.perform(
+            MockMvcRequestBuilders.post("/query")
                 .content(objectMapper.writeValueAsBytes(query))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andReturn().response.contentAsString
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andReturn().response.contentAsString
         assertThat(json).isNotNull()
         val (data) = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(data).isNotNull.hasFieldOrProperty("positions")
@@ -75,35 +78,38 @@ internal class StubbedTrnValuations {
     @Test
     @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
     fun is_PositionRequestFromTransactions() {
-        val json = mockMvc.perform(MockMvcRequestBuilders.get("/{portfolioCode}/2019-10-18", "TEST")
+        val json = mockMvc.perform(
+            MockMvcRequestBuilders.get("/{portfolioCode}/2019-10-18", "TEST")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andReturn().response.contentAsString
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andReturn().response.contentAsString
         val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("code", "TEST")
+            .isNotNull
+            .hasFieldOrPropertyWithValue("code", "TEST")
         assertThat(positionResponse.data.asAt).isEqualTo("2019-10-18")
         assertThat(positionResponse.data[getAsset("NASDAQ", "AAPL")])
-                .isNotNull
+            .isNotNull
     }
 
     @Test
     @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
     fun is_EmptyPortfolioPositionsReturned() {
-        val json = mockMvc.perform(MockMvcRequestBuilders.get("/{portfolioCode}/today", "EMPTY")
+        val json = mockMvc.perform(
+            MockMvcRequestBuilders.get("/{portfolioCode}/today", "EMPTY")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-                MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andReturn().response.contentAsString
+            MockMvcResultMatchers.status().isOk
+        )
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andReturn().response.contentAsString
         val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("code", "EMPTY")
+            .isNotNull
+            .hasFieldOrPropertyWithValue("code", "EMPTY")
         assertThat(positionResponse.data).isNotNull
         assertThat(positionResponse.data.positions).isNull()
     }

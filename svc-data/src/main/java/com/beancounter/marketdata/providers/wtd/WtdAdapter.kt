@@ -10,15 +10,17 @@ import com.beancounter.marketdata.providers.ProviderArguments
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 
 @Service
 class WtdAdapter : MarketDataAdapter {
     private val dateUtils = DateUtils()
-    operator fun get(providerArguments: ProviderArguments,
-                     batchId: Int?, response: Future<WtdResponse>?): Collection<MarketData> {
+    operator fun get(
+        providerArguments: ProviderArguments,
+        batchId: Int?,
+        response: Future<WtdResponse>?
+    ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         return try {
             val (date, data, message) = response!!.get()
@@ -58,8 +60,10 @@ class WtdAdapter : MarketDataAdapter {
     }
 
     private fun getDefault(asset: Asset?, dpAsset: String, batchConfig: BatchConfig?): MarketData {
-        log.trace("{}/{} - unable to locate a price on {}",
-                dpAsset, asset!!.name, batchConfig!!.date)
+        log.trace(
+            "{}/{} - unable to locate a price on {}",
+            dpAsset, asset!!.name, batchConfig!!.date
+        )
         val result = MarketData(asset)
         result.close = BigDecimal.ZERO
         return result

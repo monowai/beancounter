@@ -8,7 +8,13 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.Embedded
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.ManyToOne
+import javax.persistence.Table
+import javax.persistence.UniqueConstraint
 
 /**
  * Representation of a Financial Transaction.
@@ -19,17 +25,17 @@ import javax.persistence.*
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "batch", "callerId"])])
 data class Trn constructor(
-        val trnType: TrnType,
-        @ManyToOne
-        var asset: Asset,
-        @Column(precision = 15, scale = 6)
-        val quantity: BigDecimal = BigDecimal.ZERO,
-        @ManyToOne
-        val tradeCurrency: Currency = asset.market.currency,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        @JsonSerialize(using = LocalDateSerializer::class)
-        @JsonDeserialize(using = LocalDateDeserializer::class)
-        var tradeDate: LocalDate = DateUtils().date!!
+    val trnType: TrnType,
+    @ManyToOne
+    var asset: Asset,
+    @Column(precision = 15, scale = 6)
+    val quantity: BigDecimal = BigDecimal.ZERO,
+    @ManyToOne
+    val tradeCurrency: Currency = asset.market.currency,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var tradeDate: LocalDate = DateUtils().date!!
 
 ) {
 
@@ -84,12 +90,30 @@ data class Trn constructor(
     var version: String? = "1"
     var comments: String? = null
 
-    constructor(id: String?, callerRef: CallerRef?, trnType: TrnType, status: TrnStatus?,
-                portfolio: Portfolio, asset: Asset, cashAsset: Asset?, tradeCurrency: Currency,
-                cashCurrency: Currency?, tradeDate: LocalDate, settleDate: LocalDate?, quantity: BigDecimal,
-                price: BigDecimal?, fees: BigDecimal?, tax: BigDecimal?, tradeAmount: BigDecimal?,
-                cashAmount: BigDecimal?, tradeCashRate: BigDecimal?, tradeBaseRate: BigDecimal?,
-                tradePortfolioRate: BigDecimal?, version: String?, comments: String?) : this(trnType, asset, quantity, tradeCurrency, tradeDate) {
+    constructor(
+        id: String?,
+        callerRef: CallerRef?,
+        trnType: TrnType,
+        status: TrnStatus?,
+        portfolio: Portfolio,
+        asset: Asset,
+        cashAsset: Asset?,
+        tradeCurrency: Currency,
+        cashCurrency: Currency?,
+        tradeDate: LocalDate,
+        settleDate: LocalDate?,
+        quantity: BigDecimal,
+        price: BigDecimal?,
+        fees: BigDecimal?,
+        tax: BigDecimal?,
+        tradeAmount: BigDecimal?,
+        cashAmount: BigDecimal?,
+        tradeCashRate: BigDecimal?,
+        tradeBaseRate: BigDecimal?,
+        tradePortfolioRate: BigDecimal?,
+        version: String?,
+        comments: String?
+    ) : this(trnType, asset, quantity, tradeCurrency, tradeDate) {
         this.id = id
         this.callerRef = callerRef
         this.status = status
@@ -108,5 +132,4 @@ data class Trn constructor(
         this.version = version
         this.comments = comments
     }
-
 }

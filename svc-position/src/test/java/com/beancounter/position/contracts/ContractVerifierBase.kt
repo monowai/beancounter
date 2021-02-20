@@ -49,38 +49,56 @@ class ContractVerifierBase {
     @Throws(Exception::class)
     fun initMocks() {
         val mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .build()
+            .webAppContextSetup(context)
+            .build()
         RestAssuredMockMvc.mockMvc(mockMvc)
         val testPortfolio = Portfolio(
-                "TEST",
-                "TEST",
-                "NZD Portfolio",
-                currencyUtils.getCurrency("NZD"),
-                currencyUtils.getCurrency("USD"),
-                null)
+            "TEST",
+            "TEST",
+            "NZD Portfolio",
+            currencyUtils.getCurrency("NZD"),
+            currencyUtils.getCurrency("USD"),
+            null
+        )
         Mockito.`when`(portfolioServiceClient.getPortfolioByCode("TEST"))
-                .thenReturn(testPortfolio)
+            .thenReturn(testPortfolio)
         Mockito.`when`(portfolioServiceClient.getPortfolioById("TEST"))
-                .thenReturn(testPortfolio)
+            .thenReturn(testPortfolio)
         Mockito.`when`(
-                valuationService.build(
-                        TrustedTrnQuery(testPortfolio,
-                                dateUtils.getDate("2020-05-01")!!, "KMI")))
-                .thenReturn(objectMapper.readValue(
-                        ClassPathResource("contracts/kmi-response.json").file,
-                        PositionResponse::class.java))
+            valuationService.build(
+                TrustedTrnQuery(
+                    testPortfolio,
+                    dateUtils.getDate("2020-05-01")!!, "KMI"
+                )
+            )
+        )
+            .thenReturn(
+                objectMapper.readValue(
+                    ClassPathResource("contracts/kmi-response.json").file,
+                    PositionResponse::class.java
+                )
+            )
         Mockito.`when`(
-                valuationService.build(
-                        TrustedTrnQuery(testPortfolio,
-                                dateUtils.getDate("2020-05-01")!!, "MSFT")))
-                .thenReturn(objectMapper.readValue(
-                        ClassPathResource("contracts/msft-response.json").file,
-                        PositionResponse::class.java))
+            valuationService.build(
+                TrustedTrnQuery(
+                    testPortfolio,
+                    dateUtils.getDate("2020-05-01")!!, "MSFT"
+                )
+            )
+        )
+            .thenReturn(
+                objectMapper.readValue(
+                    ClassPathResource("contracts/msft-response.json").file,
+                    PositionResponse::class.java
+                )
+            )
         Mockito.`when`(valuationService.build(testPortfolio, "2020-05-01"))
-                .thenReturn(objectMapper.readValue(
-                        ClassPathResource("contracts/test-response.json").file,
-                        PositionResponse::class.java))
+            .thenReturn(
+                objectMapper.readValue(
+                    ClassPathResource("contracts/test-response.json").file,
+                    PositionResponse::class.java
+                )
+            )
     }
 
     @Test

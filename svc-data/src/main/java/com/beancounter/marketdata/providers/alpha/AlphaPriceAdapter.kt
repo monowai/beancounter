@@ -18,14 +18,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.math.BigDecimal
-import java.util.*
 
 @Service
 class AlphaPriceAdapter : MarketDataAdapter {
     final val alphaMapper: ObjectMapper = BcJson().objectMapper
     private val dateUtils = DateUtils()
-    operator fun get(providerArguments: ProviderArguments,
-                     batchId: Int?, response: String?): Collection<MarketData> {
+    operator fun get(
+        providerArguments: ProviderArguments,
+        batchId: Int?,
+        response: String?
+    ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         try {
             val assets = providerArguments.getAssets(batchId)
@@ -107,8 +109,10 @@ class AlphaPriceAdapter : MarketDataAdapter {
     }
 
     init {
-        val module = SimpleModule("AlphaMarketDataDeserializer",
-                Version(1, 0, 0, null, null, null))
+        val module = SimpleModule(
+            "AlphaMarketDataDeserializer",
+            Version(1, 0, 0, null, null, null)
+        )
         module.addDeserializer(PriceResponse::class.java, AlphaPriceDeserializer())
         module.addDeserializer(AssetSearchResponse::class.java, AlphaSearchDeserializer())
         alphaMapper.registerModule(module)

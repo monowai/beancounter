@@ -22,8 +22,7 @@ class WtdConfig : DataProviderConfig {
     // For testing purposes - allows us to setup a static base date for which Market Prices Dates
     // can reliably computed from.
     @Value("\${beancounter.market.providers.WTD.date:#{null}}")
-    var date // Static date
-            : String? = null
+    var date: String? = null
         get() = if (field == null) dateUtils.today() else field
 
     @Value("\${beancounter.market.providers.WTD.markets}")
@@ -31,7 +30,7 @@ class WtdConfig : DataProviderConfig {
 
     @set:Autowired
     var marketConfig: MarketConfig? = null
-    var dateUtils = DateUtils()
+    final var dateUtils = DateUtils()
     var marketUtils = MarketUtils(dateUtils)
 
     private fun translateMarketCode(market: Market): String? {
@@ -50,7 +49,8 @@ class WtdConfig : DataProviderConfig {
 
         // If startDate is not "today", assume nothing.  Discount the weekends
         return marketUtils.getLastMarketDate(
-                dateUtils.getDate(date)!!.atStartOfDay(), daysToSubtract)
+            dateUtils.getDate(date)!!.atStartOfDay(), daysToSubtract
+        )
     }
 
     override fun getPriceCode(asset: Asset): String {
@@ -63,5 +63,4 @@ class WtdConfig : DataProviderConfig {
     override fun getBatchSize(): Int {
         return assetsPerRequest
     }
-
 }

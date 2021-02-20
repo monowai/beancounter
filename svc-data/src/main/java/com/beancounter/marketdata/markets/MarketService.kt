@@ -7,7 +7,6 @@ import com.beancounter.marketdata.config.MarketConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
-import java.util.*
 
 /**
  * Verification of Market related functions.
@@ -81,5 +80,4 @@ class MarketService : com.beancounter.client.MarketService {
         // Don't persist Mock market assets
         return !market.inMemory()
     }
-
 }

@@ -32,8 +32,7 @@ class AssetIngestService internal constructor(private val assetService: AssetSer
         assets[callerKey] = AssetInput(market.code, assetCode)
         val assetRequest = AssetRequest(assets)
         val response = assetService.process(assetRequest)
-                ?: throw BusinessException(String.format("No response returned for %s:%s", assetCode, marketCode))
+            ?: throw BusinessException(String.format("No response returned for %s:%s", assetCode, marketCode))
         return response.data.values.iterator().next()
     }
-
 }

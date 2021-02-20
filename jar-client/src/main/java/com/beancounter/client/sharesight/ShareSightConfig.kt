@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 @Configuration
 @Import(DateUtils::class, ShareSightDividendAdapter::class, ShareSightTradeAdapter::class, ShareSightFactory::class, FxTransactions::class, AssetIngestService::class, Filter::class, ShareSightRowAdapter::class)
@@ -25,5 +25,4 @@ class ShareSightConfig {
     // Calculate the tradeAmount field and ignore source file value
     @Value("\${amount:true}")
     val isCalculateAmount = true
-
 }

@@ -28,19 +28,13 @@ data class TrnInput(val callerRef: CallerRef, val assetId: String, val trnType: 
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null
-    var price // In trade Currency
-            : BigDecimal? = null
+    var price: BigDecimal? = null // In trade Currency
     var fees = BigDecimal.ZERO // In trade Currency
     var tax = BigDecimal.ZERO // In trade Currency
     var tradeAmount = BigDecimal.ZERO // In trade Currency
     var cashAmount: BigDecimal? = null
-    var tradeCashRate // Trade CCY to cash settlement currency
-            : BigDecimal? = null
-    var tradeBaseRate // Trade Currency to system Base Currency
-            : BigDecimal? = null
-    var tradePortfolioRate // Trade CCY to portfolio reference  currency
-            : BigDecimal? = null
+    var tradeCashRate: BigDecimal? = null // Trade CCY to cash settlement currency
+    var tradeBaseRate: BigDecimal? = null // Trade Currency to system Base Currency
+    var tradePortfolioRate: BigDecimal? = null // Trade CCY to portfolio reference  currency
     var comments: String? = null
-
-
 }

@@ -2,7 +2,13 @@ package com.beancounter.common.utils
 
 import com.beancounter.common.model.Market
 import org.springframework.stereotype.Component
-import java.time.*
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 @Component
 class MarketUtils(private val dateUtils: DateUtils) {
@@ -11,18 +17,20 @@ class MarketUtils(private val dateUtils: DateUtils) {
         return getLastMarketDate(date.atTime(LocalTime.now()), market)
     }
 
-    fun getLastMarketDate(localDateTime: LocalDateTime, // Callers date/time
-                          market: Market,
-                          isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localDateTime.toLocalDate()))
+    fun getLastMarketDate(
+        localDateTime: LocalDateTime, // Callers date/time
+        market: Market,
+        isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localDateTime.toLocalDate()))
     ): LocalDate {
         return if (isCurrent) {
             // Resolve if "today" has prices available taking into account all variables
             val zonedLocal = ZonedDateTime.ofLocal(localDateTime, ZoneId.systemDefault(), ZoneOffset.UTC)
             val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
             val zonedRemote = ZonedDateTime.ofLocal(
-                    LocalDateTime.of(marketLocal.toLocalDate(), market.priceTime),
-                    market.timezone.toZoneId(),
-                    ZoneOffset.UTC)
+                LocalDateTime.of(marketLocal.toLocalDate(), market.priceTime),
+                market.timezone.toZoneId(),
+                ZoneOffset.UTC
+            )
 
             var daysToSubtract = market.daysToSubtract
             // Is requested date on or after when prices are available?
@@ -34,7 +42,6 @@ class MarketUtils(private val dateUtils: DateUtils) {
             // Just account for market open
             getLastMarketDate(localDateTime, 0)
         }
-
     }
 
     fun getLastMarketDate(date: LocalDate, daysToSubtract: Int): Any {
@@ -64,5 +71,4 @@ class MarketUtils(private val dateUtils: DateUtils) {
             evaluate.dayOfWeek != DayOfWeek.SATURDAY
         }
     }
-
 }

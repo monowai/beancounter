@@ -10,8 +10,8 @@ import javax.transaction.Transactional
 @Service
 @Transactional
 class SystemUserService internal constructor(
-        private val systemUserRepository: SystemUserRepository,
-        private val tokenService: TokenService
+    private val systemUserRepository: SystemUserRepository,
+    private val tokenService: TokenService
 ) {
     fun save(systemUser: SystemUser): SystemUser {
         return systemUserRepository.save(systemUser)
@@ -36,5 +36,4 @@ class SystemUserService internal constructor(
 
     val activeUser: SystemUser?
         get() = find(tokenService.subject)
-
 }

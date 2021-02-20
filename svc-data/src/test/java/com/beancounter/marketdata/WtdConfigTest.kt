@@ -30,10 +30,13 @@ class WtdConfigTest {
             LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC")
         )
         assertThat(response)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("date", DateUtils()
-                        .getDateString(compareTo.toLocalDate()))
-                .hasFieldOrProperty("data")
+            .isNotNull
+            .hasFieldOrPropertyWithValue(
+                "date",
+                DateUtils()
+                    .getDateString(compareTo.toLocalDate())
+            )
+            .hasFieldOrProperty("data")
     }
 
     @Test
@@ -42,8 +45,8 @@ class WtdConfigTest {
         val jsonFile = ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         assertThat(response)
-                .isNotNull
-                .hasFieldOrProperty("message")
+            .isNotNull
+            .hasFieldOrProperty("message")
     }
 
     @Test
@@ -52,11 +55,11 @@ class WtdConfigTest {
         val nzx = Market("NZX", Currency("NZD"))
         // Overriding today, so should just return today
         assertThat(wtdConfig.getMarketDate(nzx, "2019-11-15"))
-                .isEqualTo("2019-11-15")
+            .isEqualTo("2019-11-15")
 
         // If it's Saturday, count back to Friday
         assertThat(wtdConfig.getMarketDate(nzx, "2019-11-17"))
-                .isEqualTo("2019-11-15")
+            .isEqualTo("2019-11-15")
     }
     @Test
     fun is_DateAssumptionsValid() {
@@ -74,11 +77,12 @@ class WtdConfigTest {
         val nzx = Market("NZX", Currency("NZD"))
         wtdConfig.date = date
         assertThat(wtdConfig.getMarketDate(nzx, date))
-                .isEqualTo(date)
+            .isEqualTo(date)
 
         // On Today, it should subtract 2 days
         val expectedDate = marketUtils.getLastMarketDate(
-                dateUtils.getDate(today)!!, 2)
+            dateUtils.getDate(today)!!, 2
+        )
         wtdConfig.date = today
         assertThat(wtdConfig.getMarketDate(nzx, today)).isEqualTo(expectedDate.toString())
     }

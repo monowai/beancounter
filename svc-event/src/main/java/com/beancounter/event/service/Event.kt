@@ -6,7 +6,9 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 
 interface Event {
-    fun calculate(portfolio: Portfolio,
-                  currentPosition: Position,
-                  corporateEvent: CorporateEvent): TrustedTrnEvent?
+    fun calculate(
+        portfolio: Portfolio,
+        currentPosition: Position,
+        corporateEvent: CorporateEvent
+    ): TrustedTrnEvent?
 }

@@ -17,10 +17,18 @@ class FxUtils {
         val fxRequest = FxRequest(positions.asAt)
         val portfolio = positions.portfolio.currency
         for ((asset) in positions.positions.values) {
-            fxRequest.add(toPair(base!!,
-                    asset.market.currency))
-            fxRequest.add(toPair(portfolio,
-                    asset.market.currency))
+            fxRequest.add(
+                toPair(
+                    base!!,
+                    asset.market.currency
+                )
+            )
+            fxRequest.add(
+                toPair(
+                    portfolio,
+                    asset.market.currency
+                )
+            )
         }
         return fxRequest
     }

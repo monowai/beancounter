@@ -38,5 +38,4 @@ class EventReceiver(private val eventService: EventService) {
     companion object {
         private val log = LoggerFactory.getLogger(EventReceiver::class.java)
     }
-
 }

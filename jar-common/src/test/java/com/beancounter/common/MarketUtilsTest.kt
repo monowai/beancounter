@@ -21,25 +21,22 @@ internal class MarketUtilsTest {
 
         // When requesting on a Monday in SG, you won't have COB prices until Tuesday in SG
         assertThat(marketUtils.getLastMarketDate(LocalDateTime.of(2020, 7, 20, 8, 0), nasdaq, true))
-                .isEqualTo(lastPriceDate)
+            .isEqualTo(lastPriceDate)
 
         // Monday, 8pm SGT, prices are still not available, so should return Friday.
         assertThat(marketUtils.getLastMarketDate(LocalDateTime.of(2020, 7, 20, 20, 0), nasdaq, true))
-                .isEqualTo(lastPriceDate)
-
-
+            .isEqualTo(lastPriceDate)
     }
 
     @Test
     fun is_MarketDateCalculatedWhenToday() {
         val pricesUnavailable = LocalDateTime.of(2020, 7, 17, 14, 0)
-        val pricesAvailable = LocalDateTime.of(2020, 7, 18, 6, 0)// Avail next day
+        val pricesAvailable = LocalDateTime.of(2020, 7, 18, 6, 0) // Avail next day
         // Requesting today, but prices are not yet available.
         val todayNoPrices = marketUtils.getLastMarketDate(pricesUnavailable, nasdaq, true)
         assertThat(todayNoPrices).isEqualTo(dateUtils.getDate("2020-07-16"))
         val todayHasPrices = marketUtils.getLastMarketDate(pricesAvailable, nasdaq, true)
         assertThat(todayHasPrices).isEqualTo(dateUtils.getDate("2020-07-17"))
-
     }
 
     @Test
@@ -58,11 +55,8 @@ internal class MarketUtilsTest {
         assertThat(marketUtils.isMarketOpen(monday)).isTrue() // Monday
     }
 
-
     private val friday: LocalDate get() = dateUtils.getDate("2019-10-18")!!
     private val sunday: LocalDate get() = dateUtils.getDate("2019-10-20")!!
     private val saturday: LocalDate get() = dateUtils.getDate("2019-10-19")!!
     private val monday: LocalDate get() = dateUtils.getDate("2019-10-21")!!
-
-
 }

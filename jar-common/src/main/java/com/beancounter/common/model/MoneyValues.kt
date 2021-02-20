@@ -31,5 +31,4 @@ data class MoneyValues(var currency: Currency) {
     var realisedGain: BigDecimal = BigDecimal.ZERO
     var unrealisedGain: BigDecimal = BigDecimal.ZERO
     var totalGain: BigDecimal = BigDecimal.ZERO
-
 }

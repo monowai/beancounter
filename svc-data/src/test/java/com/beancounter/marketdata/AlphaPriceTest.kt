@@ -29,20 +29,24 @@ internal class AlphaPriceTest {
     @Test
     @Throws(Exception::class)
     fun is_NullAsset() {
-        assertThat(priceMapper.readValue(
+        assertThat(
+            priceMapper.readValue(
                 ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantage-empty-response.json").file,
-                PriceResponse::class.java)).isNull()
+                PriceResponse::class.java
+            )
+        ).isNull()
     }
 
     @Test
     @Throws(Exception::class)
     fun is_GlobalResponse() {
         val marketData = priceMapper.readValue(
-                ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file,
-                PriceResponse::class.java)
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file,
+            PriceResponse::class.java
+        )
         assertThat(marketData)
-                .isNotNull
-                .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
+            .isNotNull
+            .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
         assertThat(marketData.data).isNotNull.isNotEmpty
         assertThat(marketData.data.iterator().next().changePercent).isEqualTo("0.008812")
     }
@@ -51,15 +55,16 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_CollectionFromResponseReturnedWithDividend() {
         val result = priceMapper.readValue(
-                ClassPathResource(AlphaMockUtils.alphaContracts + "/kmi-backfill-response.json").file,
-                PriceResponse::class.java)
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/kmi-backfill-response.json").file,
+            PriceResponse::class.java
+        )
         assertThat(result.data).isNotNull.hasSize(5)
         val dateUtils = DateUtils()
         for (marketData in result.data) {
             assertThat(marketData)
-                    .hasFieldOrProperty("volume")
-                    .hasFieldOrProperty("dividend")
-                    .hasFieldOrProperty("split")
+                .hasFieldOrProperty("volume")
+                .hasFieldOrProperty("dividend")
+                .hasFieldOrProperty("split")
             val resolvedDate = dateUtils.getDate("2020-05-01")
             assertThat(resolvedDate).isNotNull()
             assertThat(marketData.priceDate).isNotNull()
@@ -74,22 +79,23 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_MutualFundGlobalResponse() {
         val marketData = priceMapper.readValue(
-                ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file,
-                PriceResponse::class.java)
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file,
+            PriceResponse::class.java
+        )
         assertThat(marketData)
-                .isNotNull
-                .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
+            .isNotNull
+            .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
     }
 
     @Test
     @Throws(Exception::class)
     fun is_ResponseWithoutMarketCodeSetToUs() {
         val (asset) = validateResponse(
-                ClassPathResource("contracts/alpha/alphavantage-nasdaq.json").file
+            ClassPathResource("contracts/alpha/alphavantage-nasdaq.json").file
         )
         assertThat(asset)
-                .hasFieldOrPropertyWithValue("code", "NDAQ")
-                .hasFieldOrPropertyWithValue("market.code", "US")
+            .hasFieldOrPropertyWithValue("code", "NDAQ")
+            .hasFieldOrPropertyWithValue("market.code", "US")
     }
 
     @Throws(Exception::class)
@@ -98,14 +104,14 @@ internal class AlphaPriceTest {
         assertThat(priceResponse.data).isNotNull.isNotEmpty
         val marketData = priceResponse.data.iterator().next()
         assertThat(marketData)
-                .isNotNull
-                .hasFieldOrProperty("asset")
-                .hasFieldOrProperty("priceDate")
-                .hasFieldOrPropertyWithValue("open", BigDecimal("119.3700"))
-                .hasFieldOrPropertyWithValue("high", BigDecimal("121.6100"))
-                .hasFieldOrPropertyWithValue("low", BigDecimal("119.2700"))
-                .hasFieldOrPropertyWithValue("close", BigDecimal("121.3000"))
-                .hasFieldOrPropertyWithValue("volume", BigDecimal("958346").intValueExact())
+            .isNotNull
+            .hasFieldOrProperty("asset")
+            .hasFieldOrProperty("priceDate")
+            .hasFieldOrPropertyWithValue("open", BigDecimal("119.3700"))
+            .hasFieldOrPropertyWithValue("high", BigDecimal("121.6100"))
+            .hasFieldOrPropertyWithValue("low", BigDecimal("119.2700"))
+            .hasFieldOrPropertyWithValue("close", BigDecimal("121.3000"))
+            .hasFieldOrPropertyWithValue("volume", BigDecimal("958346").intValueExact())
         return marketData
     }
 
@@ -115,7 +121,7 @@ internal class AlphaPriceTest {
         val alphaService = AlphaService(alphaConfig)
         // No configured support to handle the market
         assertThat(alphaService.isMarketSupported(Market("NZX", Currency("NZD"))))
-                .isFalse()
+            .isFalse()
         val msft = getAsset("NASDAQ", "MSFT")
         assertThat(alphaConfig.getPriceCode(msft)).isEqualTo("MSFT")
         val ohi = getAsset("NYSE", "OHI")

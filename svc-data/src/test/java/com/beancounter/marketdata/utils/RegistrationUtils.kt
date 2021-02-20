@@ -18,17 +18,21 @@ object RegistrationUtils {
     fun registerUser(mockMvc: MockMvc, token: Jwt?) {
         try {
             mockMvc.perform(
-                    MockMvcRequestBuilders.post("/register")
-                            .with(
-                                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
-                                            .authorities(authorityRoleConverter))
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .content(objectMapper
-                                    .writeValueAsBytes(RegistrationRequest("user@testing.com")))
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(MockMvcResultMatchers.status().isOk)
-                    .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                    .andReturn()
+                MockMvcRequestBuilders.post("/register")
+                    .with(
+                        SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+                            .authorities(authorityRoleConverter)
+                    )
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(
+                        objectMapper
+                            .writeValueAsBytes(RegistrationRequest("user@testing.com"))
+                    )
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
         } catch (e: Exception) {
             e.printStackTrace()
         }

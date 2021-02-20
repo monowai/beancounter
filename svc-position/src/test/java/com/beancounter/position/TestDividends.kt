@@ -1,6 +1,10 @@
 package com.beancounter.position
 
-import com.beancounter.common.model.*
+import com.beancounter.common.model.Market
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
@@ -29,6 +33,6 @@ internal class TestDividends {
         val position = positions[asset]
         accumulator.accumulate(trn, positions.portfolio, position)
         assertThat(position.getMoneyValues(Position.In.TRADE, asset.market.currency))
-                .hasFieldOrPropertyWithValue("dividends", trn.tradeAmount)
+            .hasFieldOrPropertyWithValue("dividends", trn.tradeAmount)
     }
 }

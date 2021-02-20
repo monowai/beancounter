@@ -12,12 +12,11 @@ import com.beancounter.marketdata.providers.fxrates.EcbService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class FxRateService
-@Autowired internal constructor(private val ecbService: EcbService, private val currencyService: CurrencyService)
-    : FxService {
+@Autowired internal constructor(private val ecbService: EcbService, private val currencyService: CurrencyService) :
+    FxService {
     @Cacheable("fx.rates")
     override fun getRates(fxRequest: FxRequest): FxResponse {
         verify(fxRequest.pairs)
@@ -42,9 +41,12 @@ class FxRateService
             }
         }
         if (!invalid.isEmpty()) {
-            throw BusinessException(String.format("Unsupported currencies in the request %s",
-                    java.lang.String.join(",", invalid)))
+            throw BusinessException(
+                String.format(
+                    "Unsupported currencies in the request %s",
+                    java.lang.String.join(",", invalid)
+                )
+            )
         }
     }
-
 }

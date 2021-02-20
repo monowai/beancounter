@@ -21,6 +21,4 @@ data class Currency(@Id var code: String, var name: String? = "Dollar", var symb
     override fun hashCode(): Int {
         return code.hashCode()
     }
-
-
 }

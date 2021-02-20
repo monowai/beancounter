@@ -10,7 +10,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import java.io.File
 import java.io.IOException
-import java.util.*
+import java.util.HashMap
 
 /**
  * Alpha Vantage Mocking support.
@@ -29,23 +29,35 @@ object AlphaMockUtils {
     fun getAlphaApi(): WireMockRule {
         if (!alphaApi.isRunning) {
             this.alphaApi.start()
-            mockSearchResponse("MSFT",
-                    ClassPathResource(alphaContracts + "/msft-response.json").file)
-            mockSearchResponse("BRK-B",
-                    ClassPathResource(alphaContracts + "/brkb-response.json").file)
-            mockSearchResponse("AAPL",
-                    ClassPathResource(alphaContracts + "/appl-response.json").file)
-            mockSearchResponse("AMP.AX",
-                    ClassPathResource(alphaContracts + "/amp-search.json").file)
-            mockSearchResponse("DTV",
-                    ClassPathResource(alphaContracts + "/dtv-search.json").file)
+            mockSearchResponse(
+                "MSFT",
+                ClassPathResource(alphaContracts + "/msft-response.json").file
+            )
+            mockSearchResponse(
+                "BRK-B",
+                ClassPathResource(alphaContracts + "/brkb-response.json").file
+            )
+            mockSearchResponse(
+                "AAPL",
+                ClassPathResource(alphaContracts + "/appl-response.json").file
+            )
+            mockSearchResponse(
+                "AMP.AX",
+                ClassPathResource(alphaContracts + "/amp-search.json").file
+            )
+            mockSearchResponse(
+                "DTV",
+                ClassPathResource(alphaContracts + "/dtv-search.json").file
+            )
             mockGlobalResponse(
-                    "AMP.AX", ClassPathResource(alphaContracts + "/amp-global.json").file)
+                "AMP.AX", ClassPathResource(alphaContracts + "/amp-global.json").file
+            )
             mockGlobalResponse(
-                    "AMP.AUS", ClassPathResource(alphaContracts + "/amp-global.json").file)
+                "AMP.AUS", ClassPathResource(alphaContracts + "/amp-global.json").file
+            )
             mockGlobalResponse(
-                    "MSFT", ClassPathResource(alphaContracts + "/msft-global.json").file)
-
+                "MSFT", ClassPathResource(alphaContracts + "/msft-global.json").file
+            )
         }
 
         return this.alphaApi
@@ -59,14 +71,18 @@ object AlphaMockUtils {
      */
     @Throws(IOException::class)
     fun mockAdjustedResponse(symbol: String, jsonFile: File?) {
-        mockGetResponse("/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo",
-                jsonFile)
+        mockGetResponse(
+            "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo",
+            jsonFile
+        )
     }
 
     @Throws(IOException::class)
     fun mockGlobalResponse(symbol: String, jsonFile: File?) {
-        mockGetResponse("/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=demo",
-                jsonFile)
+        mockGetResponse(
+            "/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=demo",
+            jsonFile
+        )
     }
 
     /**
@@ -79,36 +95,40 @@ object AlphaMockUtils {
     @Throws(IOException::class)
     fun mockGetResponse(url: String?, jsonFile: File?) {
         alphaApi.stubFor(
-                WireMock.get(WireMock.urlEqualTo(url))
-                        .willReturn(
-                            WireMock.aResponse()
-                                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .withBody(
-                                    objectMapper.writeValueAsString(
-                                        objectMapper.readValue(
-                                            jsonFile,
-                                            HashMap::class.java
-                                        )
-                                    )
+            WireMock.get(WireMock.urlEqualTo(url))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            objectMapper.writeValueAsString(
+                                objectMapper.readValue(
+                                    jsonFile,
+                                    HashMap::class.java
                                 )
-                                .withStatus(200)))
+                            )
+                        )
+                        .withStatus(200)
+                )
+        )
     }
 
     @Throws(IOException::class)
     fun mockSearchResponse(code: String, response: File?) {
         alphaApi.stubFor(
-                WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))
-                        .willReturn(
-                            WireMock.aResponse()
-                                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .withBody(
-                                    objectMapper.writeValueAsString(
-                                        objectMapper.readValue(
-                                            response,
-                                            HashMap::class.java
-                                        )
-                                    )
+            WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            objectMapper.writeValueAsString(
+                                objectMapper.readValue(
+                                    response,
+                                    HashMap::class.java
                                 )
-                                .withStatus(200)))
+                            )
+                        )
+                        .withStatus(200)
+                )
+        )
     }
 }

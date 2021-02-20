@@ -94,8 +94,6 @@ public class TestKafka {
   @MockBean
   private TokenService tokenService;
   @Autowired
-  private TrnKafkaConsumer trnKafkaConsumer;
-  @Autowired
   private TrnImport trnImport;
   @Autowired
   private EventWriter eventWriter;

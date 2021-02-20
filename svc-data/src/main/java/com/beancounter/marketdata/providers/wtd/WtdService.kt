@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 import javax.annotation.PostConstruct
@@ -25,16 +24,20 @@ import javax.annotation.PostConstruct
  * @since 2019-03-03
  */
 @Service
-class WtdService @Autowired internal constructor(private val wtdProxy: WtdProxy,
-                                                 private val wtdConfig: WtdConfig,
-                                                 private val wtdAdapter: WtdAdapter) : MarketDataProvider {
+class WtdService @Autowired internal constructor(
+    private val wtdProxy: WtdProxy,
+    private val wtdConfig: WtdConfig,
+    private val wtdAdapter: WtdAdapter
+) : MarketDataProvider {
     @Value("\${beancounter.market.providers.WTD.key:demo}")
     private val apiKey: String? = null
 
     @PostConstruct
     fun logStatus() {
-        log.info("BEANCOUNTER_MARKET_PROVIDERS_WTD_KEY: {}",
-                if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **")
+        log.info(
+            "BEANCOUNTER_MARKET_PROVIDERS_WTD_KEY: {}",
+            if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **"
+        )
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
@@ -42,16 +45,19 @@ class WtdService @Autowired internal constructor(private val wtdProxy: WtdProxy,
         val batchedRequests: MutableMap<Int, Future<WtdResponse>> = ConcurrentHashMap()
         for (batch in providerArguments.batch.keys) {
             batchedRequests[batch] = wtdProxy.getPrices(
-                    providerArguments.batch[batch],
-                    providerArguments.getBatchConfigs()[batch]?.date,
-                    apiKey)
+                providerArguments.batch[batch],
+                providerArguments.getBatchConfigs()[batch]?.date,
+                apiKey
+            )
         }
         log.trace("Assets price processing complete.")
         return getMarketData(providerArguments, batchedRequests)
     }
 
-    private fun getMarketData(providerArguments: ProviderArguments,
-                              requests: MutableMap<Int, Future<WtdResponse>>): Collection<MarketData> {
+    private fun getMarketData(
+        providerArguments: ProviderArguments,
+        requests: MutableMap<Int, Future<WtdResponse>>
+    ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         var empty = requests.isEmpty()
         while (!empty) {
@@ -92,5 +98,4 @@ class WtdService @Autowired internal constructor(private val wtdProxy: WtdProxy,
         const val ID = "WTD"
         private val log = LoggerFactory.getLogger(WtdService::class.java)
     }
-
 }

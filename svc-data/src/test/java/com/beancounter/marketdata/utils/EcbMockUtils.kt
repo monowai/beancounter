@@ -3,7 +3,7 @@ package com.beancounter.marketdata.utils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.fxrates.EcbRates
 import java.math.BigDecimal
-import java.util.*
+import java.util.TreeMap
 
 object EcbMockUtils {
     private val dateUtils = DateUtils()
@@ -14,11 +14,11 @@ object EcbMockUtils {
 
     @JvmStatic
     fun getRateMap(
-            eur: String?,
-            sgd: String?,
-            gbp: String?,
-            nzd: String?,
-            aud: String?
+        eur: String?,
+        sgd: String?,
+        gbp: String?,
+        nzd: String?,
+        aud: String?
     ): Map<String, BigDecimal> {
         val ratesTest: MutableMap<String, BigDecimal> = TreeMap()
         ratesTest["AUD"] = BigDecimal(aud)

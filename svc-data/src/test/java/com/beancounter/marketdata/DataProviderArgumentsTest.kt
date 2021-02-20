@@ -19,7 +19,6 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.time.LocalDate
-import java.util.*
 
 /**
  * ProviderArguments could get quite complex.  Here are some logic checks to assert various states
@@ -38,8 +37,8 @@ internal class DataProviderArgumentsTest {
         providerArguments.addAsset(intc, "")
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
-                .containsOnlyKeys(0, 1, 2)
-                .containsValues("AAPL", "MSFT", "INTC")
+            .containsOnlyKeys(0, 1, 2)
+            .containsValues("AAPL", "MSFT", "INTC")
     }
 
     @Test
@@ -50,9 +49,9 @@ internal class DataProviderArgumentsTest {
         providerArguments.addAsset(intc, "")
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
-                .containsOnlyKeys(0, 1)
-                .containsValue("AAPL,MSFT")
-                .containsValue("INTC")
+            .containsOnlyKeys(0, 1)
+            .containsValue("AAPL,MSFT")
+            .containsValue("INTC")
     }
 
     @Test
@@ -63,25 +62,37 @@ internal class DataProviderArgumentsTest {
         providerArguments.addAsset(intc, "")
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
-                .containsOnlyKeys(0)
-                .containsValue("AAPL,MSFT,INTC")
+            .containsOnlyKeys(0)
+            .containsValue("AAPL,MSFT,INTC")
     }
 
     @Test
     fun is_SplitByMarket() {
         val assets: MutableCollection<AssetInput> = ArrayList()
-        assets.add(AssetInput("AAA", "ABC",
-                getAsset("AAA", "ABC")))
-        assets.add(AssetInput("BBB", "ABC",
-                getAsset("BBB", "ABC")))
-        assets.add(AssetInput("CCC", "ABC",
-                getAsset("CCC", "ABC")))
+        assets.add(
+            AssetInput(
+                "AAA", "ABC",
+                getAsset("AAA", "ABC")
+            )
+        )
+        assets.add(
+            AssetInput(
+                "BBB", "ABC",
+                getAsset("BBB", "ABC")
+            )
+        )
+        assets.add(
+            AssetInput(
+                "CCC", "ABC",
+                getAsset("CCC", "ABC")
+            )
+        )
         val priceRequest = PriceRequest(assets)
         val testConfig = TestConfig(10)
         val providerArguments = getInstance(priceRequest, testConfig)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
-                .containsOnlyKeys(0, 1, 2)
+            .containsOnlyKeys(0, 1, 2)
     }
 
     @Test
@@ -91,7 +102,7 @@ internal class DataProviderArgumentsTest {
         val marketService = Mockito.mock(MarketService::class.java)
         val mockMarket = Market("MOCK", Currency("USD"))
         Mockito.`when`(marketService.getMarket("MOCK"))
-                .thenReturn(mockMarket)
+            .thenReturn(mockMarket)
         val mdFactory = Mockito.mock(MdFactory::class.java)
         Mockito.`when`(mdFactory.getMarketDataProvider(mockMarket)).thenReturn(MockProviderService())
         val providerUtils = ProviderUtils(mdFactory, marketService)
@@ -102,7 +113,7 @@ internal class DataProviderArgumentsTest {
         }
     }
 
-    private class TestConfig internal constructor(private val batchSize: Int) : DataProviderConfig {
+    private class TestConfig(private val batchSize: Int) : DataProviderConfig {
         private val dateUtils = DateUtils()
         override fun getBatchSize(): Int {
             return batchSize
@@ -117,6 +128,5 @@ internal class DataProviderArgumentsTest {
         override fun getPriceCode(asset: Asset): String {
             return asset.code
         }
-
     }
 }

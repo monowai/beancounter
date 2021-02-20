@@ -24,9 +24,11 @@ class AlphaProxyCache {
 
     @Cacheable("asset.prices")
     @Async("priceExecutor")
-    fun getCurrent(code: String?,
-                   date: String?,
-                   apiKey: String): Future<String?> {
+    fun getCurrent(
+        code: String?,
+        date: String?,
+        apiKey: String
+    ): Future<String?> {
         return if (code == null) {
             AsyncResult(null)
         } else AsyncResult(alphaProxy!!.getCurrent(code, apiKey))

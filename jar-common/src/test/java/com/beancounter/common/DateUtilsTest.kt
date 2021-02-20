@@ -6,17 +6,19 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 
 internal class DateUtilsTest {
     private val dateUtils = DateUtils()
 
     @Test
     fun is_Today() {
-        assertThat(dateUtils.isToday(dateUtils.today())).isTrue()
-        assertThat(dateUtils.isToday(null)).isTrue()
-        assertThat(dateUtils.isToday("")).isTrue()
-        assertThat(dateUtils.isToday(" ")).isTrue()
+        assertThat(dateUtils.isToday(dateUtils.today())).isTrue
+        assertThat(dateUtils.isToday(null)).isTrue
+        assertThat(dateUtils.isToday("")).isTrue
+        assertThat(dateUtils.isToday(" ")).isTrue
     }
 
     @Test
@@ -31,16 +33,16 @@ internal class DateUtilsTest {
     @Test
     fun is_TodayAnIso8601String() {
         val calendar = Calendar.Builder()
-                .setTimeZone(TimeZone.getTimeZone(dateUtils.getZoneId()))
-                .setInstant(Date()).build()
+            .setTimeZone(TimeZone.getTimeZone(dateUtils.getZoneId()))
+            .setInstant(Date()).build()
         val now = dateUtils.today()
         calendar[Calendar.YEAR]
         assertThat(now)
-                .isNotNull()
-                .startsWith(calendar[Calendar.YEAR].toString())
-                .contains("-" + String.format("%02d", calendar[Calendar.MONTH] + 1) + "-")
-                .contains("-" + String.format("%02d", calendar[Calendar.DAY_OF_MONTH]))
-        assertThat(dateUtils.getDate("2019-11-29")).isNotNull()
+            .isNotNull
+            .startsWith(calendar[Calendar.YEAR].toString())
+            .contains("-" + String.format("%02d", calendar[Calendar.MONTH] + 1) + "-")
+            .contains("-" + String.format("%02d", calendar[Calendar.DAY_OF_MONTH]))
+        assertThat(dateUtils.getDate("2019-11-29")).isNotNull
         dateUtils.getOrThrow("2019-11-29")
     }
 
@@ -64,7 +66,6 @@ internal class DateUtilsTest {
         assertThat(nowInTz.toString()).isEqualTo(today)
     }
 
-
     @Test
     fun is_DateString() {
         assertThat(dateUtils.getDateString(null)).isNull()
@@ -76,8 +77,6 @@ internal class DateUtilsTest {
         assertThrows(BusinessException::class.java) { dateUtils.isToday("ABC-MM-11") }
     }
 
-
     private val monday: LocalDate
         get() = dateUtils.getDate("2019-10-21")!!
-
 }

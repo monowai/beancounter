@@ -14,7 +14,7 @@ class TestAccumulatorInitialisation {
     private lateinit var accumulator: Accumulator
 
     @Autowired
-    private lateinit var  trnBehaviourFactory: TrnBehaviourFactory
+    private lateinit var trnBehaviourFactory: TrnBehaviourFactory
 
     @Test
     fun is_AccumulatorInitialising() {

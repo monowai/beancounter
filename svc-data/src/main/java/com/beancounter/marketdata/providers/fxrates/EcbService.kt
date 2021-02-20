@@ -5,28 +5,31 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Optional
 
 @Service
 class EcbService @Autowired internal constructor(
-        private val fxGateway: FxGateway,
-        private val currencyService: CurrencyService,
-        private val dateUtils: DateUtils
+    private val fxGateway: FxGateway,
+    private val currencyService: CurrencyService,
+    private val dateUtils: DateUtils
 ) {
     private val ecbDate = EcbDate(dateUtils)
     fun getRates(asAt: String): Collection<FxRate> {
         val ecbRates = fxGateway.getRatesForSymbols(
-                ecbDate.getValidDate(asAt),
-                currencyService.baseCurrency!!.code,
-                currencies)
+            ecbDate.getValidDate(asAt),
+            currencyService.baseCurrency!!.code,
+            currencies
+        )
         val results: MutableCollection<FxRate> = ArrayList()
         if (ecbRates?.rates != null) {
             for (code in ecbRates.rates.keys) {
                 results.add(
-                        FxRate(currencyService.baseCurrency!!,
-                                currencyService.getCode(code)!!,
-                                ecbRates.rates[code] ?: error("No rate"),
-                                dateUtils.getDateString(ecbRates.date))
+                    FxRate(
+                        currencyService.baseCurrency!!,
+                        currencyService.getCode(code)!!,
+                        ecbRates.rates[code] ?: error("No rate"),
+                        dateUtils.getDateString(ecbRates.date)
+                    )
                 )
             }
         }
@@ -46,5 +49,4 @@ class EcbService @Autowired internal constructor(
             }
             return result?.toString()
         }
-
 }

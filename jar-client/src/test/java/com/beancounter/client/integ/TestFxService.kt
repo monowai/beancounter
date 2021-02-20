@@ -19,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import java.math.BigDecimal
-import java.util.*
 
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
 @ImportAutoConfiguration(ClientConfig::class)
@@ -40,18 +39,16 @@ class TestFxService {
         val testDate = "2019-11-12"
         val fxResponse = fxRateService!!.getRates(FxRequest(testDate, pairs = isoCurrencyPairs))
         assertThat(fxResponse).isNotNull.hasNoNullFieldsOrProperties()
-        val fxPairResults: FxPairResults? = fxResponse.data
-        assertThat(fxPairResults?.rates).isNotNull
-        assertThat(fxPairResults?.rates?.size).isEqualTo(isoCurrencyPairs.size)
+        val fxPairResults: FxPairResults = fxResponse.data
+        assertThat(fxPairResults.rates).isNotNull
+        assertThat(fxPairResults.rates.size).isEqualTo(isoCurrencyPairs.size)
 
         for (isoCurrencyPair in isoCurrencyPairs) {
 
             assertThat(fxPairResults).isNotNull.hasFieldOrProperty("rates")
-            assertThat(fxPairResults?.rates).containsKeys(isoCurrencyPair)
-            if (fxPairResults != null) {
-                assertThat(fxPairResults.rates[isoCurrencyPair])
-                        .hasFieldOrPropertyWithValue("date", testDate)
-            }
+            assertThat(fxPairResults.rates).containsKeys(isoCurrencyPair)
+            assertThat(fxPairResults.rates[isoCurrencyPair])
+                .hasFieldOrPropertyWithValue("date", testDate)
         }
     }
 
@@ -63,14 +60,14 @@ class TestFxService {
         val testDate = "1996-07-27" // Earlier than when ECB started recording rates
         val fxResponse = fxRateService!!.getRates(FxRequest(testDate, isoCurrencyPairs))
         assertThat(fxResponse)
-                .isNotNull
-                .hasNoNullFieldsOrProperties()
+            .isNotNull
+            .hasNoNullFieldsOrProperties()
         val fxPairResults: FxPairResults = fxResponse.data
 
         for (isoCurrencyPair in isoCurrencyPairs) {
             assertThat(fxPairResults.rates).containsKeys(isoCurrencyPair)
             assertThat(fxPairResults.rates[isoCurrencyPair])
-                    .hasFieldOrPropertyWithValue("date", "1999-01-04")
+                .hasFieldOrPropertyWithValue("date", "1999-01-04")
         }
     }
 
@@ -92,23 +89,23 @@ class TestFxService {
         assertThat(request).hasFieldOrProperty("tradePf")
         fxTransactions.setTrnRates(portfolio, trnInput)
         assertThat(trnInput)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
-                .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-                .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("0.66428103"))
+            .isNotNull
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("0.66428103"))
     }
 
     @Test
     fun is_NoArgsWorking() {
         var response = fxRateService!!.getRates(FxRequest("2020-01-10"))
         assertThat(response)
-                .isNotNull
-                .hasFieldOrProperty("data")
+            .isNotNull
+            .hasFieldOrProperty("data")
         assertThat(response.data.rates).isNotNull.isEmpty()
         response = fxRateService.getRates(FxRequest(rateDate = "2020-01-01"))
         assertThat(response)
-                .isNotNull
-                .hasFieldOrProperty("data")
+            .isNotNull
+            .hasFieldOrProperty("data")
         assertThat(response.data.rates).isNotNull.isEmpty()
     }
 }

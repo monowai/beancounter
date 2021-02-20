@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.AsyncResult
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
+import java.util.Optional
 import java.util.concurrent.Future
 import javax.transaction.Transactional
 
@@ -37,8 +37,9 @@ class PriceService internal constructor(private val marketDataRepo: MarketDataRe
         for (marketData in priceResponse.data) {
             if (marketData.asset.isKnown) {
                 val existing = marketDataRepo.findByAssetIdAndPriceDate(
-                        marketData.asset.id!!,
-                        marketData.priceDate)
+                    marketData.asset.id!!,
+                    marketData.priceDate
+                )
                 if (existing.isEmpty) {
                     // Create
                     marketData.id = KeyGenUtils.getId()
@@ -55,5 +56,4 @@ class PriceService internal constructor(private val marketDataRepo: MarketDataRe
     fun purge() {
         marketDataRepo.deleteAll()
     }
-
 }

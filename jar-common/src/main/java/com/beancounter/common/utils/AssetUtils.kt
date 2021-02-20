@@ -6,7 +6,8 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.fasterxml.jackson.core.JsonProcessingException
-import java.util.*
+import java.util.ArrayList
+import java.util.HashMap
 
 /**
  * Encapsulates routines to assist with asset keys and objects.
@@ -89,7 +90,7 @@ class AssetUtils private constructor() {
             asset.id = assetCode
             asset.market = market
             asset.name = assetCode
-            //asset.marketCode = market.code.toUpperCase()
+            // asset.marketCode = market.code.toUpperCase()
             asset.marketCode = null
             return asset
         }
@@ -129,7 +130,6 @@ class AssetUtils private constructor() {
         fun getAssetInput(asset: Asset): AssetInput {
             return AssetInput(asset.market.code, asset.code, name = asset.code, resolvedAsset = asset)
         }
-
     }
 
     init {

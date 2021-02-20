@@ -10,8 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.math.BigDecimal
 import java.time.LocalTime
-import java.util.*
-import kotlin.collections.HashMap
+import java.util.TimeZone
 
 /**
  * A stock exchange.
@@ -21,24 +20,25 @@ import kotlin.collections.HashMap
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Market @ConstructorBinding constructor(
-        val code: String,
-        val currencyId: String = "USD",
-        val timezoneId: String = TimeZone.getDefault().id,
-        @JsonSerialize(using = LocalTimeSerializer::class)
-        @JsonDeserialize(using = LocalTimeDeserializer::class)
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-        val priceTime: LocalTime = LocalTime.of(18, 0),
-        val daysToSubtract: Int = 1,
-        val aliases: Map<String, String> = HashMap(),
-        val enricher: String? = null,
-        val multiplier: BigDecimal = BigDecimal("1.0")) {
+    val code: String,
+    val currencyId: String = "USD",
+    val timezoneId: String = TimeZone.getDefault().id,
+    @JsonSerialize(using = LocalTimeSerializer::class)
+    @JsonDeserialize(using = LocalTimeDeserializer::class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
+    val priceTime: LocalTime = LocalTime.of(18, 0),
+    val daysToSubtract: Int = 1,
+    val aliases: Map<String, String> = HashMap(),
+    val enricher: String? = null,
+    val multiplier: BigDecimal = BigDecimal("1.0")
+) {
 
     constructor(code: String, currency: Currency) : this(code, currency.code) {
         this.currency = currency
     }
 
     constructor(code: String, currency: Currency, timezoneId: String) : this(
-            code, currency.code, timezoneId
+        code, currency.code, timezoneId
     ) {
         this.currency = currency
     }
@@ -69,6 +69,4 @@ data class Market @ConstructorBinding constructor(
         result = 31 * result + currencyId.hashCode()
         return result
     }
-
-
 }

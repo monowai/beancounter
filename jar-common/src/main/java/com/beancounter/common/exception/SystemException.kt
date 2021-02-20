@@ -10,4 +10,4 @@ import org.springframework.web.bind.annotation.ResponseStatus
  * @since 2019-02-03
  */
 @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
-class SystemException(reason: String?) : RuntimeException(reason) 
+class SystemException(reason: String?) : RuntimeException(reason)

@@ -8,7 +8,6 @@ import com.beancounter.auth.common.TokenUtils;
 import com.beancounter.client.services.PortfolioServiceClient;
 import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw;
 import com.beancounter.client.services.RegistrationService;
-import com.beancounter.client.services.StaticService;
 import com.beancounter.common.contracts.PortfolioResponse;
 import com.beancounter.common.contracts.PortfoliosRequest;
 import com.beancounter.common.contracts.PortfoliosResponse;
@@ -25,7 +24,6 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
@@ -48,8 +46,6 @@ public class TestPortfolioCommands {
   private static final TokenService tokenService = new TokenService();
   private static PortfolioCommands portfolioCommands;
   private static PortfolioGw portfolioGw;
-  @Autowired
-  private StaticService staticService;
   @MockBean
   private RegistrationService registrationService;
   @MockBean

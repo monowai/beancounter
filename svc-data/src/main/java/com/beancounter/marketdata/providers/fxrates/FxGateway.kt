@@ -14,11 +14,14 @@ import org.springframework.web.bind.annotation.RequestMethod
  */
 @FeignClient(name = "fxRequest", url = "\${beancounter.market.providers.fx.url:https://api.exchangeratesapi.io}")
 interface FxGateway {
-    @RequestMapping(method = [RequestMethod.GET],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            value = ["/{date}?base={base}&symbols={symbols}&"])
+    @RequestMapping(
+        method = [RequestMethod.GET],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        value = ["/{date}?base={base}&symbols={symbols}&"]
+    )
     fun getRatesForSymbols(
-            @PathVariable("date") date: String?,
-            @PathVariable("base") base: String?,
-            @PathVariable("symbols") symbols: String?): EcbRates?
+        @PathVariable("date") date: String?,
+        @PathVariable("base") base: String?,
+        @PathVariable("symbols") symbols: String?
+    ): EcbRates?
 }

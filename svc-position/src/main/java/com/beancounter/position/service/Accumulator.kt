@@ -1,10 +1,17 @@
 package com.beancounter.position.service
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.*
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.accumulation.*
+import com.beancounter.position.accumulation.BuyBehaviour
+import com.beancounter.position.accumulation.DividendBehaviour
+import com.beancounter.position.accumulation.SellBehaviour
+import com.beancounter.position.accumulation.SplitBehaviour
+import com.beancounter.position.accumulation.TrnBehaviourFactory
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 
@@ -16,11 +23,19 @@ import org.springframework.stereotype.Service
  * @since 2019-02-07
  */
 @Service
-@Import(DateUtils::class, TrnBehaviourFactory::class, BuyBehaviour::class, SellBehaviour::class, DividendBehaviour::class, SplitBehaviour::class)
+@Import(
+    DateUtils::class,
+    TrnBehaviourFactory::class,
+    BuyBehaviour::class,
+    SellBehaviour::class,
+    DividendBehaviour::class,
+    SplitBehaviour::class
+)
 class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     fun accumulate(trn: Trn, positions: Positions): Position {
-        return accumulate(trn, positions.portfolio,
-                positions[trn.asset, trn.tradeDate]
+        return accumulate(
+            trn, positions.portfolio,
+            positions[trn.asset, trn.tradeDate]
         )
     }
 
@@ -50,9 +65,12 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
             validDate = true
         }
         if (!validDate) {
-            throw BusinessException(String.format("Date sequence problem %s",
-                    trn.toString()))
+            throw BusinessException(
+                String.format(
+                    "Date sequence problem %s",
+                    trn.toString()
+                )
+            )
         }
     }
-
 }

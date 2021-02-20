@@ -9,10 +9,12 @@ class Gains {
     fun value(total: BigDecimal, moneyValues: MoneyValues) {
         if (total.compareTo(BigDecimal.ZERO) != 0) {
             moneyValues.unrealisedGain = moneyValues.marketValue
-                    .subtract(moneyValues.costValue)
+                .subtract(moneyValues.costValue)
         }
         moneyValues.totalGain = moneyValues.unrealisedGain
-                .add(moneyValues.dividends
-                        .add(moneyValues.realisedGain))
+            .add(
+                moneyValues.dividends
+                    .add(moneyValues.realisedGain)
+            )
     }
 }

@@ -14,7 +14,6 @@ import com.beancounter.position.valuation.Gains
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
-import java.util.*
 
 /**
  * Values requested positions against market prices.
@@ -24,15 +23,19 @@ import java.util.*
  */
 @Configuration
 @Service
-class ValuationService @Autowired internal constructor(private val positionValuationService: PositionValuationService,
-                                                       private val trnService: TrnService,
-                                                       private val positionService: PositionService,
-                                                       private val gains: Gains) : Valuation {
+class ValuationService @Autowired internal constructor(
+    private val positionValuationService: PositionValuationService,
+    private val trnService: TrnService,
+    private val positionService: PositionService,
+    private val gains: Gains
+) : Valuation {
     private val dateUtils = DateUtils()
     override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
         val trnResponse = trnService.query(trnQuery)
-        return buildPositions(trnQuery.portfolio,
-                dateUtils.getDateString(trnQuery.tradeDate), trnResponse)
+        return buildPositions(
+            trnQuery.portfolio,
+            dateUtils.getDateString(trnQuery.tradeDate), trnResponse
+        )
     }
 
     override fun build(portfolio: Portfolio, valuationDate: String): PositionResponse {
@@ -41,9 +44,10 @@ class ValuationService @Autowired internal constructor(private val positionValua
     }
 
     private fun buildPositions(
-            portfolio: Portfolio,
-            valuationDate: String?,
-            trnResponse: TrnResponse): PositionResponse {
+        portfolio: Portfolio,
+        valuationDate: String?,
+        trnResponse: TrnResponse
+    ): PositionResponse {
         val positionRequest = PositionRequest(portfolio.id, trnResponse.data)
         val positionResponse = positionService.build(portfolio, positionRequest)
         if (valuationDate != null && !valuationDate.equals("today", ignoreCase = true)) {
@@ -59,8 +63,10 @@ class ValuationService @Autowired internal constructor(private val positionValua
         val assets: MutableCollection<AssetInput> = ArrayList()
         if (positions.hasPositions()) {
             for (position in positions.positions.values) {
-                gains.value(position.quantityValues.getTotal(),
-                        position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency))
+                gains.value(
+                    position.quantityValues.getTotal(),
+                    position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
+                )
                 assets.add(AssetInput(position.asset.market.code, position.asset.code))
             }
             val valuedPositions = positionValuationService.value(positions, assets)
@@ -68,5 +74,4 @@ class ValuationService @Autowired internal constructor(private val positionValua
         }
         return PositionResponse(positions)
     }
-
 }

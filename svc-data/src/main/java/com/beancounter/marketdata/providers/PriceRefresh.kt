@@ -13,9 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class PriceRefresh internal constructor(
-        private val assetService: AssetService,
-        private val marketDataService: MarketDataService,
-        private val dateUtils: DateUtils
+    private val assetService: AssetService,
+    private val marketDataService: MarketDataService,
+    private val dateUtils: DateUtils
 ) {
 
     @Transactional(readOnly = true)
@@ -28,14 +28,15 @@ class PriceRefresh internal constructor(
             marketDataService.getPriceResponse(AssetInput(assetService.hydrateAsset(asset)))
             assetCount.getAndIncrement()
         }
-        log.info("Price update completed for {} assets @ {} - {}",
-                assetCount.get(),
-                LocalDateTime.now(dateUtils.getZoneId()),
-                dateUtils.getZoneId().id)
+        log.info(
+            "Price update completed for {} assets @ {} - {}",
+            assetCount.get(),
+            LocalDateTime.now(dateUtils.getZoneId()),
+            dateUtils.getZoneId().id
+        )
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(PriceRefresh::class.java)
     }
-
 }

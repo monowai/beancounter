@@ -27,19 +27,18 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
     }
 
     @Bean
-    fun assetsSchedule (@Value("\${assets.schedule:0 0/15 7-18 * * Tue-Sat}") schedule: String): String {
+    fun assetsSchedule(@Value("\${assets.schedule:0 0/15 7-18 * * Tue-Sat}") schedule: String): String {
         log.info("ASSETS_SCHEDULE: {}, BEANCOUNTER_ZONE: {}", schedule, dateUtils.defaultZone)
         return schedule
     }
 
-
     @Scheduled(cron = "#{@assetsSchedule}", zone = "#{@scheduleZone}")
     fun updatePrices() {
-        log.info("Scheduled price update starting {} - {}",
-                LocalDateTime.now(dateUtils.getZoneId()),
-                dateUtils.defaultZone)
+        log.info(
+            "Scheduled price update starting {} - {}",
+            LocalDateTime.now(dateUtils.getZoneId()),
+            dateUtils.defaultZone
+        )
         priceRefresh.updatePrices()
     }
-
-
 }

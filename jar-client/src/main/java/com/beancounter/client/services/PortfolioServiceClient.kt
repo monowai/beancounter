@@ -38,9 +38,10 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
 
     fun getWhereHeld(assetId: String, tradeDate: LocalDate?): PortfoliosResponse {
         return portfolioGw.getWhereHeld(
-                tokenService.bearerToken,
-                assetId,
-                dateUtils.getDateString(tradeDate))
+            tokenService.bearerToken,
+            assetId,
+            dateUtils.getDateString(tradeDate)
+        )
     }
 
     private fun getOrThrow(portfolioCode: String?, response: PortfolioResponse?): Portfolio {
@@ -54,29 +55,32 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
     interface PortfolioGw {
         @GetMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolios(
-                @RequestHeader("Authorization") bearerToken: String?): PortfoliosResponse
+            @RequestHeader("Authorization") bearerToken: String?
+        ): PortfoliosResponse
 
         @GetMapping(value = ["/portfolios/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioById(
-                @RequestHeader("Authorization") bearerToken: String?,
-                @PathVariable("id") id: String?): PortfolioResponse?
+            @RequestHeader("Authorization") bearerToken: String?,
+            @PathVariable("id") id: String?
+        ): PortfolioResponse?
 
         @GetMapping(value = ["/portfolios/code/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioByCode(
-                @RequestHeader("Authorization") bearerToken: String?,
-                @PathVariable("code") code: String?): PortfolioResponse?
+            @RequestHeader("Authorization") bearerToken: String?,
+            @PathVariable("code") code: String?
+        ): PortfolioResponse?
 
         @GetMapping(value = ["/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getWhereHeld(
-                @RequestHeader("Authorization") bearerToken: String?,
-                @PathVariable("assetId") assetId: String?,
-                @PathVariable("tradeDate") tradeDate: String?
+            @RequestHeader("Authorization") bearerToken: String?,
+            @PathVariable("assetId") assetId: String?,
+            @PathVariable("tradeDate") tradeDate: String?
         ): PortfoliosResponse
 
         @PostMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun addPortfolios(
-                @RequestHeader("Authorization") bearerToken: String?,
-                portfoliosRequest: PortfoliosRequest?): PortfoliosResponse
+            @RequestHeader("Authorization") bearerToken: String?,
+            portfoliosRequest: PortfoliosRequest?
+        ): PortfoliosResponse
     }
-
 }

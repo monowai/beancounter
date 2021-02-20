@@ -16,5 +16,4 @@ internal class PositionBootTests @Autowired private constructor(private val cont
     fun contextLoads() {
         assertThat(context).isNotNull
     }
-
 }

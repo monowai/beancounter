@@ -15,7 +15,8 @@ buildscript {
     }
 
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion"
+        classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
+        classpath("org.jmailen.gradle:kotlinter-gradle:3.3.0")
     }
 }
 

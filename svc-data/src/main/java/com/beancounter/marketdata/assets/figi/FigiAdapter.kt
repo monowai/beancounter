@@ -7,13 +7,15 @@ import org.springframework.stereotype.Service
 @Service
 class FigiAdapter {
     fun transform(market: Market, assetCode: String?): Asset {
-        return Asset(assetCode,
-                assetCode!!,
-                assetCode,
-                "Equity",
-                market,
-                market.code,
-                assetCode)
+        return Asset(
+            assetCode,
+            assetCode!!,
+            assetCode,
+            "Equity",
+            market,
+            market.code,
+            assetCode
+        )
     }
 
     fun transform(market: Market, assetCode: String, figiAsset: FigiAsset?): Asset {

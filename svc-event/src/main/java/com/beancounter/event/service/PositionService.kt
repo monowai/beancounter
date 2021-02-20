@@ -67,15 +67,16 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
 
     fun process(portfolio: Portfolio, event: CorporateEvent): TrustedTrnEvent? {
         val positionResponse = positionGateway.query(
-                tokenService.bearerToken,
-                TrustedTrnQuery(portfolio, event.recordDate, event.assetId))
+            tokenService.bearerToken,
+            TrustedTrnQuery(portfolio, event.recordDate, event.assetId)
+        )
         if (positionResponse != null) {
             if (positionResponse.data.hasPositions()) {
                 val position = positionResponse.data.positions.values.iterator().next()
                 if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
                     val behaviour = behaviourFactory.getAdapter(event)!!
                     return behaviour
-                            .calculate(positionResponse.data.portfolio, position, event)
+                        .calculate(positionResponse.data.portfolio, position, event)
                 }
             }
         }
@@ -106,5 +107,4 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     companion object {
         private val log = LoggerFactory.getLogger(PositionService::class.java)
     }
-
 }

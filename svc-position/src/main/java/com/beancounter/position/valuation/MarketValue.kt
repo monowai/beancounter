@@ -1,37 +1,49 @@
 package com.beancounter.position.valuation
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
+import com.beancounter.common.model.MarketData
+import com.beancounter.common.model.MoneyValues
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.util.*
+import java.util.Objects
 
 @Service
 class MarketValue(private val gains: Gains) {
-    fun value(positions: Positions,
-              marketData: MarketData,
-              rates: Map<IsoCurrencyPair, FxRate>): Position {
+    fun value(
+        positions: Positions,
+        marketData: MarketData,
+        rates: Map<IsoCurrencyPair, FxRate>
+    ): Position {
         val asset = marketData.asset
         val trade = asset.market.currency
         val position = positions[asset]
         val portfolio = positions.portfolio
         val total = position.quantityValues.getTotal()
-        value(total, position.getMoneyValues(Position.In.TRADE, asset.market.currency),
-                marketData,
-                FxRate(marketData.asset.market.currency, marketData.asset.market.currency,
-                        BigDecimal.ONE, null)
+        value(
+            total, position.getMoneyValues(Position.In.TRADE, asset.market.currency),
+            marketData,
+            FxRate(
+                marketData.asset.market.currency, marketData.asset.market.currency,
+                BigDecimal.ONE, null
+            )
         )
-        value(total, position.getMoneyValues(Position.In.BASE, portfolio.base),
-                marketData,
-                rate(portfolio.base, trade, rates)
+        value(
+            total, position.getMoneyValues(Position.In.BASE, portfolio.base),
+            marketData,
+            rate(portfolio.base, trade, rates)
         )
-        value(total, position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
-                marketData,
-                rate(portfolio.currency, trade, rates)
+        value(
+            total, position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
+            marketData,
+            rate(portfolio.currency, trade, rates)
         )
         return position
     }
@@ -46,7 +58,8 @@ class MarketValue(private val gains: Gains) {
                 close = moneyValues.priceData!!.close
             }
             moneyValues.marketValue = Objects.requireNonNull(
-                    multiply(close, total))!!
+                multiply(close, total)
+            )!!
         }
         gains.value(total, moneyValues)
     }
@@ -55,10 +68,12 @@ class MarketValue(private val gains: Gains) {
         return if (report.code == trade.code) {
             FxRate(trade, report, BigDecimal.ONE, null)
         } else rates[toPair(report, trade)]
-                ?: throw BusinessException(String.format("No rate for %s:%s",
-                        report.code,
-                        trade.code
-                ))
+            ?: throw BusinessException(
+                String.format(
+                    "No rate for %s:%s",
+                    report.code,
+                    trade.code
+                )
+            )
     }
-
 }

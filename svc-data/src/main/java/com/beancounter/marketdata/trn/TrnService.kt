@@ -12,15 +12,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
 import java.util.function.Consumer
 import javax.transaction.Transactional
 
 @Service
 @Transactional
-class TrnService internal constructor(private val trnRepository: TrnRepository,
-                                      private val trnAdapter: TrnAdapter,
-                                      private val portfolioService: PortfolioService) {
+class TrnService internal constructor(
+    private val trnRepository: TrnRepository,
+    private val trnAdapter: TrnAdapter,
+    private val portfolioService: PortfolioService
+) {
 
     fun getPortfolioTrn(portfolio: Portfolio, trnId: String): TrnResponse {
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
@@ -39,10 +40,12 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
         val trns: MutableCollection<Trn> = ArrayList()
         saved.forEach(Consumer { e: Trn -> trns.add(e) })
         trnResponse = TrnResponse(trns)
-        log.trace("Wrote {}/{} transactions for {}",
-                trnResponse.data.size,
-                trnRequest.data.size,
-                portfolio.code)
+        log.trace(
+            "Wrote {}/{} transactions for {}",
+            trnResponse.data.size,
+            trnRequest.data.size,
+            portfolio.code
+        )
         return trnResponse
     }
 
@@ -79,16 +82,18 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
 
     private fun trnResponse(portfolio: Portfolio, assetId: String, typeFilter: ArrayList<TrnType>): TrnResponse {
         val results = trnRepository
-                .findByPortfolioIdAndAssetIdAndTrnType(
-                        portfolio.id,
-                        assetId,
-                        typeFilter,
-                        Sort.by("asset.code")
-                                .and(Sort.by("tradeDate").descending()))
-        log.debug("Found {} for portfolio {} and asset {}",
-                results.size,
-                portfolio.code,
-                assetId
+            .findByPortfolioIdAndAssetIdAndTrnType(
+                portfolio.id,
+                assetId,
+                typeFilter,
+                Sort.by("asset.code")
+                    .and(Sort.by("tradeDate").descending())
+            )
+        log.debug(
+            "Found {} for portfolio {} and asset {}",
+            results.size,
+            portfolio.code,
+            assetId
         )
         return hydrate(results, true)
     }
@@ -102,27 +107,32 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
      * @return transactions that can be accumulated into a position
      */
     fun findByPortfolioAsset(
-            portfolio: Portfolio,
-            assetId: String,
-            tradeDate: LocalDate): TrnResponse {
+        portfolio: Portfolio,
+        assetId: String,
+        tradeDate: LocalDate
+    ): TrnResponse {
         val results = trnRepository
-                .findByPortfolioIdAndAssetIdUpTo(
-                        portfolio.id,
-                        assetId,
-                        tradeDate)
-        log.debug("Found {} for portfolio {} and asset {}",
-                results.size,
-                portfolio.code,
-                assetId
+            .findByPortfolioIdAndAssetIdUpTo(
+                portfolio.id,
+                assetId,
+                tradeDate
+            )
+        log.debug(
+            "Found {} for portfolio {} and asset {}",
+            results.size,
+            portfolio.code,
+            assetId
         )
         return hydrate(results, false)
     }
 
     fun findForPortfolio(portfolio: Portfolio, tradeDate: LocalDate): TrnResponse {
-        val results = trnRepository.findByPortfolioId(portfolio.id,
-                tradeDate,
-                Sort.by("asset.code")
-                        .and(Sort.by("tradeDate")))
+        val results = trnRepository.findByPortfolioId(
+            portfolio.id,
+            tradeDate,
+            Sort.by("asset.code")
+                .and(Sort.by("tradeDate"))
+        )
         log.debug("trns: {}, portfolio: {}", results.size, portfolio.code)
         return hydrate(results)
     }
@@ -160,11 +170,11 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
     fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
         val endDate = trustedTrnEvent.trnInput.tradeDate!!.plusDays(20)
         return trnRepository.findExisting(
-                trustedTrnEvent.portfolio.id,
-                trustedTrnEvent.trnInput.assetId,
-                trustedTrnEvent.trnInput.trnType,
-                trustedTrnEvent.trnInput.tradeDate!!,
-                endDate
+            trustedTrnEvent.portfolio.id,
+            trustedTrnEvent.trnInput.assetId,
+            trustedTrnEvent.trnInput.trnType,
+            trustedTrnEvent.trnInput.tradeDate!!,
+            endDate
         )
     }
 
@@ -185,5 +195,4 @@ class TrnService internal constructor(private val trnRepository: TrnRepository,
     companion object {
         private val log = LoggerFactory.getLogger(TrnService::class.java)
     }
-
 }

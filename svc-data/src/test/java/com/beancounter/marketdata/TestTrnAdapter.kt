@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
-import java.util.*
+import java.util.ArrayList
 
 @SpringBootTest(classes = [TrnAdapter::class])
 internal class TestTrnAdapter {
@@ -41,9 +41,10 @@ internal class TestTrnAdapter {
     @Test
     fun is_InputToTrn() {
         val trnInput = TrnInput(
-                CallerRef("ABC", "1", "1"),
-                toKey("MSFT", "NASDAQ"),
-                TrnType.BUY, BigDecimal.TEN)
+            CallerRef("ABC", "1", "1"),
+            toKey("MSFT", "NASDAQ"),
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.cashAsset = toKey("USD-X", "USER")
         trnInput.tradeDate = DateUtils().getDate("2019-10-10")
         trnInput.settleDate = DateUtils().getDate("2019-10-10")
@@ -62,31 +63,31 @@ internal class TestTrnAdapter {
         trnInputCollection.add(trnInput)
         val trnRequest = TrnRequest("abc", trnInputCollection)
         Mockito.`when`(portfolioService!!.find("abc"))
-                .thenReturn(getPortfolio("abc"))
+            .thenReturn(getPortfolio("abc"))
         Mockito.`when`(assetService!!.find(trnInput.assetId))
-                .thenReturn(fromKey(trnInput.assetId))
+            .thenReturn(fromKey(trnInput.assetId))
         Mockito.`when`(currencyService!!.getCode("USD"))
-                .thenReturn(currencyUtils.getCurrency("USD"))
+            .thenReturn(currencyUtils.getCurrency("USD"))
         val trnResponse = trnAdapter!!.convert(portfolioService.find("abc"), trnRequest)
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse.data).hasSize(1)
         assertThat(trnResponse.data.iterator().next())
-                .hasFieldOrPropertyWithValue("quantity", trnInput.quantity)
-                .hasFieldOrPropertyWithValue("tradeDate", trnInput.tradeDate)
-                .hasFieldOrPropertyWithValue("settleDate", trnInput.settleDate)
-                .hasFieldOrPropertyWithValue("fees", trnInput.fees)
-                .hasFieldOrPropertyWithValue("cashAmount", trnInput.cashAmount)
-                .hasFieldOrPropertyWithValue("tradeAmount", trnInput.tradeAmount)
-                .hasFieldOrPropertyWithValue("price", trnInput.price)
-                .hasFieldOrPropertyWithValue("quantity", trnInput.quantity)
-                .hasFieldOrPropertyWithValue("version", "1")
-                .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
-                .hasFieldOrPropertyWithValue("tradeCashRate", trnInput.tradeCashRate)
-                .hasFieldOrPropertyWithValue("tradePortfolioRate", trnInput.tradePortfolioRate)
-                .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
-                .hasFieldOrPropertyWithValue("tradeCurrency.code", trnInput.tradeCurrency)
-                .hasFieldOrPropertyWithValue("cashCurrency.code", trnInput.cashCurrency)
-                .hasFieldOrPropertyWithValue("trnType", trnInput.trnType)
-                .hasFieldOrPropertyWithValue("comments", trnInput.comments)
+            .hasFieldOrPropertyWithValue("quantity", trnInput.quantity)
+            .hasFieldOrPropertyWithValue("tradeDate", trnInput.tradeDate)
+            .hasFieldOrPropertyWithValue("settleDate", trnInput.settleDate)
+            .hasFieldOrPropertyWithValue("fees", trnInput.fees)
+            .hasFieldOrPropertyWithValue("cashAmount", trnInput.cashAmount)
+            .hasFieldOrPropertyWithValue("tradeAmount", trnInput.tradeAmount)
+            .hasFieldOrPropertyWithValue("price", trnInput.price)
+            .hasFieldOrPropertyWithValue("quantity", trnInput.quantity)
+            .hasFieldOrPropertyWithValue("version", "1")
+            .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
+            .hasFieldOrPropertyWithValue("tradeCashRate", trnInput.tradeCashRate)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", trnInput.tradePortfolioRate)
+            .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
+            .hasFieldOrPropertyWithValue("tradeCurrency.code", trnInput.tradeCurrency)
+            .hasFieldOrPropertyWithValue("cashCurrency.code", trnInput.cashCurrency)
+            .hasFieldOrPropertyWithValue("trnType", trnInput.trnType)
+            .hasFieldOrPropertyWithValue("comments", trnInput.comments)
     }
 }

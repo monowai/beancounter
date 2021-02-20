@@ -20,25 +20,29 @@ internal class AlphaAssetsTest {
     @Test
     @Throws(Exception::class)
     fun is_NullAsset() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts
-                + "/alphavantage-empty-response.json").file
+        val jsonFile = ClassPathResource(
+            AlphaMockUtils.alphaContracts +
+                "/alphavantage-empty-response.json"
+        ).file
         Assertions.assertThat(assetMapper.readValue(jsonFile, PriceResponse::class.java)).isNull()
     }
 
     @Test
     @Throws(Exception::class)
     fun is_SearchResult() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts
-                + "/mf-search.json").file
+        val jsonFile = ClassPathResource(
+            AlphaMockUtils.alphaContracts +
+                "/mf-search.json"
+        ).file
         val searchResponse = assetMapper.readValue(jsonFile, AssetSearchResponse::class.java)
         Assertions.assertThat(searchResponse)
-                .isNotNull
-                .hasFieldOrProperty("data")
+            .isNotNull
+            .hasFieldOrProperty("data")
         Assertions.assertThat(searchResponse.data)
-                .hasSize(1)
+            .hasSize(1)
         Assertions.assertThat(searchResponse.data.iterator().next())
-                .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc")
-                .hasFieldOrPropertyWithValue("type", "Mutual Fund")
-                .hasFieldOrPropertyWithValue("symbol", "0P0000XMSV.LON")
+            .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc")
+            .hasFieldOrPropertyWithValue("type", "Mutual Fund")
+            .hasFieldOrPropertyWithValue("symbol", "0P0000XMSV.LON")
     }
 }

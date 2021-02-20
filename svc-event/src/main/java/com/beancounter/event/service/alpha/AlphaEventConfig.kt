@@ -7,4 +7,4 @@ import org.springframework.context.annotation.Import
 
 @Configuration
 @Import(TaxService::class, AlphaEventAdapter::class, EventBehaviourFactory::class)
-class AlphaEventConfig 
+class AlphaEventConfig

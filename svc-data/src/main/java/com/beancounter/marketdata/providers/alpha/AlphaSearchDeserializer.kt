@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.IOException
-import java.util.*
 
 class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
     @Throws(IOException::class)
@@ -18,16 +17,18 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
         val metaData = source[BEST_MATCHES]
         if (metaData != null) {
             val collectionType = mapper.typeFactory
-                    .constructCollectionType(ArrayList::class.java, HashMap::class.java)
+                .constructCollectionType(ArrayList::class.java, HashMap::class.java)
             val rows = mapper.readValue<Collection<Map<String, String>>>(
-                    source[BEST_MATCHES].toString(), collectionType)
+                source[BEST_MATCHES].toString(), collectionType
+            )
             for (row in rows) {
                 val searchResult = AssetSearchResult(
-                        row["1. symbol"],
-                        row["2. name"],
-                        row["3. type"],
-                        null,
-                        row["8. currency"])
+                    row["1. symbol"],
+                    row["2. name"],
+                    row["3. type"],
+                    null,
+                    row["8. currency"]
+                )
                 results.add(searchResult)
             }
         }

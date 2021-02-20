@@ -31,10 +31,11 @@ internal class MarketDataProviderTests @Autowired constructor(private val mdFact
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaService.ID)).isNotNull
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(MockProviderService.ID)).isNotNull
         val mdp = mdFactory.getMarketDataProvider(
-                Market("NonExistent", Currency("ABC")))
+            Market("NonExistent", Currency("ABC"))
+        )
         AssertionsForClassTypes.assertThat(mdp)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("ID", MockProviderService.ID)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("ID", MockProviderService.ID)
     }
 
     @Test
@@ -53,5 +54,4 @@ internal class MarketDataProviderTests @Autowired constructor(private val mdFact
     fun is_InvalidMarketException() {
         Assertions.assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
     }
-
 }

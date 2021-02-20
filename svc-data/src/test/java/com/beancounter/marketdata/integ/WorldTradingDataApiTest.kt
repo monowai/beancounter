@@ -25,7 +25,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.math.BigDecimal
-import java.util.*
+import java.util.ArrayList
 
 /**
  * WorldTradingData API tests.
@@ -57,22 +57,30 @@ internal class WorldTradingDataApiTest {
     @Throws(Exception::class)
     fun is_AsxMarketConvertedToAx() {
         val response = getResponseMap(
-                ClassPathResource(WtdMockUtils.WTD_PATH + "/AMP-ASX.json").file)
+            ClassPathResource(WtdMockUtils.WTD_PATH + "/AMP-ASX.json").file
+        )
         val assets: MutableCollection<AssetInput> = ArrayList()
         assets.add(getAssetInput(ContractVerifierBase.AMP))
         api.stubFor(
-                WireMock.get(WireMock.urlEqualTo(
-                        "/api/v1/history_multi_single_day?symbol=AMP.AX&date="
-                                + "2019-11-15"
-                                + "&api_token=demo"))
-                        .willReturn(WireMock.aResponse()
-                                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .withBody(objectMapper.writeValueAsString(response))
-                                .withStatus(200)))
+            WireMock.get(
+                WireMock.urlEqualTo(
+                    "/api/v1/history_multi_single_day?symbol=AMP.AX&date=" +
+                        "2019-11-15" +
+                        "&api_token=demo"
+                )
+            )
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(response))
+                        .withStatus(200)
+                )
+        )
         val mdResult = wtdService.getMarketData(
-                PriceRequest("2019-11-15", assets))
+            PriceRequest("2019-11-15", assets)
+        )
         assertThat(mdResult).isNotNull
-                .hasSize(1)
+            .hasSize(1)
     }
 
     @Test
@@ -84,26 +92,28 @@ internal class WorldTradingDataApiTest {
 
         // While the request date is relative to "Today", we are testing that we get back
         //  the date as set in the response from the provider.
-        mockWtdResponse(inputs, "2019-11-15",
-                false,  // Prices are at T-1. configured date set in -test.yaml
-                ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").file)
+        mockWtdResponse(
+            inputs, "2019-11-15",
+            false, // Prices are at T-1. configured date set in -test.yaml
+            ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").file
+        )
         val mdResult = wtdService.getMarketData(PriceRequest("2019-11-15", inputs))
         assertThat(mdResult)
-                .isNotNull
-                .hasSize(2)
+            .isNotNull
+            .hasSize(2)
         for (marketData in mdResult) {
             if (marketData.asset == ContractVerifierBase.MSFT) {
                 assertThat(marketData)
-                        .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2019-03-08"))
-                        .hasFieldOrPropertyWithValue("asset", ContractVerifierBase.MSFT)
-                        .hasFieldOrPropertyWithValue("open", BigDecimal("109.16"))
-                        .hasFieldOrPropertyWithValue("close", BigDecimal("110.51"))
+                    .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2019-03-08"))
+                    .hasFieldOrPropertyWithValue("asset", ContractVerifierBase.MSFT)
+                    .hasFieldOrPropertyWithValue("open", BigDecimal("109.16"))
+                    .hasFieldOrPropertyWithValue("close", BigDecimal("110.51"))
             } else if (marketData.asset == ContractVerifierBase.AAPL) {
                 assertThat(marketData)
-                        .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2019-03-08"))
-                        .hasFieldOrPropertyWithValue("asset", ContractVerifierBase.AAPL)
-                        .hasFieldOrPropertyWithValue("open", BigDecimal("170.32"))
-                        .hasFieldOrPropertyWithValue("close", BigDecimal("172.91"))
+                    .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2019-03-08"))
+                    .hasFieldOrPropertyWithValue("asset", ContractVerifierBase.AAPL)
+                    .hasFieldOrPropertyWithValue("open", BigDecimal("170.32"))
+                    .hasFieldOrPropertyWithValue("close", BigDecimal("172.91"))
             }
         }
     }
@@ -118,22 +128,22 @@ internal class WorldTradingDataApiTest {
         // Prices are at T-1. configured date set in -test.yaml
         mockWtdResponse(inputs, priceDate, true, ClassPathResource(WtdMockUtils.WTD_PATH + "/APPL.json").file)
         val mdResult = wtdService
-                .getMarketData(PriceRequest(inputs))
+            .getMarketData(PriceRequest(inputs))
         assertThat(mdResult)
-                .isNotNull
-                .hasSize(2)
+            .isNotNull
+            .hasSize(2)
 
         // If an invalid asset, then we have a ZERO price
         for (marketData in mdResult) {
             if (marketData.asset == ContractVerifierBase.MSFT) {
                 assertThat(marketData)
-                        .hasFieldOrProperty("date")
-                        .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+                    .hasFieldOrProperty("date")
+                    .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
             } else if (marketData.asset == ContractVerifierBase.AAPL) {
                 assertThat(marketData)
-                        .hasFieldOrProperty("priceDate")
-                        .hasFieldOrPropertyWithValue("open", BigDecimal("170.32"))
-                        .hasFieldOrPropertyWithValue("close", BigDecimal("172.91"))
+                    .hasFieldOrProperty("priceDate")
+                    .hasFieldOrPropertyWithValue("open", BigDecimal("170.32"))
+                    .hasFieldOrPropertyWithValue("close", BigDecimal("172.91"))
             }
         }
     }
@@ -145,10 +155,11 @@ internal class WorldTradingDataApiTest {
         inputs.add(getAssetInput(ContractVerifierBase.MSFT))
         mockWtdResponse(inputs, "2019-11-15", true, ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").file)
         val prices = wtdService.getMarketData(
-                PriceRequest("2019-11-15", inputs))
+            PriceRequest("2019-11-15", inputs)
+        )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
-                prices.iterator().next()).hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+            prices.iterator().next()
+        ).hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
     }
-
 }

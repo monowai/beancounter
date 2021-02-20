@@ -24,10 +24,12 @@ class KafkaUtils {
     @Bean
     fun bcErrorHandler(): KafkaListenerErrorHandler {
         return KafkaListenerErrorHandler { m: Message<*>, e: ListenerExecutionFailedException ->
-            log.error("{}. {}. {}",
-                    e.mostSpecificCause.message,
-                    findBcCause(e),
-                    m.payload)
+            log.error(
+                "{}. {}. {}",
+                e.mostSpecificCause.message,
+                findBcCause(e),
+                m.payload
+            )
             null
         }
     }

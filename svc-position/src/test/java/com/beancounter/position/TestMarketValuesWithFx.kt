@@ -1,9 +1,18 @@
 package com.beancounter.position
 
-import com.beancounter.common.model.*
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
+import com.beancounter.common.model.MarketData
+import com.beancounter.common.model.MoneyValues
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.multiply
@@ -17,7 +26,8 @@ import com.beancounter.position.valuation.MarketValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.*
+import java.util.HashMap
+import java.util.Objects
 
 internal class TestMarketValuesWithFx {
     @Test
@@ -37,7 +47,6 @@ internal class TestMarketValuesWithFx {
         marketData.close = BigDecimal("10.00")
         marketData.previousClose = BigDecimal("5.00")
 
-
         // Revalue based on marketData prices
         val targetValues = MoneyValues(Currency("USD"))
         targetValues.priceData = of(marketData)
@@ -48,11 +57,12 @@ internal class TestMarketValuesWithFx {
         targetValues.totalGain = BigDecimal("-1000.00")
         targetValues.unrealisedGain = BigDecimal("-1000.00")
         targetValues.marketValue = Objects.requireNonNull(
-                multiply(buyTrn.quantity, marketData.close))!!
+            multiply(buyTrn.quantity, marketData.close)
+        )!!
         val fxRateMap = getRates(portfolio, asset, simpleRate)
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-                .isEqualToIgnoringGivenFields(targetValues, "priceData", "portfolio")
+            .isEqualToIgnoringGivenFields(targetValues, "priceData", "portfolio")
         val baseValues = MoneyValues(Currency("USD"))
         baseValues.averageCost = BigDecimal("20.00")
         baseValues.priceData = of(marketData)
@@ -63,7 +73,7 @@ internal class TestMarketValuesWithFx {
         baseValues.unrealisedGain = BigDecimal("-1000.00")
         baseValues.marketValue = nullSafe(multiply(buyTrn.quantity, marketData.close))
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
-                .isEqualToIgnoringGivenFields(baseValues, "priceData", "portfolio")
+            .isEqualToIgnoringGivenFields(baseValues, "priceData", "portfolio")
         val pfValues = MoneyValues(portfolio.currency)
         pfValues.costBasis = BigDecimal("10000.00")
         pfValues.purchases = BigDecimal("10000.00")
@@ -74,7 +84,7 @@ internal class TestMarketValuesWithFx {
         pfValues.unrealisedGain = BigDecimal("-9800.00")
         pfValues.totalGain = BigDecimal("-9800.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency))
-                .isEqualToIgnoringGivenFields(pfValues, "priceData")
+            .isEqualToIgnoringGivenFields(pfValues, "priceData")
     }
 
     @Test
@@ -84,12 +94,14 @@ internal class TestMarketValuesWithFx {
         val fxRateMap: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val simpleRate = BigDecimal("0.20")
         val pair = toPair(
-                portfolio.currency,
-                asset.market.currency)
+            portfolio.currency,
+            asset.market.currency
+        )
         if (pair != null) {
             fxRateMap[pair] = FxRate(
-                    Currency("X"), Currency("X"),
-                    simpleRate, null)
+                Currency("X"), Currency("X"),
+                simpleRate, null
+            )
         }
         val buyTrn = Trn(TrnType.BUY, asset, BigDecimal(100))
         buyTrn.tradeAmount = BigDecimal("2000.00")
@@ -119,9 +131,9 @@ internal class TestMarketValuesWithFx {
         usdValues.unrealisedGain = BigDecimal.ZERO
         usdValues.totalGain = BigDecimal("1000.00")
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-                .isEqualToIgnoringGivenFields(usdValues, "priceData", "portfolio")
+            .isEqualToIgnoringGivenFields(usdValues, "priceData", "portfolio")
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
-                .isEqualToIgnoringGivenFields(usdValues, "priceData", "portfolio")
+            .isEqualToIgnoringGivenFields(usdValues, "priceData", "portfolio")
         val pfValues = MoneyValues(portfolio.currency)
         pfValues.marketValue = BigDecimal("0")
         pfValues.averageCost = BigDecimal.ZERO
@@ -133,7 +145,7 @@ internal class TestMarketValuesWithFx {
         pfValues.unrealisedGain = BigDecimal.ZERO
         pfValues.totalGain = BigDecimal("5000.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency))
-                .isEqualToIgnoringGivenFields(pfValues, "priceData", "portfolio")
+            .isEqualToIgnoringGivenFields(pfValues, "priceData", "portfolio")
     }
 
     @Test
@@ -159,16 +171,20 @@ internal class TestMarketValuesWithFx {
     }
 
     private fun getRates(
-            portfolio: Portfolio,
-            asset: Asset,
-            simpleRate: BigDecimal): Map<IsoCurrencyPair, FxRate> {
+        portfolio: Portfolio,
+        asset: Asset,
+        simpleRate: BigDecimal
+    ): Map<IsoCurrencyPair, FxRate> {
         val fxRateMap: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val pair = toPair(
-                portfolio.currency,
-                asset.market.currency)
-        if (pair != null){
-            fxRateMap[pair] = FxRate(Currency("test"), Currency("TEST"),
-                    simpleRate, null)
+            portfolio.currency,
+            asset.market.currency
+        )
+        if (pair != null) {
+            fxRateMap[pair] = FxRate(
+                Currency("test"), Currency("TEST"),
+                simpleRate, null
+            )
         }
         return fxRateMap
     }

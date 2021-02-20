@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.utils
 
 import com.beancounter.common.model.SystemUser
-import java.util.*
+import java.util.UUID
 
 object SysUserUtils {
     @JvmStatic

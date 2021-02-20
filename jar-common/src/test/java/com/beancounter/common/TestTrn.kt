@@ -4,8 +4,13 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.common.model.*
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Market
+import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
 import com.beancounter.common.utils.BcJson
@@ -15,7 +20,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 internal class TestTrn {
     private val mapper = BcJson().objectMapper
@@ -24,8 +28,8 @@ internal class TestTrn {
     @Throws(Exception::class)
     fun is_TransactionRequestSerializing() {
         val trnInput = TrnInput(
-                CallerRef("1", "1", "ABC"),
-                toKey("MSFT", "NASDAQ")
+            CallerRef("1", "1", "ABC"),
+            toKey("MSFT", "NASDAQ")
         )
 
         trnInput.tradeCurrency = "USD"
@@ -46,11 +50,11 @@ internal class TestTrn {
         val trnRequest = TrnRequest("abc", trnInputs)
         val json = mapper.writeValueAsString(trnRequest)
         val fromJson = mapper.readValue(json, TrnRequest::class.java)
-        assertThat<TrnInput>(fromJson.data).hasSize(1)
+        assertThat(fromJson.data).hasSize(1)
         val fromTrn: TrnInput = fromJson.data.iterator().next()
         assertThat(fromTrn.callerRef).usingRecursiveComparison().isEqualTo(trnInput.callerRef)
         assertThat(fromTrn)
-                .usingRecursiveComparison().isEqualTo(trnInput)
+            .usingRecursiveComparison().isEqualTo(trnInput)
     }
 
     @Test
@@ -78,12 +82,12 @@ internal class TestTrn {
         val fromAsset: Asset = fromJson.data.iterator().next().asset
         // Market.aliases are not serialized
         assertThat(fromAsset.market)
-                .usingRecursiveComparison().ignoringFields("market", "aliases")
+            .usingRecursiveComparison().ignoringFields("market", "aliases")
         assertThat(fromAsset)
-                .usingRecursiveComparison()
+            .usingRecursiveComparison()
         assertThat(fromJson.data).hasSize(1)
         assertThat(fromJson.data.iterator().next())
-                .usingRecursiveComparison().ignoringFields("asset")
+            .usingRecursiveComparison().ignoringFields("asset")
     }
 
     @Test
@@ -112,20 +116,20 @@ internal class TestTrn {
         assertThat(callerRef).hasAllNullFieldsOrProperties()
         // No values, so defaults should be created
         assertThat(CallerRef.from(callerRef, getPortfolio("BLAH")))
-                .hasNoNullFieldsOrProperties()
-                .hasFieldOrPropertyWithValue("batch", "BLAH")
+            .hasNoNullFieldsOrProperties()
+            .hasFieldOrPropertyWithValue("batch", "BLAH")
         callerRef = CallerRef("ABC", "ABC", "ABC")
         assertThat(CallerRef.from(callerRef, getPortfolio("BLAH")))
-                .hasFieldOrPropertyWithValue("batch", "ABC")
-                .hasFieldOrPropertyWithValue("provider", "ABC")
-                .hasFieldOrPropertyWithValue("callerId", "ABC")
+            .hasFieldOrPropertyWithValue("batch", "ABC")
+            .hasFieldOrPropertyWithValue("provider", "ABC")
+            .hasFieldOrPropertyWithValue("callerId", "ABC")
 
         // Called ID not specified
         callerRef = CallerRef("ABC", "ABC")
         assertThat(CallerRef.from(callerRef, getPortfolio("BLAH")))
-                .hasFieldOrPropertyWithValue("batch", "ABC")
-                .hasFieldOrPropertyWithValue("provider", "ABC")
-                .hasFieldOrProperty("callerId")
+            .hasFieldOrPropertyWithValue("batch", "ABC")
+            .hasFieldOrPropertyWithValue("provider", "ABC")
+            .hasFieldOrProperty("callerId")
     }
 
     companion object {

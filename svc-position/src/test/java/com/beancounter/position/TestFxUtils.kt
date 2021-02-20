@@ -1,7 +1,11 @@
 package com.beancounter.position
 
-import com.beancounter.common.model.*
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
+import com.beancounter.common.model.Market
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.position.utils.FxUtils
@@ -17,7 +21,7 @@ internal class TestFxUtils {
         val (asset) = Position(getAsset("USD", "Test"))
         val validCurrency = asset.market.currency
         assertThat(toPair(currencyUtils.getCurrency("NZD"), validCurrency))
-                .isNotNull // From != To
+            .isNotNull // From != To
     }
 
     @Test
@@ -28,7 +32,8 @@ internal class TestFxUtils {
         val usdMarket = Market("USD", currencyUtils.getCurrency("USD"))
         val usdPosition = Position(getAsset(usdMarket, "USD Asset"))
         val otherUsdPosition = Position(
-                getAsset(usdMarket, "USD Asset Other"))
+            getAsset(usdMarket, "USD Asset Other")
+        )
         val portfolio = Portfolio("ABC", currencyUtils.getCurrency("SGD"))
         val positions = Positions(portfolio)
         positions.add(gbpPosition)
@@ -36,9 +41,10 @@ internal class TestFxUtils {
         positions.add(otherUsdPosition)
         val (_, pairs) = fxUtils.buildRequest(usd, positions)
         assertThat(pairs).hasSize(3)
-                .containsOnly(
-                        IsoCurrencyPair("SGD", "USD"),  // PF:TRADE
-                        IsoCurrencyPair("SGD", "GBP"),  // PF:TRADE
-                        IsoCurrencyPair("USD", "GBP")) // BASE:TRADE
+            .containsOnly(
+                IsoCurrencyPair("SGD", "USD"), // PF:TRADE
+                IsoCurrencyPair("SGD", "GBP"), // PF:TRADE
+                IsoCurrencyPair("USD", "GBP")
+            ) // BASE:TRADE
     }
 }

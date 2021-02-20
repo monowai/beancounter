@@ -11,11 +11,13 @@ import com.beancounter.event.integration.EventPublisher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
+import java.util.ArrayList
 
 @Service
-class EventService(private val positionService: PositionService,
-                   private val eventRepository: EventRepository) {
+class EventService(
+    private val positionService: PositionService,
+    private val eventRepository: EventRepository
+) {
     private var eventPublisher: EventPublisher? = null
 
     @Autowired(required = false)
@@ -25,15 +27,16 @@ class EventService(private val positionService: PositionService,
 
     fun processMessage(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
         return processMessage(
-                save(eventRequest.data)
+            save(eventRequest.data)
         )
     }
 
     fun processMessage(event: CorporateEvent): Collection<TrustedTrnEvent> {
         val results: MutableCollection<TrustedTrnEvent> = ArrayList()
         val response = positionService.findWhereHeld(
-                event.assetId,
-                event.recordDate)
+            event.assetId,
+            event.recordDate
+        )
         for (portfolio in response.data) {
             val trnEvent = positionService.process(portfolio, event)
             // Don't create forward dated transactions
@@ -50,20 +53,21 @@ class EventService(private val positionService: PositionService,
 
     fun save(event: CorporateEvent): CorporateEvent {
         val existing = eventRepository.findByAssetIdAndRecordDate(
-                event.assetId,
-                event.recordDate)
+            event.assetId,
+            event.recordDate
+        )
         if (existing.isPresent) {
             return existing.get()
         }
         val save = CorporateEvent(
-                KeyGenUtils.getId(),
-                event.trnType,
-                event.source,
-                event.assetId,
-                event.recordDate,
-                event.rate,
-                event.split,
-                event.payDate
+            KeyGenUtils.getId(),
+            event.trnType,
+            event.source,
+            event.assetId,
+            event.recordDate,
+            event.rate,
+            event.split,
+            event.payDate
         )
         return eventRepository.save(save)
     }
@@ -71,14 +75,14 @@ class EventService(private val positionService: PositionService,
     operator fun get(id: String): CorporateEventResponse {
         val result = eventRepository.findById(id)
         return result
-                .map { data: CorporateEvent? -> CorporateEventResponse(data!!) }
-                .orElseThrow { BusinessException("Not found $id") }
+            .map { data: CorporateEvent? -> CorporateEventResponse(data!!) }
+            .orElseThrow { BusinessException("Not found $id") }
     }
 
     fun getAssetEvents(assetId: String): CorporateEventsResponse {
         val events = eventRepository.findByAssetId(assetId)
-        if (events.isNullOrEmpty()){
-            return  CorporateEventsResponse()
+        if (events.isNullOrEmpty()) {
+            return CorporateEventsResponse()
         }
         return CorporateEventsResponse(events)
     }
@@ -99,5 +103,4 @@ class EventService(private val positionService: PositionService,
         val events = eventRepository.findByStartDate(start)
         return CorporateEventsResponse(events)
     }
-
 }

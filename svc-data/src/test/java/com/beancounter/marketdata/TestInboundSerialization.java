@@ -43,6 +43,7 @@ public class TestInboundSerialization {
     TrustedTrnImportRequest payload = objectMapper.readValue(
         new ClassPathResource("/kafka/bc-view-message.json").getFile(),
         TrustedTrnImportRequest.class);
+    assertThat(payload).isNotNull();
   }
 
   @Test

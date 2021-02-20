@@ -4,8 +4,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import java.math.BigDecimal
 
 data class FxRate @ConstructorBinding constructor(
-        val from: Currency,
-        val to: Currency,
-        val rate: BigDecimal = BigDecimal.ONE,
-        val date: String?
+    val from: Currency,
+    val to: Currency,
+    val rate: BigDecimal = BigDecimal.ONE,
+    val date: String?
 )

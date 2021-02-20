@@ -24,17 +24,17 @@ class AlphaConfig : DataProviderConfig {
     }
 
     fun translateMarketCode(market: Market): String? {
-        if (market.code.equals("NASDAQ", ignoreCase = true)
-                || market.code.equals("NYSE", ignoreCase = true)
-                || market.code.equals("LON", ignoreCase = true)
-                || market.code.equals("AMEX", ignoreCase = true)) {
+        if (market.code.equals("NASDAQ", ignoreCase = true) ||
+            market.code.equals("NYSE", ignoreCase = true) ||
+            market.code.equals("LON", ignoreCase = true) ||
+            market.code.equals("AMEX", ignoreCase = true)
+        ) {
             return null
         }
         return if (market.code.equals("ASX", ignoreCase = true)) {
             "AX"
         } else market.code
     }
-
 
     override fun getMarketDate(market: Market, date: String): LocalDate {
         return marketUtils.getLastMarketDate(dateUtils.getDate(date)!!, market)
@@ -53,5 +53,4 @@ class AlphaConfig : DataProviderConfig {
     fun translateSymbol(code: String): String {
         return code.replace(".", "-")
     }
-
 }

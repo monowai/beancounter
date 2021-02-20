@@ -14,13 +14,14 @@ import org.springframework.stereotype.Service
  * @since 2019-02-01
  */
 @Service
-class PositionService internal constructor(private val accumulator: Accumulator,
-                                           private val portfolioService: PortfolioServiceClient
+class PositionService internal constructor(
+    private val accumulator: Accumulator,
+    private val portfolioService: PortfolioServiceClient
 ) : Position {
     override fun build(positionRequest: PositionRequest): PositionResponse {
         return build(
-                portfolioService.getPortfolioById(positionRequest.portfolioId),
-                positionRequest
+            portfolioService.getPortfolioById(positionRequest.portfolioId),
+            positionRequest
         )
     }
 
@@ -31,5 +32,4 @@ class PositionService internal constructor(private val accumulator: Accumulator,
         }
         return PositionResponse(positions)
     }
-
 }

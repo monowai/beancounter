@@ -11,7 +11,6 @@ import com.beancounter.marketdata.service.MarketDataProvider
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 /**
  * For testing purposes. Part of the main source in order to allow for an off-line provider

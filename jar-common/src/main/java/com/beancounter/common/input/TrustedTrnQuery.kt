@@ -9,12 +9,14 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.time.LocalDate
 
-data class TrustedTrnQuery(val portfolio: Portfolio,
-                           @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-                           @JsonSerialize(using = LocalDateSerializer::class)
-                           @JsonDeserialize(using = LocalDateDeserializer::class)
-                           val tradeDate: LocalDate = DateUtils().date!!,
-                           val assetId: String) {
+data class TrustedTrnQuery(
+    val portfolio: Portfolio,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    val tradeDate: LocalDate = DateUtils().date!!,
+    val assetId: String
+) {
 
     override fun toString(): String {
         return "TrustedTrnQuery(portfolio=$portfolio, tradeDate=$tradeDate, assetId=$assetId)"

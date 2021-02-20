@@ -22,7 +22,6 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.shell.jline.PromptProvider
 import org.springframework.test.context.ActiveProfiles
-import java.util.*
 
 @Slf4j
 @ActiveProfiles("test")

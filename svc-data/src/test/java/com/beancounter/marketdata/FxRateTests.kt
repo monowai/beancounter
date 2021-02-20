@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.*
 
 internal class FxRateTests {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
@@ -22,8 +21,8 @@ internal class FxRateTests {
         val jsonFile = ClassPathResource("contracts/ecb/ecbEarly.json").file
         val ecbRates = objectMapper.readValue(jsonFile, EcbRates::class.java)
         Assertions.assertThat(ecbRates)
-                .isNotNull
-                .hasNoNullFieldsOrProperties()
+            .isNotNull
+            .hasNoNullFieldsOrProperties()
         Assertions.assertThat(ecbRates.rates).hasSize(6)
     }
 

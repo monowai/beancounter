@@ -9,7 +9,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.ManyToOne
+import javax.persistence.Table
+import javax.persistence.UniqueConstraint
 
 /**
  * Various data points representing marketdata for an asset.
@@ -20,10 +25,22 @@ import javax.persistence.*
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["source", "asset_id", "priceDate"])])
 data class MarketData constructor(@ManyToOne var asset: Asset) {
-    constructor(id: String?, asset: Asset, source: String, priceDate: LocalDate?,
-                open: BigDecimal?, close: BigDecimal = BigDecimal.ZERO, low: BigDecimal?, high: BigDecimal?,
-                previousClose: BigDecimal?, change: BigDecimal?, changePercent: BigDecimal?,
-                volume: Int?, dividend: BigDecimal?, split: BigDecimal?): this (asset) {
+    constructor(
+        id: String?,
+        asset: Asset,
+        source: String,
+        priceDate: LocalDate?,
+        open: BigDecimal?,
+        close: BigDecimal = BigDecimal.ZERO,
+        low: BigDecimal?,
+        high: BigDecimal?,
+        previousClose: BigDecimal?,
+        change: BigDecimal?,
+        changePercent: BigDecimal?,
+        volume: Int?,
+        dividend: BigDecimal?,
+        split: BigDecimal?
+    ) : this (asset) {
         this.id = id
         this.source = source
         this.priceDate = priceDate
@@ -81,6 +98,4 @@ data class MarketData constructor(@ManyToOne var asset: Asset) {
 
     @Column(precision = 7, scale = 4)
     var split: BigDecimal? = null
-
-
 }

@@ -13,7 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.AssertionsForClassTypes
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.*
 
 internal class TestMarketData {
     private val dateUtils = DateUtils()
@@ -23,17 +22,17 @@ internal class TestMarketData {
     fun is_MarketDataSerializing() {
         val marketDataCollection: MutableCollection<MarketData> = ArrayList()
         val marketData = MarketData(
-                null,
-                getJsonAsset("Market", "Asset"),
-                "TEST",
-                dateUtils.getDate("2012-10-01"),
-                BigDecimal.ONE,  //Open
-                BigDecimal.TEN,  // Close
-            BigDecimal.ONE,  // Low
-            BigDecimal.TEN,  //High
-            BigDecimal("9.56"),  // Previous CLOSE
-            BigDecimal("1.56"),  // Change
-            BigDecimal("0.04"),  // change %
+            null,
+            getJsonAsset("Market", "Asset"),
+            "TEST",
+            dateUtils.getDate("2012-10-01"),
+            BigDecimal.ONE, // Open
+            BigDecimal.TEN, // Close
+            BigDecimal.ONE, // Low
+            BigDecimal.TEN, // High
+            BigDecimal("9.56"), // Previous CLOSE
+            BigDecimal("1.56"), // Change
+            BigDecimal("0.04"), // change %
             10,
             null,
             null
@@ -81,11 +80,11 @@ internal class TestMarketData {
     companion object {
         fun compare(mdResponse: MarketData) {
             AssertionsForClassTypes.assertThat(mdResponse)
-                    .usingRecursiveComparison().ignoringFields("marketData", "asset")
+                .usingRecursiveComparison().ignoringFields("marketData", "asset")
             AssertionsForClassTypes.assertThat(mdResponse.asset.market)
-                    .usingRecursiveComparison().ignoringFields("marketData.asset.market")
+                .usingRecursiveComparison().ignoringFields("marketData.asset.market")
             AssertionsForClassTypes.assertThat(mdResponse.asset)
-                    .usingRecursiveComparison().ignoringFields("marketData.asset", "market")
+                .usingRecursiveComparison().ignoringFields("marketData.asset", "market")
         }
     }
 }

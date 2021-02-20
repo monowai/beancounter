@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
@@ -60,8 +59,10 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
         for (batchId in providerArguments.batch.keys) {
             val date = providerArguments.getBatchConfigs()[batchId]!!.date
             if (isCurrent(priceRequest.date)) {
-                requests[batchId] = alphaProxyCache.getCurrent(providerArguments.batch[batchId],
-                        priceRequest.date, apiKey)
+                requests[batchId] = alphaProxyCache.getCurrent(
+                    providerArguments.batch[batchId],
+                    priceRequest.date, apiKey
+                )
             } else {
                 requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId], date, apiKey)
             }
@@ -69,15 +70,18 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
         return getMarketData(providerArguments, requests)
     }
 
-    private fun getMarketData(providerArguments: ProviderArguments,
-                              requests: MutableMap<Int, Future<String?>?>): Collection<MarketData> {
+    private fun getMarketData(
+        providerArguments: ProviderArguments,
+        requests: MutableMap<Int, Future<String?>?>
+    ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         while (requests.isNotEmpty()) {
             for (batch in requests.keys) {
                 if (requests[batch]!!.isDone) {
                     try {
                         results.addAll(
-                                alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()])
+                            alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()]
+                        )
                     } catch (e: InterruptedException) {
                         log.error(e.message)
                         throw SystemException("This shouldn't have happened")
@@ -139,5 +143,4 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
         const val ID = "ALPHA"
         private val log = LoggerFactory.getLogger(AlphaService::class.java)
     }
-
 }

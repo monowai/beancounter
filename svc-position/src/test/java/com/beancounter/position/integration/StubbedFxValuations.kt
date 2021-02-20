@@ -8,7 +8,12 @@ import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.model.*
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
+import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
 import com.beancounter.position.service.Accumulator
 import com.beancounter.position.service.Valuation
@@ -34,7 +39,8 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-import java.util.*
+import java.util.HashMap
+import java.util.Optional
 
 @WebAppConfiguration
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
@@ -69,8 +75,8 @@ internal class StubbedFxValuations {
     @Autowired
     fun mockServices() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build()
+            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+            .build()
 
         // Setup a user account
         val user = SystemUser("user", "user@testing.com")
@@ -103,13 +109,14 @@ internal class StubbedFxValuations {
         val positions = getPositions(asset)
         val positionResponse = PositionResponse(positions)
         assertThat(mockMvc).isNotNull
-        val json = mockMvc.perform(MockMvcRequestBuilders.post("/value")
+        val json = mockMvc.perform(
+            MockMvcRequestBuilders.post("/value")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(positionResponse))
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andReturn().response.contentAsString
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andReturn().response.contentAsString
         val fromJson = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(fromJson).isNotNull.hasFieldOrProperty("data")
         val jsonPositions = fromJson.data
@@ -120,7 +127,7 @@ internal class StubbedFxValuations {
         for (key in jsonPositions.positions.keys) {
             position = jsonPositions.positions[key]
             assertThat(position!!.asset)
-                    .hasFieldOrPropertyWithValue("name", asset.name)
+                .hasFieldOrPropertyWithValue("name", asset.name)
         }
         assertThat(position).isNotNull
         val totalKey = jsonPositions.totals.keys.iterator().next()
@@ -128,7 +135,7 @@ internal class StubbedFxValuations {
         assertThat(moneyValues!!.weight!!.compareTo(BigDecimal.ONE)).isEqualTo(0)
         val moneyTotal = jsonPositions.totals[totalKey]
         assertThat(moneyTotal)
-                .hasFieldOrPropertyWithValue("total", moneyValues.marketValue)
+            .hasFieldOrPropertyWithValue("total", moneyValues.marketValue)
     }
 
     private val ebay: Asset
@@ -144,7 +151,8 @@ internal class StubbedFxValuations {
     @Test
     @Throws(Exception::class)
     fun is_MvcRestException() {
-        val result = mockMvc.perform(MockMvcRequestBuilders.post("/value")
+        val result = mockMvc.perform(
+            MockMvcRequestBuilders.post("/value")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString("{asdf}"))
@@ -160,10 +168,10 @@ internal class StubbedFxValuations {
         // We need to have a Quantity in order to get the price, so create a position
         val positions = getValuedPositions(asset)
         assertThat(positions[asset].getMoneyValues(Position.In.TRADE, asset.market.currency))
-                .hasFieldOrPropertyWithValue("unrealisedGain", BigDecimal("8000.00"))
-                .hasFieldOrPropertyWithValue("priceData.close", BigDecimal("100.00"))
-                .hasFieldOrPropertyWithValue("marketValue", BigDecimal("10000.00"))
-                .hasFieldOrPropertyWithValue("totalGain", BigDecimal("8000.00"))
+            .hasFieldOrPropertyWithValue("unrealisedGain", BigDecimal("8000.00"))
+            .hasFieldOrPropertyWithValue("priceData.close", BigDecimal("100.00"))
+            .hasFieldOrPropertyWithValue("marketValue", BigDecimal("10000.00"))
+            .hasFieldOrPropertyWithValue("totalGain", BigDecimal("8000.00"))
     }
 
     @Test
@@ -172,14 +180,14 @@ internal class StubbedFxValuations {
         val positions = getValuedPositions(asset)
         val position = positions[asset]
         assertThat(position)
-                .hasFieldOrProperty("asset")
+            .hasFieldOrProperty("asset")
         assertThat(position.asset.market)
-                .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher")
+            .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher")
         assertThat(position.moneyValues[Position.In.PORTFOLIO]!!.currency)
-                .hasNoNullFieldsOrProperties()
+            .hasNoNullFieldsOrProperties()
         assertThat(position.moneyValues[Position.In.BASE]!!.currency)
-                .hasNoNullFieldsOrProperties()
+            .hasNoNullFieldsOrProperties()
         assertThat(position.moneyValues[Position.In.TRADE]!!.currency)
-                .hasNoNullFieldsOrProperties()
+            .hasNoNullFieldsOrProperties()
     }
 }

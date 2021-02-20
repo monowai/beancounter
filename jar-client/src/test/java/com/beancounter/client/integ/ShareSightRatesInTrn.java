@@ -58,6 +58,7 @@ public class ShareSightRatesInTrn {
 
     // Portfolio is in NZD
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
+    assertThat(portfolio).isNotNull();
 
     // Trade is in USD
     row.add(ShareSightDividendAdapter.id, "ABC");

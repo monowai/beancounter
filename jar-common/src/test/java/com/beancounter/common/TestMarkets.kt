@@ -10,7 +10,6 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
-import java.util.*
 
 internal class TestMarkets {
     var jsonMapper = BcJson().objectMapper

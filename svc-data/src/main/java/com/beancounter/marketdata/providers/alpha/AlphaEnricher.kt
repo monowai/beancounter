@@ -31,7 +31,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
             symbol = "$symbol.$marketCode"
         }
         val result = alphaProxyCache!!.search(symbol, apiKey)
-        //var assetResult: AssetSearchResult? = null
+        // var assetResult: AssetSearchResult? = null
         val assetResult = try {
             getAssetSearchResult(market, result)
         } catch (e: JsonProcessingException) {
@@ -39,13 +39,15 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         }
         return if (assetResult == null) {
             null
-        } else Asset(null,
-                code.toUpperCase(),
-                assetResult.name,
-                assetResult.type,
-                market,
-                market.code,
-                assetResult.symbol)
+        } else Asset(
+            null,
+            code.toUpperCase(),
+            assetResult.name,
+            assetResult.type,
+            market,
+            market.code,
+            assetResult.symbol
+        )
     }
 
     @Throws(JsonProcessingException::class)
@@ -64,5 +66,4 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
     override fun canEnrich(asset: Asset): Boolean {
         return asset.name == null
     }
-
 }

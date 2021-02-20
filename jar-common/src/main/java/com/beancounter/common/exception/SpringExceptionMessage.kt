@@ -1,6 +1,6 @@
 package com.beancounter.common.exception
 
-import java.util.*
+import java.util.Date
 
 /**
  * Concrete view of the exception structure we return between services.
@@ -26,6 +26,4 @@ class SpringExceptionMessage {
     constructor() {
         timestamp = Date()
     }
-
-
 }

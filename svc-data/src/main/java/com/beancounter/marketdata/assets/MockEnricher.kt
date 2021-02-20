@@ -10,13 +10,14 @@ class MockEnricher : AssetEnricher {
         return if (code.equals("BLAH", ignoreCase = true)) {
             null
         } else Asset(
-                code,
-                code,
-                defaultName!!.replace("\"", ""),
-                "Equity",
-                market,
-                market.code,
-                null)
+            code,
+            code,
+            defaultName!!.replace("\"", ""),
+            "Equity",
+            market,
+            market.code,
+            null
+        )
     }
 
     override fun canEnrich(asset: Asset): Boolean {

@@ -19,18 +19,18 @@ class TestPriceData {
 
         val noFx = PriceData.of(marketData, BigDecimal("1.0"))
         assertThat(noFx)
-                .hasFieldOrPropertyWithValue("open", marketData.open)
-                .hasFieldOrPropertyWithValue("previousClose", marketData.previousClose)
-                .hasFieldOrPropertyWithValue("close", marketData.close)
-                .hasFieldOrPropertyWithValue("change", marketData.change)
-                .hasFieldOrPropertyWithValue("changePercent", marketData.changePercent)
+            .hasFieldOrPropertyWithValue("open", marketData.open)
+            .hasFieldOrPropertyWithValue("previousClose", marketData.previousClose)
+            .hasFieldOrPropertyWithValue("close", marketData.close)
+            .hasFieldOrPropertyWithValue("change", marketData.change)
+            .hasFieldOrPropertyWithValue("changePercent", marketData.changePercent)
         val withFx = PriceData.of(marketData, BigDecimal("2.0"))
         assertThat(withFx)
-                .hasFieldOrPropertyWithValue("open", BigDecimal("4.00"))
-                .hasFieldOrPropertyWithValue("close", BigDecimal("4.00"))
-                .hasFieldOrPropertyWithValue("previousClose", BigDecimal("2.00"))
-                .hasFieldOrPropertyWithValue("change", BigDecimal("2.00"))
-                .hasFieldOrPropertyWithValue("changePercent", BigDecimal("0.5000"))
+            .hasFieldOrPropertyWithValue("open", BigDecimal("4.00"))
+            .hasFieldOrPropertyWithValue("close", BigDecimal("4.00"))
+            .hasFieldOrPropertyWithValue("previousClose", BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue("change", BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue("changePercent", BigDecimal("0.5000"))
     }
 
     @Test
@@ -44,16 +44,16 @@ class TestPriceData {
 
         val noFx = PriceData.of(marketData, BigDecimal("1.0"))
         assertThat(noFx)
-                .hasFieldOrPropertyWithValue("previousClose", marketData.previousClose)
-                .hasFieldOrPropertyWithValue("close", marketData.close)
-                .hasFieldOrPropertyWithValue("change", marketData.change)
-                .hasFieldOrPropertyWithValue("changePercent", marketData.changePercent)
+            .hasFieldOrPropertyWithValue("previousClose", marketData.previousClose)
+            .hasFieldOrPropertyWithValue("close", marketData.close)
+            .hasFieldOrPropertyWithValue("change", marketData.change)
+            .hasFieldOrPropertyWithValue("changePercent", marketData.changePercent)
         val withFx = PriceData.of(marketData, BigDecimal("2.0"))
         assertThat(withFx)
-                .hasFieldOrPropertyWithValue("previousClose", BigDecimal("81.84"))
-                .hasFieldOrPropertyWithValue("close", BigDecimal("82.70"))
-                .hasFieldOrPropertyWithValue("change", BigDecimal("0.86"))
-                .hasFieldOrPropertyWithValue("changePercent", BigDecimal("0.0104"))
+            .hasFieldOrPropertyWithValue("previousClose", BigDecimal("81.84"))
+            .hasFieldOrPropertyWithValue("close", BigDecimal("82.70"))
+            .hasFieldOrPropertyWithValue("change", BigDecimal("0.86"))
+            .hasFieldOrPropertyWithValue("changePercent", BigDecimal("0.0104"))
     }
 
     @Test

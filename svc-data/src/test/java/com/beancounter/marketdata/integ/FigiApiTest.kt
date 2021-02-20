@@ -61,36 +61,36 @@ class FigiApiTest {
     fun is_AdrFound() {
         val asset = figiProxy!!.find(marketService!!.getMarket("NASDAQ"), "BAIDU")
         assertThat(asset)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("name", "BAIDU INC - SPON ADR")
-                .isNotNull
+            .isNotNull
+            .hasFieldOrPropertyWithValue("name", "BAIDU INC - SPON ADR")
+            .isNotNull
     }
 
     @Test
     fun is_ReitFound() {
         val asset = figiProxy!!.find(marketService!!.getMarket("NYSE"), "OHI")
         assertThat(asset)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("name", "OMEGA HEALTHCARE INVESTORS")
-                .isNotNull
+            .isNotNull
+            .hasFieldOrPropertyWithValue("name", "OMEGA HEALTHCARE INVESTORS")
+            .isNotNull
     }
 
     @Test
     fun is_MutualFundFound() {
         val asset = figiProxy!!.find(marketService!!.getMarket("NYSE"), "XLF")
         assertThat(asset)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR") // Unknown to BC, but is known to FIGI
-                .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol")
-                .isNotNull
+            .isNotNull
+            .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR") // Unknown to BC, but is known to FIGI
+            .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol")
+            .isNotNull
     }
 
     @Test
     @Throws(Exception::class)
     fun is_BrkBFound() {
         val mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build()
+            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+            .build()
 
         // Authorise the caller to access the BC API
         val user = SystemUser("user", "user@testing.com")
@@ -101,18 +101,19 @@ class FigiApiTest {
         // System default enricher is found
         assertThat(enrichmentFactory!!.getEnricher(market)).isNotNull
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/assets/{market}/{code}", "NYSE", "BRK.B")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(AuthorityRoleConverter()))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            MockMvcRequestBuilders.get("/assets/{market}/{code}", "NYSE", "BRK.B")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(AuthorityRoleConverter()))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (data) = objectMapper
-                .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data)
-                .isNotNull
-                .hasFieldOrPropertyWithValue("code", "BRK.B")
-                .hasFieldOrPropertyWithValue("name", "BERKSHIRE HATHAWAY INC-CL B")
+            .isNotNull
+            .hasFieldOrPropertyWithValue("code", "BRK.B")
+            .hasFieldOrPropertyWithValue("name", "BERKSHIRE HATHAWAY INC-CL B")
     }
 
     companion object {
@@ -124,6 +125,5 @@ class FigiApiTest {
             assertThat(figi).isNotNull
             assertThat(figi.isRunning).isTrue()
         }
-
     }
 }

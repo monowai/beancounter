@@ -3,7 +3,7 @@ package com.beancounter.common.contracts
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils
-import java.util.*
+import java.util.ArrayList
 
 data class PriceRequest(val date: String = "today", val assets: Collection<AssetInput>) {
     constructor(assets: MutableCollection<AssetInput>) : this("today", assets)
@@ -22,6 +22,5 @@ data class PriceRequest(val date: String = "today", val assets: Collection<Asset
             assetInputs.add(assetInput)
             return PriceRequest("today", assetInputs)
         }
-
     }
 }

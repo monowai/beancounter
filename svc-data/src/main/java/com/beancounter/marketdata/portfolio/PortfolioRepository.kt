@@ -5,7 +5,7 @@ import com.beancounter.common.model.SystemUser
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
-import java.util.*
+import java.util.Optional
 
 interface PortfolioRepository : CrudRepository<Portfolio, String> {
     fun findByCodeAndOwner(code: String, systemUser: SystemUser): Optional<Portfolio>
@@ -13,5 +13,7 @@ interface PortfolioRepository : CrudRepository<Portfolio, String> {
 
     @Query("select distinct t.portfolio from Trn t where t.asset.id = ?1 and t.tradeDate <= ?2")
     fun findDistinctPortfolioByAssetIdAndTradeDate(
-            assetId: String, tradeDate: LocalDate): Collection<Portfolio>
+        assetId: String,
+        tradeDate: LocalDate
+    ): Collection<Portfolio>
 }

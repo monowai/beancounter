@@ -25,7 +25,6 @@ class PortfolioUtils private constructor() {
         fun getPortfolio(code: String, name: String, currency: Currency): Portfolio {
             return Portfolio(code, code, name, currency, Currency("USD"))
         }
-
     }
 
     init {

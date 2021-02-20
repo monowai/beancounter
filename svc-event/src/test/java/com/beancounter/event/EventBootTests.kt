@@ -16,5 +16,4 @@ internal class EventBootTests @Autowired private constructor(private val context
     fun contextLoads() {
         Assertions.assertThat(context).isNotNull
     }
-
 }

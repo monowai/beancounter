@@ -42,27 +42,32 @@ class AssetServiceClient internal constructor(private val assetGateway: AssetGat
 
     override fun find(assetId: String): Asset {
         val (data) = assetGateway.find(tokenService.bearerToken, assetId)
-                ?: throw BusinessException(String.format("Asset %s not found", assetId))
+            ?: throw BusinessException(String.format("Asset %s not found", assetId))
         return data
     }
 
     @FeignClient(name = "assets", url = "\${marketdata.url:http://localhost:9510/api}")
     interface AssetGateway {
         @PostMapping(value = ["/assets"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-        fun process(@RequestHeader("Authorization") bearerToken: String?,
-                    assetRequest: AssetRequest?): AssetUpdateResponse?
+        fun process(
+            @RequestHeader("Authorization") bearerToken: String?,
+            assetRequest: AssetRequest?
+        ): AssetUpdateResponse?
 
         @PostMapping(value = ["/assets/{id}/events"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-        fun backFill(@RequestHeader("Authorization") bearerToken: String?,
-                     @PathVariable("id") assetId: String?)
+        fun backFill(
+            @RequestHeader("Authorization") bearerToken: String?,
+            @PathVariable("id") assetId: String?
+        )
 
         @GetMapping(value = ["/assets/{id}"], consumes = [MediaType.APPLICATION_JSON_VALUE])
-        fun find(@RequestHeader("Authorization") bearerToken: String?,
-                 @PathVariable("id") assetId: String?): AssetResponse?
+        fun find(
+            @RequestHeader("Authorization") bearerToken: String?,
+            @PathVariable("id") assetId: String?
+        ): AssetResponse?
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetServiceClient::class.java)
     }
-
 }

@@ -33,7 +33,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.util.*
+import java.util.Optional
 
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("test")
@@ -64,8 +64,8 @@ internal class FxMvcTests {
     @Autowired
     fun mockServices() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build()
+            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+            .build()
         val user = SystemUser("user", "user@testing.com")
         token = TokenUtils.getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
@@ -76,32 +76,36 @@ internal class FxMvcTests {
     fun is_FxResponseObjectReturned() {
         val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
         AlphaMockUtils.mockGetResponse(
-                "/2019-08-27?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD",  // Matches all supported currencies
-                rateResponse)
+            "/2019-08-27?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD", // Matches all supported currencies
+            rateResponse
+        )
         val date = "2019-08-27"
         val nzdUsd = IsoCurrencyPair("NZD", "USD")
         val usdNzd = IsoCurrencyPair("USD", "NZD")
         val usdUsd = IsoCurrencyPair("USD", "USD")
         val nzdNzd = IsoCurrencyPair("NZD", "NZD")
         val fxRequest = FxRequest(date)
-                .add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd)
+            .add(nzdUsd).add(usdNzd).add(usdUsd).add(nzdNzd)
 
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.post("/fx")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt()
-                                .jwt(token).authorities(authorityRoleConverter))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(fxRequest)
-                        )
+            MockMvcRequestBuilders.post("/fx")
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(fxRequest)
+                )
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (results) = objectMapper
-                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+            .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
         Assertions.assertThat<IsoCurrencyPair, FxRate>(results.rates).isNotNull.hasSize(fxRequest.pairs.size)
         val theRates = results.rates
         Assertions.assertThat<IsoCurrencyPair, FxRate>(theRates)
-                .containsKeys(nzdUsd, usdNzd)
+            .containsKeys(nzdUsd, usdNzd)
         for (isoCurrencyPair in theRates.keys) {
             Assertions.assertThat((results.rates[isoCurrencyPair] ?: error("Date Not Set")).date).isNotNull()
         }
@@ -113,26 +117,29 @@ internal class FxMvcTests {
         val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
         val today = dateUtils.today()
         AlphaMockUtils.mockGetResponse(
-                "/$today?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD",  // Matches all supported currencies
-                rateResponse)
+            "/$today?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD", // Matches all supported currencies
+            rateResponse
+        )
         val nzdUsd = IsoCurrencyPair("USD", "NZD")
         val fxRequest = FxRequest()
         fxRequest.add(nzdUsd)
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.post("/fx")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt()
-                                .jwt(token).authorities(authorityRoleConverter))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(fxRequest))
+            MockMvcRequestBuilders.post("/fx")
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(fxRequest))
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (results) = objectMapper
-                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+            .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
         Assertions.assertThat<IsoCurrencyPair, FxRate>(results.rates).isNotNull.hasSize(fxRequest.pairs.size)
         val theRates = results.rates
         Assertions.assertThat<IsoCurrencyPair, FxRate>(theRates)
-                .containsKeys(nzdUsd)
+            .containsKeys(nzdUsd)
         for (isoCurrencyPair in theRates.keys) {
             Assertions.assertThat((results.rates[isoCurrencyPair] ?: error("Whoops")).date).isNotNull()
         }
@@ -142,7 +149,7 @@ internal class FxMvcTests {
     fun is_EarliestRateDateValid() {
         val ecbDate = EcbDate(dateUtils)
         Assertions.assertThat(ecbDate.getValidDate("1990-01-01"))
-                .isEqualTo(EcbDate.earliest)
+            .isEqualTo(EcbDate.earliest)
     }
 
     @Test
@@ -153,17 +160,19 @@ internal class FxMvcTests {
         val fxRequest = FxRequest(date)
         fxRequest.add(invalid)
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.post("/fx")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt()
-                                .jwt(token).authorities(authorityRoleConverter))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(fxRequest)
-                        )
+            MockMvcRequestBuilders.post("/fx")
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(fxRequest)
+                )
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
-                .andReturn()
+            .andReturn()
         val someException = Optional.ofNullable(mvcResult.resolvedException as BusinessException)
         Assertions.assertThat(someException.isPresent).isTrue()
         Assertions.assertThat(someException.get()).hasMessageContaining("ANC").hasMessageContaining("SDF")
     }
-
 }

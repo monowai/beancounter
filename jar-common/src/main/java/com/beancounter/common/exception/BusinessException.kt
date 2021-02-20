@@ -10,4 +10,4 @@ import org.springframework.web.bind.annotation.ResponseStatus
  * @since 2019-02-03
  */
 @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-class BusinessException(message: String?) : RuntimeException(message) 
+class BusinessException(message: String?) : RuntimeException(message)

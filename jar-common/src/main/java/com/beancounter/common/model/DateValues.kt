@@ -27,5 +27,4 @@ class DateValues {
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var lastDividend: LocalDate? = null
-
 }

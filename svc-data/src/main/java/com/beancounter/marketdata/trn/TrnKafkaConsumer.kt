@@ -35,5 +35,4 @@ class TrnKafkaConsumer() {
     fun fromTrnRequest(payload: String?): TrnResponse {
         return trnImport.fromTrnRequest(objectMapper.readValue(payload, TrustedTrnEvent::class.java))!!
     }
-
 }

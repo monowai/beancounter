@@ -54,16 +54,16 @@ class TestMsftFlow {
         val dateUtils = DateUtils()
 
         Mockito.`when`(
-                positionGateway["demo", assetId, dateUtils.getDateString(recordDate)]
+            positionGateway["demo", assetId, dateUtils.getDateString(recordDate)]
         ).thenReturn(positionResponse)
 
         val portfolio = whereHeld.data.iterator().next()
         Mockito.`when`(
-                positionGateway
-                        .query(
-                                "demo",
-                            TrustedTrnQuery(portfolio, recordDate, assetId)
-                        )
+            positionGateway
+                .query(
+                    "demo",
+                    TrustedTrnQuery(portfolio, recordDate, assetId)
+                )
         ).thenReturn(positionResponse)
 
         val portfolioGw = Mockito.mock(PortfolioGw::class.java)

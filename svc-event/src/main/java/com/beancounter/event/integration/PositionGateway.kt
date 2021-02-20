@@ -13,10 +13,14 @@ import org.springframework.web.bind.annotation.RequestMethod
 interface PositionGateway {
     @RequestMapping(method = [RequestMethod.POST], value = ["/query"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun query(
-            @RequestHeader("Authorization") bearerToken: String?, trnQuery: TrustedTrnQuery?): PositionResponse?
+        @RequestHeader("Authorization") bearerToken: String?,
+        trnQuery: TrustedTrnQuery?
+    ): PositionResponse?
 
     @RequestMapping(method = [RequestMethod.GET], value = ["/id/{id}/{asAt}?value=false"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     operator fun get(
-            @RequestHeader("Authorization") bearerToken: String?,
-            @PathVariable("id") code: String?, @PathVariable("asAt") asAt: String?): PositionResponse?
+        @RequestHeader("Authorization") bearerToken: String?,
+        @PathVariable("id") code: String?,
+        @PathVariable("asAt") asAt: String?
+    ): PositionResponse?
 }

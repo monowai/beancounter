@@ -4,12 +4,10 @@ import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson
-import lombok.SneakyThrows
 import lombok.extern.slf4j.Slf4j
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
-import java.util.*
 
 @ShellComponent
 @Slf4j
@@ -17,12 +15,12 @@ class DataCommands internal constructor(private val staticService: StaticService
     private val writer = BcJson().objectMapper.writerWithDefaultPrettyPrinter()
 
     @ShellMethod("Supported markets")
-    @SneakyThrows
     fun markets(
-            @ShellOption(help = "Optional market code", defaultValue = "__NULL__") marketCode: String?): String {
+        @ShellOption(help = "Optional market code", defaultValue = "__NULL__") marketCode: String?
+    ): String {
         return if (marketCode != null) {
             val market = staticService.getMarket(
-                    marketCode
+                marketCode
             )
             val markets: MutableCollection<Market> = ArrayList()
             markets.add(market)
@@ -31,5 +29,4 @@ class DataCommands internal constructor(private val staticService: StaticService
             writer.writeValueAsString(staticService.getMarkets())
         }
     }
-
 }

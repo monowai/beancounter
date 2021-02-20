@@ -24,5 +24,4 @@ class ValuationController @Autowired internal constructor(private val valuationS
     fun value(@RequestBody positions: PositionResponse): PositionResponse {
         return valuationService.value(positions.data)
     }
-
 }

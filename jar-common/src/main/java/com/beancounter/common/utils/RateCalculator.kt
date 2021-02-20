@@ -18,8 +18,11 @@ class RateCalculator private constructor() {
          * @param rateMap Base->Target  (by default, USD->ISO)
          * @return rates for the requested pairs on the requested date.
          */
-        fun compute(asAt: String?, currencyPairs: Collection<IsoCurrencyPair>,
-                    rateMap: Map<String, FxRate>): FxPairResults {
+        fun compute(
+            asAt: String?,
+            currencyPairs: Collection<IsoCurrencyPair>,
+            rateMap: Map<String, FxRate>
+        ): FxPairResults {
             val rates: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
 
             for (pair in currencyPairs) { // For all requested pairings
@@ -30,9 +33,10 @@ class RateCalculator private constructor() {
                     rates[pair] = FxRate(from.to, to.to, rate, from.date)
                 } else {
                     rates[pair] = FxRate(
-                            (rateMap[pair.from] ?: error("")).to,
-                            (rateMap[pair.from] ?: error("")).to,
-                            BigDecimal.ONE, asAt)
+                        (rateMap[pair.from] ?: error("")).to,
+                        (rateMap[pair.from] ?: error("")).to,
+                        BigDecimal.ONE, asAt
+                    )
                 }
             }
             return FxPairResults(rates)

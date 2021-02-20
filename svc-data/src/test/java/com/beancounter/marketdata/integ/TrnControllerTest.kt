@@ -2,11 +2,20 @@ package com.beancounter.marketdata.integ
 
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
-import com.beancounter.common.contracts.*
+import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.contracts.PortfoliosRequest
+import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
-import com.beancounter.common.model.*
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -38,7 +47,8 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-import java.util.*
+import java.util.ArrayList
+import java.util.Objects
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MarketDataBoot::class])
@@ -73,8 +83,8 @@ class TrnControllerTest {
     fun mockServices() {
         assertThat(currencyService.currencies).isNotEmpty
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build()
+            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+            .build()
         val user = SystemUser("TrnMvcTest", "user@testing.com")
         token = TokenUtils.getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
@@ -86,12 +96,14 @@ class TrnControllerTest {
     fun is_EmptyResponseValid() {
         val portfolio = portfolio(PortfolioInput("BLAH", "NZD Portfolio", "NZD"))
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}", portfolio.id)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt()
-                                .jwt(token).authorities(authorityRoleConverter))
+            MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}", portfolio.id)
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val body = mvcResult.response.contentAsString
         assertThat(body).isNotNull()
         val (data) = objectMapper.readValue(body, TrnResponse::class.java)
@@ -102,17 +114,23 @@ class TrnControllerTest {
     @Throws(Exception::class)
     fun is_ExistingDividendFound() {
         val nasdaq = marketService.getMarket("NASDAQ")
-        val msft = asset(AssetRequest("msft",
-                getAssetInput(nasdaq.code, "MSFT")))
+        val msft = asset(
+            AssetRequest(
+                "msft",
+                getAssetInput(nasdaq.code, "MSFT")
+            )
+        )
         val portfolioA = portfolio(
-                PortfolioInput("DIV-TEST", "NZD Portfolio", "NZD"))
+            PortfolioInput("DIV-TEST", "NZD Portfolio", "NZD")
+        )
         assertThat(msft.id).isNotNull()
         // Creating in random order and assert retrieved in Sort Order.
         val existingTrns: MutableCollection<TrnInput> = ArrayList()
         val trnInput = TrnInput(
-                CallerRef(null, "DIV-TEST", "1"),
-                msft.id!!,
-                TrnType.DIVI,  BigDecimal.TEN)
+            CallerRef(null, "DIV-TEST", "1"),
+            msft.id!!,
+            TrnType.DIVI, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2020-03-10")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
@@ -128,25 +146,30 @@ class TrnControllerTest {
         // Record date is earlier than an existing trn trade date
         divi.tradeDate = dateUtils.getDate("2020-02-25")
         assertThat(trnService.existing(trustedTrnEvent))
-                .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
+            .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
         divi.tradeDate = dateUtils.getDate("2020-03-09")
         assertThat(trnService.existing(trustedTrnEvent))
-                .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
+            .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
 
         val findByAsset = mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/{portfolioId}/asset/{assetId}/events",
-                        portfolioA.id, msft.id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt()
-                                .jwt(token).authorities(authorityRoleConverter))
+            MockMvcRequestBuilders.get(
+                "/trns/{portfolioId}/asset/{assetId}/events",
+                portfolioA.id, msft.id
+            )
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content()
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(
+                MockMvcResultMatchers.content()
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andReturn()
         val trnResponse = objectMapper
-                .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
+            .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(1) // 1 MSFT dividend
-
     }
 
     @Test
@@ -154,15 +177,17 @@ class TrnControllerTest {
     fun is_TrnForPortfolioInRangeFound() {
         val nasdaq = marketService.getMarket("NASDAQ")
         val msft = asset(
-                AssetRequest("MSFT", getAssetInput(nasdaq.code, "MSFT")))
+            AssetRequest("MSFT", getAssetInput(nasdaq.code, "MSFT"))
+        )
         assertThat(msft.id).isNotNull()
         val (id) = portfolio(PortfolioInput("PFA", "NZD Portfolio", "NZD"))
         // Creating in random order and assert retrieved in Sort Order.
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
 
         var trnInput = TrnInput(
-                CallerRef(null, "0", "1"),
-                msft.id!!, TrnType.BUY,  BigDecimal.TEN)
+            CallerRef(null, "0", "1"),
+            msft.id!!, TrnType.BUY, BigDecimal.TEN
+        )
 
         trnInput.tradeDate = dateUtils.getDate("2018-01-01")
         trnInput.price = BigDecimal.TEN
@@ -170,9 +195,11 @@ class TrnControllerTest {
         trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputs.add(trnInput)
 
-        trnInput = TrnInput(CallerRef(null, "0", "2"),
-                msft.id!!,
-                TrnType.BUY, BigDecimal.TEN)
+        trnInput = TrnInput(
+            CallerRef(null, "0", "2"),
+            msft.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2016-01-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
@@ -180,25 +207,29 @@ class TrnControllerTest {
         trnInputs.add(trnInput)
         var trnRequest = TrnRequest(id, trnInputs)
         mockMvc.perform(
-                MockMvcRequestBuilders.post("/trns")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .content(objectMapper.writeValueAsBytes(trnRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.post("/trns")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .content(objectMapper.writeValueAsBytes(trnRequest))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         trnInputs.clear()
-        trnInput = TrnInput(CallerRef(null, "0", "3"),
-                msft.id!!,
-                TrnType.BUY,  BigDecimal.TEN)
+        trnInput = TrnInput(
+            CallerRef(null, "0", "3"),
+            msft.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2018-10-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputs.add(trnInput)
-        trnInput = TrnInput(CallerRef(null, "0", "34"),
-                msft.id!!,
-                TrnType.BUY,  BigDecimal.TEN)
+        trnInput = TrnInput(
+            CallerRef(null, "0", "34"),
+            msft.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2017-01-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
@@ -207,28 +238,32 @@ class TrnControllerTest {
         val (id1) = portfolio(PortfolioInput("PFB", "NZD Portfolio", "NZD"))
         trnRequest = TrnRequest(id1, trnInputs)
         mockMvc.perform(
-                MockMvcRequestBuilders.post("/trns")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .content(objectMapper.writeValueAsBytes(trnRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.post("/trns")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .content(objectMapper.writeValueAsBytes(trnRequest))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
 
         // All transactions are now in place.
         val response = mockMvc.perform(
-                MockMvcRequestBuilders.get("/portfolios/asset/{assetId}/{tradeDate}",
-                        msft.id, "2018-01-01")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.get(
+                "/portfolios/asset/{assetId}/{tradeDate}",
+                msft.id, "2018-01-01"
+            )
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         var portfolios: PortfoliosResponse = objectMapper
-                .readValue(response.response.contentAsString, PortfoliosResponse::class.java)
+            .readValue(response.response.contentAsString, PortfoliosResponse::class.java)
         assertThat(portfolios.data).hasSize(2)
-        portfolios = portfolioService.findWhereHeld(msft.id,
-                dateUtils.getDate("2016-01-01"))
+        portfolios = portfolioService.findWhereHeld(
+            msft.id,
+            dateUtils.getDate("2016-01-01")
+        )
         assertThat(portfolios.data).hasSize(1)
         portfolios = portfolioService.findWhereHeld(msft.id, null)
         assertThat(portfolios.data).hasSize(2)
@@ -239,45 +274,56 @@ class TrnControllerTest {
     fun is_PersistRetrieveAndPurge() {
         val nasdaq = marketService.getMarket("NASDAQ")
         val msft = asset(
-                AssetRequest("msft", getAssetInput(nasdaq.code, "MSFT")))
+            AssetRequest("msft", getAssetInput(nasdaq.code, "MSFT"))
+        )
         assertThat(msft.id).isNotNull()
         val aapl = asset(
-                AssetRequest("aapl", getAssetInput(nasdaq.code, "AAPL")))
+            AssetRequest("aapl", getAssetInput(nasdaq.code, "AAPL"))
+        )
         assertThat(aapl.id).isNotNull()
         val portfolio = portfolio(
-                PortfolioInput("Twix", "NZD Portfolio", "NZD"))
+            PortfolioInput("Twix", "NZD Portfolio", "NZD")
+        )
         // Creating in random order and assert retrieved in Sort Order.
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
-        var trnInput = TrnInput(CallerRef(null, null, "1"),
-                msft.id!!,
-                TrnType.BUY,  BigDecimal.TEN)
+        var trnInput = TrnInput(
+            CallerRef(null, null, "1"),
+            msft.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2018-01-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputs.add(trnInput)
 
-        trnInput = TrnInput(CallerRef(null, null, "3"),
-                aapl.id!!,
-                TrnType.BUY, BigDecimal.TEN)
+        trnInput = TrnInput(
+            CallerRef(null, null, "3"),
+            aapl.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2018-01-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputs.add(trnInput)
 
-        trnInput = TrnInput(CallerRef(null, null, "2"),
-                msft.id!!,
-                TrnType.BUY, BigDecimal.TEN)
+        trnInput = TrnInput(
+            CallerRef(null, null, "2"),
+            msft.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2017-01-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputs.add(trnInput)
 
-        trnInput = TrnInput(CallerRef(null, null, "4"),
-                aapl.id!!,
-                TrnType.BUY, BigDecimal.TEN)
+        trnInput = TrnInput(
+            CallerRef(null, null, "4"),
+            aapl.id!!,
+            TrnType.BUY, BigDecimal.TEN
+        )
         trnInput.tradeDate = dateUtils.getDate("2017-01-01")
         trnInput.price = BigDecimal.TEN
         trnInput.tradeCurrency = nasdaq.currency.code
@@ -286,15 +332,15 @@ class TrnControllerTest {
 
         val trnRequest = TrnRequest(portfolio.id, trnInputs)
         val postResult = mockMvc.perform(
-                MockMvcRequestBuilders.post("/trns")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .content(objectMapper.writeValueAsBytes(trnRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.post("/trns")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .content(objectMapper.writeValueAsBytes(trnRequest))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         var trnResponse: TrnResponse = objectMapper
-                .readValue(postResult.response.contentAsString, TrnResponse::class.java)
+            .readValue(postResult.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(4)
         for ((_, asset) in trnResponse.data) {
             assertThat(asset).isNotNull
@@ -302,19 +348,20 @@ class TrnControllerTest {
         assertThat(trnResponse.data).isNotNull.isNotEmpty
         assertThat(trnResponse.data.iterator().next().portfolio).isNotNull
         val portfolioId = Objects.requireNonNull(
-                trnResponse.data.iterator().next().portfolio).id
+            trnResponse.data.iterator().next().portfolio
+        ).id
 
         // Find by Portfolio, sorted by assetId and then Date
         var mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}", portfolioId)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .content(objectMapper.writeValueAsBytes(trnRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}", portfolioId)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .content(objectMapper.writeValueAsBytes(trnRequest))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         trnResponse = objectMapper
-                .readValue(mvcResult.response.contentAsString, TrnResponse::class.java)
+            .readValue(mvcResult.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(4)
         var i = 4
         // Verify the sort order - asset.code, tradeDate
@@ -328,29 +375,33 @@ class TrnControllerTest {
         val trn = trnResponse.data.iterator().next()
         // Find by PrimaryKey
         mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/{portfolioId}/{trnId}",
-                        portfolio.id,
-                        trn.id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            MockMvcRequestBuilders.get(
+                "/trns/{portfolioId}/{trnId}",
+                portfolio.id,
+                trn.id
+            )
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         trnResponse = objectMapper
-                .readValue(mvcResult.response.contentAsString, TrnResponse::class.java)
+            .readValue(mvcResult.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(1)
 
         // Find by portfolio and asset
         val findByAsset = mockMvc.perform(
-                MockMvcRequestBuilders.get("/trns/{portfolioId}/asset/{assetId}/trades",
-                        portfolioId, msft.id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            MockMvcRequestBuilders.get(
+                "/trns/{portfolioId}/asset/{assetId}/trades",
+                portfolioId, msft.id
+            )
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         trnResponse = objectMapper
-                .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
+            .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(2) // 2 MSFT transactions
 
         // Most recent transaction first (display purposes
@@ -359,24 +410,24 @@ class TrnControllerTest {
 
         // Delete a single transaction by primary key
         mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.delete("/trns/{trnId}", toDelete.id)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            MockMvcRequestBuilders.delete("/trns/{trnId}", toDelete.id)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (data) = objectMapper
-                .readValue(mvcResult.response.contentAsByteArray, TrnResponse::class.java)
+            .readValue(mvcResult.response.contentAsByteArray, TrnResponse::class.java)
         assertThat(data).hasSize(1)
         val deleted = data.iterator().next()
         assertThat(deleted.id).isEqualTo(toDelete.id)
 
         // Delete all remaining transactions for the Portfolio
         mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.delete("/trns/portfolio/{portfolioId}", portfolioId)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            MockMvcRequestBuilders.delete("/trns/portfolio/{portfolioId}", portfolioId)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         assertThat(mvcResult.response.contentAsString).isNotNull().isEqualTo("3")
     }
 
@@ -384,30 +435,30 @@ class TrnControllerTest {
     private fun portfolio(portfolio: PortfolioInput): Portfolio {
         val createRequest = PortfoliosRequest(setOf(portfolio))
         val portfolioResult = mockMvc.perform(
-                MockMvcRequestBuilders.post("/portfolios", portfolio.code)
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .content(ObjectMapper().writeValueAsBytes(createRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.post("/portfolios", portfolio.code)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .content(ObjectMapper().writeValueAsBytes(createRequest))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (data) = objectMapper
-                .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
+            .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
         return data.iterator().next()
     }
 
     @Throws(Exception::class)
     private fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult = mockMvc.perform(
-                MockMvcRequestBuilders.post("/assets/")
-                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                        .content(objectMapper.writeValueAsBytes(assetRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
+            MockMvcRequestBuilders.post("/assets/")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .content(objectMapper.writeValueAsBytes(assetRequest))
+                .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
         val (data) = objectMapper
-                .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
+            .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         assertThat(data.values).isNotNull
         return data.values.iterator().next()
     }

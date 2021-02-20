@@ -9,7 +9,6 @@ import com.beancounter.common.utils.CurrencyUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.*
 import kotlin.collections.ArrayList
 
 internal class TestCurrency {
@@ -53,25 +52,40 @@ internal class TestCurrency {
         val byCode = IsoCurrencyPair(report, trade)
         val byCurrency = toPair(currencyUtils.getCurrency(report), currencyUtils.getCurrency(trade))
         assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
-        assertThat(toPair(
-                currencyUtils.getCurrency(report), currencyUtils.getCurrency(report)))
-                .isNull()
+        assertThat(
+            toPair(
+                currencyUtils.getCurrency(report), currencyUtils.getCurrency(report)
+            )
+        )
+            .isNull()
     }
 
     @Test
     fun is_CorrectCurrencyPair() {
-        assertThat(currencyUtils.getCurrencyPair(BigDecimal.TEN,
+        assertThat(
+            currencyUtils.getCurrencyPair(
+                BigDecimal.TEN,
                 currencyUtils.getCurrency("NZD"),
-                currencyUtils.getCurrency("USD")))
-                .isNull() // We have a rate, so don't request one
-        assertThat(currencyUtils.getCurrencyPair(null,
-                currencyUtils.getCurrency("USD"), currencyUtils.getCurrency("USD")))
-                .isNull()
-        assertThat(currencyUtils.getCurrencyPair(null,
-                currencyUtils.getCurrency("NZD"), currencyUtils.getCurrency("USD")))
-                .isNotNull
-                .hasFieldOrPropertyWithValue("from", "NZD")
-                .hasFieldOrPropertyWithValue("to", "USD")
+                currencyUtils.getCurrency("USD")
+            )
+        )
+            .isNull() // We have a rate, so don't request one
+        assertThat(
+            currencyUtils.getCurrencyPair(
+                null,
+                currencyUtils.getCurrency("USD"), currencyUtils.getCurrency("USD")
+            )
+        )
+            .isNull()
+        assertThat(
+            currencyUtils.getCurrencyPair(
+                null,
+                currencyUtils.getCurrency("NZD"), currencyUtils.getCurrency("USD")
+            )
+        )
+            .isNotNull
+            .hasFieldOrPropertyWithValue("from", "NZD")
+            .hasFieldOrPropertyWithValue("to", "USD")
     }
 
     @Test
@@ -84,8 +98,8 @@ internal class TestCurrency {
         nzd.symbol = "%"
 
         assertThat(nzd)
-                .hasFieldOrPropertyWithValue("name", "Aotearoa")
-                .hasFieldOrPropertyWithValue("symbol", "%")
+            .hasFieldOrPropertyWithValue("name", "Aotearoa")
+            .hasFieldOrPropertyWithValue("symbol", "%")
     }
 
     @Test
@@ -97,9 +111,8 @@ internal class TestCurrency {
         currencies[nzd] = nzd
         currencies[sgd] = sgd
         assertThat(currencies)
-                .hasSize(2)
-                .containsKeys(nzd, sgd)
-
+            .hasSize(2)
+            .containsKeys(nzd, sgd)
     }
 
     @Test
@@ -107,8 +120,8 @@ internal class TestCurrency {
         val pairA = IsoCurrencyPair("USD", "NZD")
         val pairB = IsoCurrencyPair("USD", "NZD")
         val pairs = HashMap<IsoCurrencyPair, IsoCurrencyPair>()
-        pairs[pairA]= pairA
-        pairs[pairB]= pairB
+        pairs[pairA] = pairA
+        pairs[pairB] = pairB
         assertThat(pairs).hasSize(1).containsKeys(pairA, pairB)
     }
 }

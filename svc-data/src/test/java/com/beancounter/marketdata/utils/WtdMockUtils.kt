@@ -22,7 +22,7 @@ import java.io.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.*
+import java.util.Objects
 
 /**
  * WorldTradingData mocking support.
@@ -57,8 +57,15 @@ object WtdMockUtils {
     }
 
     @JvmStatic
-    operator fun get(date: String?, asset: Asset?, open: String?,
-                     close: String?, high: String?, low: String?, volume: String?): MarketData {
+    operator fun get(
+        date: String?,
+        asset: Asset?,
+        open: String?,
+        close: String?,
+        high: String?,
+        low: String?,
+        volume: String?
+    ): MarketData {
         val result = MarketData(asset!!, Objects.requireNonNull(dateUtils.getDate(date))!!)
         result.open = BigDecimal(open)
         result.close = BigDecimal(close)
@@ -80,7 +87,11 @@ object WtdMockUtils {
     @Throws(IOException::class)
     @JvmStatic
     fun mockWtdResponse(
-            assets: Collection<AssetInput>, asAt: String?, overrideAsAt: Boolean, jsonFile: File?) {
+        assets: Collection<AssetInput>,
+        asAt: String?,
+        overrideAsAt: Boolean,
+        jsonFile: File?
+    ) {
         var assetArg: StringBuilder? = null
         for ((_, _, _, asset) in assets) {
             Assertions.assertThat(asset).isNotNull
@@ -102,15 +113,20 @@ object WtdMockUtils {
             response["date"] = asAt
         }
         this.wtdApi.stubFor(
-                WireMock.get(WireMock.urlEqualTo(
-                        "/api/v1/history_multi_single_day?symbol=" + assetArg
-                                + "&date=" + asAt
-                                + "&api_token=demo"))
-                        .willReturn(
-                            WireMock.aResponse()
-                                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                                .withBody(objectMapper.writeValueAsString(response))
-                                .withStatus(200)))
+            WireMock.get(
+                WireMock.urlEqualTo(
+                    "/api/v1/history_multi_single_day?symbol=" + assetArg +
+                        "&date=" + asAt +
+                        "&api_token=demo"
+                )
+            )
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(response))
+                        .withStatus(200)
+                )
+        )
     }
 
     /**

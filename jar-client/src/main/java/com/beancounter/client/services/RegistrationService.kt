@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RequestHeader
 class RegistrationService(private val registrationGateway: RegistrationGateway, private val tokenService: TokenService) {
     fun register(registrationRequest: RegistrationRequest): SystemUser {
         val (data) = registrationGateway
-                .register(tokenService.bearerToken, registrationRequest)
-                ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
+            .register(tokenService.bearerToken, registrationRequest)
+            ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
         return data
     }
 
     fun me(): SystemUser {
         val (data) = registrationGateway.me(tokenService.bearerToken)
-                ?: throw UnauthorizedException("User account is not registered")
+            ?: throw UnauthorizedException("User account is not registered")
         return data
     }
 
@@ -37,16 +37,19 @@ class RegistrationService(private val registrationGateway: RegistrationGateway, 
     @FeignClient(name = "registrationGw", url = "\${marketdata.url:http://localhost:9510/api}")
     interface RegistrationGateway {
         @PostMapping(
-                value = ["/register"],
-                produces = [MediaType.APPLICATION_JSON_VALUE],
-                consumes = [MediaType.APPLICATION_JSON_VALUE])
-        fun register(@RequestHeader("Authorization") bearerToken: String?,
-                     registrationRequest: RegistrationRequest?): RegistrationResponse?
+            value = ["/register"],
+            produces = [MediaType.APPLICATION_JSON_VALUE],
+            consumes = [MediaType.APPLICATION_JSON_VALUE]
+        )
+        fun register(
+            @RequestHeader("Authorization") bearerToken: String?,
+            registrationRequest: RegistrationRequest?
+        ): RegistrationResponse?
 
         @GetMapping(
-                value = ["/me"],
-                produces = [MediaType.APPLICATION_JSON_VALUE])
+            value = ["/me"],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
+        )
         fun me(@RequestHeader("Authorization") bearerToken: String?): RegistrationResponse?
     }
-
 }

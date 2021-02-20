@@ -37,7 +37,7 @@ class TestRegistrationService {
         assertThat(registrationService.token).isNotNull()
         // Currently matching is on email
         val registeredUser = registrationService
-                .register(RegistrationRequest("blah@blah.com"))
+            .register(RegistrationRequest("blah@blah.com"))
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
         org.junit.jupiter.api.Assertions.assertThrows(UnauthorizedException::class.java) { registrationService.me() }
     }

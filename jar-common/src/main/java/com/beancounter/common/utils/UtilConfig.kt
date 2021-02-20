@@ -5,4 +5,4 @@ import org.springframework.context.annotation.Import
 
 @Configuration
 @Import(DateUtils::class)
-class UtilConfig 
+class UtilConfig

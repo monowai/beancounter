@@ -33,6 +33,4 @@ data class IsoCurrencyPair(val from: String, val to: String) {
             return IsoCurrencyPair(from.code, to.code)
         }
     }
-
-
 }

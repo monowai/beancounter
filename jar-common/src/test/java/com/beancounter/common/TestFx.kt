@@ -10,7 +10,6 @@ import com.beancounter.common.utils.RateCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.*
 
 internal class TestFx {
 
@@ -69,5 +68,4 @@ internal class TestFx {
         assertThat(fromJson.data).isNotNull
         assertThat(fromJson.data.rates).hasSize(2).containsKeys(nzdUsd, usdUsd)
     }
-
 }

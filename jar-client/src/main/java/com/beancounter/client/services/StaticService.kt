@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
-class StaticService internal constructor(val staticGateway: StaticGateway,
-                                         private val tokenService: TokenService) : MarketService {
+class StaticService internal constructor(
+    val staticGateway: StaticGateway,
+    private val tokenService: TokenService
+) : MarketService {
     @NonNull
     @Retry(name = "data")
     override fun getMarkets(): MarketResponse {
@@ -63,16 +65,18 @@ class StaticService internal constructor(val staticGateway: StaticGateway,
     interface StaticGateway {
         @GetMapping(value = ["/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarkets(
-                @RequestHeader("Authorization") bearerToken: String?): MarketResponse
+            @RequestHeader("Authorization") bearerToken: String?
+        ): MarketResponse
 
         @GetMapping(value = ["/markets/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarketByCode(
-                @RequestHeader("Authorization") bearerToken: String?, @PathVariable code: String?): MarketResponse
+            @RequestHeader("Authorization") bearerToken: String?,
+            @PathVariable code: String?
+        ): MarketResponse
 
         @GetMapping(value = ["/currencies"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getCurrencies(
-                @RequestHeader("Authorization") bearerToken: String?): CurrencyResponse
+            @RequestHeader("Authorization") bearerToken: String?
+        ): CurrencyResponse
     }
-
-
 }

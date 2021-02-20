@@ -22,7 +22,6 @@ class SpringFeignDecoder : ErrorDecoder {
     companion object {
         private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
     }
 
     override fun decode(methodKey: String, response: Response): Exception {
@@ -58,9 +57,10 @@ class SpringFeignDecoder : ErrorDecoder {
             return exceptionMessage.message
         }
         val readr = CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
-        val exceptionMessage = mapper.readValue(readr,
-                SpringExceptionMessage::class.java)
+        val exceptionMessage = mapper.readValue(
+            readr,
+            SpringExceptionMessage::class.java
+        )
         return exceptionMessage.message
-
     }
 }

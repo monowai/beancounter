@@ -25,23 +25,29 @@ class SellBehaviour : AccumulationStrategy {
         quantityValues.sold = quantityValues.sold.add(soldQuantity)
         value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE)
         value(trn, portfolio, position, Position.In.BASE, trn.tradeBaseRate)
-        value(trn, portfolio, position, Position.In.PORTFOLIO,
-                trn.tradePortfolioRate)
+        value(
+            trn, portfolio, position, Position.In.PORTFOLIO,
+            trn.tradePortfolioRate
+        )
     }
 
-    private fun value(trn: Trn,
-                      portfolio: Portfolio,
-                      position: Position,
-                      `in`: Position.In,
-                      rate: BigDecimal?) {
+    private fun value(
+        trn: Trn,
+        portfolio: Portfolio,
+        position: Position,
+        `in`: Position.In,
+        rate: BigDecimal?
+    ) {
         val moneyValues = position.getMoneyValues(
-                `in`,
-                currencyResolver.resolve(`in`, portfolio, trn))
+            `in`,
+            currencyResolver.resolve(`in`, portfolio, trn)
+        )
         moneyValues.sales = moneyValues.sales.add(
-                divide(trn.tradeAmount, rate))
+            divide(trn.tradeAmount, rate)
+        )
         if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
             val unitCost = divide(trn.tradeAmount, rate)
-                    ?.divide(trn.quantity.abs(), getMathContext())
+                ?.divide(trn.quantity.abs(), getMathContext())
             val unitProfit = unitCost?.subtract(moneyValues.averageCost)
             val realisedGain = unitProfit?.multiply(trn.quantity.abs())
             moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)

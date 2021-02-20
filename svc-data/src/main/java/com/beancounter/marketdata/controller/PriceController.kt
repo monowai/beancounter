@@ -10,7 +10,12 @@ import com.beancounter.marketdata.providers.PriceRefresh
 import com.beancounter.marketdata.service.MarketDataService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Market Data MVC.
@@ -22,9 +27,9 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/prices")
 @PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
 class PriceController @Autowired internal constructor(
-        private val marketDataService: MarketDataService,
-        private val assetService: AssetService,
-        private val priceRefresh: PriceRefresh
+    private val marketDataService: MarketDataService,
+    private val assetService: AssetService,
+    private val priceRefresh: PriceRefresh
 ) {
 
     /**
@@ -35,10 +40,12 @@ class PriceController @Autowired internal constructor(
      * @return Market Dat information for the supplied asset
      */
     @GetMapping(value = ["/{marketCode}/{assetCode}"])
-    fun getPrice(@PathVariable("marketCode") marketCode: String,
-                 @PathVariable("assetCode") assetCode: String): PriceResponse {
+    fun getPrice(
+        @PathVariable("marketCode") marketCode: String,
+        @PathVariable("assetCode") assetCode: String
+    ): PriceResponse {
         val asset = assetService.findLocally(marketCode, assetCode)
-                ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
+            ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
         return marketDataService.getPriceResponse(AssetInput(asset))
     }
 
@@ -57,5 +64,4 @@ class PriceController @Autowired internal constructor(
     fun refreshPrices() {
         priceRefresh.updatePrices()
     }
-
 }

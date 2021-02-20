@@ -12,5 +12,4 @@ class FigiConfig {
 
     @Value("\${beancounter.market.providers.FIGI.enabled:true}")
     var enabled: Boolean? = null
-
 }

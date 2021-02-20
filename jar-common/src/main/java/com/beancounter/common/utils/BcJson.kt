@@ -10,5 +10,4 @@ class BcJson {
     final val objectMapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
     val writer: ObjectWriter = objectMapper.writerWithDefaultPrettyPrinter()
-
 }

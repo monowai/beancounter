@@ -3,7 +3,11 @@ package com.beancounter.common.model
 import com.beancounter.common.input.AssetInput
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import javax.persistence.*
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.Table
+import javax.persistence.Transient
+import javax.persistence.UniqueConstraint
 
 /**
  * A representation of an instrument traded on a market.
@@ -36,8 +40,15 @@ data class Asset constructor(var code: String) {
     var marketCode: String? = null
     var priceSymbol: String? = null
 
-    constructor(id: String?, code: String, name: String?, category: String?,
-                market: Market, marketCode: String?, priceSymbol: String?) : this(code) {
+    constructor(
+        id: String?,
+        code: String,
+        name: String?,
+        category: String?,
+        market: Market,
+        marketCode: String?,
+        priceSymbol: String?
+    ) : this(code) {
         this.id = id
         this.name = name
         this.category = category ?: "Equity"
@@ -46,8 +57,8 @@ data class Asset constructor(var code: String) {
         this.priceSymbol = priceSymbol
     }
 
-    constructor(input: AssetInput, market: Market)
-            : this(null, input.code, input.name, null, market, market.code, input.code)
+    constructor(input: AssetInput, market: Market) :
+        this(null, input.code, input.name, null, market, market.code, input.code)
 
     constructor(code: String, market: Market) : this(code) {
         this.market = market
@@ -63,5 +74,4 @@ data class Asset constructor(var code: String) {
     override fun toString(): String {
         return "Asset(code=" + code + ", name=" + name + ", market=" + market + ")"
     }
-
 }

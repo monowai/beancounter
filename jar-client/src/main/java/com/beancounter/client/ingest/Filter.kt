@@ -3,7 +3,6 @@ package com.beancounter.client.ingest
 import com.beancounter.common.model.Asset
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class Filter(@Value("\${filter:#{null}}") filter: String?) {

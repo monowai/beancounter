@@ -49,9 +49,11 @@ class TrnImport {
 
     fun fromCsvImport(trustedRequest: TrustedTrnImportRequest): TrnResponse? {
         return if (trustedRequest.message != null) {
-            log.info("Portfolio {} {}",
-                    trustedRequest.portfolio.code,
-                    trustedRequest.message)
+            log.info(
+                "Portfolio {} {}",
+                trustedRequest.portfolio.code,
+                trustedRequest.message
+            )
             TrnResponse()
         } else {
             log.trace("Received Message {}", trustedRequest.toString())
@@ -74,8 +76,9 @@ class TrnImport {
             }
             run {
                 log.debug(
-                        "Ignoring transaction on {} that already exists",
-                        trustedTrnEvent.trnInput.tradeDate)
+                    "Ignoring transaction on {} that already exists",
+                    trustedTrnEvent.trnInput.tradeDate
+                )
             }
         }
         return TrnResponse()
@@ -100,5 +103,4 @@ class TrnImport {
     companion object {
         private val log = LoggerFactory.getLogger(TrnImport::class.java)
     }
-
 }

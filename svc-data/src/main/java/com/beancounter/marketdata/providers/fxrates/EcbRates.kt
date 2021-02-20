@@ -9,11 +9,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class EcbRates constructor(
-        val base: String,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        @JsonSerialize(using = LocalDateSerializer::class)
-        @JsonDeserialize(using = LocalDateDeserializer::class)
-        val date: LocalDate,
-        val rates: Map<String, BigDecimal>
+    val base: String,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    val date: LocalDate,
+    val rates: Map<String, BigDecimal>
 
 )

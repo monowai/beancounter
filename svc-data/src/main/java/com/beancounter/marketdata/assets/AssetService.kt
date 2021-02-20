@@ -12,7 +12,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 import java.util.stream.Stream
 import javax.transaction.Transactional
 
@@ -38,10 +39,11 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         this.marketService = marketService
     }
 
-    private fun create(assetInput: AssetInput?): Asset? {
+    private fun create(assetInput: AssetInput?): Asset {
         val foundAsset = findLocally(
-                assetInput!!.market.toUpperCase(),
-                assetInput.code.toUpperCase())
+            assetInput!!.market.toUpperCase(),
+            assetInput.code.toUpperCase()
+        )
         if (foundAsset == null) {
             // Is the market supported?
             val market = marketService.getMarket(assetInput.market, false)
@@ -52,26 +54,27 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
 
             // Enrich missing attributes
             var asset = enrichmentFactory.getEnricher(market).enrich(
-                    market,
-                    assetInput.code,
-                    defaultName)
+                market,
+                assetInput.code,
+                defaultName
+            )
             if (asset == null) {
                 // User Defined Asset?
                 asset = Asset(
-                        KeyGenUtils.format(UUID.randomUUID()),
-                        assetInput.code.toUpperCase(),
-                        defaultName,
-                        "Equity",
-                        market,
-                        market.code,
-                        null
+                    KeyGenUtils.format(UUID.randomUUID()),
+                    assetInput.code.toUpperCase(),
+                    defaultName,
+                    "Equity",
+                    market,
+                    market.code,
+                    null
                 )
             } else {
                 // Market Listed
                 asset.market = market
                 asset.id = KeyGenUtils.format(UUID.randomUUID())
             }
-            return hydrateAsset(assetRepository.save<Asset>(asset))
+            return hydrateAsset(assetRepository.save(asset))
         }
         return enrich(foundAsset)
     }
@@ -80,8 +83,7 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
         val assets: MutableMap<String, Asset> = HashMap()
         for (callerRef in assetRequest.data.keys) {
             val createdAsset = create(assetRequest.data[callerRef]!!)
-            if (createdAsset != null)
-                assets[callerRef] = createdAsset
+            assets[callerRef] = createdAsset
         }
         return AssetUpdateResponse(assets)
     }
@@ -103,7 +105,7 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
                 if (asset.id == null) {
                     asset.id = KeyGenUtils.format(UUID.randomUUID())
                 }
-                asset = assetRepository.save<Asset>(asset)
+                asset = assetRepository.save(asset)
             }
         }
         return hydrateAsset(asset!!)
@@ -157,5 +159,4 @@ class AssetService internal constructor(private val enrichmentFactory: Enrichmen
     companion object {
         private val log = LoggerFactory.getLogger(AssetService::class.java)
     }
-
 }

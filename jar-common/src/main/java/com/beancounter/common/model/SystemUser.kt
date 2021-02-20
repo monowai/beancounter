@@ -12,19 +12,19 @@ import javax.persistence.Id
 
 @Entity
 data class SystemUser @ConstructorBinding constructor(
-        @Id var id: String,
-        var email: String? = null,
-        var active: Boolean = true,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        @JsonSerialize(using = LocalDateSerializer::class)
-        @JsonDeserialize(using = LocalDateDeserializer::class)
-        var since: LocalDate = LocalDate.now()
+    @Id var id: String,
+    var email: String? = null,
+    var active: Boolean = true,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var since: LocalDate = LocalDate.now()
 ) {
 
     constructor(id: String) : this(id, null)
 
     constructor(id: String, email: String?) :
-            this(id, email, true, LocalDate.now())
+        this(id, email, true, LocalDate.now())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -40,6 +40,4 @@ data class SystemUser @ConstructorBinding constructor(
     override fun hashCode(): Int {
         return id.hashCode()
     }
-
-
 }

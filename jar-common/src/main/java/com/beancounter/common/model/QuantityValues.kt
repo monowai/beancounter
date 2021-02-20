@@ -22,7 +22,7 @@ class QuantityValues {
 
     fun getPrecision(): Int {
         // This is a bit hacky. Should be derived from the asset and set not computed
-        if ( precision != null ){
+        if (precision != null) {
             return precision as Int
         }
         return if (getTotal().remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) 0 else 3
@@ -31,5 +31,4 @@ class QuantityValues {
     fun setPrecision(precision: Int) {
         this.precision = precision
     }
-
 }

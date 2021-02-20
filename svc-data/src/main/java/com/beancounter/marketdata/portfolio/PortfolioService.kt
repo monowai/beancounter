@@ -14,24 +14,24 @@ import com.beancounter.marketdata.trn.TrnRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
 import java.util.function.Consumer
 import javax.transaction.Transactional
 
 @Service
 class PortfolioService internal constructor(
-        private val portfolioInputAdapter: PortfolioInputAdapter,
-        private val portfolioRepository: PortfolioRepository,
-        private val trnRepository: TrnRepository,
-        private val systemUserService: SystemUserService,
-        private val dateUtils: DateUtils
+    private val portfolioInputAdapter: PortfolioInputAdapter,
+    private val portfolioRepository: PortfolioRepository,
+    private val trnRepository: TrnRepository,
+    private val systemUserService: SystemUserService,
+    private val dateUtils: DateUtils
 ) {
 
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = orThrow
         val results: MutableCollection<Portfolio> = ArrayList()
-        portfolioRepository.saveAll<Portfolio>(
-                portfolioInputAdapter.prepare(owner, portfolios)).forEach(Consumer { e: Portfolio -> results.add(e) })
+        portfolioRepository.saveAll(
+            portfolioInputAdapter.prepare(owner, portfolios)
+        ).forEach(Consumer { e: Portfolio -> results.add(e) })
         return results
     }
 
@@ -39,8 +39,8 @@ class PortfolioService internal constructor(
         if (owner == null) {
             throw ForbiddenException("Unable to identify the owner")
         }
-        if (owner.id == RoleHelper.OAUTH_M2M ) {
-            return ;
+        if (owner.id == RoleHelper.OAUTH_M2M) {
+            return
         }
         if (!owner.active) {
             throw BusinessException("User is not active")
@@ -50,7 +50,7 @@ class PortfolioService internal constructor(
     private val orThrow: SystemUser
         get() {
             if (systemUserService.isServiceAccount()) {
-                return m2mSystemUser;
+                return m2mSystemUser
             }
 
             val systemUser = systemUserService.activeUser
@@ -98,11 +98,15 @@ class PortfolioService internal constructor(
         val systemUser = orThrow
         log.trace("Searching on behalf of {}", systemUser.id)
         val found = portfolioRepository
-                .findByCodeAndOwner(code.toUpperCase(), systemUser)
+            .findByCodeAndOwner(code.toUpperCase(), systemUser)
         val portfolio = found.orElseThrow {
-            BusinessException(String.format("Could not find a portfolio with code %s owned by %s",
+            BusinessException(
+                String.format(
+                    "Could not find a portfolio with code %s owned by %s",
                     code,
-                    systemUser.id))
+                    systemUser.id
+                )
+            )
         }
         if (canView(portfolio)) {
             return portfolio
@@ -117,7 +121,8 @@ class PortfolioService internal constructor(
     }
 
     @Transactional
-    fun delete(id: String) { val portfolio = find(id)
+    fun delete(id: String) {
+        val portfolio = find(id)
         trnRepository.deleteByPortfolioId(portfolio.id)
         portfolioRepository.delete(portfolio)
     }
@@ -125,7 +130,7 @@ class PortfolioService internal constructor(
     fun findWhereHeld(assetId: String?, tradeDate: LocalDate?): PortfoliosResponse {
         val recordDate = tradeDate ?: dateUtils.getDate(dateUtils.today())
         val portfolios = portfolioRepository
-                .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate!!)
+            .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate!!)
         log.trace("Found {} notional holders for assetId: {}", portfolios.size, assetId)
         return PortfoliosResponse(portfolios)
     }
@@ -133,5 +138,4 @@ class PortfolioService internal constructor(
     companion object {
         private val log = LoggerFactory.getLogger(PortfolioService::class.java)
     }
-
 }

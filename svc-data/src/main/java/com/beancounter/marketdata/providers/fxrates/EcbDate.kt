@@ -4,7 +4,7 @@ import com.beancounter.common.utils.DateUtils
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-class EcbDate (val dateUtils: DateUtils) {
+class EcbDate(val dateUtils: DateUtils) {
     fun earliestDate(): LocalDate {
         return dateUtils.getOrThrow(earliest)
     }

@@ -19,8 +19,9 @@ class PriceService @Autowired internal constructor(private val priceGateway: Pri
     @FeignClient(name = "prices", url = "\${marketdata.url:http://localhost:9510/api}")
     interface PriceGateway {
         @GetMapping(value = ["/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
-        fun getPrices(@RequestHeader("Authorization") bearerToken: String?,
-                      priceRequest: PriceRequest): PriceResponse
+        fun getPrices(
+            @RequestHeader("Authorization") bearerToken: String?,
+            priceRequest: PriceRequest
+        ): PriceResponse
     }
-
 }

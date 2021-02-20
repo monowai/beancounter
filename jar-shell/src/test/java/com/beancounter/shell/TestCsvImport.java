@@ -3,8 +3,6 @@ package com.beancounter.shell;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.beancounter.common.model.Portfolio;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.beancounter.shell.csv.CsvIngester;
 import com.beancounter.shell.ingest.HttpWriter;
 import com.beancounter.shell.ingest.IngestionRequest;
@@ -18,7 +16,6 @@ public class TestCsvImport {
   @SneakyThrows
   void importCsv() {
     CsvIngester csvIngester = new CsvIngester();
-    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
     csvIngester.prepare(
         IngestionRequest.builder()
             .file("/trades.csv").build(),

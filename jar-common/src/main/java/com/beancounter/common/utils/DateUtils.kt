@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.TimeZone
 
 /**
@@ -75,7 +76,7 @@ class DateUtils(
                 return result
             }
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
-        } catch (e: RuntimeException) {
+        } catch (e: DateTimeParseException) {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
     }

@@ -16,7 +16,6 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.CurrencyUtils;
 import com.beancounter.common.utils.MathUtils;
-import com.beancounter.common.utils.PortfolioUtils;
 import com.github.tomakehurst.wiremock.common.Json;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
@@ -36,7 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
     ids = "org.beancounter:svc-data:+:stubs:10999")
 @SpringBootTest(classes = {ShareSightConfig.class, ClientConfig.class})
 public class ShareSightRatesInTrn {
-  private static final Logger log = org.slf4j.LoggerFactory.getLogger(ShareSightRatesInTrn.class);
+  private static final Logger log = LoggerFactory.getLogger(ShareSightRatesInTrn.class);
   private final CurrencyUtils currencyUtils = new CurrencyUtils();
   @Autowired
   private ShareSightFactory shareSightFactory;
@@ -57,7 +57,7 @@ public class ShareSightRatesInTrn {
     List<String> row = new ArrayList<>();
 
     // Portfolio is in NZD
-    Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
+    Portfolio portfolio = getPortfolio("TEST");
     assertThat(portfolio).isNotNull();
 
     // Trade is in USD

@@ -12,8 +12,8 @@ import java.text.ParseException
 class MathUtils private constructor() {
     companion object {
         private const val moneyScale = 2
-        private const val percentScale = 6
         private val mathContext = MathContext(10)
+        private val numberUtils = NumberUtils()
 
         @JvmStatic
         fun getMathContext(): MathContext {
@@ -22,7 +22,7 @@ class MathUtils private constructor() {
 
         @JvmStatic
         fun divide(money: BigDecimal?, rate: BigDecimal?): BigDecimal? {
-            if (isUnset(rate) || isUnset(money)) {
+            if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return money
             }
             return money!!.divide(rate, moneyScale, RoundingMode.HALF_UP)
@@ -31,28 +31,10 @@ class MathUtils private constructor() {
         @JvmOverloads
         @JvmStatic
         fun multiply(money: BigDecimal?, rate: BigDecimal?, moneyScale: Int = this.moneyScale): BigDecimal? {
-            if (isUnset(rate) || isUnset(money)) {
+            if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return money
             }
             return money!!.multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP)
-        }
-
-        @JvmStatic
-        fun percent(currentValue: BigDecimal?, oldValue: BigDecimal?): BigDecimal? {
-            return percent(currentValue, oldValue, percentScale)
-        }
-
-        @JvmStatic
-        fun percent(previous: BigDecimal?, current: BigDecimal?, percentScale: Int): BigDecimal? {
-            return if (isUnset(previous) || isUnset(current)) {
-                null
-            } else previous!!.divide(current, percentScale, RoundingMode.HALF_UP)
-        }
-
-        // Null and Zero are treated as "unSet"
-        @JvmStatic
-        fun isUnset(value: BigDecimal?): Boolean {
-            return value == null || BigDecimal.ZERO.compareTo(value) == 0
         }
 
         @JvmStatic
@@ -92,10 +74,6 @@ class MathUtils private constructor() {
                 return BigDecimal.ZERO
             }
             return value
-        }
-
-        fun isSet(value: BigDecimal?): Boolean {
-            return !isUnset(value)
         }
     }
 

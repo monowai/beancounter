@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
+import feign.FeignException
 import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -52,11 +53,11 @@ class StaticService internal constructor(
     override fun getMarket(@NonNull marketCode: String): Market {
         return try {
             val (data) = staticGateway.getMarketByCode(tokenService.bearerToken, marketCode.toUpperCase())
-            if (data == null) {
+            if (data == null || data.isEmpty()) {
                 throw BusinessException("Unable to resolve market code $marketCode")
             }
             data.iterator().next()
-        } catch (re: RuntimeException) {
+        } catch (re: FeignException) {
             throw BusinessException("Error resolving market code $marketCode")
         }
     }

@@ -6,6 +6,10 @@ import com.beancounter.common.model.IsoCurrencyPair
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+/**
+ * For the supplied Pairs, compute the cross rates using the supplied rate table data.
+ * Returns one rate for every requested CurrencyPair.
+ */
 class RateCalculator private constructor() {
     companion object {
         /**

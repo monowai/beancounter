@@ -26,6 +26,9 @@ import java.util.HashMap
     AuthClientConfig::class
 )
 @ActiveProfiles("auth")
+/**
+ * Can the login service authenticate the user using OAuth?
+ */
 class TestClientLogin {
     @Autowired
     private val loginService: LoginService? = null

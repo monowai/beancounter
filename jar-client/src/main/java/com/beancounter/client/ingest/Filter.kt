@@ -16,12 +16,18 @@ class Filter(@Value("\${filter:#{null}}") filter: String?) {
         }
     }
 
+    /**
+     * if a filter has been set, then this will check if the asset code is to be included.
+     */
     fun inFilter(asset: Asset): Boolean {
         return if (!filteredAssets.isEmpty()) {
             filteredAssets.contains(asset.code.toUpperCase())
         } else true
     }
 
+    /**
+     * Hint to determine if we're filtering assets at all.
+     */
     fun hasFilter(): Boolean {
         return !filteredAssets.isEmpty()
     }

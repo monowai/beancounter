@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
+/**
+ * Are known Trn behaviours wiring correctly and accessible from the factory?
+ */
 @SpringBootTest(classes = [Accumulator::class])
 class TestAccumulatorInitialisation {
     @Autowired

@@ -46,6 +46,9 @@ class AssetServiceClient internal constructor(private val assetGateway: AssetGat
         return data
     }
 
+    /**
+     * Rest API to the asset service.
+     */
     @FeignClient(name = "assets", url = "\${marketdata.url:http://localhost:9510/api}")
     interface AssetGateway {
         @PostMapping(value = ["/assets"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])

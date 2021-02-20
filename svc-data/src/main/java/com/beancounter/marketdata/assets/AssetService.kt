@@ -9,7 +9,6 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.service.MarketDataService
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.util.Optional
@@ -19,25 +18,15 @@ import javax.transaction.Transactional
 
 @Service
 @Transactional
-class AssetService internal constructor(private val enrichmentFactory: EnrichmentFactory) : com.beancounter.client.AssetService {
-    private lateinit var assetRepository: AssetRepository
-    private lateinit var marketService: MarketService
-    private lateinit var marketDataService: MarketDataService
-
-    @Autowired
-    fun setAssetRepository(assetRepository: AssetRepository) {
-        this.assetRepository = assetRepository
-    }
-
-    @Autowired
-    fun setMarketDataService(marketDataService: MarketDataService) {
-        this.marketDataService = marketDataService
-    }
-
-    @Autowired
-    fun setMarketService(marketService: MarketService) {
-        this.marketService = marketService
-    }
+/**
+ * Asset CRUD functionality.
+ */
+class AssetService internal constructor(
+    private val enrichmentFactory: EnrichmentFactory,
+    private val marketDataService: MarketDataService,
+    private val assetRepository: AssetRepository,
+    private val marketService: MarketService
+) : com.beancounter.client.AssetService {
 
     private fun create(assetInput: AssetInput?): Asset {
         val foundAsset = findLocally(

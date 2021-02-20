@@ -8,7 +8,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.get
-import com.beancounter.common.utils.MathUtils.Companion.percent
+import com.beancounter.common.utils.PercentUtils
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -27,6 +27,7 @@ import java.util.Objects
  */
 class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     private val dateUtils = DateUtils()
+    private val percentUtils = PercentUtils()
 
     @Throws(IOException::class)
     override fun deserialize(p: JsonParser, ctx: DeserializationContext): PriceResponse? {
@@ -69,7 +70,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
             price.volume = volume
             price.previousClose = previousClose
             price.change = change
-            price.changePercent = percent(change, previousClose)
+            price.changePercent = percentUtils.percent(change, previousClose)
             results.add(price)
         }
         return PriceResponse(results)

@@ -11,6 +11,7 @@ import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
+import com.beancounter.common.utils.NumberUtils;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
@@ -44,6 +45,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public static final int comments = 12;
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(ShareSightTradeAdapter.class);
   private final DateUtils dateUtils;
+  private final NumberUtils numberUtils = new NumberUtils();
+
   private final ShareSightConfig shareSightConfig;
   private final AssetIngestService assetIngestService;
   private Filter filter = new Filter(null);
@@ -129,7 +132,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   }
 
   private BigDecimal getTradeCashRate(BigDecimal tradeRate) {
-    return shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
+    return shareSightConfig.isCalculateRates() || numberUtils.isUnset(tradeRate)
         ? null : tradeRate;
   }
 
@@ -140,7 +143,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       BigDecimal p = new BigDecimal(row.get(price));
       BigDecimal f = MathUtils.get(row.get(brokerage));
       result = MathUtils.multiply(q, p);
-      if (result != null && !MathUtils.isUnset(f)) {
+      if (result != null && !numberUtils.isUnset(f)) {
         result = result.add(f);
       }
     } else {

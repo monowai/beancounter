@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
+/**
+ * Obtain transactions from the backend.
+ */
 @Service
 class TrnService internal constructor(
     private val trnGateway: TrnGateway,
@@ -32,6 +35,9 @@ class TrnService internal constructor(
         return trnGateway.read(tokenService.bearerToken, portfolio.id)
     }
 
+    /**
+     * GatewayProxy to talk to svc-data and obtain the transactions.
+     */
     @FeignClient(name = "trns", url = "\${marketdata.url:http://localhost:9510/api}")
     interface TrnGateway {
         @PostMapping(

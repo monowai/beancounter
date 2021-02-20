@@ -24,10 +24,11 @@ internal class DateUtilsTest {
     @Test
     fun is_ZonedDateCorrect() {
         assertThat(dateUtils.getZoneId().id).isEqualTo(TimeZone.getDefault().id)
-        val laTz = TimeZone.getTimeZone("America/Los_Angeles")
-        val laDates = DateUtils("America/Los_Angeles")
+        val pst = "America/Los_Angeles"
+        val laTz = TimeZone.getTimeZone(pst)
+        val laDates = DateUtils(pst)
         assertThat(laDates.defaultZone).isEqualTo(laTz.id)
-        assertThat(laDates.getZoneId().id).isEqualTo(TimeZone.getTimeZone("America/Los_Angeles").id)
+        assertThat(laDates.getZoneId().id).isEqualTo(TimeZone.getTimeZone(pst).id)
     }
 
     @Test

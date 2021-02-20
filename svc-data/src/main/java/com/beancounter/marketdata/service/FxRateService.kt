@@ -14,6 +14,9 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * Server side implementation to obtain FXRates from a source.
+ */
 class FxRateService
 @Autowired internal constructor(private val ecbService: EcbService, private val currencyService: CurrencyService) :
     FxService {

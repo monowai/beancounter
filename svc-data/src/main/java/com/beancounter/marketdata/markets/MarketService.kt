@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 
 /**
- * Verification of Market related functions.
+ * Obtain Markets.
  *
  * @author mikeh
  * @since 2019-03-19

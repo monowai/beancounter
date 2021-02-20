@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
 @Service
+/**
+ * Client side calls to the server to obtain FX Rates over a Gateway.
+ */
 class FxClientService internal constructor(private val fxGateway: FxGateway, private val tokenService: TokenService) : FxService {
     @Cacheable("fx-request")
     override fun getRates(fxRequest: FxRequest): FxResponse {

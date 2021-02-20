@@ -4,9 +4,7 @@ import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
 import com.beancounter.common.utils.MathUtils.Companion.hasValidRate
-import com.beancounter.common.utils.MathUtils.Companion.isUnset
 import com.beancounter.common.utils.MathUtils.Companion.multiply
-import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.common.utils.MathUtils.Companion.parse
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -15,40 +13,46 @@ import java.text.NumberFormat
 import java.util.Locale
 
 internal class TestMathUtils {
+    private val zeroDec = "0.00"
+    private val ten = "10.00"
+    private val oneThousandDec = "1000.00"
+    private val tenThousand = "10000.00"
+
     @Test
     fun is_MultiplySafe() {
+
         Assertions.assertThat(
             multiply(
-                BigDecimal("1000.00"),
-                BigDecimal("0")
+                BigDecimal(oneThousandDec),
+                BigDecimal.ZERO
             )
         )
-            .isEqualTo("1000.00")
+            .isEqualTo(oneThousandDec)
         Assertions.assertThat(
             multiply(
-                BigDecimal("1000.00"),
+                BigDecimal(oneThousandDec),
                 BigDecimal("0.00")
             )
         )
-            .isEqualTo("1000.00")
+            .isEqualTo(oneThousandDec)
         Assertions.assertThat(
             multiply(
-                BigDecimal("1000.00"),
+                BigDecimal(oneThousandDec),
                 null
             )
         )
-            .isEqualTo("1000.00")
+            .isEqualTo(oneThousandDec)
         Assertions.assertThat(
             multiply(
-                BigDecimal("1000.00"),
-                BigDecimal("10.00")
+                BigDecimal(oneThousandDec),
+                BigDecimal(ten)
             )
         )
-            .isEqualTo("10000.00")
+            .isEqualTo(tenThousand)
         Assertions.assertThat(
             multiply(
                 null,
-                BigDecimal("10.00")
+                BigDecimal(ten)
             )
         )
             .isNull()
@@ -58,50 +62,39 @@ internal class TestMathUtils {
     fun is_DivideSafe() {
         Assertions.assertThat(
             divide(
-                BigDecimal("1000.00"),
-                BigDecimal("0")
+                BigDecimal(oneThousandDec),
+                BigDecimal(zeroDec)
             )
         )
-            .isEqualTo("1000.00")
+            .isEqualTo(oneThousandDec)
         Assertions.assertThat(
             divide(
-                BigDecimal("1000.00"),
-                BigDecimal("0.00")
+                BigDecimal(oneThousandDec),
+                BigDecimal(zeroDec)
             )
         )
-            .isEqualTo("1000.00")
+            .isEqualTo(oneThousandDec)
         Assertions.assertThat(
             divide(
-                BigDecimal("1000.00"),
+                BigDecimal(oneThousandDec),
                 null
             )
         )
-            .isEqualTo("1000.00")
+            .isEqualTo(oneThousandDec)
         Assertions.assertThat(
             divide(
                 null,
-                BigDecimal("10.00")
+                BigDecimal(ten)
             )
         )
             .isNull()
         Assertions.assertThat(
             divide(
-                BigDecimal("1000.00"),
-                BigDecimal("10.00")
+                BigDecimal(oneThousandDec),
+                BigDecimal(ten)
             )
         )
             .isEqualTo("100.00")
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun is_ZeroAndNullSafe() {
-        Assertions.assertThat(isUnset(null)).isTrue()
-        Assertions.assertThat(isUnset(BigDecimal("0"))).isTrue()
-        Assertions.assertThat(isUnset(BigDecimal("0.00"))).isTrue()
-        Assertions.assertThat(parse(null, NumberFormat.getInstance())).isNull()
-        Assertions.assertThat(parse("", NumberFormat.getInstance())).isEqualTo(BigDecimal.ZERO)
-        Assertions.assertThat(nullSafe(null)).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -143,11 +136,11 @@ internal class TestMathUtils {
 
     @Test
     fun is_ValidRate() {
-        Assertions.assertThat(hasValidRate(null)).isFalse()
-        Assertions.assertThat(hasValidRate(BigDecimal.ONE)).isFalse()
-        Assertions.assertThat(hasValidRate(BigDecimal("1.000"))).isFalse()
-        Assertions.assertThat(hasValidRate(BigDecimal.TEN)).isTrue()
-        Assertions.assertThat(hasValidRate(BigDecimal.ZERO)).isFalse()
-        Assertions.assertThat(hasValidRate(BigDecimal("0.00"))).isFalse()
+        Assertions.assertThat(hasValidRate(null)).isFalse
+        Assertions.assertThat(hasValidRate(BigDecimal.ONE)).isFalse
+        Assertions.assertThat(hasValidRate(BigDecimal("1.000"))).isFalse
+        Assertions.assertThat(hasValidRate(BigDecimal.TEN)).isTrue
+        Assertions.assertThat(hasValidRate(BigDecimal.ZERO)).isFalse
+        Assertions.assertThat(hasValidRate(BigDecimal("0.00"))).isFalse
     }
 }

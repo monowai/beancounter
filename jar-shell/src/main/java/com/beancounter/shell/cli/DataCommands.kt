@@ -9,10 +9,12 @@ import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 
+/**
+ * Obtain Markets from the backend in response to a user command request.
+ */
 @ShellComponent
 @Slf4j
 class DataCommands internal constructor(private val staticService: StaticService) {
-    private val writer = BcJson().objectMapper.writerWithDefaultPrettyPrinter()
 
     @ShellMethod("Supported markets")
     fun markets(
@@ -24,9 +26,9 @@ class DataCommands internal constructor(private val staticService: StaticService
             )
             val markets: MutableCollection<Market> = ArrayList()
             markets.add(market)
-            return writer.writeValueAsString(MarketResponse(markets))
+            return BcJson().objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MarketResponse(markets))
         } else {
-            writer.writeValueAsString(staticService.getMarkets())
+            BcJson().objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(staticService.getMarkets())
         }
     }
 }

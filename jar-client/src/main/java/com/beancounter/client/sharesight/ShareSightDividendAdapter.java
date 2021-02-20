@@ -11,6 +11,7 @@ import com.beancounter.common.model.CallerRef;
 import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
+import com.beancounter.common.utils.NumberUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import java.math.BigDecimal;
@@ -48,6 +49,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
   private final AssetIngestService assetIngestService;
   private Filter filter = new Filter(null);
   private static final Logger log = LoggerFactory.getLogger(ShareSightDividendAdapter.class);
+  private final NumberUtils numberUtils = new NumberUtils();
 
   public ShareSightDividendAdapter(ShareSightConfig shareSightConfig,
                                    AssetIngestService assetIngestService) {
@@ -92,7 +94,8 @@ public class ShareSightDividendAdapter implements TrnAdapter {
           shareSightConfig.getDateFormat(),
           dateUtils.getZoneId()));
       trnInput.setComments(row.get(comments));
-      trnInput.setTradeCashRate(shareSightConfig.isCalculateRates() || MathUtils.isUnset(tradeRate)
+      trnInput.setTradeCashRate(shareSightConfig.isCalculateRates()
+          || numberUtils.isUnset(tradeRate)
           ? null : tradeRate);
       return trnInput;
     } catch (NumberFormatException | ParseException e) {
@@ -102,10 +105,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
           "DIVI",
           row);
       throw new BusinessException(message);
-
-
     }
-
   }
 
   @Override

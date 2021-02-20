@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
+/**
+ * Backfills missing asset data from a 3rd party. Basically adds asset.name for a supplied asset.code.
+ */
 @Service
 class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
     private val objectMapper = AlphaPriceAdapter().alphaMapper

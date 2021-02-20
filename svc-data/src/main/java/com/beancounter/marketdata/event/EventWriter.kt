@@ -4,7 +4,7 @@ import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.MathUtils.Companion.isUnset
+import com.beancounter.common.utils.NumberUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -21,6 +21,7 @@ class EventWriter {
     @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")
     private lateinit var topicEvent: String
     private lateinit var kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>
+    private val numberUtils = NumberUtils()
 
     @PostConstruct
     fun logConfig() {
@@ -50,7 +51,7 @@ class EventWriter {
     private fun isValidDividend(marketData: MarketData?): Boolean {
         return if (marketData == null) {
             false
-        } else !isUnset(marketData.dividend)
+        } else !numberUtils.isUnset(marketData.dividend)
     }
 
     companion object {

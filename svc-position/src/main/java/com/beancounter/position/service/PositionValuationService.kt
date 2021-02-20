@@ -6,7 +6,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
-import com.beancounter.common.utils.MathUtils.Companion.percent
+import com.beancounter.common.utils.PercentUtils
 import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
@@ -20,6 +20,7 @@ class PositionValuationService internal constructor(
     private val marketValue: MarketValue,
     private val fxUtils: FxUtils
 ) {
+    val percentUtils = PercentUtils()
     fun value(positions: Positions, assets: Collection<AssetInput>): Positions {
         if (assets.isEmpty()) {
             return positions // Nothing to value
@@ -58,14 +59,14 @@ class PositionValuationService internal constructor(
                 Position.In.BASE,
                 positions.portfolio.base
             )
-            moneyValues.weight = percent(moneyValues.marketValue, baseTotals.total)
+            moneyValues.weight = percentUtils.percent(moneyValues.marketValue, baseTotals.total)
             moneyValues = position.getMoneyValues(
                 Position.In.PORTFOLIO,
                 positions.portfolio.currency
             )
-            moneyValues.weight = percent(moneyValues.marketValue, refTotals.total)
+            moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
             moneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
-            moneyValues.weight = percent(moneyValues.marketValue, refTotals.total)
+            moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
         }
         log.debug(
             "Completed valuation of {} positions for {}...",

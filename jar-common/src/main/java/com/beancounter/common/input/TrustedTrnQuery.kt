@@ -9,6 +9,9 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.time.LocalDate
 
+/**
+ * Sent by seriously trusted clients as it allows unchecked access to any portfolio.  Use with caution.
+ */
 data class TrustedTrnQuery(
     val portfolio: Portfolio,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

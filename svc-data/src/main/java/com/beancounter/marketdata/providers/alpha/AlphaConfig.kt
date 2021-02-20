@@ -16,7 +16,7 @@ class AlphaConfig : DataProviderConfig {
 
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
-    var dateUtils = DateUtils()
+    final var dateUtils = DateUtils()
     var marketUtils = MarketUtils(dateUtils)
 
     override fun getBatchSize(): Int {
@@ -24,16 +24,17 @@ class AlphaConfig : DataProviderConfig {
     }
 
     fun translateMarketCode(market: Market): String? {
-        if (market.code.equals("NASDAQ", ignoreCase = true) ||
-            market.code.equals("NYSE", ignoreCase = true) ||
-            market.code.equals("LON", ignoreCase = true) ||
-            market.code.equals("AMEX", ignoreCase = true)
-        ) {
+        if (isNullMarket(market.code)) {
             return null
         }
         return if (market.code.equals("ASX", ignoreCase = true)) {
             "AX"
         } else market.code
+    }
+
+    val nullMarket = "NASDAQ|NYSE|LON|AMEX"
+    fun isNullMarket(marketCode: String): Boolean {
+        return nullMarket.contains(marketCode, true)
     }
 
     override fun getMarketDate(market: Market, date: String): LocalDate {

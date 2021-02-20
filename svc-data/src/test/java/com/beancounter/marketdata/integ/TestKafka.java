@@ -30,7 +30,6 @@ import com.beancounter.marketdata.providers.PriceWriter;
 import com.beancounter.marketdata.registration.SystemUserService;
 import com.beancounter.marketdata.service.MarketDataService;
 import com.beancounter.marketdata.trn.TrnImport;
-import com.beancounter.marketdata.trn.TrnKafkaConsumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,7 +69,7 @@ public class TestKafka {
 
   public static final String TOPIC_TRN_CSV = "topicTrnCsv";
   public static final String TOPIC_EVENT = "topicEvent";
-  private static final Logger log = org.slf4j.LoggerFactory.getLogger(TestKafka.class);
+  private static final Logger log = LoggerFactory.getLogger(TestKafka.class);
   private final BcJson bcJson = new BcJson();
   private final ObjectMapper objectMapper = bcJson.getObjectMapper();
   @Autowired

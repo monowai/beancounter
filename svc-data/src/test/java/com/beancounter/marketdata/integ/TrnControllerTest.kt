@@ -50,6 +50,8 @@ import java.math.BigDecimal
 import java.util.ArrayList
 import java.util.Objects
 
+private const val urlPortfolioId = "/trns/portfolio/{portfolioId}"
+
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("test")
@@ -96,7 +98,7 @@ class TrnControllerTest {
     fun is_EmptyResponseValid() {
         val portfolio = portfolio(PortfolioInput("BLAH", "NZD Portfolio", "NZD"))
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}", portfolio.id)
+            MockMvcRequestBuilders.get(urlPortfolioId, portfolio.id)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token).authorities(authorityRoleConverter)
@@ -105,7 +107,7 @@ class TrnControllerTest {
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
         val body = mvcResult.response.contentAsString
-        assertThat(body).isNotNull()
+        assertThat(body).isNotNull
         val (data) = objectMapper.readValue(body, TrnResponse::class.java)
         assertThat(data).isNotNull.hasSize(0)
     }
@@ -123,7 +125,7 @@ class TrnControllerTest {
         val portfolioA = portfolio(
             PortfolioInput("DIV-TEST", "NZD Portfolio", "NZD")
         )
-        assertThat(msft.id).isNotNull()
+        assertThat(msft.id).isNotNull
         // Creating in random order and assert retrieved in Sort Order.
         val existingTrns: MutableCollection<TrnInput> = ArrayList()
         val trnInput = TrnInput(
@@ -141,15 +143,15 @@ class TrnControllerTest {
         val divi = existingTrns.iterator().next()
 
         val trustedTrnEvent = TrustedTrnEvent(portfolioA, divi)
-        assertThat(trnService.existing(trustedTrnEvent)).isNotNull().isNotEmpty()
+        assertThat(trnService.existing(trustedTrnEvent)).isNotNull.isNotEmpty
 
         // Record date is earlier than an existing trn trade date
         divi.tradeDate = dateUtils.getDate("2020-02-25")
         assertThat(trnService.existing(trustedTrnEvent))
-            .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
+            .isNotNull.isNotEmpty // Within 20 days of proposed trade date
         divi.tradeDate = dateUtils.getDate("2020-03-09")
         assertThat(trnService.existing(trustedTrnEvent))
-            .isNotNull().isNotEmpty() // Within 20 days of proposed trade date
+            .isNotNull.isNotEmpty // Within 20 days of proposed trade date
 
         val findByAsset = mockMvc.perform(
             MockMvcRequestBuilders.get(
@@ -179,7 +181,7 @@ class TrnControllerTest {
         val msft = asset(
             AssetRequest("MSFT", getAssetInput(nasdaq.code, "MSFT"))
         )
-        assertThat(msft.id).isNotNull()
+        assertThat(msft.id).isNotNull
         val (id) = portfolio(PortfolioInput("PFA", "NZD Portfolio", "NZD"))
         // Creating in random order and assert retrieved in Sort Order.
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
@@ -276,11 +278,11 @@ class TrnControllerTest {
         val msft = asset(
             AssetRequest("msft", getAssetInput(nasdaq.code, "MSFT"))
         )
-        assertThat(msft.id).isNotNull()
+        assertThat(msft.id).isNotNull
         val aapl = asset(
             AssetRequest("aapl", getAssetInput(nasdaq.code, "AAPL"))
         )
-        assertThat(aapl.id).isNotNull()
+        assertThat(aapl.id).isNotNull
         val portfolio = portfolio(
             PortfolioInput("Twix", "NZD Portfolio", "NZD")
         )
@@ -353,7 +355,7 @@ class TrnControllerTest {
 
         // Find by Portfolio, sorted by assetId and then Date
         var mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}", portfolioId)
+            MockMvcRequestBuilders.get(urlPortfolioId, portfolioId)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .content(objectMapper.writeValueAsBytes(trnRequest))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -367,10 +369,10 @@ class TrnControllerTest {
         // Verify the sort order - asset.code, tradeDate
         for (trn in trnResponse.data) {
             assertThat(trn.callerRef).isNotNull.hasNoNullFieldsOrProperties()
-            assertThat(trn.callerRef!!.callerId).isNotNull()
+            assertThat(trn.callerRef!!.callerId).isNotNull
             assertThat(trn.callerRef!!.callerId == i--.toString())
             assertThat(trn.asset).isNotNull
-            assertThat(trn.id).isNotNull()
+            assertThat(trn.id).isNotNull
         }
         val trn = trnResponse.data.iterator().next()
         // Find by PrimaryKey
@@ -423,12 +425,12 @@ class TrnControllerTest {
 
         // Delete all remaining transactions for the Portfolio
         mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.delete("/trns/portfolio/{portfolioId}", portfolioId)
+            MockMvcRequestBuilders.delete(urlPortfolioId, portfolioId)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        assertThat(mvcResult.response.contentAsString).isNotNull().isEqualTo("3")
+        assertThat(mvcResult.response.contentAsString).isNotNull.isEqualTo("3")
     }
 
     @Throws(Exception::class)

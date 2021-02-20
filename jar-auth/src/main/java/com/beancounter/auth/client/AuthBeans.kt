@@ -12,6 +12,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.stereotype.Component
 
 @Component
+/**
+ * Authentication support beans.
+ */
 class AuthBeans {
     @Bean
     fun feignFormEncoder(converters: ObjectFactory<HttpMessageConverters?>?): Encoder {

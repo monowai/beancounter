@@ -7,6 +7,9 @@ import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
+/**
+ * Compute the cost using a simple average.
+ */
 @Service
 class AverageCost {
     /**

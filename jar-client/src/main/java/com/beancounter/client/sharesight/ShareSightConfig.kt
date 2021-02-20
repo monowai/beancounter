@@ -10,6 +10,9 @@ import org.springframework.context.annotation.Import
 import java.text.NumberFormat
 import java.util.Locale
 
+/**
+ * Defaults for importing CSV data in the Sharesight format.
+ */
 @Configuration
 @Import(DateUtils::class, ShareSightDividendAdapter::class, ShareSightTradeAdapter::class, ShareSightFactory::class, FxTransactions::class, AssetIngestService::class, Filter::class, ShareSightRowAdapter::class)
 class ShareSightConfig {

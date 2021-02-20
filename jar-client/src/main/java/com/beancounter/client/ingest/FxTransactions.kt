@@ -9,13 +9,15 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MathUtils.Companion.isUnset
+import com.beancounter.common.utils.NumberUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 @Service
 class FxTransactions(private val fxService: FxService, private val dateUtils: DateUtils) {
     private val currencyUtils = CurrencyUtils()
+    private val numberUtils = NumberUtils()
+
     fun buildRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
         val fxRequestMap: MutableMap<String?, FxRequest> = HashMap()
         val tradeDate = dateUtils.getDateString(trn.tradeDate)
@@ -39,17 +41,17 @@ class FxTransactions(private val fxService: FxService, private val dateUtils: Da
         fxRequest: FxRequest,
         trn: TrnInput
     ) {
-        if (fxRequest.tradePf != null && isUnset(trn.tradePortfolioRate)) {
+        if (fxRequest.tradePf != null && numberUtils.isUnset(trn.tradePortfolioRate)) {
             trn.tradePortfolioRate = rates.rates[fxRequest.tradePf!!]!!.rate
         } else {
             trn.tradePortfolioRate = BigDecimal.ONE
         }
-        if (fxRequest.tradeBase != null && isUnset(trn.tradeBaseRate)) {
+        if (fxRequest.tradeBase != null && numberUtils.isUnset(trn.tradeBaseRate)) {
             trn.tradeBaseRate = rates.rates[fxRequest.tradeBase!!]!!.rate
         } else {
             trn.tradeBaseRate = BigDecimal.ONE
         }
-        if (fxRequest.tradeCash != null && isUnset(trn.tradeCashRate)) {
+        if (fxRequest.tradeCash != null && numberUtils.isUnset(trn.tradeCashRate)) {
             trn.tradeCashRate = rates.rates[fxRequest.tradeCash!!]!!.rate
         } else {
             trn.tradeCashRate = BigDecimal.ONE

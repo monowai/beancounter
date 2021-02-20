@@ -6,6 +6,9 @@ import java.math.BigDecimal
 
 @Service
 class Gains {
+    /**
+     * Compute various gain buckets.
+     */
     fun value(total: BigDecimal, moneyValues: MoneyValues) {
         if (total.compareTo(BigDecimal.ZERO) != 0) {
             moneyValues.unrealisedGain = moneyValues.marketValue

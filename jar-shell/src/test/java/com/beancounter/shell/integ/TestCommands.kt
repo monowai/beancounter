@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import lombok.SneakyThrows
 import lombok.extern.slf4j.Slf4j
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -50,7 +51,6 @@ class TestCommands {
         json = dataCommands.markets(null)
         marketResponse = objectMapper.readValue(json, MarketResponse::class.java)
         assertThat(marketResponse.data).isNotNull.hasSizeGreaterThan(3)
-        org.junit.jupiter.api.Assertions.assertThrows(BusinessException::class.java) { dataCommands.markets("Illegal") }
     }
 
     @Test
@@ -58,8 +58,8 @@ class TestCommands {
     fun is_PortfolioByCode() {
         val json = portfolioCommands!!.code("TEST")
         val portfolio = objectMapper.readValue(json, Portfolio::class.java)
-        assertThat(portfolio).isNotNull()
-        org.junit.jupiter.api.Assertions.assertThrows(BusinessException::class.java) { portfolioCommands.code("ILLEGAL") }
+        assertThat(portfolio).isNotNull
+        assertThrows(BusinessException::class.java) { portfolioCommands.code("ILLEGAL") }
     }
 
     @Test
@@ -67,21 +67,21 @@ class TestCommands {
     fun is_PortfolioById() {
         val json = portfolioCommands!!.id("TEST")
         val portfolio = objectMapper.readValue(json, Portfolio::class.java)
-        assertThat(portfolio).isNotNull()
-        org.junit.jupiter.api.Assertions.assertThrows(BusinessException::class.java) { portfolioCommands.code("ILLEGAL") }
+        assertThat(portfolio).isNotNull
+        assertThrows(BusinessException::class.java) { portfolioCommands.code("ILLEGAL") }
     }
 
     @Test
     fun is_UtilCommands() {
-        assertThat(utilCommands!!.api()).isNotNull().isNotBlank()
-        assertThat(utilCommands.pwd()).isNotNull().isNotBlank()
+        assertThat(utilCommands!!.api()).isNotNull.isNotBlank
+        assertThat(utilCommands.pwd()).isNotNull.isNotBlank
     }
 
     @Test
     @SneakyThrows
     fun is_ConfigReturned() {
         val config = utilCommands!!.config()
-        assertThat(config).isNotNull()
+        assertThat(config).isNotNull
         val typeRef: TypeReference<HashMap<String?, String?>?> = object : TypeReference<HashMap<String?, String?>?>() {}
         val configMap: HashMap<String?, String?>? = ObjectMapper().readValue(config, typeRef)
         assertThat(configMap).isNotEmpty
@@ -89,7 +89,7 @@ class TestCommands {
 
     @Test
     fun is_PromptAvailable() {
-        assertThat(promptProvider).isNotNull()
-        assertThat(promptProvider!!.prompt).isNotNull()
+        assertThat(promptProvider).isNotNull
+        assertThat(promptProvider!!.prompt).isNotNull
     }
 }

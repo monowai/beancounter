@@ -103,12 +103,8 @@ jobs:
       - store_test_results:
           path: ~/project/jar-client/build/test-results/test
 
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/jar-client/build/reports/jacoco/test/*.xml
+      - codecov/upload:
+          file: ~/project/jar-client/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
           path: ~/project/jar-client/build/libs
@@ -142,12 +138,12 @@ jobs:
       - store_test_results:
           path: ~/project/jar-shell/build/test-results/test
 
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/jar-shell/build/reports/jacoco/test/*.xml
+#      - when:
+#          condition:
+#            equal: [ master, << pipeline.git.branch >> ]
+#          steps:
+      - codecov/upload:
+          file: ~/project/jar-shell/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
           path: ~/project/jar-shell/build/libs
@@ -178,12 +174,12 @@ jobs:
             - ./bc-data.tar
       - store_test_results:
           path: ~/project/svc-data/build/test-results/test
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/svc-data/build/reports/jacoco/test/*.xml
+#      - when:
+#          condition:
+#            equal: [ master, << pipeline.git.branch >> ]
+#          steps:
+      - codecov/upload:
+          file: ~/project/svc-data/build/reports/jacoco/test/*.xml
       - store_artifacts:
           path: ~/project/svc-data/build/libs
           
@@ -213,12 +209,12 @@ jobs:
             - ./bc-position.tar
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/svc-position/build/reports/jacoco/test/*.xml
+#      - when:
+#          condition:
+#            equal: [ master, << pipeline.git.branch >> ]
+#          steps:
+      - codecov/upload:
+          file: ~/project/svc-position/build/reports/jacoco/test/*.xml
       - store_artifacts:
           path: ~/project/svc-position/build/libs
 
@@ -248,12 +244,12 @@ jobs:
             - ./bc-event.tar
       - store_test_results:
           path: ~/project/svc-event/build/test-results/test
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/svc-event/build/reports/jacoco/test/*.xml
+#      - when:
+#          condition:
+#            equal: [ master, << pipeline.git.branch >> ]
+#          steps:
+      - codecov/upload:
+          file: ~/project/svc-event/build/reports/jacoco/test/*.xml
       - store_artifacts:
           path: ~/project/svc-event/build/libs
           

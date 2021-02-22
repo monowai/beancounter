@@ -111,7 +111,7 @@
     "remark-preset-lint-recommended": "^5.0.0",
     "ts-jest": "^26",
     "typescript": "^4.1",
-    "webpack": "^4"
+    "webpack": "^5"
   },
   "bin": "build/server.js",
   "pkg": {

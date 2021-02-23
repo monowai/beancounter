@@ -52,7 +52,7 @@
     "react-select": "^4.1.0",
     "react-switch": "^5.0.1",
     "winston": "^3",
-    "yup": "^0.3"
+    "yup": "^0.31"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

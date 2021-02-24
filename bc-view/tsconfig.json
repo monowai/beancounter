@@ -24,6 +24,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strictNullChecks": true,
+    //"strictFunctionTypes": false,
     "strict": true,
     "pretty": true,
     "suppressImplicitAnyIndexErrors": true,

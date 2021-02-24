@@ -13,6 +13,7 @@ import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
 import { translate } from "../common/i18nConfig";
 import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { ShowError } from "../common/errors/ShowError";
 
 export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
@@ -27,7 +28,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     // tradeDate: yup.date(),
   });
   const { register, handleSubmit } = useForm<TrnInput>({
-    resolver: schema,
+    resolver: yupResolver(schema),
   });
   const trnResult = useTransaction(portfolioId, trnId);
   const currencyResult = useCurrencies();

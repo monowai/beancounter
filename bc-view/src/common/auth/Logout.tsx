@@ -1,11 +1,15 @@
-import { useKeycloak } from "@react-keycloak/razzle";
+import React from "react";
+import { useKeycloak } from "@react-keycloak/ssr";
 import logger from "../configLogging";
-import { LoginRedirect } from "./Login";
 
 const Logout = (): JSX.Element => {
-  const [keycloak] = useKeycloak();
-  keycloak.logout({ redirectUri: window.location.origin }).then(() => logger.debug("logged out"));
-  return LoginRedirect();
+  const { keycloak, initialized } = useKeycloak();
+  if (initialized && keycloak != undefined) {
+    logger.debug("How to logout");
+    keycloak.token = undefined;
+    keycloak.authenticated = false;
+  }
+  return <div>Logged Out</div>;
 };
 
 export default Logout;

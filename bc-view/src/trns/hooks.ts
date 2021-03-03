@@ -1,7 +1,7 @@
 import { Transaction } from "../types/beancounter";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import logger from "../common/configLogging";
 import { BcResult } from "../types/app";
@@ -13,45 +13,47 @@ export function useAssetTransactions(
 ): BcResult<Transaction[]> {
   const [transactions, setTransactions] = useState<Transaction[]>();
   const [error, setError] = useState<AxiosError>();
-  const [keycloak] = useKeycloak();
+  const { keycloak, initialized } = useKeycloak();
   useEffect(() => {
-    console.debug("Hook-AssetTrn");
-    _axios
-      .get<Transaction[]>(`/bff/trns/${portfolioId}/asset/${assetId}/${filter}`, {
-        headers: getBearerToken(keycloak.token),
-      })
-      .then((result) => {
-        setTransactions(result.data);
-      })
-      .catch((err) => {
-        if (err.response) {
-          logger.error("asset trns [%s]: [%s]", err.response.status, err.response.data.message);
-        }
-        setError(err);
-      });
-  }, [keycloak, assetId, portfolioId, filter]);
+    if (initialized) {
+      _axios
+        .get<Transaction[]>(`/bff/trns/${portfolioId}/asset/${assetId}/${filter}`, {
+          headers: getBearerToken(keycloak?.token),
+        })
+        .then((result) => {
+          setTransactions(result.data);
+        })
+        .catch((err) => {
+          if (err.response) {
+            logger.error("asset trns [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+          setError(err);
+        });
+    }
+  }, [assetId, portfolioId, filter, initialized]);
   return { data: transactions, error };
 }
 
 export function useTransaction(portfolioId: string, trnId: string): BcResult<Transaction> {
   const [transaction, setTransaction] = useState<Transaction>();
   const [error, setError] = useState<AxiosError>();
-  const [keycloak] = useKeycloak();
+  const { keycloak, initialized } = useKeycloak();
   useEffect(() => {
-    console.log("Hook-CallerRef");
-    _axios
-      .get<Transaction>(`/bff/trns/${portfolioId}/${trnId}`, {
-        headers: getBearerToken(keycloak.token),
-      })
-      .then((result) => {
-        setTransaction(result.data[0]);
-      })
-      .catch((err) => {
-        if (err.response) {
-          logger.error("trns Id [%s]: [%s]", err.response.status, err.response.data.message);
-        }
-        setError(err);
-      });
-  }, [keycloak, portfolioId, trnId]);
+    if (initialized) {
+      _axios
+        .get<Transaction>(`/bff/trns/${portfolioId}/${trnId}`, {
+          headers: getBearerToken(keycloak?.token),
+        })
+        .then((result) => {
+          setTransaction(result.data[0]);
+        })
+        .catch((err) => {
+          if (err.response) {
+            logger.error("trns Id [%s]: [%s]", err.response.status, err.response.data.message);
+          }
+          setError(err);
+        });
+    }
+  }, [initialized, keycloak?.token, portfolioId, trnId]);
   return { data: transaction, error };
 }

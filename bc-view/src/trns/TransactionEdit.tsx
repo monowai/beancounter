@@ -6,7 +6,7 @@ import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useCurrencies } from "../static/hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import { ErrorPage } from "../common/errors/ErrorPage";
 import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
@@ -17,7 +17,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { ShowError } from "../common/errors/ShowError";
 
 export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
-  const [keycloak] = useKeycloak();
+  const { keycloak } = useKeycloak();
 
   const schema = yup.object().shape({
     trnType: yup.string(),
@@ -52,7 +52,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     if (confirm(translate("delete.trn"))) {
       _axios
         .delete<Transaction>(`/bff/trns/${trnId}`, {
-          headers: getBearerToken(keycloak.token),
+          headers: getBearerToken(keycloak?.token),
         })
         .then(() => {
           logger.debug("<<delete Trn");
@@ -74,7 +74,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           "/bff/trns",
           { data: [trnInput] },
           {
-            headers: getBearerToken(keycloak.token),
+            headers: getBearerToken(keycloak?.token),
           }
         )
         .then(() => {
@@ -90,7 +90,7 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
     } else {
       _axios
         .patch<Transaction>(`/bff/trns/${trnId}`, trnInput, {
-          headers: getBearerToken(keycloak.token),
+          headers: getBearerToken(keycloak?.token),
         })
         .then(() => {
           logger.debug("<<patch Trn");

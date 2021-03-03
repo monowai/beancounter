@@ -1,11 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSystemUser } from "../user/hooks";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 
 function HeaderUserControls(): React.ReactElement {
   const systemUser = useSystemUser();
-  const [keycloak, initialized] = useKeycloak();
+  const { keycloak, initialized } = useKeycloak();
   if (keycloak && initialized && keycloak.authenticated && !systemUser.error) {
     const loginOrOut = systemUser.data.email ? (
       <div>{systemUser.data.email}</div>

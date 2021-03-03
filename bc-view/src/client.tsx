@@ -4,8 +4,8 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import { useSSR } from "react-i18next";
 
 import App from "./App";
-import { initConfig, keycloakConfig } from "./common/kcConfig";
-import { ClientPersistors, SSRKeycloakProvider } from "@react-keycloak/razzle";
+import { keycloakConfig } from "./common/kcConfig";
+import { Cookies, SSRKeycloakProvider } from "@react-keycloak/ssr";
 
 declare global {
   interface WindowI18n extends Window {
@@ -14,15 +14,12 @@ declare global {
   }
 }
 
+const cookiePersistor = new Cookies();
 const BaseApp = (): JSX.Element => {
   useSSR((window as WindowI18n).initialI18nStore, (window as WindowI18n).initialLanguage);
 
   return (
-    <SSRKeycloakProvider
-      keycloakConfig={keycloakConfig}
-      persistor={ClientPersistors.Cookies}
-      initConfig={initConfig}
-    >
+    <SSRKeycloakProvider keycloakConfig={keycloakConfig} persistor={cookiePersistor}>
       <Suspense fallback={<div>Loading ...</div>}>
         <BrowserRouter>
           <Switch>

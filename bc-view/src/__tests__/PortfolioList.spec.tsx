@@ -10,6 +10,10 @@ jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key) => key }),
 }));
 
+jest.mock("@react-keycloak/ssr", () => ({
+  useKeycloak: () => ({ initialized: () => true }),
+}));
+
 const bff = "http://localhost";
 nock(bff, {
   reqheaders: {

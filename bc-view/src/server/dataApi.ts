@@ -9,6 +9,7 @@ export const getData = async (req: express.Request, res: express.Response): Prom
     headers: req.headers,
     method: "GET",
   } as AxiosRequestConfig;
+  //logger.debug("BFF- Get: " + opts.url);
   await makeRequest(req, opts, res);
 };
 

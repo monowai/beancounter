@@ -39,4 +39,5 @@ interface BcResult<T> {
 export interface DevMessage {
   debug: boolean;
   errorMessage: string;
+  token: string;
 }

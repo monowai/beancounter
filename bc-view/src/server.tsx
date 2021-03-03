@@ -16,7 +16,7 @@ import { bcConfig } from "./common/config";
 import { deleteData, getData, patchData, postData } from "./server/dataApi";
 import { getPositions } from "./server/positionApi";
 // react-KeyCloak
-import { ServerPersistors, SSRKeycloakProvider } from "@react-keycloak/razzle";
+import { ExpressCookies, SSRKeycloakProvider } from "@react-keycloak/ssr";
 import cookieParser from "cookie-parser";
 import { keycloakConfig } from "./common/kcConfig";
 import { postKafkaTrn } from "./server/writeTrn";
@@ -89,10 +89,10 @@ i18n
         .delete("/bff/trns/*", deleteData)
         .get("/bff/assets/*", getData)
         .get("/*", (req: express.Request, res: express.Response) => {
-          logger.debug("Get %s", req.url);
+          logger.debug("BFF - /* - Get %s", req.url);
           const context: any = {};
           // 2. KeyCloak -  ServerPersistors.ExpressCookies passing the current request
-          const cookiePersistor = ServerPersistors.ExpressCookies(req);
+          const cookiePersistor = ExpressCookies(req);
           const markup = renderToString(
             <SSRKeycloakProvider keycloakConfig={keycloakConfig} persistor={cookiePersistor}>
               <I18nextProvider i18n={req.i18n}>

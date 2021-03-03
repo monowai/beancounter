@@ -5,7 +5,7 @@ export default function PageLoader(props: { message: string; show: boolean }): J
     return <div />;
   }
   return (
-    <div className="pageloader is-active is-success">
+    <div className="pageloader is-active is-success" data-testid={"loading"}>
       <span className="title">{props.message}</span>
     </div>
   );

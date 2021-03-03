@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import logger from "../configLogging";
 import { AxiosError } from "axios";
 import { SystemUser } from "../../types/beancounter";
@@ -9,16 +9,17 @@ import { ShowError } from "../errors/ShowError";
 const Registration = (): JSX.Element => {
   const [systemUser, setSystemUser] = useState<SystemUser>();
   const [error, setError] = useState<AxiosError>();
-  const [keycloak] = useKeycloak();
+  const { keycloak, initialized } = useKeycloak();
 
   useEffect(() => {
     const register = async (): Promise<void> => {
+      logger.debug("Registering %s", keycloak?.token);
       await _axios
         .post<SystemUser>(
           "/bff/register",
           {},
           {
-            headers: getBearerToken(keycloak.token),
+            headers: getBearerToken(keycloak?.token),
           }
         )
         .then((result) => {
@@ -33,7 +34,7 @@ const Registration = (): JSX.Element => {
         });
     };
     register().finally(() => console.log("Registered"));
-  }, [keycloak]);
+  }, [initialized, keycloak?.token]);
 
   if (error) {
     return <ShowError error={error} />;

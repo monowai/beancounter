@@ -1,17 +1,15 @@
 import React from "react";
-import { useKeycloak } from "@react-keycloak/razzle";
-import { LoginRedirect } from "./common/auth/Login";
+import { useKeycloak } from "@react-keycloak/ssr";
 import { Portfolios } from "./portfolio/Portfolios";
+import Login from "./common/auth/Login";
 
 const Home = (): JSX.Element => {
-  const [keycloak] = useKeycloak();
-  if (keycloak) {
-    if (!keycloak.token) {
-      return <LoginRedirect />;
-    }
+  const { keycloak, initialized } = useKeycloak();
+  if (initialized && keycloak?.token) {
     return <Portfolios />;
   }
-  return <div>Initializing...</div>;
+  return <Login />;
+  //return <div>Not logged in</div>;
 };
 
 export default Home;

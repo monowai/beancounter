@@ -1,33 +1,35 @@
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitForElementToBeRemoved } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import nock from "nock";
 import { MemoryRouter } from "react-router";
 import Trades from "../trns/Trades";
 
 afterEach(cleanup);
+afterAll(nock.cleanAll);
 
-const bff = "http://localhost";
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key) => key }),
 }));
 
-nock(bff, {
+jest.mock("@react-keycloak/ssr", () => ({
+  useKeycloak: () => ({
+    initialized: true,
+    keycloak: () => ({ token: "undefined" }),
+  }),
+}));
+
+nock("http://localhost", {
   reqheaders: {
     authorization: "Bearer undefined",
   },
 })
+  .persist(true)
   .get("/bff/trns/test/asset/alphabet/trades")
   .replyWithFile(200, __dirname + "/__contracts__/trans-for-asset.json", {
     "Access-Control-Allow-Origin": "*",
     "Content-type": "application/json",
-  });
-
-nock(bff, {
-  reqheaders: {
-    authorization: "Bearer undefined",
-  },
-})
+  })
   .get("/bff/assets/alphabet")
   .replyWithFile(200, __dirname + "/__contracts__/alphabet.json", {
     "Access-Control-Allow-Origin": "*",
@@ -35,7 +37,7 @@ nock(bff, {
   });
 
 describe("<Trades />", () => {
-  it("trades should match snapshot", async () => {
+  it("trades for asset should match snapshot", async () => {
     const TestTrnForAsset = (): JSX.Element => {
       return Trades("test", "alphabet");
     };
@@ -45,8 +47,10 @@ describe("<Trades />", () => {
         <TestTrnForAsset />
       </MemoryRouter>
     );
-    await screen.findByText("BUY");
+    await screen.findByTestId("loading");
+    await waitForElementToBeRemoved(() => screen.getByTestId("loading"));
     expect(nock.isDone());
+    await screen.findByText("BUY");
     expect(container).toMatchSnapshot();
   });
 });

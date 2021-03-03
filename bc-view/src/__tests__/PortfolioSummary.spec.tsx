@@ -3,10 +3,18 @@ import React from "react";
 import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import { Currency, Portfolio, SystemUser } from "../types/beancounter";
+import { useKeycloak } from "@react-keycloak/ssr";
+import logger from "../common/configLogging";
 
 afterEach(cleanup);
 
 const usd: Currency = { code: "USD", symbol: "$" };
+jest.mock("@react-keycloak/ssr", () => ({
+  useKeycloak: () => ({
+    initialized: true,
+    keycloak: () => ({ token: "undefined" }),
+  }),
+}));
 
 describe("<PortfolioStats />", () => {
   jest.mock("react-i18next", () => ({
@@ -14,6 +22,8 @@ describe("<PortfolioStats />", () => {
   }));
 
   it("should match snapshot", () => {
+    const { keycloak, initialized } = useKeycloak();
+    logger.info(initialized + "/" + keycloak?.token);
     const owner: SystemUser = { active: true, email: "wow" };
     const portfolio: Portfolio = {
       id: "abc",

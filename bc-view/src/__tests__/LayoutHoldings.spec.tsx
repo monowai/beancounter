@@ -1,17 +1,26 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitForElementToBeRemoved } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import ViewHoldings from "../holdings";
 import nock from "nock";
 import { MemoryRouter } from "react-router";
 
-const bff = "http://localhost";
+afterEach(cleanup);
+afterAll(nock.cleanAll);
 
-nock(bff, {
+jest.mock("@react-keycloak/ssr", () => ({
+  useKeycloak: () => ({
+    initialized: true,
+    keycloak: () => ({ token: "undefined" }),
+  }),
+}));
+
+nock("http://localhost", {
   reqheaders: {
-    authorization: "Bearer undefined",
+    Authorization: "Bearer undefined",
   },
 })
+  .persist(true)
   .get("/bff/test/today")
   .replyWithFile(200, __dirname + "/__contracts__/test-holdings.json", {
     "Access-Control-Allow-Origin": "*",
@@ -29,12 +38,14 @@ describe("<ViewHoldings />", () => {
       return ViewHoldings("test");
     };
     const { container } = render(
-      <MemoryRouter initialEntries={["/"]} keyLength={0}>
+      <MemoryRouter initialEntries={["/portfolios"]} keyLength={0}>
         <TestHoldings />
       </MemoryRouter>
     );
-    await screen.findByText("USD");
+    await screen.findByTestId("loading");
+    await waitForElementToBeRemoved(() => screen.getByTestId("loading"));
     expect(nock.isDone());
+    await screen.findByText("USD");
     expect(container).toMatchSnapshot();
   });
 
@@ -43,8 +54,8 @@ describe("<ViewHoldings />", () => {
       return ViewHoldings("zero");
     };
     const { container } = render(<ZeroHoldings />);
-    await screen.findByTestId("dropzone");
     expect(nock.isDone());
+    await screen.findByTestId("dropzone");
     expect(container).toMatchSnapshot();
   });
 });

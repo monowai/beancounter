@@ -7,7 +7,7 @@ import { useCurrencies } from "../static/hooks";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import { ErrorPage } from "../common/errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
@@ -15,7 +15,7 @@ import { TrnDropZone } from "./DropZone";
 import { ShowError } from "../common/errors/ShowError";
 
 export function PortfolioEdit(portfolioId: string): React.ReactElement {
-  const [keycloak] = useKeycloak();
+  const { keycloak } = useKeycloak();
   const { register, handleSubmit, errors } = useForm<PortfolioInput>();
   const [pfId, setPortfolioId] = useState<string>(portfolioId);
   const portfolioResult = usePortfolio(pfId);
@@ -37,48 +37,53 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
   };
 
   const savePortfolio = handleSubmit((portfolioInput: PortfolioInput) => {
-    if (pfId === "new") {
-      _axios
-        .post<Portfolio[]>(
-          "/bff/portfolios",
-          { data: [portfolioInput] },
-          {
+    if (keycloak && keycloak.token) {
+      if (pfId === "new") {
+        _axios
+          .post<Portfolio[]>(
+            "/bff/portfolios",
+            { data: [portfolioInput] },
+            {
+              headers: getBearerToken(keycloak.token),
+            }
+          )
+          .then((result) => {
+            logger.debug("<<post Portfolio");
+            setPortfolioId(result.data[0].id);
+            setSubmitted(true);
+          })
+          .catch((err) => {
+            setError(err);
+            if (err.response) {
+              logger.error(
+                "axios error [%s]: [%s]",
+                err.response.status,
+                err.response.data.message
+              );
+            }
+          });
+      } else {
+        _axios
+          .patch<Portfolio>(`/bff/portfolios/${pfId}`, portfolioInput, {
             headers: getBearerToken(keycloak.token),
-          }
-        )
-        .then((result) => {
-          logger.debug("<<post Portfolio");
-          setPortfolioId(result.data[0].id);
-          setSubmitted(true);
-        })
-        .catch((err) => {
-          setError(err);
-          if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
-          }
-        });
-    } else {
-      _axios
-        .patch<Portfolio>(`/bff/portfolios/${pfId}`, portfolioInput, {
-          headers: getBearerToken(keycloak.token),
-        })
-        .then((result) => {
-          logger.debug("<<patched Portfolio");
-          setPortfolioId(result.data.id);
-          setSubmitted(true);
-        })
-        .catch((err) => {
-          setError(err);
-          if (err.response) {
-            logger.error(
-              "patchPortfolio [%s]: [%s]",
-              err.response.status,
-              err.response.data.message
-            );
-          }
-        });
-      // New Portfolio
-    } // portfolio.callerId
+          })
+          .then((result) => {
+            logger.debug("<<patched Portfolio");
+            setPortfolioId(result.data.id);
+            setSubmitted(true);
+          })
+          .catch((err) => {
+            setError(err);
+            if (err.response) {
+              logger.error(
+                "patchPortfolio [%s]: [%s]",
+                err.response.status,
+                err.response.data.message
+              );
+            }
+          });
+      }
+    }
   });
 
   if (submitted) {

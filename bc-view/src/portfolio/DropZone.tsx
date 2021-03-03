@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Portfolio } from "../types/beancounter";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { writeRows } from "./import";
@@ -11,7 +11,7 @@ export function TrnDropZone(props: {
   portfolio: Portfolio;
   purgeTrn: boolean;
 }): React.ReactElement {
-  const [keycloak] = useKeycloak();
+  const { keycloak } = useKeycloak();
   //const [purgeTrn] = useState(props.purgeTrn);
   // https://github.com/react-dropzone/react-dropzone
   const onDrop = useCallback(
@@ -29,7 +29,7 @@ export function TrnDropZone(props: {
               portfolio: props.portfolio,
               purge: props.purgeTrn,
               results,
-              token: keycloak.token,
+              token: keycloak?.token,
             };
             const rows = writeRows(params);
             logger.debug("<<POST trnUpload sent %s", rows);
@@ -38,7 +38,7 @@ export function TrnDropZone(props: {
                 "/upload/trn",
                 { portfolio: props.portfolio, message: "Finished sending " + rows + " rows" },
                 {
-                  headers: getBearerToken(keycloak.token),
+                  headers: getBearerToken(keycloak?.token),
                 }
               )
               .catch((err) => {

@@ -110,7 +110,11 @@ export function Trades(portfolioId: string, assetId: string): React.ReactElement
       );
     }
   }
-  return <div id="root">Loading...</div>;
+  return (
+    <div id="root" data-testid="loading">
+      Loading...
+    </div>
+  );
 }
 
 export default Trades;

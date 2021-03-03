@@ -17,7 +17,6 @@ export const makeRequest = async (
   opts: AxiosRequestConfig,
   res: express.Response
 ): Promise<any> => {
-  logger.debug("%s %s", req.method, req.url);
   await axios(opts)
     .then((response) => res.json(response.data.data))
     .catch((err) => {

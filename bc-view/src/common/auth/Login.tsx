@@ -1,37 +1,26 @@
-import React, { useState } from "react";
+import React from "react";
 import { Redirect, useLocation } from "react-router";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import logger from "../configLogging";
+import { initConfig } from "../kcConfig";
+import { Portfolios } from "../../portfolio/Portfolios";
 
 const Login = (): JSX.Element => {
-  const location = useLocation();
-  const [loggingIn, setLoggingIn] = useState<boolean>(false);
   const { keycloak, initialized } = useKeycloak();
   if (keycloak) {
-    if (keycloak.token) {
-      let path;
-      location.pathname === "/login" ? (path = "/") : (path = location.pathname);
-      return (
-        <Redirect
-          to={{
-            pathname: path,
-            state: { from: location },
-          }}
-        />
-      );
-    } else if (initialized && !loggingIn) {
-      setLoggingIn(true);
-      keycloak
-        .login()
-        .then(() => {
-          logger.debug("Logging in");
-        })
-        .finally(() => setLoggingIn(false));
+    if (initialized) {
+      keycloak.init(initConfig).then(function (authenticated) {
+        if (authenticated) {
+          logger.debug("Logged in ");
+          return <Portfolios />;
+        }
+        return <div>Auth Failed...</div>;
+      });
+    } else {
+      return <Portfolios />;
     }
-
-    return <div>KeyCloak is initializing...</div>;
   }
-  return <div>KeyCloak is not initialized...</div>;
+  return <div>Not logged in...</div>;
 };
 
 export const LoginRedirect = (): JSX.Element => {

@@ -7,6 +7,10 @@ jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key) => key }),
 }));
 
+jest.mock("@react-keycloak/ssr", () => ({
+  useKeycloak: () => ({ initialized: () => true }),
+}));
+
 describe("<App />", () => {
   test("renders without exploding", () => {
     const div = document.createElement("div");

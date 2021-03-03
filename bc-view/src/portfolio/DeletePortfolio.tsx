@@ -4,7 +4,7 @@ import { _axios, getBearerToken } from "../common/axiosUtils";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
-import { useKeycloak } from "@react-keycloak/razzle";
+import { useKeycloak } from "@react-keycloak/ssr";
 import { ErrorPage } from "../common/errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
 import { ShowError } from "../common/errors/ShowError";
@@ -13,7 +13,7 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
   const [pfId] = useState<string>(portfolioId);
   const [error, setError] = useState<AxiosError>();
   const history = useHistory();
-  const [keycloak] = useKeycloak();
+  const { keycloak } = useKeycloak();
   const portfolioResult = usePortfolio(pfId);
   const [submitted, setSubmitted] = useState(false);
   // const [deleting, setDeleting] = useState(false);
@@ -23,7 +23,7 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
   };
 
   function deletePf(): void {
-    if (portfolioResult.data.id && !submitted) {
+    if (portfolioResult.data.id && !submitted && keycloak) {
       setSubmitted(true);
       console.debug("delete PF %s", portfolioResult.data.id);
       _axios

@@ -26,6 +26,6 @@ export function useAsset(assetId: string): BcResult<Asset> {
           setError(err);
         });
     }
-  }, [initialized, assetId]);
+  }, [initialized, assetId, keycloak?.token]);
   return { data: asset, error };
 }

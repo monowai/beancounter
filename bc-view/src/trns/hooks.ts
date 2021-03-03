@@ -30,7 +30,7 @@ export function useAssetTransactions(
           setError(err);
         });
     }
-  }, [assetId, portfolioId, filter, initialized]);
+  }, [assetId, portfolioId, filter, initialized, keycloak?.token]);
   return { data: transactions, error };
 }
 

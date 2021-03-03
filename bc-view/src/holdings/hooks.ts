@@ -27,6 +27,6 @@ export function useHoldings(code: string): BcResult<HoldingContract> {
           }
         });
     }
-  }, [code, initialized]);
+  }, [code, initialized, keycloak?.token]);
   return { data: holdingResults, error };
 }

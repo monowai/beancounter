@@ -5,9 +5,9 @@ import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/ssr";
-import { ErrorPage } from "../common/errors/ErrorPage";
+import { ErrorPage } from "../errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export function DeletePortfolio(portfolioId: string): JSX.Element {
   const [pfId] = useState<string>(portfolioId);

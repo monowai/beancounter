@@ -1,6 +1,6 @@
 import React from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../configLogging";
+import logger from "../common/configLogging";
 
 const Logout = (): JSX.Element => {
   const { keycloak, initialized } = useKeycloak();

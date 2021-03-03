@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../configLogging";
+import logger from "../common/configLogging";
 import { AxiosError } from "axios";
-import { SystemUser } from "../../types/beancounter";
-import { _axios, getBearerToken } from "../axiosUtils";
+import { SystemUser } from "../types/beancounter";
+import { _axios, getBearerToken } from "../common/axiosUtils";
 import { ShowError } from "../errors/ShowError";
 
 const Registration = (): JSX.Element => {

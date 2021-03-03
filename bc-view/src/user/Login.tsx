@@ -1,9 +1,9 @@
 import React from "react";
 import { Redirect, useLocation } from "react-router";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../configLogging";
-import { initConfig } from "../kcConfig";
-import { Portfolios } from "../../portfolio/Portfolios";
+import logger from "../common/configLogging";
+import { initConfig } from "../common/kcConfig";
+import { Portfolios } from "../portfolio/Portfolios";
 
 const Login = (): JSX.Element => {
   const { keycloak, initialized } = useKeycloak();

@@ -8,11 +8,11 @@ import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/ssr";
-import { ErrorPage } from "../common/errors/ErrorPage";
+import { ErrorPage } from "../errors/ErrorPage";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
 import { TrnDropZone } from "./DropZone";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export function PortfolioEdit(portfolioId: string): React.ReactElement {
   const { keycloak } = useKeycloak();

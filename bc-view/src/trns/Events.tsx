@@ -6,7 +6,7 @@ import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
 import { isDone } from "../types/typeUtils";
 import { translate } from "../common/i18nConfig";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export function Trades(portfolioId: string, assetId: string): React.ReactElement {
   const trnsResult = useAssetTransactions(portfolioId, assetId, "events");

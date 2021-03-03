@@ -13,13 +13,13 @@ import i18nextMiddleware from "i18next-express-middleware";
 import logger from "./common/configLogging";
 import App from "./App";
 import { bcConfig } from "./common/config";
-import { deleteData, getData, patchData, postData } from "./server/dataApi";
-import { getPositions } from "./server/positionApi";
+import { deleteData, getData, patchData, postData } from "./bff/dataApi";
+import { getPositions } from "./bff/positionApi";
 // react-KeyCloak
 import { ExpressCookies, SSRKeycloakProvider } from "@react-keycloak/ssr";
 import cookieParser from "cookie-parser";
 import { keycloakConfig } from "./common/kcConfig";
-import { postKafkaTrn } from "./server/writeTrn";
+import { postKafkaTrn } from "./bff/writeTrn";
 // end react-KeyCloak
 
 let assets: any;

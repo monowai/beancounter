@@ -2,11 +2,11 @@ import React from "react";
 import "../css/styles.sass";
 import { Link } from "react-router-dom";
 import { useAssetTransactions } from "./hooks";
-import { ErrorPage } from "../common/errors/ErrorPage";
+import { ErrorPage } from "../errors/ErrorPage";
 import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
 import { isDone } from "../types/typeUtils";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export function Trades(portfolioId: string, assetId: string): React.ReactElement {
   const trnsResult = useAssetTransactions(portfolioId, assetId, "trades");

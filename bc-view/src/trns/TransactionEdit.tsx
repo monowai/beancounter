@@ -7,14 +7,14 @@ import { useCurrencies } from "../static/hooks";
 import { AxiosError } from "axios";
 import { useHistory } from "react-router";
 import { useKeycloak } from "@react-keycloak/ssr";
-import { ErrorPage } from "../common/errors/ErrorPage";
+import { ErrorPage } from "../errors/ErrorPage";
 import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
 import { translate } from "../common/i18nConfig";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
   const { keycloak } = useKeycloak();

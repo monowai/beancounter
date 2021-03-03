@@ -1,7 +1,7 @@
 import React from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
 import { Portfolios } from "./portfolio/Portfolios";
-import Login from "./common/auth/Login";
+import Login from "./user/Login";
 
 const Home = (): JSX.Element => {
   const { keycloak, initialized } = useKeycloak();

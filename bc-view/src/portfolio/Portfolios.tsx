@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useHistory } from "react-router";
 import { usePortfolios } from "./hooks";
 import { isDone } from "../types/typeUtils";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export function Portfolios(): React.ReactElement {
   const portfolioResults = usePortfolios();

@@ -1,11 +1,11 @@
 import React from "react";
 import "./Error.scss";
-import { serverEnv } from "../utils";
+import { serverEnv } from "../common/utils";
 import { useHistory } from "react-router";
-import { translate } from "../i18nConfig";
-import { DevMessage } from "../../types/app";
+import { translate } from "../common/i18nConfig";
+import { DevMessage } from "../types/app";
 import { useKeycloak } from "@react-keycloak/ssr";
-import { getBearerToken } from "../axiosUtils";
+import { getBearerToken } from "../common/axiosUtils";
 
 function ErrorDetail(devMessage: DevMessage): JSX.Element | null {
   return devMessage.debug ? (

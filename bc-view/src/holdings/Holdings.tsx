@@ -14,7 +14,7 @@ import { Header } from "./Header";
 import { isDone } from "../types/typeUtils";
 import PageLoader from "../common/PageLoader";
 import { TrnDropZone } from "../portfolio/DropZone";
-import { ShowError } from "../common/errors/ShowError";
+import { ShowError } from "../errors/ShowError";
 
 export default function ViewHoldings(code: string): JSX.Element {
   const holdingResults = useHoldings(code);

@@ -1,10 +1,10 @@
 import Home from "./Home";
 import ViewHoldings from "./holdings";
 import { useParams } from "react-router-dom";
-import Login from "./common/auth/Login";
-import Logout from "./common/auth/Logout";
+import Login from "./user/Login";
+import Logout from "./user/Logout";
 import Portfolios from "./portfolio/Portfolios";
-import Registration from "./common/auth/Registration";
+import Registration from "./user/Registration";
 import { PortfolioEdit } from "./portfolio/PortfolioEdit";
 import { DeletePortfolio } from "./portfolio/DeletePortfolio";
 import Trades from "./trns/Trades";

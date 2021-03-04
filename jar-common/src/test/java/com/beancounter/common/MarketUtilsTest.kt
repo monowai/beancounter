@@ -11,31 +11,48 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 internal class MarketUtilsTest {
-    private var dateUtils = DateUtils()
+    private var dateUtils = DateUtils("Asia/Singapore")
     private var marketUtils = MarketUtils(dateUtils)
     private val nasdaq = Market("NASDAQ", Currency("USD"), "US/Eastern")
 
+    companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(MarketUtilsTest::class.java)
+    }
+
     @Test
     fun is_MarketDateCalculated() {
-        val lastPriceDate = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())!! // Expect Fridays Price
-
+        val nasdaqClose = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())!!
+        var localDate = LocalDateTime.of(2020, 7, 20, 8, 0)
+        log.info("{} {}", nasdaqClose, localDate)
         // When requesting on a Monday in SG, you won't have COB prices until Tuesday in SG
-        assertThat(marketUtils.getLastMarketDate(LocalDateTime.of(2020, 7, 20, 8, 0), nasdaq, true))
-            .isEqualTo(lastPriceDate)
+        assertThat(marketUtils.getPreviousClose(localDate, nasdaq, true))
+            .isEqualTo(nasdaqClose)
 
         // Monday, 8pm SGT, prices are still not available, so should return Friday.
-        assertThat(marketUtils.getLastMarketDate(LocalDateTime.of(2020, 7, 20, 20, 0), nasdaq, true))
-            .isEqualTo(lastPriceDate)
+        localDate = LocalDateTime.of(2020, 7, 20, 20, 0)
+        log.info("{} {}", nasdaqClose, localDate)
+        assertThat(marketUtils.getPreviousClose(localDate, nasdaq, true))
+            .isEqualTo(nasdaqClose)
+    }
+
+    @Test
+    fun is_TimeIgnored() {
+        val asAtDate = LocalDateTime.of(2021, 3, 4, 6, 30)
+        val expected = dateUtils.getDate("2021-03-03")
+        log.info("{} {}", asAtDate, expected)
+        assertThat(marketUtils.getPreviousClose(asAtDate, nasdaq, true))
+            .isEqualTo(expected) // Nasdaq last close
     }
 
     @Test
     fun is_MarketDateCalculatedWhenToday() {
         val pricesUnavailable = LocalDateTime.of(2020, 7, 17, 14, 0)
         val pricesAvailable = LocalDateTime.of(2020, 7, 18, 6, 0) // Avail next day
+        log.info("{} {}", pricesAvailable, pricesUnavailable)
         // Requesting today, but prices are not yet available.
-        val todayNoPrices = marketUtils.getLastMarketDate(pricesUnavailable, nasdaq, true)
+        val todayNoPrices = marketUtils.getPreviousClose(pricesUnavailable, nasdaq, true)
         assertThat(todayNoPrices).isEqualTo(dateUtils.getDate("2020-07-16"))
-        val todayHasPrices = marketUtils.getLastMarketDate(pricesAvailable, nasdaq, true)
+        val todayHasPrices = marketUtils.getPreviousClose(pricesAvailable, nasdaq, true)
         assertThat(todayHasPrices).isEqualTo(dateUtils.getDate("2020-07-17"))
     }
 
@@ -43,16 +60,16 @@ internal class MarketUtilsTest {
     fun is_FridayFoundFromSundayInSystemDefaultTz() {
         val sgx = Market("SGX", Currency("SGD"), "Asia/Singapore")
         val sunday = sunday
-        val found = marketUtils.getLastMarketDate(LocalDateTime.of(sunday, LocalTime.MIDNIGHT), sgx)
+        val found = marketUtils.getPreviousClose(LocalDateTime.of(sunday, LocalTime.MIDNIGHT), sgx)
         assertThat(dateUtils.convert(found)).isEqualTo(friday)
     }
 
     @Test
     fun is_WeekendFound() {
-        assertThat(marketUtils.isMarketOpen(sunday)).isFalse() // Sunday
-        assertThat(marketUtils.isMarketOpen(saturday)).isFalse() // Saturday
-        assertThat(marketUtils.isMarketOpen(friday)).isTrue() // Friday
-        assertThat(marketUtils.isMarketOpen(monday)).isTrue() // Monday
+        assertThat(marketUtils.isMarketOpen(sunday)).isFalse // Sunday
+        assertThat(marketUtils.isMarketOpen(saturday)).isFalse // Saturday
+        assertThat(marketUtils.isMarketOpen(friday)).isTrue // Friday
+        assertThat(marketUtils.isMarketOpen(monday)).isTrue // Monday
     }
 
     private val friday: LocalDate get() = dateUtils.getDate("2019-10-18")!!

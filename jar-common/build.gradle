@@ -22,6 +22,7 @@ dependencies() {
     )
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
+            "org.slf4j:slf4j-log4j12:1.7.30",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion",
             "org.springframework.kafka:spring-kafka:$springKafka",

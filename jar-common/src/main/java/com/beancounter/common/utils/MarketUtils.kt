@@ -6,46 +6,44 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @Component
 class MarketUtils(private val dateUtils: DateUtils) {
 
-    fun getLastMarketDate(date: LocalDate, market: Market): LocalDate {
-        return getLastMarketDate(date.atTime(LocalTime.now()), market)
+    fun getPreviousClose(date: LocalDate, market: Market): LocalDate {
+        return getPreviousClose(date.atTime(LocalTime.now(dateUtils.getZoneId())), market)
     }
 
-    fun getLastMarketDate(
+    fun getPreviousClose(
         localDateTime: LocalDateTime, // Callers date/time
         market: Market,
         isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localDateTime.toLocalDate()))
     ): LocalDate {
         return if (isCurrent) {
-            // Resolve if "today" has prices available taking into account all variables
-            val zonedLocal = ZonedDateTime.ofLocal(localDateTime, ZoneId.systemDefault(), ZoneOffset.UTC)
+            // Bug here - localDateTime should be a zonedDateTime as we can't assume all clients are in the same TZ
+            val zonedLocal = ZonedDateTime.ofLocal(localDateTime, dateUtils.getZoneId(), null)
             val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
             val zonedRemote = ZonedDateTime.ofLocal(
                 LocalDateTime.of(marketLocal.toLocalDate(), market.priceTime),
                 market.timezone.toZoneId(),
-                ZoneOffset.UTC
+                null
             )
 
             var daysToSubtract = market.daysToSubtract
             // Is requested date on or after when prices are available?
-            if (zonedLocal >= zonedRemote.withZoneSameInstant(ZoneId.systemDefault())) {
+            if (zonedLocal.toLocalDate() >= zonedRemote.withZoneSameInstant(zonedLocal.zone).toLocalDate()) {
                 daysToSubtract = 0
             }
-            getLastMarketDate(marketLocal.toLocalDateTime(), daysToSubtract)
+            getPreviousClose(marketLocal.toLocalDateTime(), daysToSubtract)
         } else {
             // Just account for market open
-            getLastMarketDate(localDateTime, 0)
+            getPreviousClose(localDateTime, 0)
         }
     }
 
-    fun getLastMarketDate(date: LocalDate, daysToSubtract: Int): Any {
-        return getLastMarketDate(date.atStartOfDay(), daysToSubtract)
+    fun getPreviousClose(date: LocalDate, daysToSubtract: Int): Any {
+        return getPreviousClose(date.atStartOfDay(), daysToSubtract)
     }
 
     /**
@@ -54,7 +52,7 @@ class MarketUtils(private val dateUtils: DateUtils) {
      * @param seedDate   usually Today
      * @return resolved Date
      */
-    fun getLastMarketDate(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
+    fun getPreviousClose(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
         var result = seedDate.minusDays(daysToSubtract.toLong())
         while (!isMarketOpen(result.toLocalDate())) {
             result = result.minusDays(1)

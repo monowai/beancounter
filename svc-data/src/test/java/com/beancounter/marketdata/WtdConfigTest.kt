@@ -80,7 +80,7 @@ class WtdConfigTest {
             .isEqualTo(date)
 
         // On Today, it should subtract 2 days
-        val expectedDate = marketUtils.getLastMarketDate(
+        val expectedDate = marketUtils.getPreviousClose(
             dateUtils.getDate(today)!!, 2
         )
         wtdConfig.date = today

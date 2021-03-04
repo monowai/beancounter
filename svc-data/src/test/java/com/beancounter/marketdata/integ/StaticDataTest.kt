@@ -76,13 +76,13 @@ internal class StaticDataTest @Autowired constructor(
         // Users requested date "today in timezone"
         val sunday = LocalDate
             .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat))
-        var resolvedDate = marketUtils.getLastMarketDate(
+        var resolvedDate = marketUtils.getPreviousClose(
             sunday.atStartOfDay(),
             marketService.getMarket("NYSE")
         )
         AssertionsForClassTypes.assertThat(resolvedDate)
             .isEqualTo(LocalDate.of(2019, 4, 12))
-        resolvedDate = marketUtils.getLastMarketDate(
+        resolvedDate = marketUtils.getPreviousClose(
             sunday.atStartOfDay(),
             marketService.getMarket("NYSE")
         )

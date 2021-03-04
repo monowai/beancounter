@@ -2,12 +2,9 @@ package com.beancounter.marketdata.utils
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Currency
-import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
 import com.beancounter.marketdata.providers.wtd.WtdResponse
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -20,8 +17,6 @@ import org.springframework.http.MediaType
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.Objects
 
 /**
@@ -31,8 +26,6 @@ object WtdMockUtils {
     const val WTD_PATH = "/contracts/wtd"
     private val objectMapper: ObjectMapper = BcJson().objectMapper
     private val dateUtils = DateUtils()
-    private val marketUtils = MarketUtils(dateUtils)
-    private val zonedDateTime = LocalDate.now(dateUtils.getZoneId()).atStartOfDay()
 
     @JvmStatic
     private val wtdApi = WireMockRule(WireMockConfiguration.options().port(8888))
@@ -44,12 +37,6 @@ object WtdMockUtils {
         }
         return this.wtdApi
     }
-
-    @JvmStatic
-    val sgx = Market("SGX", Currency("SGD"), ZoneId.systemDefault().id)
-
-    @JvmStatic
-    val priceDate = marketUtils.getLastMarketDate(zonedDateTime, sgx).toString()
 
     @JvmStatic
     operator fun get(date: String, prices: Map<String, WtdMarketData>): WtdResponse {

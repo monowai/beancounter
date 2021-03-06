@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 internal class MarketUtilsTest {
+    // System default timezone
     private var dateUtils = DateUtils("Asia/Singapore")
     private var marketUtils = MarketUtils(dateUtils)
     private val nasdaq = Market("NASDAQ", Currency("USD"), "US/Eastern")
@@ -48,7 +49,6 @@ internal class MarketUtilsTest {
     fun is_MarketDateCalculatedWhenToday() {
         val pricesUnavailable = LocalDateTime.of(2020, 7, 17, 14, 0)
         val pricesAvailable = LocalDateTime.of(2020, 7, 18, 6, 0) // Avail next day
-        log.info("{} {}", pricesAvailable, pricesUnavailable)
         // Requesting today, but prices are not yet available.
         val todayNoPrices = marketUtils.getPreviousClose(pricesUnavailable, nasdaq, true)
         assertThat(todayNoPrices).isEqualTo(dateUtils.getDate("2020-07-16"))

@@ -32,7 +32,7 @@ export function usePortfolios(): BcResult<Portfolio[]> {
           }
         });
     }
-  }, [keycloak, initialized]);
+  }, [initialized, keycloak?.token]);
   return { data: portfolios, error };
 }
 

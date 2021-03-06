@@ -11,11 +11,13 @@ jest.mock("react-i18next", () => ({
 }));
 
 jest.mock("@react-keycloak/ssr", () => ({
-  useKeycloak: () => ({ initialized: () => true }),
+  useKeycloak: () => ({
+    initialized: true,
+    keycloak: () => ({ token: "undefined" }),
+  }),
 }));
 
-const bff = "http://localhost";
-nock(bff, {
+nock("http://localhost", {
   reqheaders: {
     authorization: "Bearer undefined",
   },
@@ -33,8 +35,10 @@ describe("<Portfolios />", () => {
         <Portfolios />
       </MemoryRouter>
     );
-    await screen.findByText("TEST");
+    //await screen.findByTestId("loading");
+    //await waitForElementToBeRemoved(() => screen.getByTestId("loading"));
     expect(nock.isDone());
+    await screen.findByText("TEST");
     expect(container).toMatchSnapshot();
   });
 });

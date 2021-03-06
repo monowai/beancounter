@@ -79,7 +79,11 @@ export function Portfolios(): React.ReactElement {
       </div>
     );
   }
-  return <div id="root">Loading...</div>;
+  return (
+    <div id="root" data-testid="loading">
+      Loading...
+    </div>
+  );
 }
 
 export default Portfolios;

@@ -101,7 +101,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
         }
         val priceDate = dateUtils.getDate(date)
 
-        return MarketData(asset!!, priceDate!!)
+        return MarketData(asset!!, priceDate)
     }
 
     companion object {

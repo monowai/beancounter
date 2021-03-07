@@ -130,7 +130,7 @@ class PortfolioService internal constructor(
     fun findWhereHeld(assetId: String?, tradeDate: LocalDate?): PortfoliosResponse {
         val recordDate = tradeDate ?: dateUtils.getDate(dateUtils.today())
         val portfolios = portfolioRepository
-            .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate!!)
+            .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate)
         log.trace("Found {} notional holders for assetId: {}", portfolios.size, assetId)
         return PortfoliosResponse(portfolios)
     }

@@ -54,13 +54,6 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun is_NullIsoDate() {
-        assertThat(dateUtils.getDate(null)).isNull()
-        assertThat(dateUtils.getDate(null, "yyyy-MM-dd")).isNull()
-        assertThat(dateUtils.getLocalDate(null, "yyyy-MM-dd")).isNull()
-    }
-
-    @Test
     fun is_LocalDateEqualToToday() {
         val today = dateUtils.today()
         val nowInTz = LocalDate.now(dateUtils.getZoneId())
@@ -79,5 +72,5 @@ internal class DateUtilsTest {
     }
 
     private val monday: LocalDate
-        get() = dateUtils.getDate("2019-10-21")!!
+        get() = dateUtils.getDate("2019-10-21")
 }

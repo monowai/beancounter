@@ -35,17 +35,17 @@ class TestTrnService {
     @Test
     fun is_TrnsReturnedForPortfolioId() {
         val trnResponse = trnService!!.query(portfolio!!)
-        assertThat(trnResponse).isNotNull().hasFieldOrProperty("data")
+        assertThat(trnResponse).isNotNull.hasFieldOrProperty("data")
         assertThat(trnResponse.data).isNotEmpty // Don't care about the contents here.
     }
 
     @Test
     fun is_TrnsReturnedForPortfolioAssetId() {
         val query = TrustedTrnQuery(
-            portfolio!!, DateUtils().getDate("2020-05-01")!!, "KMI"
+            portfolio!!, DateUtils().getDate("2020-05-01"), "KMI"
         )
         val queryResults = trnService!!.query(query)
-        assertThat(queryResults).isNotNull().hasFieldOrProperty("data")
+        assertThat(queryResults).isNotNull.hasFieldOrProperty("data")
         assertThat(queryResults.data).isNotEmpty // Don't care about the contents here.
     }
 }

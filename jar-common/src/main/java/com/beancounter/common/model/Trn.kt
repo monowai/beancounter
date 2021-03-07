@@ -35,7 +35,7 @@ data class Trn constructor(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var tradeDate: LocalDate = DateUtils().date!!
+    var tradeDate: LocalDate = DateUtils().date
 
 ) {
 
@@ -65,13 +65,13 @@ data class Trn constructor(
     var price: BigDecimal? = null
 
     // In trade Currency
-    var fees = BigDecimal.ZERO
+    var fees: BigDecimal = BigDecimal.ZERO
 
     // In trade Currency
-    var tax = BigDecimal.ZERO
+    var tax: BigDecimal = BigDecimal.ZERO
 
     // In trade Currency
-    var tradeAmount = BigDecimal.ZERO
+    var tradeAmount: BigDecimal = BigDecimal.ZERO
 
     // Trade amount in settlement currency.
     var cashAmount: BigDecimal? = null
@@ -104,9 +104,9 @@ data class Trn constructor(
         settleDate: LocalDate?,
         quantity: BigDecimal,
         price: BigDecimal?,
-        fees: BigDecimal?,
-        tax: BigDecimal?,
-        tradeAmount: BigDecimal?,
+        fees: BigDecimal,
+        tax: BigDecimal,
+        tradeAmount: BigDecimal,
         cashAmount: BigDecimal?,
         tradeCashRate: BigDecimal?,
         tradeBaseRate: BigDecimal?,

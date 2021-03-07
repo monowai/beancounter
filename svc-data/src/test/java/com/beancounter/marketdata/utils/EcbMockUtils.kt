@@ -9,7 +9,7 @@ object EcbMockUtils {
     private val dateUtils = DateUtils()
     @JvmStatic
     operator fun get(date: String, rates: Map<String, BigDecimal>): EcbRates {
-        return EcbRates("USD", dateUtils.getDate(date)!!, rates)
+        return EcbRates("USD", dateUtils.getDate(date), rates)
     }
 
     @JvmStatic

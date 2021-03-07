@@ -49,6 +49,6 @@ class EventController(private val eventService: EventService) {
 
     @GetMapping(value = ["/scheduled/{date}"], produces = ["application/json"])
     fun getScheduledEvents(@PathVariable date: String): CorporateEventsResponse {
-        return eventService.getScheduledEvents(DateUtils().getDate(date)!!)
+        return eventService.getScheduledEvents(DateUtils().getDate(date))
     }
 }

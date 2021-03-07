@@ -43,7 +43,7 @@ class TrnController {
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun find(@PathVariable("portfolioId") portfolioId: String): TrnResponse {
         val portfolio = portfolioService.find(portfolioId)
-        return trnService.findForPortfolio(portfolio, dateUtils.date!!)
+        return trnService.findForPortfolio(portfolio, dateUtils.date)
     }
 
     @GetMapping(value = ["/{portfolioId}/{trnId}"])

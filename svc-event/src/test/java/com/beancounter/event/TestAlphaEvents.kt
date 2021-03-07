@@ -28,7 +28,7 @@ class TestAlphaEvents {
     fun is_UsDividendCalculated() {
         val market = Market("NASDAQ", USD)
         val asset = getAsset(market, "KMI")
-        assertThat(asset.id).isNotNull()
+        assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
         val position = Position(asset)
@@ -36,12 +36,12 @@ class TestAlphaEvents {
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal("80"))
         val dateUtils = DateUtils()
         val onDate = dateUtils.getDate("2020-05-01")
-        assertThat(onDate).isNotNull()
+        assertThat(onDate).isNotNull
         val event = CorporateEvent(
             TrnType.DIVI,
             "ALPHA",
             asset.id!!,
-            onDate!!,
+            onDate,
             BigDecimal("0.2625")
         )
         val portfolio = getPortfolio("TEST", USD)
@@ -63,15 +63,15 @@ class TestAlphaEvents {
     fun is_FutureDatedTrnIgnored() {
         val market = Market("NASDAQ", USD)
         val asset = getAsset(market, "KMI")
-        assertThat(asset.id).isNotNull()
+        assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
         val today = dateUtils.date
-        assertThat(today).isNotNull()
+        assertThat(today).isNotNull
         val event = CorporateEvent(
             TrnType.DIVI,
             "ALPHA",
             asset.id!!,
-            today!!,
+            today,
             BigDecimal("0.2625")
         )
         val behaviourFactory = EventBehaviourFactory()

@@ -31,13 +31,13 @@ class DateUtils(
         return getDate(zoned.toLocalDate().toString())
     }
 
-    val date: LocalDate?
+    val date: LocalDate
         get() = getDate(today())
 
-    fun getDate(inDate: String?, zoneId: ZoneId = getZoneId()): LocalDate? {
+    fun getDate(inDate: String?, zoneId: ZoneId = getZoneId()): LocalDate {
         return when (inDate) {
             null -> {
-                null
+                date
             }
             "today" -> {
                 return date
@@ -46,17 +46,17 @@ class DateUtils(
         }
     }
 
-    fun getDate(inDate: String?, format: String?, zoneId: ZoneId = getZoneId()): LocalDate? {
+    fun getDate(inDate: String?, format: String?, zoneId: ZoneId = getZoneId()): LocalDate {
         return if (inDate == null) {
-            null
+            date
         } else getLocalDate(inDate, format)
-            ?.atStartOfDay(zoneId)?.toLocalDate()
+            .atStartOfDay(zoneId).toLocalDate()
     }
 
-    fun getLocalDate(inDate: String?, dateFormat: String?): LocalDate? {
+    fun getLocalDate(inDate: String?, dateFormat: String?): LocalDate {
         return when (inDate) {
             null -> {
-                null
+                date
             }
             "today" -> {
                 return date
@@ -71,11 +71,7 @@ class DateUtils(
 
     fun getOrThrow(inDate: String?): LocalDate {
         try {
-            val result = getDate(inDate)
-            if (result != null) {
-                return result
-            }
-            throw BusinessException(String.format("Unable to parse the date %s", inDate))
+            return getDate(inDate)
         } catch (e: DateTimeParseException) {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }

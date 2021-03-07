@@ -49,7 +49,7 @@ class WtdConfig : DataProviderConfig {
 
         // If startDate is not "today", assume nothing.  Discount the weekends
         return marketUtils.getPreviousClose(
-            dateUtils.getDate(date)!!.atStartOfDay(), daysToSubtract
+            dateUtils.getDate(date).atStartOfDay(), daysToSubtract
         )
     }
 

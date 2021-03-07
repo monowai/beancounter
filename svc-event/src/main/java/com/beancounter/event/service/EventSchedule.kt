@@ -44,7 +44,7 @@ class EventSchedule(private val eventService: EventService, private val dateUtil
             loginService!!.login()
         }
         val end = dateUtils.date
-        val start = end!!.minusDays(5)
+        val start = end.minusDays(5)
         val events = eventService.findInRange(start, end)
         for (event in events) {
             eventService.processMessage(event)

@@ -34,7 +34,7 @@ class TestEvent {
 
     @Test
     fun is_EventConstructingAndSerializing() {
-        val event = CorporateEvent(TrnType.DIVI, "TEST", "assetId", DateUtils().date!!, BigDecimal.TEN)
+        val event = CorporateEvent(TrnType.DIVI, "TEST", "assetId", DateUtils().date, BigDecimal.TEN)
         val eventRequest = EventRequest(event)
         val json = BcJson().objectMapper.writeValueAsBytes(eventRequest)
         val fromJson = BcJson().objectMapper.readValue(json, EventRequest::class.java)

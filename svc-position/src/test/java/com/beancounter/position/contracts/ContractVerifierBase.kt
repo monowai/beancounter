@@ -68,7 +68,7 @@ class ContractVerifierBase {
             valuationService.build(
                 TrustedTrnQuery(
                     testPortfolio,
-                    dateUtils.getDate("2020-05-01")!!, "KMI"
+                    dateUtils.getDate("2020-05-01"), "KMI"
                 )
             )
         )
@@ -82,7 +82,7 @@ class ContractVerifierBase {
             valuationService.build(
                 TrustedTrnQuery(
                     testPortfolio,
-                    dateUtils.getDate("2020-05-01")!!, "MSFT"
+                    dateUtils.getDate("2020-05-01"), "MSFT"
                 )
             )
         )
@@ -103,6 +103,6 @@ class ContractVerifierBase {
 
     @Test
     fun is_Started() {
-        assertThat(valuationService).isNotNull()
+        assertThat(valuationService).isNotNull
     }
 }

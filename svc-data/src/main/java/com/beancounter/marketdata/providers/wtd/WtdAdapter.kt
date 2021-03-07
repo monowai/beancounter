@@ -38,7 +38,7 @@ class WtdAdapter : MarketDataAdapter {
                 var marketData: MarketData? = null
                 val wtdMarketData = data[dpAsset]
                 if (wtdMarketData != null) {
-                    marketData = MarketData(bcAsset!!, dateUtils.getDate(date)!!)
+                    marketData = MarketData(bcAsset!!, dateUtils.getDate(date))
                     marketData.close = wtdMarketData.close
                     marketData.high = wtdMarketData.high
                     marketData.low = wtdMarketData.low

@@ -22,7 +22,7 @@ internal class MarketUtilsTest {
 
     @Test
     fun is_MarketDateCalculated() {
-        val nasdaqClose = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())!!
+        val nasdaqClose = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())
         var localDate = LocalDateTime.of(2020, 7, 20, 8, 0)
         log.info("{} {}", nasdaqClose, localDate)
         // When requesting on a Monday in SG, you won't have COB prices until Tuesday in SG
@@ -72,8 +72,8 @@ internal class MarketUtilsTest {
         assertThat(marketUtils.isMarketOpen(monday)).isTrue // Monday
     }
 
-    private val friday: LocalDate get() = dateUtils.getDate("2019-10-18")!!
-    private val sunday: LocalDate get() = dateUtils.getDate("2019-10-20")!!
-    private val saturday: LocalDate get() = dateUtils.getDate("2019-10-19")!!
-    private val monday: LocalDate get() = dateUtils.getDate("2019-10-21")!!
+    private val friday: LocalDate get() = dateUtils.getDate("2019-10-18")
+    private val sunday: LocalDate get() = dateUtils.getDate("2019-10-20")
+    private val saturday: LocalDate get() = dateUtils.getDate("2019-10-19")
+    private val monday: LocalDate get() = dateUtils.getDate("2019-10-21")
 }

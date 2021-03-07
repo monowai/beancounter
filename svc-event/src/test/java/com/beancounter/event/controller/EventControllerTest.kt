@@ -66,7 +66,7 @@ internal class EventControllerTest {
             TrnType.DIVI,
             "SOURCE",
             "ABC123",
-            dateUtils.getDate("2020-10-10")!!,
+            dateUtils.getDate("2020-10-10"),
             BigDecimal("0.1234")
         )
         event = eventService.save(event)

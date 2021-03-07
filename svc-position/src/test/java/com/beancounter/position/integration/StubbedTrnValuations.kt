@@ -57,7 +57,7 @@ internal class StubbedTrnValuations {
         )
         val query = TrustedTrnQuery(
             portfolio,
-            dateUtils.getDate("2020-05-01")!!,
+            dateUtils.getDate("2020-05-01"),
             "KMI"
         )
         val json = mockMvc.perform(

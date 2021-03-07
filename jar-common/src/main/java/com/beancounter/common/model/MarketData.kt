@@ -66,7 +66,7 @@ data class MarketData constructor(@ManyToOne var asset: Asset) {
 
     var source: String = "ALPHA"
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.Companion.format)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate? = null

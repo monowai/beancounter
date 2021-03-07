@@ -17,7 +17,7 @@ data class TrustedTrnQuery(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    val tradeDate: LocalDate = DateUtils().date!!,
+    val tradeDate: LocalDate = DateUtils().date,
     val assetId: String
 ) {
 

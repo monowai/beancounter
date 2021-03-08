@@ -9,13 +9,12 @@ import { BcResult } from "../types/app";
 export const UNKNOWN: SystemUser = { email: undefined, active: false };
 
 export function useSystemUser(): BcResult<SystemUser> {
-  const { keycloak, initialized } = useKeycloak();
+  const { keycloak } = useKeycloak();
   const [systemUser, setSystemUser] = useState<SystemUser>(UNKNOWN);
   const [error, setError] = useState<AxiosError>();
   useEffect(() => {
-    //if (initialized && keycloak.token) {
-    logger.debug(">>get SystemUser");
-    if (keycloak?.authenticated) {
+    if (keycloak?.token) {
+      logger.debug(">>get SystemUser");
       _axios
         .get<SystemUser>("/bff/me", {
           headers: getBearerToken(keycloak?.token),
@@ -25,7 +24,9 @@ export function useSystemUser(): BcResult<SystemUser> {
           setSystemUser(result.data);
         })
         .catch((err) => {
+          logger.error(err.message);
           if (err.response.status != 401) {
+            logger.info("fetch user");
             _axios
               .post<SystemUser>(
                 "/bff/register",
@@ -35,7 +36,7 @@ export function useSystemUser(): BcResult<SystemUser> {
                 }
               )
               .then((result) => {
-                logger.debug("<<fetched SystemUser");
+                logger.debug("<<fetched SystemUser " + result.data.email);
                 setSystemUser(result.data);
               })
               .catch((err) => {
@@ -44,6 +45,6 @@ export function useSystemUser(): BcResult<SystemUser> {
           }
         });
     }
-  }, [keycloak, initialized]);
+  }, [keycloak?.token]);
   return { data: systemUser, error };
 }

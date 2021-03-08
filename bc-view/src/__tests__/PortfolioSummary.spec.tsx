@@ -12,7 +12,7 @@ const usd: Currency = { code: "USD", symbol: "$" };
 jest.mock("@react-keycloak/ssr", () => ({
   useKeycloak: () => ({
     initialized: true,
-    keycloak: () => ({ token: "undefined" }),
+    keycloak: { token: "abc" },
   }),
 }));
 

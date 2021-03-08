@@ -1,7 +1,7 @@
 import Home from "./Home";
 import ViewHoldings from "./holdings";
 import { useParams } from "react-router-dom";
-import Login from "./user/Login";
+import { Login } from "./user/Login";
 import Logout from "./user/Logout";
 import Portfolios from "./portfolio/Portfolios";
 import Registration from "./user/Registration";

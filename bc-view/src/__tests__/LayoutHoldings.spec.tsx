@@ -11,13 +11,13 @@ afterAll(nock.cleanAll);
 jest.mock("@react-keycloak/ssr", () => ({
   useKeycloak: () => ({
     initialized: true,
-    keycloak: () => ({ token: "undefined" }),
+    keycloak: { token: "abc" },
   }),
 }));
 
 nock("http://localhost", {
   reqheaders: {
-    Authorization: "Bearer undefined",
+    Authorization: "Bearer abc",
   },
 })
   .persist(true)

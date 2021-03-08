@@ -10,6 +10,6 @@ export const keycloakConfig: KeycloakConfig = {
 };
 
 export const initConfig: KeycloakInitOptions = {
-  checkLoginIframe: false,
+  checkLoginIframe: true,
   onLoad: "login-required",
 };

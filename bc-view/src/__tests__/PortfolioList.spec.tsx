@@ -1,5 +1,5 @@
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitForElementToBeRemoved } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import nock from "nock";
 import Portfolios from "../portfolio/Portfolios";
@@ -13,13 +13,13 @@ jest.mock("react-i18next", () => ({
 jest.mock("@react-keycloak/ssr", () => ({
   useKeycloak: () => ({
     initialized: true,
-    keycloak: () => ({ token: "undefined" }),
+    keycloak: { token: "abc" },
   }),
 }));
 
 nock("http://localhost", {
   reqheaders: {
-    authorization: "Bearer undefined",
+    authorization: "Bearer abc",
   },
 })
   .get("/bff/portfolios")
@@ -35,8 +35,8 @@ describe("<Portfolios />", () => {
         <Portfolios />
       </MemoryRouter>
     );
-    //await screen.findByTestId("loading");
-    //await waitForElementToBeRemoved(() => screen.getByTestId("loading"));
+    await screen.findByTestId("loading");
+    await waitForElementToBeRemoved(() => screen.getByTestId("loading"));
     expect(nock.isDone());
     await screen.findByText("TEST");
     expect(container).toMatchSnapshot();

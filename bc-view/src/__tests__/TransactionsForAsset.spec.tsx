@@ -15,13 +15,13 @@ jest.mock("react-i18next", () => ({
 jest.mock("@react-keycloak/ssr", () => ({
   useKeycloak: () => ({
     initialized: true,
-    keycloak: () => ({ token: "undefined" }),
+    keycloak: { token: "123" },
   }),
 }));
 
 nock("http://localhost", {
   reqheaders: {
-    authorization: "Bearer undefined",
+    authorization: "Bearer 123",
   },
 })
   .persist(true)

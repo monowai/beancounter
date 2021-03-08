@@ -8,11 +8,12 @@ import { USD } from "../static/hooks";
 import { BcResult } from "../types/app";
 
 export function usePortfolios(): BcResult<Portfolio[]> {
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>();
   const [error, setError] = useState<AxiosError>();
-  const { keycloak, initialized } = useKeycloak();
+  const { keycloak } = useKeycloak();
   useEffect(() => {
-    if (initialized) {
+    if (keycloak?.token) {
+      logger.info("Find Portfolios!");
       _axios
         .get<Portfolio[]>("/bff/portfolios", {
           headers: getBearerToken(keycloak?.token),
@@ -22,6 +23,7 @@ export function usePortfolios(): BcResult<Portfolio[]> {
           setPortfolios(result.data);
         })
         .catch((err) => {
+          logger.error("ERR!");
           if (err.response) {
             logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
             if (err.response.status != 403) {
@@ -32,7 +34,7 @@ export function usePortfolios(): BcResult<Portfolio[]> {
           }
         });
     }
-  }, [initialized, keycloak?.token]);
+  }, [keycloak?.token]);
   return { data: portfolios, error };
 }
 

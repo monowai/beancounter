@@ -4,8 +4,8 @@ import { Portfolios } from "./portfolio/Portfolios";
 import Login from "./user/Login";
 
 const Home = (): JSX.Element => {
-  const { keycloak, initialized } = useKeycloak();
-  if (initialized && keycloak?.token) {
+  const { keycloak } = useKeycloak();
+  if (keycloak?.token) {
     return <Portfolios />;
   }
   return <Login />;

@@ -1,20 +1,26 @@
 import React from "react";
 import { Redirect, useLocation } from "react-router";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../common/configLogging";
 import { initConfig } from "../common/kcConfig";
 import { Portfolios } from "../portfolio/Portfolios";
+import { ErrorPage } from "../errors/ErrorPage";
 
 const Login = (): JSX.Element => {
   const { keycloak } = useKeycloak();
-  keycloak?.init(initConfig).then(function (authenticated) {
-    if (authenticated) {
-      logger.debug("Logged in: auth= " + authenticated);
-      return <Portfolios />;
-    }
-    return <div>Auth Failed...</div>;
-  });
-  return <div>Auth not initialised...</div>;
+  if (keycloak && !keycloak.authenticated) {
+    keycloak
+      .init(initConfig)
+      .then(function (authenticated) {
+        if (authenticated) {
+          return <Portfolios />;
+        }
+        return <div>Auth Failed...</div>;
+      })
+      .catch((err) => {
+        return ErrorPage("Auth issue", err.message);
+      });
+  }
+  return <div>Initialising Auth...</div>;
 };
 
 export const LoginRedirect = (): JSX.Element => {

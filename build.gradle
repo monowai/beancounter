@@ -3,7 +3,7 @@ buildscript {
         springBootVersion='2.3.8.RELEASE'
         springCloudVersion='Hoxton.SR10'
         springSecurityVersion='5.3.8.RELEASE'
-        springWebVersion = '5.2.12.RELEASE'
+        springWebVersion = '5.3.4'
         springKafka='2.6.6'
         jacksonVersion = '2.12.1'
         lombokVersion = '1.18.16'

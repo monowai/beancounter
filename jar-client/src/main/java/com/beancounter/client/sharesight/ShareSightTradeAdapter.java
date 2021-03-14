@@ -67,7 +67,6 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
     assert trustedTrnImportRequest != null;
     List<String> row = trustedTrnImportRequest.getRow();
-    assert row != null;
     String ttype = row.get(type);
     if (ttype == null || ttype.equalsIgnoreCase("")) {
       throw new BusinessException(String.format("Unsupported type %s", row.get(type)));
@@ -77,7 +76,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     String comment = (row.size() == 13 ? nullSafe(row.get(comments)) : null);
 
     BigDecimal tradeRate = null;
-    BigDecimal fees = null;
+    BigDecimal fees = BigDecimal.ZERO;
     BigDecimal tradeAmount = BigDecimal.ZERO;
 
     try {
@@ -93,23 +92,23 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       }
       TrnInput trnInput = new TrnInput(
           new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
-          Objects.requireNonNull(asset.getId()),
+          asset.getId(),
           trnType,
           Objects.requireNonNull(MathUtils.parse(row.get(quantity),
-              shareSightConfig.getNumberFormat()))
+              shareSightConfig.getNumberFormat())),
+          row.get(currency),
+          dateUtils.getDate(row.get(date),
+              shareSightConfig.getDateFormat(),
+              dateUtils.getZoneId()),
+          fees,
+          MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()),
+          comment
       );
 
-      trnInput.setPrice(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()));
-      trnInput.setFees(fees);
       trnInput.setTradeAmount(tradeAmount);
-      trnInput.setTradeDate(dateUtils.getDate(row.get(date),
-          shareSightConfig.getDateFormat(),
-          dateUtils.getZoneId()));
       trnInput.setCashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode());
-      trnInput.setTradeCurrency(row.get(currency));
       // Zero and null are treated as "unknown"
       trnInput.setTradeCashRate(getTradeCashRate(tradeRate));
-      trnInput.setComments(comment);
       return trnInput;
     } catch (ParseException e) {
       String message = e.getMessage();
@@ -125,7 +124,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
   private BigDecimal calcFees(List<String> row, BigDecimal tradeRate) throws ParseException {
     BigDecimal result = MathUtils.parse(row.get(brokerage), shareSightConfig.getNumberFormat());
     if (shareSightConfig.isCalculateAmount() || result == null) {
-      return result;
+      return (result == null ? BigDecimal.ZERO : result);
     } else {
       return MathUtils.divide(result, tradeRate);
     }

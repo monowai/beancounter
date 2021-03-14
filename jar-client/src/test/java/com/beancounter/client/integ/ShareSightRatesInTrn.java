@@ -1,6 +1,7 @@
 package com.beancounter.client.integ;
 
 import static com.beancounter.client.integ.ShareSightTradeTest.getRow;
+import static com.beancounter.common.input.ImportFormat.SHARESIGHT;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -74,7 +75,9 @@ public class ShareSightRatesInTrn {
     row.add(ShareSightDividendAdapter.comments, "Test Comment");
 
     TrnAdapter dividends = shareSightFactory.adapter(row);
-    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio,
+        row,
+        SHARESIGHT);
 
     TrnInput trn = dividends.from(trustedTrnImportRequest);
 
@@ -104,7 +107,9 @@ public class ShareSightRatesInTrn {
     // Portfolio is in NZD
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
     // System base currency
-    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio, row);
+    TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(portfolio,
+        row,
+        SHARESIGHT);
 
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnImportRequest);
 

@@ -2,6 +2,7 @@ package com.beancounter.event.kafka
 
 import com.beancounter.client.AssetService
 import com.beancounter.common.event.CorporateEvent
+import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Currency
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -167,9 +169,10 @@ class StubbedEvents {
     ) {
         assertThat(consumerRecord.value()).isNotNull()
         val received = om.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
-        val (portfolio1, _, trnInput) = trnEvents.iterator().next()
+        val (portfolio1, importFormat, _, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)
             .usingRecursiveComparison().isEqualTo(portfolio)
+        assertTrue(importFormat == ImportFormat.BC)
         assertThat(received)
             .isNotNull
             .hasFieldOrProperty("trnInput")

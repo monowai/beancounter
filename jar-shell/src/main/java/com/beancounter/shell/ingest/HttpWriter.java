@@ -70,12 +70,11 @@ public class HttpWriter implements TrnWriter {
 
 
       if (portfolio != null) {
-        TrnRequest trnRequest = new TrnRequest(portfolio.getId(), trnInputs);
+        TrnRequest trnRequest = new TrnRequest(portfolio.getId(),
+            trnInputs.toArray(new TrnInput[0]));
 
         TrnResponse response = trnService.write(trnRequest);
-        if (response != null) {
-          log.info("Wrote {}", response.getData().size());
-        }
+        log.info("Wrote {}", response.getData().size());
 
       }
       log.info("Complete!");

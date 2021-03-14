@@ -48,15 +48,14 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         val callerRef = CallerRef(corporateEvent.source, corporateEvent.id, null)
         val result = TrnInput(
             callerRef,
-            corporateEvent.assetId,
+            currentPosition.asset.id,
             TrnType.DIVI,
-            currentPosition.quantityValues.getTotal()
+            currentPosition.quantityValues.getTotal(),
+            tradeDate = payDate,
+            price = corporateEvent.rate
         )
         result.status = TrnStatus.PROPOSED
-        result.tradeDate = payDate // Should be PayDate +1
-        result.price = corporateEvent.rate
         result.tax = tax
-        result.tradeCurrency = currentPosition.asset.market.currency.code
         result.cashCurrency = currentPosition.asset.market.currency.code
         result.tradeAmount = gross!!.subtract(tax)
         return result

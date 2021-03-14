@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.client.ingest.FxTransactions
-import com.beancounter.client.ingest.RowAdapter
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class TrnImport {
-    private lateinit var rowAdapter: RowAdapter
+    private lateinit var adapterFactory: AdapterFactory
     private lateinit var portfolioService: PortfolioService
     private lateinit var fxRateService: FxRateService
     private lateinit var trnService: TrnService
@@ -43,31 +42,30 @@ class TrnImport {
     }
 
     @Autowired
-    fun setRowAdapter(rowAdapter: RowAdapter) {
-        this.rowAdapter = rowAdapter
+    fun setAdapterFactory(adapterFactory: AdapterFactory) {
+        this.adapterFactory = adapterFactory
     }
 
-    fun fromCsvImport(trustedRequest: TrustedTrnImportRequest): TrnResponse? {
-        return if (trustedRequest.message != null) {
+    fun fromCsvImport(trustedRequest: TrustedTrnImportRequest): TrnResponse {
+        if (trustedRequest.message != "") {
             log.info(
                 "Portfolio {} {}",
                 trustedRequest.portfolio.code,
                 trustedRequest.message
             )
-            TrnResponse()
-        } else {
+        }
+        if (trustedRequest.row.isNotEmpty()) {
             log.trace("Received Message {}", trustedRequest.toString())
             if (verifyPortfolio(trustedRequest.portfolio.id)) {
-                val trnInput = rowAdapter.transform(trustedRequest)
-                if (trnInput != null) {
-                    return writeTrn(trustedRequest.portfolio, trnInput)
-                }
+                val trnInput = adapterFactory.get(trustedRequest.importFormat)
+                    .transform(trustedRequest)
+                return writeTrn(trustedRequest.portfolio, trnInput)
             }
-            null
         }
+        return TrnResponse()
     }
 
-    fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): TrnResponse? {
+    fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): TrnResponse {
         log.trace("Received Message {}", trustedTrnEvent.toString())
         if (verifyPortfolio(trustedTrnEvent.portfolio.id)) {
             val existing = trnService.existing(trustedTrnEvent)
@@ -88,7 +86,7 @@ class TrnImport {
         val fxRequest = fxTransactions.buildRequest(portfolio, trnInput)
         val (data) = fxRateService.getRates(fxRequest)
         fxTransactions.setRates(data, fxRequest, trnInput)
-        val trnRequest = TrnRequest(portfolio.id, listOf(trnInput))
+        val trnRequest = TrnRequest(portfolio.id, arrayOf(trnInput))
         return trnService.save(portfolio, trnRequest)
     }
 

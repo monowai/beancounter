@@ -40,7 +40,7 @@ class TestAlphaEvents {
         val event = CorporateEvent(
             TrnType.DIVI,
             "ALPHA",
-            asset.id!!,
+            asset.id,
             onDate,
             BigDecimal("0.2625")
         )
@@ -70,7 +70,7 @@ class TestAlphaEvents {
         val event = CorporateEvent(
             TrnType.DIVI,
             "ALPHA",
-            asset.id!!,
+            asset.id,
             today,
             BigDecimal("0.2625")
         )

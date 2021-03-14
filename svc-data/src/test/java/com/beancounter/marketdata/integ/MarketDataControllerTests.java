@@ -78,7 +78,6 @@ class MarketDataControllerTests {
     assertThat(dummy.getId()).isNotNull();
     Mockito.when(
         assetService.find(dummy.getId())).thenReturn(dummy);
-    assertThat(dummy.getId()).isNotNull();
     Mockito.when(
         assetService.findLocally(dummy.getMarket().getCode(), dummy.getCode()))
         .thenReturn(dummy);

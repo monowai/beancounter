@@ -9,6 +9,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions.assertThat
@@ -80,10 +81,15 @@ class TestFxService {
 
     @Test
     fun is_fxTransactionsSettingCorrectRates() {
-        val trnInput = TrnInput(CallerRef(), "MSFT", TrnType.BUY, BigDecimal.TEN)
-        trnInput.tradeCurrency = "USD"
+        val trnInput = TrnInput(
+            CallerRef(),
+            AssetUtils.Companion.getAsset("NASDAQ", "MSFT").id,
+            TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeDate = DateUtils().getDate("2019-07-26"),
+            price = BigDecimal.TEN
+        )
         trnInput.cashCurrency = "USD"
-        trnInput.tradeDate = DateUtils().getDate("2019-07-26")
         val portfolio = getPortfolio("ABC")
         val request = fxTransactions!!.buildRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")

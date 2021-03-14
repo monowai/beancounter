@@ -5,10 +5,11 @@ import com.beancounter.common.model.Portfolio
 
 data class TrustedTrnImportRequest(
     override var portfolio: Portfolio,
-    var callerRef: CallerRef?,
-    override var message: String?,
-    val row: List<String>?
+    override val importFormat: ImportFormat = ImportFormat.BC,
+    var callerRef: CallerRef = CallerRef(),
+    override var message: String = "",
+    val row: List<String> = emptyList(),
 ) : TrnImport {
-    constructor(portfolio: Portfolio, row: List<String>) :
-        this(portfolio, null, null, row)
+    constructor(portfolio: Portfolio, row: List<String>, importFormat: ImportFormat = ImportFormat.BC) :
+        this(portfolio, importFormat, message = "", row = row)
 }

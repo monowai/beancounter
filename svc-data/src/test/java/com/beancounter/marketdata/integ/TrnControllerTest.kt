@@ -47,7 +47,6 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-import java.util.ArrayList
 import java.util.Objects
 
 private const val urlPortfolioId = "/trns/portfolio/{portfolioId}"
@@ -127,17 +126,17 @@ class TrnControllerTest {
         )
         assertThat(msft.id).isNotNull
         // Creating in random order and assert retrieved in Sort Order.
-        val existingTrns: MutableCollection<TrnInput> = ArrayList()
         val trnInput = TrnInput(
             CallerRef(null, "DIV-TEST", "1"),
-            msft.id!!,
-            TrnType.DIVI, BigDecimal.TEN
+            msft.id,
+            TrnType.DIVI,
+            BigDecimal.TEN,
+            "USD",
+            dateUtils.getDate("2020-03-10"),
+            price = BigDecimal.TEN
         )
-        trnInput.tradeDate = dateUtils.getDate("2020-03-10")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
-        existingTrns.add(trnInput)
+        val existingTrns = arrayOf(trnInput)
         val trnRequest = TrnRequest(portfolioA.id, existingTrns)
         trnService.save(portfolioA, trnRequest)
         val divi = existingTrns.iterator().next()
@@ -146,10 +145,10 @@ class TrnControllerTest {
         assertThat(trnService.existing(trustedTrnEvent)).isNotNull.isNotEmpty
 
         // Record date is earlier than an existing trn trade date
-        divi.tradeDate = dateUtils.getDate("2020-02-25")
+        // divi.tradeDate = dateUtils.getDate("2020-02-25")
         assertThat(trnService.existing(trustedTrnEvent))
             .isNotNull.isNotEmpty // Within 20 days of proposed trade date
-        divi.tradeDate = dateUtils.getDate("2020-03-09")
+        // divi.tradeDate = dateUtils.getDate("2020-03-09")
         assertThat(trnService.existing(trustedTrnEvent))
             .isNotNull.isNotEmpty // Within 20 days of proposed trade date
 
@@ -184,29 +183,30 @@ class TrnControllerTest {
         assertThat(msft.id).isNotNull
         val (id) = portfolio(PortfolioInput("PFA", "NZD Portfolio", "NZD"))
         // Creating in random order and assert retrieved in Sort Order.
-        val trnInputs: MutableCollection<TrnInput> = ArrayList()
 
         var trnInput = TrnInput(
             CallerRef(null, "0", "1"),
-            msft.id!!, TrnType.BUY, BigDecimal.TEN
+            msft.id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            dateUtils.getDate("2018-01-01"),
+            price = BigDecimal.TEN
         )
 
-        trnInput.tradeDate = dateUtils.getDate("2018-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
 
-        trnInput = TrnInput(
+        var trnInputB = TrnInput(
             CallerRef(null, "0", "2"),
-            msft.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            msft.id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            dateUtils.getDate("2016-01-01"),
+            price = BigDecimal.TEN
         )
-        trnInput.tradeDate = dateUtils.getDate("2016-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
-        trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
+        trnInputB.tradePortfolioRate = BigDecimal.ONE
+        var trnInputs = arrayOf(trnInput, trnInputB)
         var trnRequest = TrnRequest(id, trnInputs)
         mockMvc.perform(
             MockMvcRequestBuilders.post("/trns")
@@ -216,27 +216,29 @@ class TrnControllerTest {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        trnInputs.clear()
+
         trnInput = TrnInput(
             CallerRef(null, "0", "3"),
-            msft.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            msft.id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            price = BigDecimal.TEN,
+            tradeDate = dateUtils.getDate("2018-10-01")
+
         )
-        trnInput.tradeDate = dateUtils.getDate("2018-10-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
         trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
-        trnInput = TrnInput(
+        trnInputB = TrnInput(
             CallerRef(null, "0", "34"),
-            msft.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            msft.id,
+            TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeDate = dateUtils.getDate("2017-01-01"),
+            price = BigDecimal.TEN
         )
-        trnInput.tradeDate = dateUtils.getDate("2017-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
-        trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
+        trnInputB.tradePortfolioRate = BigDecimal.ONE
+
+        trnInputs = arrayOf(trnInput, trnInputB)
         val (id1) = portfolio(PortfolioInput("PFB", "NZD Portfolio", "NZD"))
         trnRequest = TrnRequest(id1, trnInputs)
         mockMvc.perform(
@@ -287,52 +289,53 @@ class TrnControllerTest {
             PortfolioInput("Twix", "NZD Portfolio", "NZD")
         )
         // Creating in random order and assert retrieved in Sort Order.
-        val trnInputs: MutableCollection<TrnInput> = ArrayList()
-        var trnInput = TrnInput(
+        val trnInputA = TrnInput(
             CallerRef(null, null, "1"),
-            msft.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            msft.id,
+            TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeDate = dateUtils.getDate("2018-01-01"),
+            tradeCurrency = "USD",
+            price = BigDecimal.TEN,
         )
-        trnInput.tradeDate = dateUtils.getDate("2018-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
-        trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
 
-        trnInput = TrnInput(
+        trnInputA.tradePortfolioRate = BigDecimal.ONE
+
+        val trnInputB = TrnInput(
             CallerRef(null, null, "3"),
-            aapl.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            aapl.id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            dateUtils.getDate("2018-01-01"),
+            price = BigDecimal.TEN
         )
-        trnInput.tradeDate = dateUtils.getDate("2018-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
-        trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
 
-        trnInput = TrnInput(
+        trnInputB.tradePortfolioRate = BigDecimal.ONE
+
+        val trnInputC = TrnInput(
             CallerRef(null, null, "2"),
-            msft.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            msft.id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            dateUtils.getDate("2017-01-01"),
+            price = BigDecimal.TEN
         )
-        trnInput.tradeDate = dateUtils.getDate("2017-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
-        trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
+        trnInputC.tradePortfolioRate = BigDecimal.ONE
 
-        trnInput = TrnInput(
+        val trnInputD = TrnInput(
             CallerRef(null, null, "4"),
-            aapl.id!!,
-            TrnType.BUY, BigDecimal.TEN
+            aapl.id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            dateUtils.getDate("2017-01-01"),
+            price = BigDecimal.TEN
         )
-        trnInput.tradeDate = dateUtils.getDate("2017-01-01")
-        trnInput.price = BigDecimal.TEN
-        trnInput.tradeCurrency = nasdaq.currency.code
-        trnInput.tradePortfolioRate = BigDecimal.ONE
-        trnInputs.add(trnInput)
+        trnInputD.tradePortfolioRate = BigDecimal.ONE
 
-        val trnRequest = TrnRequest(portfolio.id, trnInputs)
+        val trnRequest = TrnRequest(portfolio.id, arrayOf(trnInputA, trnInputB, trnInputC, trnInputD))
         val postResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/trns")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))

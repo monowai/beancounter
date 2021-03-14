@@ -1,5 +1,6 @@
 package com.beancounter.client;
 
+import static com.beancounter.common.input.ImportFormat.SHARESIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -48,7 +49,7 @@ public class TestAdapters {
     row.add(ShareSightDividendAdapter.fxRate, "A.B");
 
     TrustedTrnImportRequest request =
-        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row, SHARESIGHT);
 
     TrnAdapter dividendAdapter =
         new ShareSightDividendAdapter(shareSightConfig, assetIngestService);
@@ -68,7 +69,9 @@ public class TestAdapters {
     row.add("");
 
     TrustedTrnImportRequest trustedTrnImportRequest =
-        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"),
+            row,
+            SHARESIGHT);
 
     ShareSightTradeAdapter tradeAdapter =
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService, dateUtils);
@@ -89,7 +92,9 @@ public class TestAdapters {
     row.add("");
 
     TrustedTrnImportRequest trustedTrnImportRequest =
-        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"),
+            row,
+            SHARESIGHT);
 
     ShareSightTradeAdapter tradeAdapter =
         new ShareSightTradeAdapter(shareSightConfig, assetIngestService, dateUtils);
@@ -138,7 +143,7 @@ public class TestAdapters {
     when(assetIngestService.resolveAsset("NYSE", "ABC"))
         .thenReturn(AssetUtils.getAsset("NYSE", "ABC"));
     TrnInput result = shareSightTradeAdapter.from(
-        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row));
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row, SHARESIGHT));
 
     assertThat(result)
         .hasFieldOrPropertyWithValue("tradeAmount", new BigDecimal("105.00"));

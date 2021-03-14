@@ -43,7 +43,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         return if (assetResult == null) {
             null
         } else Asset(
-            null,
+            code.toUpperCase(),
             code.toUpperCase(),
             assetResult.name,
             assetResult.type,

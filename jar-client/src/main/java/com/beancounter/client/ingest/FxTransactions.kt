@@ -61,7 +61,7 @@ class FxTransactions(private val fxService: FxService, private val dateUtils: Da
     private fun pair(currency: Currency, trn: TrnInput, rate: BigDecimal?): IsoCurrencyPair? {
         return currencyUtils.getCurrencyPair(
             rate,
-            currencyUtils.getCurrency(trn.tradeCurrency!!),
+            currencyUtils.getCurrency(trn.tradeCurrency),
             currency
         )
     }

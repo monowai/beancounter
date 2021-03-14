@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service
 
 @Service
 class FigiAdapter {
-    fun transform(market: Market, assetCode: String?): Asset {
+    fun transform(market: Market, assetCode: String): Asset {
         return Asset(
             assetCode,
-            assetCode!!,
+            assetCode,
             assetCode,
             "Equity",
             market,

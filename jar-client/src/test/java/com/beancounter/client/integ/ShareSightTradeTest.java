@@ -1,5 +1,6 @@
 package com.beancounter.client.integ;
 
+import static com.beancounter.common.input.ImportFormat.SHARESIGHT;
 import static com.beancounter.common.utils.PortfolioUtils.getPortfolio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -95,7 +96,9 @@ class ShareSightTradeTest {
     List<String> row = getRow("buy", "0.8988", "2097.85");
     row.remove(ShareSightTradeAdapter.comments);
     TrustedTrnImportRequest trustedTrnImportRequest = new TrustedTrnImportRequest(
-        getPortfolio("Test", currencyUtils.getCurrency("NZD")), row
+        getPortfolio("Test", currencyUtils.getCurrency("NZD")),
+        row,
+        SHARESIGHT
     );
     TrnInput trn = shareSightRowProcessor.transform(trustedTrnImportRequest);
 
@@ -117,7 +120,9 @@ class ShareSightTradeTest {
 
     Portfolio portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"));
 
-    TrnInput trn = shareSightRowProcessor.transform(new TrustedTrnImportRequest(portfolio, row));
+    TrnInput trn = shareSightRowProcessor.transform(new TrustedTrnImportRequest(portfolio,
+        row,
+        SHARESIGHT));
 
     assertThat(trn)
         .hasFieldOrPropertyWithValue("callerRef.callerId", "1")
@@ -140,7 +145,7 @@ class ShareSightTradeTest {
 
     assertThrows(BusinessException.class, () ->
         shareSightRowProcessor.transform(new TrustedTrnImportRequest(
-            getPortfolio("Test", currencyUtils.getCurrency("NZD")), row))
+            getPortfolio("Test", currencyUtils.getCurrency("NZD")), row, SHARESIGHT))
     );
   }
 

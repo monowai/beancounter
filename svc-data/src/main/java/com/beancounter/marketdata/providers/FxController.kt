@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.controller
+package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.contracts.FxRequest

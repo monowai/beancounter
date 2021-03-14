@@ -23,7 +23,7 @@ data class Asset constructor(var code: String) {
     }
 
     @Id
-    var id: String? = null
+    lateinit var id: String
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var name: String? = null
@@ -41,7 +41,7 @@ data class Asset constructor(var code: String) {
     var priceSymbol: String? = null
 
     constructor(
-        id: String?,
+        id: String,
         code: String,
         name: String?,
         category: String?,
@@ -58,7 +58,7 @@ data class Asset constructor(var code: String) {
     }
 
     constructor(input: AssetInput, market: Market) :
-        this(null, input.code, input.name, null, market, market.code, input.code)
+        this(input.code, input.code, input.name, null, market, market.code, input.code)
 
     constructor(code: String, market: Market) : this(code) {
         this.market = market
@@ -69,9 +69,9 @@ data class Asset constructor(var code: String) {
     @get:JsonIgnore
     @get:Transient
     val isKnown: Boolean
-        get() = id != null && !code.equals(id, ignoreCase = true)
+        get() = !code.equals(id, ignoreCase = true)
 
     override fun toString(): String {
-        return "Asset(code=" + code + ", name=" + name + ", market=" + market + ")"
+        return "Asset(code=$code, name=$name, market=$market)"
     }
 }

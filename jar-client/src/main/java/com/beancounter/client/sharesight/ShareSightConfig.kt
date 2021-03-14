@@ -16,10 +16,10 @@ import java.util.Locale
 @Configuration
 @Import(DateUtils::class, ShareSightDividendAdapter::class, ShareSightTradeAdapter::class, ShareSightFactory::class, FxTransactions::class, AssetIngestService::class, Filter::class, ShareSightRowAdapter::class)
 class ShareSightConfig {
-    val numberFormat = NumberFormat.getInstance(Locale.US)
+    val numberFormat: NumberFormat = NumberFormat.getInstance(Locale.US)
 
     @Value("\${date.format:dd/MM/yyyy}")
-    val dateFormat: String? = null
+    lateinit var dateFormat: String
 
     // Backfill FX rates ignoring source file values
     @Value("\${rates:true}")

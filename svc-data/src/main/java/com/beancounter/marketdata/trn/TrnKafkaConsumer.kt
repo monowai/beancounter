@@ -27,12 +27,12 @@ class TrnKafkaConsumer {
     @KafkaListener(topics = ["#{@trnCsvTopic}"], errorHandler = "bcErrorHandler")
     @Throws(IOException::class)
     fun fromCsvImport(payload: String?): TrnResponse {
-        return trnImport.fromCsvImport(objectMapper.readValue(payload, TrustedTrnImportRequest::class.java))!!
+        return trnImport.fromCsvImport(objectMapper.readValue(payload, TrustedTrnImportRequest::class.java))
     }
 
     @KafkaListener(topics = ["#{@trnEventTopic}"], errorHandler = "bcErrorHandler")
     @Throws(JsonProcessingException::class)
     fun fromTrnRequest(payload: String?): TrnResponse {
-        return trnImport.fromTrnRequest(objectMapper.readValue(payload, TrustedTrnEvent::class.java))!!
+        return trnImport.fromTrnRequest(objectMapper.readValue(payload, TrustedTrnEvent::class.java))
     }
 }

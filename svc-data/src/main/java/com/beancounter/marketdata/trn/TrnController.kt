@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.controller
+package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.contracts.TrnRequest
@@ -7,8 +7,9 @@ import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.trn.TrnService
+import com.opencsv.CSVWriterBuilder
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/trns")
@@ -28,16 +30,19 @@ class TrnController {
     private lateinit var trnService: TrnService
     private lateinit var portfolioService: PortfolioService
     private lateinit var dateUtils: DateUtils
+    private lateinit var trnExport: TrnExport
 
     @Autowired
     fun setServices(
         trnService: TrnService,
         portfolioService: PortfolioService,
-        dateUtils: DateUtils
+        dateUtils: DateUtils,
+        trnExport: TrnExport,
     ) {
         this.trnService = trnService
         this.portfolioService = portfolioService
         this.dateUtils = dateUtils
+        this.trnExport = trnExport
     }
 
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -100,5 +105,24 @@ class TrnController {
             query.assetId,
             query.tradeDate
         )
+    }
+
+    @GetMapping(value = ["/portfolio/{portfolioId}/export"])
+    fun export(response: HttpServletResponse, @PathVariable("portfolioId") portfolioId: String) {
+        val portfolio = portfolioService.find(portfolioId)
+        response.contentType = MediaType.TEXT_PLAIN_VALUE
+        response.setHeader(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"${portfolio.code}.csv\""
+        )
+        val trnResponse = trnService.findForPortfolio(portfolio, dateUtils.date)
+        val csvWriter = CSVWriterBuilder(response.writer)
+            .withSeparator(',')
+            .build()
+        csvWriter.writeNext(trnExport.headers(), false)
+        for (datum in trnResponse.data) {
+            csvWriter.writeNext(trnExport.toArray(datum), false)
+        }
+        csvWriter.close()
     }
 }

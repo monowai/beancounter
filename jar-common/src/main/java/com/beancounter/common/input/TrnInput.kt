@@ -3,6 +3,7 @@ package com.beancounter.common.input
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -11,30 +12,34 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class TrnInput(val callerRef: CallerRef, val assetId: String, val trnType: TrnType, val quantity: BigDecimal) {
-    constructor(callerRef: CallerRef, assetId: String) : this(callerRef, assetId, TrnType.BUY, BigDecimal.ZERO)
+data class TrnInput(
+    val callerRef: CallerRef,
+    val assetId: String,
+    val trnType: TrnType = TrnType.BUY,
+    val quantity: BigDecimal = BigDecimal.ZERO,
+    val tradeCurrency: String = "USD",
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    val tradeDate: LocalDate = DateUtils().date,
+    val fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    val price: BigDecimal, // In trade Currency
+    val comments: String? = null
+
+) {
 
     var status: TrnStatus? = null
     var cashAsset: String? = null
-    var tradeCurrency: String? = null
     var cashCurrency: String? = null
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var tradeDate: LocalDate? = null
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null
-    var price: BigDecimal? = null // In trade Currency
-    var fees = BigDecimal.ZERO // In trade Currency
     var tax = BigDecimal.ZERO // In trade Currency
     var tradeAmount = BigDecimal.ZERO // In trade Currency
     var cashAmount: BigDecimal? = null
     var tradeCashRate: BigDecimal? = null // Trade CCY to cash settlement currency
     var tradeBaseRate: BigDecimal? = null // Trade Currency to system Base Currency
     var tradePortfolioRate: BigDecimal? = null // Trade CCY to portfolio reference  currency
-    var comments: String? = null
 }

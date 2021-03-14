@@ -40,7 +40,7 @@ class EventWriter {
         val corporateEvent = CorporateEvent(
             TrnType.DIVI,
             marketData.source,
-            marketData.asset.id!!,
+            marketData.asset.id,
             marketData.priceDate!!,
             marketData.dividend!!
         )

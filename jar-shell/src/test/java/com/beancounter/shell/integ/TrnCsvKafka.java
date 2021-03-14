@@ -1,5 +1,6 @@
 package com.beancounter.shell.integ;
 
+import static com.beancounter.common.input.ImportFormat.SHARESIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
@@ -54,6 +55,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class TrnCsvKafka {
 
   private final List<String> row = new ArrayList<>();
+  @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private EmbeddedKafkaBroker embeddedKafkaBroker;
   @Autowired
@@ -88,7 +90,9 @@ public class TrnCsvKafka {
   void is_TrnRequestSendingCorrectly() throws Exception {
 
     TrustedTrnImportRequest trnRequest =
-        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"), row);
+        new TrustedTrnImportRequest(PortfolioUtils.getPortfolio("TEST"),
+            row,
+            SHARESIGHT);
     kafkaTrnProducer.write(trnRequest);
 
     log.info("Waiting for Result");

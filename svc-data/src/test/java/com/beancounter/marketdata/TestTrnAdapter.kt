@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.fromKey
+import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
-import java.util.ArrayList
 
 @SpringBootTest(classes = [TrnAdapter::class])
 internal class TestTrnAdapter {
@@ -42,30 +41,29 @@ internal class TestTrnAdapter {
     fun is_InputToTrn() {
         val trnInput = TrnInput(
             CallerRef("ABC", "1", "1"),
-            toKey("MSFT", "NASDAQ"),
-            TrnType.BUY, BigDecimal.TEN
+            getAsset("NASDAQ", "MSFT").id,
+            TrnType.BUY,
+            BigDecimal.TEN,
+            "USD",
+            DateUtils().getDate("2019-10-10"),
+            price = BigDecimal("10.99"),
+            comments = "Comment"
         )
         trnInput.cashAsset = toKey("USD-X", "USER")
-        trnInput.tradeDate = DateUtils().getDate("2019-10-10")
         trnInput.settleDate = DateUtils().getDate("2019-10-10")
-        trnInput.fees = BigDecimal.ONE
         trnInput.cashAmount = BigDecimal("100.99")
         trnInput.tradeAmount = BigDecimal("100.99")
-        trnInput.price = BigDecimal("10.99")
         trnInput.tradeBaseRate = BigDecimal("1.99")
         trnInput.tradeCashRate = BigDecimal("1.99")
         trnInput.tradePortfolioRate = BigDecimal("10.99")
         trnInput.tradeBaseRate = BigDecimal.ONE
-        trnInput.tradeCurrency = "USD"
         trnInput.cashCurrency = "USD"
-        trnInput.comments = "Comment"
-        val trnInputCollection: MutableCollection<TrnInput> = ArrayList()
-        trnInputCollection.add(trnInput)
-        val trnRequest = TrnRequest("abc", trnInputCollection)
+
+        val trnRequest = TrnRequest("abc", arrayOf(trnInput))
         Mockito.`when`(portfolioService!!.find("abc"))
             .thenReturn(getPortfolio("abc"))
         Mockito.`when`(assetService!!.find(trnInput.assetId))
-            .thenReturn(fromKey(trnInput.assetId))
+            .thenReturn(getAsset("NASDAQ", "MSFT"))
         Mockito.`when`(currencyService!!.getCode("USD"))
             .thenReturn(currencyUtils.getCurrency("USD"))
         val trnResponse = trnAdapter!!.convert(portfolioService.find("abc"), trnRequest)

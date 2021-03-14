@@ -5,6 +5,7 @@ import com.beancounter.client.sharesight.ShareSightFactory;
 import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Asset;
 import com.beancounter.shell.ingest.TrnWriter;
+import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -29,7 +30,6 @@ public class KafkaTrnProducer implements TrnWriter {
   private ShareSightFactory shareSightFactory;
   private final KafkaTemplate<String, TrustedTrnImportRequest> kafkaCsvTrnProducer;
 
-  @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   public KafkaTrnProducer(KafkaTemplate<String, TrustedTrnImportRequest> kafkaCsvTrnProducer) {
     this.kafkaCsvTrnProducer = kafkaCsvTrnProducer;
   }
@@ -52,17 +52,20 @@ public class KafkaTrnProducer implements TrnWriter {
   @Override
   @SneakyThrows
   public void write(TrustedTrnImportRequest trustedTrnImportRequest) {
-    TrnAdapter adapter = shareSightFactory.adapter(trustedTrnImportRequest.getRow());
-    Asset asset = adapter.resolveAsset(trustedTrnImportRequest.getRow());
-    if (asset == null) {
-      return;
+    List<String> row = trustedTrnImportRequest.getRow();
+    if (row != null) {
+      TrnAdapter adapter = shareSightFactory.adapter(row);
+      Asset asset = adapter.resolveAsset(trustedTrnImportRequest.getRow());
+      if (asset == null) {
+        return;
+      }
+      ListenableFuture<SendResult<String, TrustedTrnImportRequest>> result =
+          kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnImportRequest);
+
+      SendResult<String, TrustedTrnImportRequest> sendResult = result.get();
+
+      log.trace("recordMetaData: {}", sendResult.getRecordMetadata().toString());
     }
-    ListenableFuture<SendResult<String, TrustedTrnImportRequest>> result =
-        kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnImportRequest);
-
-    SendResult<String, TrustedTrnImportRequest> sendResult = result.get();
-
-    log.trace("recordMetaData: {}", sendResult.getRecordMetadata().toString());
   }
 
   @Override

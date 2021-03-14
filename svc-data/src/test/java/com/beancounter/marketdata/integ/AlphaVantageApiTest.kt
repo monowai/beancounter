@@ -106,7 +106,7 @@ internal class AlphaVantageApiTest {
         @JvmStatic
         fun is_ApiRunning() {
             assertThat(alpha).isNotNull
-            assertThat(alpha.isRunning).isTrue()
+            assertThat(alpha.isRunning).isTrue
         }
     }
 
@@ -351,7 +351,7 @@ internal class AlphaVantageApiTest {
             .getMarketData(priceRequest)
 
         // Coverage - WTD does not support this market
-        assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(nasdaq)).isFalse()
+        assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(nasdaq)).isFalse
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
@@ -400,7 +400,7 @@ internal class AlphaVantageApiTest {
         val asset = data["key"]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
-            asset.id!!,
+            asset.id,
             dateUtils.date
         )
         if (priceResult.isPresent) {
@@ -425,13 +425,13 @@ internal class AlphaVantageApiTest {
         assetInputMap["key"] = AssetInput("NASDAQ", "KMI")
         val (dataMap) = assetService.process(AssetRequest(assetInputMap))
         val asset = dataMap["key"]
-        assertThat(asset!!.id).isNotNull()
+        assertThat(asset!!.id).isNotNull
         priceService.setEventWriter(mockEventWriter)
         marketDataService.backFill(asset)
         Thread.sleep(300)
         val date = dateUtils.getDate("2020-05-01")
-        assertThat(date).isNotNull()
-        val marketData = priceService.getMarketData(asset.id!!, date)
+        assertThat(date).isNotNull
+        val marketData = priceService.getMarketData(asset.id, date)
         if (marketData.isPresent) {
             marketData.ifPresent { data: MarketData ->
                 Mockito.verify(

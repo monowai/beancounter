@@ -1,5 +1,6 @@
 package com.beancounter.client.integ;
 
+import static com.beancounter.common.input.ImportFormat.SHARESIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.beancounter.client.config.ClientConfig;
@@ -105,7 +106,11 @@ class ShareSightAdapterTest {
     Portfolio portfolio = PortfolioUtils.getPortfolio("TEST");
     for (List<String> columnValues : rows) {
       TrustedTrnImportRequest trustedTrnImportRequest =
-          new TrustedTrnImportRequest(portfolio, new CallerRef(), null, columnValues);
+          new TrustedTrnImportRequest(portfolio,
+              SHARESIGHT,
+              new CallerRef(),
+              "",
+              columnValues);
 
       trnInputs.add(shareSightRowProcessor
           .transform(trustedTrnImportRequest));

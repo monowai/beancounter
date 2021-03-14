@@ -1,50 +1,55 @@
 {
-  "data" : [ {
-    "callerRef" : {
-      "provider" : "SHEETS",
-      "batch" : null,
-      "callerId" : null
+  "portfolioId": "TEST",
+  "data": [
+    {
+      "callerRef": {
+        "provider": "TEST",
+        "batch": null,
+        "callerId": "1"
+      },
+      "assetId": "BguoVZpoRxWjWrITp7DEuw",
+      "trnType": "BUY",
+      "quantity": 15,
+      "tradeCurrency": "USD",
+      "tradeDate": "2019-07-26",
+      "fees": 4,
+      "price": 136.34,
+      "comments": "",
+      "status": null,
+      "cashAsset": null,
+      "cashCurrency": "NZD",
+      "settleDate": null,
+      "tax": 0,
+      "tradeAmount": 2049.1,
+      "cashAmount": null,
+      "tradeCashRate": 0.66428103,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 0.66428103
     },
-    "trnType" : "BUY",
-    "assetId" : "BguoVZpoRxWjWrITp7DEuw",
-    "cashAsset" : null,
-    "tradeCurrency" : "USD",
-    "cashCurrency" : "NZD",
-    "tradeDate" : "2019-07-26",
-    "settleDate" : null,
-    "quantity" : 80,
-    "price" : 25.83,
-    "fees" : 4.42,
-    "tax" : 0,
-    "tradeAmount" : 2,
-    "cashAmount" : null,
-    "tradeCashRate" : 0.66428103,
-    "tradeBaseRate" : 1,
-    "tradePortfolioRate" : 0.66428103,
-    "comments" : "646.08"
-  }, {
-    "callerRef" : {
-      "provider" : "SHEETS",
-      "batch" : null,
-      "callerId" : null
-    },
-    "trnType" : "DIVI",
-    "assetId" : "BguoVZpoRxWjWrITp7DEuw",
-    "cashAsset" : null,
-    "tradeCurrency" : "USD",
-    "cashCurrency" : null,
-    "tradeDate" : "2019-07-26",
-    "settleDate" : null,
-    "quantity" : 0,
-    "price" : null,
-    "fees" : 0,
-    "tax" : 0.00,
-    "tradeAmount" : 15.85,
-    "cashAmount" : 15.85,
-    "tradeCashRate" : 1,
-    "tradeBaseRate" : 1,
-    "tradePortfolioRate" : 0.66428103,
-    "comments" : "Dividend"
-  } ],
-  "portfolioId" : "TEST"
+    {
+      "callerRef": {
+        "provider": "TEST",
+        "batch": null,
+        "callerId": "2"
+      },
+      "assetId": "BguoVZpoRxWjWrITp7DEuw",
+      "trnType": "DIVI",
+      "quantity": 0,
+      "tradeCurrency": "USD",
+      "tradeDate": "2019-07-26",
+      "fees": 0,
+      "price": 0,
+      "comments": "Dividend of 51.0 cents per share",
+      "status": null,
+      "cashAsset": null,
+      "cashCurrency": null,
+      "settleDate": null,
+      "tax": 0,
+      "tradeAmount": 7.65,
+      "cashAmount": 7.65,
+      "tradeCashRate": 1,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 0.66428103
+    }
+  ]
 }

@@ -26,7 +26,7 @@ data class CorporateEvent constructor(
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var recordDate: LocalDate,
 
-    @Column(precision = 15, scale = 4) var rate: BigDecimal? = null,
+    @Column(precision = 15, scale = 4) var rate: BigDecimal,
     @Column(precision = 15, scale = 4) var split: BigDecimal? = null,
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

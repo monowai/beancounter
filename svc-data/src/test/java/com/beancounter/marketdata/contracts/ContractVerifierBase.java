@@ -309,9 +309,8 @@ public class ContractVerifierBase {
     Set<String> keys = assetUpdateResponse.getData().keySet();
     for (String key : keys) {
       Asset theAsset = assetUpdateResponse.getData().get(key);
-      if (theAsset.getId() != null) {
-        Mockito.when(assetService.find(theAsset.getId())).thenReturn(theAsset);
-      }
+      theAsset.getId();
+      Mockito.when(assetService.find(theAsset.getId())).thenReturn(theAsset);
       Mockito.when(assetService.findLocally(
           theAsset.getMarket().getCode().toUpperCase(),
           theAsset.getCode().toUpperCase()))

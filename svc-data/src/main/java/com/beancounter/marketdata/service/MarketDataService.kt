@@ -55,7 +55,7 @@ class MarketDataService @Autowired internal constructor(
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
                 val mpDate = marketDataProvider.getDate(asset.market, priceRequest)
-                val md = priceService.getMarketData(asset.id!!, mpDate)
+                val md = priceService.getMarketData(asset.id, mpDate)
                 if (md.isPresent) {
                     val mdValue = md.get()
                     mdValue.asset = asset

@@ -168,12 +168,12 @@ class TrnService internal constructor(
     }
 
     fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
-        val endDate = trustedTrnEvent.trnInput.tradeDate!!.plusDays(20)
+        val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(20)
         return trnRepository.findExisting(
             trustedTrnEvent.portfolio.id,
             trustedTrnEvent.trnInput.assetId,
             trustedTrnEvent.trnInput.trnType,
-            trustedTrnEvent.trnInput.tradeDate!!,
+            trustedTrnEvent.trnInput.tradeDate,
             endDate
         )
     }

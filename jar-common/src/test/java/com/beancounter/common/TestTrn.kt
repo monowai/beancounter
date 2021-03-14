@@ -11,7 +11,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -28,26 +28,23 @@ internal class TestTrn {
     @Throws(Exception::class)
     fun is_TransactionRequestSerializing() {
         val trnInput = TrnInput(
-            CallerRef("1", "1", "ABC"),
-            toKey("MSFT", "NASDAQ")
+            callerRef = CallerRef("1", "1", "ABC"),
+            tradeDate = DateUtils().getDate("2019-10-10"),
+            assetId = getAsset("NASDAQ", "MSFT").id,
+            fees = BigDecimal.ONE,
+            price = BigDecimal("10.99"),
+            comments = "Comment"
         )
 
-        trnInput.tradeCurrency = "USD"
         trnInput.cashCurrency = "USD"
         trnInput.cashAsset = toKey("USD-X", "USER")
-        trnInput.tradeDate = DateUtils().getDate("2019-10-10")
         trnInput.settleDate = DateUtils().getDate("2019-10-10")
-        trnInput.fees = BigDecimal.ONE
         trnInput.cashAmount = BigDecimal("100.99")
         trnInput.tradeAmount = BigDecimal("100.99")
-        trnInput.price = BigDecimal("10.99")
         trnInput.tradeBaseRate = BigDecimal("1.99")
         trnInput.tradePortfolioRate = BigDecimal("10.99")
         trnInput.tradeBaseRate = BigDecimal.ONE
-        trnInput.comments = "Comment"
-        val trnInputs: MutableCollection<TrnInput> = ArrayList()
-        trnInputs.add(trnInput)
-        val trnRequest = TrnRequest("abc", trnInputs)
+        val trnRequest = TrnRequest("abc", arrayOf(trnInput))
         val json = mapper.writeValueAsString(trnRequest)
         val fromJson = mapper.readValue(json, TrnRequest::class.java)
         assertThat(fromJson.data).hasSize(1)
@@ -62,7 +59,7 @@ internal class TestTrn {
     fun is_TransactionResponseSerializing() {
         val trnType = TrnType.BUY
         val nyse = Market("NYSE", USD)
-        val asset = AssetUtils.getAsset(nyse, "TEST")
+        val asset = getAsset(nyse, "TEST")
         val portfolio = getPortfolio("TWEE")
         portfolio.owner = SystemUser("123", "whee", true)
         val trn = Trn(trnType, asset, BigDecimal("100.01"))
@@ -138,7 +135,7 @@ internal class TestTrn {
 
     @Test
     fun is_TradeCurrencySetFromAsset() {
-        val trn = Trn(TrnType.BUY, AssetUtils.getAsset("NYSE", "ABC"))
+        val trn = Trn(TrnType.BUY, getAsset("NYSE", "ABC"))
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
     }

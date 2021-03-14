@@ -91,9 +91,6 @@ class AssetService internal constructor(
                 throw BusinessException(String.format("No asset found for %s:%s", marketCode, code))
             }
             if (marketService.canPersist(market)) {
-                if (asset.id == null) {
-                    asset.id = KeyGenUtils.format(UUID.randomUUID())
-                }
                 asset = assetRepository.save(asset)
             }
         }

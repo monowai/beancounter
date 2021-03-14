@@ -99,7 +99,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]
             if (position!!.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
-                assetService.backFillEvents(position.asset.id!!)
+                assetService.backFillEvents(position.asset.id)
             }
         }
     }

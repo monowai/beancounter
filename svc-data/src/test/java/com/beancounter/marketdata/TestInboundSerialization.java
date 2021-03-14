@@ -35,7 +35,7 @@ public class TestInboundSerialization {
 
     assertThat(fromMsg.getPortfolio()).usingRecursiveComparison().isEqualTo(payload.getPortfolio());
     assertThat(fromMsg.getRow()).contains(payload.getRow().toArray(new String[] {}));
-    assertThat(fromMsg.getCallerRef()).isNull();
+    assertThat(fromMsg.getCallerRef()).isNotNull();
   }
 
   @Test

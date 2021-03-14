@@ -17,7 +17,6 @@ import com.google.common.base.Splitter;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +66,6 @@ public class ShareSightDividendAdapter implements TrnAdapter {
     assert trustedTrnImportRequest != null;
     List<String> row = trustedTrnImportRequest.getRow();
     try {
-      assert row != null;
       Asset asset = resolveAsset(row);
       if (asset == null) {
         log.error("Unable to resolve asset [{}]", row);
@@ -77,11 +75,18 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       BigDecimal tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
       TrnInput trnInput = new TrnInput(
           new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
-          Objects.requireNonNull(asset.getId()),
-          TrnType.DIVI, BigDecimal.ZERO
+          asset.getId(),
+          TrnType.DIVI,
+          BigDecimal.ZERO,
+          row.get(currency),
+          dateUtils.getDate(row.get(date),
+              shareSightConfig.getDateFormat(),
+              dateUtils.getZoneId()),
+          BigDecimal.ZERO,
+          BigDecimal.ZERO,
+          row.get(comments)
       );
 
-      trnInput.setTradeCurrency(row.get(currency));
       trnInput.setTax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate));
       trnInput.setTradeAmount(
           MathUtils.multiply(
@@ -90,10 +95,6 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       trnInput.setCashAmount(MathUtils.multiply(
           MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
           tradeRate));
-      trnInput.setTradeDate(dateUtils.getDate(row.get(date),
-          shareSightConfig.getDateFormat(),
-          dateUtils.getZoneId()));
-      trnInput.setComments(row.get(comments));
       trnInput.setTradeCashRate(shareSightConfig.isCalculateRates()
           || numberUtils.isUnset(tradeRate)
           ? null : tradeRate);

@@ -4,5 +4,5 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 
 interface RowAdapter {
-    fun transform(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput?
+    fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput
 }

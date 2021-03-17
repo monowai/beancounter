@@ -86,7 +86,7 @@
     "autoprefixer": "^10",
     "babel-jest": "^26.3.0",
     "eslint": "^7.22.0",
-    "eslint-config-prettier": "^7",
+    "eslint-config-prettier": "^8",
     "eslint-plugin-jest": "^24",
     "eslint-plugin-jest-dom": "^3.6.5",
     "eslint-plugin-prettier": "^3",

@@ -58,7 +58,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/helper-call-delegate": "^7.12.13",
-    "@babel/preset-env": "^7.12.16",
+    "@babel/preset-env": "^7.13.12",
     "@emotion/jest": "^11.2.0",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",

@@ -1,4 +1,6 @@
 /* eslint-disable */
+// const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin')
+// const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { findIndex, has, remove } = require('ramda');
 
 module.exports = {
@@ -21,19 +23,6 @@ module.exports = {
             flexbox: 'no-2009'
           })
         ]
-      }
-    },
-    {
-      name: 'typescript',
-      options: {
-        useBabel: true,
-        useEslint: true,
-        forkTsChecker: {
-          tsconfig: './tsconfig.json',
-          tslint: false, // All linting is via ESLINT
-          watch: './src',
-          typeCheck: true
-        }
       }
     }
   ],
@@ -59,9 +48,16 @@ module.exports = {
       }
     };
 
+
     return {
       ...config,
       node: { fs: 'empty' },
+      //plugins: [
+        // new HtmlWebpackInlineSourcePlugin(),
+        // new HtmlWebpackPlugin({
+        //   inlineSource: '.(ts|tsx|css|scss|sass)$' // embed all javascript and css inline
+        // })
+      //],
       module: {
         ...module,
         rules: [...remove(fileLoaderIdx, 1, rules), fileLoader, newRule]

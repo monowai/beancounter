@@ -6,7 +6,7 @@ buildscript {
         springWebVersion = '5.2.12.RELEASE'
         springKafka='2.6.6'
         jacksonVersion = '2.12.1'
-        lombokVersion = '1.18.16'
+        lombokVersion = '1.18.18'
         springDependencyManagement='1.0.11.RELEASE'
         resilience4jVersion='1.7.0'
         assertJ='3.19+'

@@ -1,10 +1,10 @@
 import React from "react";
 import "../css/styles.sass";
-import { translate } from "../common/i18nConfig";
 import { MoneyValues, Portfolio } from "../types/beancounter";
 import { FormatNumber } from "../common/MoneyUtils";
 import { ValueIn } from "../types/valueBy";
 import { Link } from "react-router-dom";
+import { translate } from "../common/i18nUtils";
 
 export default function StatsHeader(props: { portfolio: Portfolio }): JSX.Element {
   return (

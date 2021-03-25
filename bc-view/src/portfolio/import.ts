@@ -1,5 +1,4 @@
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import logger from "../common/configLogging";
 import { DelimitedImport } from "../types/app";
 
 export function writeRows(params: DelimitedImport): number {
@@ -21,7 +20,7 @@ export function writeRows(params: DelimitedImport): number {
           )
           .catch((err) => {
             if (err.response) {
-              logger.error(
+              console.error(
                 "axios error [%s]: [%s]",
                 err.response.status,
                 err.response.data.message
@@ -40,7 +39,7 @@ export function writeRows(params: DelimitedImport): number {
           .then(() => (purged = true))
           .catch((err) => {
             if (err.response) {
-              logger.error(
+              console.error(
                 "axios error [%s]: [%s]",
                 err.response.status,
                 err.response.data.message
@@ -59,7 +58,7 @@ export function writeRows(params: DelimitedImport): number {
         )
         .catch((err) => {
           if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     }

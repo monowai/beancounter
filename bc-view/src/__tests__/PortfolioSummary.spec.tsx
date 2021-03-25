@@ -4,7 +4,6 @@ import { cleanup, render } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import { Currency, Portfolio, SystemUser } from "../types/beancounter";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../common/configLogging";
 
 afterEach(cleanup);
 
@@ -23,7 +22,7 @@ describe("<PortfolioStats />", () => {
 
   it("should match snapshot", () => {
     const { keycloak, initialized } = useKeycloak();
-    logger.info(initialized + "/" + keycloak?.token);
+    console.info(initialized + "/" + keycloak?.token);
     const owner: SystemUser = { active: true, email: "wow" };
     const portfolio: Portfolio = {
       id: "abc",

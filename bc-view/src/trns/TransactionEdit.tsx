@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import logger from "../common/configLogging";
 import { Transaction, TrnInput } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useCurrencies } from "../static/hooks";
@@ -11,10 +10,10 @@ import { ErrorPage } from "../errors/ErrorPage";
 import { useTransaction } from "./hooks";
 import { isDone } from "../types/typeUtils";
 import { currencyOptions } from "../static/IsoHelper";
-import { translate } from "../common/i18nConfig";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ShowError } from "../errors/ShowError";
+import { translate } from "../common/i18nUtils";
 
 export function TransactionEdit(portfolioId: string, trnId: string): React.ReactElement {
   const { keycloak } = useKeycloak();
@@ -55,13 +54,13 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           headers: getBearerToken(keycloak?.token),
         })
         .then(() => {
-          logger.debug("<<delete Trn");
+          console.debug("<<delete Trn");
           setSubmitted(true);
         })
         .catch((err) => {
           setError(err);
           if (err.response) {
-            logger.error("deleteTrn [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("deleteTrn [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     }
@@ -78,13 +77,13 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           }
         )
         .then(() => {
-          logger.debug("<<post Trn");
+          console.debug("<<post Trn");
           setSubmitted(true);
         })
         .catch((err) => {
           setError(err);
           if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     } else {
@@ -93,13 +92,13 @@ export function TransactionEdit(portfolioId: string, trnId: string): React.React
           headers: getBearerToken(keycloak?.token),
         })
         .then(() => {
-          logger.debug("<<patch Trn");
+          console.debug("<<patch Trn");
           setSubmitted(true);
         })
         .catch((err) => {
           setError(err);
           if (err.response) {
-            logger.error("patchedTrn [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("patchedTrn [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
       // New Portfolio

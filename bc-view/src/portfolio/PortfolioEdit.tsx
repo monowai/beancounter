@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import logger from "../common/configLogging";
 import { Portfolio, PortfolioInput } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useCurrencies } from "../static/hooks";
@@ -48,14 +47,14 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
             }
           )
           .then((result) => {
-            logger.debug("<<post Portfolio");
+            console.debug("<<post Portfolio");
             setPortfolioId(result.data[0].id);
             setSubmitted(true);
           })
           .catch((err) => {
             setError(err);
             if (err.response) {
-              logger.error(
+              console.error(
                 "axios error [%s]: [%s]",
                 err.response.status,
                 err.response.data.message
@@ -68,14 +67,14 @@ export function PortfolioEdit(portfolioId: string): React.ReactElement {
             headers: getBearerToken(keycloak.token),
           })
           .then((result) => {
-            logger.debug("<<patched Portfolio");
+            console.debug("<<patched Portfolio");
             setPortfolioId(result.data.id);
             setSubmitted(true);
           })
           .catch((err) => {
             setError(err);
             if (err.response) {
-              logger.error(
+              console.error(
                 "patchPortfolio [%s]: [%s]",
                 err.response.status,
                 err.response.data.message

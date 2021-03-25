@@ -5,8 +5,8 @@ import { useAssetTransactions } from "./hooks";
 import { useAsset } from "../assets/hooks";
 import NumberFormat from "react-number-format";
 import { isDone } from "../types/typeUtils";
-import { translate } from "../common/i18nConfig";
 import { ShowError } from "../errors/ShowError";
+import { translate } from "../common/i18nUtils";
 
 export function Trades(portfolioId: string, assetId: string): React.ReactElement {
   const trnsResult = useAssetTransactions(portfolioId, assetId, "events");

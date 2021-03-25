@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Portfolio } from "../types/beancounter";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { writeRows } from "./import";
 import { DelimitedImport } from "../types/app";
@@ -18,8 +17,8 @@ export function TrnDropZone(props: {
     (acceptedFiles) => {
       acceptedFiles.forEach((file) => {
         const reader = new FileReader();
-        reader.onabort = () => logger.debug("file reading was aborted");
-        reader.onerror = () => logger.debug("file reading has failed");
+        reader.onabort = () => console.debug("file reading was aborted");
+        reader.onerror = () => console.debug("file reading has failed");
         reader.onload = () => {
           // Do whatever you want with the file contents
           if (typeof reader.result === "string") {
@@ -32,7 +31,7 @@ export function TrnDropZone(props: {
               token: keycloak?.token,
             };
             const rows = writeRows(params);
-            logger.debug("<<POST trnUpload sent %s", rows);
+            console.debug("<<POST trnUpload sent %s", rows);
             _axios
               .post<string>(
                 "/upload/trn",
@@ -43,7 +42,7 @@ export function TrnDropZone(props: {
               )
               .catch((err) => {
                 if (err.response) {
-                  logger.error(
+                  console.error(
                     "axios error [%s]: [%s]",
                     err.response.status,
                     err.response.data.message

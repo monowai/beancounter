@@ -3,14 +3,14 @@ import { StaticRouter } from "react-router-dom";
 import express from "express";
 import { renderToString } from "react-dom/server";
 import { Helmet } from "react-helmet";
-import i18n from "./common/i18nConfig";
+import i18n from "./server/i18nConfig";
 import Backend from "i18next-node-fs-backend";
 import { I18nextProvider } from "react-i18next"; // has no proper import yet
 import * as path from "path";
 import fs from "fs";
 import cors from "cors";
 import i18nextMiddleware from "i18next-express-middleware";
-import logger from "./common/configLogging";
+import logger from "./server/nodeLogging";
 import App from "./App";
 import { bcConfig } from "./common/config";
 import { deleteData, getData, patchData, postData } from "./bff/dataApi";

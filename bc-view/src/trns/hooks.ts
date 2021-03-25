@@ -3,7 +3,6 @@ import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import logger from "../common/configLogging";
 import { BcResult } from "../types/app";
 
 export function useAssetTransactions(
@@ -25,7 +24,7 @@ export function useAssetTransactions(
         })
         .catch((err) => {
           if (err.response) {
-            logger.error("asset trns [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("asset trns [%s]: [%s]", err.response.status, err.response.data.message);
           }
           setError(err);
         });
@@ -49,7 +48,7 @@ export function useTransaction(portfolioId: string, trnId: string): BcResult<Tra
         })
         .catch((err) => {
           if (err.response) {
-            logger.error("trns Id [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("trns Id [%s]: [%s]", err.response.status, err.response.data.message);
           }
           setError(err);
         });

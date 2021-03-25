@@ -1,13 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import { URL } from "url";
 import express from "express";
-import logger from "./configLogging";
 
 export const _axios: AxiosInstance = axios.create();
 
-export const svcUrl = (req: express.Request, endpoint: string): URL => {
-  return new URL(req.originalUrl.replace("/bff/", "/api/"), endpoint);
-};
 export const getBearerToken = (token?: string): { Authorization: string } => ({
   Authorization: `Bearer ${token !== undefined ? token : "undefined"}`,
 });
@@ -21,10 +16,10 @@ export const makeRequest = async (
     .then((response) => res.json(response.data.data))
     .catch((err) => {
       if (err.response) {
-        logger.debug("bff - url: %s status:%s", req.url, err.response.status);
+        console.debug("bff - url: %s status:%s", req.url, err.response.status);
         res.status(err.response.status || 500).send(err);
       }
       res.status(500);
-      logger.error(err);
+      console.error(err);
     });
 };

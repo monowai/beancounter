@@ -1,5 +1,5 @@
-import { translate } from "../common/i18nConfig";
 import React from "react";
+import { translate } from "../common/i18nUtils";
 
 export function Header(props: { groupKey: string }): JSX.Element {
   return (

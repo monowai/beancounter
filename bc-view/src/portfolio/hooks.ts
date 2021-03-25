@@ -1,6 +1,5 @@
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { Portfolio } from "../types/beancounter";
-import logger from "../common/configLogging";
 import { useEffect, useState } from "react";
 import { AxiosError } from "axios";
 import { useKeycloak } from "@react-keycloak/ssr";
@@ -13,19 +12,18 @@ export function usePortfolios(): BcResult<Portfolio[]> {
   const { keycloak } = useKeycloak();
   useEffect(() => {
     if (keycloak?.token) {
-      logger.info("Find Portfolios!");
+      console.info("Find Portfolios!");
       _axios
         .get<Portfolio[]>("/bff/portfolios", {
           headers: getBearerToken(keycloak?.token),
         })
         .then((result) => {
-          logger.debug("<<retrieved Portfolio");
+          console.debug("<<retrieved Portfolio");
           setPortfolios(result.data);
         })
         .catch((err) => {
-          logger.error("ERR!");
           if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
             if (err.response.status != 403) {
               setError(err);
             }
@@ -55,14 +53,14 @@ export function usePortfolio(id: string): BcResult<Portfolio> {
           headers: getBearerToken(keycloak?.token),
         })
         .then((result) => {
-          logger.debug("<<got Portfolio");
+          console.debug("<<got Portfolio");
           setPortfolio(result.data);
           setError(undefined);
         })
         .catch((err) => {
           setError(err);
           if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     }

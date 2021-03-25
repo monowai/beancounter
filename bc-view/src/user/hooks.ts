@@ -1,6 +1,5 @@
 import { SystemUser } from "../types/beancounter";
 import { useEffect, useState } from "react";
-import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/ssr";
 import { AxiosError } from "axios";
@@ -14,19 +13,19 @@ export function useSystemUser(): BcResult<SystemUser> {
   const [error, setError] = useState<AxiosError>();
   useEffect(() => {
     if (keycloak?.token) {
-      logger.debug(">>get SystemUser");
+      console.debug(">>get SystemUser");
       _axios
         .get<SystemUser>("/bff/me", {
           headers: getBearerToken(keycloak?.token),
         })
         .then((result) => {
-          logger.debug("<<fetched SystemUser");
+          console.debug("<<fetched SystemUser");
           setSystemUser(result.data);
         })
         .catch((err) => {
-          logger.error(err.message);
+          console.error(err.message);
           if (err.response.status != 401) {
-            logger.info("fetch user");
+            console.info("fetch user");
             _axios
               .post<SystemUser>(
                 "/bff/register",
@@ -36,7 +35,7 @@ export function useSystemUser(): BcResult<SystemUser> {
                 }
               )
               .then((result) => {
-                logger.debug("<<fetched SystemUser " + result.data.email);
+                console.debug("<<fetched SystemUser " + result.data.email);
                 setSystemUser(result.data);
               })
               .catch((err) => {

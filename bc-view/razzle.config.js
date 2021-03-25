@@ -1,6 +1,4 @@
 /* eslint-disable */
-// const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin')
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { findIndex, has, remove } = require('ramda');
 
 module.exports = {
@@ -51,13 +49,6 @@ module.exports = {
 
     return {
       ...config,
-      node: { fs: 'empty' },
-      //plugins: [
-        // new HtmlWebpackInlineSourcePlugin(),
-        // new HtmlWebpackPlugin({
-        //   inlineSource: '.(ts|tsx|css|scss|sass)$' // embed all javascript and css inline
-        // })
-      //],
       module: {
         ...module,
         rules: [...remove(fileLoaderIdx, 1, rules), fileLoader, newRule]

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
-import logger from "../common/configLogging";
 import { AxiosError } from "axios";
 import { SystemUser } from "../types/beancounter";
 import { _axios, getBearerToken } from "../common/axiosUtils";
@@ -13,7 +12,7 @@ const Registration = (): JSX.Element => {
 
   useEffect(() => {
     const register = async (): Promise<void> => {
-      logger.debug("Registering %s", keycloak?.token);
+      console.debug("Registering %s", keycloak?.token);
       await _axios
         .post<SystemUser>(
           "/bff/register",
@@ -24,12 +23,12 @@ const Registration = (): JSX.Element => {
         )
         .then((result) => {
           setSystemUser(result.data);
-          logger.debug("<<fetched registered %s", result);
+          console.debug("<<fetched registered %s", result);
         })
         .catch((err) => {
           setError(err);
           if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     };

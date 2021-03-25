@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
 import { initConfig } from "../common/kcConfig";
 import { ErrorPage } from "../errors/ErrorPage";
-import logger from "../common/configLogging";
 
 export function useLogin(): undefined | boolean {
   const { keycloak } = useKeycloak();
@@ -11,7 +10,7 @@ export function useLogin(): undefined | boolean {
       keycloak
         ?.init(initConfig)
         .then(function (authenticated) {
-          logger.debug(authenticated);
+          console.debug(authenticated);
           return authenticated;
         })
         .catch((err) => {

@@ -1,4 +1,3 @@
-import logger from "../common/configLogging";
 import express from "express";
 import kafka from "kafka-node";
 import { bcConfig } from "../common/config";
@@ -17,7 +16,7 @@ function writeTrn(trnRequest: TransactionUpload): void {
     ];
     producer.send(payloads, (err) => {
       if (err) {
-        logger.error(
+        console.error(
           "[kafka-producer -> %s]: broker send failed. %s",
           bcConfig.topicCsvTrn,
           err.message
@@ -25,7 +24,7 @@ function writeTrn(trnRequest: TransactionUpload): void {
       }
     });
   } catch (e) {
-    logger.error("%s", e.toString());
+    console.error("%s", e.toString());
   }
 }
 

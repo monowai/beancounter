@@ -2,7 +2,7 @@ import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import XHR from "i18next-xhr-backend";
-import logger from "./configLogging";
+import logger from "./nodeLogging";
 
 if (process && !process.release) {
   i18n.use(XHR).use(LanguageDetector).use(initReactI18next);
@@ -45,10 +45,6 @@ if (!i18n.isInitialized) {
       logger.info("i18n " + t("app") + " initialised");
     }
   );
-}
-
-export function translate(key: string): string {
-  return i18n.t(key);
 }
 
 export default i18n;

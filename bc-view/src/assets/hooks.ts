@@ -3,7 +3,6 @@ import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/ssr";
 import { _axios, getBearerToken } from "../common/axiosUtils";
-import logger from "../common/configLogging";
 import { BcResult } from "../types/app";
 
 export function useAsset(assetId: string): BcResult<Asset> {
@@ -21,7 +20,7 @@ export function useAsset(assetId: string): BcResult<Asset> {
         })
         .catch((err) => {
           if (err.response) {
-            logger.error("Asset error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("Asset error [%s]: [%s]", err.response.status, err.response.data.message);
           }
           setError(err);
         });

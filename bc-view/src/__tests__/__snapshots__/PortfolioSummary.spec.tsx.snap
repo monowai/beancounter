@@ -17,29 +17,19 @@ Object {
             </th>
             <th
               align="right"
-            >
-              value
-            </th>
+            />
             <th
               align="right"
-            >
-              purchases
-            </th>
+            />
             <th
               align="right"
-            >
-              sales
-            </th>
+            />
             <th
               align="right"
-            >
-              dividends
-            </th>
+            />
             <th
               align="right"
-            >
-              strategy
-            </th>
+            />
           </tr>
         </tbody>
       </table>
@@ -58,29 +48,19 @@ Object {
           </th>
           <th
             align="right"
-          >
-            value
-          </th>
+          />
           <th
             align="right"
-          >
-            purchases
-          </th>
+          />
           <th
             align="right"
-          >
-            sales
-          </th>
+          />
           <th
             align="right"
-          >
-            dividends
-          </th>
+          />
           <th
             align="right"
-          >
-            strategy
-          </th>
+          />
         </tr>
       </tbody>
     </table>

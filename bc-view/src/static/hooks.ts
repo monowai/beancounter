@@ -1,6 +1,5 @@
 import { Currency } from "../types/beancounter";
 import { useEffect, useState } from "react";
-import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { useKeycloak } from "@react-keycloak/ssr";
 import { AxiosError } from "axios";
@@ -11,13 +10,13 @@ export function useCurrencies(): BcResult<Currency[]> {
   const { keycloak } = useKeycloak();
   const [error, setError] = useState<AxiosError>();
   useEffect(() => {
-    logger.debug(">>fetch getCurrencies");
+    console.debug(">>fetch getCurrencies");
     _axios
       .get<Currency[]>("/bff/currencies", {
         headers: getBearerToken(keycloak?.token),
       })
       .then((result) => {
-        logger.debug("<<fetched Currencies");
+        console.debug("<<fetched Currencies");
         setCurrencies(result.data);
       })
       .catch((err) => {

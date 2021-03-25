@@ -242,29 +242,19 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             </th>
             <th
               align="right"
-            >
-              value
-            </th>
+            />
             <th
               align="right"
-            >
-              purchases
-            </th>
+            />
             <th
               align="right"
-            >
-              sales
-            </th>
+            />
             <th
               align="right"
-            >
-              dividends
-            </th>
+            />
             <th
               align="right"
-            >
-              strategy
-            </th>
+            />
           </tr>
         </tbody>
         <tbody>
@@ -344,59 +334,37 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             </th>
             <th
               align="right"
-            >
-              price
-            </th>
+            />
             <th
               align="right"
-            >
-              change
-            </th>
+            />
             <th
               align="right"
-            >
-              quantity
-            </th>
+            />
             <th
               align="right"
-            >
-              value
-            </th>
+            />
             <th
               align="right"
-            >
-              gain.unrealised
-            </th>
+            />
             <th
               align="right"
-            >
-              weight
-            </th>
+            />
             <th
               align="right"
-            >
-              cost
-            </th>
+            />
             <th
               align="right"
-            >
-              cost.avg
-            </th>
+            />
             <th
               align="right"
-            >
-              dividends
-            </th>
+            />
             <th
               align="right"
-            >
-              gain.realised
-            </th>
+            />
             <th
               align="right"
-            >
-              gain
-            </th>
+            />
           </tr>
         </tbody>
         <tbody>
@@ -578,59 +546,37 @@ exports[`<ViewHoldings /> matches snapshot when getData present 1`] = `
             </th>
             <th
               align="right"
-            >
-              price
-            </th>
+            />
             <th
               align="right"
-            >
-              change
-            </th>
+            />
             <th
               align="right"
-            >
-              quantity
-            </th>
+            />
             <th
               align="right"
-            >
-              value
-            </th>
+            />
             <th
               align="right"
-            >
-              gain.unrealised
-            </th>
+            />
             <th
               align="right"
-            >
-              weight
-            </th>
+            />
             <th
               align="right"
-            >
-              cost
-            </th>
+            />
             <th
               align="right"
-            >
-              cost.avg
-            </th>
+            />
             <th
               align="right"
-            >
-              dividends
-            </th>
+            />
             <th
               align="right"
-            >
-              gain.realised
-            </th>
+            />
             <th
               align="right"
-            >
-              gain
-            </th>
+            />
           </tr>
         </tbody>
         <tbody>

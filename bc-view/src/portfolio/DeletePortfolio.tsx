@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import logger from "../common/configLogging";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { usePortfolio } from "./hooks";
 import { AxiosError } from "axios";
@@ -36,7 +35,7 @@ export function DeletePortfolio(portfolioId: string): JSX.Element {
         .catch((err) => {
           setError(err);
           if (err.response) {
-            logger.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     }

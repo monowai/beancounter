@@ -6,11 +6,13 @@ import { useSSR } from "react-i18next";
 import App from "./App";
 import { keycloakConfig } from "./common/kcConfig";
 import { Cookies, SSRKeycloakProvider } from "@react-keycloak/ssr";
+import { Resource } from "i18next";
+import "./i18nConfig";
 
 declare global {
   interface WindowI18n extends Window {
-    initialI18nStore: any;
-    initialLanguage: any;
+    initialI18nStore: Resource;
+    initialLanguage: string;
   }
 }
 

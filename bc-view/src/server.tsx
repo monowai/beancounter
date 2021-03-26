@@ -3,7 +3,7 @@ import { StaticRouter } from "react-router-dom";
 import express from "express";
 import { renderToString } from "react-dom/server";
 import { Helmet } from "react-helmet";
-import i18n from "./server/i18nConfig";
+import i18n from "./i18nConfig";
 import Backend from "i18next-node-fs-backend";
 import { I18nextProvider } from "react-i18next"; // has no proper import yet
 import * as path from "path";
@@ -46,6 +46,7 @@ let staticDir = "./";
 if (process.env.RAZZLE_PUBLIC_DIR) {
   staticDir = process.env.RAZZLE_PUBLIC_DIR;
 }
+
 logger.info("bcConfig @ %s", JSON.stringify(bcConfig));
 logger.info("kcConfig @ %s", JSON.stringify(keycloakConfig));
 i18n

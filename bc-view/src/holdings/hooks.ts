@@ -22,8 +22,7 @@ export function useHoldings(code: string): BcResult<HoldingContract> {
         .catch((err) => {
           setError(err);
           if (err.response) {
-            console.error("axios error [%s]: [%s]",
-              err.response.status, err.response.data.message);
+            console.error("axios error [%s]: [%s]", err.response.status, err.response.data.message);
           }
         });
     }

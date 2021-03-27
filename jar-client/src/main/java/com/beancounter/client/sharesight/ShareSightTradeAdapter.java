@@ -12,12 +12,14 @@ import com.beancounter.common.model.TrnType;
 import com.beancounter.common.utils.DateUtils;
 import com.beancounter.common.utils.MathUtils;
 import com.beancounter.common.utils.NumberUtils;
+import com.beancounter.common.utils.TradeCalculator;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,13 +51,17 @@ public class ShareSightTradeAdapter implements TrnAdapter {
 
   private final ShareSightConfig shareSightConfig;
   private final AssetIngestService assetIngestService;
+  private final TradeCalculator tradeCalculator;
   private Filter filter = new Filter(null);
 
   public ShareSightTradeAdapter(ShareSightConfig shareSightConfig,
-                                AssetIngestService assetIngestService, DateUtils dateUtils) {
+                                AssetIngestService assetIngestService,
+                                DateUtils dateUtils,
+                                TradeCalculator tradeCalculator) {
     this.assetIngestService = assetIngestService;
     this.shareSightConfig = shareSightConfig;
     this.dateUtils = dateUtils;
+    this.tradeCalculator = tradeCalculator;
   }
 
   @Autowired(required = false)
@@ -63,6 +69,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     this.filter = filter;
   }
 
+  @NonNull
   @Override
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
     assert trustedTrnImportRequest != null;
@@ -88,7 +95,7 @@ public class ShareSightTradeAdapter implements TrnAdapter {
       Asset asset = resolveAsset(row);
       if (asset == null) {
         log.error("Unable to resolve asset [{}]", row);
-        return null;
+        throw new BusinessException("Unable to resolve asset [%s]\", row");
       }
       TrnInput trnInput = new TrnInput(
           new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
@@ -101,11 +108,11 @@ public class ShareSightTradeAdapter implements TrnAdapter {
               shareSightConfig.getDateFormat(),
               dateUtils.getZoneId()),
           fees,
-          MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat()),
+          MathUtils.nullSafe(MathUtils.parse(row.get(price), shareSightConfig.getNumberFormat())),
+          tradeAmount,
           comment
       );
 
-      trnInput.setTradeAmount(tradeAmount);
       trnInput.setCashCurrency(trustedTrnImportRequest.getPortfolio().getCurrency().getCode());
       // Zero and null are treated as "unknown"
       trnInput.setTradeCashRate(getTradeCashRate(tradeRate));
@@ -140,11 +147,8 @@ public class ShareSightTradeAdapter implements TrnAdapter {
     if (shareSightConfig.isCalculateAmount() || result == null) {
       BigDecimal q = new BigDecimal(row.get(quantity));
       BigDecimal p = new BigDecimal(row.get(price));
-      BigDecimal f = MathUtils.get(row.get(brokerage));
-      result = MathUtils.multiply(q, p);
-      if (result != null && !numberUtils.isUnset(f)) {
-        result = result.add(f);
-      }
+      BigDecimal f = MathUtils.nullSafe(MathUtils.get(row.get(brokerage)));
+      result = tradeCalculator.amount(q, p, f);
     } else {
       // ShareSight store tradeAmount it portfolio currency, BC stores in Trade CCY
       result = MathUtils.multiply(result, tradeRate);

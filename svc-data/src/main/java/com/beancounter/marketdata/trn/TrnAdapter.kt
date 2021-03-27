@@ -8,13 +8,18 @@ import com.beancounter.common.model.CallerRef.Companion.from
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-class TrnAdapter internal constructor(var assetService: AssetService, var currencyService: CurrencyService) {
+class TrnAdapter internal constructor(
+    var assetService: AssetService,
+    var currencyService: CurrencyService,
+    var tradeCalculator: TradeCalculator,
+) {
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {
@@ -23,13 +28,14 @@ class TrnAdapter internal constructor(var assetService: AssetService, var curren
         return TrnResponse(trns)
     }
 
-    fun map(portfolio: Portfolio?, trnInput: TrnInput): Trn {
+    fun map(portfolio: Portfolio, trnInput: TrnInput): Trn {
+
         return Trn(
             KeyGenUtils.format(UUID.randomUUID()),
             from(trnInput.callerRef, portfolio),
             trnInput.trnType,
             trnInput.status,
-            portfolio!!,
+            portfolio,
             assetService.find(trnInput.assetId),
             if (trnInput.cashAsset == null) null else assetService.find(trnInput.cashAsset!!),
             currencyService.getCode(trnInput.tradeCurrency)!!,
@@ -40,7 +46,7 @@ class TrnAdapter internal constructor(var assetService: AssetService, var curren
             trnInput.price,
             trnInput.fees,
             trnInput.tax,
-            trnInput.tradeAmount,
+            tradeCalculator.amount(trnInput),
             trnInput.cashAmount,
             trnInput.tradeCashRate,
             trnInput.tradeBaseRate,

@@ -33,6 +33,7 @@ internal class TestTrn {
             assetId = getAsset("NASDAQ", "MSFT").id,
             fees = BigDecimal.ONE,
             price = BigDecimal("10.99"),
+            tradeAmount = BigDecimal("100.99"),
             comments = "Comment"
         )
 
@@ -40,7 +41,6 @@ internal class TestTrn {
         trnInput.cashAsset = toKey("USD-X", "USER")
         trnInput.settleDate = DateUtils().getDate("2019-10-10")
         trnInput.cashAmount = BigDecimal("100.99")
-        trnInput.tradeAmount = BigDecimal("100.99")
         trnInput.tradeBaseRate = BigDecimal("1.99")
         trnInput.tradePortfolioRate = BigDecimal("10.99")
         trnInput.tradeBaseRate = BigDecimal.ONE

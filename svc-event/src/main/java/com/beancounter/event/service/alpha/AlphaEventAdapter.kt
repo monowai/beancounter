@@ -17,6 +17,18 @@ import java.math.BigDecimal
 
 class AlphaEventAdapter(private val taxService: TaxService) : Event {
     private val dateUtils = DateUtils()
+
+    private fun calculateGross(currentPosition: Position?, rate: BigDecimal?): BigDecimal? {
+        return multiply(currentPosition!!.quantityValues.getTotal(), rate)
+    }
+
+    private fun calculateTax(currentPosition: Position?, gross: BigDecimal?): BigDecimal? {
+        return multiply(
+            gross,
+            taxService.getRate(currentPosition!!.asset.market.currency.code)
+        )
+    }
+
     override fun calculate(
         portfolio: Portfolio,
         currentPosition: Position,
@@ -45,30 +57,19 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         }
         val gross = calculateGross(currentPosition, corporateEvent.rate)
         val tax = calculateTax(currentPosition, gross)
-        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id, null)
+        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id)
         val result = TrnInput(
             callerRef,
             currentPosition.asset.id,
             TrnType.DIVI,
             currentPosition.quantityValues.getTotal(),
             tradeDate = payDate,
+            tradeAmount = gross!!.subtract(tax),
             price = corporateEvent.rate
         )
         result.status = TrnStatus.PROPOSED
         result.tax = tax
         result.cashCurrency = currentPosition.asset.market.currency.code
-        result.tradeAmount = gross!!.subtract(tax)
         return result
-    }
-
-    private fun calculateGross(currentPosition: Position?, rate: BigDecimal?): BigDecimal? {
-        return multiply(currentPosition!!.quantityValues.getTotal(), rate)
-    }
-
-    private fun calculateTax(currentPosition: Position?, gross: BigDecimal?): BigDecimal? {
-        return multiply(
-            gross,
-            taxService.getRate(currentPosition!!.asset.market.currency.code)
-        )
     }
 }

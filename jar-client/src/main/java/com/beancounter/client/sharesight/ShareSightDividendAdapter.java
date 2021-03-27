@@ -20,6 +20,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 
@@ -61,6 +62,7 @@ public class ShareSightDividendAdapter implements TrnAdapter {
     this.filter = filter;
   }
 
+  @NonNull
   @Override
   public TrnInput from(TrustedTrnImportRequest trustedTrnImportRequest) {
     assert trustedTrnImportRequest != null;
@@ -69,10 +71,16 @@ public class ShareSightDividendAdapter implements TrnAdapter {
       Asset asset = resolveAsset(row);
       if (asset == null) {
         log.error("Unable to resolve asset [{}]", row);
-        return null;
+        throw new BusinessException(String.format("Unable to resolve asset [%s]", row));
       }
 
       BigDecimal tradeRate = MathUtils.parse(row.get(fxRate), shareSightConfig.getNumberFormat());
+      BigDecimal tradeAmount = MathUtils.multiply(
+          MathUtils.parse(row.get(net),
+              shareSightConfig.getNumberFormat()),
+          tradeRate);
+
+      assert tradeAmount != null;
       TrnInput trnInput = new TrnInput(
           new CallerRef(trustedTrnImportRequest.getPortfolio().getId(), null, row.get(id)),
           asset.getId(),
@@ -84,14 +92,11 @@ public class ShareSightDividendAdapter implements TrnAdapter {
               dateUtils.getZoneId()),
           BigDecimal.ZERO,
           BigDecimal.ZERO,
+          tradeAmount,
           row.get(comments)
       );
 
       trnInput.setTax(MathUtils.multiply(new BigDecimal(row.get(tax)), tradeRate));
-      trnInput.setTradeAmount(
-          MathUtils.multiply(
-              MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
-              tradeRate));
       trnInput.setCashAmount(MathUtils.multiply(
           MathUtils.parse(row.get(net), shareSightConfig.getNumberFormat()),
           tradeRate));

@@ -4,6 +4,7 @@ import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.Filter
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.TradeCalculator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -14,7 +15,17 @@ import java.util.Locale
  * Defaults for importing CSV data in the Sharesight format.
  */
 @Configuration
-@Import(DateUtils::class, ShareSightDividendAdapter::class, ShareSightTradeAdapter::class, ShareSightFactory::class, FxTransactions::class, AssetIngestService::class, Filter::class, ShareSightRowAdapter::class)
+@Import(
+    DateUtils::class,
+    ShareSightDividendAdapter::class,
+    ShareSightTradeAdapter::class,
+    ShareSightFactory::class,
+    FxTransactions::class,
+    TradeCalculator::class,
+    AssetIngestService::class,
+    Filter::class,
+    ShareSightRowAdapter::class
+)
 class ShareSightConfig {
     val numberFormat: NumberFormat = NumberFormat.getInstance(Locale.US)
 

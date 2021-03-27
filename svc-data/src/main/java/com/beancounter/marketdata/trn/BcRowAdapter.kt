@@ -8,24 +8,32 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import org.springframework.stereotype.Service
-import java.text.NumberFormat
 
 @Service
-class BcRowAdapter(val assetIngestService: AssetIngestService, val dateUtils: DateUtils) : RowAdapter {
+class BcRowAdapter(
+    val assetIngestService: AssetIngestService,
+    val dateUtils: DateUtils,
+) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         val marketCode = trustedTrnImportRequest.row[4]
         val assetCode = trustedTrnImportRequest.row[5]
-        val quantity = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[8], NumberFormat.getInstance()))
         val asset = assetIngestService.resolveAsset(marketCode, assetCode)
+        val trnType = TrnType.valueOf(trustedTrnImportRequest.row[3])
+        val quantity = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[8]))
+        val price = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[10]))
+        val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[11]))
+        val tradeAmount = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[13]))
+
         return TrnInput(
             trustedTrnImportRequest.callerRef,
             assetId = asset.id,
-            trnType = TrnType.valueOf(trustedTrnImportRequest.row[3]),
+            trnType = trnType,
             quantity = quantity,
             tradeCurrency = trustedTrnImportRequest.row[9],
             tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[7]),
-            fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[11], NumberFormat.getInstance())),
-            price = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[8], NumberFormat.getInstance())),
+            tradeAmount = tradeAmount,
+            fees = fees,
+            price = price,
             comments = trustedTrnImportRequest.row[14],
         )
     }

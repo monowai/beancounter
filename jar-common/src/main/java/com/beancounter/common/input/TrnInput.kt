@@ -24,7 +24,8 @@ data class TrnInput(
     val tradeDate: LocalDate = DateUtils().date,
     val fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val price: BigDecimal, // In trade Currency
-    val comments: String? = null
+    val tradeAmount: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    val comments: String? = null,
 
 ) {
 
@@ -37,7 +38,7 @@ data class TrnInput(
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null
     var tax = BigDecimal.ZERO // In trade Currency
-    var tradeAmount = BigDecimal.ZERO // In trade Currency
+
     var cashAmount: BigDecimal? = null
     var tradeCashRate: BigDecimal? = null // Trade CCY to cash settlement currency
     var tradeBaseRate: BigDecimal? = null // Trade Currency to system Base Currency

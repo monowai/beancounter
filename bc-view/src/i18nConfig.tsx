@@ -14,7 +14,6 @@ const options: InitOptions = {
     formatSeparator: ",",
     format: (value, format, lng) => {
       if (!format || !lng || !value) {
-        6;
         return value;
       }
       return value;

@@ -9,7 +9,7 @@ class TrnExport() {
     val dateUtils = DateUtils()
     fun headers(): Array<String> {
         return arrayOf(
-            "portfolio",
+            "provider",
             "batch",
             "callerId",
             "type",

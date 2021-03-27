@@ -5,6 +5,7 @@ import { useKeycloak } from "@react-keycloak/ssr";
 import { _axios, getBearerToken } from "../common/axiosUtils";
 import { writeRows } from "./import";
 import { DelimitedImport } from "../types/app";
+import Papa from "papaparse";
 
 export function TrnDropZone(props: {
   portfolio: Portfolio;
@@ -22,7 +23,7 @@ export function TrnDropZone(props: {
         reader.onload = () => {
           // Do whatever you want with the file contents
           if (typeof reader.result === "string") {
-            const results = reader.result.split("\n");
+            const results = Papa.parse(reader.result).data
             const params: DelimitedImport = {
               hasHeader: true,
               portfolio: props.portfolio,

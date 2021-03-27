@@ -5,11 +5,10 @@ export function writeRows(params: DelimitedImport): number {
   let headerSkipped = false;
   let rows = 0;
   let purged = false;
-  params.results.forEach(function (value) {
+  params.results.forEach(function (row) {
     if (!params.hasHeader || headerSkipped) {
-      rows++;
-      const row = value.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-      if (row && !row[0].startsWith("#")) {
+      if (row && row.length >1 && !row[0].startsWith("#")) {
+        rows++;
         _axios
           .post<string>(
             "/upload/trn",

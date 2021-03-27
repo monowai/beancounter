@@ -21,8 +21,6 @@ data class SystemUser @ConstructorBinding constructor(
     var since: LocalDate = LocalDate.now()
 ) {
 
-    constructor(id: String) : this(id, null)
-
     constructor(id: String, email: String?) :
         this(id, email, true, LocalDate.now())
 

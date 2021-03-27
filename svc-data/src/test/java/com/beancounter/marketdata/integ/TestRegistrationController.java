@@ -32,6 +32,8 @@ import org.springframework.web.context.WebApplicationContext;
 public class TestRegistrationController {
   private MockMvc mockMvc;
 
+  private final TokenUtils tokenUtils = new TokenUtils();
+
   @Autowired
   private WebApplicationContext context;
 
@@ -45,7 +47,7 @@ public class TestRegistrationController {
   @Test
   void is_RegisterMeWorking() throws Exception {
     SystemUser user = new SystemUser("user", "user@testing.com");
-    Jwt token = TokenUtils.getUserToken(user);
+    Jwt token = tokenUtils.getUserToken(user);
     RegistrationUtils.registerUser(mockMvc, token);
 
     MvcResult performed = mockMvc.perform(
@@ -61,7 +63,7 @@ public class TestRegistrationController {
   @Test
   void is_MeWithNoToken() throws Exception {
     SystemUser user = new SystemUser("user", "user@testing.com");
-    Jwt token = TokenUtils.getUserToken(user);
+    Jwt token = tokenUtils.getUserToken(user);
     RegistrationUtils.registerUser(mockMvc, token);
 
     MvcResult performed = mockMvc.perform(
@@ -79,7 +81,7 @@ public class TestRegistrationController {
     SystemUser user = new SystemUser(
         "is_MeUnregistered",
         "is_MeUnregistered@testing.com");
-    Jwt token = TokenUtils.getUserToken(user);
+    Jwt token = tokenUtils.getUserToken(user);
 
     MvcResult performed = mockMvc.perform(
         get("/me")

@@ -67,7 +67,7 @@ internal class FxMvcTests {
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
         val user = SystemUser("user", "user@testing.com")
-        token = TokenUtils.getUserToken(user)
+        token = TokenUtils().getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 

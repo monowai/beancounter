@@ -51,10 +51,7 @@ class SpringFeignDecoder : ErrorDecoder {
     @Throws(IOException::class)
     private fun getMessage(response: Response): String? {
         if (response.body() == null) {
-            val exceptionMessage = SpringExceptionMessage()
-            exceptionMessage.message = response.reason()
-            exceptionMessage.status = response.status()
-            return exceptionMessage.message
+            return response.reason()
         }
         val readr = CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
         val exceptionMessage = mapper.readValue(

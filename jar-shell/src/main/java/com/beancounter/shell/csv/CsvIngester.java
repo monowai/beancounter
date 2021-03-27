@@ -14,15 +14,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 public class CsvIngester extends AbstractIngester {
 
   private Reader reader;
+  private final Logger log = LoggerFactory.getLogger(CsvIngester.class);
 
   @Override
   public void prepare(IngestionRequest ingestionRequest, TrnWriter trnWriter) {

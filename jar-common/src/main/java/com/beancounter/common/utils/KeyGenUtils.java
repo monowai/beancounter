@@ -5,13 +5,13 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public final class KeyGenUtils {
-  private static final char[] chars =
+  private static final char[] CHARS =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
   private static final int[] i256 = new int[256];
 
   static {
-    for (int i = 0; i < chars.length; i++) {
-      i256[chars[i]] = i;
+    for (int i = 0; i < CHARS.length; i++) {
+      i256[CHARS[i]] = i;
     }
   }
 
@@ -87,7 +87,7 @@ public final class KeyGenUtils {
    * encoding scheme.  The resulting string will be 22 characters in length with no extra
    * padding on the end (e.g. no "==" on the end).
    *
-   * <p>Base64 encoding essentially takes each three bytes from the array and converts them into
+   * <p>Base64 encoding takes each three bytes from the array and converts them into
    * four characters.  This implementation, not using padding, converts the last byte into two
    * characters.
    *
@@ -107,16 +107,16 @@ public final class KeyGenUtils {
       int d = (bytes[i++] & 0xff) << 16 | (bytes[i++] & 0xff) << 8 | (bytes[i++] & 0xff);
 
       // Put them in these four characters
-      chars[j++] = KeyGenUtils.chars[(d >>> 18) & 0x3f];
-      chars[j++] = KeyGenUtils.chars[(d >>> 12) & 0x3f];
-      chars[j++] = KeyGenUtils.chars[(d >>> 6) & 0x3f];
-      chars[j++] = KeyGenUtils.chars[d & 0x3f];
+      chars[j++] = CHARS[(d >>> 18) & 0x3f];
+      chars[j++] = CHARS[(d >>> 12) & 0x3f];
+      chars[j++] = CHARS[(d >>> 6) & 0x3f];
+      chars[j++] = CHARS[d & 0x3f];
     }
 
     // The last byte of the input gets put into two characters at the end of the string.
     int d = (bytes[i] & 0xff) << 10;
-    chars[j++] = KeyGenUtils.chars[d >> 12];
-    chars[j] = KeyGenUtils.chars[(d >>> 6) & 0x3f];
+    chars[j++] = CHARS[d >> 12];
+    chars[j] = CHARS[(d >>> 6) & 0x3f];
     return new String(chars);
   }
 

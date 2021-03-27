@@ -84,7 +84,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     }
 
     fun backFillEvents(id: String, date: String?) {
-        val asAt: String? = if (date == null || date.equals("today", ignoreCase = true)) {
+        val asAt: String? = if (date == null || date.equals(DateUtils.today, ignoreCase = true)) {
             dateUtils.today()
         } else {
             dateUtils.getDateString(dateUtils.getDate(date))

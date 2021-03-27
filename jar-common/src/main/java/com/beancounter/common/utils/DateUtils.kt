@@ -21,7 +21,7 @@ import java.util.TimeZone
 @Service
 class DateUtils(
     @Value("\${beancounter.zone:#{null}}")
-    val defaultZone: String = TimeZone.getDefault().id
+    val defaultZone: String = TimeZone.getDefault().id,
 ) {
 
     private val defaultFormatter = SimpleDateFormat(format)
@@ -39,7 +39,7 @@ class DateUtils(
             null -> {
                 date
             }
-            "today" -> {
+            today -> {
                 return date
             }
             else -> getDate(inDate, "yyyy-MM-dd", zoneId)
@@ -58,7 +58,7 @@ class DateUtils(
             null -> {
                 date
             }
-            "today" -> {
+            today -> {
                 return date
             }
             else -> LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat))
@@ -82,7 +82,7 @@ class DateUtils(
     }
 
     fun isToday(inDate: String?, tz: ZoneId): Boolean {
-        return if (inDate == null || inDate.isBlank() || "today" == inDate.toLowerCase()) {
+        return if (inDate == null || inDate.isBlank() || today == inDate.toLowerCase()) {
             true // Null date is BC is "today"
         } else try {
             val today = defaultFormatter.parse(LocalDate.now(tz).toString())
@@ -105,5 +105,6 @@ class DateUtils(
 
     companion object {
         const val format = "yyyy-MM-dd"
+        const val today = "today"
     }
 }

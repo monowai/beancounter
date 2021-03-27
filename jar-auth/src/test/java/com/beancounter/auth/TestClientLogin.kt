@@ -8,6 +8,7 @@ import com.github.tomakehurst.wiremock.common.Json.getObjectMapper
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,13 +32,14 @@ import java.util.HashMap
  */
 class TestClientLogin {
     @Autowired
-    private val loginService: LoginService? = null
+    private lateinit var loginService: LoginService
 
     @Autowired
-    private val authGateway: LoginService.AuthGateway? = null
+    private lateinit var authGateway: LoginService.AuthGateway
 
     @Value("\${auth.client}")
     private val client: String? = null
+
     @BeforeEach
     @Throws(Exception::class)
     fun mockKeyCloak() {
@@ -89,21 +91,18 @@ class TestClientLogin {
 
     @Test
     fun is_ResponseSerializing() {
-        val login = LoginService.Login.builder()
-            .username("demo")
-            .password("test")
-            .client_id(client)
-            .build()
-        Assertions.assertThat<OAuth2Response>(authGateway?.login(login))
-            .isNotNull()
+        val login = LoginService.AuthRequest(username = "demo", password = "test", client_id = client)
+
+        Assertions.assertThat<OAuth2Response>(authGateway.login(login))
+            .isNotNull
             .hasNoNullFieldsOrProperties()
     }
 
     @Test
     fun is_TokenExpiredThrowing() {
-        org.junit.jupiter.api.Assertions.assertThrows<JwtValidationException>(
+        assertThrows(
             JwtValidationException::class.java
-        ) { loginService!!.login("demo", "test", "test") }
+        ) { loginService.login("demo", "test", "test") }
     }
 
     companion object {

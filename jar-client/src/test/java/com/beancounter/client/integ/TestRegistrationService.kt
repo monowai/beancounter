@@ -28,7 +28,7 @@ class TestRegistrationService {
     private val registrationService: RegistrationService? = null
 
     @MockBean
-    private val jwtDecoder: JwtDecoder? = null
+    private lateinit var jwtDecoder: JwtDecoder
 
     @Test
     fun is_RegisteringAuthenticatedUser() {
@@ -52,8 +52,8 @@ class TestRegistrationService {
     }
 
     private fun setupAuth(email: String) {
-        val jwt = TokenUtils.getUserToken(SystemUser(email, email))
-        Mockito.`when`(jwtDecoder!!.decode(email)).thenReturn(jwt)
+        val jwt = TokenUtils().getUserToken(SystemUser(email, email))
+        Mockito.`when`(jwtDecoder.decode(email)).thenReturn(jwt)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(jwtDecoder.decode(email))
     }
 }

@@ -118,7 +118,7 @@ public class ContractVerifierBase {
     RegistrationResponse response = objectMapper.readValue(jsonFile, RegistrationResponse.class);
     String email = "blah@blah.com";
 
-    Jwt jwt = TokenUtils.getUserToken(new SystemUser(email, email));
+    Jwt jwt = new TokenUtils().getUserToken(new SystemUser(email, email));
     Mockito.when(jwtDecoder.decode(email)).thenReturn(jwt);
 
     SecurityContextHolder.getContext().setAuthentication(

@@ -15,7 +15,6 @@ import com.beancounter.shell.kafka.KafkaTrnProducer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -23,6 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,9 +52,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     KafkaAutoConfiguration.class
 })
 @ActiveProfiles("kafka")
-@Slf4j
 public class TrnCsvKafka {
-
+  private final Logger log = LoggerFactory.getLogger(TrnCsvKafka.class);
   private final List<String> row = new ArrayList<>();
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired

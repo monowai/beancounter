@@ -67,6 +67,7 @@ import java.util.Objects
 @Tag("slow")
 internal class AlphaVantageApiTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
+    private val tokenUtils: TokenUtils = TokenUtils()
     private val dateUtils = DateUtils()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
@@ -119,7 +120,7 @@ internal class AlphaVantageApiTest {
 
         // Setup a user account
         val user = SystemUser("user", "user@testing.com")
-        token = TokenUtils.getUserToken(user)
+        token = tokenUtils.getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 

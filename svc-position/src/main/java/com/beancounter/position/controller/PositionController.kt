@@ -5,6 +5,7 @@ import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.service.Valuation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
@@ -58,7 +59,7 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     fun getPositions(portfolio: Portfolio, valuationDate: String?, value: Boolean): PositionResponse {
         var valDate = valuationDate
         if (valDate == null) {
-            valDate = "today"
+            valDate = DateUtils.today
         }
         val positions = valuationService.build(portfolio, valDate).data
         return if (value) {

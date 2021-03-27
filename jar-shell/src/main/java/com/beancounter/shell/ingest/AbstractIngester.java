@@ -10,12 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 public abstract class AbstractIngester implements Ingester {
   private final Map<String, TrnWriter> writers = new HashMap<>();
   private PortfolioServiceClient portfolioService;

@@ -9,14 +9,15 @@ import com.beancounter.common.model.Portfolio;
 import com.beancounter.common.utils.BcJson;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Collections;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 @ShellComponent
-@Slf4j
 public class PortfolioCommands {
+  private final Logger log = LoggerFactory.getLogger(PortfolioCommands.class);
   private final PortfolioServiceClient portfolioService;
   private final BcJson bcJson = new BcJson();
 
@@ -36,7 +37,7 @@ public class PortfolioCommands {
   public String get()
       throws JsonProcessingException {
     PortfoliosResponse portfolio = portfolioService.getPortfolios();
-    if (portfolio == null || portfolio.getData().isEmpty()) {
+    if (portfolio.getData().isEmpty()) {
       return "No portfolios";
     }
     return bcJson.getWriter().writeValueAsString(portfolio.getData());

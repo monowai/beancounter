@@ -50,7 +50,7 @@ class ValuationService @Autowired internal constructor(
     ): PositionResponse {
         val positionRequest = PositionRequest(portfolio.id, trnResponse.data)
         val positionResponse = positionService.build(portfolio, positionRequest)
-        if (valuationDate != null && !valuationDate.equals("today", ignoreCase = true)) {
+        if (valuationDate != null && !valuationDate.equals(DateUtils.today, ignoreCase = true)) {
             positionResponse.data.asAt = valuationDate
         }
         return positionResponse

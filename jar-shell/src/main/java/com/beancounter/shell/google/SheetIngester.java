@@ -6,7 +6,8 @@ import com.beancounter.shell.ingest.TrnWriter;
 import com.google.api.services.sheets.v4.Sheets;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +18,9 @@ import org.springframework.stereotype.Service;
  * @since 2019-02-08
  */
 @Service
-@Slf4j
 public class SheetIngester extends AbstractIngester {
 
+  private final Logger log = LoggerFactory.getLogger(SheetIngester.class);
   private GoogleTransport googleTransport;
   private Sheets service;
   private IngestionRequest ingestionRequest;

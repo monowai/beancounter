@@ -94,7 +94,7 @@ class FigiApiTest {
 
         // Authorise the caller to access the BC API
         val user = SystemUser("user", "user@testing.com")
-        val token = TokenUtils.getUserToken(user)
+        val token = TokenUtils().getUserToken(user)
         registerUser(mockMvc, token)
         val market = marketService!!.getMarket("NYSE")
         assertThat(market).isNotNull.hasFieldOrPropertyWithValue("enricher", null)
@@ -123,7 +123,7 @@ class FigiApiTest {
         @JvmStatic
         fun is_ApiRunning() {
             assertThat(figi).isNotNull
-            assertThat(figi.isRunning).isTrue()
+            assertThat(figi.isRunning).isTrue
         }
     }
 }

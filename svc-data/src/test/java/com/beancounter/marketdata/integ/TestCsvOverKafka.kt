@@ -160,7 +160,7 @@ class TestCsvOverKafka {
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
         val user = SystemUser("TrnMvcTest", "user@testing.com")
-        token = TokenUtils.getUserToken(user)
+        token = TokenUtils().getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
 
         val qcomRequest = AssetRequest("QCOM", getAssetInput("NASDAQ", "QCOM"))

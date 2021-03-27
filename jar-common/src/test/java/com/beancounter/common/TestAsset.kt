@@ -17,6 +17,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.AssetUtils.Companion.split
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
+import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -32,7 +33,7 @@ internal class TestAsset {
     fun is_PriceRequestForAsset() {
         val priceRequest = of(getAsset("NASDAQ", "EBAY"))
         assertThat(priceRequest.assets).hasSize(1)
-        assertThat(priceRequest.date).isEqualTo("today")
+        assertThat(priceRequest.date).isEqualTo(DateUtils.today)
     }
 
     @Test

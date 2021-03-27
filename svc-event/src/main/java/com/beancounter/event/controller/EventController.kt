@@ -24,7 +24,7 @@ class EventController(private val eventService: EventService) {
     @ResponseStatus(HttpStatus.ACCEPTED)
     operator fun get(
         @PathVariable portfolioId: String,
-        @PathVariable(required = false) valuationDate: String = "today"
+        @PathVariable(required = false) valuationDate: String = DateUtils.today
     ) {
         eventService.backFillEvents(portfolioId, valuationDate)
     }

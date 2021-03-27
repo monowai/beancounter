@@ -52,9 +52,8 @@ public final class JwtRoleConverter implements Converter<Jwt, AbstractAuthentica
   }
 
   @Override
-  public AbstractAuthenticationToken convert(@NonNull final Jwt source) {
-    Collection<GrantedAuthority> authorities = getAuthorities(source);
-    return new JwtAuthenticationToken(source, authorities);
+  public AbstractAuthenticationToken convert(@NonNull final Jwt jwt) {
+    return new JwtAuthenticationToken(jwt, getAuthorities(jwt));
   }
 
 

@@ -10,14 +10,15 @@ import com.beancounter.common.input.TrustedTrnImportRequest;
 import com.beancounter.common.model.Portfolio;
 import java.util.ArrayList;
 import java.util.Collection;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 public class HttpWriter implements TrnWriter {
 
+  private final Logger log = LoggerFactory.getLogger(HttpWriter.class);
   Collection<TrnInput> trnInputs = new ArrayList<>();
   private Portfolio portfolio;
   private FxTransactions fxTransactions;

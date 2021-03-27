@@ -8,22 +8,10 @@ import java.util.Date
  * @author mikeh
  * @since 2019-02-04
  */
-class SpringExceptionMessage {
-    var timestamp = Date()
-    var status = 0
-    var error: String? = null
-    var message: String? = null
-    var path: String? = null
-
-    constructor(timestamp: Date = Date(), status: Int, error: String?, message: String?, path: String?) {
-        this.timestamp = timestamp
-        this.status = status
-        this.error = error
-        this.message = message
-        this.path = path
-    }
-
-    constructor() {
-        timestamp = Date()
-    }
-}
+data class SpringExceptionMessage(
+    val timestamp: Date = Date(),
+    val status: Int,
+    val error: String?,
+    val message: String?,
+    val path: String?,
+)

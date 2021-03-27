@@ -12,10 +12,10 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import lombok.extern.slf4j.Slf4j
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
@@ -29,11 +29,10 @@ import java.math.BigDecimal
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ActiveProfiles("test")
-@Slf4j
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 internal class StubbedTradesWithFx {
     private val currencyUtils = CurrencyUtils()
-
+    private val log = LoggerFactory.getLogger(StubbedTradesWithFx::class.java)
     @Autowired
     private lateinit var fxTransactions: FxTransactions
 

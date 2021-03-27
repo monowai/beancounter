@@ -56,7 +56,7 @@ internal class AssetControllerTest {
 
         // Setup a user account
         val user = SystemUser("user", "user@testing.com")
-        token = TokenUtils.getUserToken(user)
+        token = TokenUtils().getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 

@@ -80,7 +80,7 @@ internal class StubbedFxValuations {
 
         // Setup a user account
         val user = SystemUser("user", "user@testing.com")
-        token = TokenUtils.getUserToken(user)
+        token = TokenUtils().getUserToken(user)
     }
 
     private fun getPositions(asset: Asset): Positions {

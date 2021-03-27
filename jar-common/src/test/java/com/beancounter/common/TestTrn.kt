@@ -47,7 +47,12 @@ internal class TestTrn {
         val trnRequest = TrnRequest("abc", arrayOf(trnInput))
         val json = mapper.writeValueAsString(trnRequest)
         val fromJson = mapper.readValue(json, TrnRequest::class.java)
-        assertThat(fromJson.data).hasSize(1)
+        assertThat(fromJson)
+            .isNotNull
+            .isEqualTo(trnRequest)
+        assertThat(fromJson.hashCode())
+            .isEqualTo(trnRequest.hashCode())
+
         val fromTrn: TrnInput = fromJson.data.iterator().next()
         assertThat(fromTrn.callerRef).usingRecursiveComparison().isEqualTo(trnInput.callerRef)
         assertThat(fromTrn)
@@ -104,7 +109,10 @@ internal class TestTrn {
         val ttr = TrustedTrnImportRequest(getPortfolio("TWEE"), row)
         val json = mapper.writeValueAsString(ttr)
         val fromJson = mapper.readValue(json, TrustedTrnImportRequest::class.java)
-        assertThat(fromJson).usingRecursiveComparison().ignoringFields("portfolio")
+        assertThat(fromJson)
+            .usingRecursiveComparison()
+            .ignoringFields("portfolio")
+            .isEqualTo(ttr)
     }
 
     @Test

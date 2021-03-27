@@ -2,19 +2,23 @@ package com.beancounter.auth.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OAuth2Response {
   @JsonProperty("access_token")
-  private String token;
+  String token;
   @JsonProperty("expires_in")
-  private long expiry;
+  long expiry;
   @JsonProperty("refresh_token")
-  private String refreshToken;
+  String refreshToken;
   @JsonProperty("token_type")
-  private String type;
-  private String scope;
+  String type;
+  String scope;
 
 }

@@ -9,8 +9,6 @@ import com.beancounter.shell.config.EnvConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import org.jline.reader.LineReader;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -22,21 +20,19 @@ public class UserCommands {
   private final LoginService loginService;
   private final RegistrationService registrationService;
   private final EnvConfig envConfig;
-  private LineReader lineReader;
+  private final LineReader lineReader;
   private final BcJson bcJson = new BcJson();
 
   public UserCommands(LoginService loginService,
                       RegistrationService registrationService,
-                      EnvConfig envConfig) {
+                      EnvConfig envConfig,
+                      LineReader lineReader) {
     this.loginService = loginService;
     this.registrationService = registrationService;
     this.envConfig = envConfig;
-  }
-
-  @Autowired
-  public void setLineReader(@Lazy LineReader lineReader) {
     this.lineReader = lineReader;
   }
+
 
   @ShellMethod("Identify yourself")
   public void login(

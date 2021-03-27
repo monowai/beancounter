@@ -7,8 +7,9 @@ import com.beancounter.common.model.Asset;
 import com.beancounter.shell.ingest.TrnWriter;
 import java.util.List;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,9 +23,8 @@ import org.springframework.util.concurrent.ListenableFuture;
  * ingest CSV KAFKA jar-shell/src/test/resources/trades.csv TEST
  */
 @Service
-@Slf4j
 public class KafkaTrnProducer implements TrnWriter {
-
+  private final Logger log = LoggerFactory.getLogger(KafkaTrnProducer.class);
   @Value("${beancounter.topics.trn.csv:bc-trn-csv-dev}")
   public String topicTrnCsv;
   private ShareSightFactory shareSightFactory;
@@ -53,19 +53,17 @@ public class KafkaTrnProducer implements TrnWriter {
   @SneakyThrows
   public void write(TrustedTrnImportRequest trustedTrnImportRequest) {
     List<String> row = trustedTrnImportRequest.getRow();
-    if (row != null) {
-      TrnAdapter adapter = shareSightFactory.adapter(row);
-      Asset asset = adapter.resolveAsset(trustedTrnImportRequest.getRow());
-      if (asset == null) {
-        return;
-      }
-      ListenableFuture<SendResult<String, TrustedTrnImportRequest>> result =
-          kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnImportRequest);
-
-      SendResult<String, TrustedTrnImportRequest> sendResult = result.get();
-
-      log.trace("recordMetaData: {}", sendResult.getRecordMetadata().toString());
+    TrnAdapter adapter = shareSightFactory.adapter(row);
+    Asset asset = adapter.resolveAsset(trustedTrnImportRequest.getRow());
+    if (asset == null) {
+      return;
     }
+    ListenableFuture<SendResult<String, TrustedTrnImportRequest>> result =
+        kafkaCsvTrnProducer.send(topicTrnCsv, trustedTrnImportRequest);
+
+    SendResult<String, TrustedTrnImportRequest> sendResult = result.get();
+
+    log.trace("recordMetaData: {}", sendResult.getRecordMetadata().toString());
   }
 
   @Override

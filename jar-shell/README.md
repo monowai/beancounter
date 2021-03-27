@@ -2,20 +2,25 @@
 
 Data import reader using CSV.
 
-Converts rows in a CSV file to BeanCounter trade format.  
+Convert CSV rows to BeanCounter trade format.  
 
-Exchange rates are back filled based on your portfolio currency and common reference currency. This behaviour can be overridden
+Exchange rates are calculated if not provided.  TradeAmount is Qty * Price - Fees if not supplied and should be in tradeCurrency.  
 
-All trades in a single sheet.  The first row is skipped as it's assumed to be a header.  Headers are included for clarity
+TradeCurrency defaults to USD if not supplied
+
+First row is always skipped as it's assumed to be a header.  Headers are included for clarity
+Use # to indicate a comment
+Columns shown with an * are optional and will be calculated by BeanCounter
 
 ```csv
-# Trade Format
-Market	Code	Name	    Type	Date	    Quantity	Price *	Brokerage *	Currency	Exchange Rate	Value	    Comments
-NASDAQ,INTC,Intel Corp,Buy,30/05/2019,80,25.83,4.42,USD,,2,646.08
+Trades:
+provider*,batch*,callerId*,type,market,code,name*,date,quantity,tradeCurrency*,price,fees,portfolioRate*,tradeAmount*,comments*
+BC,batch,1,BUY,NASDAQ,QCOM,QCOM,2021-03-28,10.000000,USD,5.990000,1.00,null,60.90,
+BC,batch,2,BUY,NASDAQ,TREX,TREX,2021-03-28,10.000000,USD,5.990000,1.00,null,60.90,
 
-#Dividend Format - if including trades and divis in the same file then do not include the header 
-Code	    Name	    Date Paid	Exchange Rate	Currency	Net Amount	Foreign Tax Deducted	Gross Amount	Comments
-INTC.NAS,Intel Corp,15/02/2013,,USD,15.85,0.00,15.85,Dividend of 40.0 cents per share
+Dividends - TranAmount is the value in tradeCurrency 
+provider*,batch*,callerId*,type,market,code,name*,date,quantity,tradeCurrency*,price*,fees*,portfolioRate*,tradeAmount,comments*
+Owq3jmXaRgu9S_O8DZrIpQ,USX,21,DIVI,NYSE,AVLR,Avalara Inc.,2019-11-12,0.000000,USD,null,0.00,1.283500,20.18,share
 ```
     
 It is assumed that you are running all commands from the root of the `BeanCounter` project

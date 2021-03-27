@@ -13,7 +13,6 @@ import com.beancounter.shell.config.ShellConfig
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import lombok.SneakyThrows
-import lombok.extern.slf4j.Slf4j
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Test
@@ -24,7 +23,6 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.shell.jline.PromptProvider
 import org.springframework.test.context.ActiveProfiles
 
-@Slf4j
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
 @SpringBootTest(classes = [ShellConfig::class, AuthClientConfig::class, ShareSightConfig::class])
@@ -33,10 +31,10 @@ class TestCommands {
     private lateinit var dataCommands: DataCommands
 
     @Autowired
-    private val utilCommands: UtilCommands? = null
+    private lateinit var utilCommands: UtilCommands
 
     @Autowired
-    private val portfolioCommands: PortfolioCommands? = null
+    private lateinit var portfolioCommands: PortfolioCommands
 
     @Autowired
     private val promptProvider: PromptProvider? = null
@@ -56,7 +54,7 @@ class TestCommands {
     @Test
     @Throws(Exception::class)
     fun is_PortfolioByCode() {
-        val json = portfolioCommands!!.code("TEST")
+        val json = portfolioCommands.code("TEST")
         val portfolio = objectMapper.readValue(json, Portfolio::class.java)
         assertThat(portfolio).isNotNull
         assertThrows(BusinessException::class.java) { portfolioCommands.code("ILLEGAL") }
@@ -65,7 +63,7 @@ class TestCommands {
     @Test
     @Throws(Exception::class)
     fun is_PortfolioById() {
-        val json = portfolioCommands!!.id("TEST")
+        val json = portfolioCommands.id("TEST")
         val portfolio = objectMapper.readValue(json, Portfolio::class.java)
         assertThat(portfolio).isNotNull
         assertThrows(BusinessException::class.java) { portfolioCommands.code("ILLEGAL") }
@@ -73,14 +71,14 @@ class TestCommands {
 
     @Test
     fun is_UtilCommands() {
-        assertThat(utilCommands!!.api()).isNotNull.isNotBlank
+        assertThat(utilCommands.api()).isNotNull.isNotBlank
         assertThat(utilCommands.pwd()).isNotNull.isNotBlank
     }
 
     @Test
     @SneakyThrows
     fun is_ConfigReturned() {
-        val config = utilCommands!!.config()
+        val config = utilCommands.config()
         assertThat(config).isNotNull
         val typeRef: TypeReference<HashMap<String?, String?>?> = object : TypeReference<HashMap<String?, String?>?>() {}
         val configMap: HashMap<String?, String?>? = ObjectMapper().readValue(config, typeRef)

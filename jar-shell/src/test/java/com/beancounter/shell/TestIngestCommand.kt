@@ -51,7 +51,7 @@ class TestIngestCommand {
         Assertions.assertThat(
             ingestionCommand.ingest(
                 "mock",
-                trnWriter.id(),
+                "mock",
                 "ABC",
                 "ABC",
                 null
@@ -62,12 +62,11 @@ class TestIngestCommand {
 
     @Service
     internal class MockIngester : AbstractIngester() {
-        override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
-            // Noop
+        override fun prepare(ingestionRequest: IngestionRequest?, trnWriter: TrnWriter?) {
+            // NoOp
         }
 
-        override fun getValues(): List<List<String>> {
-            return ArrayList()
-        }
+        override val values: List<List<String>>
+            get() = ArrayList()
     }
 }

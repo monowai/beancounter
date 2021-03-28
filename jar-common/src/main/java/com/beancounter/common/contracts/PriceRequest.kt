@@ -7,7 +7,7 @@ import com.beancounter.common.utils.DateUtils.Companion.today
 import java.util.ArrayList
 
 data class PriceRequest(val date: String = today, val assets: Collection<AssetInput>) {
-    constructor(assets: MutableCollection<AssetInput>) : this(today, assets)
+    constructor(assets: Collection<AssetInput>) : this(today, assets)
 
     companion object {
         @JvmStatic

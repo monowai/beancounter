@@ -28,7 +28,7 @@ class RegistrationService(private val registrationGateway: RegistrationGateway, 
         return data
     }
 
-    val token: String
+    val token: String?
         get() = tokenService.token
 
     val jwtToken: JwtAuthenticationToken?

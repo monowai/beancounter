@@ -29,11 +29,8 @@ dependencies {
     )
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion" ) {exclude module: 'kotlin-reflect'}
     compileOnly(
-            "org.projectlombok:lombok:$lombokVersion",
             "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     )
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
-    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     testImplementation(
             "org.junit.jupiter:junit-jupiter",

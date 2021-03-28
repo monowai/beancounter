@@ -23,6 +23,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -73,7 +74,7 @@ import java.util.Objects
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"]
 )
-@SpringBootTest
+@SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("kafka")
 @Tag("slow")
 class TestCsvOverKafka {

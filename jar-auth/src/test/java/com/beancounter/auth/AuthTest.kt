@@ -37,7 +37,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
-import java.util.Objects
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [MockServletContext::class, TokenService::class, SimpleController::class, NimbusJwtDecoder::class, DefaultJWTProcessor::class, ResourceServerConfig::class])
@@ -171,7 +170,7 @@ class AuthTest {
     @RestController
     internal class SimpleController {
         @Autowired
-        private val tokenService: TokenService? = null
+        private lateinit var tokenService: TokenService
 
         @GetMapping("/hello")
         @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
@@ -181,9 +180,9 @@ class AuthTest {
 
         @GetMapping("/me")
         @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
-        fun me(): String {
-            assert(tokenService!!.token != null)
-            return Objects.requireNonNull(tokenService.jwtToken).name
+        fun me(): String? {
+            assert(tokenService.jwtToken != null)
+            return tokenService.jwtToken!!.name
         }
 
         @GetMapping("/what")

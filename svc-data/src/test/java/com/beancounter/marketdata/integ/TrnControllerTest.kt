@@ -19,7 +19,6 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketService
@@ -30,8 +29,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
@@ -39,7 +38,6 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -51,10 +49,10 @@ import java.util.Objects
 
 private const val urlPortfolioId = "/trns/portfolio/{portfolioId}"
 
-@ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [MarketDataBoot::class])
+@SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
+@EntityScan("com.beancounter.common.model")
 class TrnControllerTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()

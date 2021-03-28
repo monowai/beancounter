@@ -12,7 +12,6 @@ import com.beancounter.shell.cli.UtilCommands
 import com.beancounter.shell.config.ShellConfig
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import lombok.SneakyThrows
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Test
@@ -76,7 +75,6 @@ class TestCommands {
     }
 
     @Test
-    @SneakyThrows
     fun is_ConfigReturned() {
         val config = utilCommands.config()
         assertThat(config).isNotNull

@@ -1,11 +1,8 @@
 package com.beancounter.marketdata.integ
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.Currency
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MarketUtils
-import com.beancounter.marketdata.config.MarketConfig
-import com.beancounter.marketdata.currency.CurrencyRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.mock.MockProviderService
@@ -17,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -29,10 +26,10 @@ import java.util.TimeZone
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = [MarketService::class, CurrencyService::class, MarketConfig::class, DateUtils::class])
-@EntityScan(basePackageClasses = [Currency::class])
+@SpringBootTest
+@EntityScan("com.beancounter.common.model")
 @EnableAutoConfiguration
-@EnableJpaRepositories(basePackageClasses = [CurrencyRepository::class])
+@ActiveProfiles("test")
 internal class StaticDataTest @Autowired constructor(
     private val marketService: MarketService,
     private val currencyService: CurrencyService,

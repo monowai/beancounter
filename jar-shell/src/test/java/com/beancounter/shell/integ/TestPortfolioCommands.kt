@@ -16,7 +16,6 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.cli.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
-import lombok.SneakyThrows
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -60,7 +59,6 @@ class TestPortfolioCommands {
         }
 
     @Test
-    @SneakyThrows
     fun createPortfolio() {
         val owner = systemUser
         val response = PortfoliosResponse(listOf(getPortfolio("ABC", owner)))
@@ -89,7 +87,6 @@ class TestPortfolioCommands {
     }
 
     @Test
-    @SneakyThrows
     fun is_AddPortfolioThatExists() {
         val owner = systemUser
         val existing = getPortfolio("ZZZ", owner)

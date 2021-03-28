@@ -5,21 +5,19 @@ import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.fxrates.EcbDate
 import com.beancounter.marketdata.utils.AlphaMockUtils
 import com.beancounter.marketdata.utils.RegistrationUtils
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -35,12 +33,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.util.Optional
 
-@SpringBootTest(classes = [MarketDataBoot::class])
+@SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
+@EntityScan("com.beancounter.common.model")
 internal class FxMvcTests {
     private val authorityRoleConverter = AuthorityRoleConverter()
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var dateUtils: DateUtils
@@ -48,7 +46,7 @@ internal class FxMvcTests {
     @Autowired
     private lateinit var context: WebApplicationContext
     private lateinit var mockMvc: MockMvc
-    private var token: Jwt? = null
+    private lateinit var token: Jwt
 
     companion object {
         val api = AlphaMockUtils.getAlphaApi()
@@ -57,7 +55,7 @@ internal class FxMvcTests {
         @JvmStatic
         fun is_ApiRunning() {
             Assertions.assertThat(api).isNotNull
-            Assertions.assertThat(api.isRunning).isTrue()
+            Assertions.assertThat(api.isRunning).isTrue
         }
     }
 
@@ -95,19 +93,22 @@ internal class FxMvcTests {
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(fxRequest)
+                    BcJson().objectMapper.writeValueAsString(fxRequest)
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        val (results) = objectMapper
+        val (results) = BcJson().objectMapper
             .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
-        Assertions.assertThat<IsoCurrencyPair, FxRate>(results.rates).isNotNull.hasSize(fxRequest.pairs.size)
+        Assertions.assertThat(results.rates)
+            .isNotNull
+            .hasSize(fxRequest.pairs.size)
+
         val theRates = results.rates
-        Assertions.assertThat<IsoCurrencyPair, FxRate>(theRates)
+        Assertions.assertThat(theRates)
             .containsKeys(nzdUsd, usdNzd)
         for (isoCurrencyPair in theRates.keys) {
-            Assertions.assertThat((results.rates[isoCurrencyPair] ?: error("Date Not Set")).date).isNotNull()
+            Assertions.assertThat((results.rates[isoCurrencyPair] ?: error("Date Not Set")).date).isNotNull
         }
     }
 
@@ -130,18 +131,20 @@ internal class FxMvcTests {
                         .jwt(token).authorities(authorityRoleConverter)
                 )
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(fxRequest))
+                .content(BcJson().objectMapper.writeValueAsString(fxRequest))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        val (results) = objectMapper
+        val (results) = BcJson().objectMapper
             .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
-        Assertions.assertThat<IsoCurrencyPair, FxRate>(results.rates).isNotNull.hasSize(fxRequest.pairs.size)
+        Assertions.assertThat(results.rates)
+            .isNotNull
+            .hasSize(fxRequest.pairs.size)
         val theRates = results.rates
-        Assertions.assertThat<IsoCurrencyPair, FxRate>(theRates)
+        Assertions.assertThat(theRates)
             .containsKeys(nzdUsd)
         for (isoCurrencyPair in theRates.keys) {
-            Assertions.assertThat((results.rates[isoCurrencyPair] ?: error("Whoops")).date).isNotNull()
+            Assertions.assertThat((results.rates[isoCurrencyPair] ?: error("Whoops")).date).isNotNull
         }
     }
 
@@ -167,12 +170,12 @@ internal class FxMvcTests {
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(fxRequest)
+                    BcJson().objectMapper.writeValueAsString(fxRequest)
                 )
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
         val someException = Optional.ofNullable(mvcResult.resolvedException as BusinessException)
-        Assertions.assertThat(someException.isPresent).isTrue()
+        Assertions.assertThat(someException.isPresent).isTrue
         Assertions.assertThat(someException.get()).hasMessageContaining("ANC").hasMessageContaining("SDF")
     }
 }

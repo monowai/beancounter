@@ -11,16 +11,18 @@ import javax.transaction.Transactional
 @Transactional
 class SystemUserService internal constructor(
     private val systemUserRepository: SystemUserRepository,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
 ) {
     fun save(systemUser: SystemUser): SystemUser {
         return systemUserRepository.save(systemUser)
     }
 
     fun isServiceAccount(): Boolean {
-        return tokenService.isServiceToken()
+        return tokenService.isServiceToken
     }
-    fun find(id: String): SystemUser? {
+
+    fun find(id: String?): SystemUser? {
+        if (id == null) return null
         return systemUserRepository.findById(id).orElse(null)
     }
 

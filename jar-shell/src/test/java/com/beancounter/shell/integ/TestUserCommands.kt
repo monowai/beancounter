@@ -15,13 +15,10 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.cli.UserCommands
 import com.beancounter.shell.config.EnvConfig
 import com.beancounter.shell.config.ShellConfig
-import lombok.SneakyThrows
 import org.jline.reader.LineReader
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -30,26 +27,19 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 class TestUserCommands {
     private val bcJson = BcJson()
 
-    @Value("\${auth.client}")
-    private val client: String? = null
+    private var client: String = "bc-dev"
     private val tokenService = TokenService()
     private var lineReader: LineReader = Mockito.mock(LineReader::class.java)
     private var authGateway: AuthGateway = Mockito.mock(AuthGateway::class.java)
     private var registrationGateway: RegistrationGateway = Mockito.mock(RegistrationGateway::class.java)
     private var jwtDecoder: JwtDecoder = Mockito.mock(JwtDecoder::class.java)
-    private var envConfig: EnvConfig = Mockito.mock(EnvConfig::class.java)
 
     private var userCommands: UserCommands = UserCommands(
         LoginService(authGateway, jwtDecoder),
         RegistrationService(registrationGateway, tokenService),
-        envConfig,
+        EnvConfig(client = client, apiPath = "/", marketDataUrl = "/"),
         lineReader
     )
-
-    @BeforeEach
-    fun configEnvironment() {
-        Mockito.`when`(envConfig.client).thenReturn(client)
-    }
 
     @Test
     fun is_UnauthorizedThrowing() {
@@ -66,16 +56,15 @@ class TestUserCommands {
     }
 
     @Test
-    @SneakyThrows
     fun is_LoginReturningMe() {
         val userId = "simple"
         val password = "password"
         Mockito.`when`(lineReader.readLine("Password: ", '*'))
             .thenReturn(password)
-        val authRequest = LoginService.AuthRequest(userId, password, client)
+        val authRequest = LoginService.AuthRequest(username = userId, password = password, client_id = client)
         val systemUser = SystemUser(userId, "blah@blah.com")
         val jwt = TokenUtils().getUserToken(systemUser)
-        val authResponse = OAuth2Response(userId, 0L, null, "", "")
+        val authResponse = OAuth2Response(userId, 0L, null, "")
         Mockito.`when`(authGateway.login(authRequest))
             .thenReturn(authResponse)
         Mockito.`when`(jwtDecoder.decode(authResponse.token))

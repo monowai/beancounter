@@ -46,14 +46,9 @@ dependencies {
 
     compileOnly(
             "org.springframework.boot:spring-boot-configuration-processor",
-            "org.projectlombok:lombok"
     )
 
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor "org.projectlombok:lombok"
-
     testImplementation(
-            "org.projectlombok:lombok",
             "org.assertj:assertj-core",
             "io.rest-assured:json-schema-validator",
             "org.springframework.boot:spring-boot-starter-test",

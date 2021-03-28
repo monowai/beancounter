@@ -2,7 +2,6 @@ package com.beancounter.client.sharesight
 
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.Filter
-import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.TradeCalculator
 import org.springframework.beans.factory.annotation.Value
@@ -20,7 +19,6 @@ import java.util.Locale
     ShareSightDividendAdapter::class,
     ShareSightTradeAdapter::class,
     ShareSightFactory::class,
-    FxTransactions::class,
     TradeCalculator::class,
     AssetIngestService::class,
     Filter::class,

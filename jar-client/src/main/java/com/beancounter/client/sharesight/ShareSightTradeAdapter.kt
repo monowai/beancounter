@@ -37,10 +37,11 @@ class ShareSightTradeAdapter(
     private val shareSightConfig: ShareSightConfig,
     private val assetIngestService: AssetIngestService,
     private val dateUtils: DateUtils,
-    private val tradeCalculator: TradeCalculator
+    private val tradeCalculator: TradeCalculator,
 ) : TrnAdapter {
     private val numberUtils = NumberUtils()
     private var filter = Filter(null)
+
     @Autowired(required = false)
     fun setFilter(filter: Filter) {
         this.filter = filter
@@ -136,7 +137,11 @@ class ShareSightTradeAdapter(
     }
 
     private fun nullSafe(o: Any?): String? {
-        return o?.toString()
+        return if (o?.toString() == "null") {
+            null
+        } else {
+            o?.toString()
+        }
     }
 
     override fun isValid(row: List<String>): Boolean {

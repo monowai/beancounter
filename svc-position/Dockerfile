@@ -1,4 +1,4 @@
-FROM openjdk:11-slim
+FROM openjdk:16-ea-23-jdk-oraclelinux8
 #docker build . --build-arg JAR_FILE=build/libs/svc-position-0.1.1.jar -t monowai/bc-position
 
 ARG JAR_FILE=build/libs/svc-position-0.1.1.jar

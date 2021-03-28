@@ -17,11 +17,11 @@ apply plugin: "checkstyle"
 apply plugin: 'jacoco'
 apply plugin: "org.jmailen.kotlinter"
 
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_15
+targetCompatibility = JavaVersion.VERSION_15
 
 checkstyle {
-    toolVersion = '8.31'
+    toolVersion = '8.41'
     configFile = project.file('../checkstyle.xml')
     configDirectory = file("$rootProject.projectDir/buildtools")
 

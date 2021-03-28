@@ -61,7 +61,6 @@ dependencies {
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.kafka:spring-kafka-test:$springKafka",
-//            "org.scala-lang:scala-library:2.12.11",
             "org.junit.jupiter:junit-jupiter"
 
     )
@@ -73,11 +72,11 @@ dependencies {
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "15"
     }
 }
 compileTestKotlin {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "15"
     }
 }

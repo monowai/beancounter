@@ -1,6 +1,6 @@
 buildscript {
     ext{
-        springBootVersion='2.3.8.RELEASE'
+        springBootVersion='2.4.4'
         springCloudVersion='Hoxton.SR10'
         springSecurityVersion='5.3.8.RELEASE'
         springWebVersion = '5.2.12.RELEASE'

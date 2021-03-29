@@ -1,6 +1,0 @@
-node_modules/
-build/
-yarn-error.log
-*/__tests__/
-*.iml
-*.xml

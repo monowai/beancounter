@@ -11,47 +11,6 @@ executors:
     docker:
       - image: cimg/openjdk:15.0.2
 jobs:
-  build-app:
-    docker:
-      - image: circleci/node:14
-    environment:
-      IMAGE_NAME: bc-app
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - yarn-cache2-{{ checksum "~/project/bc-view/yarn.lock" }}
-      - run:
-          name: Install Dependencies
-          command: cd ./bc-view && yarn install
-      - run:
-          name: Test with coverage
-          command: cd ./bc-view && yarn test --ci --coverage --reporters=default --reporters=jest-junit
-          environment:
-            JEST_JUNIT_OUTPUT_DIR: "./reports/junit"
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-cache2-{{ checksum "~/project/bc-view/yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-            - ./bc-view/node_modules
-      - store_test_results:
-          path: bc-view/reports/junit
-      - store_artifacts:
-          path: bc-view/reports/junit
-      - setup_remote_docker:
-          version: 18.09.3
-      - run:
-          name: Package BC-VIEW
-          command: |
-            docker build ~/project/bc-view/. -t monowai/$IMAGE_NAME:latest
-            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./bc-app.tar
-
   build-common:
     executor: java-build
     environment:
@@ -264,7 +223,6 @@ jobs:
       BC_POSITION: monowai/bc-position
       BC_DATA: monowai/bc-data
       BC_EVENT: monowai/bc-event
-      BC_APP: monowai/bc-app
       BC_SHELL: monowai/bc-shell
 
     steps:
@@ -297,14 +255,6 @@ jobs:
                 docker push $BC_EVENT
 
       - run:
-          name: Publish APP
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            test -f /tmp/workspace/bc-app.tar &&
-                docker load -i /tmp/workspace/bc-app.tar &&
-                docker push $BC_APP
-
-      - run:
           name: Publish SHELL
           command: |
             echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
@@ -316,7 +266,6 @@ workflows:
   version: 2
   build_and_stage:
     jobs:
-      - build-app
       - build-common
       - build-client:
           requires:
@@ -342,4 +291,3 @@ workflows:
             - build-position
             - build-data
             - build-event
-            - build-app

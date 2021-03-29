@@ -5,8 +5,9 @@ plugins {
 }
 
 apply from: "../javaCommon.gradle"
-
+apply plugin: "kotlin-jpa"
 apply plugin: "io.spring.dependency-management"
+
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
@@ -32,12 +33,12 @@ dependencies {
             "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     )
 
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {exclude module: 'junit-vintage-engine'}
     testImplementation(
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core:$assertJ",
             "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",
-            "org.springframework.boot:spring-boot-test:$springBootVersion",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner:2.2+",
+            "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion"
 

@@ -7,7 +7,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MarketUtils
 import com.beancounter.marketdata.providers.wtd.WtdConfig
 import com.beancounter.marketdata.providers.wtd.WtdResponse
-import com.beancounter.marketdata.utils.WtdMockUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,10 +20,14 @@ class WtdConfigTest {
     private val marketUtils = MarketUtils(dateUtils)
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
+    companion object {
+        const val CONTRACTS = "/contracts/wtd"
+    }
+
     @Test
     @Throws(Exception::class)
     fun is_JsonGoodResponse() {
-        val jsonFile = ClassPathResource(WtdMockUtils.WTD_PATH + "/AAPL-MSFT.json").file
+        val jsonFile = ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         val compareTo = ZonedDateTime.of(
             LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC")
@@ -42,7 +45,7 @@ class WtdConfigTest {
     @Test
     @Throws(Exception::class)
     fun is_JsonResponseWithMessage() {
-        val jsonFile = ClassPathResource(WtdMockUtils.WTD_PATH + "/NoData.json").file
+        val jsonFile = ClassPathResource("$CONTRACTS/NoData.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         assertThat(response)
             .isNotNull
@@ -61,6 +64,7 @@ class WtdConfigTest {
         assertThat(wtdConfig.getMarketDate(nzx, "2019-11-17"))
             .isEqualTo("2019-11-15")
     }
+
     @Test
     fun is_DateAssumptionsValid() {
         val wtdConfig = WtdConfig()

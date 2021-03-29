@@ -3,8 +3,7 @@ package com.beancounter.marketdata.utils
 import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -23,44 +22,36 @@ object AlphaMockUtils {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @JvmStatic
-    private val alphaApi: WireMockRule = WireMockRule(WireMockConfiguration.options().port(7777))
-
-    @JvmStatic
-    fun getAlphaApi(): WireMockRule {
-        if (!alphaApi.isRunning) {
-            this.alphaApi.start()
-            mockSearchResponse(
-                "MSFT",
-                ClassPathResource(alphaContracts + "/msft-response.json").file
-            )
-            mockSearchResponse(
-                "BRK-B",
-                ClassPathResource(alphaContracts + "/brkb-response.json").file
-            )
-            mockSearchResponse(
-                "AAPL",
-                ClassPathResource(alphaContracts + "/appl-response.json").file
-            )
-            mockSearchResponse(
-                "AMP.AX",
-                ClassPathResource(alphaContracts + "/amp-search.json").file
-            )
-            mockSearchResponse(
-                "DTV",
-                ClassPathResource(alphaContracts + "/dtv-search.json").file
-            )
-            mockGlobalResponse(
-                "AMP.AX", ClassPathResource(alphaContracts + "/amp-global.json").file
-            )
-            mockGlobalResponse(
-                "AMP.AUS", ClassPathResource(alphaContracts + "/amp-global.json").file
-            )
-            mockGlobalResponse(
-                "MSFT", ClassPathResource(alphaContracts + "/msft-global.json").file
-            )
-        }
-
-        return this.alphaApi
+    fun getAlphaApi() {
+        mockSearchResponse(
+            "MSFT",
+            ClassPathResource(alphaContracts + "/msft-response.json").file
+        )
+        mockSearchResponse(
+            "BRK-B",
+            ClassPathResource(alphaContracts + "/brkb-response.json").file
+        )
+        mockSearchResponse(
+            "AAPL",
+            ClassPathResource(alphaContracts + "/appl-response.json").file
+        )
+        mockSearchResponse(
+            "AMP.AX",
+            ClassPathResource(alphaContracts + "/amp-search.json").file
+        )
+        mockSearchResponse(
+            "DTV",
+            ClassPathResource(alphaContracts + "/dtv-search.json").file
+        )
+        mockGlobalResponse(
+            "AMP.AX", ClassPathResource(alphaContracts + "/amp-global.json").file
+        )
+        mockGlobalResponse(
+            "AMP.AUS", ClassPathResource(alphaContracts + "/amp-global.json").file
+        )
+        mockGlobalResponse(
+            "MSFT", ClassPathResource(alphaContracts + "/msft-global.json").file
+        )
     }
 
     /**
@@ -94,7 +85,7 @@ object AlphaMockUtils {
      */
     @Throws(IOException::class)
     fun mockGetResponse(url: String?, jsonFile: File?) {
-        alphaApi.stubFor(
+        stubFor(
             WireMock.get(WireMock.urlEqualTo(url))
                 .willReturn(
                     WireMock.aResponse()
@@ -114,7 +105,7 @@ object AlphaMockUtils {
 
     @Throws(IOException::class)
     fun mockSearchResponse(code: String, response: File?) {
-        alphaApi.stubFor(
+        stubFor(
             WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))
                 .willReturn(
                     WireMock.aResponse()

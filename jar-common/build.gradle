@@ -9,7 +9,7 @@ apply plugin: "kotlin-jpa"
 dependencies() {
 
     compileOnly(
-            "javax.servlet:javax.servlet-api:4.0.1",
+            "javax.servlet:javax.servlet-api:4+",
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",

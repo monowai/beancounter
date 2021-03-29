@@ -9,7 +9,7 @@ beancounter:
   market:
     providers:
       ALPHA:
-        url: http://localhost:7777
+        url: http://localhost:${wiremock.server.port}
         markets: NASDAQ,AMEX,NYSE,ASX,NZX,LON
       MOCK:
         markets: MOCK

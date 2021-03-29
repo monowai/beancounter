@@ -11,7 +11,7 @@ beancounter:
       ALPHA:
         markets: NZX
       WTD:
-        url: http://localhost:8888
+        url: http://localhost:${wiremock.server.port}
         markets: NASDAQ,AMEX,NYSE,ASX
       #      FX:
       #        url: http://localhost:7777

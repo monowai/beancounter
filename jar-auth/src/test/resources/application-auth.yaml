@@ -6,5 +6,5 @@ spring:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
 
 auth:
-  uri: http://localhost:9999/auth
+  uri: http://localhost:${wiremock.server.port}/auth
   realm: bc-test

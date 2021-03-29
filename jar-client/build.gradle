@@ -33,13 +33,13 @@ dependencies {
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "org.springframework.cloud:spring-cloud-starter-openfeign"
     )
-
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {exclude module: 'junit-vintage-engine'}
     testImplementation(
             "org.assertj:assertj-core:$assertJ",
             "org.springframework.boot:spring-boot-starter-test:$springBootVersion",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
+            // https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner"
     )

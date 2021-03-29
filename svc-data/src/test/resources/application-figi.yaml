@@ -10,5 +10,5 @@ beancounter:
   market:
     providers:
       FIGI:
-        url: http://localhost:6666
+        url: http://localhost:${wiremock.server.port}
         key: demoxx

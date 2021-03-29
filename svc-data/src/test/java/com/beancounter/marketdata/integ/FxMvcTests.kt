@@ -10,8 +10,8 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.fxrates.EcbDate
-import com.beancounter.marketdata.utils.AlphaMockUtils
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -31,12 +33,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.util.Optional
+import java.io.File
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureWireMock(port = 0)
 internal class FxMvcTests {
     private val authorityRoleConverter = AuthorityRoleConverter()
 
@@ -49,18 +52,45 @@ internal class FxMvcTests {
     private lateinit var token: Jwt
 
     companion object {
-        val api = AlphaMockUtils.getAlphaApi()
-
         @BeforeAll
         @JvmStatic
-        fun is_ApiRunning() {
-            Assertions.assertThat(api).isNotNull
-            Assertions.assertThat(api.isRunning).isTrue
+        fun mockResponse() {
+            val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
+            val today = DateUtils().today()
+            stubFx(
+                "/$today?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD",
+                rateResponse
+            )
+
+            stubFx(
+                "/2019-08-27?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD", // Matches all supported currencies
+                rateResponse
+            )
+        }
+        @JvmStatic
+        private fun stubFx(url: String, rateResponse: File) {
+            WireMock.stubFor(
+                WireMock.get(WireMock.urlEqualTo(url))
+                    .willReturn(
+                        WireMock.aResponse()
+                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(
+                                BcJson().objectMapper.writeValueAsString(
+                                    BcJson().objectMapper.readValue(
+                                        rateResponse,
+                                        HashMap::class.java
+                                    )
+                                )
+                            )
+                            .withStatus(200)
+                    )
+            )
         }
     }
 
     @Autowired
     fun mockServices() {
+
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
@@ -72,11 +102,6 @@ internal class FxMvcTests {
     @Test
     @Throws(Exception::class)
     fun is_FxResponseObjectReturned() {
-        val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
-        AlphaMockUtils.mockGetResponse(
-            "/2019-08-27?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD", // Matches all supported currencies
-            rateResponse
-        )
         val date = "2019-08-27"
         val nzdUsd = IsoCurrencyPair("NZD", "USD")
         val usdNzd = IsoCurrencyPair("USD", "NZD")
@@ -115,12 +140,6 @@ internal class FxMvcTests {
     @Test
     @Throws(Exception::class)
     fun is_NullDateReturningCurrent() {
-        val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
-        val today = dateUtils.today()
-        AlphaMockUtils.mockGetResponse(
-            "/$today?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD", // Matches all supported currencies
-            rateResponse
-        )
         val nzdUsd = IsoCurrencyPair("USD", "NZD")
         val fxRequest = FxRequest()
         fxRequest.add(nzdUsd)
@@ -174,7 +193,7 @@ internal class FxMvcTests {
                 )
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
-        val someException = Optional.ofNullable(mvcResult.resolvedException as BusinessException)
+        val someException = java.util.Optional.ofNullable(mvcResult.resolvedException as BusinessException)
         Assertions.assertThat(someException.isPresent).isTrue
         Assertions.assertThat(someException.get()).hasMessageContaining("ANC").hasMessageContaining("SDF")
     }

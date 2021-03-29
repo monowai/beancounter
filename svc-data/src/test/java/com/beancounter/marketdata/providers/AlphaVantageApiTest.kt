@@ -7,11 +7,8 @@ import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.PriceRequest.Companion.of
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.model.Asset
+import com.beancounter.common.model.*
 import com.beancounter.common.model.Currency
-import com.beancounter.common.model.Market
-import com.beancounter.common.model.MarketData
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.MarketDataBoot
@@ -26,16 +23,17 @@ import com.beancounter.marketdata.providers.wtd.WtdService
 import com.beancounter.marketdata.service.MarketDataService
 import com.beancounter.marketdata.service.MdFactory
 import com.beancounter.marketdata.utils.AlphaMockUtils
+import com.beancounter.marketdata.utils.AlphaMockUtils.getAlphaApi
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Spy
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
@@ -49,8 +47,7 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-import java.util.HashMap
-import java.util.Objects
+import java.util.*
 
 /**
  * .
@@ -61,6 +58,7 @@ import java.util.Objects
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("alpha")
 @Tag("slow")
+@AutoConfigureWireMock(port = 0)
 internal class AlphaVantageApiTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val tokenUtils: TokenUtils = TokenUtils()
@@ -96,20 +94,10 @@ internal class AlphaVantageApiTest {
     private lateinit var mockMvc: MockMvc
     private lateinit var token: Jwt
 
-    companion object {
-        val alpha = AlphaMockUtils.getAlphaApi()
-
-        @BeforeAll
-        @JvmStatic
-        fun is_ApiRunning() {
-            assertThat(alpha).isNotNull
-            assertThat(alpha.isRunning).isTrue
-        }
-    }
-
     @Autowired
     @Throws(Exception::class)
     fun mockServices() {
+        getAlphaApi()
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()

@@ -3,6 +3,8 @@ logs
 *.iml
 npm-debug.log*
 .DS_Store
+junit.xml
+yarn-error.log
 
 coverage
 node_modules

@@ -1,9 +1,9 @@
 buildscript {
     ext{
-        springBootVersion='2.3.8.RELEASE'
-        springCloudVersion='Hoxton.SR10'
-        springSecurityVersion='5.3.8.RELEASE'
-        springWebVersion = '5.2.12.RELEASE'
+        springBootVersion='2.4.4'
+        springCloudVersion='2020.0.2'
+        springSecurityVersion='5.4.5'
+        springWebVersion = '5.3.5'
         springKafka='2.6.6'
         jacksonVersion = '2.12.1'
         springDependencyManagement='1.0.11.RELEASE'

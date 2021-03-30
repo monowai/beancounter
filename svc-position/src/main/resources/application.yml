@@ -6,8 +6,7 @@ server:
 management:
   server:
     port: 9501
-    servlet:
-      context-path: /
+    base-path: /
   endpoint:
     health:
       show-details: always

@@ -26,8 +26,7 @@ import com.beancounter.position.valuation.MarketValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.util.HashMap
-import java.util.Objects
+import kotlin.collections.set
 
 internal class TestMarketValuesWithFx {
     @Test
@@ -56,13 +55,12 @@ internal class TestMarketValuesWithFx {
         targetValues.costValue = buyTrn.tradeAmount
         targetValues.totalGain = BigDecimal("-1000.00")
         targetValues.unrealisedGain = BigDecimal("-1000.00")
-        targetValues.marketValue = Objects.requireNonNull(
-            multiply(buyTrn.quantity, marketData.close)
-        )!!
+        targetValues.marketValue = multiply(buyTrn.quantity, marketData.close)!!
         val fxRateMap = getRates(portfolio, asset, simpleRate)
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-            .isEqualToIgnoringGivenFields(targetValues, "priceData", "portfolio")
+            .usingRecursiveComparison()
+            .isEqualTo(targetValues)
         val baseValues = MoneyValues(Currency("USD"))
         baseValues.averageCost = BigDecimal("20.00")
         baseValues.priceData = of(marketData)
@@ -73,7 +71,8 @@ internal class TestMarketValuesWithFx {
         baseValues.unrealisedGain = BigDecimal("-1000.00")
         baseValues.marketValue = nullSafe(multiply(buyTrn.quantity, marketData.close))
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
-            .isEqualToIgnoringGivenFields(baseValues, "priceData", "portfolio")
+            .usingRecursiveComparison()
+            .isEqualTo(baseValues)
         val pfValues = MoneyValues(portfolio.currency)
         pfValues.costBasis = BigDecimal("10000.00")
         pfValues.purchases = BigDecimal("10000.00")
@@ -84,7 +83,8 @@ internal class TestMarketValuesWithFx {
         pfValues.unrealisedGain = BigDecimal("-9800.00")
         pfValues.totalGain = BigDecimal("-9800.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency))
-            .isEqualToIgnoringGivenFields(pfValues, "priceData")
+            .usingRecursiveComparison()
+            .isEqualTo(pfValues)
     }
 
     @Test
@@ -131,21 +131,24 @@ internal class TestMarketValuesWithFx {
         usdValues.unrealisedGain = BigDecimal.ZERO
         usdValues.totalGain = BigDecimal("1000.00")
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
-            .isEqualToIgnoringGivenFields(usdValues, "priceData", "portfolio")
+            .usingRecursiveComparison()
+            .isEqualTo(usdValues)
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
-            .isEqualToIgnoringGivenFields(usdValues, "priceData", "portfolio")
+            .usingRecursiveComparison()
+            .isEqualTo(usdValues)
         val pfValues = MoneyValues(portfolio.currency)
         pfValues.marketValue = BigDecimal("0")
         pfValues.averageCost = BigDecimal.ZERO
         pfValues.priceData = of(marketData, simpleRate)
-        pfValues.purchases = Objects.requireNonNull(divide(buyTrn.tradeAmount, simpleRate))!!
+        pfValues.purchases = divide(buyTrn.tradeAmount, simpleRate)!!
         pfValues.costValue = BigDecimal.ZERO
         pfValues.sales = divide(sellTrn.tradeAmount, simpleRate)!!
         pfValues.realisedGain = BigDecimal("5000.00")
         pfValues.unrealisedGain = BigDecimal.ZERO
         pfValues.totalGain = BigDecimal("5000.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency))
-            .isEqualToIgnoringGivenFields(pfValues, "priceData", "portfolio")
+            .usingRecursiveComparison()
+            .isEqualTo(pfValues)
     }
 
     @Test

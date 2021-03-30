@@ -16,7 +16,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.cli.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.boot.test.context.SpringBootTest
@@ -27,8 +27,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
-import java.util.ArrayList
 import java.util.UUID
+import kotlin.collections.ArrayList
 
 @SpringBootTest(classes = [ShellConfig::class, AuthClientConfig::class])
 @AutoConfigureStubRunner(
@@ -46,7 +46,8 @@ class TestPortfolioCommands {
 
     private val tokenService = TokenService()
     private var portfolioGw: PortfolioGw = Mockito.mock(PortfolioGw::class.java)
-    private var portfolioCommands: PortfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, tokenService))
+    private var portfolioCommands: PortfolioCommands =
+        PortfolioCommands(PortfolioServiceClient(portfolioGw, tokenService))
 
     @get:Test
     val portfolios: Unit
@@ -55,7 +56,7 @@ class TestPortfolioCommands {
             Mockito.`when`(portfolioGw.getPortfolios(Mockito.anyString()))
                 .thenReturn(PortfoliosResponse(ArrayList()))
             val result = portfolioCommands.get()
-            Assertions.assertThat(result).isNotBlank
+            assertThat(result).isNotBlank
         }
 
     @Test
@@ -78,12 +79,12 @@ class TestPortfolioCommands {
             .thenReturn(response)
         val result = portfolioCommands
             .add("ABC", "ABC", "NZD", "USD")
-        Assertions.assertThat(result).isNotNull
+        assertThat(result).isNotNull
         val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
-        Assertions.assertThat(portfolio).isEqualToIgnoringGivenFields(
-            response.data.iterator().next(),
-            "owner"
-        )
+        assertThat(portfolio)
+            .usingRecursiveComparison()
+            .ignoringFields("owner")
+            .isEqualTo(response.data.iterator().next())
     }
 
     @Test
@@ -95,12 +96,11 @@ class TestPortfolioCommands {
             .thenReturn(portfolioResponse) // Portfolio exists
         val result = portfolioCommands
             .add("ZZZ", "ABC", "NZD", "USD")
-        Assertions.assertThat(result).isNotNull
+        assertThat(result).isNotNull
         val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
-        Assertions.assertThat(portfolio).isEqualToIgnoringGivenFields(
-            portfolioResponse.data,
-            "owner"
-        )
+        assertThat(portfolio)
+            .usingRecursiveComparison()
+            .isEqualTo(portfolioResponse.data)
     }
 
     private val systemUser: SystemUser

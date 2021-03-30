@@ -32,7 +32,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.util.*
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -186,7 +185,7 @@ internal class AssetControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         assertThat(result.andReturn().resolvedException)
-            .isNotNull()
+            .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
 
         // Invalid Asset
@@ -196,7 +195,7 @@ internal class AssetControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         assertThat(result.andReturn().resolvedException)
-            .isNotNull()
+            .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
 
         result = mockMvc.perform(
@@ -205,7 +204,7 @@ internal class AssetControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         assertThat(result.andReturn().resolvedException)
-            .isNotNull()
+            .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
     }
 }

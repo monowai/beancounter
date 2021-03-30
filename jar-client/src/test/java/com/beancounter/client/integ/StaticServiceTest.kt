@@ -3,8 +3,8 @@ package com.beancounter.client.integ
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.StaticService
 import com.beancounter.common.exception.BusinessException
-import org.assertj.core.api.Assertions
-import org.junit.Assert.assertThrows
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
@@ -21,15 +21,15 @@ class StaticServiceTest {
 
     @Test
     fun is_GuardChecks() {
-        Assertions.assertThat(staticService.getCurrency(null)).isNull()
+        assertThat(staticService.getCurrency(null)).isNull()
         assertThrows(BusinessException::class.java) { staticService.getCurrency("NOPE") }
     }
 
     @Test
     fun are_MarketsFound() {
         val markets = staticService.getMarkets()
-        Assertions.assertThat(markets).isNotNull
-        Assertions.assertThat(markets.data).isNotEmpty
+        assertThat(markets).isNotNull
+        assertThat(markets.data).isNotEmpty
     }
 
     @Test
@@ -40,14 +40,14 @@ class StaticServiceTest {
     @Test
     fun are_CurrenciesFound() {
         val currencies = staticService.currencies
-        Assertions.assertThat(currencies).isNotNull
-        Assertions.assertThat(currencies.data).isNotEmpty
+        assertThat(currencies).isNotNull
+        assertThat(currencies.data).isNotEmpty
     }
 
     @Test
     fun is_CurrencyFound() {
         val currency = staticService.getCurrency("USD")
-        Assertions.assertThat(currency).isNotNull
-        Assertions.assertThat(currency).hasNoNullFieldsOrProperties()
+        assertThat(currency).isNotNull
+        assertThat(currency).hasNoNullFieldsOrProperties()
     }
 }

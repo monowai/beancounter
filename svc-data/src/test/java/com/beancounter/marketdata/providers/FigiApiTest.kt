@@ -35,7 +35,6 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
-import java.util.*
 
 @SpringBootTest
 @ActiveProfiles("figi")

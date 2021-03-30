@@ -4,7 +4,7 @@ buildscript {
         springCloudVersion='2020.0.2'
         springSecurityVersion='5.4.5'
         springWebVersion = '5.3.5'
-        springKafka='2.6.6'
+        springKafka='2.6.7'
         jacksonVersion = '2.12.1'
         springDependencyManagement='1.0.11.RELEASE'
         resilience4jVersion='1.7.0'

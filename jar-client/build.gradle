@@ -20,7 +20,7 @@ dependencies {
     implementation(
             project(":jar-common"),
             project(":jar-auth"),
-            "com.google.guava:guava:30.1-android",
+            "com.google.guava:guava:30.1.1-android",
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",

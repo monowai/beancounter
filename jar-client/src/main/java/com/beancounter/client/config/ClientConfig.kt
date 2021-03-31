@@ -35,4 +35,7 @@ import org.springframework.context.annotation.Import
 )
 @EnableFeignClients(basePackages = ["com.beancounter.client"])
 @ImportAutoConfiguration(HttpMessageConvertersAutoConfiguration::class, FeignAutoConfiguration::class)
+/**
+ * All client side classes in one handy configuration.
+ */
 class ClientConfig

@@ -1,28 +1,33 @@
 package com.beancounter.client
 
+import com.beancounter.client.Constants.Companion.NZD
+import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.math.BigDecimal
-import java.util.HashMap
+
+/**
+ * Client side FX tests.
+ */
 
 class TestFxTransactions {
     @Test
     fun is_TrnDefaultsSetting() {
-        val tradeBase = IsoCurrencyPair("USD", "NZD")
-        val tradePf = IsoCurrencyPair("USD", "NZD")
-        val tradeCash = IsoCurrencyPair("USD", "NZD")
+        val tradeBase = IsoCurrencyPair(USD.code, NZD.code)
+        val tradePf = IsoCurrencyPair(USD.code, NZD.code)
+        val tradeCash = IsoCurrencyPair(USD.code, NZD.code)
         val mapRates: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
-        val temp = CurrencyUtils().getCurrency("TEMP")
+        val temp = Currency("TEMP")
         val one = FxRate(temp, temp, BigDecimal.ONE, null)
         mapRates[tradeBase] = one
         mapRates[tradePf] = one
@@ -39,9 +44,41 @@ class TestFxTransactions {
             DateUtils()
         )
         fxTransactions.setRates(pairResults, fxRequest, trnInput)
-        Assertions.assertThat(trnInput)
+        assertThat(trnInput)
             .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
             .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
             .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE)
+    }
+
+    @Test
+    fun is_FxPairsWorking() {
+        val fxTransactions = FxTransactions(Mockito.mock(FxService::class.java), DateUtils())
+
+        assertThat(
+            fxTransactions.pair(
+                Currency("NZD"),
+                TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
+                BigDecimal.TEN,
+            )
+        )
+            .isNull() // We have a rate, so don't request one
+        assertThat(
+            fxTransactions.pair(
+                Currency("USD"),
+                TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
+                null
+            )
+        )
+            .isNull()
+        assertThat(
+            fxTransactions.pair(
+                Currency("USD"),
+                TrnInput(assetId = "ABC", tradeCurrency = "NZD", price = BigDecimal.TEN),
+                null
+            )
+        )
+            .isNotNull
+            .hasFieldOrPropertyWithValue("from", "NZD")
+            .hasFieldOrPropertyWithValue("to", "USD")
     }
 }

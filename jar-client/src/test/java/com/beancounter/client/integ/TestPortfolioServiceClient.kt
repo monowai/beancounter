@@ -18,6 +18,9 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
+/**
+ * Client side Portfolio tests using mock data from bc-data.
+ */
 class TestPortfolioServiceClient {
     @Autowired
     private lateinit var portfolioService: PortfolioServiceClient
@@ -33,7 +36,7 @@ class TestPortfolioServiceClient {
     fun is_AddFailing() {
         val request = PortfoliosRequest(
             setOf(
-                PortfolioInput("ABC", "name", "NZD", "USD")
+                PortfolioInput("ABC", "name", "USD", "NZD")
             )
         )
         // Null returned for an Add request
@@ -44,7 +47,7 @@ class TestPortfolioServiceClient {
     fun is_PortfolioAddRequest() {
         val request = PortfoliosRequest(
             setOf(
-                PortfolioInput("SGD", "SGD Balanced", "SGD", "USD")
+                PortfolioInput("SGD", "SGD Balanced", "USD", "SGD")
             )
         )
         // Null returned for an Add request

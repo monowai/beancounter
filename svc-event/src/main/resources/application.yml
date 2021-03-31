@@ -13,6 +13,13 @@ management:
     web:
       exposure.include: '*'
       base-path: "/"
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 15000
+        loggerLevel: NONE
 
 logging:
   level:

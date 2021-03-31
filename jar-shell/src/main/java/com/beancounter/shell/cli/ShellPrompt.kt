@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+/**
+ * Customise the prompt in the Shell.
+ */
 class ShellPrompt : PromptProvider {
     override fun getPrompt(): AttributedString {
         val builder = AttributedStringBuilder()

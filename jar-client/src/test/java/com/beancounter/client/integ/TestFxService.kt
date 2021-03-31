@@ -27,6 +27,9 @@ import java.math.BigDecimal
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
+/**
+ * Client side fx rate functionality. Mocks out bc-data responses.
+ */
 class TestFxService {
     @Autowired
     private val fxRateService: FxService? = null

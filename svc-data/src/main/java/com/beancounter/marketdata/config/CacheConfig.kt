@@ -9,6 +9,9 @@ import javax.annotation.PostConstruct
 @Configuration
 @EnableCaching
 @ConditionalOnProperty(value = ["cache.enabled"], matchIfMissing = true)
+/**
+ * Cache Enablement configuration.
+ */
 class CacheConfig {
     @PostConstruct
     fun status() {

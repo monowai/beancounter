@@ -2,6 +2,9 @@ package com.beancounter.shell.config
 
 import org.springframework.beans.factory.annotation.Value
 
+/**
+ * Client environment configuration.
+ */
 data class EnvConfig(
     @Value("\${auth.realm}")
     val realm: String? = null,

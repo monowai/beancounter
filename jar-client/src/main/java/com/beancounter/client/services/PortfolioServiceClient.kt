@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestHeader
 import java.time.LocalDate
 
 @Service
+/**
+ * Client exposed Portfolio functions.
+ */
 class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val tokenService: TokenService) {
     private val dateUtils = DateUtils()
     fun getPortfolioByCode(portfolioCode: String): Portfolio {
@@ -36,7 +39,7 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         return portfolioGw.addPortfolios(tokenService.bearerToken, portfoliosRequest)
     }
 
-    fun getWhereHeld(assetId: String, tradeDate: LocalDate?): PortfoliosResponse {
+    fun getWhereHeld(assetId: String, tradeDate: LocalDate): PortfoliosResponse {
         return portfolioGw.getWhereHeld(
             tokenService.bearerToken,
             assetId,
@@ -52,6 +55,9 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
     }
 
     @FeignClient(name = "portfolios", url = "\${marketdata.url:http://localhost:9510/api}")
+    /**
+     * BC-DATA api calls to obtain portfolio data.
+     */
     interface PortfolioGw {
         @GetMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolios(

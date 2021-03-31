@@ -10,7 +10,9 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.time.LocalDate
 
 /**
- * Sent by seriously trusted clients as it allows unchecked access to any portfolio.  Use with caution.
+ * Sent by seriously trusted clients as it allows unchecked access to any portfolio.
+ *
+ * Used to locate transactions by various criteria.
  */
 data class TrustedTrnQuery(
     val portfolio: Portfolio,

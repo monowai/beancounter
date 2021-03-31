@@ -33,26 +33,44 @@ class AlphaPriceAdapter : MarketDataAdapter {
             val assets = providerArguments.getAssets(batchId)
             for (dpAsset in assets) {
                 val asset = providerArguments.getDpToBc()[dpAsset]
-                if (isMdResponse(asset, response)) {
-                    val priceResponse = alphaMapper.readValue(response, PriceResponse::class.java)
-                    if (priceResponse != null && priceResponse.data.isNotEmpty()) {
-                        for (marketData in priceResponse.data) {
-                            marketData.asset = asset!! // Return BC view of the asset, not MarketProviders
-                            normalise(asset.market, marketData)
-                            log.trace("Valued {} ", asset.name)
-                            results.add(marketData)
-                        }
-                    } else {
-                        results.add(getDefault(asset, providerArguments))
-                    }
-                } else {
-                    results.add(getDefault(asset, providerArguments))
-                }
+                setPriceResponse(asset, response, results, providerArguments)
             }
         } catch (e: IOException) {
             throw SystemException(e.message)
         }
         return results
+    }
+
+    private fun setPriceResponse(
+        asset: Asset?,
+        response: String?,
+        results: MutableCollection<MarketData>,
+        providerArguments: ProviderArguments
+    ) {
+        if (isMdResponse(asset, response)) {
+            setPriceResponse(response, asset, results, providerArguments)
+        } else {
+            results.add(getDefault(asset, providerArguments))
+        }
+    }
+
+    private fun setPriceResponse(
+        response: String?,
+        asset: Asset?,
+        results: MutableCollection<MarketData>,
+        providerArguments: ProviderArguments
+    ) {
+        val priceResponse = alphaMapper.readValue(response, PriceResponse::class.java)
+        if (priceResponse != null && priceResponse.data.isNotEmpty()) {
+            for (marketData in priceResponse.data) {
+                marketData.asset = asset!! // Return BC view of the asset, not MarketProviders
+                normalise(asset.market, marketData)
+                log.trace("Valued {} ", asset.name)
+                results.add(marketData)
+            }
+        } else {
+            results.add(getDefault(asset, providerArguments))
+        }
     }
 
     private fun normalise(market: Market, marketData: MarketData) {

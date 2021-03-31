@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.portfolio
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/portfolios")
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class PortfolioController internal constructor(
     private val portfolioService: PortfolioService,
     private val dateUtils: DateUtils

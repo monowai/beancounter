@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/markets")
 @CrossOrigin
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class MarketController internal constructor(private val marketService: MarketService) {
     @get:GetMapping
     val markets: MarketResponse

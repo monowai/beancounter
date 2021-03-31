@@ -23,9 +23,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
+/**
+ * Test all user registration behaviour.
+ */
 class TestRegistrationService {
     @Autowired
-    private val registrationService: RegistrationService? = null
+    private lateinit var registrationService: RegistrationService
 
     @MockBean
     private lateinit var jwtDecoder: JwtDecoder
@@ -33,13 +36,13 @@ class TestRegistrationService {
     @Test
     fun is_RegisteringAuthenticatedUser() {
         setupAuth("token")
-        assertThat(registrationService!!.jwtToken).isNotNull
+        assertThat(registrationService.jwtToken).isNotNull
         assertThat(registrationService.token).isNotNull
         // Currently matching is on email
         val registeredUser = registrationService
             .register(RegistrationRequest("blah@blah.com"))
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
-        org.junit.jupiter.api.Assertions.assertThrows(UnauthorizedException::class.java) { registrationService.me() }
+        assertThrows(UnauthorizedException::class.java) { registrationService.me() }
     }
 
     @Test
@@ -47,7 +50,7 @@ class TestRegistrationService {
         // Setup the authenticated context
         setupAuth("not@authenticated.com")
         assertThrows(UnauthorizedException::class.java) {
-            registrationService!!.register(RegistrationRequest("invalid user"))
+            registrationService.register(RegistrationRequest("invalid user"))
         }
     }
 

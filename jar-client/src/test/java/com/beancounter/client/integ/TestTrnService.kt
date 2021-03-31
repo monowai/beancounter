@@ -18,23 +18,19 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
+/**
+ * Basic client side transaction tests.
+ */
 class TestTrnService {
-    companion object {
-        private var portfolio: Portfolio? = null
-
-        init {
-            portfolio = getPortfolio(
-                "TEST", "NZD Portfolio", Currency("NZD")
-            )
-        }
-    }
-
+    private var portfolio: Portfolio = getPortfolio(
+        "TEST", "NZD Portfolio", Currency("NZD")
+    )
     @Autowired
-    private val trnService: TrnService? = null
+    private lateinit var trnService: TrnService
 
     @Test
     fun is_TrnsReturnedForPortfolioId() {
-        val trnResponse = trnService!!.query(portfolio!!)
+        val trnResponse = trnService.query(portfolio)
         assertThat(trnResponse).isNotNull.hasFieldOrProperty("data")
         assertThat(trnResponse.data).isNotEmpty // Don't care about the contents here.
     }
@@ -42,9 +38,9 @@ class TestTrnService {
     @Test
     fun is_TrnsReturnedForPortfolioAssetId() {
         val query = TrustedTrnQuery(
-            portfolio!!, DateUtils().getDate("2020-05-01"), "KMI"
+            portfolio, DateUtils().getDate("2020-05-01"), "KMI"
         )
-        val queryResults = trnService!!.query(query)
+        val queryResults = trnService.query(query)
         assertThat(queryResults).isNotNull.hasFieldOrProperty("data")
         assertThat(queryResults.data).isNotEmpty // Don't care about the contents here.
     }

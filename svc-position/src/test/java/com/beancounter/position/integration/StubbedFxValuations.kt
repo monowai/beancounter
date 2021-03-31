@@ -47,6 +47,9 @@ import java.util.Optional
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
+/**
+ * Integration tests using mocked data from bc-data.
+ */
 internal class StubbedFxValuations {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper

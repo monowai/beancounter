@@ -11,6 +11,9 @@ import com.beancounter.common.utils.AssetUtils.Companion.toKey
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * Write and return assets.
+ */
 class AssetIngestService internal constructor(private val assetService: AssetService, private val marketService: MarketService) {
 
     /**

@@ -14,6 +14,9 @@ import java.time.LocalDateTime
 @EnableScheduling
 @EnableAsync
 @Configuration
+/**
+ * Scheduled updated of market prices.
+ */
 class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtils: DateUtils) {
 
     companion object {

@@ -2,11 +2,14 @@ package com.beancounter.shell
 
 import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.ingest.IngestionRequest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-internal class IngestionRequestTest {
-    private val bcJson = BcJson()
+/**
+ * IntegrationRequest Pojo tests
+ */
+class IngestionRequestTest {
+    private val objectMapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)
@@ -17,9 +20,9 @@ internal class IngestionRequestTest {
             provider = "TheProvider",
             portfolioCode = "Test",
         )
-        Assertions.assertThat(ingestionRequest.ratesIgnored).isTrue
-        val json = bcJson.objectMapper.writeValueAsString(ingestionRequest)
-        Assertions.assertThat(bcJson.objectMapper.readValue(json, IngestionRequest::class.java))
+        assertThat(ingestionRequest.ratesIgnored).isTrue
+        val json = objectMapper.writeValueAsString(ingestionRequest)
+        assertThat(objectMapper.readValue(json, IngestionRequest::class.java))
             .usingRecursiveComparison().isEqualTo(ingestionRequest)
     }
 }

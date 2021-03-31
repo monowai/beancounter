@@ -1,10 +1,9 @@
 package com.beancounter.marketdata
 
-import com.beancounter.common.model.Currency
-import com.beancounter.common.model.Market
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MarketUtils
+import com.beancounter.common.utils.PreviousClosePriceDate
+import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.providers.wtd.WtdConfig
 import com.beancounter.marketdata.providers.wtd.WtdResponse
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -15,9 +14,12 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+/**
+ * WorldTradingData api configuration.
+ */
 class WtdConfigTest {
     private val dateUtils = DateUtils()
-    private val marketUtils = MarketUtils(dateUtils)
+    private val marketUtils = PreviousClosePriceDate(dateUtils)
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     companion object {
@@ -52,16 +54,17 @@ class WtdConfigTest {
             .hasFieldOrProperty("message")
     }
 
+    private val marketDate = "2019-11-17"
+
     @Test
     fun is_NzxValuationDateCorrect() {
         val wtdConfig = WtdConfig()
-        val nzx = Market("NZX", Currency("NZD"))
         // Overriding today, so should just return today
-        assertThat(wtdConfig.getMarketDate(nzx, "2019-11-15"))
+        assertThat(wtdConfig.getMarketDate(NZX, "2019-11-15"))
             .isEqualTo("2019-11-15")
 
         // If it's Saturday, count back to Friday
-        assertThat(wtdConfig.getMarketDate(nzx, "2019-11-17"))
+        assertThat(wtdConfig.getMarketDate(NZX, marketDate))
             .isEqualTo("2019-11-15")
     }
 
@@ -78,16 +81,15 @@ class WtdConfigTest {
         assertThat(wtdConfig.date).isEqualTo(today)
 
         // On AsAt the date is equal to the requested date
-        val nzx = Market("NZX", Currency("NZD"))
         wtdConfig.date = date
-        assertThat(wtdConfig.getMarketDate(nzx, date))
+        assertThat(wtdConfig.getMarketDate(NZX, date))
             .isEqualTo(date)
 
         // On Today, it should subtract 2 days
-        val expectedDate = marketUtils.getPreviousClose(
+        val expectedDate = marketUtils.getPriceDate(
             dateUtils.getDate(today), 2
         )
         wtdConfig.date = today
-        assertThat(wtdConfig.getMarketDate(nzx, today)).isEqualTo(expectedDate.toString())
+        assertThat(wtdConfig.getMarketDate(NZX, today)).isEqualTo(expectedDate.toString())
     }
 }

@@ -20,6 +20,9 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
+/**
+ * Simple wiring tests
+ */
 class WiringServices {
     @Autowired
     private val assetIngestService: AssetIngestService? = null

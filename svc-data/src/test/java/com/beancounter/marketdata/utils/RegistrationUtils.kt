@@ -10,9 +10,12 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
+/**
+ * Create a user.
+ */
 object RegistrationUtils {
     var authorityRoleConverter = AuthorityRoleConverter()
-
+    var objectMapper = BcJson().objectMapper
     @JvmStatic
     fun registerUser(mockMvc: MockMvc, token: Jwt?) {
         mockMvc.perform(
@@ -23,7 +26,7 @@ object RegistrationUtils {
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
-                    BcJson().objectMapper
+                    objectMapper
                         .writeValueAsBytes(RegistrationRequest("user@testing.com"))
                 )
                 .contentType(MediaType.APPLICATION_JSON)

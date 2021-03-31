@@ -1,6 +1,6 @@
 package com.beancounter.position.controller
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.position.service.Valuation
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/value")
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class ValuationController @Autowired internal constructor(private val valuationService: Valuation) {
     @PostMapping
     fun value(@RequestBody positions: PositionResponse): PositionResponse {

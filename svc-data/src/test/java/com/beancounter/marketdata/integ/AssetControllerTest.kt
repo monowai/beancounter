@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
@@ -38,6 +39,9 @@ import org.springframework.web.context.WebApplicationContext
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureWireMock(port = 0)
+/**
+ * MVC tests for Assets
+ */
 internal class AssetControllerTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
@@ -68,35 +72,14 @@ internal class AssetControllerTest {
         assetInputMap[toKey(firstAsset)] = getAssetInput("MOCK", "MyCode")
         assetInputMap[toKey(secondAsset)] = getAssetInput("MOCK", "Second")
         val assetRequest = AssetRequest(assetInputMap)
-        var mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.post("/assets")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                .content(objectMapper.writeValueAsString(assetRequest))
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
+        var mvcResult = postAssets(assetRequest)
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         assertThat(data).hasSize(2)
 
         // marketCode is for persistence only,  Clients should rely on the
         //   hydrated Market object
-        assertThat(data[toKey(firstAsset)])
-            .isNotNull
-            .hasFieldOrProperty("id")
-            .hasFieldOrProperty("market")
-            .hasFieldOrPropertyWithValue("name", firstAsset.name)
-            .hasFieldOrPropertyWithValue("code", firstAsset.code.toUpperCase())
-            .hasFieldOrPropertyWithValue("marketCode", null)
-            .hasFieldOrProperty("id")
-        assertThat(data[toKey(secondAsset)])
-            .isNotNull
-            .hasFieldOrProperty("id")
-            .hasFieldOrProperty("market")
-            .hasFieldOrPropertyWithValue("code", secondAsset.code.toUpperCase())
-            .hasFieldOrPropertyWithValue("marketCode", null)
-            .hasFieldOrProperty("id")
+        isAssetValid(data[toKey(firstAsset)], firstAsset)
+        isAssetValid(data[toKey(secondAsset)], secondAsset)
         val asset = data[toKey(secondAsset)]
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/{assetId}", asset!!.id)
@@ -123,13 +106,37 @@ internal class AssetControllerTest {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
+
         assertThat(
             objectMapper.readValue(
                 mvcResult.response.contentAsString, AssetResponse::class.java
-            )
-                .data
+            ).data
         )
             .usingRecursiveComparison().isEqualTo(asset)
+    }
+
+    private fun postAssets(assetRequest: AssetRequest) = mockMvc.perform(
+        MockMvcRequestBuilders.post("/assets")
+            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            .content(objectMapper.writeValueAsString(assetRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+    )
+        .andExpect(MockMvcResultMatchers.status().isOk)
+        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn()
+
+    private fun isAssetValid(
+        dataAsset: Asset?,
+        firstAsset: Asset
+    ) {
+        assertThat(dataAsset)
+            .isNotNull
+            .hasFieldOrProperty("id")
+            .hasFieldOrProperty("market")
+            .hasFieldOrPropertyWithValue("name", firstAsset.name)
+            .hasFieldOrPropertyWithValue("code", firstAsset.code.toUpperCase())
+            .hasFieldOrPropertyWithValue("marketCode", null)
+            .hasFieldOrProperty("id")
     }
 
     @Test

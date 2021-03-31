@@ -23,6 +23,11 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.AAPL
+import com.beancounter.marketdata.Constants.Companion.GBP
+import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
@@ -43,6 +48,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
+import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.KafkaTemplate
@@ -61,7 +68,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 import java.math.BigDecimal
-import java.util.Objects
+import java.time.format.DateTimeFormatter
+import kotlin.collections.set
 
 @EmbeddedKafka(
     partitions = 1,
@@ -77,12 +85,15 @@ import java.util.Objects
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("kafka")
 @Tag("slow")
+@AutoConfigureWireMock(port = 0)
+/**
+ * CSV file export and import via Kafka.
+ */
 class TestCsvOverKafka {
 
     private val objectMapper = BcJson().objectMapper
 
-    @Autowired
-    lateinit var dateUtils: DateUtils
+    final var dateUtils: DateUtils = DateUtils()
 
     @Autowired
     private lateinit var wac: WebApplicationContext
@@ -145,6 +156,19 @@ class TestCsvOverKafka {
         return consumer!!
     }
 
+    private final val tradeDateString = "2020-01-01"
+    private val tradeDate = dateUtils.getDate(tradeDateString)
+
+    @Autowired
+    fun mockFx() {
+        val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
+
+        FxMvcTests.stubFx(
+            "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
+            rateResponse
+        )
+    }
+
     @Test
     fun is_StaticDataLoaded() {
         assertThat(currencyService.currencies).isNotEmpty
@@ -164,28 +188,30 @@ class TestCsvOverKafka {
         token = TokenUtils().getUserToken(user)
         RegistrationUtils.registerUser(mockMvc, token)
 
-        val qcomRequest = AssetRequest("QCOM", getAssetInput("NASDAQ", "QCOM"))
+        val qcomRequest = AssetRequest("QCOM", getAssetInput(NASDAQ.code, "QCOM"))
         val qcomResponse = assetService.process(qcomRequest)!!
         assertThat(qcomResponse).isNotNull
         val qcom = qcomResponse.data.iterator().next().value
 
-        val trexRequest = AssetRequest("TREX", getAssetInput("NASDAQ", "TREX"))
+        val trexRequest = AssetRequest("TREX", getAssetInput(NASDAQ.code, "TREX"))
         val trexResponse = assetService.process(trexRequest)!!
         val trex = trexResponse.data.iterator().next().value
         assertThat(trexResponse).isNotNull
 
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
-        portfolios.add(PortfolioInput("CSV-FLOW", "CSV-FLOW", "USD"))
+        portfolios.add(PortfolioInput(code = "CSV-FLOW", name = "CSV-FLOW", base = USD.code))
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
         val portfolio = pfResponse.iterator().next()
+        // Constant for FX rate retrieval mocking
         val aaaInput = TrnInput(
             CallerRef("BC", "batch", "1"),
             qcom.id,
             BUY,
             quantity = BigDecimal.TEN,
             fees = BigDecimal.ONE,
-            price = BigDecimal(5.99)
+            tradeDate = tradeDate,
+            price = BigDecimal(5.99),
         )
         val bbbInput = TrnInput(
             CallerRef("BC", "batch", "2"),
@@ -193,7 +219,8 @@ class TestCsvOverKafka {
             BUY,
             quantity = BigDecimal.TEN,
             fees = BigDecimal.ONE,
-            price = BigDecimal(5.99)
+            tradeDate = tradeDate,
+            price = BigDecimal(5.99),
         )
 
         val trnResponse = trnService.save(portfolio, TrnRequest(portfolio.id, arrayOf(aaaInput, bbbInput)))
@@ -255,27 +282,26 @@ class TestCsvOverKafka {
         Mockito.`when`(tokenService.subject).thenReturn(id)
 
         // The asset has to exist
-        val assetRequest = AssetRequest("MSFT", getAssetInput("NASDAQ", "MSFT"))
+        val assetRequest = AssetRequest("MSFT", getAssetInput(NASDAQ.code, "MSFT"))
         val assetResponse = assetService.process(assetRequest)!!
         assertThat(assetResponse.data["MSFT"]).hasFieldOrProperty("id")
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
-        portfolios.add(PortfolioInput("SS-TEST", "SS-TEST", "USD"))
+        portfolios.add(PortfolioInput("SS-TEST", "SS-TEST", currency = USD.code))
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull
         assertThat(pfResponse).isNotNull.hasSize(1)
-
         // A CSV row
         val row: List<String> = listOf(
             "123",
-            "NASDAQ",
-            "MSFT",
+            NASDAQ.code,
+            MSFT.code,
             "Test Asset",
             "BUY",
-            "21/01/2019",
+            tradeDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")).toString(),
             BigDecimal.TEN.toString(),
             BigDecimal.ONE.toString(),
             BigDecimal.ZERO.toString(),
-            "USD",
+            USD.code,
             BigDecimal.ONE.toString(),
             BigDecimal.TEN.toString(),
             "Test Comment"
@@ -283,7 +309,7 @@ class TestCsvOverKafka {
         val csvShareSightRequest = TrustedTrnImportRequest(pfResponse.iterator().next(), row, SHARESIGHT)
         val consumer = getKafkaConsumer("is_TrnRequestSentAndReceived", TOPIC_TRN_CSV)
         kafkaWriter.send(TOPIC_TRN_CSV, csvShareSightRequest)
-        val trnResponse = trnTopicResponse(consumer, TOPIC_TRN_CSV)
+        val trnResponse = trnTopicResponse(consumer)
         val expectedAsset = assetResponse.data["MSFT"]
         for (trn in trnResponse.data) {
             assertThat(trn.asset).usingRecursiveComparison().isEqualTo(expectedAsset)
@@ -299,11 +325,13 @@ class TestCsvOverKafka {
         Mockito.`when`(tokenService.subject).thenReturn(id)
 
         // The asset has to exist
-        val assetRequest = AssetRequest("B784NS1", getAssetInput("LON", "B784NS1"))
+        val assetCode = "B784NS1"
+        val market = "LON"
+        val assetRequest = AssetRequest(assetCode, getAssetInput(market, assetCode))
         val assetResponse = assetService.process(assetRequest)!!
-        assertThat(assetResponse.data["B784NS1"]).hasFieldOrProperty("id")
+        assertThat(assetResponse.data[assetCode]).hasFieldOrProperty("id")
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
-        portfolios.add(PortfolioInput("SS-MFTEST", "SS-MFTST", "USD"))
+        portfolios.add(PortfolioInput("SS-MFTEST", "SS-MFTST", currency = USD.code))
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull
         assertThat(pfResponse).isNotNull.hasSize(1)
@@ -311,15 +339,15 @@ class TestCsvOverKafka {
         // A CSV row
         val row: List<String> = listOf(
             "10",
-            "LON",
-            "B784NS1",
+            market,
+            assetCode,
             "",
             "BUY",
-            "01/01/2020",
+            tradeDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")).toString(),
             "3245.936",
             "2.4646",
             "0",
-            "GBP",
+            GBP.code,
             BigDecimal.ONE.toString(),
             "",
             "Test Comment"
@@ -327,7 +355,7 @@ class TestCsvOverKafka {
         val trnRequest = TrustedTrnImportRequest(
             pfResponse.iterator().next(), row, SHARESIGHT
         )
-        val expectedAsset = assetResponse.data["B784NS1"]
+        val expectedAsset = assetResponse.data[assetCode]
         val response = trnImport.fromCsvImport(trnRequest)
         assertThat(response).isNotNull
         assertThat(response.data).isNotNull.hasSize(1)
@@ -340,14 +368,14 @@ class TestCsvOverKafka {
     @Test
     @Throws(Exception::class)
     fun is_PricePersisted() {
-        val assetRequest = AssetRequest("test", getAssetInput("NASDAQ", "MSFT"))
+        val assetRequest = AssetRequest("test", getAssetInput(NASDAQ.code, MSFT.code))
         val assetResult = assetService.process(assetRequest)!!
         val asset = assetResult.data["test"]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")
         val priceDate = "2020-04-29"
         val marketData = MarketData(
             asset!!,
-            Objects.requireNonNull(dateUtils.getDate(priceDate, dateUtils.getZoneId()))
+            dateUtils.getDate(priceDate, dateUtils.getZoneId())
         )
         marketData.volume = 10
         marketData.open = BigDecimal.TEN
@@ -369,8 +397,8 @@ class TestCsvOverKafka {
         // Will be resolved over the mocked API
         assets.add(
             AssetInput(
-                "NASDAQ", "APPL",
-                getAsset("NASDAQ", "AAPL")
+                NASDAQ.code, AAPL.code,
+                getAsset(NASDAQ.code, AAPL.code)
             )
         )
         val priceRequest = PriceRequest(priceDate, assets)
@@ -396,7 +424,7 @@ class TestCsvOverKafka {
     @Throws(Exception::class)
     fun is_CorporateEventDispatched() {
         val data: MutableMap<String, AssetInput> = HashMap()
-        data["a"] = AssetInput("NASDAQ", "TWEE")
+        data["a"] = AssetInput(NASDAQ.code, "TWEE")
         val assetResult = assetService.process(AssetRequest(data))!!
         assertThat(assetResult.data).hasSize(1)
         val asset = assetResult.data["a"]
@@ -404,7 +432,7 @@ class TestCsvOverKafka {
         assertThat(asset.market).isNotNull
         val marketData = MarketData(
             asset,
-            Objects.requireNonNull(dateUtils.getDate("2019-12-10", dateUtils.getZoneId()))
+            dateUtils.getDate("2019-12-10", dateUtils.getZoneId())
         )
         marketData.source = "ALPHA"
         marketData.dividend = BigDecimal("2.34")
@@ -444,8 +472,8 @@ class TestCsvOverKafka {
         return TrnResponse(created)
     }
 
-    private fun trnTopicResponse(consumer: Consumer<String, String>, topic: String): TrnResponse {
-        val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, topic)
+    private fun trnTopicResponse(consumer: Consumer<String, String>): TrnResponse {
+        val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_TRN_CSV)
         assertThat(consumerRecord.value()).isNotNull
         val received = objectMapper
             .readValue(consumerRecord.value(), TrustedTrnImportRequest::class.java)

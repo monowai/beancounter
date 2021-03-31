@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 
 @Service
+/**
+ * Kafka Corporate Action/Event subscriber.
+ */
 class EventWriter {
 
     @Value("\${kafka.enabled:true}")
@@ -39,9 +42,9 @@ class EventWriter {
         }
         val corporateEvent = CorporateEvent(
             TrnType.DIVI,
+            marketData.priceDate!!,
             marketData.source,
             marketData.asset.id,
-            marketData.priceDate!!,
             marketData.dividend!!
         )
         log.trace("Dispatch {} ... {}", topicEvent, marketData)

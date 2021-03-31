@@ -1,6 +1,6 @@
 package com.beancounter.position.integration
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Currency
@@ -44,7 +44,7 @@ internal class StubbedTrnValuations {
     }
 
     @Test
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     fun is_SingleAssetPosition() {
         val dateUtils = DateUtils()
         val portfolio = Portfolio(
@@ -76,7 +76,7 @@ internal class StubbedTrnValuations {
     }
 
     @Test
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     fun is_PositionRequestFromTransactions() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/2019-10-18", "TEST")
@@ -95,7 +95,7 @@ internal class StubbedTrnValuations {
     }
 
     @Test
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     fun is_EmptyPortfolioPositionsReturned() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/today", "EMPTY")

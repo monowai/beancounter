@@ -6,10 +6,13 @@ import com.beancounter.client.services.TrnService
 import com.beancounter.shell.csv.CsvIngester
 import com.beancounter.shell.ingest.HttpWriter
 import com.beancounter.shell.ingest.IngestionRequest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
+/**
+ * Delimited Import test for trades and events.
+ */
 class TestCsvImport {
 
     private var trnService: TrnService = Mockito.mock(TrnService::class.java)
@@ -26,6 +29,6 @@ class TestCsvImport {
             HttpWriter(trnService, rowAdapter, fxTransactions)
         )
         val results = csvIngester.values
-        Assertions.assertThat(results).isNotEmpty.hasSize(5)
+        assertThat(results).isNotEmpty.hasSize(5)
     }
 }

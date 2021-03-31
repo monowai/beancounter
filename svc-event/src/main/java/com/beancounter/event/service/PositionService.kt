@@ -20,6 +20,9 @@ import java.time.LocalDate
 import javax.annotation.PostConstruct
 
 @Service
+/**
+ * Locate positions to support nominal corporate events.
+ */
 class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     private val dateUtils = DateUtils()
     private lateinit var assetService: AssetService
@@ -61,7 +64,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         log.info("position.url: {}", positionUrl)
     }
 
-    fun findWhereHeld(assetId: String, date: LocalDate?): PortfoliosResponse {
+    fun findWhereHeld(assetId: String, date: LocalDate): PortfoliosResponse {
         return portfolioService.getWhereHeld(assetId, date)
     }
 
@@ -83,8 +86,8 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         return null
     }
 
-    fun backFillEvents(id: String, date: String?) {
-        val asAt: String? = if (date == null || date.equals(DateUtils.today, ignoreCase = true)) {
+    fun backFillEvents(id: String, date: String = "today") {
+        val asAt: String = if (date.equals(DateUtils.today, ignoreCase = true)) {
             dateUtils.today()
         } else {
             dateUtils.getDateString(dateUtils.getDate(date))

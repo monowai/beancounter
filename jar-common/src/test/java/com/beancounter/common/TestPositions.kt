@@ -11,7 +11,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -20,7 +19,6 @@ import java.math.BigDecimal
 
 internal class TestPositions {
     private val dateUtils = DateUtils()
-    private val currencyUtils = CurrencyUtils()
     private val bcJson = BcJson()
 
     @Test
@@ -77,10 +75,10 @@ internal class TestPositions {
         val position = Position(asset)
 
         // Retrieve with a currency will create if missing
-        assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
+        assertThat(position.getMoneyValues(Position.In.TRADE, Currency("SGD")))
             .isNotNull
-            .hasFieldOrPropertyWithValue("currency", currencyUtils.getCurrency("SGD"))
-        assertThat(position.getMoneyValues(Position.In.TRADE, currencyUtils.getCurrency("SGD")))
+            .hasFieldOrPropertyWithValue("currency", Currency("SGD"))
+        assertThat(position.getMoneyValues(Position.In.TRADE, Currency("SGD")))
             .isNotNull
     }
 

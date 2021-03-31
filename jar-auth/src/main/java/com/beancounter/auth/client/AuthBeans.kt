@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
  */
 class AuthBeans {
     @Bean
-    fun feignFormEncoder(converters: ObjectFactory<HttpMessageConverters?>?): Encoder {
+    fun feignFormEncoder(converters: ObjectFactory<HttpMessageConverters>): Encoder {
         return SpringFormEncoder(SpringEncoder(converters))
     }
 

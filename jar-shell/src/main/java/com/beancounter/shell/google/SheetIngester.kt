@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.ArrayList
 
 /**
  * Reads the actual google sheet.
@@ -31,7 +30,7 @@ class SheetIngester : AbstractIngester() {
         this.googleTransport = googleTransport
     }
 
-    override fun prepare(ingestionRequest: IngestionRequest?, trnWriter: TrnWriter?) {
+    override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
         service = googleTransport.getSheets(googleTransport.httpTransport)
         this.ingestionRequest = ingestionRequest
     }

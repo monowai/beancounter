@@ -1,12 +1,12 @@
 package com.beancounter.event
 
 import com.beancounter.common.event.CorporateEvent
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.AssetUtils.Companion.USD
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
@@ -20,6 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
 @SpringBootTest(classes = [AlphaEventConfig::class])
+/**
+ * AlphaVantage API tests.
+ */
 class TestAlphaEvents {
     @Autowired
     private lateinit var alphaEventAdapter: AlphaEventAdapter
@@ -39,9 +42,9 @@ class TestAlphaEvents {
         assertThat(onDate).isNotNull
         val event = CorporateEvent(
             TrnType.DIVI,
+            onDate,
             "ALPHA",
             asset.id,
-            onDate,
             BigDecimal("0.2625")
         )
         val portfolio = getPortfolio("TEST", USD)
@@ -69,9 +72,9 @@ class TestAlphaEvents {
         assertThat(today).isNotNull
         val event = CorporateEvent(
             TrnType.DIVI,
+            today,
             "ALPHA",
             asset.id,
-            today,
             BigDecimal("0.2625")
         )
         val behaviourFactory = EventBehaviourFactory()
@@ -82,9 +85,5 @@ class TestAlphaEvents {
                 ?.calculate(portfolio, Position(asset), event)
         )
             .isNull()
-    }
-
-    companion object {
-        private val USD = Currency("USD")
     }
 }

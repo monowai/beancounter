@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.currency
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.CurrencyResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/currencies")
 @CrossOrigin
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class CurrencyController {
     private lateinit var currencyService: CurrencyService
 

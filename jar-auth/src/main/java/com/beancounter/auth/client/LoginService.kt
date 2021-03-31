@@ -16,18 +16,25 @@ import org.springframework.web.bind.annotation.PostMapping
 @Service
 @Configuration
 @EnableFeignClients(basePackages = ["com.beancounter.auth"])
+/**
+ * OAuth2 login service to service both User and M2M authentication requests
+ */
 class LoginService(private val authGateway: AuthGateway, private val jwtDecoder: JwtDecoder) {
     private val log = LoggerFactory.getLogger(LoginService::class.java)
 
     @Value("\${spring.security.oauth2.registration.custom.client-id:bc-service}")
-    private val clientId: String? = null
+    private lateinit var clientId: String
 
     @Value("\${spring.security.oauth2.registration.custom.client-secret:not-set}")
-    private val secret: String? = null
+    private lateinit var secret: String
 
-    fun login(user: String?, password: String?, client: String?) {
-        val authRequest = AuthRequest(username = user, password = password, client_id = client)
-        val response = authGateway.login(authRequest)!!
+    fun login(user: String, password: String, clientId: String = this.clientId) {
+        val loginRequest = LoginRequest(
+            client_id = clientId,
+            username = user,
+            password = password,
+        )
+        val response = authGateway.login(loginRequest)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
             jwtDecoder.decode(
                 response.token
@@ -47,12 +54,11 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         if ("not-set" == secret) {
             return null
         }
-        val login = AuthRequest(
-            grant_type = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
-            client_id = clientId,
-            client_secret = secret
+        val login = MachineRequest(
+            client_secret = secret,
+            client_id = clientId
         )
-        val response = authGateway.login(login)!!
+        val response = authGateway.login(login)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
             jwtDecoder.decode(
                 response.token
@@ -62,6 +68,9 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         return response.token
     }
 
+    /**
+     * The OAuth 2 gateway call.
+     */
     @FeignClient(name = "oauth", url = "\${auth.uri:http://keycloak:9620/auth}", configuration = [AuthBeans::class])
     interface AuthGateway {
         @PostMapping(
@@ -69,15 +78,33 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
             consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
             produces = [MediaType.APPLICATION_JSON_VALUE]
         )
-        fun login(authRequest: AuthRequest?): OAuth2Response?
+        fun login(authRequest: AuthRequest): OAuth2Response
     }
 
-    data class AuthRequest(
-        val username: String? = null,
-        val password: String? = null,
-        val client_id: String? = null,
-        val client_secret: String? = null,
-        val grant_type: String? = AuthorizationGrantType.PASSWORD.value,
+    /**
+     * Interface to support various oAuth login request types.
+     */
+    interface AuthRequest
 
-    )
+    /**
+     * OAuth2 interactive login request. These properties are interpreted literally by Spring, so
+     * need the underscores in the variable names otherwise they're not mapped correctly
+     *
+     * Spring won't map val properties.
+     */
+    data class LoginRequest(
+        var client_id: String,
+        var username: String,
+        var password: String,
+        var grant_type: String = AuthorizationGrantType.PASSWORD.value,
+    ) : AuthRequest
+
+    /**
+     * M2M request configured from environment.
+     */
+    data class MachineRequest(
+        var client_id: String,
+        var client_secret: String = "not-set",
+        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
+    ) : AuthRequest
 }

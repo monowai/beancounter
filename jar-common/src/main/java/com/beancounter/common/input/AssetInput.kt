@@ -3,6 +3,9 @@ package com.beancounter.common.input
 import com.beancounter.common.model.Asset
 import com.fasterxml.jackson.annotation.JsonIgnore
 
+/**
+ * Payload to create an Asset.
+ */
 data class AssetInput(
     var market: String,
     var code: String,
@@ -13,14 +16,14 @@ data class AssetInput(
         market: String,
         code: String
     ) :
-        this(market, code, null, null)
+        this(market = market, code = code, name = null, resolvedAsset = null)
 
     constructor(
         market: String,
         code: String,
         asset: Asset?
     ) :
-        this(market, code, null, asset)
+        this(market = market, code = code, name = null, resolvedAsset = asset)
 
-    constructor(asset: Asset) : this(asset.market.code, asset.code, asset)
+    constructor(asset: Asset) : this(market = asset.market.code, code = asset.code, resolvedAsset = asset)
 }

@@ -4,10 +4,11 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils.Companion.today
-import java.util.ArrayList
 
+/**
+ * Arguments by which prices on a date are located.
+ */
 data class PriceRequest(val date: String = today, val assets: Collection<AssetInput>) {
-    constructor(assets: Collection<AssetInput>) : this(today, assets)
 
     companion object {
         @JvmStatic

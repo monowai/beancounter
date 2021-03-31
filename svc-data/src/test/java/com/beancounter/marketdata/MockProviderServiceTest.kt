@@ -36,7 +36,7 @@ internal class MockProviderServiceTest {
         // Hard coded asset exception
         val asset = getAsset("MOCK", "123")
         val provider: MarketDataProvider = MockProviderService()
-        val priceRequest = PriceRequest(setOf(AssetInput("MOCK", "123", asset)))
+        val priceRequest = PriceRequest(assets = setOf(AssetInput("MOCK", "123", asset)))
         org.junit.jupiter.api.Assertions.assertThrows(BusinessException::class.java) {
             provider.getMarketData(priceRequest)
         }

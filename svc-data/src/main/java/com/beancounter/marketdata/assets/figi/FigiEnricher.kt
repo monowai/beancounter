@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * enrich assets from bloomberg OpenFigi if supported.
+ */
 class FigiEnricher : AssetEnricher {
     private var figiProxy: FigiProxy? = null
 

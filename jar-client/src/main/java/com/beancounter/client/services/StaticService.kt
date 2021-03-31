@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
+/**
+ * Client side access to static configuration business data.
+ */
 class StaticService internal constructor(
     val staticGateway: StaticGateway,
     private val tokenService: TokenService
@@ -63,6 +66,9 @@ class StaticService internal constructor(
     }
 
     @FeignClient(name = "static", url = "\${marketdata.url:http://localhost:9510/api}")
+    /**
+     * API calls to the BC-DATA service to obtain the data.
+     */
     interface StaticGateway {
         @GetMapping(value = ["/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarkets(

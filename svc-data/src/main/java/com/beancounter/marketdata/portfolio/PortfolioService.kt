@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.portfolio
 
-import com.beancounter.auth.server.RoleHelper
-import com.beancounter.auth.server.RoleHelper.m2mSystemUser
+import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.server.AuthConstants.m2mSystemUser
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
@@ -39,7 +39,7 @@ class PortfolioService internal constructor(
         if (owner == null) {
             throw ForbiddenException("Unable to identify the owner")
         }
-        if (owner.id == RoleHelper.OAUTH_M2M) {
+        if (owner.id == AuthConstants.OAUTH_M2M) {
             return
         }
         if (!owner.active) {
@@ -60,7 +60,7 @@ class PortfolioService internal constructor(
 
     fun canView(found: Portfolio): Boolean {
         val systemUser = orThrow
-        return systemUser.id == RoleHelper.OAUTH_M2M || found.owner!!.id == systemUser.id
+        return systemUser.id == AuthConstants.OAUTH_M2M || found.owner!!.id == systemUser.id
     }
 
     val portfolios: Collection<Portfolio>

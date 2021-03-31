@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service
 import java.util.Optional
 
 @Service
+/**
+ * exchangeratesapi.io service implementation to obtain fx rates.  T
+ */
 class EcbService @Autowired internal constructor(
     private val fxGateway: FxGateway,
     private val currencyService: CurrencyService,
@@ -36,7 +39,7 @@ class EcbService @Autowired internal constructor(
         return results
     }
 
-    private val currencies: String?
+    private val currencies: String
         get() {
             val values = currencyService.currencies
             var result: java.lang.StringBuilder? = null
@@ -47,6 +50,6 @@ class EcbService @Autowired internal constructor(
                     result.append(",").append(code)
                 }
             }
-            return result?.toString()
+            return result.toString()
         }
 }

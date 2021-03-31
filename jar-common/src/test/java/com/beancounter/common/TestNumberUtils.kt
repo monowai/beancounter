@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.text.NumberFormat
 
+/**
+ * Verify numberUtils functions.
+ */
 class TestNumberUtils {
     private val numberUtils = NumberUtils()
 

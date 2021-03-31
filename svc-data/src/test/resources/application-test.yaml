@@ -14,4 +14,6 @@ beancounter:
     WTD:
       markets: NZX
 
-    fx.url: http://localhost:${wiremock.server.port:0}
+    FX:
+      url: http://localhost:${wiremock.server.port:0}
+      key: test

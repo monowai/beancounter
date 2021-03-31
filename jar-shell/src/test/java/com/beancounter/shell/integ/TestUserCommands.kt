@@ -24,6 +24,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 
 @SpringBootTest(classes = [ShellConfig::class])
+/**
+ * User commands related to AUTH activities.
+ */
 class TestUserCommands {
     private val bcJson = BcJson()
 
@@ -49,7 +52,7 @@ class TestUserCommands {
         Assertions.assertThrows(UnauthorizedException::class.java) { userCommands.me() }
         Mockito.`when`(
             registrationGateway
-                .register(tokenService.bearerToken, RegistrationRequest(null))
+                .register(tokenService.bearerToken, RegistrationRequest("someone@nowhere.com"))
         )
             .thenReturn(null)
         Assertions.assertThrows(UnauthorizedException::class.java) { userCommands.register() }
@@ -61,11 +64,11 @@ class TestUserCommands {
         val password = "password"
         Mockito.`when`(lineReader.readLine("Password: ", '*'))
             .thenReturn(password)
-        val authRequest = LoginService.AuthRequest(username = userId, password = password, client_id = client)
+        val loginRequest = LoginService.LoginRequest(client_id = client, username = userId, password = password)
         val systemUser = SystemUser(userId, "blah@blah.com")
         val jwt = TokenUtils().getUserToken(systemUser)
         val authResponse = OAuth2Response(userId, 0L, null, "")
-        Mockito.`when`(authGateway.login(authRequest))
+        Mockito.`when`(authGateway.login(loginRequest))
             .thenReturn(authResponse)
         Mockito.`when`(jwtDecoder.decode(authResponse.token))
             .thenReturn(jwt)

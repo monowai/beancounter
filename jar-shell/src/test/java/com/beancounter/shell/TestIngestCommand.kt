@@ -17,10 +17,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
-import java.util.ArrayList
 
 @SpringBootTest(classes = [IngestionConfig::class, IngestionCommand::class])
 @Import(IngestionConfig::class)
+/**
+ * Integration tests for Ingestion.
+ */
 class TestIngestCommand {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand
@@ -31,8 +33,7 @@ class TestIngestCommand {
     @MockBean
     private lateinit var portfolioService: PortfolioServiceClient
 
-    @MockBean
-    private lateinit var trnWriter: TrnWriter
+    private var trnWriter: TrnWriter = Mockito.mock(TrnWriter::class.java)
     private val mockIngester = MockIngester()
 
     @BeforeEach
@@ -54,7 +55,6 @@ class TestIngestCommand {
                 "mock",
                 "ABC",
                 "ABC",
-                null
             )
         )
             .isEqualTo("Done")
@@ -62,7 +62,7 @@ class TestIngestCommand {
 
     @Service
     internal class MockIngester : AbstractIngester() {
-        override fun prepare(ingestionRequest: IngestionRequest?, trnWriter: TrnWriter?) {
+        override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
             // NoOp
         }
 

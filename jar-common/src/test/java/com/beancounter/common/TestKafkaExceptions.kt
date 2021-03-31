@@ -7,7 +7,10 @@ import org.springframework.kafka.listener.ListenerExecutionFailedException
 import org.springframework.messaging.Message
 import org.springframework.messaging.support.ErrorMessage
 
-class TestKafkaUtils {
+/**
+ * Can we interpret BC exceptions from Kafka Exceptions?
+ */
+class TestKafkaExceptions {
     @Test
     fun is_ErrorCovered() {
         val kafkaUtils = KafkaUtils()

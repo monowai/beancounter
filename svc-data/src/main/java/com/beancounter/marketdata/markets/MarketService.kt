@@ -25,12 +25,14 @@ class MarketService : com.beancounter.client.MarketService {
         marketMap = marketConfig.getProviders()
         for (marketCode in marketMap.keys) {
             val market = marketMap[marketCode]
-            if (market != null) {
-                if (market.aliases.isNotEmpty()) {
-                    for (provider in market.aliases.keys) {
-                        aliases[market.aliases.getValue(provider).toUpperCase()] = marketCode.toUpperCase()
-                    }
-                }
+            setAlias(market, marketCode)
+        }
+    }
+
+    private fun setAlias(market: Market?, marketCode: String) {
+        if (market != null && market.aliases.isNotEmpty()) {
+            for (provider in market.aliases.keys) {
+                aliases[market.aliases.getValue(provider).toUpperCase()] = marketCode.toUpperCase()
             }
         }
     }

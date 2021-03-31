@@ -4,15 +4,18 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 
+/**
+ * Test Helper for dealing with Portfolios.
+ */
 class PortfolioUtils private constructor() {
     companion object {
         @JvmStatic
         fun getPortfolioInput(code: String): PortfolioInput {
-            return PortfolioInput(code, code, "NZD", "USD")
+            return PortfolioInput(code, code, "USD", "NZD")
         }
 
         @JvmStatic
-        fun getPortfolio(code: String): Portfolio {
+        fun getPortfolio(code: String = DateUtils.today): Portfolio {
             return getPortfolio(code, Currency("NZD"))
         }
 

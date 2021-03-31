@@ -1,17 +1,21 @@
 package com.beancounter.marketdata.providers.fxrates
 
 import com.beancounter.common.utils.DateUtils
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
+/**
+ * Simple helper to assist with the ECB FX Rate provider needs.
+ *
+ * Today is treated as T-1
+ */
 class EcbDate(val dateUtils: DateUtils) {
-    fun earliestDate(): LocalDate {
+    private fun earliestDate(): LocalDate {
         return dateUtils.getOrThrow(earliest)
     }
 
-    fun getValidDate(inDate: String?): String? {
+    fun getValidDate(inDate: String): String {
         if (dateUtils.isToday(inDate)) {
-            return dateUtils.today()
+            return dateUtils.getDateString(dateUtils.getDate(inDate).minusDays(1))
         }
         val requestedDate = dateUtils.getOrThrow(inDate)
         return if (requestedDate.isBefore(earliestDate())) {
@@ -21,7 +25,5 @@ class EcbDate(val dateUtils: DateUtils) {
 
     companion object {
         const val earliest = "1999-01-04"
-
-        private val log = LoggerFactory.getLogger(EcbDate::class.java)
     }
 }

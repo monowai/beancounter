@@ -3,9 +3,9 @@ package com.beancounter.position.contracts
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.PositionBoot
 import com.beancounter.position.service.Valuation
@@ -33,7 +33,6 @@ import org.springframework.web.context.WebApplicationContext
 @WebAppConfiguration
 class ContractVerifierBase {
     private val dateUtils = DateUtils()
-    private val currencyUtils = CurrencyUtils()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
@@ -56,8 +55,8 @@ class ContractVerifierBase {
             "TEST",
             "TEST",
             "NZD Portfolio",
-            currencyUtils.getCurrency("NZD"),
-            currencyUtils.getCurrency("USD"),
+            Currency("NZD"),
+            Currency("USD"),
             null
         )
         Mockito.`when`(portfolioServiceClient.getPortfolioByCode("TEST"))

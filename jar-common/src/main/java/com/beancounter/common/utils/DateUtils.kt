@@ -46,22 +46,18 @@ class DateUtils(
         }
     }
 
-    fun getDate(inDate: String?, format: String?, zoneId: ZoneId = getZoneId()): LocalDate {
+    fun getDate(inDate: String?, dateFormat: String, zoneId: ZoneId = getZoneId()): LocalDate {
         return if (inDate == null) {
             date
-        } else getLocalDate(inDate, format)
+        } else getLocalDate(inDate, dateFormat)
             .atStartOfDay(zoneId).toLocalDate()
     }
 
-    fun getLocalDate(inDate: String?, dateFormat: String?): LocalDate {
-        return when (inDate) {
-            null -> {
-                date
-            }
-            today -> {
-                return date
-            }
-            else -> LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat))
+    fun getLocalDate(inDate: String?, dateFormat: String = format): LocalDate {
+        return if (inDate == null || inDate.toLowerCase() == today) {
+            date
+        } else {
+            LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat))
         }
     }
 
@@ -90,13 +86,11 @@ class DateUtils(
             today.compareTo(compareWith) == 0
         } catch (e: ParseException) {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
-        } catch (e: NumberFormatException) {
-            throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
     }
 
-    fun getDateString(date: LocalDate?): String? {
-        return date?.toString()
+    fun getDateString(date: LocalDate): String {
+        return date.toString()
     }
 
     fun getZoneId(): ZoneId {

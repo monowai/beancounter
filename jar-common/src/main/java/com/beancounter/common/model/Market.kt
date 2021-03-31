@@ -26,7 +26,7 @@ data class Market @ConstructorBinding constructor(
     @JsonSerialize(using = LocalTimeSerializer::class)
     @JsonDeserialize(using = LocalTimeDeserializer::class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
-    val priceTime: LocalTime = LocalTime.of(18, 0),
+    val priceTime: LocalTime = LocalTime.of(19, 0),
     val daysToSubtract: Int = 1,
     val aliases: Map<String, String> = HashMap(),
     val enricher: String? = null,

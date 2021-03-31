@@ -1,5 +1,12 @@
 package com.beancounter.common
 
+import com.beancounter.common.Constants.Companion.changePercentProp
+import com.beancounter.common.Constants.Companion.changeProp
+import com.beancounter.common.Constants.Companion.closeProp
+import com.beancounter.common.Constants.Companion.one
+import com.beancounter.common.Constants.Companion.openProp
+import com.beancounter.common.Constants.Companion.previousCloseProp
+import com.beancounter.common.Constants.Companion.two
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.PriceData
@@ -7,6 +14,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
+/**
+ * Pojo Price tests
+ */
 class TestPriceData {
     @Test
     fun is_PriceDataWithRates() {
@@ -19,18 +29,18 @@ class TestPriceData {
 
         val noFx = PriceData.of(marketData, BigDecimal("1.0"))
         assertThat(noFx)
-            .hasFieldOrPropertyWithValue("open", marketData.open)
-            .hasFieldOrPropertyWithValue("previousClose", marketData.previousClose)
-            .hasFieldOrPropertyWithValue("close", marketData.close)
-            .hasFieldOrPropertyWithValue("change", marketData.change)
-            .hasFieldOrPropertyWithValue("changePercent", marketData.changePercent)
-        val withFx = PriceData.of(marketData, BigDecimal("2.0"))
+            .hasFieldOrPropertyWithValue(openProp, marketData.open)
+            .hasFieldOrPropertyWithValue(previousCloseProp, marketData.previousClose)
+            .hasFieldOrPropertyWithValue(closeProp, marketData.close)
+            .hasFieldOrPropertyWithValue(changeProp, marketData.change)
+            .hasFieldOrPropertyWithValue(changePercentProp, marketData.changePercent)
+        val withFx = PriceData.of(marketData, two)
         assertThat(withFx)
-            .hasFieldOrPropertyWithValue("open", BigDecimal("4.00"))
-            .hasFieldOrPropertyWithValue("close", BigDecimal("4.00"))
-            .hasFieldOrPropertyWithValue("previousClose", BigDecimal("2.00"))
-            .hasFieldOrPropertyWithValue("change", BigDecimal("2.00"))
-            .hasFieldOrPropertyWithValue("changePercent", BigDecimal("0.5000"))
+            .hasFieldOrPropertyWithValue(openProp, BigDecimal("4.00"))
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal("4.00"))
+            .hasFieldOrPropertyWithValue(previousCloseProp, BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue(changeProp, BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue(changePercentProp, BigDecimal("0.5000"))
     }
 
     @Test
@@ -44,26 +54,27 @@ class TestPriceData {
 
         val noFx = PriceData.of(marketData, BigDecimal("1.0"))
         assertThat(noFx)
-            .hasFieldOrPropertyWithValue("previousClose", marketData.previousClose)
-            .hasFieldOrPropertyWithValue("close", marketData.close)
-            .hasFieldOrPropertyWithValue("change", marketData.change)
-            .hasFieldOrPropertyWithValue("changePercent", marketData.changePercent)
-        val withFx = PriceData.of(marketData, BigDecimal("2.0"))
+            .hasFieldOrPropertyWithValue(previousCloseProp, marketData.previousClose)
+            .hasFieldOrPropertyWithValue(closeProp, marketData.close)
+            .hasFieldOrPropertyWithValue(changeProp, marketData.change)
+            .hasFieldOrPropertyWithValue(changePercentProp, marketData.changePercent)
+        val withFx = PriceData.of(marketData, two)
         assertThat(withFx)
-            .hasFieldOrPropertyWithValue("previousClose", BigDecimal("81.84"))
-            .hasFieldOrPropertyWithValue("close", BigDecimal("82.70"))
-            .hasFieldOrPropertyWithValue("change", BigDecimal("0.86"))
-            .hasFieldOrPropertyWithValue("changePercent", BigDecimal("0.0104"))
+            .hasFieldOrPropertyWithValue(previousCloseProp, BigDecimal("81.84"))
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal("82.70"))
+            .hasFieldOrPropertyWithValue(changeProp, BigDecimal("0.86"))
+            .hasFieldOrPropertyWithValue(changePercentProp, BigDecimal("0.0104"))
     }
 
     @Test
     fun is_PriceDataNullOk() {
         val marketData = MarketData(Asset(""))
-        marketData.changePercent = BigDecimal("1.01")
+        val change = "1.01"
+        marketData.changePercent = BigDecimal(change)
         marketData.previousClose = null
-        marketData.change = BigDecimal("1.00")
-        marketData.open = BigDecimal("2.00")
-        marketData.close = BigDecimal("2.00")
+        marketData.change = one
+        marketData.open = two
+        marketData.close = two
         var withFx = PriceData.of(marketData, BigDecimal("1.1"))
         assertThat(withFx).isNotNull
 
@@ -71,10 +82,10 @@ class TestPriceData {
         assertThat(noFx).isNotNull
 
         val mdWithFx = MarketData(Asset(""))
-        mdWithFx.changePercent = BigDecimal("1.01")
-        mdWithFx.previousClose = BigDecimal("1.00")
-        mdWithFx.change = BigDecimal("1.00")
-        mdWithFx.open = BigDecimal("2.00")
+        mdWithFx.changePercent = BigDecimal(change)
+        mdWithFx.previousClose = one
+        mdWithFx.change = one
+        mdWithFx.open = two
 
         withFx = PriceData.of(mdWithFx, BigDecimal("1.1"))
         assertThat(withFx).isNotNull

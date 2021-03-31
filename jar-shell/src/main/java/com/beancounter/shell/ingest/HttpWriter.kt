@@ -12,13 +12,16 @@ import org.springframework.stereotype.Service
 import java.util.ArrayList
 
 @Service
+/**
+ * Write to the BC HTTP api.
+ */
 class HttpWriter(
     private val trnService: TrnService,
     private val rowAdapter: RowAdapter,
     private val fxTransactions: FxTransactions,
 ) : TrnWriter {
     private val log = LoggerFactory.getLogger(HttpWriter::class.java)
-    var trnInputs: MutableCollection<TrnInput>? = ArrayList()
+    var trnInputs: MutableCollection<TrnInput> = ArrayList()
     private var portfolio: Portfolio? = null
 
     override fun reset() {
@@ -29,15 +32,15 @@ class HttpWriter(
     override fun write(trnRequest: TrustedTrnImportRequest) {
         portfolio = trnRequest.portfolio
         val trnInput = rowAdapter.transform(trnRequest)
-        trnInputs!!.add(trnInput)
+        trnInputs.add(trnInput)
     }
 
     override fun flush() {
         val rows: Int
-        if (trnInputs != null && !trnInputs!!.isEmpty()) {
+        if (!trnInputs.isEmpty()) {
             log.info("Back filling FX rates...")
-            rows = trnInputs!!.size
-            for (trnInput in trnInputs!!) {
+            rows = trnInputs.size
+            for (trnInput in trnInputs) {
                 fxTransactions.setTrnRates(portfolio!!, trnInput)
             }
             log.info(
@@ -48,7 +51,7 @@ class HttpWriter(
             if (portfolio != null) {
                 val trnRequest = TrnRequest(
                     portfolio!!.id,
-                    trnInputs!!.toTypedArray()
+                    trnInputs.toTypedArray()
                 )
                 val (data) = trnService.write(trnRequest)
                 log.info("Wrote {}", data.size)

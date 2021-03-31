@@ -6,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.util.ArrayList
 
+/**
+ * Request to locate FX Rates
+ */
 data class FxRequest @ConstructorBinding constructor(
     val rateDate: String = DateUtils.today,
     val pairs: ArrayList<IsoCurrencyPair> = ArrayList()
 ) {
-    constructor() : this(DateUtils.today, ArrayList())
-    constructor(rateDate: String) : this(rateDate, ArrayList())
+    constructor(rateDate: String = DateUtils.today) : this(rateDate, ArrayList())
 
     @JsonIgnore
     var tradePf: IsoCurrencyPair? = null

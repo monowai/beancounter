@@ -9,7 +9,10 @@ import java.nio.file.FileSystems
 import java.util.TreeMap
 
 @ShellComponent
-class UtilCommands(private val envConfig: EnvConfig) {
+/**
+ * Environmental related commands.
+ */
+class EnvCommands(private val envConfig: EnvConfig) {
     @ShellMethod("Current working directory")
     fun pwd(): String {
         return FileSystems.getDefault().getPath("")

@@ -1,5 +1,7 @@
 package com.beancounter.client.integ
 
+import com.beancounter.client.Constants.Companion.NZD
+import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.integ.ShareSightTradeTest.Companion.getRow
 import com.beancounter.client.sharesight.ShareSightConfig
@@ -9,7 +11,6 @@ import com.beancounter.client.sharesight.ShareSightRowAdapter
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.github.tomakehurst.wiremock.common.Json
@@ -30,31 +31,35 @@ import java.math.BigDecimal
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
+/**
+ * FX rates set in incoming csv data are preserved.
+ */
 class ShareSightRatesInTrn {
-    private val currencyUtils = CurrencyUtils()
 
     @Autowired
-    private val shareSightFactory: ShareSightFactory? = null
+    private lateinit var shareSightFactory: ShareSightFactory
 
     @Autowired
-    private val shareSightConfig: ShareSightConfig? = null
+    private lateinit var shareSightConfig: ShareSightConfig
 
     @Autowired
-    private val shareSightRowProcessor: ShareSightRowAdapter? = null
+    private lateinit var shareSightRowProcessor: ShareSightRowAdapter
 
     @BeforeEach
     fun is_IgnoreRatesDefaultCorrect() {
         // Assumptions for all tests in this class
-        Assertions.assertThat(shareSightConfig!!.isCalculateRates).isFalse
+        Assertions.assertThat(shareSightConfig.isCalculateRates).isFalse
         Assertions.assertThat(shareSightConfig.isCalculateAmount).isFalse
     }
+
+    private val testComment = "Test Comment"
 
     @Test
     fun is_DividendRowWithFxConverted() {
         val row: MutableList<String> = mutableListOf()
 
         // Portfolio is in NZD
-        val portfolio = getPortfolio("TEST")
+        val portfolio = getPortfolio("is_DividendRowWithFxConverted")
         Assertions.assertThat(portfolio).isNotNull
 
         // Trade is in USD
@@ -64,12 +69,13 @@ class ShareSightRatesInTrn {
         row.add(ShareSightDividendAdapter.date, "21/01/2019")
         val rate = "0.8074" // Sharesight Trade to Reference Rate
         row.add(ShareSightDividendAdapter.fxRate, rate)
-        row.add(ShareSightDividendAdapter.currency, "USD") // TradeCurrency
-        row.add(ShareSightDividendAdapter.net, "15.85")
-        row.add(ShareSightDividendAdapter.tax, "0")
-        row.add(ShareSightDividendAdapter.gross, "15.85")
-        row.add(ShareSightDividendAdapter.comments, "Test Comment")
-        val dividends = shareSightFactory!!.adapter(row)
+        row.add(ShareSightDividendAdapter.currency, USD.code) // TradeCurrency
+        val net = "15.85"
+        row.add(ShareSightDividendAdapter.net, net)
+        row.add(ShareSightDividendAdapter.tax, BigDecimal.ZERO.toString())
+        row.add(ShareSightDividendAdapter.gross, net)
+        row.add(ShareSightDividendAdapter.comments, testComment)
+        val dividends = shareSightFactory.adapter(row)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row, ImportFormat.SHARESIGHT
@@ -82,30 +88,32 @@ class ShareSightRatesInTrn {
             .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiply(BigDecimal("15.85"), fxRate)
+                multiply(BigDecimal(net), fxRate)
             )
             .hasFieldOrPropertyWithValue(
                 "cashAmount",
-                multiply(BigDecimal("15.85"), fxRate)
+                multiply(BigDecimal(net), fxRate)
             )
             .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("comments", "Test Comment")
-            .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
+            .hasFieldOrPropertyWithValue("comments", row[ShareSightDividendAdapter.comments])
+            .hasFieldOrPropertyWithValue("tradeCurrency", USD.code)
             .hasFieldOrProperty("tradeDate")
     }
 
     @Test
     @Throws(Exception::class)
     fun is_TradeRowWithFxConverted() {
-        val row: List<String> = getRow("buy", "0.8988", "2097.85")
+        val fxRate = "0.8988"
+        val tradeAmount = "2097.85"
+        val row: List<String> = getRow("buy", fxRate, tradeAmount)
         // Portfolio is in NZD
-        val portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"))
+        val portfolio = getPortfolio("is_TradeRowWithFxConverted", NZD)
         // System base currency
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row, ImportFormat.SHARESIGHT
         )
-        val trn = shareSightRowProcessor!!.transform(trustedTrnImportRequest)
+        val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
         log.info(Json.getObjectMapper().writeValueAsString(trn))
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
@@ -114,11 +122,11 @@ class ShareSightRatesInTrn {
             .hasFieldOrPropertyWithValue("fees", BigDecimal("14.45"))
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiply(BigDecimal("2097.85"), BigDecimal("0.8988"))
+                multiply(BigDecimal(tradeAmount), BigDecimal(fxRate))
             )
-            .hasFieldOrPropertyWithValue("comments", "Test Comment")
+            .hasFieldOrPropertyWithValue("comments", testComment)
             .hasFieldOrProperty("tradeCurrency")
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("0.8988"))
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal(fxRate))
             .hasFieldOrProperty("tradeDate")
     }
 

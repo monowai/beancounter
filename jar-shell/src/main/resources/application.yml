@@ -24,6 +24,7 @@ auth:
   realm: "bc-dev"
   client: "bc-dev"
 
+
 logging:
   level:
     root: error
@@ -46,6 +47,7 @@ feign:
     config:
       default:
         errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
+        loggerLevel: NONE
 
     # http://localhost:9500/actuator/circuitbreaker-events/marketdata
 

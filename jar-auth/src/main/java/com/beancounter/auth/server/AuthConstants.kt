@@ -3,7 +3,10 @@ package com.beancounter.auth.server
 import com.beancounter.common.model.SystemUser
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
-object RoleHelper {
+/**
+ * OAUTH related constants
+ */
+object AuthConstants {
     const val ROLE_USER = "ROLE_user"
     const val ROLE_M2M = "ROLE_m2m"
 

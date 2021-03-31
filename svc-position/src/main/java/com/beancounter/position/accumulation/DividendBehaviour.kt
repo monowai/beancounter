@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 @Service
+/**
+ * Logic to accumulate a dividend transaction event into a position.
+ */
 class DividendBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     override fun accumulate(trn: Trn, portfolio: Portfolio, position: Position) {

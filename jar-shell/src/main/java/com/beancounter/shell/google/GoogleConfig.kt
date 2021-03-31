@@ -5,4 +5,7 @@ import org.springframework.context.annotation.Import
 
 @Configuration
 @Import(SheetIngester::class, GoogleTransport::class, GoogleAuthConfig::class)
+/**
+ * Imports Google Doc related dependencies.
+ */
 open class GoogleConfig

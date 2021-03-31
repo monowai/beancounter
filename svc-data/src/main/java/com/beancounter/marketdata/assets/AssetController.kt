@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.assets
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/assets")
 @CrossOrigin
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class AssetController @Autowired internal constructor(private val assetService: AssetService, private val marketDataService: MarketDataService) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse {

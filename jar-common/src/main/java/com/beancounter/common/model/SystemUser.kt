@@ -11,9 +11,12 @@ import javax.persistence.Entity
 import javax.persistence.Id
 
 @Entity
+/**
+ * User of this service that is Authenticated.  SystemUsers can own portfolios.
+ */
 data class SystemUser @ConstructorBinding constructor(
     @Id var id: String,
-    var email: String? = null,
+    var email: String,
     var active: Boolean = true,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
@@ -21,7 +24,7 @@ data class SystemUser @ConstructorBinding constructor(
     var since: LocalDate = LocalDate.now()
 ) {
 
-    constructor(id: String, email: String?) :
+    constructor(id: String, email: String = "") :
         this(id, email, true, LocalDate.now())
 
     override fun equals(other: Any?): Boolean {

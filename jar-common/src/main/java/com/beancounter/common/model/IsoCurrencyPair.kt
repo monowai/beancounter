@@ -1,5 +1,8 @@
 package com.beancounter.common.model
 
+/**
+ * Consistent representation of a currency pairing
+ */
 data class IsoCurrencyPair(val from: String, val to: String) {
 
     override fun toString(): String {

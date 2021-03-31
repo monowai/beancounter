@@ -44,6 +44,9 @@ import java.util.Objects
 @Tag("slow")
 @SpringBootTest(classes = [EventBoot::class], properties = ["auth.enabled=false"])
 @ActiveProfiles("kafka")
+/**
+ * Test inbound Kafka events
+ */
 class StubbedEvents {
     private val om = BcJson().objectMapper
 
@@ -68,11 +71,13 @@ class StubbedEvents {
         null
     )
 
+    private val alpha = "ALPHA"
+
     @Test
     fun is_NoQuantityOnDateNull() {
         val corporateEvent = CorporateEvent(
-            TrnType.DIVI, "ALPHA", "MSFT",
-            Objects.requireNonNull(DateUtils().getDate("2020-05-01"))!!,
+            TrnType.DIVI, Objects.requireNonNull(DateUtils().getDate("2020-05-01"))!!, alpha,
+            "MSFT",
             BigDecimal("0.2625")
         )
         val trnEvent = positionService.process(portfolio, corporateEvent)
@@ -83,9 +88,9 @@ class StubbedEvents {
     fun is_ServiceBasedDividendCreateAndFindOk() {
         val event = CorporateEvent(
             TrnType.DIVI,
-            "ALPHA",
-            "assetId",
             Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
+            alpha,
+            "assetId",
             BigDecimal("2.3400")
         )
         val saved = eventService.save(event)
@@ -116,8 +121,8 @@ class StubbedEvents {
         val consumer = cf.createConsumer()
         embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TRN_EVENT)
         val corporateEvent = CorporateEvent(
-            TrnType.DIVI, "ALPHA", "KMI",
-            Objects.requireNonNull(DateUtils().getDate("2020-05-01"))!!,
+            TrnType.DIVI, Objects.requireNonNull(DateUtils().getDate("2020-05-01"))!!, alpha,
+            "KMI",
             BigDecimal("0.2625")
         )
         val eventInput = TrustedEventInput(corporateEvent)

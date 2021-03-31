@@ -1,6 +1,5 @@
 package com.beancounter.shell.google
 
-import com.beancounter.common.exception.SystemException
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
@@ -59,28 +58,23 @@ class GoogleAuthConfig {
         val resolved = apiPath + if (apiPath!!.endsWith("/")) apiFile else "/$apiFile"
         log.debug("Looking for credentials at {}", resolved)
         // Load client secrets.
-        try {
-            FileInputStream(resolved).use { `in` ->
-                log.info("Reading {}", resolved)
-                val clientSecrets =
-                    GoogleClientSecrets.load(JacksonFactory.getDefaultInstance(), InputStreamReader(`in`))
-                val flow = GoogleAuthorizationCodeFlow.Builder(
-                    netHttpTransport, JacksonFactory.getDefaultInstance(), clientSecrets, SCOPES
-                )
-                    .setAccessType("offline")
-                    .setDataStoreFactory(
-                        FileDataStoreFactory(
-                            File("$apiPath/tokens")
-                        )
+        FileInputStream(resolved).use { `in` ->
+            log.info("Reading {}", resolved)
+            val clientSecrets =
+                GoogleClientSecrets.load(JacksonFactory.getDefaultInstance(), InputStreamReader(`in`))
+            val flow = GoogleAuthorizationCodeFlow.Builder(
+                netHttpTransport, JacksonFactory.getDefaultInstance(), clientSecrets, SCOPES
+            )
+                .setAccessType("offline")
+                .setDataStoreFactory(
+                    FileDataStoreFactory(
+                        File("$apiPath/tokens")
                     )
-                    .setAccessType("offline")
-                    .build()
-                return AuthorizationCodeInstalledApp(flow, receiver)
-                    .authorize("user")
-            }
-        } catch (e: Exception) {
-            log.error("Exception reading credentials")
-            throw SystemException(e.message)
+                )
+                .setAccessType("offline")
+                .build()
+            return AuthorizationCodeInstalledApp(flow, receiver)
+                .authorize("user")
         }
     }
 

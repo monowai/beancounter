@@ -61,19 +61,29 @@ class WtdService @Autowired internal constructor(
         val results: MutableCollection<MarketData> = ArrayList()
         var empty = requests.isEmpty()
         while (!empty) {
-            for (batch in requests.keys) {
-                if (requests[batch]!!.isDone) {
-                    val batchResult = wtdAdapter[providerArguments, batch, requests[batch]]
-                    if (!batchResult.isNullOrEmpty()) {
-                        results.addAll(batchResult)
-                    }
-                    requests.remove(batch)
-                }
+            for (key in requests.keys) {
+                setResultFromBatch(requests, key, providerArguments, results)
                 empty = requests.isEmpty()
             }
             Thread.sleep(1000)
         }
         return results
+    }
+
+    private fun setResultFromBatch(
+        requests: MutableMap<Int, Future<WtdResponse>>,
+        key: Int,
+        providerArguments: ProviderArguments,
+        results: MutableCollection<MarketData>
+    ) {
+        val request = requests[key]
+        if (request!!.isDone) {
+            val batchResult = wtdAdapter[providerArguments, key, request]
+            if (!batchResult.isNullOrEmpty()) {
+                results.addAll(batchResult)
+            }
+            requests.remove(key)
+        }
     }
 
     override fun getId(): String {

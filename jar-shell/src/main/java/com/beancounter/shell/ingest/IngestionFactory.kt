@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service
 import java.util.HashMap
 
 @Service
+/**
+ * All known Ingestion request handlers.
+ */
 class IngestionFactory {
     private val ingesterMap: MutableMap<String, Ingester> = HashMap()
 

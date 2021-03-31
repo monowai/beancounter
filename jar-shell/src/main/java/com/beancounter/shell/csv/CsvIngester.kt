@@ -13,17 +13,18 @@ import java.io.IOException
 import java.io.Reader
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.ArrayList
 
 @Service
+/**
+ * Import delimited files.
+ * Ignores anything starting with a #
+ */
 class CsvIngester : AbstractIngester() {
     private var reader: Reader? = null
     private val log = LoggerFactory.getLogger(CsvIngester::class.java)
-    override fun prepare(ingestionRequest: IngestionRequest?, trnWriter: TrnWriter?) {
-        assert(ingestionRequest != null)
-        val trimmedFile = ingestionRequest!!.file.trim { it <= ' ' }
-        assert(trnWriter != null)
-        trnWriter!!.reset()
+    override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
+        val trimmedFile = ingestionRequest.file.trim { it <= ' ' }
+        trnWriter.reset()
         trnWriter.flush()
         try {
             // Unit tests
@@ -54,7 +55,7 @@ class CsvIngester : AbstractIngester() {
                     while (iterator.hasNext()) {
                         val line = iterator.next()
                         if (!line[0].startsWith("#")) {
-                            results.add(listOf(*line))
+                            results.add(line.toList())
                         }
                     }
                 }

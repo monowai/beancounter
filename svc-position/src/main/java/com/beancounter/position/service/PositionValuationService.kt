@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
 @Service
+/**
+ * Obtains necessary prices and fx rates for the requested positions, returning them as valued positions in
+ * various currencies.
+ */
 class PositionValuationService internal constructor(
     private val asyncMdService: AsyncMdService,
     private val marketValue: MarketValue,
@@ -26,7 +30,7 @@ class PositionValuationService internal constructor(
             return positions // Nothing to value
         }
         log.debug(
-            "Requested valuation of {} positions for {}...",
+            "Requesting valuation of {} positions for {}...",
             positions.positions.size,
             positions.portfolio.code
         )

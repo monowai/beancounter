@@ -4,6 +4,9 @@ import com.beancounter.common.exception.BusinessException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
+/**
+ * Builds shorter web-safe keys from GUIDs.
+ */
 public final class KeyGenUtils {
   private static final char[] CHARS =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();

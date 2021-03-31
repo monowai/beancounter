@@ -10,7 +10,7 @@ import javax.persistence.Transient
 import javax.persistence.UniqueConstraint
 
 /**
- * A representation of an instrument traded on a market.
+ * Persistent representation of an instrument traded on a market.
  *
  * @author mikeh
  * @since 2019-01-27

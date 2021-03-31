@@ -5,7 +5,7 @@ import com.beancounter.common.utils.DateUtils
 import org.springframework.stereotype.Service
 
 @Service
-class TrnExport() {
+class TrnExport {
     val dateUtils = DateUtils()
     fun headers(): Array<String> {
         return arrayOf(

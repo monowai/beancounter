@@ -13,4 +13,4 @@ spring:
 beancounter:
   topics:
     trn:
-      csv: topicTrnCsv
+      csv: shellTrnTopic

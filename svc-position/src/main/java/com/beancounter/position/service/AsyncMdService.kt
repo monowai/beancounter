@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service
 import java.util.concurrent.CompletableFuture
 
 @Service
+/**
+ * Facade to support async requests.
+ */
 class AsyncMdService @Autowired internal constructor(
     private val priceService: PriceService,
     private val fxRateService: FxService

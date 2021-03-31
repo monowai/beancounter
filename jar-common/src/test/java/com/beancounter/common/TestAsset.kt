@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.contracts.PriceRequest.Companion.of
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
@@ -17,7 +16,6 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.AssetUtils.Companion.split
 import com.beancounter.common.utils.AssetUtils.Companion.toKey
-import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -26,15 +24,11 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.lang.NonNull
 
+/**
+ * Unit Tests for Asset Object
+ */
 internal class TestAsset {
     private val objectMapper = ObjectMapper().registerModule(KotlinModule())
-
-    @Test
-    fun is_PriceRequestForAsset() {
-        val priceRequest = of(getAsset("NASDAQ", "EBAY"))
-        assertThat(priceRequest.assets).hasSize(1)
-        assertThat(priceRequest.date).isEqualTo(DateUtils.today)
-    }
 
     @Test
     @Throws(Exception::class)
@@ -160,10 +154,35 @@ internal class TestAsset {
         assertThat(fromJson.data).isNotEmpty
         assertThat(fromJson.data.iterator().next().type).isNotNull
     }
+
     @Test
-    fun is_Something() {
+    fun is_AssetRequestSerializing() {
         val assetInput = AssetInput("ABC", "123")
         val ar = AssetRequest("ABC", assetInput)
         assertThat(ar.data).containsKey("ABC")
+    }
+
+    @Test
+    fun is_DefaultsFromAsset() {
+        val assetInput = AssetInput(getAsset("a", "b"))
+        assertThat(assetInput)
+            .hasFieldOrPropertyWithValue("market", "a")
+            .hasFieldOrPropertyWithValue("code", "B")
+            .hasFieldOrProperty("resolvedAsset")
+    }
+
+    @Test
+    fun is_DataProviderAsset() {
+        val asset = getAsset("1", "2")
+        val assetInput = AssetInput(market = "amarket", code = "acode", asset)
+        assertThat(assetInput)
+            .hasFieldOrPropertyWithValue("market", "amarket")
+            .hasFieldOrPropertyWithValue("code", "acode")
+            .hasFieldOrPropertyWithValue("resolvedAsset", asset)
+            .hasFieldOrPropertyWithValue("name", null)
+
+        val json = objectMapper.writeValueAsString(assetInput)
+        assertThat(objectMapper.readValue(json, AssetInput::class.java))
+            .hasNoNullFieldsOrPropertiesExcept("resolvedAsset", "name")
     }
 }

@@ -10,12 +10,13 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.CurrencyUtils
+import com.beancounter.common.utils.AssetUtils.Companion.USD
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.shell.Constants.Companion.GBP
+import com.beancounter.shell.Constants.Companion.NZD
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
@@ -30,9 +31,10 @@ import java.math.BigDecimal
 )
 @ActiveProfiles("test")
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
+/**
+ * Trade tests with FX rates obtained from bc-data.
+ */
 internal class StubbedTradesWithFx {
-    private val currencyUtils = CurrencyUtils()
-    private val log = LoggerFactory.getLogger(StubbedTradesWithFx::class.java)
     @Autowired
     private lateinit var fxTransactions: FxTransactions
 
@@ -41,10 +43,10 @@ internal class StubbedTradesWithFx {
 
     @Autowired
     private lateinit var shareSightConfig: ShareSightConfig
+    private val testDate = "27/07/2019" // Sharesight format
 
     @Test
     fun is_FxRatesSetFromCurrencies() {
-        val testDate = "27/07/2019" // Sharesight format
 
         val row: List<String> = arrayListOf(
             "999",
@@ -64,7 +66,7 @@ internal class StubbedTradesWithFx {
         val trades = shareSightFactory.adapter(row)
 
         // Portfolio is in NZD
-        val portfolio = getPortfolio("TEST", currencyUtils.getCurrency("NZD"))
+        val portfolio = getPortfolio("NZDTest", Currency("NZD"))
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row, ImportFormat.SHARESIGHT
@@ -87,11 +89,11 @@ internal class StubbedTradesWithFx {
             "BHP",
             "Test Asset",
             "buy",
-            "27/07/2019",
+            testDate,
             "10",
             "12.23",
             "12.99",
-            "GBP",
+            GBP.code,
             "99.99",
             "2097.85"
         )
@@ -99,7 +101,7 @@ internal class StubbedTradesWithFx {
         val trades = shareSightFactory.adapter(row)
 
         // Portfolio is in NZD
-        val portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"))
+        val portfolio = getPortfolio("Test", NZD)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row, ImportFormat.SHARESIGHT
@@ -110,6 +112,14 @@ internal class StubbedTradesWithFx {
         assertTransaction(portfolio, trn)
     }
 
+    private val tradeBaseRateProp = "tradeBaseRate"
+    private val tradeCashRateProp = "tradeCashRate"
+    private val tradeAmountProp = "tradeAmount"
+    private val tradePortfolioRateProp = "tradePortfolioRate"
+    private val tradeCurrencyProp = "tradeCurrency"
+
+    private val msft = "MSFT"
+
     @Test
     fun is_FxRatesSetAndTradeAmountCalculated() {
 
@@ -117,14 +127,14 @@ internal class StubbedTradesWithFx {
         val row: List<String> = arrayListOf(
             "333",
             "NASDAQ",
-            "MSFT",
-            "MSFT",
+            msft,
+            msft,
             "BUY",
             "18/10/2019",
             "10",
             "100",
             BigDecimal.ZERO.toString(),
-            "USD",
+            USD.code,
             BigDecimal.ZERO.toString(),
             "1001.00"
         )
@@ -133,8 +143,8 @@ internal class StubbedTradesWithFx {
         // Testing all currency buckets
         val portfolio = Portfolio(
             "Test",
-            Currency("NZD"),
-            Currency("GBP")
+            NZD,
+            GBP
         )
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
@@ -143,24 +153,24 @@ internal class StubbedTradesWithFx {
         val trn = trades.from(trustedTrnImportRequest)
         Assertions.assertThat(trn).isNotNull
         fxTransactions.setTrnRates(portfolio, trn)
+        val fxRate = "0.63723696"
         Assertions.assertThat(trn)
-            .hasFieldOrPropertyWithValue("tradeCurrency", "USD") // Was tradeAmount calculated?
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("1000.00"))
-            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal("1.28929253"))
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("0.63723696"))
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("0.63723696"))
+            .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code) // Was tradeAmount calculated?
+            .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("1000.00"))
+            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("1.28929253"))
+            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal(fxRate))
+            .hasFieldOrPropertyWithValue(tradePortfolioRateProp, BigDecimal(fxRate))
     }
 
     @Test
     fun is_RateOfOneSetForUndefinedCurrencies() {
-        val testDate = "27/07/2019"
 
         // Trade CCY USD
         val row: List<String> = arrayListOf(
             "222",
             "NASDAQ",
-            "MSFT",
-            "MSFT",
+            msft,
+            msft,
             "BUY",
             testDate,
             "10",
@@ -173,7 +183,7 @@ internal class StubbedTradesWithFx {
         val trades = shareSightFactory.adapter(row)
 
         // Testing all currency buckets
-        val portfolio = getPortfolio("TEST", currencyUtils.getCurrency("USD"))
+        val portfolio = getPortfolio("TEST", USD)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row, ImportFormat.SHARESIGHT
@@ -185,20 +195,20 @@ internal class StubbedTradesWithFx {
 
         // No currencies are defined so rate defaults to 1
         Assertions.assertThat(trn)
-            .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
-            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code)
+            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(tradePortfolioRateProp, BigDecimal.ONE)
     }
 
     private fun assertTransaction(portfolio: Portfolio, trn: TrnInput?) {
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
-            .hasFieldOrPropertyWithValue("tradeCurrency", "GBP")
+            .hasFieldOrPropertyWithValue(tradeCurrencyProp, GBP.code)
             .hasFieldOrPropertyWithValue("cashCurrency", portfolio.currency.code)
-            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal("0.80474951"))
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("0.53457983"))
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("0.53457983"))
+            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("0.80474951"))
+            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("0.53457983"))
+            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("0.53457983"))
             .hasFieldOrProperty("tradeDate")
     }
 }

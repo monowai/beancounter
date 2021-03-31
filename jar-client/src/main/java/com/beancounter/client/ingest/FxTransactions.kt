@@ -7,15 +7,19 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.NumberUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 @Service
-class FxTransactions(private val fxService: FxService, private val dateUtils: DateUtils) {
-    private val currencyUtils = CurrencyUtils()
+/**
+ * Client side service to obtain FX rates in response to Transaction requests.
+ */
+class FxTransactions(
+    private val fxClientService: FxService,
+    private val dateUtils: DateUtils
+) {
     private val numberUtils = NumberUtils()
 
     fun buildRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
@@ -30,7 +34,7 @@ class FxTransactions(private val fxService: FxService, private val dateUtils: Da
         )
         if (trn.cashCurrency != null) {
             fxRequest.addTradeCash(
-                pair(currencyUtils.getCurrency(trn.cashCurrency!!), trn, trn.tradeCashRate)
+                pair(Currency(trn.cashCurrency!!), trn, trn.tradeCashRate)
             )
         }
         return fxRequest
@@ -58,12 +62,12 @@ class FxTransactions(private val fxService: FxService, private val dateUtils: Da
         }
     }
 
-    private fun pair(currency: Currency, trn: TrnInput, rate: BigDecimal?): IsoCurrencyPair? {
-        return currencyUtils.getCurrencyPair(
-            rate,
-            currencyUtils.getCurrency(trn.tradeCurrency),
-            currency
-        )
+    fun pair(currency: Currency, trn: TrnInput, rate: BigDecimal?): IsoCurrencyPair? {
+        val from = Currency(trn.tradeCurrency)
+        if (rate == null && !trn.tradeCurrency.equals(currency.code, ignoreCase = true)) {
+            return IsoCurrencyPair(from = from.code, to = currency.code)
+        }
+        return null
     }
 
     private fun getFxRequest(fxRequests: MutableMap<String?, FxRequest>, tradeDate: String?): FxRequest {
@@ -77,7 +81,7 @@ class FxTransactions(private val fxService: FxService, private val dateUtils: Da
 
     fun setTrnRates(portfolio: Portfolio, trnInput: TrnInput) {
         val fxRequest = buildRequest(portfolio, trnInput)
-        val (data) = fxService.getRates(fxRequest)
+        val (data) = fxClientService.getRates(fxRequest)
         setRates(data, fxRequest, trnInput)
     }
 }

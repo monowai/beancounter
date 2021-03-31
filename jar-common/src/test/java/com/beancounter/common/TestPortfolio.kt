@@ -13,7 +13,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class TestPortfolio {
+/**
+ * Portfolio Pojo Tests.
+ */
+class TestPortfolio {
     private val objectMapper = BcJson().objectMapper
 
     @Test

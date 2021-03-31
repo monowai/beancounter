@@ -2,11 +2,18 @@ package com.beancounter.marketdata.integ
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MarketUtils
+import com.beancounter.common.utils.PreviousClosePriceDate
+import com.beancounter.marketdata.Constants.Companion.ASX
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.NYSE
+import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.NZX
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.mock.MockProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.AssertionsForClassTypes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -30,20 +37,23 @@ import java.util.TimeZone
 @EntityScan("com.beancounter.common.model")
 @EnableAutoConfiguration
 @ActiveProfiles("test")
+/**
+ * Integration tests for static data related functionality.
+ */
 internal class StaticDataTest @Autowired constructor(
     private val marketService: MarketService,
     private val currencyService: CurrencyService,
     dateUtils: DateUtils
 ) {
 
-    private val marketUtils = MarketUtils(dateUtils)
+    private val marketUtils = PreviousClosePriceDate(dateUtils)
 
     @Test
     fun is_FoundForAlias() {
-        val nyse = marketService.getMarket("NYSE")
-        val nzx = marketService.getMarket("NZX")
-        val asx = marketService.getMarket("ASX")
-        val nasdaq = marketService.getMarket("NASDAQ")
+        val nyse = marketService.getMarket(NYSE.code)
+        val nzx = marketService.getMarket(NZX.code)
+        val asx = marketService.getMarket(ASX.code)
+        val nasdaq = marketService.getMarket(NASDAQ.code)
         AssertionsForClassTypes.assertThat(marketService.getMarket("nys")).isEqualTo(nyse)
         AssertionsForClassTypes.assertThat(marketService.getMarket("NZ")).isEqualTo(nzx)
         AssertionsForClassTypes.assertThat(marketService.getMarket("AX")).isEqualTo(asx)
@@ -58,7 +68,7 @@ internal class StaticDataTest @Autowired constructor(
             .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(ZoneOffset.UTC))
             .hasFieldOrProperty("currency")
         AssertionsForClassTypes.assertThat(market.currency)
-            .hasFieldOrPropertyWithValue("code", "USD")
+            .hasFieldOrPropertyWithValue("code", USD.code)
     }
 
     @Test
@@ -73,17 +83,17 @@ internal class StaticDataTest @Autowired constructor(
         // Users requested date "today in timezone"
         val sunday = LocalDate
             .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat))
-        var resolvedDate = marketUtils.getPreviousClose(
+        val resolvedDate = marketUtils.getPriceDate(
             sunday.atStartOfDay(),
-            marketService.getMarket("NYSE")
+            marketService.getMarket(NYSE.code)
         )
-        AssertionsForClassTypes.assertThat(resolvedDate)
+        assertThat(resolvedDate)
             .isEqualTo(LocalDate.of(2019, 4, 12))
-        resolvedDate = marketUtils.getPreviousClose(
+        marketUtils.getPriceDate(
             sunday.atStartOfDay(),
-            marketService.getMarket("NYSE")
+            marketService.getMarket(NYSE.code)
         )
-        AssertionsForClassTypes.assertThat(resolvedDate)
+        assertThat(resolvedDate)
             .isEqualTo(LocalDate.of(2019, 4, 12))
     }
 
@@ -95,30 +105,30 @@ internal class StaticDataTest @Autowired constructor(
 
     @Test
     fun is_AliasForWtdAndNzxResolving() {
-        val market = marketService.getMarket("NZX")
+        val market = marketService.getMarket(NZX.code)
         AssertionsForClassTypes.assertThat(market)
             .isNotNull
             .hasFieldOrProperty("aliases")
         AssertionsForClassTypes.assertThat(market.currency)
-            .hasFieldOrPropertyWithValue("code", "NZD")
+            .hasFieldOrPropertyWithValue("code", NZD.code)
         AssertionsForClassTypes.assertThat(market.aliases[WtdService.ID])
             .isEqualTo("NZ")
-            .isNotNull()
+            .isNotNull
     }
 
     @Test
     fun does_MarketDataAliasNasdaqResolveToNull() {
-        val market = marketService.getMarket("NASDAQ")
+        val market = marketService.getMarket(NASDAQ.code)
         AssertionsForClassTypes.assertThat(market)
             .isNotNull
             .hasFieldOrProperty("aliases")
         AssertionsForClassTypes.assertThat(market.aliases[WtdService.ID])
-            .isBlank()
+            .isBlank
     }
 
     @Test
     fun is_CurrencyDataLoading() {
-        AssertionsForClassTypes.assertThat(currencyService.getCode("USD"))
+        AssertionsForClassTypes.assertThat(currencyService.getCode(USD.code))
             .isNotNull
         AssertionsForClassTypes.assertThat(currencyService.baseCurrency)
             .isNotNull

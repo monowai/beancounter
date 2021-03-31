@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.integ
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
@@ -9,6 +9,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.MarketDataProviderTests.Companion.mockCode
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.mock.MockProviderService
@@ -36,6 +37,9 @@ import java.util.ArrayList
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+/**
+ * MVC tests related to market activities.
+ */
 internal class MarketDataControllerTests @Autowired private constructor(
     private val wac: WebApplicationContext,
     marketService: MarketService,
@@ -73,7 +77,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
     }
 
     @Test
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     @Throws(
         Exception::class
     )
@@ -94,7 +98,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     @Tag("slow")
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     @Throws(
         Exception::class
     )
@@ -121,25 +125,27 @@ internal class MarketDataControllerTests @Autowired private constructor(
             .hasFieldOrPropertyWithValue("priceDate", mockProviderService.priceDate)
     }
 
+    private val assetCode = "assetCode"
+
     @Test
     @Tag("slow")
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     @Throws(
         Exception::class
     )
     fun is_MdCollectionReturnedForAssets() {
-        Mockito.`when`(assetService.findLocally("MOCK", "ASSETCODE"))
-            .thenReturn(getAsset("ASSETCODE", "MOCK"))
+        Mockito.`when`(assetService.findLocally(mockCode, assetCode))
+            .thenReturn(getAsset(mockCode, assetCode))
         val assetInputs: MutableCollection<AssetInput> = ArrayList()
         assetInputs.add(
-            getAssetInput("MOCK", "ASSETCODE")
+            getAssetInput(mockCode, assetCode)
         )
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/prices")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(
                     bcJson.objectMapper.writeValueAsString(
-                        PriceRequest(assetInputs)
+                        PriceRequest(assets = assetInputs)
                     )
                 )
         )
@@ -158,7 +164,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     @Tag("slow")
-    @WithMockUser(username = "test-user", roles = [RoleHelper.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     @Throws(
         Exception::class
     )

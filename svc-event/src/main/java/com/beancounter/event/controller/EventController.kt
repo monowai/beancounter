@@ -1,6 +1,6 @@
 package com.beancounter.event.controller
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventsResponse
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping
 @CrossOrigin("*")
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class EventController(private val eventService: EventService) {
     @PostMapping(value = ["/backfill/{portfolioId}/{valuationDate}"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.ACCEPTED)

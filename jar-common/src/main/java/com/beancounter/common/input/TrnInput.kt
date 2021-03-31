@@ -12,8 +12,11 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
+/**
+ * Incoming request to mutate a transaction
+ */
 data class TrnInput(
-    val callerRef: CallerRef,
+    val callerRef: CallerRef = CallerRef(),
     val assetId: String,
     val trnType: TrnType = TrnType.BUY,
     val quantity: BigDecimal = BigDecimal.ZERO,

@@ -1,12 +1,12 @@
 package com.beancounter.position
 
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.service.Accumulator
 import org.assertj.core.api.Assertions.assertThat
@@ -17,14 +17,13 @@ import java.math.BigDecimal
 
 @SpringBootTest(classes = [Accumulator::class])
 internal class TestDividends {
-    private val currencyUtils = CurrencyUtils()
 
     @Autowired
     private lateinit var accumulator: Accumulator
 
     @Test
     fun is_CashDividendAccumulated() {
-        val asx = Market("ASX", currencyUtils.getCurrency("AUD"))
+        val asx = Market("ASX", Currency("AUD"))
         val asset = getAsset(asx, "MO")
         val trn = Trn(TrnType.DIVI, asset)
         trn.tradeCashRate = BigDecimal("0.8988")

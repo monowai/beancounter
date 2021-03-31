@@ -14,7 +14,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
 @SpringBootTest(classes = [Accumulator::class])
+/**
+ * Quantity Accumulation tests
+ */
 internal class TestAccumulationOfQuantityValues {
+    private val hundred: BigDecimal = BigDecimal("100")
+    private val zero: BigDecimal = BigDecimal(0)
+    private val twoHundred = BigDecimal(200)
+
     @Autowired
     private lateinit var accumulator: Accumulator
 
@@ -26,7 +33,7 @@ internal class TestAccumulationOfQuantityValues {
         quantityValues.purchased = BigDecimal("100.9992")
         assertThat(quantityValues.getTotal()).isEqualTo("100.9992")
         assertThat(quantityValues.getPrecision()).isEqualTo(3)
-        quantityValues.purchased = BigDecimal("100")
+        quantityValues.purchased = hundred
         assertThat(quantityValues.getPrecision()).isEqualTo(0)
 
         // User defined precision
@@ -36,34 +43,40 @@ internal class TestAccumulationOfQuantityValues {
 
     @Test
     fun is_TotalQuantityCorrect() {
-        val buyTrn = Trn(TrnType.BUY, getAsset("marketCode", "CODE"), BigDecimal(100))
+        val buyTrn = Trn(TrnType.BUY, getAsset("marketCode", "CODE"), hundred)
         buyTrn.tradeAmount = BigDecimal(2000)
         var position = Position(buyTrn.asset)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO)
-        val portfolio = getPortfolio("TEST")
+            .hasFieldOrPropertyWithValue(totalProp, BigDecimal.ZERO)
+        val portfolio = getPortfolio()
         position = accumulator.accumulate(buyTrn, portfolio, position)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("purchased", BigDecimal(100))
-            .hasFieldOrPropertyWithValue("total", BigDecimal(100))
+            .hasFieldOrPropertyWithValue(purchasedProp, hundred)
+            .hasFieldOrPropertyWithValue(totalProp, hundred)
         position = accumulator.accumulate(buyTrn, portfolio, position)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("purchased", BigDecimal(200))
-            .hasFieldOrPropertyWithValue("sold", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("total", BigDecimal(200))
+            .hasFieldOrPropertyWithValue(purchasedProp, twoHundred)
+            .hasFieldOrPropertyWithValue(soldProp, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(totalProp, twoHundred)
         // Sell to zero
-        val sell = Trn(TrnType.SELL, buyTrn.asset, BigDecimal(100))
+        val sell = Trn(TrnType.SELL, buyTrn.asset, hundred)
         position = accumulator.accumulate(sell, portfolio, position)
         // Track the money
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("sold", BigDecimal(-100))
-            .hasFieldOrPropertyWithValue("purchased", BigDecimal(200))
-            .hasFieldOrPropertyWithValue("total", BigDecimal(100))
+            .hasFieldOrPropertyWithValue(soldProp, BigDecimal(-100))
+            .hasFieldOrPropertyWithValue(purchasedProp, twoHundred)
+            .hasFieldOrPropertyWithValue(totalProp, hundred)
         position = accumulator.accumulate(sell, portfolio, position)
         // But reset the quantities
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("sold", BigDecimal(0))
-            .hasFieldOrPropertyWithValue("purchased", BigDecimal(0))
-            .hasFieldOrPropertyWithValue("total", BigDecimal(0))
+            .hasFieldOrPropertyWithValue(soldProp, zero)
+            .hasFieldOrPropertyWithValue(purchasedProp, zero)
+            .hasFieldOrPropertyWithValue(totalProp, zero)
+    }
+
+    companion object {
+        const val soldProp = "sold"
+        const val purchasedProp = "purchased"
+        const val totalProp = "total"
     }
 }

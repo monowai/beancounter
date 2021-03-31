@@ -14,6 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * Controls the ingestion of transaction into the BC format by acting on a TrustedTrnRequest.
+ * Verifies the requested portfolio can be accessed and backfills missing FX Rates.
+ *
+ * Transformations are delegated to the appropriate TrnAdapter
+ */
 class TrnImport {
     private lateinit var adapterFactory: AdapterFactory
     private lateinit var portfolioService: PortfolioService

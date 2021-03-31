@@ -1,11 +1,15 @@
 package com.beancounter.marketdata
 
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.NYSE
+import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter
 import com.beancounter.marketdata.providers.alpha.AlphaService
@@ -24,7 +28,6 @@ import java.math.BigDecimal
  */
 internal class AlphaPriceTest {
     private val priceMapper = AlphaPriceAdapter().alphaMapper
-    private val nasdaq = Market("NASDAQ", Currency("USD"), "US/Eastern")
 
     @Test
     @Throws(Exception::class)
@@ -66,8 +69,8 @@ internal class AlphaPriceTest {
                 .hasFieldOrProperty("dividend")
                 .hasFieldOrProperty("split")
             val resolvedDate = dateUtils.getDate("2020-05-01")
-            assertThat(resolvedDate).isNotNull()
-            assertThat(marketData.priceDate).isNotNull()
+            assertThat(resolvedDate).isNotNull
+            assertThat(marketData.priceDate).isNotNull
             if (marketData.priceDate!!.compareTo(resolvedDate) == 0) {
                 // Dividend
                 assertThat(marketData.dividend).isEqualTo(BigDecimal("0.2625"))
@@ -120,15 +123,14 @@ internal class AlphaPriceTest {
         val alphaConfig = AlphaConfig()
         val alphaService = AlphaService(alphaConfig)
         // No configured support to handle the market
-        assertThat(alphaService.isMarketSupported(Market("NZX", Currency("NZD"))))
-            .isFalse()
-        val msft = getAsset("NASDAQ", "MSFT")
-        assertThat(alphaConfig.getPriceCode(msft)).isEqualTo("MSFT")
-        val ohi = getAsset("NYSE", "OHI")
+        assertThat(alphaService.isMarketSupported(Market("NZX", NZD)))
+            .isFalse
+        assertThat(alphaConfig.getPriceCode(MSFT)).isEqualTo(MSFT.code)
+        val ohi = getAsset(NYSE.code, "OHI")
         assertThat(alphaConfig.getPriceCode(ohi)).isEqualTo("OHI")
         val abc = getAsset("AMEX", "ABC")
         assertThat(alphaConfig.getPriceCode(abc)).isEqualTo("ABC")
-        val nzx = getAsset("NZX", "AIRNZ")
+        val nzx = getAsset(NZX.code, "AIRNZ")
         assertThat(alphaConfig.getPriceCode(nzx)).isEqualTo("AIRNZ.NZX")
     }
 
@@ -137,7 +139,7 @@ internal class AlphaPriceTest {
         val dateUtils = DateUtils()
         val alphaConfig = AlphaConfig()
         // Sunday
-        val computedDate = alphaConfig.getMarketDate(nasdaq, "2020-04-26")
+        val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-26")
         // Resolves to Friday
         assertThat(computedDate).isEqualTo(dateUtils.getDate("2020-04-24"))
     }
@@ -146,7 +148,7 @@ internal class AlphaPriceTest {
     fun is_PriceDateInThePastConstant() {
         val dateUtils = DateUtils()
         val alphaConfig = AlphaConfig()
-        val computedDate = alphaConfig.getMarketDate(nasdaq, "2020-04-28")
+        val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-28")
         assertThat(computedDate).isEqualTo(dateUtils.getDate("2020-04-28"))
     }
 }

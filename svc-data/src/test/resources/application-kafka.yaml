@@ -16,7 +16,9 @@ beancounter:
     providers:
       FIGI:
         enabled: false
-
+      FX:
+        url: http://localhost:${wiremock.server.port:0}
+        key: test
   topics:
     ca:
       event: topicEvent

@@ -4,6 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaService
 import com.beancounter.marketdata.providers.mock.MockProviderService
@@ -24,7 +25,11 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("test")
-internal class MarketDataProviderTests @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
+class MarketDataProviderTests @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
+    companion object {
+        @JvmStatic
+        val mockCode = "MOCK"
+    }
     @Test
     fun is_DefaultMarketProvidersSet() {
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(WtdService.ID)).isNotNull
@@ -43,11 +48,11 @@ internal class MarketDataProviderTests @Autowired constructor(private val mdFact
         val amp = getAsset(marketService.getMarket("ASX"), "AMP")
         val asxMarket = mdFactory.getMarketDataProvider(amp.market)
         AssertionsForClassTypes.assertThat(asxMarket!!.getId()).isEqualTo(AlphaService.ID)
-        val gne = getAsset(marketService.getMarket("NZX"), "GNE")
+        val gne = getAsset(marketService.getMarket(NZX.code), "GNE")
         val nzxMarket = mdFactory.getMarketDataProvider(gne.market)
         AssertionsForClassTypes.assertThat(nzxMarket!!.getId()).isEqualTo(WtdService.ID)
-        AssertionsForClassTypes.assertThat(nzxMarket.isMarketSupported(gne.market)).isTrue()
-        AssertionsForClassTypes.assertThat(nzxMarket.isMarketSupported(amp.market)).isFalse()
+        AssertionsForClassTypes.assertThat(nzxMarket.isMarketSupported(gne.market)).isTrue
+        AssertionsForClassTypes.assertThat(nzxMarket.isMarketSupported(amp.market)).isFalse
     }
 
     @Test

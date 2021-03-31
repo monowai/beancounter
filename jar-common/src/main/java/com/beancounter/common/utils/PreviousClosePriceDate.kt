@@ -9,13 +9,16 @@ import java.time.LocalTime
 import java.time.ZonedDateTime
 
 @Component
-class MarketUtils(private val dateUtils: DateUtils) {
+/**
+ * Market TZ utilities to calculate close dates
+ */
+class PreviousClosePriceDate(private val dateUtils: DateUtils) {
 
-    fun getPreviousClose(date: LocalDate, market: Market): LocalDate {
-        return getPreviousClose(date.atTime(LocalTime.now(dateUtils.getZoneId())), market)
+    fun getPriceDate(date: LocalDate, market: Market): LocalDate {
+        return getPriceDate(date.atTime(LocalTime.now(dateUtils.getZoneId())), market)
     }
 
-    fun getPreviousClose(
+    fun getPriceDate(
         localDateTime: LocalDateTime, // Callers date/time
         market: Market,
         isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localDateTime.toLocalDate()))
@@ -35,15 +38,15 @@ class MarketUtils(private val dateUtils: DateUtils) {
             if (zonedLocal.toLocalDate() >= zonedRemote.withZoneSameInstant(zonedLocal.zone).toLocalDate()) {
                 daysToSubtract = 0
             }
-            getPreviousClose(marketLocal.toLocalDateTime(), daysToSubtract)
+            getPriceDate(marketLocal.toLocalDateTime(), daysToSubtract)
         } else {
             // Just account for market open
-            getPreviousClose(localDateTime, 0)
+            getPriceDate(localDateTime, 0)
         }
     }
 
-    fun getPreviousClose(date: LocalDate, daysToSubtract: Int): Any {
-        return getPreviousClose(date.atStartOfDay(), daysToSubtract)
+    fun getPriceDate(date: LocalDate, daysToSubtract: Int): Any {
+        return getPriceDate(date.atStartOfDay(), daysToSubtract)
     }
 
     /**
@@ -52,7 +55,7 @@ class MarketUtils(private val dateUtils: DateUtils) {
      * @param seedDate   usually Today
      * @return resolved Date
      */
-    fun getPreviousClose(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
+    fun getPriceDate(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
         var result = seedDate.minusDays(daysToSubtract.toLong())
         while (!isMarketOpen(result.toLocalDate())) {
             result = result.minusDays(1)

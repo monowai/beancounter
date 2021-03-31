@@ -1,13 +1,16 @@
 package com.beancounter.auth.common
 
 import com.beancounter.auth.client.LoginService
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 
+/**
+ * Support for auth tokens.
+ */
 @Service
 class TokenService {
     private var loginService: LoginService? = null
@@ -59,7 +62,7 @@ class TokenService {
         get() {
             val authentication = SecurityContextHolder.getContext().authentication
                 ?: return false
-            return authentication.authorities.contains(RoleHelper.AUTH_M2M)
+            return authentication.authorities.contains(AuthConstants.AUTH_M2M)
         }
 
     companion object {

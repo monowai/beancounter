@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 @Service
+/**
+ * Logic to accumulate a sell transaction into a position.
+ */
 class SellBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()

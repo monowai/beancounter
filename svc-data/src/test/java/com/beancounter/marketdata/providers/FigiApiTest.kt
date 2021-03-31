@@ -5,6 +5,7 @@ import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.assets.figi.FigiResponse
@@ -76,7 +77,7 @@ class FigiApiTest {
 
     @Test
     fun is_ReitFound() {
-        val asset = figiProxy.find(marketService.getMarket("NYSE"), "OHI")
+        val asset = figiProxy.find(marketService.getMarket(NYSE.code), "OHI")
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "OMEGA HEALTHCARE INVESTORS")
@@ -85,7 +86,7 @@ class FigiApiTest {
 
     @Test
     fun is_MutualFundFound() {
-        val asset = figiProxy.find(marketService.getMarket("NYSE"), "XLF")
+        val asset = figiProxy.find(marketService.getMarket(NYSE.code), "XLF")
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR") // Unknown to BC, but is known to FIGI
@@ -105,13 +106,13 @@ class FigiApiTest {
 
         val token = TokenUtils().getUserToken(user)
         registerUser(mockMvc, token)
-        val market = marketService.getMarket("NYSE")
+        val market = marketService.getMarket(NYSE.code)
         assertThat(market).isNotNull.hasFieldOrPropertyWithValue("enricher", null)
         // System default enricher is found
         assertThat(enrichmentFactory.getEnricher(market)).isNotNull
 
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", "NYSE", "BRK.B")
+            MockMvcRequestBuilders.get("/assets/{market}/{code}", NYSE.code, "BRK.B")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(AuthorityRoleConverter()))
                 .contentType(MediaType.APPLICATION_JSON)
         )

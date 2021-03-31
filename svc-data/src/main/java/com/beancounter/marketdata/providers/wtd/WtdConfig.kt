@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers.wtd
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MarketUtils
+import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.config.MarketConfig
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +31,7 @@ class WtdConfig : DataProviderConfig {
     @set:Autowired
     var marketConfig: MarketConfig? = null
     final var dateUtils = DateUtils()
-    var marketUtils = MarketUtils(dateUtils)
+    var marketUtils = PreviousClosePriceDate(dateUtils)
 
     private fun translateMarketCode(market: Market): String? {
         return (marketConfig!!.getProviders()[market.code] ?: error("Missing Market")).aliases[WtdService.ID]
@@ -48,7 +48,7 @@ class WtdConfig : DataProviderConfig {
         }
 
         // If startDate is not "today", assume nothing.  Discount the weekends
-        return marketUtils.getPreviousClose(
+        return marketUtils.getPriceDate(
             dateUtils.getDate(date).atStartOfDay(), daysToSubtract
         )
     }

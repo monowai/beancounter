@@ -10,6 +10,9 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.SGD
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.beancounter.marketdata.utils.SysUserUtils.systemUser
 import org.assertj.core.api.Assertions
@@ -39,6 +42,9 @@ import java.util.function.Consumer
 @ActiveProfiles("test")
 @Tag("slow")
 @WebAppConfiguration
+/**
+ * MVC Controller tests for Portfolios.
+ */
 internal class PortfolioMvcTests {
     private val objectMapper = BcJson().objectMapper
     private val authorityRoleConverter = AuthorityRoleConverter()
@@ -66,9 +72,9 @@ internal class PortfolioMvcTests {
         val user = systemUser
         val portfolio = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
-            "NZD Portfolio",
-            "NZD",
-            "USD"
+            "is_findingByIdCode",
+            USD.code,
+            NZD.code
         )
         val token = tokenUtils.getUserToken(user)
         registerUser(mockMvc, token)
@@ -156,9 +162,9 @@ internal class PortfolioMvcTests {
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
-            "NZD Portfolio",
-            "NZD",
-            "USD"
+            "is_persistAndFindPortfoliosWorking",
+            USD.code,
+            NZD.code
         )
         portfolios.add(portfolioInput)
         val createRequest = PortfoliosRequest(portfolios)
@@ -184,7 +190,7 @@ internal class PortfolioMvcTests {
                     .hasFieldOrPropertyWithValue("code", portfolioInput.code)
                     .hasFieldOrPropertyWithValue(
                         "name",
-                        portfolioInput.currency + " Portfolio"
+                        portfolioInput.name
                     )
                     .hasFieldOrPropertyWithValue("currency.code", portfolioInput.currency)
                     .hasFieldOrProperty("owner")
@@ -199,9 +205,9 @@ internal class PortfolioMvcTests {
         val userA = systemUser
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
-            "NZD Portfolio",
-            "NZD",
-            "USD"
+            "is_OwnerHonoured",
+            USD.code,
+            NZD.code
         )
         mockMvc.perform(
             MockMvcRequestBuilders.post(portfolioRoot) // No Token
@@ -316,8 +322,8 @@ internal class PortfolioMvcTests {
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
             "Delete Portfolio",
-            "NZD",
-            "USD"
+            USD.code,
+            NZD.code
         )
         val userA = systemUser
 
@@ -356,9 +362,9 @@ internal class PortfolioMvcTests {
     fun is_UniqueConstraintInPlace() {
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
-            "NZD Portfolio",
-            "NZD",
-            "USD"
+            "is_UniqueConstraintInPlace",
+            USD.code,
+            NZD.code
         )
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
         portfolios.add(portfolioInput)
@@ -376,7 +382,7 @@ internal class PortfolioMvcTests {
                         .writeValueAsBytes(PortfoliosRequest(portfolios))
                 )
                 .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+        ).andExpect(MockMvcResultMatchers.status().isConflict)
             .andReturn()
         Assertions.assertThat(result.resolvedException)
             .isNotNull
@@ -388,9 +394,9 @@ internal class PortfolioMvcTests {
     fun is_UnregisteredUserRejected() {
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
-            "NZD Portfolio",
-            "NZD",
-            "USD"
+            "is_UnregisteredUserRejected",
+            USD.code,
+            NZD.code
         )
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
         portfolios.add(portfolioInput)
@@ -423,9 +429,9 @@ internal class PortfolioMvcTests {
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
-            "NZD Portfolio",
-            "NZD",
-            "USD"
+            "is_UpdatePortfolioWorking",
+            USD.code,
+            NZD.code
         )
         portfolios.add(portfolioInput)
         val createRequest = PortfoliosRequest(portfolios)
@@ -441,7 +447,7 @@ internal class PortfolioMvcTests {
             .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
         val (id, _, _, _, _, owner) = data.iterator().next()
         val updateTo = PortfolioInput(
-            "123", "Mikey", "SGD", "USD"
+            "123", "Mikey", USD.code, SGD.code
         )
         val patchResult = mockMvc.perform(
             MockMvcRequestBuilders.patch(portfolioById, id)

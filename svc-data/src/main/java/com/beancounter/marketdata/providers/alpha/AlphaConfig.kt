@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MarketUtils
+import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
@@ -12,12 +12,15 @@ import java.time.LocalDate
 
 @Configuration
 @Import(AlphaService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
+/**
+ * Helper functions for Alpha data provider. Enable dependant supporting classes
+ */
 class AlphaConfig : DataProviderConfig {
 
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
     final var dateUtils = DateUtils()
-    var marketUtils = MarketUtils(dateUtils)
+    var marketUtils = PreviousClosePriceDate(dateUtils)
 
     override fun getBatchSize(): Int {
         return 1
@@ -38,7 +41,7 @@ class AlphaConfig : DataProviderConfig {
     }
 
     override fun getMarketDate(market: Market, date: String): LocalDate {
-        return marketUtils.getPreviousClose(dateUtils.getDate(date), market)
+        return marketUtils.getPriceDate(dateUtils.getDate(date), market)
     }
 
     override fun getPriceCode(asset: Asset): String {

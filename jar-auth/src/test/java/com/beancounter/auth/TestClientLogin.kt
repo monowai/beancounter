@@ -2,11 +2,10 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.AuthClientConfig
 import com.beancounter.auth.client.LoginService
-import com.beancounter.auth.client.OAuth2Response
+import com.beancounter.common.utils.BcJson
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
-import com.github.tomakehurst.wiremock.common.Json.getObjectMapper
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,7 +37,9 @@ class TestClientLogin {
     private lateinit var authGateway: LoginService.AuthGateway
 
     @Value("\${auth.client}")
-    private val client: String? = null
+    private lateinit var client: String
+
+    private var objectMapper = BcJson().objectMapper
 
     @BeforeEach
     @Throws(Exception::class)
@@ -50,8 +51,8 @@ class TestClientLogin {
                     WireMock.aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody(
-                            getObjectMapper().writeValueAsString(
-                                getObjectMapper().readValue(
+                            objectMapper.writeValueAsString(
+                                objectMapper.readValue(
                                     ClassPathResource("./kc-certs.json")
                                         .file,
                                     HashMap::class.java
@@ -63,14 +64,15 @@ class TestClientLogin {
         )
 
         // Mock expired token response
+        // Todo: Not properly implemented as it expects JSON body.  Need to figure out mocking multipart params.
         stubFor(
             WireMock.post("/auth/realms/bc-test/protocol/openid-connect/token")
                 .willReturn(
                     WireMock.aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody(
-                            getObjectMapper().writeValueAsString(
-                                getObjectMapper().readValue(
+                            objectMapper.writeValueAsString(
+                                objectMapper.readValue(
                                     ClassPathResource("./kc-response.json")
                                         .file,
                                     HashMap::class.java
@@ -83,18 +85,32 @@ class TestClientLogin {
     }
 
     @Test
-    fun is_ResponseSerializing() {
-        val login = LoginService.AuthRequest(username = "demo", password = "test", client_id = client)
+    fun is_LoginGatewayWorking() {
 
-        Assertions.assertThat<OAuth2Response>(authGateway.login(login))
+        assertThat(
+            authGateway.login(
+                LoginService.LoginRequest(
+                    client_id = client,
+                    username = "demo",
+                    password = "test"
+                )
+            )
+        )
             .isNotNull
             .hasNoNullFieldsOrProperties()
     }
 
     @Test
-    fun is_TokenExpiredThrowing() {
+    fun is_ExpiredMachineRequestWorking() {
         assertThrows(
             JwtValidationException::class.java
-        ) { loginService.login("demo", "test", "test") }
+        ) { loginService.login() }
+    }
+
+    @Test
+    fun is_ExpiredLoginThrowing() {
+        assertThrows(
+            JwtValidationException::class.java
+        ) { loginService.login("demo", "test") }
     }
 }

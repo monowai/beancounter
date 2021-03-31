@@ -4,6 +4,9 @@ import javax.persistence.Entity
 import javax.persistence.Id
 
 @Entity
+/**
+ * Persistent representation of a Currency.
+ */
 data class Currency(@Id var code: String, var name: String? = "Dollar", var symbol: String? = "$") {
     constructor(code: String) : this(code, "Dollar", "$")
 

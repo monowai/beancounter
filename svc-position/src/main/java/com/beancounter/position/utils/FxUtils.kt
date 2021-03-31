@@ -8,9 +8,12 @@ import com.beancounter.common.utils.DateUtils
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * Helper to build an FxRequest from the supplied arguments.
+ */
 class FxUtils {
     private val dateUtils = DateUtils()
-    fun buildRequest(base: Currency?, positions: Positions): FxRequest {
+    fun buildRequest(base: Currency, positions: Positions): FxRequest {
         if (positions.asAt == null) {
             positions.asAt = dateUtils.today()
         }
@@ -19,7 +22,7 @@ class FxUtils {
         for ((asset) in positions.positions.values) {
             fxRequest.add(
                 toPair(
-                    base!!,
+                    base,
                     asset.market.currency
                 )
             )

@@ -17,6 +17,9 @@ import javax.transaction.Transactional
 
 @Service
 @Transactional
+/**
+ * Interactions to created and read Trn objects.
+ */
 class TrnService internal constructor(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,

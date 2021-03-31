@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  codecov: codecov/codecov@1.0.5
 
 executors:
   java-build:
@@ -43,9 +41,13 @@ jobs:
 
       - store_artifacts:
           path: ~/project/svc-data/build/libs
-
       - store_artifacts:
           path: ~/project/jar-common/build/libs
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./jar-common/build/reports/jacoco/test/*.xml
+            - ./codecov.yml
 
   build-client:
     executor: java-build
@@ -59,15 +61,13 @@ jobs:
 
       - run: './gradlew jar-client:build'
 
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - ./jar-client/build/reports/jacoco/test/*.xml
+
       - store_test_results:
           path: ~/project/jar-client/build/test-results/test
-
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/jar-client/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
           path: ~/project/jar-client/build/libs
@@ -97,16 +97,10 @@ jobs:
           root: ~/project
           paths:
             - ./bc-shell.tar
+            - ./jar-shell/build/reports/jacoco/test/*.xml
 
       - store_test_results:
           path: ~/project/jar-shell/build/test-results/test
-
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/jar-shell/build/reports/jacoco/test/*.xml
 
       - store_artifacts:
           path: ~/project/jar-shell/build/libs
@@ -135,17 +129,12 @@ jobs:
           root: ~/project
           paths:
             - ./bc-data.tar
+            - ./svc-data/build/reports/jacoco/test/*.xml
       - store_test_results:
-          path: ~/project/svc-data/build/test-results/test
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/svc-data/build/reports/jacoco/test/*.xml
+          path: ./svc-data/build/test-results/test
       - store_artifacts:
           path: ~/project/svc-data/build/libs
-          
+
   build-position:
     executor: java-build
     environment:
@@ -170,14 +159,9 @@ jobs:
           root: ~/project
           paths:
             - ./bc-position.tar
+            - ./svc-position/build/reports/jacoco/test/*.xml
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/svc-position/build/reports/jacoco/test/*.xml
       - store_artifacts:
           path: ~/project/svc-position/build/libs
 
@@ -205,18 +189,34 @@ jobs:
           root: ~/project
           paths:
             - ./bc-event.tar
+            - ./svc-event/build/reports/jacoco/test/*.xml
       - store_test_results:
           path: ~/project/svc-event/build/test-results/test
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - codecov/upload:
-                file: ~/project/svc-event/build/reports/jacoco/test/*.xml
       - store_artifacts:
           path: ~/project/svc-event/build/libs
-          
-  docker-publish:
+
+  publish-coverage:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+      - attach_workspace:
+          at: ~/workspace
+      - run:
+          name: CodeCov Coverage
+          command: |
+            cd ~/workspace
+            bash <(curl -Ls https://codecov.io/bash)
+      - run:
+          name: Codacy Coverage
+          command: |
+            cd ~/workspace
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find **/jacoco*.xml -printf '-r %p ')
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
+
+  publish-docker:
     docker:
       - image: circleci/buildpack-deps:stretch
     environment:
@@ -262,6 +262,8 @@ jobs:
                 docker load -i /tmp/workspace/bc-shell.tar &&
                 docker push $BC_SHELL
 
+
+
 workflows:
   version: 2
   build_and_stage:
@@ -282,7 +284,13 @@ workflows:
       - build-event:
           requires:
             - build-client
-      - docker-publish:
+      - publish-coverage:
+          requires:
+            - build-shell
+            - build-position
+            - build-data
+            - build-event
+      - publish-docker:
           filters:
             branches:
               only: master

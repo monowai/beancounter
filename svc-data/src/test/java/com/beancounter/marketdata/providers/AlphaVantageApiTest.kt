@@ -8,12 +8,16 @@ import com.beancounter.common.contracts.PriceRequest.Companion.of
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.ASX
+import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.NYSE
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.config.PriceSchedule
@@ -50,11 +54,9 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-import java.util.Objects
-import kotlin.collections.HashMap
 
 /**
- * .
+ * AlphaApi Test
  *
  * @author mikeh
  * @since 2019-03-04
@@ -112,13 +114,15 @@ internal class AlphaVantageApiTest {
         RegistrationUtils.registerUser(mockMvc, token)
     }
 
+    private val marketCodeUrl = "/assets/{market}/{code}"
+
     @Test
     @Throws(Exception::class)
     fun is_PriceUpdated() {
         marketDataService.purge()
         assetService.purge()
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", "ASX", "AMP")
+            MockMvcRequestBuilders.get(marketCodeUrl, ASX.code, "AMP")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -133,11 +137,16 @@ internal class AlphaVantageApiTest {
         assertThat(price).hasNoNullFieldsOrProperties()
     }
 
+    private val priceSymbolProp = "priceSymbol"
+
+    private val codeProp = "code"
+
     @Test
     @Throws(Exception::class)
     fun is_BrkBTranslated() {
+        val code = "BRK.B"
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", "NYSE", "BRK.B")
+            MockMvcRequestBuilders.get(marketCodeUrl, NYSE.code, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token).authorities(authorityRoleConverter)
@@ -149,24 +158,31 @@ internal class AlphaVantageApiTest {
             .andReturn()
         val (data) = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        val brkB = "BRK-B"
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "BRK.B")
+            .hasFieldOrPropertyWithValue(codeProp, code)
             .hasFieldOrProperty("market")
-            .hasFieldOrPropertyWithValue("priceSymbol", "BRK-B")
+            .hasFieldOrPropertyWithValue(priceSymbolProp, brkB)
             .hasFieldOrPropertyWithValue("name", "Berkshire Hathaway Inc.")
-        assertThat(alphaConfig.getPriceCode(data)).isEqualTo("BRK-B")
+        assertThat(alphaConfig.getPriceCode(data)).isEqualTo(brkB)
     }
+
+    private val closeProp = "close"
 
     @Test
     @Throws(Exception::class)
     fun is_MutualFundAssetEnrichedAndPriceReturned() {
-        AlphaMockUtils.mockSearchResponse("B6WZJX0", ClassPathResource("/contracts/alpha/mf-search.json").file)
+        val code = "B6WZJX0"
+        val lon = "LON"
+        AlphaMockUtils.mockSearchResponse(code, ClassPathResource("/contracts/alpha/mf-search.json").file)
+        val symbol = "0P0000XMSV.$lon"
         AlphaMockUtils.mockGlobalResponse(
-            "0P0000XMSV.LON", ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file
+            symbol, ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file
         )
+
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", "LON", "B6WZJX0")
+            MockMvcRequestBuilders.get(marketCodeUrl, lon, code)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -177,18 +193,18 @@ internal class AlphaVantageApiTest {
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "B6WZJX0")
+            .hasFieldOrPropertyWithValue(codeProp, code)
             .hasFieldOrProperty("market")
-            .hasFieldOrPropertyWithValue("market.code", "LON")
-            .hasFieldOrPropertyWithValue("priceSymbol", "0P0000XMSV.LON")
+            .hasFieldOrPropertyWithValue("market.code", lon)
+            .hasFieldOrPropertyWithValue(priceSymbolProp, symbol)
             .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc")
-        assertThat(alphaConfig.getPriceCode(data)).isEqualTo("0P0000XMSV.LON")
+        assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
         val priceResponse = marketDataService.getPriceResponse(AssetInput(data))
         assertThat(priceResponse.data).isNotNull
         assertThat(priceResponse.data.iterator().next())
             .isNotNull
             .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2020-05-12"))
-            .hasFieldOrPropertyWithValue("close", BigDecimal("3.1620"))
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal("3.1620"))
             .hasFieldOrPropertyWithValue("previousClose", BigDecimal("3.1620"))
             .hasFieldOrPropertyWithValue("low", BigDecimal("3.1620"))
             .hasFieldOrPropertyWithValue("high", BigDecimal("3.1620"))
@@ -198,8 +214,9 @@ internal class AlphaVantageApiTest {
     @Test
     @Throws(Exception::class)
     fun is_EnrichedMarketCodeTranslated() {
+        val amp = "AMP"
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", "ASX", "AMP")
+            MockMvcRequestBuilders.get(marketCodeUrl, ASX.code, amp)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token).authorities(authorityRoleConverter)
@@ -213,11 +230,11 @@ internal class AlphaVantageApiTest {
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "AMP")
+            .hasFieldOrPropertyWithValue(codeProp, amp)
             .hasFieldOrProperty("market")
-            .hasFieldOrPropertyWithValue("priceSymbol", "AMP.AUS")
-            .hasFieldOrPropertyWithValue("name", "AMP Limited")
-        assertThat(alphaConfig.getPriceCode(data)).isEqualTo("AMP.AUS")
+            .hasFieldOrPropertyWithValue(priceSymbolProp, "$amp.AUS")
+            .hasFieldOrPropertyWithValue("name", "$amp Limited")
+        assertThat(alphaConfig.getPriceCode(data)).isEqualTo("$amp.AUS")
     }
 
     @Test
@@ -225,13 +242,14 @@ internal class AlphaVantageApiTest {
     fun is_MismatchExchangeEnrichmentHandled() {
         // De-listed asset that can be found on the non-requested market
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap["key"] = AssetInput("NYSE", "DTV")
+        val code = "DTV"
+        assetInputMap["key"] = AssetInput(NYSE.code, code)
         val (data) = assetService
             .process(AssetRequest(assetInputMap))
         val asset = data["key"]
         assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", "NYSE", "DTV")
+            MockMvcRequestBuilders.get(marketCodeUrl, NYSE.code, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token).authorities(authorityRoleConverter)
@@ -253,7 +271,7 @@ internal class AlphaVantageApiTest {
     fun is_ApiErrorMessageHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
         AlphaMockUtils.mockGlobalResponse("API.ERR", jsonFile)
-        val asset = Asset("API", Market("ERR", Currency("USD")))
+        val asset = Asset("API", Market("ERR", USD))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
         val results = alphaProvider.getMarketData(of(asset))
         assertThat(results)
@@ -261,7 +279,7 @@ internal class AlphaVantageApiTest {
             .hasSize(1)
         assertThat(results.iterator().next())
             .hasFieldOrPropertyWithValue("asset", asset)
-            .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
     }
 
     @Test
@@ -269,7 +287,7 @@ internal class AlphaVantageApiTest {
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse("API.EMPTY", jsonFile)
-        val asset = Asset("API", Market("EMPTY", Currency("USD")))
+        val asset = Asset("API", Market("EMPTY", USD))
         val results = mdFactory
             .getMarketDataProvider(AlphaService.ID)
             .getMarketData(of(asset))
@@ -278,7 +296,7 @@ internal class AlphaVantageApiTest {
             .isNotNull
             .hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
             .hasFieldOrProperty("asset")
     }
 
@@ -287,7 +305,7 @@ internal class AlphaVantageApiTest {
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("API.KEY", jsonFile)
-        val asset = Asset("API", Market("KEY", Currency("USD")))
+        val asset = Asset("API", Market("KEY", USD))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
         val results = alphaProvider.getMarketData(
             of(asset)
@@ -297,13 +315,13 @@ internal class AlphaVantageApiTest {
             .hasSize(1)
         assertThat(results.iterator().next())
             .hasFieldOrPropertyWithValue("asset", asset)
-            .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
     }
 
     @Test
     @Throws(Exception::class)
     fun is_ApiCallLimitExceededHandled() {
-        val nasdaq = marketService.getMarket("NASDAQ")
+        val nasdaq = marketService.getMarket(NASDAQ.code)
         AlphaMockUtils.mockGlobalResponse(
             "ABC",
             ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file
@@ -323,7 +341,7 @@ internal class AlphaVantageApiTest {
         val mdpPrice = results.iterator().next()
         assertThat(mdpPrice)
             .hasFieldOrPropertyWithValue("asset", asset)
-            .hasFieldOrPropertyWithValue("close", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
         val priceResponse = marketDataService.getPriceResponse(assetInput)
         assertThat(priceResponse).isNotNull
     }
@@ -332,10 +350,10 @@ internal class AlphaVantageApiTest {
     @Throws(Exception::class)
     fun is_CurrentPriceFound() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file
-        AlphaMockUtils.mockGlobalResponse("MSFT", jsonFile)
-        val nasdaq = Market("NASDAQ", Currency("USD"))
-        val asset = Asset("MSFT", nasdaq)
-        val priceRequest = of(asset)
+        AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
+        val nasdaq = Market(NASDAQ.code, USD)
+        val asset = Asset(MSFT.code, nasdaq)
+        val priceRequest = of(asset = asset)
         val mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
             .getMarketData(priceRequest)
 
@@ -345,7 +363,7 @@ internal class AlphaVantageApiTest {
         assertThat(marketData)
             .isNotNull
             .hasFieldOrPropertyWithValue("asset", asset)
-            .hasFieldOrProperty("close")
+            .hasFieldOrProperty(closeProp)
             .hasFieldOrProperty("open")
             .hasFieldOrProperty("low")
             .hasFieldOrProperty("high")
@@ -355,7 +373,7 @@ internal class AlphaVantageApiTest {
 
     @Test
     fun is_CurrentPriceAsxFound() {
-        val asset = Asset("AMP", Market("ASX", Currency("AUD")))
+        val asset = Asset("AMP", ASX)
         val priceRequest = of(asset)
         val mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
             .getMarketData(priceRequest)
@@ -363,7 +381,7 @@ internal class AlphaVantageApiTest {
         assertThat(marketData)
             .isNotNull
             .hasFieldOrPropertyWithValue("asset", asset)
-            .hasFieldOrProperty("close")
+            .hasFieldOrProperty(closeProp)
             .hasFieldOrProperty("open")
             .hasFieldOrProperty("low")
             .hasFieldOrProperty("high")
@@ -374,16 +392,17 @@ internal class AlphaVantageApiTest {
     @Test
     @Throws(Exception::class)
     fun is_PriceNotFoundSetIntoAsset() {
+        val code = "BWLD"
         AlphaMockUtils.mockSearchResponse(
-            "BWLD",
+            code,
             ClassPathResource("/contracts/alpha/bwld-search.json").file
         )
         AlphaMockUtils.mockGlobalResponse(
-            "BWLD",
+            code,
             ClassPathResource("/contracts/alpha/price-not-found.json").file
         )
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap["key"] = AssetInput("NYSE", "BWLD")
+        assetInputMap["key"] = AssetInput(NYSE.code, code)
         val (data) = assetService
             .process(AssetRequest(assetInputMap))
         val asset = data["key"]
@@ -396,7 +415,7 @@ internal class AlphaVantageApiTest {
             val priceRequest = of(asset)
             val priceResponse = marketDataService.getPriceResponse(priceRequest)
             assertThat(priceResponse).isNotNull.hasFieldOrProperty("data")
-            val price = Objects.requireNonNull(priceResponse.data)!!.iterator().next()
+            val price = priceResponse.data.iterator().next()
             assertThat(price).hasFieldOrProperty("priceDate")
         }
     }
@@ -411,7 +430,7 @@ internal class AlphaVantageApiTest {
         val priceResponse = alphaMapper.readValue(file, PriceResponse::class.java)
         assertThat(priceResponse.data).isNotNull
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap["key"] = AssetInput("NASDAQ", "KMI")
+        assetInputMap["key"] = AssetInput(NASDAQ.code, "KMI")
         val (dataMap) = assetService.process(AssetRequest(assetInputMap))
         val asset = dataMap["key"]
         assertThat(asset!!.id).isNotNull

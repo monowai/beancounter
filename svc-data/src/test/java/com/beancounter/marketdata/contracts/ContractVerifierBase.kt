@@ -12,9 +12,9 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -49,8 +49,6 @@ import org.springframework.web.context.WebApplicationContext
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
-import java.util.HashMap
-import java.util.Objects
 
 /**
  * Spring Contract base class.  Mocks out calls to various gateways that can be imported
@@ -67,6 +65,9 @@ import java.util.Objects
 @AutoConfigureWireMock(port = 0)
 @WebAppConfiguration
 @ActiveProfiles("contracts")
+/**
+ * Produces contracts to test against.
+ */
 class ContractVerifierBase {
     @Autowired
     private lateinit var dateUtils: DateUtils
@@ -126,22 +127,26 @@ class ContractVerifierBase {
         Mockito.`when`(systemUserService.register(jwt)).thenReturn(response)
     }
 
+    private val rateDate = "2019-10-18"
+
     private fun ecbRates() {
+        val eur = "0.8973438622"
+        val sgd = "1.3652189519"
+        val gbp = "0.7756191673"
+        val nzd = "1.5692749462"
+        val aud = "1.4606963388"
         var rates: Map<String, BigDecimal> = getRateMap(
-            "0.8973438622", "1.3652189519", "0.7756191673",
-            "1.5692749462", "1.4606963388"
+            eur, sgd, gbp, nzd, aud
         )
         mockEcbRates(rates, get("2019-10-20", rates))
         rates = getRateMap(
-            "0.8973438622", "1.3652189519", "0.7756191673",
-            "10.0", "1.4606963388"
+            eur, sgd, gbp, "10.0", aud
         )
         mockEcbRates(rates, get("2019-01-01", rates))
         rates = getRateMap(
-            "0.8973438622", "1.3652189519", "0.7756191673",
-            "1.5692749462", "1.4606963388"
+            eur, sgd, gbp, nzd, aud
         )
-        mockEcbRates(rates, get("2019-10-18", rates))
+        mockEcbRates(rates, get(rateDate, rates))
 
         // Current
         mockEcbRates(rates, get(dateUtils.today(), rates))
@@ -178,9 +183,7 @@ class ContractVerifierBase {
             trnService.findByPortfolioAsset(
                 testPortfolio,
                 "KMI",
-                Objects.requireNonNull(
-                    dateUtils.getDate("2020-05-01", dateUtils.getZoneId())
-                )
+                dateUtils.getDate("2020-05-01", dateUtils.getZoneId())
             )
         )
             .thenReturn(
@@ -198,7 +201,7 @@ class ContractVerifierBase {
         Mockito.`when`(
             trnService.findForPortfolio(
                 portfolio!!,
-                Objects.requireNonNull(dateUtils.date)
+                dateUtils.date
             )
         ).thenReturn(trnResponse)
     }
@@ -336,10 +339,10 @@ class ContractVerifierBase {
             Integer.decode("6274307")
         )
         result["EBAY"] = ebayMd
-        val wtdResponse = WtdResponse("2019-10-18", result)
+        val wtdResponse = WtdResponse(rateDate, result)
         Mockito.`when`(
             wtdGateway
-                .getPrices("EBAY", "2019-10-18", "demo")
+                .getPrices("EBAY", rateDate, "demo")
         )
             .thenReturn(wtdResponse)
     }
@@ -367,11 +370,11 @@ class ContractVerifierBase {
     private fun mockEcbRates(
         rates: Map<String, BigDecimal>,
         ecbRates: EcbRates,
-        rateDate: String? = dateUtils.getDateString(ecbRates.date)
+        rateDate: String = dateUtils.getDateString(ecbRates.date)
     ) {
         Mockito.`when`(
             fxGateway.getRatesForSymbols(
-                rateDate, "USD",
+                rateDate, USD.code,
                 java.lang.String.join(",", rates.keys)
             )
         )
@@ -385,12 +388,5 @@ class ContractVerifierBase {
         Assertions.assertThat(assetService).isNotNull
         Assertions.assertThat(trnService).isNotNull
         Assertions.assertThat(portfolioService).isNotNull
-    }
-
-    companion object {
-        val AAPL = getAsset("NASDAQ", "AAPL")
-        val MSFT = getAsset("NASDAQ", "MSFT")
-        val MSFT_INVALID = getAsset("NASDAQ", "MSFTx")
-        val AMP = getAsset("ASX", "AMP")
     }
 }

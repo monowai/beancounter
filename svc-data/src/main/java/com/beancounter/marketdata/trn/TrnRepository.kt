@@ -9,6 +9,9 @@ import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
 import java.util.Optional
 
+/**
+ * CRUD Repo for business transactions.
+ */
 interface TrnRepository : CrudRepository<Trn, String> {
     @Query(
         "select t from Trn t " +

@@ -12,4 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @ConditionalOnProperty(value = ["auth.enabled"], matchIfMissing = true)
+/**
+ * WebSecurity Authentication
+ */
 class AuthServerConfig

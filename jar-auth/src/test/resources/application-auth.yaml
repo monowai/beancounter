@@ -1,6 +1,9 @@
 spring:
   security:
     oauth2:
+      registration:
+        custom:
+          client-secret: secret
       resourceserver:
         jwt:
           jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"

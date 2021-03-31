@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * Obtain various adapters to transform delimited data into BC format.
+ */
 class AdapterFactory {
     private lateinit var bcRowAdapter: RowAdapter
     private lateinit var shareSightAdapter: RowAdapter

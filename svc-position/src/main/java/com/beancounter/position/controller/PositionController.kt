@@ -1,6 +1,6 @@
 package com.beancounter.position.controller
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping
 @CrossOrigin("*")
-@PreAuthorize(value = "hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize(value = "hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class PositionController constructor(private val portfolioServiceClient: PortfolioServiceClient) {
     private lateinit var valuationService: Valuation
 

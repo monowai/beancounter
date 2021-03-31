@@ -10,7 +10,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import com.beancounter.marketdata.service.MarketDataProvider
-import com.fasterxml.jackson.core.JsonProcessingException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -70,6 +69,8 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
         return getMarketData(providerArguments, requests)
     }
 
+    private val unexpectedMsg = "This shouldn't have happened"
+
     private fun getMarketData(
         providerArguments: ProviderArguments,
         requests: MutableMap<Int, Future<String?>?>
@@ -78,22 +79,31 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
         while (requests.isNotEmpty()) {
             for (batch in requests.keys) {
                 if (requests[batch]!!.isDone) {
-                    try {
-                        results.addAll(
-                            alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()]
-                        )
-                    } catch (e: InterruptedException) {
-                        log.error(e.message)
-                        throw SystemException("This shouldn't have happened")
-                    } catch (e: ExecutionException) {
-                        log.error(e.message)
-                        throw SystemException("This shouldn't have happened")
-                    }
-                    requests.remove(batch)
+                    addToBatch(results, providerArguments, batch, requests)
                 }
             }
         }
         return results
+    }
+
+    private fun addToBatch(
+        results: MutableCollection<MarketData>,
+        providerArguments: ProviderArguments,
+        batch: Int,
+        requests: MutableMap<Int, Future<String?>?>
+    ) {
+        try {
+            results.addAll(
+                alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()]
+            )
+            requests.remove(batch)
+        } catch (e: InterruptedException) {
+            log.error(e.message)
+            throw SystemException(unexpectedMsg)
+        } catch (e: ExecutionException) {
+            log.error(e.message)
+            throw SystemException(unexpectedMsg)
+        }
     }
 
     override fun getId(): String {
@@ -112,31 +122,21 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
 
     override fun backFill(asset: Asset): PriceResponse {
         val results = alphaProxyCache.getAdjusted(asset.code, apiKey)
-        val json: String?
-        json = try {
+        val json: String? = try {
             results.get()
         } catch (e: InterruptedException) {
             log.error(e.message)
-            throw SystemException("This shouldn't have happened")
+            throw SystemException(unexpectedMsg)
         } catch (e: ExecutionException) {
             log.error(e.message)
-            throw SystemException("This shouldn't have happened")
+            throw SystemException(unexpectedMsg)
         }
-        val priceResponse: PriceResponse?
-        priceResponse = try {
-            alphaPriceAdapter.alphaMapper.readValue(json, PriceResponse::class.java)
-        } catch (e: JsonProcessingException) {
-            log.error(e.message)
-            throw SystemException("This shouldn't have happened")
+        val priceResponse: PriceResponse = alphaPriceAdapter.alphaMapper.readValue(json, PriceResponse::class.java)
+        for (marketData in priceResponse.data) {
+            marketData.source = ID
+            marketData.asset = asset
         }
-        if (priceResponse != null && priceResponse.data.isNotEmpty()) {
-            for (marketData in priceResponse.data) {
-                marketData.source = ID
-                marketData.asset = asset
-            }
-            return priceResponse
-        }
-        return PriceResponse()
+        return priceResponse
     }
 
     companion object {

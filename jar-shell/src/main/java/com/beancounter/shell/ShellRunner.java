@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 
 /**
- * Read a google sheet and create an output file.
+ * Starts the Shell.
  *
  * @author mikeh
  * @since 2019-02-08

@@ -8,8 +8,8 @@ import com.beancounter.client.sharesight.ShareSightTradeAdapter
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.CurrencyUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -33,8 +33,10 @@ import java.math.BigDecimal
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
+/**
+ * Importing Sharesight data.
+ */
 internal class ShareSightTradeTest {
-    private val currencyUtils = CurrencyUtils()
 
     @Autowired
     private lateinit var shareSightRowProcessor: ShareSightRowAdapter
@@ -53,7 +55,7 @@ internal class ShareSightTradeTest {
             "21/01/2019",
             "10",
             "12.23",
-            "12.99",
+            brokerage,
             "AUD"
         )
         val trnAdapter = shareSightFactory.adapter(row)
@@ -67,7 +69,7 @@ internal class ShareSightTradeTest {
         val row = getRow("buy", "0.8988", "2097.85").toMutableList()
         row[ShareSightTradeAdapter.comments] = "null"
         val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD")),
+            portfolio = getPortfolio("Test", Currency("NZD")),
             row = row,
             importFormat = ImportFormat.SHARESIGHT
         )
@@ -85,7 +87,7 @@ internal class ShareSightTradeTest {
     @Test
     fun is_SplitTransactionTransformed() {
         val row = getRow("split", "0", "null")
-        val portfolio = getPortfolio("Test", currencyUtils.getCurrency("NZD"))
+        val portfolio = getPortfolio("Test", Currency("NZD"))
         val trn = shareSightRowProcessor.transform(
             TrustedTrnImportRequest(
                 portfolio,
@@ -113,7 +115,7 @@ internal class ShareSightTradeTest {
         ) {
             shareSightRowProcessor.transform(
                 TrustedTrnImportRequest(
-                    getPortfolio("Test", currencyUtils.getCurrency("NZD")), row, ImportFormat.SHARESIGHT
+                    getPortfolio("Test", Currency("NZD")), row, ImportFormat.SHARESIGHT
                 )
             )
         }
@@ -123,6 +125,8 @@ internal class ShareSightTradeTest {
         fun getRow(tranType: String, fxRate: String, tradeAmount: String): List<String> {
             return getRow("AMP", "ASX", tranType, fxRate, tradeAmount)
         }
+
+        private const val brokerage = "12.99"
 
         fun getRow(
             code: String,
@@ -140,7 +144,7 @@ internal class ShareSightTradeTest {
             row.add(ShareSightTradeAdapter.date, "21/01/2019")
             row.add(ShareSightTradeAdapter.quantity, "10")
             row.add(ShareSightTradeAdapter.price, "12.23")
-            row.add(ShareSightTradeAdapter.brokerage, "12.99")
+            row.add(ShareSightTradeAdapter.brokerage, brokerage)
             row.add(ShareSightTradeAdapter.currency, "AUD")
             row.add(ShareSightTradeAdapter.fxRate, fxRate)
             row.add(ShareSightTradeAdapter.value, tradeAmount)

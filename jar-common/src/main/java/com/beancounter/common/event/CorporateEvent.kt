@@ -1,6 +1,7 @@
 package com.beancounter.common.event
 
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -16,6 +17,9 @@ import javax.persistence.UniqueConstraint
 
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["assetId", "recordDate"])])
+/**
+ * Representation of a Corporate Action or Event.
+ */
 data class CorporateEvent constructor(
     @Id val id: String?,
     val trnType: TrnType,
@@ -35,10 +39,10 @@ data class CorporateEvent constructor(
     val payDate: LocalDate? = null
 ) {
     constructor(
-        trnType: TrnType,
+        trnType: TrnType = TrnType.DIVI,
+        recordDate: LocalDate = DateUtils().date,
         source: String,
         assetId: String,
-        recordDate: LocalDate,
         rate: BigDecimal
     ) :
         this(

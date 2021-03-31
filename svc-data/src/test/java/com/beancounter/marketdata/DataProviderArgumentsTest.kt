@@ -3,10 +3,10 @@ package com.beancounter.marketdata
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.DataProviderConfig
 import com.beancounter.marketdata.providers.ProviderArguments
@@ -87,7 +87,7 @@ internal class DataProviderArgumentsTest {
                 getAsset("CCC", "ABC")
             )
         )
-        val priceRequest = PriceRequest(assets)
+        val priceRequest = PriceRequest(assets = assets)
         val testConfig = TestConfig(10)
         val providerArguments = getInstance(priceRequest, testConfig)
         val batch: Map<Int, String?> = providerArguments.batch
@@ -100,7 +100,7 @@ internal class DataProviderArgumentsTest {
         val assetInputs: MutableCollection<AssetInput> = ArrayList()
         assetInputs.add(AssetInput("MOCK", "TWEE"))
         val marketService = Mockito.mock(MarketService::class.java)
-        val mockMarket = Market("MOCK", Currency("USD"))
+        val mockMarket = Market("MOCK", USD)
         Mockito.`when`(marketService.getMarket("MOCK"))
             .thenReturn(mockMarket)
         val mdFactory = Mockito.mock(MdFactory::class.java)
@@ -109,7 +109,7 @@ internal class DataProviderArgumentsTest {
         val split: Map<MarketDataProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
         Assertions.assertThat(split).hasSize(1)
         for (marketDataProvider in split.keys) {
-            Assertions.assertThat<Asset>(split[marketDataProvider]).hasSize(1)
+            Assertions.assertThat(split[marketDataProvider]).hasSize(1)
         }
     }
 

@@ -6,6 +6,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
 import com.beancounter.position.accumulation.SplitBehaviour
@@ -24,23 +25,26 @@ internal class TestStockSplits {
     @Test
     fun is_QuantityWorkingForSplit() {
         val apple = getAsset("NASDAQ", "AAPL")
-        val positions = Positions(getPortfolio("TEST"))
+        val positions = Positions(getPortfolio())
         val position = positions[apple]
         assertThat(position).isNotNull
 
-        val buyTrn = Trn(TrnType.BUY, apple, BigDecimal("100"))
-        buyTrn.tradeAmount = BigDecimal("2000")
+        val buyTrn = Trn(TrnType.BUY, apple, hundred)
+        val tradeAmount = BigDecimal("2000")
+
+        buyTrn.tradeAmount = tradeAmount
         val buyBehaviour = BuyBehaviour()
         buyBehaviour.accumulate(buyTrn, positions.portfolio, position)
+        val totalField = "total"
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal(100))
+            .hasFieldOrPropertyWithValue(totalField, hundred)
         val stockSplit = Trn(TrnType.SPLIT, apple, BigDecimal("7"))
         val splitBehaviour = SplitBehaviour()
         splitBehaviour.accumulate(stockSplit, positions.portfolio, position)
 
         // 7 for one split
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal(700))
+            .hasFieldOrPropertyWithValue(totalField, BigDecimal(700))
         val costBasis = Objects.requireNonNull(
             position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
         ).costBasis
@@ -52,18 +56,18 @@ internal class TestStockSplits {
 
         // 7 for one split
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal(800))
+            .hasFieldOrPropertyWithValue(totalField, BigDecimal(800))
         val sell = Trn(TrnType.SELL, apple, BigDecimal("800"))
-        sell.tradeAmount = BigDecimal("2000")
+        sell.tradeAmount = tradeAmount
 
         // Sell the entire position
         SellBehaviour().accumulate(sell, positions.portfolio, position)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("total", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(totalField, BigDecimal.ZERO)
 
         // Repurchase; total should be equal to the quantity we just purchased
-        buyBehaviour.accumulate(buyTrn, getPortfolio("TEST"), position)
+        buyBehaviour.accumulate(buyTrn, getPortfolio(), position)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue("total", buyTrn.quantity)
+            .hasFieldOrPropertyWithValue(totalField, buyTrn.quantity)
     }
 }

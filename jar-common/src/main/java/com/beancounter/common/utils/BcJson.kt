@@ -6,6 +6,9 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.stereotype.Service
 
 @Service
+/**
+ * Kotlin aware Jackson Object mapper.
+ */
 class BcJson {
     final val objectMapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 

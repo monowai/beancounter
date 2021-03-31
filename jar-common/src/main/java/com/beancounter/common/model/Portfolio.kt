@@ -8,7 +8,7 @@ import javax.persistence.Table
 import javax.persistence.UniqueConstraint
 
 /**
- * Owner of a collection of Positions.
+ * Portfolio that owns transactions on behalf of a systemUser
  *
  * @author mikeh
  * @since 2019-01-28

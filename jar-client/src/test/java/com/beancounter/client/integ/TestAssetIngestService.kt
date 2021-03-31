@@ -3,7 +3,8 @@ package com.beancounter.client.integ
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.common.exception.BusinessException
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
@@ -19,31 +20,38 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     ClientConfig::class
 )
 @SpringBootTest(classes = [ClientConfig::class])
+/**
+ * Test asset ingestion capabilities.
+ */
 class TestAssetIngestService {
     @Autowired
     private lateinit var assetIngestService: AssetIngestService
 
+    private val msft = "MSFT"
+
+    private val nasdaq = "NASDAQ"
+
     @Test
     fun is_HydratedAssetFound() {
         val asset = assetIngestService.resolveAsset(
-            "NASDAQ", "MSFT"
+            nasdaq, msft
         )
-        Assertions.assertThat(asset).isNotNull
-        Assertions.assertThat(asset.id).isNotNull
-        Assertions.assertThat(asset.market).isNotNull
-        Assertions.assertThat(asset.market.currency).isNotNull
+        assertThat(asset).isNotNull
+        assertThat(asset.id).isNotNull
+        assertThat(asset.market).isNotNull
+        assertThat(asset.market.currency).isNotNull
     }
 
     @Test
     fun is_MockAssetFound() {
-        val asset = assetIngestService.resolveAsset("MOCK", "MSFT")
-        Assertions.assertThat(asset).isNotNull
+        val asset = assetIngestService.resolveAsset("MOCK", msft)
+        assertThat(asset).isNotNull
     }
 
     @Test
     fun is_NotFound() {
-        org.junit.jupiter.api.Assertions.assertThrows(BusinessException::class.java) {
-            assetIngestService.resolveAsset("NASDAQ", "ABC")
+        assertThrows(BusinessException::class.java) {
+            assetIngestService.resolveAsset(nasdaq, "ABC")
         }
     }
 }

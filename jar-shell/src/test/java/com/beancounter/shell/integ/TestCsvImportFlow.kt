@@ -4,7 +4,7 @@ import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.shell.cli.IngestionCommand
 import com.beancounter.shell.config.IngestionConfig
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,6 +13,9 @@ import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRun
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
 
+/**
+ * CSV Import integration test.
+ */
 @Tag("slow")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -26,7 +29,7 @@ class TestCsvImportFlow {
     @Test
     fun is_CsvCommandFlowWorking() {
         val result = ingestionCommand
-            .ingest("CSV", "http", "/MSFT.csv", "TEST", null)
-        Assertions.assertThat(result).isEqualToIgnoringCase("DONE")
+            .ingest(reader = "CSV", writer = "HTTP", file = "/MSFT.csv", portfolio = "TEST")
+        assertThat(result).isEqualToIgnoringCase("DONE")
     }
 }

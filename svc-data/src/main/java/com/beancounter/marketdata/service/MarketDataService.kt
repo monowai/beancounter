@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Collections
 
 /**
  * Service container for MarketData information.
@@ -35,7 +34,7 @@ class MarketDataService @Autowired internal constructor(
     }
 
     fun getPriceResponse(assetInput: AssetInput): PriceResponse {
-        return getPriceResponse(PriceRequest(Collections.singleton(assetInput)))
+        return getPriceResponse(PriceRequest.of(assetInput))
     }
 
     /**

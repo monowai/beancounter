@@ -17,11 +17,11 @@ interface FxGateway {
     @RequestMapping(
         method = [RequestMethod.GET],
         produces = [MediaType.APPLICATION_JSON_VALUE],
-        value = ["/{date}?base={base}&symbols={symbols}&"]
+        value = ["/v1/{date}?base={base}&symbols={symbols}&access_key=\${beancounter.market.providers.FX.key}"]
     )
     fun getRatesForSymbols(
-        @PathVariable("date") date: String?,
-        @PathVariable("base") base: String?,
-        @PathVariable("symbols") symbols: String?
+        @PathVariable("date") date: String,
+        @PathVariable("base") base: String,
+        @PathVariable("symbols") symbols: String
     ): EcbRates?
 }

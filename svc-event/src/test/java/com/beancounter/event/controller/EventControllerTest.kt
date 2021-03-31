@@ -29,6 +29,9 @@ import java.math.BigDecimal
 @SpringBootTest(properties = ["auth.enabled=false"])
 @ActiveProfiles("test")
 @Tag("slow")
+/**
+ * MVC tests for Corporate Actions/Events.
+ */
 internal class EventControllerTest {
     private val dateUtils = DateUtils()
 
@@ -64,9 +67,9 @@ internal class EventControllerTest {
         val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
         var event = CorporateEvent(
             TrnType.DIVI,
+            dateUtils.getDate("2020-10-10"),
             "SOURCE",
             "ABC123",
-            dateUtils.getDate("2020-10-10"),
             BigDecimal("0.1234")
         )
         event = eventService.save(event)

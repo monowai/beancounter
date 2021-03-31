@@ -13,22 +13,25 @@ import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 
 @ShellComponent
+/**
+ * Portfolio Access commands
+ */
 class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
     private val log = LoggerFactory.getLogger(PortfolioCommands::class.java)
     private val bcJson = BcJson()
 
     @ShellMethod("Find portfolio by code")
     @Throws(JsonProcessingException::class)
-    fun code(
-        @ShellOption(help = "Code - case insensitive") portfolioCode: String?,
+    fun portfolioCode(
+        @ShellOption(help = "Code - case insensitive") portfolioCode: String,
     ): String {
-        val portfolio = portfolioService.getPortfolioByCode(portfolioCode!!)
+        val portfolio = portfolioService.getPortfolioByCode(portfolioCode)
         return bcJson.writer.writeValueAsString(portfolio)
     }
 
     @ShellMethod("My Portfolios")
     @Throws(JsonProcessingException::class)
-    fun get(): String {
+    fun portfolios(): String {
         val (data) = portfolioService.portfolios
         return if (data.isEmpty()) {
             "No portfolios"
@@ -37,31 +40,31 @@ class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
 
     @ShellMethod("Find by id")
     @Throws(JsonProcessingException::class)
-    fun id(
-        @ShellOption(help = "Primary key - case sensitive") portfolioId: String?,
+    fun portfolio(
+        @ShellOption(help = "Primary key - case sensitive") portfolioId: String,
     ): String {
-        val portfolio = portfolioService.getPortfolioById(portfolioId!!)
+        val portfolio = portfolioService.getPortfolioById(portfolioId)
         return bcJson.writer.writeValueAsString(portfolio)
     }
 
     @ShellMethod(key = ["add"], value = "Add portfolio")
     @Throws(JsonProcessingException::class)
     fun add(
-        @ShellOption(help = "Unique Code") code: String?,
-        @ShellOption(help = "Name") name: String?,
-        @ShellOption(help = "Reference currency") currencyCode: String?,
-        @ShellOption(help = "Base currency") baseCurrency: String?,
+        @ShellOption(help = "Unique Code") code: String,
+        @ShellOption(help = "Name") name: String,
+        @ShellOption(help = "Reference currency") currencyCode: String,
+        @ShellOption(help = "Base currency - defaults to USD") baseCurrency: String = "USD",
     ): String {
         val portfolio: Portfolio
         try {
-            portfolio = portfolioService.getPortfolioByCode(code!!)
+            portfolio = portfolioService.getPortfolioByCode(code)
             return bcJson.writer.writeValueAsString(portfolio)
         } catch (e: BusinessException) {
             log.info("Creating portfolio {}", code)
         }
         val portfoliosRequest = PortfoliosRequest(
             setOf(
-                PortfolioInput(code!!, name!!, currencyCode!!, baseCurrency!!)
+                PortfolioInput(code, name, baseCurrency, currencyCode)
             )
         )
         val (data) = portfolioService.add(portfoliosRequest)

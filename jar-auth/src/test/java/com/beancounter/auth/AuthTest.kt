@@ -1,14 +1,12 @@
-@file:Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-
 package com.beancounter.auth
 
 import com.beancounter.auth.AuthTest.SimpleController
 import com.beancounter.auth.common.TokenService
 import com.beancounter.auth.common.TokenUtils
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.auth.server.JwtRoleConverter
 import com.beancounter.auth.server.ResourceServerConfig
-import com.beancounter.auth.server.RoleHelper
 import com.beancounter.common.model.SystemUser
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.assertj.core.api.Assertions.assertThat
@@ -44,6 +42,9 @@ import org.springframework.web.context.WebApplicationContext
     WebMvcAutoConfiguration::class
 )
 @WebAppConfiguration
+/**
+ * MVC Auth controller tests for OAuth.
+ */
 class AuthTest {
     private val roleConverter = AuthorityRoleConverter()
 
@@ -56,6 +57,11 @@ class AuthTest {
     private lateinit var tokenService: TokenService
 
     private lateinit var mockMvc: MockMvc
+
+    companion object {
+        private const val hello = "/hello"
+        const val what = "/what"
+    }
 
     @BeforeEach
     fun setupMockMvc() {
@@ -79,21 +85,22 @@ class AuthTest {
         assertThat(converted).isNotNull
         val defaultGrants = converted.authorities
         assertThat(defaultGrants)
-            .contains(SimpleGrantedAuthority(RoleHelper.ROLE_USER))
-            .contains(SimpleGrantedAuthority(RoleHelper.SCOPE_BC))
+            .contains(SimpleGrantedAuthority(AuthConstants.ROLE_USER))
+            .contains(SimpleGrantedAuthority(AuthConstants.SCOPE_BC))
     }
 
     @Test
     @Throws(Exception::class)
     fun has_NoTokenAndIsUnauthorized() {
+
         var result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/hello")
+            MockMvcRequestBuilders.get(hello)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
         result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/what")
+            MockMvcRequestBuilders.get(what)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andReturn()
@@ -106,13 +113,13 @@ class AuthTest {
         val user = SystemUser("user")
         val token = tokenUtils.getUserToken(user)
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/hello")
+            MockMvcRequestBuilders.get(hello)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/what")
+            MockMvcRequestBuilders.get(what)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter)
                 ).contentType(MediaType.APPLICATION_JSON)
@@ -136,7 +143,7 @@ class AuthTest {
             .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
         result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/what")
+            MockMvcRequestBuilders.get(what)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter)
                 )
@@ -172,20 +179,20 @@ class AuthTest {
         @Autowired
         private lateinit var tokenService: TokenService
 
-        @GetMapping("/hello")
-        @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+        @GetMapping(hello)
+        @PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")
         fun sayHello(): String {
             return "hello"
         }
 
         @GetMapping("/me")
-        @PreAuthorize("hasRole('" + RoleHelper.OAUTH_USER + "')")
+        @PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")
         fun me(): String? {
             assert(tokenService.jwtToken != null)
             return tokenService.jwtToken!!.name
         }
 
-        @GetMapping("/what")
+        @GetMapping(what)
         @PreAuthorize("hasRole('no-one')")
         fun sayWhat(): String {
             return "no one can call this"

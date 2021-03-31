@@ -30,6 +30,9 @@ import org.springframework.test.context.ActiveProfiles
 import java.util.UUID
 import kotlin.collections.ArrayList
 
+/**
+ * Verify portfolio commands.
+ */
 @SpringBootTest(classes = [ShellConfig::class, AuthClientConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -55,7 +58,7 @@ class TestPortfolioCommands {
             systemUser
             Mockito.`when`(portfolioGw.getPortfolios(Mockito.anyString()))
                 .thenReturn(PortfoliosResponse(ArrayList()))
-            val result = portfolioCommands.get()
+            val result = portfolioCommands.portfolios()
             assertThat(result).isNotBlank
         }
 

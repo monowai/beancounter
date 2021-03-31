@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service
 import java.util.EnumMap
 
 @Service
+/**
+ * All supported behaviours are can be accessed via this factory. A behaviour is responsible for accumulating a
+ * transaction into a position
+ */
 class TrnBehaviourFactory {
     private val trnBehaviours: MutableMap<TrnType, AccumulationStrategy> = EnumMap(TrnType::class.java)
 
@@ -20,16 +24,16 @@ class TrnBehaviourFactory {
     }
 
     @Autowired(required = false)
-    fun setSplitBehaviour(splitBeahviour: SplitBehaviour) {
-        trnBehaviours[TrnType.SPLIT] = splitBeahviour
+    fun setSplitBehaviour(splitBehaviour: SplitBehaviour) {
+        trnBehaviours[TrnType.SPLIT] = splitBehaviour
     }
 
     @Autowired(required = false)
-    fun setDividendBehaviour(dividendBeahviour: DividendBehaviour) {
-        trnBehaviours[TrnType.DIVI] = dividendBeahviour
+    fun setDividendBehaviour(dividendBehaviour: DividendBehaviour) {
+        trnBehaviours[TrnType.DIVI] = dividendBehaviour
     }
 
-    operator fun get(trnType: TrnType?): AccumulationStrategy? {
+    operator fun get(trnType: TrnType): AccumulationStrategy? {
         return trnBehaviours[trnType]
     }
 }

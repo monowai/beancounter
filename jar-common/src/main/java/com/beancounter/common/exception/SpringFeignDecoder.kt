@@ -1,13 +1,13 @@
 package com.beancounter.common.exception
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.io.CharStreams
 import feign.FeignException
 import feign.Response
 import feign.codec.ErrorDecoder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Component
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
@@ -18,10 +18,10 @@ import java.nio.charset.StandardCharsets
  * @author mikeh
  * @since 2019-02-03
  */
+@Component
 class SpringFeignDecoder : ErrorDecoder {
     companion object {
-        private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        private val log: Logger = LoggerFactory.getLogger(SpringFeignDecoder::class.java)
     }
 
     override fun decode(methodKey: String, response: Response): Exception {
@@ -30,6 +30,7 @@ class SpringFeignDecoder : ErrorDecoder {
         } catch (e: IOException) {
             throw SystemException(e.message)
         }
+        log.error("$methodKey - [${response.status()}] $reason")
         if (response.status() == HttpStatus.UNAUTHORIZED.value()) {
             // Clearly communicate an authentication issue
             return UnauthorizedException(reason)
@@ -54,10 +55,6 @@ class SpringFeignDecoder : ErrorDecoder {
             return response.reason()
         }
         val readr = CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
-        val exceptionMessage = mapper.readValue(
-            readr,
-            SpringExceptionMessage::class.java
-        )
-        return exceptionMessage.message
+        return readr.toString()
     }
 }

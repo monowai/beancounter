@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.exception.SystemException
@@ -25,7 +25,10 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 @RequestMapping("/trns")
 @CrossOrigin
-@PreAuthorize("hasAnyRole('" + RoleHelper.OAUTH_USER + "', '" + RoleHelper.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
+/**
+ * MVC controller for Transaction related operations.
+ */
 class TrnController {
     private lateinit var trnService: TrnService
     private lateinit var portfolioService: PortfolioService

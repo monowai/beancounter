@@ -5,14 +5,13 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.CurrencyUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import kotlin.collections.ArrayList
 
+/**
+ * Simple currency behaviour assertions.
+ */
 internal class TestCurrency {
-    private val currencyUtils = CurrencyUtils()
     private val bcJson = BcJson()
     private val objectMapper = bcJson.objectMapper
 
@@ -41,7 +40,7 @@ internal class TestCurrency {
 
     @Test
     fun is_GetCurrencyWorking() {
-        val currency = currencyUtils.getCurrency("NZD")
+        val currency = Currency("NZD")
         assertThat(currency).hasFieldOrPropertyWithValue("code", "NZD")
     }
 
@@ -50,42 +49,14 @@ internal class TestCurrency {
         val trade = "NZD"
         val report = "USD"
         val byCode = IsoCurrencyPair(report, trade)
-        val byCurrency = toPair(currencyUtils.getCurrency(report), currencyUtils.getCurrency(trade))
+        val byCurrency = toPair(Currency(report), Currency(trade))
         assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
         assertThat(
             toPair(
-                currencyUtils.getCurrency(report), currencyUtils.getCurrency(report)
+                Currency(report), Currency(report)
             )
         )
             .isNull()
-    }
-
-    @Test
-    fun is_CorrectCurrencyPair() {
-        assertThat(
-            currencyUtils.getCurrencyPair(
-                BigDecimal.TEN,
-                currencyUtils.getCurrency("NZD"),
-                currencyUtils.getCurrency("USD")
-            )
-        )
-            .isNull() // We have a rate, so don't request one
-        assertThat(
-            currencyUtils.getCurrencyPair(
-                null,
-                currencyUtils.getCurrency("USD"), currencyUtils.getCurrency("USD")
-            )
-        )
-            .isNull()
-        assertThat(
-            currencyUtils.getCurrencyPair(
-                null,
-                currencyUtils.getCurrency("NZD"), currencyUtils.getCurrency("USD")
-            )
-        )
-            .isNotNull
-            .hasFieldOrPropertyWithValue("from", "NZD")
-            .hasFieldOrPropertyWithValue("to", "USD")
     }
 
     @Test

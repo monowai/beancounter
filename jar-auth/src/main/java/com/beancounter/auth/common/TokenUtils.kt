@@ -1,6 +1,6 @@
 package com.beancounter.auth.common
 
-import com.beancounter.auth.server.RoleHelper
+import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.model.SystemUser
 import org.springframework.security.oauth2.jwt.Jwt
 import java.util.ArrayList
@@ -22,7 +22,7 @@ class TokenUtils {
             .subject(systemUser.id)
             .claim("email", systemUser.email)
             .claim("realm_access", realmAccess)
-            .claim("scope", RoleHelper.SCOPE)
+            .claim("scope", AuthConstants.SCOPE)
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
     }

@@ -20,12 +20,15 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
-@AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
-@ImportAutoConfiguration(ClientConfig::class)
-@SpringBootTest(classes = [ClientConfig::class])
 /**
  * Test all user registration behaviour.
  */
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+)
+@ImportAutoConfiguration(ClientConfig::class)
+@SpringBootTest(classes = [ClientConfig::class])
 class TestRegistrationService {
     @Autowired
     private lateinit var registrationService: RegistrationService
@@ -34,23 +37,27 @@ class TestRegistrationService {
     private lateinit var jwtDecoder: JwtDecoder
 
     @Test
-    fun is_RegisteringAuthenticatedUser() {
-        setupAuth("token")
+    fun registeringAuthenticatedUser() {
+        setupAuth("blah@blah.com")
         assertThat(registrationService.jwtToken).isNotNull
         assertThat(registrationService.token).isNotNull
         // Currently matching is on email
         val registeredUser = registrationService
             .register(RegistrationRequest("blah@blah.com"))
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
-        assertThrows(UnauthorizedException::class.java) { registrationService.me() }
+        val me = registrationService.me()
+        assertThat(me)
+            .usingRecursiveComparison()
+            .isEqualTo(registeredUser)
     }
 
     @Test
-    fun is_UnauthenticatedUserRejectedFromRegistration() {
+    fun unauthenticatedUserRejectedFromRegistration() {
         // Setup the authenticated context
-        setupAuth("not@authenticated.com")
+        val email = "not@authenticated.com"
+        setupAuth(email)
         assertThrows(UnauthorizedException::class.java) {
-            registrationService.register(RegistrationRequest("invalid user"))
+            registrationService.register(RegistrationRequest(email))
         }
     }
 

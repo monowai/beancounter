@@ -7,22 +7,26 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
+/**
+ * Coverage of KeyGenUtils
+ */
 class TestKeyGenUtils {
+    private var keyGenUtils = KeyGenUtils()
     @Test
-    fun is_uuidGenerating() {
+    fun uuidGenerating() {
         val uuid = UUID.randomUUID()
-        val webSafe = KeyGenUtils.format(uuid)
+        val webSafe = keyGenUtils.format(uuid)
         assertThat(webSafe).isNotNull
-        assertThat(KeyGenUtils.parse(webSafe).compareTo(uuid)).isEqualTo(0)
-        assertThat(KeyGenUtils.parse(uuid.toString()).compareTo(uuid)).isEqualTo(0)
+        assertThat(keyGenUtils.parse(webSafe).compareTo(uuid)).isEqualTo(0)
+        assertThat(keyGenUtils.parse(uuid.toString()).compareTo(uuid)).isEqualTo(0)
     }
 
     @Test
-    fun is_ArgumentExceptionsCorrect() {
-        assertThrows(BusinessException::class.java) { KeyGenUtils.format(null) }
-        assertThrows(BusinessException::class.java) { KeyGenUtils.parse(null) }
-        assertThrows(BusinessException::class.java) { KeyGenUtils.parse("ABC") }
-        assertThrows(BusinessException::class.java) { KeyGenUtils.parse("12345678901234567") }
-        assertThrows(BusinessException::class.java) { KeyGenUtils.parse("") }
+    fun argumentParsingExceptions() {
+        assertThrows(BusinessException::class.java) { keyGenUtils.format(null) }
+        assertThrows(BusinessException::class.java) { keyGenUtils.parse(null) }
+        assertThrows(BusinessException::class.java) { keyGenUtils.parse("ABC") }
+        assertThrows(BusinessException::class.java) { keyGenUtils.parse("12345678901234567") }
+        assertThrows(BusinessException::class.java) { keyGenUtils.parse("") }
     }
 }

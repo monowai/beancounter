@@ -4,10 +4,13 @@ import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+/**
+ * POJO java contracts
+ */
 class TestSystemUser {
 
     @Test
-    fun is_SystemUserContractHonoured() {
+    fun systemUserContractHonoured() {
         val sua = SystemUser("abc")
         val sub = SystemUser("abc")
         val suMap = HashMap<SystemUser, SystemUser>()

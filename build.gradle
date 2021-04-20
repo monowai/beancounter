@@ -3,6 +3,8 @@ buildscript {
         springBootVersion='2.4.4'
         springCloudVersion='2020.0.2'
         springSecurityVersion='5.4.5'
+        // Spring Contracts/Gradle
+        verifierVersion='3.0.2'
         springWebVersion = '5.3.5'
         springKafka='2.6.7'
         jacksonVersion = '2.12.2'

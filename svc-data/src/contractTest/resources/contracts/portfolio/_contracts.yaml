@@ -1,0 +1,103 @@
+---
+name: addPortfolios
+priority: 1
+request:
+  method: POST
+  bodyFromFile: "./add-request.json"
+  headers:
+    Content-Type: application/json
+  url: /portfolios
+response:
+  status: 200
+  bodyFromFile: "./add-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolios
+priority: 1
+request:
+  method: GET
+  url: /portfolios
+response:
+  status: 200
+  bodyFromFile: "./portfolios.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolioById
+priority: 1
+request:
+  method: GET
+  url: /portfolios/TEST
+response:
+  status: 200
+  bodyFromFile: "./test.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolioByCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/code/TEST
+response:
+  status: 200
+  bodyFromFile: "./test.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolioNotFoundByCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/code/NOT-FOUND
+response:
+  status: 400
+  bodyFromFile: "./not-found-by-code.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolioNotFoundById
+priority: 1
+request:
+  method: GET
+  url: /portfolios/NOT-FOUND
+response:
+  status: 400
+  bodyFromFile: "./not-found-by-id.json"
+  headers:
+    Content-Type: application/json
+---
+name: emptyPortfolioId
+priority: 1
+request:
+  method: GET
+  url: /portfolios/EMPTY
+response:
+  status: 200
+  bodyFromFile: "./empty.json"
+  headers:
+    Content-Type: application/json
+---
+name: emptyPortfolioCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/code/EMPTY
+response:
+  status: 200
+  bodyFromFile: "./empty.json"
+  headers:
+    Content-Type: application/json
+---
+name: whereHeld
+priority: 1
+request:
+  method: GET
+  url: /portfolios/asset/KMI/2020-05-01
+
+response:
+  status: 200
+  bodyFromFile: "./where-held-response.json"
+  headers:
+    Content-Type: application/json

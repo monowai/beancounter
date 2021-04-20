@@ -85,27 +85,27 @@ beancounter:
     values:
       - code: GBP
         name: Pound
-        symbol: ￡
+        symbol: "£"
 
       - code: USD
         name: Dollar
-        symbol: $
+        symbol: "$"
 
       - code: NZD
         name: Dollar
-        symbol: $
+        symbol: "$"
 
       - code: AUD
         name: Dollar
-        symbol: $
+        symbol: "$"
 
       - code: EUR
         name: Euro
-        symbol: €
+        symbol: "€"
 
       - code: SGD
         name: Dollar
-        symbol: $
+        symbol: "$"
   # Default asset enricher - FIGI/ALPHA/MOCK - can be set on a per market basis
   enricher: ALPHA
   market:

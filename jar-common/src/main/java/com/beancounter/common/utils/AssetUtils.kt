@@ -1,6 +1,5 @@
 package com.beancounter.common.utils
 
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
@@ -21,45 +20,9 @@ class AssetUtils private constructor() {
         private val objectMapper = BcJson().objectMapper
         val USD = Currency("USD")
 
-        /**
-         * Takes a valid asset and returns a key for it.
-         *
-         * @param asset valid Asset
-         * @return string that can be used to pull the asset from a map
-         */
-        @JvmStatic
-        fun toKey(asset: Asset): String {
-            return toKey(asset.code, asset.market.code)
-        }
-
-        @JvmStatic
-        fun toKey(asset: AssetInput): String {
-            return toKey(asset.code, asset.market)
-        }
-
-        @JvmStatic
-        fun toKey(asset: String, market: String): String {
-            return "$asset:$market"
-        }
-
         @JvmStatic
         fun getMarket(code: String): Market {
             return Market(code, USD)
-        }
-
-        /**
-         * Takes an Asset key and returns an AssetObject.
-         *
-         * @param key result of parseKey(Asset)
-         * @return an Asset
-         */
-        @JvmStatic
-        fun fromKey(key: String): Asset {
-            val marketAsset = key.split(":").toTypedArray()
-            if (marketAsset.size != 2) {
-                throw BusinessException(String.format("Unable to parse the key %s", key))
-            }
-            return getAsset(marketAsset[1], marketAsset[0])
         }
 
         /**
@@ -128,7 +91,7 @@ class AssetUtils private constructor() {
 
         @JvmStatic
         fun getAssetInput(asset: Asset): AssetInput {
-            return AssetInput(asset.market.code, asset.code, name = asset.code, resolvedAsset = asset)
+            return AssetInput(market = asset.market.code, code = asset.code, name = asset.code, resolvedAsset = asset)
         }
     }
 

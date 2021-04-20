@@ -8,12 +8,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
+/**
+ * Serialization of Registration payloads
+ */
 class TestRegistration {
     private val objectMapper = BcJson().objectMapper
 
     @Test
     @Throws(Exception::class)
-    fun is_RegistrationSerialization() {
+    fun registrationSerializes() {
         val registrationRequest = RegistrationRequest("someone@somewhere.com")
         val json = objectMapper.writeValueAsString(registrationRequest)
         assertThat(objectMapper.readValue(json, RegistrationRequest::class.java))
@@ -22,8 +25,8 @@ class TestRegistration {
 
     @Test
     @Throws(Exception::class)
-    fun is_SystemUserSerialization() {
-        val systemUser = SystemUser(UUID.randomUUID().toString(), "someone@somewhere.com")
+    fun systemUserSerializes() {
+        val systemUser = SystemUser(UUID.randomUUID().toString(), "no-one@nowhere.com")
         var json = objectMapper.writeValueAsString(systemUser)
         assertThat(objectMapper.readValue(json, SystemUser::class.java))
             .usingRecursiveComparison().isEqualTo(systemUser)

@@ -3,11 +3,13 @@ package com.beancounter.common.utils;
 import com.beancounter.common.exception.BusinessException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
 
 /**
  * Builds shorter web-safe keys from GUIDs.
  */
-public final class KeyGenUtils {
+@Service
+public class KeyGenUtils {
   private static final char[] CHARS =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
   private static final int[] i256 = new int[256];
@@ -16,10 +18,6 @@ public final class KeyGenUtils {
     for (int i = 0; i < CHARS.length; i++) {
       i256[CHARS[i]] = i;
     }
-  }
-
-  private KeyGenUtils() {
-    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
 
   /**
@@ -31,7 +29,7 @@ public final class KeyGenUtils {
    * @throws BusinessException  if the UUID instance is null.
    * @throws IllegalArgumentException if the underlying UUID implementation is not 16 bytes.
    */
-  public static String format(UUID uuid) {
+  public String format(UUID uuid) {
     if (uuid == null) {
       throw new BusinessException("Null UUID");
     }
@@ -52,7 +50,7 @@ public final class KeyGenUtils {
    * @throws IllegalArgumentException if the uuidString is not a valid UUID representation.
    * @throws BusinessException     if the uuidString is null.
    */
-  public static UUID parse(String uuidString) {
+  public UUID parse(String uuidString) {
     if (uuidString == null || uuidString.isEmpty()) {
       throw new BusinessException("Invalid UUID string");
     }
@@ -78,7 +76,7 @@ public final class KeyGenUtils {
    * @param uuid a UUID instance.
    * @return the bytes from the UUID instance.
    */
-  private static byte[] toByteArray(UUID uuid) {
+  private byte[] toByteArray(UUID uuid) {
     ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
     bb.putLong(uuid.getMostSignificantBits());
     bb.putLong(uuid.getLeastSignificantBits());
@@ -159,7 +157,7 @@ public final class KeyGenUtils {
     return bytes;
   }
 
-  public static String getId() {
+  public String getId() {
     return format(UUID.randomUUID());
   }
 }

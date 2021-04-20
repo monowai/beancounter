@@ -23,12 +23,12 @@ class WtdConfigTest {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     companion object {
-        const val CONTRACTS = "/contracts/wtd"
+        const val CONTRACTS = "/mock/wtd"
     }
 
     @Test
     @Throws(Exception::class)
-    fun is_JsonGoodResponse() {
+    fun jsonGoodResponse() {
         val jsonFile = ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         val compareTo = ZonedDateTime.of(
@@ -46,7 +46,7 @@ class WtdConfigTest {
 
     @Test
     @Throws(Exception::class)
-    fun is_JsonResponseWithMessage() {
+    fun jsonResponseWithMessage() {
         val jsonFile = ClassPathResource("$CONTRACTS/NoData.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         assertThat(response)
@@ -57,7 +57,7 @@ class WtdConfigTest {
     private val marketDate = "2019-11-17"
 
     @Test
-    fun is_NzxValuationDateCorrect() {
+    fun nzxValuationDateCorrect() {
         val wtdConfig = WtdConfig()
         // Overriding today, so should just return today
         assertThat(wtdConfig.getMarketDate(NZX, "2019-11-15"))
@@ -69,7 +69,7 @@ class WtdConfigTest {
     }
 
     @Test
-    fun is_DateAssumptionsValid() {
+    fun dateAssumptionsValid() {
         val wtdConfig = WtdConfig()
         val today = dateUtils.today()
         assertThat(wtdConfig.date).isEqualTo(today)

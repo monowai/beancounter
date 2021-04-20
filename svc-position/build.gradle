@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
-        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:2.2.6.RELEASE"
+        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:$verifierVersion"
     }
 }
 
@@ -52,13 +52,16 @@ dependencies {
     compileOnly(
             "org.springframework.boot:spring-boot-configuration-processor"
     )
-
+    contractTestImplementation(group: 'org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
+    contractTestImplementation(
+            'org.springframework.cloud:spring-cloud-starter-contract-verifier',
+            'javax.inject:javax.inject:1',
+    )
     testImplementation(
             "org.assertj:assertj-core",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
-            'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
@@ -78,12 +81,15 @@ dependencyManagement {
 }
 
 contracts {
-    // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html#gradle-default-setup
     testFramework = "JUNIT5"
     testMode = "MockMvc"
-    packageWithBaseClasses = "com.beancounter.position.contracts"
-    baseClassMappings {
-        baseClassMapping(".*contract.*", "com.beancounter.position.contracts.ContractVerifierBase")
+    baseClassForTests = "com.beancounter.position.ContractVerifierBase"
+}
+
+contractTest {
+    useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
     }
 }
 

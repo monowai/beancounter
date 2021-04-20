@@ -7,6 +7,9 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Optional
 import java.util.stream.Stream
 
+/**
+ * CRUD interface for Asset details.
+ */
 interface AssetRepository : CrudRepository<Asset, String> {
     fun findByMarketCodeAndCode(marketCode: String, code: String): Optional<Asset>
 

@@ -12,6 +12,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.AMP
+import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.SGD
@@ -60,7 +61,7 @@ internal class WorldTradingDataApiTest {
     @Throws(Exception::class)
     fun is_AsxMarketConvertedToAx() {
         val response = getResponseMap(
-            ClassPathResource("$CONTRACTS/AMP-ASX.json").file
+            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file
         )
         val assets: MutableCollection<AssetInput> = ArrayList()
         assets.add(getAssetInput(AMP))
@@ -68,7 +69,7 @@ internal class WorldTradingDataApiTest {
         stubFor(
             WireMock.get(
                 WireMock.urlEqualTo(
-                    "/api/v1/history_multi_single_day?symbol=AMP.AX&date=$priceDate&api_token=demo"
+                    "/api/v1/history_multi_single_day?symbol=${AMP.code}.AX&date=$priceDate&api_token=demo"
                 )
             )
                 .willReturn(
@@ -131,12 +132,14 @@ internal class WorldTradingDataApiTest {
     @Test
     @Throws(Exception::class)
     fun is_WtdInvalidAssetPriceDefaulting() {
-        val inputs: MutableCollection<AssetInput> = ArrayList()
-        inputs.add(getAssetInput(AAPL))
-        inputs.add(getAssetInput(getAsset(NASDAQ.code, "MSFTx")))
-        val nas = Market("NAS", SGD, "US/Eastern")
+        val inputs: Collection<AssetInput> = arrayListOf(
+            getAssetInput(AAPL),
+            getAssetInput(getAsset(NASDAQ.code, "${MSFT.code}x"))
+        )
+
+        val nas = Market("NAS", SGD)
         val priceDate = marketUtils.getPriceDate(zonedDateTime, nas).toString()
-        mockWtdResponse(inputs, priceDate, false, ClassPathResource("$CONTRACTS/APPL.json").file)
+        mockWtdResponse(inputs, priceDate, false, ClassPathResource("$CONTRACTS/${AAPL.code}.json").file)
         val mdResult = wtdService
             .getMarketData(PriceRequest(assets = inputs))
         assertThat(mdResult)
@@ -225,7 +228,7 @@ internal class WorldTradingDataApiTest {
                 var suffix = ""
                 if (!market.code.equals("NASDAQ", ignoreCase = true)) {
                     // Horrible hack to support WTD contract mocking ASX/AX
-                    suffix = "." + if (market.code.equals("ASX", ignoreCase = true)) "AX" else market.code
+                    suffix = "." + if (market.code.equals(ASX.code, ignoreCase = true)) "AX" else market.code
                 }
                 if (assetArg != null) {
                     assetArg.append("%2C").append(asset.code).append(suffix)

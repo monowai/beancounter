@@ -13,6 +13,9 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * Write prices in relation to incoming messages.
+ */
 @Service
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 @Transactional

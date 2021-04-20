@@ -5,6 +5,9 @@ import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 
+/**
+ * Means to calculate a TRN from a corporate action for a position.
+ */
 interface Event {
     fun calculate(
         portfolio: Portfolio,

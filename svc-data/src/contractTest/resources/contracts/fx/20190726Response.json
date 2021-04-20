@@ -1,0 +1,34 @@
+{
+  "data": {
+    "rates": {
+      "GBP:NZD": {
+        "to": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "from": {
+          "code": "GBP",
+          "name": "Pound",
+          "symbol": "£"
+        },
+        "rate": 0.53457983,
+        "date": "2019-07-26"
+      },
+      "USD:NZD": {
+        "to": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "from": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "rate": 0.66428103,
+        "date": "2019-07-26"
+      }
+    }
+  }
+}

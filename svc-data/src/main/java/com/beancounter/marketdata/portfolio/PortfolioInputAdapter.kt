@@ -7,10 +7,15 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.currency.CurrencyService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.UUID
 
+/**
+ * Adapts PortfolioInput objects to Portfolio objects
+ */
 @Service
-class PortfolioInputAdapter internal constructor(private val currencyService: CurrencyService) {
+class PortfolioInputAdapter internal constructor(
+    private val currencyService: CurrencyService,
+    private val keyGenUtils: KeyGenUtils,
+) {
     fun prepare(owner: SystemUser, portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val results: MutableCollection<Portfolio> = ArrayList()
         for (portfolio in portfolios) {
@@ -22,7 +27,7 @@ class PortfolioInputAdapter internal constructor(private val currencyService: Cu
     private fun prepare(owner: SystemUser, portfolioInput: PortfolioInput): Portfolio {
         log.debug("Creating for {}", owner.id)
         return Portfolio(
-            KeyGenUtils.format(UUID.randomUUID()),
+            keyGenUtils.id,
             portfolioInput.code.toUpperCase(),
             portfolioInput.name,
             currencyService.getCode(portfolioInput.currency)!!,

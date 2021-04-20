@@ -25,7 +25,8 @@ class AssetService internal constructor(
     private val enrichmentFactory: EnrichmentFactory,
     private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
-    private val marketService: MarketService
+    private val marketService: MarketService,
+    private val keyGenUtils: KeyGenUtils,
 ) : com.beancounter.client.AssetService {
 
     private fun create(assetInput: AssetInput?): Asset {
@@ -50,7 +51,7 @@ class AssetService internal constructor(
             if (asset == null) {
                 // User Defined Asset?
                 asset = Asset(
-                    KeyGenUtils.format(UUID.randomUUID()),
+                    keyGenUtils.format(UUID.randomUUID()),
                     assetInput.code.toUpperCase(),
                     defaultName,
                     "Equity",
@@ -61,7 +62,7 @@ class AssetService internal constructor(
             } else {
                 // Market Listed
                 asset.market = market
-                asset.id = KeyGenUtils.format(UUID.randomUUID())
+                asset.id = keyGenUtils.format(UUID.randomUUID())
             }
             return hydrateAsset(assetRepository.save(asset))
         }

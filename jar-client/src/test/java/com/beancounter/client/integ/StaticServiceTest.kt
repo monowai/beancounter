@@ -12,6 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 
+/**
+ * Client side access to static data - Markets & Currencies.
+ */
 @AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])

@@ -68,18 +68,18 @@ class TestPortfolioCommands {
         val response = PortfoliosResponse(listOf(getPortfolio("ABC", owner)))
         Mockito.`when`(
             portfolioGw.getPortfolioByCode(
-                Mockito.eq(tokenService.bearerToken),
-                Mockito.isA(String::class.java)
+                Mockito.anyString(),
+                Mockito.anyString()
             )
-        )
-            .thenReturn(PortfolioResponse(getPortfolio("ABC")))
+        ).thenReturn(PortfolioResponse(getPortfolio("ABC")))
+
         Mockito.`when`(
             portfolioGw.addPortfolios(
                 Mockito.eq(tokenService.bearerToken),
                 Mockito.isA(PortfoliosRequest::class.java)
             )
-        )
-            .thenReturn(response)
+        ).thenReturn(response)
+
         val result = portfolioCommands
             .add("ABC", "ABC", "NZD", "USD")
         assertThat(result).isNotNull
@@ -108,7 +108,7 @@ class TestPortfolioCommands {
 
     private val systemUser: SystemUser
         get() {
-            val owner = SystemUser(KeyGenUtils.format(UUID.randomUUID()))
+            val owner = SystemUser(KeyGenUtils().format(UUID.randomUUID()))
             val jwt = TokenUtils().getUserToken(owner)
             Mockito.`when`(jwtDecoder.decode("token")).thenReturn(jwt)
             Mockito.`when`(registrationService.me()).thenReturn(owner)

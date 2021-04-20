@@ -6,6 +6,10 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.AAPL
+import com.beancounter.marketdata.Constants.Companion.BLANK
+import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.DataProviderConfig
@@ -25,66 +29,70 @@ import java.time.LocalDate
  * of being based on batch sizes.
  */
 internal class DataProviderArgumentsTest {
-    private val aapl = getAsset("NASDAQ", "AAPL")
-    private val msft = getAsset("NASDAQ", "MSFT")
-    private val intc = getAsset("NASDAQ", "INTC")
+    private val aapl = getAsset(NASDAQ.code, AAPL.code)
+    private val msft = getAsset(NASDAQ.code, MSFT.code)
+    private val intc = getAsset(NASDAQ.code, "INTC")
 
     @Test
     fun is_BatchOfOne() {
         val providerArguments = ProviderArguments(TestConfig(1))
-        providerArguments.addAsset(aapl, "")
-        providerArguments.addAsset(msft, "")
-        providerArguments.addAsset(intc, "")
+        providerArguments.addAsset(aapl, BLANK)
+        providerArguments.addAsset(msft, BLANK)
+        providerArguments.addAsset(intc, BLANK)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
             .containsOnlyKeys(0, 1, 2)
-            .containsValues("AAPL", "MSFT", "INTC")
+            .containsValues(aapl.code, msft.code, intc.code)
     }
 
     @Test
     fun is_BatchOfTwo() {
         val providerArguments = ProviderArguments(TestConfig(2))
-        providerArguments.addAsset(aapl, "")
-        providerArguments.addAsset(msft, "")
-        providerArguments.addAsset(intc, "")
+        providerArguments.addAsset(aapl, BLANK)
+        providerArguments.addAsset(msft, BLANK)
+        providerArguments.addAsset(intc, BLANK)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
             .containsOnlyKeys(0, 1)
-            .containsValue("AAPL,MSFT")
-            .containsValue("INTC")
+            .containsValue("${aapl.code},${msft.code}")
+            .containsValue(intc.code)
     }
 
     @Test
     fun is_BatchOfThree() {
         val providerArguments = ProviderArguments(TestConfig(3))
-        providerArguments.addAsset(aapl, "")
-        providerArguments.addAsset(msft, "")
-        providerArguments.addAsset(intc, "")
+        providerArguments.addAsset(aapl, BLANK)
+        providerArguments.addAsset(msft, BLANK)
+        providerArguments.addAsset(intc, BLANK)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
             .containsOnlyKeys(0)
-            .containsValue("AAPL,MSFT,INTC")
+            .containsValue("${aapl.code},${msft.code},${intc.code}")
     }
 
     @Test
     fun is_SplitByMarket() {
         val assets: MutableCollection<AssetInput> = ArrayList()
+        val marketA = "AAA"
+        val code = "ABC"
         assets.add(
             AssetInput(
-                "AAA", "ABC",
-                getAsset("AAA", "ABC")
+                marketA, code,
+                getAsset(marketA, code)
             )
         )
+        val marketB = "BBB"
         assets.add(
             AssetInput(
-                "BBB", "ABC",
-                getAsset("BBB", "ABC")
+                marketB, code,
+                getAsset(marketB, code)
             )
         )
+        val marketC = "CCC"
         assets.add(
             AssetInput(
-                "CCC", "ABC",
-                getAsset("CCC", "ABC")
+                marketC, code,
+                getAsset(marketC, code)
             )
         )
         val priceRequest = PriceRequest(assets = assets)
@@ -98,10 +106,11 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_ProviderUtils() {
         val assetInputs: MutableCollection<AssetInput> = ArrayList()
-        assetInputs.add(AssetInput("MOCK", "TWEE"))
+        val market = "MOCK"
+        assetInputs.add(AssetInput(market, "TWEE"))
         val marketService = Mockito.mock(MarketService::class.java)
-        val mockMarket = Market("MOCK", USD)
-        Mockito.`when`(marketService.getMarket("MOCK"))
+        val mockMarket = Market(market, USD)
+        Mockito.`when`(marketService.getMarket(market))
             .thenReturn(mockMarket)
         val mdFactory = Mockito.mock(MdFactory::class.java)
         Mockito.`when`(mdFactory.getMarketDataProvider(mockMarket)).thenReturn(MockProviderService())

@@ -1,5 +1,8 @@
 package com.beancounter.marketdata.assets.figi
 
+/**
+ * Search params into OpenFigi.
+ */
 data class FigiSearch(
     var idValue: String,
     var exchCode: String,

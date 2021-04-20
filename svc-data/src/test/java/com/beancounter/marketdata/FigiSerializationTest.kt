@@ -7,12 +7,15 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 
+/**
+ * Mocked Figi responses serialize
+ */
 class FigiSerializationTest {
     @Test
     @Throws(Exception::class)
-    fun is_ResultSerializable() {
+    fun figiResponseSerializable() {
         val responses: Collection<FigiResponse> = BcJson().objectMapper.readValue(
-            ClassPathResource("/contracts" + "/figi/multi-asset-response.json").file,
+            ClassPathResource("/mock/figi/multi-asset-response.json").file,
             object : TypeReference<Collection<FigiResponse>>() {}
         )
         Assertions.assertThat(responses).hasSize(2)

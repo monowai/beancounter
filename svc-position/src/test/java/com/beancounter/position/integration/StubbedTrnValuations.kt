@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -32,11 +33,30 @@ import org.springframework.web.context.WebApplicationContext
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
+/**
+ * Corporate actions against contracts.
+ */
 internal class StubbedTrnValuations {
     @Autowired
     private lateinit var wac: WebApplicationContext
     private lateinit var mockMvc: MockMvc
     private val objectMapper: ObjectMapper = BcJson().objectMapper
+
+    private val owner = SystemUser(
+        id = "blah@blah.com",
+        email = "blah@blah.com",
+        true,
+        DateUtils().getDate("2020-06-03")
+    )
+
+    var portfolio: Portfolio = Portfolio(
+        id = "TEST",
+        code = "TEST",
+        name = "NZD Portfolio",
+        currency = Currency("NZD", name = "Dollar"),
+        base = Currency("USD", name = "Dollar"),
+        owner = owner
+    )
 
     @BeforeEach
     fun setUp() {
@@ -45,16 +65,8 @@ internal class StubbedTrnValuations {
 
     @Test
     @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
-    fun is_SingleAssetPosition() {
+    fun singleAssetPosition() {
         val dateUtils = DateUtils()
-        val portfolio = Portfolio(
-            "TEST",
-            "TEST",
-            "NZD Portfolio",
-            Currency("NZD"),
-            Currency("USD"),
-            null
-        )
         val query = TrustedTrnQuery(
             portfolio,
             dateUtils.getDate("2020-05-01"),
@@ -67,7 +79,9 @@ internal class StubbedTrnValuations {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andReturn().response.contentAsString
-        assertThat(json).isNotNull()
+
+        assertThat(json).isNotNull
+
         val (data) = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(data).isNotNull.hasFieldOrProperty("positions")
         assertThat(data.positions).hasSize(1)
@@ -75,20 +89,26 @@ internal class StubbedTrnValuations {
         assertThat(position).isNotNull
     }
 
+    private val code = "code"
+
     @Test
     @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
-    fun is_PositionRequestFromTransactions() {
+    fun positionRequestFromTransactions() {
         val json = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{portfolioCode}/2019-10-18", "TEST")
+            MockMvcRequestBuilders.get("/{portfolioCode}/2019-10-18", portfolio.code)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andReturn().response.contentAsString
+            .andExpect(
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andReturn()
+            .response
+            .contentAsString
+
         val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "TEST")
+            .hasFieldOrPropertyWithValue(code, portfolio.code)
         assertThat(positionResponse.data.asAt).isEqualTo("2019-10-18")
         assertThat(positionResponse.data[getAsset("NASDAQ", "AAPL")])
             .isNotNull
@@ -96,9 +116,10 @@ internal class StubbedTrnValuations {
 
     @Test
     @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
-    fun is_EmptyPortfolioPositionsReturned() {
+    fun emptyPortfolioPositionsReturned() {
+        val empty = "EMPTY"
         val json = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{portfolioCode}/today", "EMPTY")
+            MockMvcRequestBuilders.get("/{portfolioCode}/today", empty)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             MockMvcResultMatchers.status().isOk
@@ -109,7 +130,7 @@ internal class StubbedTrnValuations {
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "EMPTY")
+            .hasFieldOrPropertyWithValue(code, empty)
         assertThat(positionResponse.data).isNotNull
         assertThat(positionResponse.data.positions).isNull()
     }

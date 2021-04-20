@@ -13,7 +13,7 @@ import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter
 import com.beancounter.marketdata.providers.alpha.AlphaService
-import com.beancounter.marketdata.utils.AlphaMockUtils
+import com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
@@ -34,7 +34,7 @@ internal class AlphaPriceTest {
     fun is_NullAsset() {
         assertThat(
             priceMapper.readValue(
-                ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantage-empty-response.json").file,
+                ClassPathResource("$alphaContracts/alphavantage-empty-response.json").file,
                 PriceResponse::class.java
             )
         ).isNull()
@@ -44,7 +44,7 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_GlobalResponse() {
         val marketData = priceMapper.readValue(
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file,
+            ClassPathResource("$alphaContracts/global-response.json").file,
             PriceResponse::class.java
         )
         assertThat(marketData)
@@ -58,7 +58,7 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_CollectionFromResponseReturnedWithDividend() {
         val result = priceMapper.readValue(
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/kmi-backfill-response.json").file,
+            ClassPathResource("$alphaContracts/kmi-backfill-response.json").file,
             PriceResponse::class.java
         )
         assertThat(result.data).isNotNull.hasSize(5)
@@ -82,7 +82,7 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_MutualFundGlobalResponse() {
         val marketData = priceMapper.readValue(
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file,
+            ClassPathResource("$alphaContracts/pence-price-response.json").file,
             PriceResponse::class.java
         )
         assertThat(marketData)
@@ -94,7 +94,7 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_ResponseWithoutMarketCodeSetToUs() {
         val (asset) = validateResponse(
-            ClassPathResource("contracts/alpha/alphavantage-nasdaq.json").file
+            ClassPathResource("$alphaContracts/alphavantage-nasdaq.json").file
         )
         assertThat(asset)
             .hasFieldOrPropertyWithValue("code", "NDAQ")

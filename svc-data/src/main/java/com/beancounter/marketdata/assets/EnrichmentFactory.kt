@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
+/**
+ * The enricher provides missing Asset data properties such as name.
+ */
 @Service
 class EnrichmentFactory {
     private lateinit var enrichers: MutableMap<String, AssetEnricher>

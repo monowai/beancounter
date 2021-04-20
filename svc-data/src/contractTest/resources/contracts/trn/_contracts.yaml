@@ -1,0 +1,52 @@
+---
+name: csvWrite
+priority: 1
+request:
+  method: POST
+  headers:
+    Content-Type: application/json
+  bodyFromFile: "./CSV-request.json"
+  url: /trns
+response:
+  status: 200
+  #  The response is shared. Input is MSFT, output is AAPL ;-)
+  bodyFromFile: "./CSV-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: kmiTrnForAsset
+priority: 1
+request:
+  method: POST
+  url: /trns/query
+  bodyFromFile: "./trn-for-asset-request.json"
+  headers:
+    Content-Type: application/json
+
+response:
+  status: 200
+  bodyFromFile: "./trn-for-asset-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: transactionsForPortfolio
+priority: 1
+request:
+  method: GET
+  url: /trns/portfolio/TEST
+response:
+  status: 200
+  bodyFromFile: "./trns-test-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: noTransactionsForPortfolio
+priority: 1
+request:
+  method: GET
+  url: /trns/portfolio/EMPTY
+response:
+  status: 200
+  bodyFromFile: "./trns-empty-response.json"
+  headers:
+    Content-Type: application/json

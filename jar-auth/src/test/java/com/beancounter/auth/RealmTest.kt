@@ -9,11 +9,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.UUID
 
+/**
+ * Converts OAuth realms to Spring Authorities
+ */
 class RealmTest {
     @Test
-    fun is_RoleConverterValid() {
+    fun roleConverterdFromOAuthToGrantedAuth() {
         val jwtRoleConverter = JwtRoleConverter("empty", "nothing")
-        val su = SystemUser(KeyGenUtils.format(UUID.randomUUID()))
+        val su = SystemUser(KeyGenUtils().format(UUID.randomUUID()))
         Assertions.assertThat(
             jwtRoleConverter.getAuthorities(
                 TokenUtils().getUserToken(su)

@@ -1,0 +1,123 @@
+{
+  "data": {
+    "portfolio": {
+      "id": "TEST",
+      "code": "TEST",
+      "name": "NZD Portfolio",
+      "currency": {
+        "code": "NZD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "base": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "owner": {
+        "id": "blah@blah.com",
+        "email": "blah@blah.com",
+        "active": true,
+        "since": "2020-03-08"
+      }
+    },
+    "asAt": "2020-05-01",
+    "positions": {
+      "KMI:NYSE": {
+        "asset": {
+          "id": "KMI",
+          "code": "KMI",
+          "name": "Kinder Morgan Inc.",
+          "category": "Equity",
+          "market": {
+            "code": "NYSE",
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "timezone": "US/Eastern",
+            "multiplier": 1
+          },
+          "priceSymbol": "KMI"
+        },
+        "quantityValues": {
+          "sold": 0,
+          "purchased": 80.000000,
+          "adjustment": 0,
+          "precision": 0,
+          "total": 80.000000
+        },
+        "dateValues": {
+          "opened": "2019-03-07",
+          "last": "2020-02-18",
+          "closed": null,
+          "lastDividend": "2020-02-18"
+        },
+        "moneyValues": {
+          "BASE": {
+            "dividends": 124.14,
+            "costValue": 2362.96,
+            "costBasis": 2362.96,
+            "fees": 0,
+            "purchases": 2362.96,
+            "sales": 0,
+            "marketValue": 0,
+            "weight": null,
+            "priceData": null,
+            "averageCost": 29.537,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "NZD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "TRADE": {
+            "dividends": 80.00,
+            "costValue": 1601.40,
+            "costBasis": 1601.40,
+            "fees": 0,
+            "purchases": 1601.40,
+            "sales": 0,
+            "marketValue": 0,
+            "weight": null,
+            "priceData": null,
+            "averageCost": 20.0175,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          },
+          "PORTFOLIO": {
+            "dividends": 80.00,
+            "costValue": 1601.40,
+            "costBasis": 1601.40,
+            "fees": 0,
+            "purchases": 1601.40,
+            "sales": 0,
+            "marketValue": 0,
+            "weight": null,
+            "priceData": null,
+            "averageCost": 20.0175,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0,
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            }
+          }
+        }
+      }
+    },
+    "totals": null
+  }
+}

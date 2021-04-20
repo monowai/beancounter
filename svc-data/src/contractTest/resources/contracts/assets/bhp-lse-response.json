@@ -1,0 +1,17 @@
+{
+  "data": {
+    "BHP:LSE": {
+      "id": "1ozW7B4GSmOP0cKO9pl6ng",
+      "code": "BHP",
+      "market": {
+        "code": "LSE",
+        "currency": {
+          "code": "GBP",
+          "name": "Pound",
+          "symbol": "£"
+        },
+        "timezone": "Europe/London"
+      }
+    }
+  }
+}

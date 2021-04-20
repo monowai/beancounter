@@ -1,5 +1,7 @@
 package com.beancounter.client.integ
 
+import com.beancounter.client.Constants.Companion.SGD
+import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosRequest
@@ -14,13 +16,16 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
-
-@AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
-@ImportAutoConfiguration(ClientConfig::class)
-@SpringBootTest(classes = [ClientConfig::class])
 /**
  * Client side Portfolio tests using mock data from bc-data.
  */
+@AutoConfigureStubRunner(
+    failOnNoStubs = true,
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+)
+@ImportAutoConfiguration(ClientConfig::class)
+@SpringBootTest(classes = [ClientConfig::class])
 class TestPortfolioServiceClient {
     @Autowired
     private lateinit var portfolioService: PortfolioServiceClient
@@ -33,26 +38,15 @@ class TestPortfolioServiceClient {
     }
 
     @Test
-    fun is_AddFailing() {
-        val request = PortfoliosRequest(
-            setOf(
-                PortfolioInput("ABC", "name", "USD", "NZD")
-            )
-        )
-        // Null returned for an Add request
-        assertThat(portfolioService.add(request)).isNull()
-    }
-
-    @Test
     fun is_PortfolioAddRequest() {
         val request = PortfoliosRequest(
             setOf(
-                PortfolioInput("SGD", "SGD Balanced", "USD", "SGD")
+                PortfolioInput(SGD.code, "${SGD.code} Balanced", USD.code, SGD.code)
             )
         )
-        // Null returned for an Add request
         val response = portfolioService.add(request)
         assertThat(response).isNotNull.hasNoNullFieldsOrProperties()
+        assertThat(response.data).isNotEmpty
     }
 
     @Test
@@ -73,7 +67,7 @@ class TestPortfolioServiceClient {
     @Test
     fun is_PortfolioIllegalArgumentsThrowing() {
         assertThrows(BusinessException::class.java) {
-            portfolioService.getPortfolioByCode("IA")
+            portfolioService.getPortfolioByCode("NOT-FOUND")
         }
     }
 }

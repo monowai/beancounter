@@ -1,0 +1,23 @@
+{
+  "data": {
+    "id": "EMPTY",
+    "code": "EMPTY",
+    "name": "NZD Portfolio",
+    "currency": {
+      "code": "NZD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "base": {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    "owner": {
+      "id": "blah@blah.com",
+      "email": "blah@blah.com",
+      "active": true,
+      "since": "2020-03-08"
+    }
+  }
+}

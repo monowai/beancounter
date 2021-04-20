@@ -7,6 +7,9 @@ import org.springframework.data.repository.CrudRepository
 import java.time.LocalDate
 import java.util.Optional
 
+/**
+ * Portfolio CRUD interface.
+ */
 interface PortfolioRepository : CrudRepository<Portfolio, String> {
     fun findByCodeAndOwner(code: String, systemUser: SystemUser): Optional<Portfolio>
     fun findByOwner(systemUser: SystemUser): Iterable<Portfolio>

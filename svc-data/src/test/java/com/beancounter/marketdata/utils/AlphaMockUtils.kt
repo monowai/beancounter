@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.utils
 
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
@@ -9,7 +10,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import java.io.File
 import java.io.IOException
-import java.util.HashMap
 
 /**
  * Alpha Vantage Mocking support.
@@ -18,13 +18,13 @@ import java.util.HashMap
  * @since 2019-03-09
  */
 object AlphaMockUtils {
-    const val alphaContracts = "/contracts/alpha"
+    const val alphaContracts = "mock/alpha"
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @JvmStatic
     fun getAlphaApi() {
         mockSearchResponse(
-            "MSFT",
+            MSFT.code,
             ClassPathResource(alphaContracts + "/msft-response.json").file
         )
         mockSearchResponse(
@@ -33,7 +33,7 @@ object AlphaMockUtils {
         )
         mockSearchResponse(
             "AAPL",
-            ClassPathResource(alphaContracts + "/appl-response.json").file
+            ClassPathResource(alphaContracts + "/aapl-response.json").file
         )
         mockSearchResponse(
             "AMP.AX",
@@ -50,7 +50,7 @@ object AlphaMockUtils {
             "AMP.AUS", ClassPathResource(alphaContracts + "/amp-global.json").file
         )
         mockGlobalResponse(
-            "MSFT", ClassPathResource(alphaContracts + "/msft-global.json").file
+            MSFT.code, ClassPathResource(alphaContracts + "/msft-global.json").file
         )
     }
 

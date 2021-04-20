@@ -12,13 +12,16 @@ import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
-import java.util.UUID
 
+/**
+ * Adapt TrnInput objects to the Trn persistent model.
+ */
 @Service
 class TrnAdapter internal constructor(
     var assetService: AssetService,
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,
+    private val keyGenUtils: KeyGenUtils
 ) {
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
@@ -31,7 +34,7 @@ class TrnAdapter internal constructor(
     fun map(portfolio: Portfolio, trnInput: TrnInput): Trn {
 
         return Trn(
-            KeyGenUtils.format(UUID.randomUUID()),
+            keyGenUtils.id,
             from(trnInput.callerRef, portfolio),
             trnInput.trnType,
             trnInput.status,

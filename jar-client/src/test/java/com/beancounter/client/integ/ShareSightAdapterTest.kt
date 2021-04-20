@@ -21,6 +21,9 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
 import java.util.ArrayList
 
+/**
+ * Test conversion from sharesight format to internal format.
+ */
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,

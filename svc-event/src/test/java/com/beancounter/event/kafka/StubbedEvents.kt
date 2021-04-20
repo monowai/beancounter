@@ -7,6 +7,7 @@ import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
@@ -62,21 +63,29 @@ class StubbedEvents {
 
     @Autowired
     private lateinit var wac: WebApplicationContext
-    private val portfolio = Portfolio(
-        "TEST",
-        "TEST",
-        "NZD Portfolio",
-        Currency("NZD"),
-        Currency("USD"),
-        null
+    private val owner = SystemUser(
+        id = "blah@blah.com",
+        email = "blah@blah.com",
+        true,
+        DateUtils().getDate("2020-03-08")
     )
 
+    var portfolio: Portfolio = Portfolio(
+        id = "TEST",
+        code = "TEST",
+        name = "NZD Portfolio",
+        currency = Currency("NZD"),
+        base = Currency("USD"),
+        owner = owner
+    )
     private val alpha = "ALPHA"
 
     @Test
     fun is_NoQuantityOnDateNull() {
         val corporateEvent = CorporateEvent(
-            TrnType.DIVI, Objects.requireNonNull(DateUtils().getDate("2020-05-01"))!!, alpha,
+            TrnType.DIVI,
+            DateUtils().getDate("2020-05-01"),
+            alpha,
             "MSFT",
             BigDecimal("0.2625")
         )
@@ -121,7 +130,9 @@ class StubbedEvents {
         val consumer = cf.createConsumer()
         embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TRN_EVENT)
         val corporateEvent = CorporateEvent(
-            TrnType.DIVI, Objects.requireNonNull(DateUtils().getDate("2020-05-01"))!!, alpha,
+            TrnType.DIVI,
+            DateUtils().getDate("2020-05-01"),
+            alpha,
             "KMI",
             BigDecimal("0.2625")
         )

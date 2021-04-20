@@ -5,6 +5,8 @@ import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
@@ -37,6 +39,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
+/**
+ * Bloomberg OpenFigi via mocks.
+ */
 @SpringBootTest
 @ActiveProfiles("figi")
 @Tag("slow")
@@ -59,7 +64,7 @@ class FigiApiTest {
 
     @Test
     fun is_CommonStockFound() {
-        val asset = figiProxy.find(marketService.getMarket("NASDAQ"), "MSFT")
+        val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), MSFT.code)
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "MICROSOFT CORP")
@@ -68,7 +73,7 @@ class FigiApiTest {
 
     @Test
     fun is_AdrFound() {
-        val asset = figiProxy.find(marketService.getMarket("NASDAQ"), "BAIDU")
+        val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), "BAIDU")
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "BAIDU INC - SPON ADR")
@@ -131,11 +136,11 @@ class FigiApiTest {
         @BeforeAll
         @JvmStatic
         fun mockApis() {
-            val prefix = "/contracts/figi"
+            val prefix = "/mock/figi"
 
             mock(
                 ClassPathResource("$prefix/common-stock-response.json").file,
-                "MSFT",
+                MSFT.code,
                 "Common Stock"
             )
 

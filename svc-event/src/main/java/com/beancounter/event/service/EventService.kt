@@ -13,10 +13,14 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.ArrayList
 
+/**
+ * Corporate Action Event Processing Service. Stores and emits events.
+ */
 @Service
 class EventService(
     private val positionService: PositionService,
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val keyGenUtils: KeyGenUtils,
 ) {
     private var eventPublisher: EventPublisher? = null
 
@@ -60,7 +64,7 @@ class EventService(
             return existing.get()
         }
         val save = CorporateEvent(
-            KeyGenUtils.getId(),
+            keyGenUtils.id,
             event.trnType,
             event.source,
             event.assetId,

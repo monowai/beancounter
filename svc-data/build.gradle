@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
-        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:2.2.6.RELEASE"
+        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:$verifierVersion"
     }
 }
 
@@ -63,12 +63,16 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion" ) {exclude module: 'kotlin-reflect'}
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+    contractTestImplementation(group: 'org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
+    contractTestImplementation(
+            'org.springframework.cloud:spring-cloud-starter-contract-verifier',
+            'javax.inject:javax.inject:1',
+    )
     testImplementation(
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
-            'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test:$springKafka",
             // Not needed for this project; pulling into build cache
@@ -76,19 +80,23 @@ dependencies {
             // End not strictly needed
 
     )
-
-
 }
 
 contracts {
-    // https://cloud.spring.io/spring-cloud-contract/2.1.x/single/spring-cloud-contract.html#gradle-default-setup
     testFramework = "JUNIT5"
     testMode = "MockMvc"
+    failOnInProgress = false
+    baseClassForTests = "com.beancounter.marketdata.contracts.ContractVerifierBase"
     packageWithBaseClasses = "com.beancounter.marketdata.contracts"
-    baseClassMappings {
-        baseClassMapping(".*contract.*", "com.beancounter.marketdata.contracts.ContractVerifierBase")
+}
+
+contractTest {
+    useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
     }
 }
+
 
 task pubStubs {
     dependsOn build

@@ -1,0 +1,28 @@
+---
+name: EBAY-price
+priority: 1
+request:
+  method: POST
+  url: /prices
+  bodyFromFile: "./EBAY-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./EBAY-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: AAPL-price
+priority: 1
+request:
+  method: POST
+  url: /prices
+  bodyFromFile: "./AAPL-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./AAPL-response.json"
+  headers:
+    Content-Type: application/json

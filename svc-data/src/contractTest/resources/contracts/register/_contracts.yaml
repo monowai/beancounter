@@ -1,0 +1,41 @@
+name: getMe
+priority: 1
+request:
+  method: GET
+  url: /me
+
+response:
+  status: 200
+  bodyFromFile: "./register-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: registerNotAuth
+# Haven't figured out to mock the securityContext as it's static...
+inProgress: "true"
+priority: 1
+request:
+  method: POST
+  url: /register
+  bodyFromFile: "./no-auth-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 401
+  bodyFromFile: "./no-auth-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: registerUser
+priority: 1
+request:
+  method: POST
+  url: /register
+  bodyFromFile: "./register-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./register-response.json"
+  headers:
+    Content-Type: application/json

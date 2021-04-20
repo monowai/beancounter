@@ -22,6 +22,9 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.test.context.ActiveProfiles
 
+/**
+ * Simple flow of various corporate events for Microsoft.
+ */
 @SpringBootTest(classes = [EventBoot::class])
 @ActiveProfiles("test") // Ignore Kafka
 @MockBean(PositionGateway::class)

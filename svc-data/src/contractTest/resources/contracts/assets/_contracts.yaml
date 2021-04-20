@@ -1,0 +1,109 @@
+name: createAssets
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./create-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./create-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createAbbv
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./abbv-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./abbv-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createAmp
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./amp-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./amp-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createBhpAsx
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./bhp-asx-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./bhp-asx-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createBhpLse
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./bhp-lse-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./bhp-lse-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: createEbay
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./ebay-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./ebay-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: kmiAssetById
+priority: 1
+request:
+  method: GET
+  url: /assets/KMI
+
+response:
+  status: 200
+  bodyFromFile: "./kmi-asset-by-id.json"
+  headers:
+    Content-Type: application/json
+---
+name: createMsft
+priority: 1
+request:
+  method: POST
+  url: /assets
+  bodyFromFile: "./msft-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./msft-response.json"
+  headers:
+    Content-Type: application/json

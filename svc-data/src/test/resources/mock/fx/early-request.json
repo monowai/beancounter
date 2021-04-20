@@ -1,0 +1,13 @@
+{
+  "rateDate": "1996-07-27",
+  "pairs": [
+    {
+      "from": "USD",
+      "to": "SGD"
+    },
+    {
+      "from": "GBP",
+      "to": "NZD"
+    }
+  ]
+}

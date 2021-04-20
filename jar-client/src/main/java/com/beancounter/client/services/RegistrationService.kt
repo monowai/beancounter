@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
+/**
+ * Handles client side registration duties.
+ */
 @Service
 class RegistrationService(private val registrationGateway: RegistrationGateway, private val tokenService: TokenService) {
     fun register(registrationRequest: RegistrationRequest): SystemUser {

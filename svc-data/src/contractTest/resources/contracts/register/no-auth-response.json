@@ -1,0 +1,7 @@
+{
+  "timestamp": "2021-04-12T23:41:37.334+00:00",
+  "status": 401,
+  "error": "Not Authorized.",
+  "message": "Go away",
+  "path": "/api/register"
+}

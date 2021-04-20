@@ -2,7 +2,6 @@ package com.beancounter.common.model
 
 import com.beancounter.common.utils.KeyGenUtils
 import java.io.Serializable
-import java.util.UUID
 import javax.persistence.Embeddable
 
 /**
@@ -24,7 +23,7 @@ data class CallerRef(
 
             val provider = if (callerRef?.provider == null) "BC" else callerRef.provider!!
             val batch = if (callerRef?.batch == null) portfolio?.code ?: "-" else callerRef.batch!!
-            val callerId = if (callerRef?.callerId == null) KeyGenUtils.format(UUID.randomUUID()) else callerRef.callerId!!
+            val callerId = if (callerRef?.callerId == null) KeyGenUtils().id else callerRef.callerId!!
             return CallerRef(provider, batch, callerId)
         }
     }

@@ -1,6 +1,5 @@
 package com.beancounter.common
 
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
@@ -10,11 +9,14 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+/**
+ * BC values on the previous days close. These facts are asserted in this class
+ */
 internal class PreviousClosePriceDateTest {
     // System default timezone
     private var dateUtils = DateUtils("Asia/Singapore")
     private var marketUtils = PreviousClosePriceDate(dateUtils)
-    private val nasdaq = Market("NASDAQ", Currency("USD"), "US/Eastern")
+    private val nasdaq = Market("NASDAQ")
 
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(PreviousClosePriceDateTest::class.java)
@@ -59,7 +61,7 @@ internal class PreviousClosePriceDateTest {
 
     @Test
     fun is_FridayFoundFromSundayInSystemDefaultTz() {
-        val sgx = Market("SGX", Currency("SGD"), "Asia/Singapore")
+        val sgx = Market("SGX", "SGD", "Asia/Singapore")
         val sunday = sunday
         val found = marketUtils.getPriceDate(LocalDateTime.of(sunday, LocalTime.MIDNIGHT), sgx)
         assertThat(dateUtils.convert(found)).isEqualTo(friday)

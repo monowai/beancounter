@@ -13,9 +13,15 @@ import java.util.Optional
 import java.util.concurrent.Future
 import javax.transaction.Transactional
 
+/**
+ * Persist prices obtained from providers and detect if Corporate Events need to be dispatched.
+ */
 @Service
 @Transactional
-class PriceService internal constructor(private val marketDataRepo: MarketDataRepo) {
+class PriceService internal constructor(
+    private val marketDataRepo: MarketDataRepo,
+    private val keyGenUtils: KeyGenUtils
+) {
     private lateinit var eventWriter: EventWriter
 
     @Autowired
@@ -42,7 +48,7 @@ class PriceService internal constructor(private val marketDataRepo: MarketDataRe
                 )
                 if (existing.isEmpty) {
                     // Create
-                    marketData.id = KeyGenUtils.getId()
+                    marketData.id = keyGenUtils.id
                     createSet.add(marketData)
                 }
                 eventWriter.write(marketData)

@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.Objects
 
+/**
+ * Compute the market value and accumulate gains
+ */
 @Service
 class MarketValue(private val gains: Gains) {
     fun value(

@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
 
+/**
+ * Configuration settings for the now defunct WorldTrading Data.  Convert to MarketStack!
+ */
 @Configuration
 @Import(WtdService::class, WtdProxy::class, WtdAdapter::class)
 class WtdConfig : DataProviderConfig {

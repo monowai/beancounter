@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "code": "AUD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    {
+      "code": "SGD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€"
+    },
+    {
+      "code": "GBP",
+      "name": "Pound",
+      "symbol": "£"
+    },
+    {
+      "code": "USD",
+      "name": "Dollar",
+      "symbol": "$"
+    },
+    {
+      "code": "NZD",
+      "name": "Dollar",
+      "symbol": "$"
+    }
+  ]
+}

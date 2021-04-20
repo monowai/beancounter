@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "asset":  {
+        "id": "AAPL",
+        "code": "AAPL",
+        "market": {
+          "code": "NASDAQ",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "timezone": "US/Eastern"
+        }
+      },
+      "priceDate": "2019-10-18",
+      "open": 39.21,
+      "close": 100.00,
+      "low": 38.74,
+      "high": 39.35,
+      "volume": 6274307
+    }
+  ]
+}

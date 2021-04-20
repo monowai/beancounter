@@ -1,24 +1,14 @@
 package com.beancounter.common
 
 import com.beancounter.common.contracts.AssetRequest
-import com.beancounter.common.contracts.AssetResponse
-import com.beancounter.common.contracts.AssetSearchResponse
-import com.beancounter.common.contracts.AssetSearchResult
-import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.AssetUtils.Companion.fromKey
+import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
-import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.AssetUtils.Companion.split
-import com.beancounter.common.utils.AssetUtils.Companion.toKey
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -28,54 +18,9 @@ import org.springframework.lang.NonNull
  * Unit Tests for Asset Object
  */
 internal class TestAsset {
-    private val objectMapper = ObjectMapper().registerModule(KotlinModule())
 
     @Test
-    @Throws(Exception::class)
-    fun is_AssetResponse() {
-        val assetResponse = AssetResponse(getAsset("as", "Blah"))
-        assetResponse.data.marketCode = null // JsonIgnore
-        val json = objectMapper.writeValueAsString(assetResponse)
-        val fromJson = objectMapper.readValue(json, AssetResponse::class.java)
-        assertThat(fromJson.data)
-            .usingRecursiveComparison().isEqualTo(assetResponse.data)
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun assetRequestSerializes() {
-        val asset = getJsonAsset("BBB", "AAA")
-        val values = HashMap<String, AssetInput>()
-        values[toKey(asset)] = AssetUtils.getAssetInput("BBB", "AAA")
-        values["second"] = AssetUtils.getAssetInput("Whee", "Twee")
-        val assetRequest = AssetRequest(values)
-        assertThat(assetRequest.data)
-            .containsKeys(toKey(asset))
-        val json = objectMapper.writeValueAsString(assetRequest)
-        val (data) = objectMapper.readValue(json, AssetRequest::class.java)
-        assertThat(data).hasSize(assetRequest.data.size)
-        for (key in data.keys) {
-            assertThat(data[key])
-                .usingRecursiveComparison().isEqualTo(assetRequest.data[key])
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun assetResponseSerializes() {
-        val asset = getJsonAsset("BBB", "AAA")
-        val assetMap = HashMap<String, Asset>()
-        assetMap[toKey(asset)] = asset
-        assetMap["second"] = getJsonAsset("Whee", "Twee")
-        val assetUpdateResponse = AssetUpdateResponse(assetMap)
-        assertThat(assetUpdateResponse.data).containsKeys(toKey(asset))
-        val json = objectMapper.writeValueAsString(assetUpdateResponse)
-        val fromJson = objectMapper.readValue(json, AssetUpdateResponse::class.java)
-        assertThat(fromJson.data).containsKeys(toKey(asset))
-    }
-
-    @Test
-    fun is_AssetKeyParsing() {
+    fun assetKeyParses() {
         val asset = getAsset(
             "MCODE",
             "ACODE"
@@ -95,7 +40,7 @@ internal class TestAsset {
     }
 
     @Test
-    fun is_AssetKeyExceptionsBeingThrown() {
+    fun assetKeyExceptionsBeingThrown() {
         assertThrows(BusinessException::class.java) { fromKey("CodeWithNoMarket") }
         assertThrows(
             NullPointerException::class.java
@@ -103,18 +48,23 @@ internal class TestAsset {
     }
 
     @Test
-    fun is_AssetsSplitByMarket() {
+    fun assetsSplitByMarket() {
         val assets: MutableCollection<AssetInput> = ArrayList()
-        assets.add(getAssetInput("AAA", "ABC"))
-        assets.add(getAssetInput("AAA", "123"))
-        assets.add(getAssetInput("BBB", "ABC"))
-        assets.add(getAssetInput("BBB", "123"))
-        assets.add(getAssetInput("CCC", "123"))
+        val marketCodeA = "AAA"
+        val assetCodeB = "ABC"
+        assets.add(getAssetInput(marketCodeA, assetCodeB))
+        val assetCodeOne = "123"
+        assets.add(getAssetInput(marketCodeA, assetCodeOne))
+        val marketCodeB = "BBB"
+        assets.add(getAssetInput(marketCodeB, assetCodeB))
+        assets.add(getAssetInput(marketCodeB, assetCodeOne))
+        val marketCodeC = "CCC"
+        assets.add(getAssetInput(marketCodeC, assetCodeOne))
         val results = split(assets)
         assertThat(results.size).isEqualTo(3)
-        assertThat(results["AAA"]).hasSize(2)
-        assertThat(results["BBB"]).hasSize(2)
-        assertThat(results["CCC"]).hasSize(1)
+        assertThat(results[marketCodeA]).hasSize(2)
+        assertThat(results[marketCodeB]).hasSize(2)
+        assertThat(results[marketCodeC]).hasSize(1)
     }
 
     @NonNull
@@ -125,45 +75,14 @@ internal class TestAsset {
     }
 
     @Test
-    @Throws(JsonProcessingException::class)
-    fun is_SearchResponse() {
-        val searchResult = AssetSearchResult(
-            "Some Symbol",
-            "Some Name",
-            "Non Default",
-            "Some Region",
-            "USD"
-        )
-        val withDefaults = AssetSearchResult(
-            "Symbol",
-            "Name",
-            null,
-            "Some Region",
-            "USD"
-        )
-
-        val results: MutableCollection<AssetSearchResult> = ArrayList()
-        results.add(searchResult)
-        results.add(withDefaults)
-        val searchResponse = AssetSearchResponse(results)
-        val json = objectMapper.writeValueAsString(searchResponse)
-        val fromJson = objectMapper.readValue(json, AssetSearchResponse::class.java)
-        assertThat(fromJson)
-            .hasNoNullFieldsOrProperties()
-            .usingRecursiveComparison().isEqualTo(searchResponse)
-        assertThat(fromJson.data).isNotEmpty
-        assertThat(fromJson.data.iterator().next().type).isNotNull
-    }
-
-    @Test
-    fun is_AssetRequestSerializing() {
+    fun assetFoundInRequest() {
         val assetInput = AssetInput("ABC", "123")
         val ar = AssetRequest("ABC", assetInput)
         assertThat(ar.data).containsKey("ABC")
     }
 
     @Test
-    fun is_DefaultsFromAsset() {
+    fun defaultsFromAsset() {
         val assetInput = AssetInput(getAsset("a", "b"))
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue("market", "a")
@@ -171,18 +90,11 @@ internal class TestAsset {
             .hasFieldOrProperty("resolvedAsset")
     }
 
-    @Test
-    fun is_DataProviderAsset() {
-        val asset = getAsset("1", "2")
-        val assetInput = AssetInput(market = "amarket", code = "acode", asset)
-        assertThat(assetInput)
-            .hasFieldOrPropertyWithValue("market", "amarket")
-            .hasFieldOrPropertyWithValue("code", "acode")
-            .hasFieldOrPropertyWithValue("resolvedAsset", asset)
-            .hasFieldOrPropertyWithValue("name", null)
-
-        val json = objectMapper.writeValueAsString(assetInput)
-        assertThat(objectMapper.readValue(json, AssetInput::class.java))
-            .hasNoNullFieldsOrPropertiesExcept("resolvedAsset", "name")
+    private fun fromKey(key: String): Asset {
+        val marketAsset = key.split(":").toTypedArray()
+        if (marketAsset.size != 2) {
+            throw BusinessException(String.format("Unable to parse the key %s", key))
+        }
+        return getAsset(marketAsset[1], marketAsset[0])
     }
 }

@@ -175,7 +175,7 @@ internal class AlphaVantageApiTest {
     fun is_MutualFundAssetEnrichedAndPriceReturned() {
         val code = "B6WZJX0"
         val lon = "LON"
-        AlphaMockUtils.mockSearchResponse(code, ClassPathResource("/contracts/alpha/mf-search.json").file)
+        AlphaMockUtils.mockSearchResponse(code, ClassPathResource("/mock/alpha/mf-search.json").file)
         val symbol = "0P0000XMSV.$lon"
         AlphaMockUtils.mockGlobalResponse(
             symbol, ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file
@@ -395,11 +395,11 @@ internal class AlphaVantageApiTest {
         val code = "BWLD"
         AlphaMockUtils.mockSearchResponse(
             code,
-            ClassPathResource("/contracts/alpha/bwld-search.json").file
+            ClassPathResource("/mock/alpha/bwld-search.json").file
         )
         AlphaMockUtils.mockGlobalResponse(
             code,
-            ClassPathResource("/contracts/alpha/price-not-found.json").file
+            ClassPathResource("/mock/alpha/price-not-found.json").file
         )
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
         assetInputMap["key"] = AssetInput(NYSE.code, code)
@@ -423,8 +423,8 @@ internal class AlphaVantageApiTest {
     @Test
     @Throws(Exception::class)
     fun is_BackFillNasdaqIncludingDividendEvent() {
-        AlphaMockUtils.mockSearchResponse("KMI", ClassPathResource("/contracts/alpha/kmi-search.json").file)
-        val file = ClassPathResource("/contracts/alpha/kmi-backfill-response.json").file
+        AlphaMockUtils.mockSearchResponse("KMI", ClassPathResource("/mock/alpha/kmi-search.json").file)
+        val file = ClassPathResource("/mock/alpha/kmi-backfill-response.json").file
         AlphaMockUtils.mockAdjustedResponse("KMI", file)
         val alphaMapper = AlphaPriceAdapter().alphaMapper
         val priceResponse = alphaMapper.readValue(file, PriceResponse::class.java)

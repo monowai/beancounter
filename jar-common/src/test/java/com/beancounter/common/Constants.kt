@@ -18,5 +18,6 @@ class Constants {
         const val changePercentProp = "changePercent"
         val two = BigDecimal("2.0")
         val one = BigDecimal("1.00")
+        const val oneString = "1"
     }
 }

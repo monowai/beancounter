@@ -1,13 +1,10 @@
 package com.beancounter.marketdata.portfolio
 
 import com.beancounter.auth.server.AuthConstants
-import com.beancounter.auth.server.AuthConstants.m2mSystemUser
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
@@ -17,6 +14,9 @@ import java.time.LocalDate
 import java.util.function.Consumer
 import javax.transaction.Transactional
 
+/**
+ * Server side portfolio activities.
+ */
 @Service
 class PortfolioService internal constructor(
     private val portfolioInputAdapter: PortfolioInputAdapter,
@@ -27,7 +27,7 @@ class PortfolioService internal constructor(
 ) {
 
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
-        val owner = orThrow
+        val owner = systemUserService.getOrThrow
         val results: MutableCollection<Portfolio> = ArrayList()
         portfolioRepository.saveAll(
             portfolioInputAdapter.prepare(owner, portfolios)
@@ -35,37 +35,14 @@ class PortfolioService internal constructor(
         return results
     }
 
-    private fun verifyOwner(owner: SystemUser?) {
-        if (owner == null) {
-            throw ForbiddenException("Unable to identify the owner")
-        }
-        if (owner.id == AuthConstants.OAUTH_M2M) {
-            return
-        }
-        if (!owner.active) {
-            throw BusinessException("User is not active")
-        }
-    }
-
-    private val orThrow: SystemUser
-        get() {
-            if (systemUserService.isServiceAccount()) {
-                return m2mSystemUser
-            }
-
-            val systemUser = systemUserService.activeUser
-            verifyOwner(systemUser)
-            return systemUser!!
-        }
-
     fun canView(found: Portfolio): Boolean {
-        val systemUser = orThrow
+        val systemUser = systemUserService.getOrThrow
         return systemUser.id == AuthConstants.OAUTH_M2M || found.owner!!.id == systemUser.id
     }
 
     val portfolios: Collection<Portfolio>
         get() {
-            val systemUser = orThrow
+            val systemUser = systemUserService.getOrThrow
             val results: MutableCollection<Portfolio> = ArrayList()
             val portfolios = portfolioRepository.findByOwner(systemUser)
             for (portfolio in portfolios) {
@@ -95,7 +72,7 @@ class PortfolioService internal constructor(
     }
 
     fun findByCode(code: String): Portfolio {
-        val systemUser = orThrow
+        val systemUser = systemUserService.getOrThrow
         log.trace("Searching on behalf of {}", systemUser.id)
         val found = portfolioRepository
             .findByCodeAndOwner(code.toUpperCase(), systemUser)

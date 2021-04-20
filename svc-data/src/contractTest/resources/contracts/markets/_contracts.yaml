@@ -1,0 +1,106 @@
+---
+name: markets
+priority: 1
+request:
+  method: GET
+  url: /markets
+response:
+  status: 200
+  bodyFromFile: "./markets.json"
+  headers:
+    Content-Type: application/json
+---
+priority: 1
+request:
+  method: GET
+  url: /markets/ERR
+response:
+  status: 400
+---
+name: mockMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/MOCK
+response:
+  status: 200
+  bodyFromFile: "./mock.json"
+  headers:
+    Content-Type: application/json
+---
+name: asxMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/ASX
+response:
+  status: 200
+  bodyFromFile: "./asx.json"
+  headers:
+    Content-Type: application/json
+---
+name: axMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/AX
+response:
+  status: 200
+  bodyFromFile: "./asx.json"
+  headers:
+    Content-Type: application/json
+---
+name: lseMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/LSE
+response:
+  status: 200
+  bodyFromFile: "./lse.json"
+  headers:
+    Content-Type: application/json
+---
+name: nasdaqMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/NASDAQ
+response:
+  status: 200
+  bodyFromFile: "./nasdaq.json"
+  headers:
+    Content-Type: application/json
+---
+name: nasdaqMarketAlias
+priority: 1
+request:
+  method: GET
+  url: /markets/NAS
+response:
+  status: 200
+  bodyFromFile: "./nasdaq.json"
+  headers:
+    Content-Type: application/json
+---
+name: nyseMarket
+priority: 1
+request:
+  method: GET
+  url: /markets/NYSE
+response:
+  status: 200
+  bodyFromFile: "./nyse.json"
+  headers:
+    Content-Type: application/json
+---
+name: nyseMarketAlias
+priority: 1
+request:
+  method: GET
+  url: /markets/NYS
+response:
+  status: 200
+  bodyFromFile: "./nyse.json"
+  headers:
+    Content-Type: application/json

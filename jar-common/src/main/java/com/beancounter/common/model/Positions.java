@@ -1,6 +1,7 @@
 package com.beancounter.common.model;
 
-import com.beancounter.common.utils.AssetUtils;
+import static com.beancounter.common.utils.AssetKeyUtils.toKey;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
@@ -35,7 +36,7 @@ public class Positions {
     if (positions == null) {
       positions = new TreeMap<>();
     }
-    positions.put(AssetUtils.toKey(position.getAsset()), position);
+    positions.put(toKey(position.getAsset()), position);
 
   }
 
@@ -51,7 +52,7 @@ public class Positions {
       positions = new TreeMap<>();
     }
 
-    Position result = positions.get(AssetUtils.toKey(asset));
+    Position result = positions.get(toKey(asset));
     if (result != null) {
       return result;
     }
@@ -63,7 +64,7 @@ public class Positions {
     if (positions == null) {
       positions = new TreeMap<>();
     }
-    boolean firstTrade = !positions.containsKey(AssetUtils.toKey(asset));
+    boolean firstTrade = !positions.containsKey(toKey(asset));
     Position position = get(asset);
     if (firstTrade) {
       position.getDateValues().setOpened(tradeDate);

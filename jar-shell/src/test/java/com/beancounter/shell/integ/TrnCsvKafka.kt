@@ -59,7 +59,7 @@ class TrnCsvKafka {
     private val kafkaTrnProducer: KafkaTrnProducer? = null
 
     @MockBean
-    private val shareSightFactory: ShareSightFactory? = null
+    private lateinit var shareSightFactory: ShareSightFactory
     private lateinit var consumer: Consumer<String, String>
     private val objectMapper = BcJson().objectMapper
 
@@ -74,7 +74,7 @@ class TrnCsvKafka {
             .thenReturn(getAsset(abc, abc))
         row.add(abc)
 
-        Mockito.`when`(shareSightFactory!!.adapter(row)).thenReturn(trnAdapter)
+        Mockito.`when`(shareSightFactory.adapter(row)).thenReturn(trnAdapter)
 
         val consumerProps: MutableMap<String, Any> = KafkaTestUtils.consumerProps(
             "shell-test",

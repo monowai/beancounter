@@ -1,0 +1,111 @@
+name: nzdUsd
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20190101Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20190101Response.json"
+  headers:
+    Content-Type: application/json
+---
+name: gbpnzd-gbpusd
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20190727Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20190727Response.json"
+  headers:
+    Content-Type: application/json
+---
+name: usdnzd
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20190726-USDNZD-Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20190726-USDNZD-Response.json"
+  headers:
+    Content-Type: application/json
+
+---
+name: usdEur-usdGbp-usdNzd
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20191112Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20191112Response.json"
+  headers:
+    Content-Type: application/json
+---
+name: usdNzd-gbpNzd-20190726
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20190726Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20190726Response.json"
+  headers:
+    Content-Type: application/json
+---
+name: usdNzd-usdGbp-20191018
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20191018Request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20191018Response.json"
+  headers:
+    Content-Type: application/json
+---
+name: nzdUsd-20191018
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./20191018Request2.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./20191018Response2.json"
+  headers:
+    Content-Type: application/json
+---
+name: early-fx
+priority: 1
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./early-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./early-response.json"
+  headers:
+    Content-Type: application/json

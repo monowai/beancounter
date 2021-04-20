@@ -12,6 +12,9 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 import java.io.IOException
 
+/**
+ * Listens to a Kafka queue for Transactions to process.
+ */
 @Service
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 class TrnKafkaConsumer {

@@ -1,0 +1,6 @@
+{
+  "status": 400,
+  "error": "We are unable to process your request.",
+  "message": "Could not find a portfolio with ID NOT-FOUND",
+  "path": "/portfolios/NOT-FOUND"
+}

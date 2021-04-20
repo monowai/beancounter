@@ -295,7 +295,8 @@ workflows:
             branches:
               only: master
           requires:
-            - build-shell
-            - build-position
-            - build-data
-            - build-event
+            - publish-coverage
+#            - build-shell
+#            - build-position
+#            - build-data
+#            - build-event

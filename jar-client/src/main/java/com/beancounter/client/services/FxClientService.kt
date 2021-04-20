@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
-@Service
 /**
  * Client side calls to the server to obtain FX Rates over a Gateway.
  */
+@Service
 class FxClientService internal constructor(private val fxGateway: FxGateway, private val tokenService: TokenService) : FxService {
     @Cacheable("fx-request")
     override fun getRates(fxRequest: FxRequest): FxResponse {
@@ -24,6 +24,9 @@ class FxClientService internal constructor(private val fxGateway: FxGateway, pri
         } else fxGateway.getRates(tokenService.bearerToken, fxRequest)
     }
 
+    /**
+     * Gateway integration call to the backend.
+     */
     @FeignClient(name = "fxrates", url = "\${marketdata.url:http://localhost:9510/api}")
     interface FxGateway {
         @PostMapping(value = ["/fx"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])

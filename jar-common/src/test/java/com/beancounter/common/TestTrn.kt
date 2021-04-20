@@ -1,5 +1,6 @@
 package com.beancounter.common
 
+import com.beancounter.common.Constants.Companion.oneString
 import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -14,8 +15,8 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.AssetUtils.Companion.toKey
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
@@ -35,12 +36,13 @@ internal class TestTrn {
     @Test
     @Throws(Exception::class)
     fun is_TransactionRequestSerializing() {
+        val price = BigDecimal("10.99")
         val trnInput = TrnInput(
-            callerRef = CallerRef("1", "1", abc),
+            callerRef = CallerRef(oneString, oneString, abc),
             tradeDate = DateUtils().getDate("2019-10-10"),
             assetId = getAsset("NASDAQ", "MSFT").id,
             fees = BigDecimal.ONE,
-            price = BigDecimal("10.99"),
+            price = price,
             tradeAmount = BigDecimal("100.99"),
             comments = "Comment"
         )
@@ -50,7 +52,7 @@ internal class TestTrn {
         trnInput.settleDate = DateUtils().getDate("2019-10-10")
         trnInput.cashAmount = BigDecimal("100.99")
         trnInput.tradeBaseRate = BigDecimal("1.99")
-        trnInput.tradePortfolioRate = BigDecimal("10.99")
+        trnInput.tradePortfolioRate = price
         trnInput.tradeBaseRate = BigDecimal.ONE
         val trnRequest = TrnRequest(abc.toLowerCase(), arrayOf(trnInput))
         val json = objectMapper.writeValueAsString(trnRequest)
@@ -77,7 +79,7 @@ internal class TestTrn {
         portfolio.owner = SystemUser("123", "whee", true)
         val trn = Trn(trnType, asset, BigDecimal("100.01"))
         trn.id = "PK"
-        trn.callerRef = CallerRef("10", "10", "TEST")
+        trn.callerRef = CallerRef(oneString, oneString, "TEST")
         trn.portfolio = portfolio
         trn.tradeDate = LocalDate.now()
         trn.settleDate = LocalDate.now()
@@ -189,22 +191,26 @@ internal class TestTrn {
     fun is_TrnIdDefaults() {
         var callerRef = CallerRef()
         assertThat(callerRef).hasAllNullFieldsOrProperties()
-        // No values, so defaults should be created
-        assertThat(CallerRef.from(callerRef, getPortfolio("BLAH")))
+        val batchProp = "batch"
+        val providerProp = "provider"
+        val callerIdProp = "callerId"
+
+        val code = "BLAH"
+        assertThat(CallerRef.from(callerRef, getPortfolio(code)))
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue("batch", "BLAH")
+            .hasFieldOrPropertyWithValue(batchProp, code)
         callerRef = CallerRef(abc, abc, abc)
-        assertThat(CallerRef.from(callerRef, getPortfolio("BLAH")))
-            .hasFieldOrPropertyWithValue("batch", abc)
-            .hasFieldOrPropertyWithValue("provider", abc)
-            .hasFieldOrPropertyWithValue("callerId", abc)
+        assertThat(CallerRef.from(callerRef, getPortfolio(code)))
+            .hasFieldOrPropertyWithValue(batchProp, abc)
+            .hasFieldOrPropertyWithValue(providerProp, abc)
+            .hasFieldOrPropertyWithValue(callerIdProp, abc)
 
         // Called ID not specified
         callerRef = CallerRef(abc, abc)
-        assertThat(CallerRef.from(callerRef, getPortfolio("BLAH")))
-            .hasFieldOrPropertyWithValue("batch", abc)
-            .hasFieldOrPropertyWithValue("provider", abc)
-            .hasFieldOrProperty("callerId")
+        assertThat(CallerRef.from(callerRef, getPortfolio(code)))
+            .hasFieldOrPropertyWithValue(batchProp, abc)
+            .hasFieldOrPropertyWithValue(providerProp, abc)
+            .hasFieldOrProperty(callerIdProp)
     }
 
     @Test

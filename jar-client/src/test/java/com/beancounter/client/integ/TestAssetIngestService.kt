@@ -12,6 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 
+/**
+ * Test asset ingestion capabilities.
+ */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
@@ -20,9 +23,6 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
     ClientConfig::class
 )
 @SpringBootTest(classes = [ClientConfig::class])
-/**
- * Test asset ingestion capabilities.
- */
 class TestAssetIngestService {
     @Autowired
     private lateinit var assetIngestService: AssetIngestService

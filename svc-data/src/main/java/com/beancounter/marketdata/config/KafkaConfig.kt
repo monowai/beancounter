@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
 
+/**
+ * Kafka related properties and beans.
+ */
 @EnableKafka
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 @Configuration

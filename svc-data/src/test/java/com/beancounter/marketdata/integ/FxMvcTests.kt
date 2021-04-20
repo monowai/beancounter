@@ -38,14 +38,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
+/**
+ * FX MVC tests for rates at today and historic dates
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureWireMock(port = 0)
-/**
- * FX MVC tests for rates at today and historic dates
- */
 internal class FxMvcTests {
     private val authorityRoleConverter = AuthorityRoleConverter()
 
@@ -63,11 +63,12 @@ internal class FxMvcTests {
         const val fxRoot = "/fx"
         val usdNzd = IsoCurrencyPair(usd, nzd)
         val nzdUsd = IsoCurrencyPair(nzd, usd)
+        const val fxMock = "/mock/fx"
 
         @BeforeAll
         @JvmStatic
         fun mockResponse() {
-            val rateResponse = ClassPathResource("contracts/ecb/fx-current-rates.json").file
+            val rateResponse = ClassPathResource("$fxMock/fx-current-rates.json").file
             val today = EcbDate(dateUtils = DateUtils()).getValidDate("today")
 
             stubFx(
@@ -115,7 +116,7 @@ internal class FxMvcTests {
 
     @Test
     @Throws(Exception::class)
-    fun is_FxResponseObjectReturned() {
+    fun fxResponseObjectReturned() {
         val date = "2019-08-27"
         val fxRequest = FxRequest(
             rateDate = date,
@@ -176,7 +177,7 @@ internal class FxMvcTests {
             .andReturn()
 
     @Test
-    fun is_EarliestRateDateValid() {
+    fun earliestRateDateValid() {
         val ecbDate = EcbDate(dateUtils)
         assertThat(ecbDate.getValidDate("1990-01-01"))
             .isEqualTo(EcbDate.earliest)
@@ -184,7 +185,7 @@ internal class FxMvcTests {
 
     @Test
     @Throws(Exception::class)
-    fun is_InvalidCurrenciesReturned() {
+    fun invalidCurrenciesReturned() {
         val date = "2019-08-27"
         val from = "ANC"
         val to = "SDF"

@@ -8,6 +8,7 @@ import com.beancounter.common.utils.RateCalculator
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.integ.FxMvcTests.Companion.fxMock
 import com.beancounter.marketdata.providers.fxrates.EcbRates
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
@@ -24,7 +25,7 @@ internal class FxRateTests {
     @Test
     @Throws(Exception::class)
     fun is_FxRateResponseSerializing() {
-        val jsonFile = ClassPathResource("contracts/ecb/ecbEarly.json").file
+        val jsonFile = ClassPathResource("$fxMock/ecbEarly.json").file
         val ecbRates = objectMapper.readValue(jsonFile, EcbRates::class.java)
         Assertions.assertThat(ecbRates)
             .isNotNull

@@ -19,6 +19,9 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.math.BigDecimal
 
+/**
+ * Convert Alpha MarketData to BeanCounter MarketData
+ */
 @Service
 class AlphaPriceAdapter : MarketDataAdapter {
     final val alphaMapper: ObjectMapper = BcJson().objectMapper

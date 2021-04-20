@@ -9,6 +9,9 @@ import com.beancounter.marketdata.service.MdFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+/**
+ * General helper functions common across data providers.
+ */
 @Service
 class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
     fun splitProviders(assets: Collection<AssetInput>): Map<MarketDataProvider, MutableCollection<Asset>> {

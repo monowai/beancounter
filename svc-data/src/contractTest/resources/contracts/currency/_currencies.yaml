@@ -1,0 +1,10 @@
+name: currencies
+priority: 1
+request:
+  method: GET
+  url: /currencies
+response:
+  status: 200
+  bodyFromFile: "./currencies.json"
+  headers:
+    Content-Type: application/json

@@ -22,7 +22,7 @@ import java.util.TimeZone
 data class Market @ConstructorBinding constructor(
     val code: String,
     val currencyId: String = "USD",
-    val timezoneId: String = TimeZone.getDefault().id,
+    val timezoneId: String = "US/Eastern",
     @JsonSerialize(using = LocalTimeSerializer::class)
     @JsonDeserialize(using = LocalTimeDeserializer::class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
@@ -34,12 +34,6 @@ data class Market @ConstructorBinding constructor(
 ) {
 
     constructor(code: String, currency: Currency) : this(code, currency.code) {
-        this.currency = currency
-    }
-
-    constructor(code: String, currency: Currency, timezoneId: String) : this(
-        code, currency.code, timezoneId
-    ) {
         this.currency = currency
     }
 

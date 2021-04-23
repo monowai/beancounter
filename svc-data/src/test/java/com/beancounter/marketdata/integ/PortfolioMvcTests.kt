@@ -2,6 +2,7 @@ package com.beancounter.marketdata.integ
 
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
@@ -15,7 +16,7 @@ import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.beancounter.marketdata.utils.SysUserUtils.systemUser
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -34,7 +35,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.util.ArrayList
 import java.util.UUID
 import java.util.function.Consumer
 
@@ -67,16 +67,38 @@ internal class PortfolioMvcTests {
     private val portfolioById = "$portfolioRoot/{id}"
 
     @Test
+    fun notFoundByCode() {
+        // Assert not found
+        val token = tokenUtils.getUserToken(systemUser)
+        mockMvc.perform(
+            MockMvcRequestBuilders.get(portfolioByCode, "does not exist")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            .andReturn()
+    }
+    @Test
+    fun notFoundById() {
+        val token = tokenUtils.getUserToken(systemUser)
+        mockMvc.perform(
+            MockMvcRequestBuilders.get(portfolioById, "invalidId")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            .andReturn()
+    }
+
+    @Test
     @Throws(Exception::class)
-    fun is_findingByIdCode() {
-        val user = systemUser
+    fun findingByIdCode() {
         val portfolio = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
             "is_findingByIdCode",
             USD.code,
             NZD.code
         )
-        val token = tokenUtils.getUserToken(user)
+        val token = tokenUtils.getUserToken(systemUser)
         registerUser(mockMvc, token)
         val portfolioResult = mockMvc.perform(
             MockMvcRequestBuilders.post(portfolioRoot) // Mocking does not use the JwtRoleConverter configured in ResourceServerConfig
@@ -91,19 +113,11 @@ internal class PortfolioMvcTests {
             .andReturn()
         val portfolios = objectMapper
             .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
-        Assertions.assertThat(portfolios)
+        assertThat(portfolios)
             .isNotNull
-            .hasFieldOrProperty("data")
-        Assertions.assertThat(portfolios.data)
+            .hasFieldOrProperty(DATA)
+        assertThat(portfolios.data)
             .hasSize(1)
-
-        // Assert not found
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(portfolioByCode, "does not exist")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
-            .andReturn()
 
         // Found by code
         var result = mockMvc.perform(
@@ -121,16 +135,10 @@ internal class PortfolioMvcTests {
             .andReturn().response.contentAsString
         val portfolioResponseByCode = objectMapper
             .readValue(result, PortfolioResponse::class.java)
-        Assertions.assertThat(portfolioResponseByCode)
+        assertThat(portfolioResponseByCode)
             .isNotNull
             .hasNoNullFieldsOrProperties()
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(portfolioById, "invalidId")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
-            .andReturn()
+
         result = mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioById, portfolioResponseByCode.data.id)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
@@ -138,7 +146,7 @@ internal class PortfolioMvcTests {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn().response.contentAsString
-        Assertions.assertThat(objectMapper.readValue(result, PortfolioResponse::class.java))
+        assertThat(objectMapper.readValue(result, PortfolioResponse::class.java))
             .usingRecursiveComparison().isEqualTo(portfolioResponseByCode)
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioRoot)
@@ -150,23 +158,23 @@ internal class PortfolioMvcTests {
             .andReturn()
         val (data) = objectMapper
             .readValue(mvcResult.response.contentAsString, PortfoliosResponse::class.java)
-        Assertions.assertThat(data).isNotEmpty
+        assertThat(data).isNotEmpty
     }
 
     @Test
     @Throws(Exception::class)
-    fun is_persistAndFindPortfoliosWorking() {
+    fun persistAndFindPortfoliosWorking() {
         val user = systemUser
         val token = tokenUtils.getUserToken(user)
         registerUser(mockMvc, token)
-        val portfolios: MutableCollection<PortfolioInput> = ArrayList()
-        val portfolioInput = PortfolioInput(
-            UUID.randomUUID().toString().toUpperCase(),
-            "is_persistAndFindPortfoliosWorking",
-            USD.code,
-            NZD.code
+        val portfolios: Collection<PortfolioInput> = arrayListOf(
+            PortfolioInput(
+                UUID.randomUUID().toString().toUpperCase(),
+                "is_persistAndFindPortfoliosWorking",
+                USD.code,
+                NZD.code
+            )
         )
-        portfolios.add(portfolioInput)
         val createRequest = PortfoliosRequest(portfolios)
         val portfolioResult = mockMvc.perform(
             MockMvcRequestBuilders.post(portfolioRoot)
@@ -178,21 +186,21 @@ internal class PortfolioMvcTests {
             .andReturn()
         val portfoliosResponse = objectMapper
             .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
-        Assertions.assertThat(portfoliosResponse)
+        assertThat(portfoliosResponse)
             .isNotNull
-            .hasFieldOrProperty("data")
-        Assertions.assertThat(portfoliosResponse.data)
+            .hasFieldOrProperty(DATA)
+        assertThat(portfoliosResponse.data)
             .hasSize(1)
         portfoliosResponse.data.forEach(
             Consumer { foundPortfolio: Portfolio ->
-                Assertions.assertThat(foundPortfolio)
+                assertThat(foundPortfolio)
                     .hasFieldOrProperty("id")
-                    .hasFieldOrPropertyWithValue("code", portfolioInput.code)
+                    .hasFieldOrPropertyWithValue("code", portfolios.iterator().next().code)
                     .hasFieldOrPropertyWithValue(
                         "name",
-                        portfolioInput.name
+                        portfolios.iterator().next().name
                     )
-                    .hasFieldOrPropertyWithValue("currency.code", portfolioInput.currency)
+                    .hasFieldOrPropertyWithValue("currency.code", portfolios.iterator().next().currency)
                     .hasFieldOrProperty("owner")
                     .hasFieldOrProperty("base")
             }
@@ -201,7 +209,7 @@ internal class PortfolioMvcTests {
 
     @Test
     @Throws(Exception::class)
-    fun is_OwnerHonoured() {
+    fun ownerHonoured() {
         val userA = systemUser
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
@@ -237,11 +245,11 @@ internal class PortfolioMvcTests {
         // User A creates a Portfolio
         val (data) = objectMapper
             .readValue(mvcResult.response.contentAsString, PortfoliosResponse::class.java)
-        Assertions.assertThat(data)
+        assertThat(data)
             .hasSize(1)
         val portfolio = data.iterator().next()
-        Assertions.assertThat(portfolio).hasNoNullFieldsOrProperties()
-        Assertions.assertThat(portfolio.owner).hasFieldOrPropertyWithValue("id", userA.id)
+        assertThat(portfolio).hasNoNullFieldsOrProperties()
+        assertThat(portfolio.owner).hasFieldOrPropertyWithValue("id", userA.id)
         log.debug("{}", portfolio.owner)
 
         // User A can see the portfolio they created
@@ -251,7 +259,7 @@ internal class PortfolioMvcTests {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        Assertions.assertThat(
+        assertThat(
             objectMapper
                 .readValue(mvcResult.response.contentAsString, PortfolioResponse::class.java)
                 .data
@@ -264,7 +272,7 @@ internal class PortfolioMvcTests {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        Assertions.assertThat(
+        assertThat(
             objectMapper
                 .readValue(mvcResult.response.contentAsString, PortfolioResponse::class.java)
                 .data
@@ -278,7 +286,7 @@ internal class PortfolioMvcTests {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        Assertions.assertThat(
+        assertThat(
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString, PortfoliosResponse::class.java
@@ -307,7 +315,7 @@ internal class PortfolioMvcTests {
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
-        Assertions.assertThat(
+        assertThat(
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString, PortfoliosResponse::class.java
@@ -318,7 +326,7 @@ internal class PortfolioMvcTests {
 
     @Test
     @Throws(Exception::class)
-    fun is_DeletePortfolio() {
+    fun deletePortfolio() {
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
             "Delete Portfolio",
@@ -345,7 +353,7 @@ internal class PortfolioMvcTests {
         // User A created a Portfolio
         val (data) = objectMapper
             .readValue(mvcResult.response.contentAsString, PortfoliosResponse::class.java)
-        Assertions.assertThat(data)
+        assertThat(data)
             .hasSize(1)
         val (id) = data.iterator().next()
         mvcResult = mockMvc.perform(
@@ -354,12 +362,12 @@ internal class PortfolioMvcTests {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
-        Assertions.assertThat(mvcResult.response.contentAsString).isEqualTo("ok")
+        assertThat(mvcResult.response.contentAsString).isEqualTo("ok")
     }
 
     @Test
     @Throws(Exception::class)
-    fun is_UniqueConstraintInPlace() {
+    fun uniqueConstraintInPlace() {
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
             "is_UniqueConstraintInPlace",
@@ -384,14 +392,14 @@ internal class PortfolioMvcTests {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isConflict)
             .andReturn()
-        Assertions.assertThat(result.resolvedException)
+        assertThat(result.resolvedException)
             .isNotNull
             .isInstanceOfAny(DataIntegrityViolationException::class.java)
     }
 
     @Test
     @Throws(Exception::class)
-    fun is_UnregisteredUserRejected() {
+    fun unregisteredUserRejected() {
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().toUpperCase(),
             "is_UnregisteredUserRejected",
@@ -415,14 +423,14 @@ internal class PortfolioMvcTests {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
-        Assertions.assertThat(result.resolvedException)
+        assertThat(result.resolvedException)
             .isNotNull
             .isInstanceOfAny(ForbiddenException::class.java)
     }
 
     @Test
     @Throws(Exception::class)
-    fun is_UpdatePortfolioWorking() {
+    fun updatePortfolio() {
         val user = systemUser
         val token = tokenUtils.getUserToken(user)
         registerUser(mockMvc, token)
@@ -459,9 +467,9 @@ internal class PortfolioMvcTests {
             .andReturn()
         val (data1) = objectMapper
             .readValue(patchResult.response.contentAsString, PortfolioResponse::class.java)
-        Assertions.assertThat(owner).isNotNull
+        assertThat(owner).isNotNull
         // ID and SystemUser are immutable:
-        Assertions.assertThat(data1)
+        assertThat(data1)
             .hasFieldOrPropertyWithValue("id", id)
             .hasFieldOrPropertyWithValue("name", updateTo.name)
             .hasFieldOrPropertyWithValue("code", updateTo.code)

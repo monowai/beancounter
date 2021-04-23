@@ -3,6 +3,7 @@ package com.beancounter.client.sharesight
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.Filter
 import com.beancounter.client.ingest.TrnAdapter
+import com.beancounter.client.sharesight.ShareSightConfig.Companion.logFirst
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
@@ -15,7 +16,6 @@ import com.beancounter.common.utils.MathUtils.Companion.parse
 import com.beancounter.common.utils.NumberUtils
 import com.google.common.base.CharMatcher
 import com.google.common.base.Splitter
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
@@ -50,18 +50,7 @@ class ShareSightDividendAdapter(
         val row = trustedTrnImportRequest!!.row
         return try {
             val asset = resolveAsset(row)
-            if (asset == null) {
-                log.error("Unable to resolve asset [{}]", row)
-                throw BusinessException(String.format("Unable to resolve asset [%s]", row))
-            }
             val tradeRate = parse(row[fxRate], shareSightConfig.numberFormat)
-            val tradeAmount = multiply(
-                parse(
-                    row[net],
-                    shareSightConfig.numberFormat
-                ),
-                tradeRate
-            )!!
             val trnInput = TrnInput(
                 CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[id]),
                 asset.id,
@@ -75,36 +64,29 @@ class ShareSightDividendAdapter(
                 ),
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
-                tradeAmount,
-                row[comments]
+                tradeAmount = multiply(
+                    parse(
+                        row[net],
+                        shareSightConfig.numberFormat
+                    ),
+                    tradeRate
+                )!!,
+                tax = multiply(BigDecimal(row[tax]), tradeRate)!!,
+                comments = row[comments]
             )
-            trnInput.tax = multiply(BigDecimal(row[tax]), tradeRate)
             trnInput.cashAmount = multiply(
                 parse(row[net], shareSightConfig.numberFormat),
                 tradeRate
             )
-            trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates ||
-                numberUtils.isUnset(tradeRate)
+            trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)
             ) null else tradeRate
-            trnInput
+            trnInput // Result!
         } catch (e: NumberFormatException) {
             val message = e.message
-            log.error(
-                "{} - {} Parsing row {}",
-                message,
-                "DIVI",
-                row
-            )
-            throw BusinessException(message)
+            throw logFirst("DIVI", message, row)
         } catch (e: ParseException) {
             val message = e.message
-            log.error(
-                "{} - {} Parsing row {}",
-                message,
-                "DIVI",
-                row
-            )
-            throw BusinessException(message)
+            throw logFirst("DIVI", message, row)
         }
     }
 
@@ -113,14 +95,11 @@ class ShareSightDividendAdapter(
         return rate.contains(".") // divis have an fx rate in this column
     }
 
-    override fun resolveAsset(row: List<String>): Asset? {
+    override fun resolveAsset(row: List<String>): Asset {
         val values = parseAsset(row[code])
-        val asset = assetIngestService.resolveAsset(
+        return assetIngestService.resolveAsset(
             values[1].toUpperCase(), values[0]
         )
-        return if (!filter.inFilter(asset)) {
-            null
-        } else asset
     }
 
     private fun parseAsset(input: String?): List<String> {
@@ -148,6 +127,5 @@ class ShareSightDividendAdapter(
         const val tax = 7
         const val gross = 8
         const val comments = 9
-        private val log = LoggerFactory.getLogger(ShareSightDividendAdapter::class.java)
     }
 }

@@ -17,6 +17,7 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.integ.KafkaMarketDataTest.Companion.TOPIC_EVENT
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.service.MarketDataService
@@ -40,7 +41,7 @@ import java.math.BigDecimal
     partitions = 1,
     topics = [
         "topicPrice",
-        KafkaTrnTest.TOPIC_EVENT,
+        TOPIC_EVENT,
     ],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = ["log.dir=./build/kafka-md", "auto.create.topics.enable=true"]
@@ -49,6 +50,10 @@ import java.math.BigDecimal
 @ActiveProfiles("kafka")
 @Tag("slow")
 class KafkaMarketDataTest {
+
+    companion object {
+        const val TOPIC_EVENT = "topicEvent"
+    }
     private val objectMapper = BcJson().objectMapper
 
     final var dateUtils: DateUtils = DateUtils()
@@ -159,13 +164,13 @@ class KafkaMarketDataTest {
         marketData.split = BigDecimal("1.000")
         val consumer = kafkaTestUtils.getConsumer(
             "is_CorporateEventDispatched",
-            KafkaTrnTest.TOPIC_EVENT,
+            TOPIC_EVENT,
             embeddedKafkaBroker
         )
 
         // Compare with a serialised event
         eventWriter.write(marketData)
-        val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, KafkaTrnTest.TOPIC_EVENT)
+        val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_EVENT)
         assertThat(consumerRecord.value()).isNotNull
         val (data1) = objectMapper.readValue(
             consumerRecord.value(),

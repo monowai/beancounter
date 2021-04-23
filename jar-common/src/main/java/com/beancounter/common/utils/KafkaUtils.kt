@@ -33,7 +33,6 @@ class KafkaUtils {
                 findBcCause(e),
                 m.payload
             )
-            null
         }
     }
 

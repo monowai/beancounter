@@ -65,10 +65,11 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             currentPosition.quantityValues.getTotal(),
             tradeDate = payDate,
             tradeAmount = gross!!.subtract(tax),
-            price = corporateEvent.rate
+            price = corporateEvent.rate,
+            tax = tax!!,
+
         )
         result.status = TrnStatus.PROPOSED
-        result.tax = tax
         result.cashCurrency = currentPosition.asset.market.currency.code
         return result
     }

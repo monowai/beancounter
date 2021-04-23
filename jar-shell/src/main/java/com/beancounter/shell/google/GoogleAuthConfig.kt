@@ -6,7 +6,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.sheets.v4.SheetsScopes
 import org.slf4j.LoggerFactory
@@ -61,9 +61,9 @@ class GoogleAuthConfig {
         FileInputStream(resolved).use { `in` ->
             log.info("Reading {}", resolved)
             val clientSecrets =
-                GoogleClientSecrets.load(JacksonFactory.getDefaultInstance(), InputStreamReader(`in`))
+                GoogleClientSecrets.load(GsonFactory.getDefaultInstance(), InputStreamReader(`in`))
             val flow = GoogleAuthorizationCodeFlow.Builder(
-                netHttpTransport, JacksonFactory.getDefaultInstance(), clientSecrets, SCOPES
+                netHttpTransport, GsonFactory.getDefaultInstance(), clientSecrets, SCOPES
             )
                 .setAccessType("offline")
                 .setDataStoreFactory(

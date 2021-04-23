@@ -7,6 +7,9 @@ import org.springframework.cloud.openfeign.FeignAutoConfiguration
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
+/**
+ * Dependencies for Auth jar.
+ */
 @Configuration
 @Import(LoginService::class, AuthBeans::class, TokenService::class)
 @ImportAutoConfiguration(

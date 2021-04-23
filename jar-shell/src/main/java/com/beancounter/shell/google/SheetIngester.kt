@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service
 @Service
 class SheetIngester : AbstractIngester() {
     private val log = LoggerFactory.getLogger(SheetIngester::class.java)
-    private lateinit var googleTransport: GoogleTransport
+    private lateinit var googleGateway: GoogleGateway
     private var service: Sheets? = null
     private var ingestionRequest: IngestionRequest? = null
 
@@ -26,12 +26,12 @@ class SheetIngester : AbstractIngester() {
     private val range: String? = null
 
     @Autowired
-    fun setGoogleTransport(googleTransport: GoogleTransport) {
-        this.googleTransport = googleTransport
+    fun setGoogleTransport(googleGateway: GoogleGateway) {
+        this.googleGateway = googleGateway
     }
 
     override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
-        service = googleTransport.getSheets(googleTransport.httpTransport)
+        service = googleGateway.getSheets(googleGateway.httpTransport)
         this.ingestionRequest = ingestionRequest
     }
 
@@ -39,7 +39,7 @@ class SheetIngester : AbstractIngester() {
         get() {
             log.info("Processing {} {}", range, ingestionRequest!!.file)
             val results: MutableList<List<String>> = ArrayList()
-            val sheetResults = googleTransport.getValues(
+            val sheetResults = googleGateway.getValues(
                 service!!,
                 ingestionRequest!!.file,
                 range

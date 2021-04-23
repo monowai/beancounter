@@ -9,6 +9,9 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import org.springframework.stereotype.Service
 
+/**
+ * Converts BC compatible delimited data to the domain model
+ */
 @Service
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,

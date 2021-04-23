@@ -11,6 +11,7 @@ import com.beancounter.common.utils.DateUtils
 class Constants {
     companion object {
         val USD = Currency("USD")
+        val AUD = Currency("ASD")
         val NZD = Currency("NZD")
         val SGD = Currency("SGD")
         private val owner = SystemUser(

@@ -7,9 +7,12 @@ import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.util.concurrent.ThreadPoolExecutor
 
+/**
+ * Price executor configuration
+ */
 @Configuration
 @EnableAsync
-class PriceConfig {
+class PriceExecutorConfig {
     @Value("\${beancounter.price.thread.core-pool:2}")
     private val corePoolSize = 2
 

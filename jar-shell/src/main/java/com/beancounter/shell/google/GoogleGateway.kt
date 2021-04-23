@@ -4,7 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SystemException
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.sheets.v4.Sheets
 import com.google.api.services.sheets.v4.model.ValueRange
 import org.slf4j.LoggerFactory
@@ -12,9 +12,12 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.security.GeneralSecurityException
 
+/**
+ * Google gateway
+ */
 @Service
-class GoogleTransport internal constructor(private val googleAuthConfig: GoogleAuthConfig) {
-    private val log = LoggerFactory.getLogger(GoogleTransport::class.java)
+class GoogleGateway internal constructor(private val googleAuthConfig: GoogleAuthConfig) {
+    private val log = LoggerFactory.getLogger(GoogleGateway::class.java)
 
     val httpTransport: NetHttpTransport
         get() = try {
@@ -27,7 +30,7 @@ class GoogleTransport internal constructor(private val googleAuthConfig: GoogleA
 
     fun getSheets(httpTransport: NetHttpTransport?): Sheets {
         return Sheets.Builder(
-            httpTransport, JacksonFactory.getDefaultInstance(),
+            httpTransport, GsonFactory.getDefaultInstance(),
             googleAuthConfig.getCredentials(httpTransport)
         )
             .setApplicationName("BeanCounter")

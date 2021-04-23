@@ -2,8 +2,10 @@ package com.beancounter.client.sharesight
 
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.Filter
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.TradeCalculator
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -37,4 +39,18 @@ class ShareSightConfig {
     // Calculate the tradeAmount field and ignore source file value
     @Value("\${amount:true}")
     val isCalculateAmount = true
+
+    companion object {
+        private val log = LoggerFactory.getLogger("ShareSightImporter")
+        @JvmStatic
+        fun logFirst(type: String, message: String?, row: List<String>): BusinessException {
+            log.error(
+                "{} - {} Parsing row {}",
+                message,
+                type,
+                row
+            )
+            return BusinessException(message)
+        }
+    }
 }

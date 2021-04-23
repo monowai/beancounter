@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import javax.annotation.PostConstruct
 
+/**
+ * Client side asset services.
+ */
 @Service
 class AssetServiceClient internal constructor(private val assetGateway: AssetGateway, private val tokenService: TokenService) : AssetService {
 

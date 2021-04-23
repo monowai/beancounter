@@ -59,6 +59,11 @@ internal class TestTrnAdapter {
     private val versionProp = "version"
     private val quantityProp = "quantity"
 
+    private val trnTypeProp = "trnType"
+    private val commentsProp = "comments"
+
+    private val tradeAmountProp = "tradeAmount"
+
     @Test
     fun buyInputToTrnComputingTradeAmount() {
         val trnInput = TrnInput(
@@ -106,9 +111,9 @@ internal class TestTrnAdapter {
             .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
             .hasFieldOrPropertyWithValue("tradeCurrency.code", trnInput.tradeCurrency)
             .hasFieldOrPropertyWithValue("cashCurrency.code", trnInput.cashCurrency)
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("109.90"))
-            .hasFieldOrPropertyWithValue("trnType", trnInput.trnType)
-            .hasFieldOrPropertyWithValue("comments", trnInput.comments)
+            .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("109.90"))
+            .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
+            .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
     }
 
     @Test
@@ -139,9 +144,9 @@ internal class TestTrnAdapter {
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
             .hasFieldOrPropertyWithValue(versionProp, one)
-            .hasFieldOrPropertyWithValue("tradeAmount", tradeAmount)
-            .hasFieldOrPropertyWithValue("trnType", trnInput.trnType)
-            .hasFieldOrPropertyWithValue("comments", trnInput.comments)
+            .hasFieldOrPropertyWithValue(tradeAmountProp, tradeAmount)
+            .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
+            .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
     }
 
     @Test
@@ -172,8 +177,8 @@ internal class TestTrnAdapter {
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
             .hasFieldOrPropertyWithValue(versionProp, one)
-            .hasFieldOrPropertyWithValue("tradeAmount", tradeAmount)
-            .hasFieldOrPropertyWithValue("trnType", trnInput.trnType)
-            .hasFieldOrPropertyWithValue("comments", trnInput.comments)
+            .hasFieldOrPropertyWithValue(tradeAmountProp, tradeAmount)
+            .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
+            .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
     }
 }

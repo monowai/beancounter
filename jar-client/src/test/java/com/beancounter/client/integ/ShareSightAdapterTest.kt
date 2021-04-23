@@ -58,7 +58,7 @@ internal class ShareSightAdapterTest {
         row.add("1")
         row.add(code)
         val asset = shareSightFactory.shareSightDivi.resolveAsset(row)
-        Assertions.assertThat(asset!!.market.code)
+        Assertions.assertThat(asset.market.code)
             .isEqualTo(expectedAsset.market.code)
     }
 

@@ -3,6 +3,7 @@ package com.beancounter.client.sharesight
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.Filter
 import com.beancounter.client.ingest.TrnAdapter
+import com.beancounter.client.sharesight.ShareSightConfig.Companion.logFirst
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
@@ -88,7 +89,7 @@ class ShareSightTradeAdapter(
                 fees,
                 MathUtils.nullSafe(parse(row[price], shareSightConfig.numberFormat)),
                 tradeAmount,
-                comment
+                comments = comment
             )
             trnInput.cashCurrency = trustedTrnImportRequest.portfolio.currency.code
             // Zero and null are treated as "unknown"
@@ -96,13 +97,7 @@ class ShareSightTradeAdapter(
             trnInput
         } catch (e: ParseException) {
             val message = e.message
-            log.error(
-                "{} - {} Parsing row {}",
-                message,
-                "TRADE",
-                row
-            )
-            throw BusinessException(message)
+            throw logFirst("TRADE", message, row)
         }
     }
 

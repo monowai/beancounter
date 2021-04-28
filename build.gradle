@@ -11,7 +11,7 @@ buildscript {
         springDependencyManagement='1.0.11.RELEASE'
         resilience4jVersion='1.7.0'
         assertJ='3.19+'
-        kotlinVersion='1.4.32'
+        kotlinVersion='1.5.0'
         guavaVersion='30.1.1-android'
     }
 

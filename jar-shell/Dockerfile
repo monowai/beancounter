@@ -1,4 +1,4 @@
-FROM openjdk:16-ea-23-jdk-oraclelinux8
+FROM openjdk:16-oraclelinux8
 #docker build . --build-arg JAR_FILE=build/libs/jar-shell-0.1.1.jar  -t monowai/bc-shell
 #docker build . -t bc/shell
 

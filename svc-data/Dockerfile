@@ -1,4 +1,4 @@
-FROM openjdk:16-ea-23-jdk-oraclelinux8
+FROM openjdk:16-oraclelinux8
 #docker build . --build-arg JAR_FILE=build/libs/svc-data -t monowai/bc-data
 ARG JAR_FILE=build/libs/svc-data-0.1.1.jar
 #docker build . -t monowai/bc-data

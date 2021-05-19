@@ -1,4 +1,4 @@
-FROM openjdk:16-ea-23-jdk-oraclelinux8
+FROM openjdk:16-oraclelinux8
 #docker build . --build-arg JAR_FILE=build/libs/svc-event -t monowai/bc-event
 #docker build . -t monowai/bc-event
 ARG JAR_FILE=build/libs/svc-event-0.1.1.jar

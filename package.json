@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "lint-md": "remark jar-auth/. jar-client/. jar-shell/. svc-data/. svc-position/."
+    "lint": "remark jar-auth/. jar-client/. jar-shell/. svc-data/. svc-position/."
   },
   "dependencies": {
-    "remark-cli": "^7.0.1",
-    "remark-preset-lint-recommended": "^4.0.0"
+    "remark-cli": "latest",
+    "remark-preset-lint-recommended": "latest"
   },
   "remarkConfig": {
     "plugins": ["remark-preset-lint-recommended"]

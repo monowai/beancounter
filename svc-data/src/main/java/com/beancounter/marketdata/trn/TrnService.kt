@@ -133,8 +133,8 @@ class TrnService internal constructor(
         val results = trnRepository.findByPortfolioId(
             portfolio.id,
             tradeDate,
-            Sort.by("asset.code")
-                .and(Sort.by("tradeDate"))
+            Sort.by("tradeDate")
+                .and(Sort.by("asset.code"))
         )
         log.debug("trns: {}, portfolio: {}", results.size, portfolio.code)
         return hydrate(results)

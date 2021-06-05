@@ -2,8 +2,10 @@ package com.beancounter.common
 
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.DateValues
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
@@ -45,6 +47,18 @@ internal class TestPositions {
             assertThat(inPosition.value.asset).isNotNull
             assertThat(inPosition.value.asset.market).isNotNull
         }
+    }
+
+    @Test
+    fun is_MixedTradeCurrenciesHandled() {
+        val usdAsset = Asset("USDAsset", Market("USMarket", Currency("USD")))
+        val nzdAsset = Asset("NZDAsset", Market("NZMarket", Currency("NZD")))
+        val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
+        assertThat(positions.isMixedCurrencies).isFalse
+        positions.add(positions[usdAsset])
+        assertThat(positions.isMixedCurrencies).isFalse
+        positions.add(positions[nzdAsset])
+        assertThat(positions.isMixedCurrencies).isTrue
     }
 
     @Test

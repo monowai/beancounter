@@ -5,6 +5,8 @@ import static com.beancounter.common.utils.AssetKeyUtils.toKey;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,6 +21,9 @@ public class Positions {
 
   private Portfolio portfolio;
   private String asAt;
+  private boolean mixedCurrencies = false;
+  @JsonIgnore
+  private final Collection<Currency> tradeCurrencies = new ArrayList<>();
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private Map<String, Position> positions = null;
   private Map<Position.In, Totals> totals = null;
@@ -37,7 +42,14 @@ public class Positions {
       positions = new TreeMap<>();
     }
     positions.put(toKey(position.getAsset()), position);
-
+    if (!mixedCurrencies) {
+      if (!tradeCurrencies.contains(position.getAsset().getMarket().getCurrency())) {
+        tradeCurrencies.add(position.getAsset().getMarket().getCurrency());
+      }
+      if (tradeCurrencies.size() != 1) {
+        mixedCurrencies = true;
+      }
+    }
   }
 
   /**
@@ -109,6 +121,10 @@ public class Positions {
 
   public void setPositions(Map<String, Position> positions) {
     this.positions = positions;
+  }
+
+  public boolean isMixedCurrencies() {
+    return mixedCurrencies;
   }
 
 }

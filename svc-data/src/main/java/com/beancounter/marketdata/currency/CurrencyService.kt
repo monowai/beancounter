@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
-import java.util.ArrayList
+import java.util.Locale
 import javax.annotation.PostConstruct
 
 /**
@@ -43,7 +43,7 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
      */
     @Cacheable("currency.code")
     fun getCode(code: String): Currency? {
-        val result = currencyRepository.findById(code.toUpperCase())
+        val result = currencyRepository.findById(code.uppercase(Locale.getDefault()))
         if (result.isPresent) {
             return result.get()
         }

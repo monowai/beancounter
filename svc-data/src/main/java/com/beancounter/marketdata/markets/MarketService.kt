@@ -7,6 +7,8 @@ import com.beancounter.marketdata.config.MarketConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
+import java.util.Locale
+import kotlin.collections.HashMap
 
 /**
  * Obtain Markets.
@@ -32,7 +34,8 @@ class MarketService : com.beancounter.client.MarketService {
     private fun setAlias(market: Market?, marketCode: String) {
         if (market != null && market.aliases.isNotEmpty()) {
             for (provider in market.aliases.keys) {
-                aliases[market.aliases.getValue(provider).toUpperCase()] = marketCode.toUpperCase()
+                aliases[market.aliases.getValue(provider).uppercase(Locale.getDefault())] =
+                    marketCode.uppercase(Locale.getDefault())
             }
         }
     }
@@ -44,7 +47,7 @@ class MarketService : com.beancounter.client.MarketService {
      * @return the alias or input if no exception is defined.
      */
     fun resolveAlias(input: String): String {
-        val alias = aliases[input.toUpperCase()]
+        val alias = aliases[input.uppercase(Locale.getDefault())]
         return alias ?: input
     }
 
@@ -62,7 +65,7 @@ class MarketService : com.beancounter.client.MarketService {
         if (marketCode == null) {
             throw BusinessException("Null Market Code")
         }
-        var market = marketMap[marketCode.toUpperCase()]
+        var market = marketMap[marketCode.uppercase(Locale.getDefault())]
         val errorMessage = String.format("Unable to resolve market code %s", marketCode)
         if (market == null && orByAlias) {
             val byAlias = resolveAlias(marketCode)

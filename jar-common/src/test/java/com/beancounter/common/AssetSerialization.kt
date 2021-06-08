@@ -41,7 +41,7 @@ class AssetSerialization {
         val json = objectMapper.writeValueAsString(assetResponse)
         val fromJson = objectMapper.readValue(json, AssetResponse::class.java)
         assertThat(fromJson.data)
-            .usingRecursiveComparison().isEqualTo(assetResponse.data)
+            .isEqualTo(assetResponse.data)
     }
 
     @Test

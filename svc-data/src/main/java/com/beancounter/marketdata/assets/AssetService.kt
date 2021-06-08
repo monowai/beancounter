@@ -11,10 +11,12 @@ import com.beancounter.marketdata.service.MarketDataService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
+import java.util.Locale
 import java.util.Optional
 import java.util.UUID
 import java.util.stream.Stream
 import javax.transaction.Transactional
+import kotlin.collections.HashMap
 
 @Service
 @Transactional
@@ -31,8 +33,8 @@ class AssetService internal constructor(
 
     private fun create(assetInput: AssetInput?): Asset {
         val foundAsset = findLocally(
-            assetInput!!.market.toUpperCase(),
-            assetInput.code.toUpperCase()
+            assetInput!!.market.uppercase(Locale.getDefault()),
+            assetInput.code.uppercase(Locale.getDefault())
         )
         if (foundAsset == null) {
             // Is the market supported?
@@ -52,7 +54,7 @@ class AssetService internal constructor(
                 // User Defined Asset?
                 asset = Asset(
                     keyGenUtils.format(UUID.randomUUID()),
-                    assetInput.code.toUpperCase(),
+                    assetInput.code.uppercase(Locale.getDefault()),
                     defaultName,
                     "Equity",
                     market,
@@ -109,7 +111,10 @@ class AssetService internal constructor(
     fun findLocally(marketCode: String, code: String): Asset? {
         // Search Local
         log.trace("Search for {}/{}", marketCode, code)
-        val optionalAsset = assetRepository.findByMarketCodeAndCode(marketCode.toUpperCase(), code.toUpperCase())
+        val optionalAsset = assetRepository.findByMarketCodeAndCode(
+            marketCode.uppercase(Locale.getDefault()),
+            code.uppercase(Locale.getDefault())
+        )
         return optionalAsset.map { asset: Asset -> hydrateAsset(asset) }.orElse(null)
     }
 

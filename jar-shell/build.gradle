@@ -76,3 +76,7 @@ compileTestKotlin {
         jvmTarget = "15"
     }
 }
+
+jacoco {
+    toolVersion = "$jacocoVersion"
+}

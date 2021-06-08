@@ -7,7 +7,7 @@ import com.beancounter.shell.google.SheetIngester
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Service
-import java.util.HashMap
+import java.util.Locale
 
 @Service
 /**
@@ -29,11 +29,11 @@ class IngestionFactory {
 
     fun getIngester(ingestionRequest: IngestionRequest): Ingester {
 
-        return ingesterMap[ingestionRequest.reader.toUpperCase()]
+        return ingesterMap[ingestionRequest.reader.uppercase(Locale.getDefault())]
             ?: throw SystemException("Unable to resolve ingestor for ${ingestionRequest.reader}")
     }
 
     fun add(key: String, ingester: Ingester) {
-        ingesterMap[key.toUpperCase()] = ingester
+        ingesterMap[key.uppercase(Locale.getDefault())] = ingester
     }
 }

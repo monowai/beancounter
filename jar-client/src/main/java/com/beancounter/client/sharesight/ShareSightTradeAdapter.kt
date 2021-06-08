@@ -23,6 +23,7 @@ import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.text.ParseException
+import java.util.Locale
 
 /**
  * Converts from the ShareSight trade format.
@@ -56,7 +57,7 @@ class ShareSightTradeAdapter(
         if (ttype.equals("", ignoreCase = true)) {
             throw BusinessException(String.format("Unsupported type %s", row[type]))
         }
-        val trnType = TrnType.valueOf(ttype.toUpperCase())
+        val trnType = TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
         val comment = if (row.size == 13) nullSafe(row[comments]) else null
         var tradeRate: BigDecimal? = null
         var fees = BigDecimal.ZERO

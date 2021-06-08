@@ -9,9 +9,13 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.stereotype.Component
+import java.util.Locale
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+/**
+ * Binds oAuth role mappings to Spring Security compatible.
+ */
 @Component
 class JwtRoleConverter @JvmOverloads constructor(
     @Value("\${auth.realm.claim:realm_access}") private val realmClaim: String = "realm_access",
@@ -31,7 +35,7 @@ class JwtRoleConverter @JvmOverloads constructor(
         var resourceRoles: Collection<String> = mutableListOf()
         return if (resourceAccess != null && resourceAccess[resourceId].also { resourceRoles = it!! } != null) {
             resourceRoles.stream()
-                .map { role: String -> SimpleGrantedAuthority("ROLE_" + role.toLowerCase()) }
+                .map { role: String -> SimpleGrantedAuthority("ROLE_" + role.lowercase(Locale.getDefault())) }
                 .collect(Collectors.toSet())
         } else emptySet()
     }

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.util.Locale
 
 /**
  * Backfills missing asset data from a 3rd party. Basically adds asset.name for a supplied asset.code.
@@ -43,8 +44,8 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         return if (assetResult == null) {
             null
         } else Asset(
-            code.toUpperCase(),
-            code.toUpperCase(),
+            code.uppercase(Locale.getDefault()),
+            code.uppercase(Locale.getDefault()),
             assetResult.name,
             assetResult.type,
             market,

@@ -1,4 +1,3 @@
-
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'kotlin-spring'
@@ -28,18 +27,19 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion"
     )
-    compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion" ) {exclude module: 'kotlin-reflect'}
-    compileOnly(
+    implementation(
             "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     )
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {exclude module: 'junit-vintage-engine'}
+    compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
+        exclude module: 'junit-vintage-engine'
+    }
     testImplementation(
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core:$assertJ",
+            "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
             "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
             "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",
-            "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
             "org.springframework.security:spring-security-test:$springSecurityVersion",
             "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion"
 
@@ -55,4 +55,8 @@ compileTestKotlin {
     kotlinOptions {
         jvmTarget = "15"
     }
+}
+
+jacoco {
+    toolVersion = "$jacocoVersion"
 }

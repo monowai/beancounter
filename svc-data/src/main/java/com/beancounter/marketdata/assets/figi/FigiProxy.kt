@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import java.util.Locale
+import kotlin.collections.ArrayList
 
 @Service
 @ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
@@ -28,7 +30,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
 
     @RateLimiter(name = "figi")
     fun find(market: Market, bcAssetCode: String): Asset? {
-        val figiCode = bcAssetCode.replace(".", "/").toUpperCase()
+        val figiCode = bcAssetCode.replace(".", "/").uppercase(Locale.getDefault())
         val figiMarket = market.aliases[FIGI]
         val figiSearch = FigiSearch(
             figiCode,
@@ -46,7 +48,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
         }
         if (response?.data != null) {
             for (datum in response.data!!) {
-                if (filter.contains(datum.securityType2.toUpperCase())) {
+                if (filter.contains(datum.securityType2.uppercase(Locale.getDefault()))) {
                     log.trace(
                         "In response to {}/{} - found {}/{}",
                         market, bcAssetCode, figiMarket, figiCode

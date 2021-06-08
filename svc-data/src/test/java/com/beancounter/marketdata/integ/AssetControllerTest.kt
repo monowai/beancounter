@@ -33,6 +33,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import java.util.Locale
+import kotlin.collections.HashMap
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -92,8 +94,7 @@ internal class AssetControllerTest {
         val (data1) = objectMapper.readValue(
             mvcResult.response.contentAsString, AssetResponse::class.java
         )
-        assertThat(data1)
-            .usingRecursiveComparison().isEqualTo(asset)
+        assertThat(data1).isEqualTo(asset)
 
         // By Market/Asset
         mvcResult = mockMvc.perform(
@@ -111,8 +112,7 @@ internal class AssetControllerTest {
             objectMapper.readValue(
                 mvcResult.response.contentAsString, AssetResponse::class.java
             ).data
-        )
-            .usingRecursiveComparison().isEqualTo(asset)
+        ).isEqualTo(asset)
     }
 
     private fun postAssets(assetRequest: AssetRequest) = mockMvc.perform(
@@ -134,7 +134,7 @@ internal class AssetControllerTest {
             .hasFieldOrProperty("id")
             .hasFieldOrProperty("market")
             .hasFieldOrPropertyWithValue("name", firstAsset.name)
-            .hasFieldOrPropertyWithValue("code", firstAsset.code.toUpperCase())
+            .hasFieldOrPropertyWithValue("code", firstAsset.code.uppercase(Locale.getDefault()))
             .hasFieldOrPropertyWithValue("marketCode", null)
             .hasFieldOrProperty("id")
     }
@@ -179,7 +179,7 @@ internal class AssetControllerTest {
         assetUpdateResponse = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         val updatedAsset = assetUpdateResponse.data[toKey(asset)]
-        assertThat(updatedAsset).usingRecursiveComparison().isEqualTo(createdAsset)
+        assertThat(updatedAsset).isEqualTo(createdAsset)
     }
 
     @Test

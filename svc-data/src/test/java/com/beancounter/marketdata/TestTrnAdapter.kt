@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
+import java.util.Locale
 
 /**
  * TRN Adapter tests.
@@ -67,7 +68,7 @@ internal class TestTrnAdapter {
     @Test
     fun buyInputToTrnComputingTradeAmount() {
         val trnInput = TrnInput(
-            CallerRef(portfolioId.toUpperCase(), one, one),
+            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
             asset.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
@@ -120,7 +121,7 @@ internal class TestTrnAdapter {
     fun diviInputToTrnComputingTradeAmount() {
         val tradeAmount = BigDecimal("12.22")
         val trnInput = TrnInput(
-            CallerRef(portfolioId.toUpperCase(), one, one),
+            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
             asset.id,
             trnType = TrnType.DIVI,
             quantity = BigDecimal.TEN,
@@ -153,7 +154,7 @@ internal class TestTrnAdapter {
     fun tradeAmountOverridingComputedValue() {
         val tradeAmount = BigDecimal("88.88")
         val trnInput = TrnInput(
-            CallerRef(portfolioId.toUpperCase(), one, one),
+            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
             asset.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,

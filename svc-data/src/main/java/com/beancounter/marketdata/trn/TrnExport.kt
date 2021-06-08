@@ -4,6 +4,9 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.DateUtils
 import org.springframework.stereotype.Service
 
+/**
+ * Export format of a BC transaction.
+ */
 @Service
 class TrnExport {
     val dateUtils = DateUtils()

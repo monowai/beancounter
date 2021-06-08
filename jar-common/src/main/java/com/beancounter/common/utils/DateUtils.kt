@@ -9,6 +9,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Locale
 import java.util.TimeZone
 
 /**
@@ -54,7 +55,7 @@ class DateUtils(
     }
 
     fun getLocalDate(inDate: String?, dateFormat: String = format): LocalDate {
-        return if (inDate == null || inDate.toLowerCase() == today) {
+        return if (inDate == null || inDate.lowercase(Locale.getDefault()) == today) {
             date
         } else {
             LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat))
@@ -78,7 +79,7 @@ class DateUtils(
     }
 
     fun isToday(inDate: String?, tz: ZoneId): Boolean {
-        return if (inDate == null || inDate.isBlank() || today == inDate.toLowerCase()) {
+        return if (inDate == null || inDate.isBlank() || today == inDate.lowercase(Locale.getDefault())) {
             true // Null date is BC is "today"
         } else try {
             val today = defaultFormatter.parse(LocalDate.now(tz).toString())

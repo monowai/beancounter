@@ -3,7 +3,12 @@ package com.beancounter.client.ingest
 import com.beancounter.common.model.Asset
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.util.Locale
+import kotlin.collections.ArrayList
 
+/**
+ * Determines if the asset code is in a comma separated filter string.
+ */
 @Service
 class Filter(@Value("\${filter:#{null}}") filter: String?) {
     private val filteredAssets: MutableCollection<String> = ArrayList()
@@ -11,7 +16,7 @@ class Filter(@Value("\${filter:#{null}}") filter: String?) {
         if (filter != null) {
             val values = filter.split(",").toTypedArray()
             for (value in values) {
-                filteredAssets.add(value.toUpperCase())
+                filteredAssets.add(value.uppercase(Locale.getDefault()))
             }
         }
     }
@@ -21,7 +26,7 @@ class Filter(@Value("\${filter:#{null}}") filter: String?) {
      */
     fun inFilter(asset: Asset): Boolean {
         return if (!filteredAssets.isEmpty()) {
-            filteredAssets.contains(asset.code.toUpperCase())
+            filteredAssets.contains(asset.code.uppercase(Locale.getDefault()))
         } else true
     }
 

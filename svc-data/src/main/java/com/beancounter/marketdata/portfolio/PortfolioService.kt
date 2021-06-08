@@ -11,8 +11,10 @@ import com.beancounter.marketdata.trn.TrnRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.util.Locale
 import java.util.function.Consumer
 import javax.transaction.Transactional
+import kotlin.collections.ArrayList
 
 /**
  * Server side portfolio activities.
@@ -75,7 +77,7 @@ class PortfolioService internal constructor(
         val systemUser = systemUserService.getOrThrow
         log.trace("Searching on behalf of {}", systemUser.id)
         val found = portfolioRepository
-            .findByCodeAndOwner(code.toUpperCase(), systemUser)
+            .findByCodeAndOwner(code.uppercase(Locale.getDefault()), systemUser)
         val portfolio = found.orElseThrow {
             BusinessException(
                 String.format(

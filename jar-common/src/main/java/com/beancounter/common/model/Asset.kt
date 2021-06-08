@@ -3,6 +3,7 @@ package com.beancounter.common.model
 import com.beancounter.common.input.AssetInput
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.util.Locale
 import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.Table
@@ -19,7 +20,7 @@ import javax.persistence.UniqueConstraint
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "marketCode"])])
 data class Asset constructor(var code: String) {
     init {
-        code = code.toUpperCase()
+        code = code.uppercase(Locale.getDefault())
     }
 
     @Id

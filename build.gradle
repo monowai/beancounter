@@ -1,17 +1,18 @@
 buildscript {
     ext{
-        springBootVersion='2.4.5'
-        springCloudVersion='2020.0.2'
+        springBootVersion='2.4.6'
+        springCloudVersion='2020.0.3'
         springSecurityVersion='5.4.6'
+        springDependencyManagement='1.0.11.RELEASE'
         // Spring Contracts/Gradle
-        verifierVersion='3.0.2'
+        verifierVersion='3.0.3'
         springWebVersion = '5.3.5'
         springKafka='2.7.0'
         jacksonVersion = '2.12.3'
-        springDependencyManagement='1.0.11.RELEASE'
         resilience4jVersion='1.7.0'
         assertJ='3.19+'
-        kotlinVersion='1.4.32'
+        kotlinVersion='1.5.10'
+        jacocoVersion='0.8.7'
         guavaVersion='30.1.1-android'
     }
 
@@ -26,7 +27,6 @@ plugins {
     id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion" apply false
     id "io.spring.dependency-management" version "$springDependencyManagement" apply false
     id "org.springframework.boot" version "$springBootVersion"  apply false
-
 }
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'

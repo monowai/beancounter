@@ -7,6 +7,8 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.CallerRef
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.Locale
+import kotlin.collections.HashMap
 
 @Service
 /**
@@ -24,12 +26,12 @@ abstract class AbstractIngester : Ingester {
     @Autowired
     fun setTrnWriters(vararg trnWriter: TrnWriter) {
         for (writer in trnWriter) {
-            writers[writer.id().toUpperCase()] = writer
+            writers[writer.id().uppercase(Locale.getDefault())] = writer
         }
     }
 
     private fun getWriter(id: String): TrnWriter? {
-        return writers[id.toUpperCase()]
+        return writers[id.uppercase(Locale.getDefault())]
     }
 
     /**

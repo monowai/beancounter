@@ -2,6 +2,7 @@ package com.beancounter.client.sharesight
 
 import com.beancounter.client.ingest.TrnAdapter
 import org.springframework.stereotype.Service
+import java.util.Locale
 
 /**
  * Factory for getting the appropriate row transformer.
@@ -22,7 +23,7 @@ class ShareSightFactory(
      * @return appropriate transformer
      */
     fun adapter(row: List<String>): TrnAdapter {
-        return if (TRADE_TYPES.contains(row[ShareSightTradeAdapter.type].toUpperCase())) {
+        return if (TRADE_TYPES.contains(row[ShareSightTradeAdapter.type].uppercase(Locale.getDefault()))) {
             shareSightTrade
         } else shareSightDivi
     }

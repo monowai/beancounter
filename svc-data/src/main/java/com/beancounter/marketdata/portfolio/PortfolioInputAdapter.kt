@@ -7,6 +7,8 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.currency.CurrencyService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.Locale
+import kotlin.collections.ArrayList
 
 /**
  * Adapts PortfolioInput objects to Portfolio objects
@@ -28,7 +30,7 @@ class PortfolioInputAdapter internal constructor(
         log.debug("Creating for {}", owner.id)
         return Portfolio(
             keyGenUtils.id,
-            portfolioInput.code.toUpperCase(),
+            portfolioInput.code.uppercase(Locale.getDefault()),
             portfolioInput.name,
             currencyService.getCode(portfolioInput.currency)!!,
             currencyService.getCode(portfolioInput.base)!!,
@@ -39,7 +41,7 @@ class PortfolioInputAdapter internal constructor(
     fun fromInput(data: PortfolioInput, existing: Portfolio): Portfolio {
         return Portfolio(
             existing.id,
-            data.code.toUpperCase(),
+            data.code.uppercase(Locale.getDefault()),
             data.name,
             currencyService.getCode(data.currency)!!,
             currencyService.getCode(data.base)!!,

@@ -20,6 +20,9 @@ dependencies() {
             "org.springframework.kafka:spring-kafka:$springKafka",
             "com.google.guava:guava:$guavaVersion"
     )
+    implementation(
+            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    )
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "org.slf4j:slf4j-log4j12:1.7.30",
@@ -38,7 +41,6 @@ dependencies() {
     )
 
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion" ) {exclude module: 'kotlin-reflect'}
-
 }
 
 idea {

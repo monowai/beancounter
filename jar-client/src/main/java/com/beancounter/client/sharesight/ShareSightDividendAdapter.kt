@@ -21,6 +21,7 @@ import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.text.ParseException
+import java.util.Locale
 
 /**
  * Converts from the ShareSight dividend format.
@@ -91,14 +92,14 @@ class ShareSightDividendAdapter(
     }
 
     override fun isValid(row: List<String>): Boolean {
-        val rate = row[fxRate].toUpperCase()
+        val rate = row[fxRate].uppercase(Locale.getDefault())
         return rate.contains(".") // divis have an fx rate in this column
     }
 
     override fun resolveAsset(row: List<String>): Asset {
         val values = parseAsset(row[code])
         return assetIngestService.resolveAsset(
-            values[1].toUpperCase(), values[0]
+            values[1].uppercase(Locale.getDefault()), values[0]
         )
     }
 

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.util.Locale
 
 /**
  * The enricher provides missing Asset data properties such as name.
@@ -31,7 +32,7 @@ class EnrichmentFactory {
             enricher = defEnricher
         }
 
-        return enrichers[enricher.toUpperCase()]!!
+        return enrichers[enricher.uppercase(Locale.getDefault())]!!
     }
 
     companion object {

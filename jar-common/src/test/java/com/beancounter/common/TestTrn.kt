@@ -24,6 +24,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.Locale
+import kotlin.collections.ArrayList
 
 /**
  * Trn Data tests.
@@ -54,7 +56,7 @@ internal class TestTrn {
         trnInput.tradeBaseRate = BigDecimal("1.99")
         trnInput.tradePortfolioRate = price
         trnInput.tradeBaseRate = BigDecimal.ONE
-        val trnRequest = TrnRequest(abc.toLowerCase(), arrayOf(trnInput))
+        val trnRequest = TrnRequest(abc.lowercase(Locale.getDefault()), arrayOf(trnInput))
         val json = objectMapper.writeValueAsString(trnRequest)
         val fromJson = objectMapper.readValue(json, TrnRequest::class.java)
         assertThat(fromJson)

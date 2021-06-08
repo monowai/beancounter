@@ -7,6 +7,8 @@ import com.beancounter.marketdata.providers.wtd.WtdService
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
+import java.util.Locale
+import kotlin.collections.HashMap
 
 /**
  * Return a MarketData provider from a registered collection.
@@ -34,7 +36,7 @@ class MdFactory internal constructor(
     }
 
     fun getMarketDataProvider(provider: String): MarketDataProvider {
-        return providers[provider.toUpperCase()]!!
+        return providers[provider.uppercase(Locale.getDefault())]!!
     }
 
     private fun resolveProvider(market: Market): MarketDataProvider? {
@@ -53,8 +55,8 @@ class MdFactory internal constructor(
     }
 
     init {
-        providers[mockProviderService.getId().toUpperCase()] = mockProviderService
-        providers[wtdService.getId().toUpperCase()] = wtdService
-        providers[alphaService.getId().toUpperCase()] = alphaService
+        providers[mockProviderService.getId().uppercase(Locale.getDefault())] = mockProviderService
+        providers[wtdService.getId().uppercase(Locale.getDefault())] = wtdService
+        providers[alphaService.getId().uppercase(Locale.getDefault())] = alphaService
     }
 }

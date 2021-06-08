@@ -73,3 +73,6 @@ compileTestKotlin {
     }
 }
 
+jacoco {
+    toolVersion = "$jacocoVersion"
+}

@@ -36,7 +36,7 @@ internal class TestAsset {
         assertThat(toKey(assetInput))
             .isEqualTo(keyIn)
         assertThat(fromKey(keyIn))
-            .usingRecursiveComparison().isEqualTo(asset)
+            .isEqualTo(asset)
     }
 
     @Test

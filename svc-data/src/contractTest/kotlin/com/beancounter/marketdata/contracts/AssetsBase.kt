@@ -12,6 +12,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.io.File
+import java.util.Locale
 
 /**
  * Asset Contract Tests. Called by Spring Cloud Contract Verifier
@@ -93,8 +94,8 @@ class AssetsBase : ContractVerifierBase() {
             Mockito.`when`(assetService.find(theAsset.id)).thenReturn(theAsset)
             Mockito.`when`(
                 assetService.findLocally(
-                    theAsset.market.code.toUpperCase(),
-                    theAsset.code.toUpperCase()
+                    theAsset.market.code.uppercase(Locale.getDefault()),
+                    theAsset.code.uppercase(Locale.getDefault())
                 )
             )
                 .thenReturn(theAsset)

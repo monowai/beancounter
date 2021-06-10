@@ -1,17 +1,21 @@
 package com.beancounter.event.kafka
 
 import com.beancounter.client.AssetService
+import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.event.Constants.Companion.NZD
+import com.beancounter.event.Constants.Companion.USD
+import com.beancounter.event.Constants.Companion.alpha
+import com.beancounter.event.Constants.Companion.kmi
 import com.beancounter.event.EventBoot
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.service.EventService
@@ -33,12 +37,11 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-import java.util.Objects
 
 @EmbeddedKafka(
     partitions = 1,
@@ -88,50 +91,23 @@ class StubbedEvents {
         id = "TEST",
         code = "TEST",
         name = "NZD Portfolio",
-        currency = Currency("NZD"),
-        base = Currency("USD"),
+        currency = NZD,
+        base = USD,
         owner = owner
     )
-    private val alpha = "ALPHA"
+    val caDate = "2020-05-01"
 
     @Test
     fun is_NoQuantityOnDateNull() {
         val corporateEvent = CorporateEvent(
             TrnType.DIVI,
-            DateUtils().getDate("2020-05-01"),
+            DateUtils().getDate(caDate),
             alpha,
             "MSFT",
             BigDecimal("0.2625")
         )
         val trnEvent = positionService.process(portfolio, corporateEvent)
         assertThat(trnEvent).isNull()
-    }
-
-    @Test
-    fun is_ServiceBasedDividendCreateAndFindOk() {
-        val event = CorporateEvent(
-            TrnType.DIVI,
-            Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
-            alpha,
-            "assetId",
-            BigDecimal("2.3400")
-        )
-        val saved = eventService.save(event)
-        assertThat(saved.id).isNotNull()
-        val (id) = eventService.save(event)
-        assertThat(id).isEqualTo(saved.id)
-        assertThat(eventService.forAsset(event.assetId))
-            .isNotNull
-            .hasSize(1)
-
-        // Check it can be found within a date range
-        val events = eventService
-            .findInRange(
-                Objects.requireNonNull(event.recordDate).minusDays(2),
-                event.recordDate
-            )
-        assertThat(events).hasSize(1)
-        assertThat(events.iterator().next()).usingRecursiveComparison().isEqualTo(saved)
     }
 
     @Test
@@ -145,9 +121,9 @@ class StubbedEvents {
         embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TRN_EVENT)
         val corporateEvent = CorporateEvent(
             TrnType.DIVI,
-            DateUtils().getDate("2020-05-01"),
+            DateUtils().getDate(caDate),
             alpha,
-            "KMI",
+            kmi,
             BigDecimal("0.2625")
         )
         val eventInput = TrustedEventInput(corporateEvent)
@@ -156,30 +132,35 @@ class StubbedEvents {
 
         // Check the receiver gets what we send
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
-        val events = eventService.forAsset("KMI")
+        val events = eventService.forAsset(kmi)
         assertThat(events).hasSize(1)
         val (id) = events.iterator().next()
         val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
 
         // Reprocess the corporate event
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.post("/{id}", id)
-        ).andExpect(MockMvcResultMatchers.status().isAccepted)
-            .andReturn()
+            post("/{id}", id)
+        ).andExpect(
+            status().isAccepted
+        ).andReturn()
+
         val eventsResponse = om.readValue(
             mvcResult.response.contentAsString,
             CorporateEventResponse::class.java
         )
-        assertThat(eventsResponse).isNotNull.hasFieldOrProperty("data")
+        assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
 
         // Back-fill Portfolio events up to, and as at, the supplied date
         val assetSpy = Mockito.spy(AssetService::class.java)
         positionService.setAssetService(assetSpy)
+
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/backfill/{portfolioId}/2020-05-01", portfolio.id)
-        ).andExpect(MockMvcResultMatchers.status().isAccepted)
-            .andReturn()
+            post("/backfill/{portfolioId}/{caDate}", portfolio.id, caDate)
+        ).andExpect(
+            status().isAccepted
+        ).andReturn()
+
         Thread.sleep(400)
 
         // Verify that the backfill request is dispatched
@@ -197,23 +178,24 @@ class StubbedEvents {
         trnEvents: Collection<TrustedTrnEvent>,
         consumerRecord: ConsumerRecord<String, String>
     ) {
-        assertThat(consumerRecord.value()).isNotNull()
+        assertThat(consumerRecord.value()).isNotNull
         val received = om.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
-        val (portfolio1, importFormat, _, trnInput) = trnEvents.iterator().next()
+        val (portfolio1, importFormat, message, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)
             .usingRecursiveComparison().isEqualTo(portfolio)
         assertTrue(importFormat == ImportFormat.BC)
+        assertThat(message).isEmpty()
         assertThat(received)
             .isNotNull
             .hasFieldOrProperty("trnInput")
             .hasFieldOrPropertyWithValue("portfolio.id", portfolio1.id)
         assertThat(trnInput)
             .isNotNull
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal("80.000000"))
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("14.70"))
-            .hasFieldOrPropertyWithValue("tax", BigDecimal("6.30"))
             .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
             .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
+            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("14.70"))
+            .hasFieldOrPropertyWithValue("tax", BigDecimal("6.30"))
+            .hasFieldOrPropertyWithValue("quantity", BigDecimal("80.0"))
     }
 
     companion object {

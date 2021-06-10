@@ -3,7 +3,7 @@ package com.beancounter.event.controller
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
-import com.beancounter.event.contract.CorporateEventsResponse
+import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -46,12 +46,12 @@ class EventController(private val eventService: EventService) {
     }
 
     @GetMapping(value = ["/asset/{id}"], produces = ["application/json"])
-    fun getAssetEvents(@PathVariable id: String): CorporateEventsResponse {
+    fun getAssetEvents(@PathVariable id: String): CorporateEventResponses {
         return eventService.getAssetEvents(id)
     }
 
     @GetMapping(value = ["/scheduled/{date}"], produces = ["application/json"])
-    fun getScheduledEvents(@PathVariable date: String): CorporateEventsResponse {
+    fun getScheduledEvents(@PathVariable date: String): CorporateEventResponses {
         return eventService.getScheduledEvents(DateUtils().getDate(date))
     }
 }

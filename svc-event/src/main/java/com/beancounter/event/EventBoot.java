@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+/**
+ * Corporate Action Service.
+ */
 @SpringBootApplication(
     scanBasePackageClasses = {
         AuthServerConfig.class,

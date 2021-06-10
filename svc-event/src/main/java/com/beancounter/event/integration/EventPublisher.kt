@@ -9,6 +9,9 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 
+/**
+ * Publish notification of a corporate action transaction affecting a portfolio
+ */
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 @Service
 class EventPublisher {

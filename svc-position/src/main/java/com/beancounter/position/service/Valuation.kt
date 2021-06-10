@@ -23,4 +23,5 @@ interface Valuation {
     fun value(positions: Positions): PositionResponse
     fun build(portfolio: Portfolio, valuationDate: String): PositionResponse
     fun build(trnQuery: TrustedTrnQuery): PositionResponse
+    fun getPositions(portfolio: Portfolio, valuationDate: String?, value: Boolean): PositionResponse
 }

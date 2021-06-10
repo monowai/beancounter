@@ -16,7 +16,7 @@
     <logger name="org.apache" level="error"/>
     <logger name="org.apache.kafka.clients" level="error"/>
     <logger name="kafka" level="error"/>
-    <logger name="wiremock" level="error"/>
+    <logger name="wiremock" level="trace"/>
     <logger name="wiremock.org.eclipse" level="error"/>
     <logger name="wiremock.com.jayway" level="error"/>
     <logger name="wiremock.com.github" level="error"/>

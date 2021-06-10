@@ -4,6 +4,9 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.HashMap
 
+/**
+ * Withholding tax rates for a given jurisdiction.
+ */
 @Service
 class TaxService {
     private val rates: MutableMap<String, BigDecimal> = HashMap()

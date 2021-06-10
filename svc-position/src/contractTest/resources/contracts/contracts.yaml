@@ -1,9 +1,10 @@
 ---
 name: testPositions
-priority: 1
+priority: 2
 request:
   method: GET
-  url: /id/TEST/2020-05-01?value=false
+  # https://github.com/tomakehurst/wiremock/issues/1262
+  url: /id/TEST/2020-05-01
 
 response:
   status: 200

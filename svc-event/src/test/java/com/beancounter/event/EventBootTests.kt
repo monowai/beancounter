@@ -8,6 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.context.WebApplicationContext
 
+/**
+ * Test Context loads.
+ */
 @SpringBootTest(classes = [EventBoot::class])
 @Tag("slow")
 @ActiveProfiles("test")

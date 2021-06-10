@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Service
 
+/**
+ * Responds to Kafka events.
+ */
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 @Service
 class EventReceiver(private val eventService: EventService) {

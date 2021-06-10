@@ -10,6 +10,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.USD
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.event.Constants.Companion.kmi
 import com.beancounter.event.service.EventBehaviourFactory
 import com.beancounter.event.service.alpha.AlphaEventAdapter
 import com.beancounter.event.service.alpha.AlphaEventConfig
@@ -19,10 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
-@SpringBootTest(classes = [AlphaEventConfig::class])
 /**
  * AlphaVantage API tests.
  */
+@SpringBootTest(classes = [AlphaEventConfig::class])
 class TestAlphaEvents {
     @Autowired
     private lateinit var alphaEventAdapter: AlphaEventAdapter
@@ -30,7 +31,7 @@ class TestAlphaEvents {
     @Test
     fun is_UsDividendCalculated() {
         val market = Market("NASDAQ", USD)
-        val asset = getAsset(market, "KMI")
+        val asset = getAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
@@ -65,7 +66,7 @@ class TestAlphaEvents {
     @Test
     fun is_FutureDatedTrnIgnored() {
         val market = Market("NASDAQ", USD)
-        val asset = getAsset(market, "KMI")
+        val asset = getAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
         val today = dateUtils.date

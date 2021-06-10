@@ -52,10 +52,7 @@ class ContractVerifierBase {
             .webAppContextSetup(context)
             .build()
         RestAssuredMockMvc.mockMvc(mockMvc)
-        mockApis()
-    }
 
-    fun mockApis() {
         val portfolioId = "TEST"
         val valuationDate = "2020-05-01"
         val testPortfolio = Portfolio(
@@ -102,7 +99,7 @@ class ContractVerifierBase {
         )
 
         mockitoWhen(
-            valuationService.build(testPortfolio, valuationDate)
+            valuationService.getPositions(testPortfolio, valuationDate, true)
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/test-response.json").file,

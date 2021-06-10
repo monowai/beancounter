@@ -6,7 +6,7 @@ import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.event.contract.CorporateEventResponse
-import com.beancounter.event.contract.CorporateEventsResponse
+import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.integration.EventPublisher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -83,12 +83,12 @@ class EventService(
             .orElseThrow { BusinessException("Not found $id") }
     }
 
-    fun getAssetEvents(assetId: String): CorporateEventsResponse {
+    fun getAssetEvents(assetId: String): CorporateEventResponses {
         val events = eventRepository.findByAssetId(assetId)
         if (events.isNullOrEmpty()) {
-            return CorporateEventsResponse()
+            return CorporateEventResponses()
         }
-        return CorporateEventsResponse(events)
+        return CorporateEventResponses(events)
     }
 
     fun forAsset(assetId: String): Collection<CorporateEvent> {
@@ -103,8 +103,8 @@ class EventService(
         return eventRepository.findByDateRange(start, end)
     }
 
-    fun getScheduledEvents(start: LocalDate): CorporateEventsResponse {
+    fun getScheduledEvents(start: LocalDate): CorporateEventResponses {
         val events = eventRepository.findByStartDate(start)
-        return CorporateEventsResponse(events)
+        return CorporateEventResponses(events)
     }
 }

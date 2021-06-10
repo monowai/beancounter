@@ -19,10 +19,10 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import javax.annotation.PostConstruct
 
-@Service
 /**
  * Locate positions to support nominal corporate events.
  */
+@Service
 class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     private val dateUtils = DateUtils()
     private lateinit var assetService: AssetService
@@ -94,11 +94,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         }
         loginService.login()
 
-        val results = positionGateway.get(
-            tokenService.bearerToken,
-            id,
-            asAt
-        )
+        val results = positionGateway[tokenService.bearerToken, id, asAt]
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]
             if (position!!.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {

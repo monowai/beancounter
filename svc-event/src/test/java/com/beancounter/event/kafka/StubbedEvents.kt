@@ -40,13 +40,27 @@ import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Objects
 
-@EmbeddedKafka(partitions = 1, topics = [StubbedEvents.TRN_EVENT, StubbedEvents.CA_EVENT], bootstrapServersProperty = "spring.kafka.bootstrap-servers", brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"])
-@AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:11999", "org.beancounter:svc-position:+:stubs:12999"])
+@EmbeddedKafka(
+    partitions = 1,
+    topics = [
+        StubbedEvents.TRN_EVENT,
+        StubbedEvents.CA_EVENT
+    ],
+    bootstrapServersProperty = "spring.kafka.bootstrap-servers",
+    brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"]
+)
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = [
+        "org.beancounter:svc-data:+:stubs:11999",
+        "org.beancounter:svc-position:+:stubs:12999"
+    ]
+)
 @Tag("slow")
 @SpringBootTest(classes = [EventBoot::class], properties = ["auth.enabled=false"])
 @ActiveProfiles("kafka")
 /**
- * Test inbound Kafka events
+ * Test inbound Kafka corporate action events
  */
 class StubbedEvents {
     private val om = BcJson().objectMapper

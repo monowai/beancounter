@@ -10,6 +10,7 @@ import com.beancounter.marketdata.providers.alpha.AlphaService
 import com.beancounter.marketdata.providers.mock.MockProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import com.beancounter.marketdata.service.MdFactory
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.AssertionsForClassTypes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -38,16 +39,16 @@ class MarketDataProviderTests @Autowired constructor(private val mdFactory: MdFa
         val mdp = mdFactory.getMarketDataProvider(
             Market("NonExistent", Currency("ABC"))
         )
-        AssertionsForClassTypes.assertThat(mdp)
+        assertThat(mdp)
             .isNotNull
-            .hasFieldOrPropertyWithValue("ID", MockProviderService.ID)
+            .hasFieldOrPropertyWithValue("id", MockProviderService.ID)
     }
 
     @Test
     fun is_FoundByMarket() {
         val amp = getAsset(marketService.getMarket("ASX"), "AMP")
         val asxMarket = mdFactory.getMarketDataProvider(amp.market)
-        AssertionsForClassTypes.assertThat(asxMarket!!.getId()).isEqualTo(AlphaService.ID)
+        assertThat(asxMarket!!.getId()).isEqualTo(AlphaService.ID)
         val gne = getAsset(marketService.getMarket(NZX.code), "GNE")
         val nzxMarket = mdFactory.getMarketDataProvider(gne.market)
         AssertionsForClassTypes.assertThat(nzxMarket!!.getId()).isEqualTo(WtdService.ID)

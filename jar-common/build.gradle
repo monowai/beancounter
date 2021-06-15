@@ -26,7 +26,7 @@ dependencies() {
     testImplementation(
             "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
             "org.slf4j:slf4j-log4j12:1.7.30",
-            "org.mockito:mockito-core:3.8+",
+            "org.mockito:mockito-core:3.11+",
             "org.mockito:mockito-junit-jupiter:3.11+",
             "javax.servlet:javax.servlet-api:4.0.1",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",

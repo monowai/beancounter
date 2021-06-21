@@ -35,7 +35,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
         val figiSearch = FigiSearch(
             figiCode,
             figiMarket!!,
-            "Common Stock",
+            EQUITY,
             true
         )
         val response = resolve(figiSearch)
@@ -88,28 +88,31 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
     }
 
     private fun findEquity(figiSearch: FigiSearch): FigiResponse? {
-        figiSearch.securityType2 = "Common Stock"
+        figiSearch.securityType2 = EQUITY
         return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
     }
 
     private fun findMutualFund(figiSearch: FigiSearch): FigiResponse? {
-        figiSearch.securityType2 = "Mutual Fund"
+        figiSearch.securityType2 = MF
         return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
     }
 
     private fun findReit(figiSearch: FigiSearch): FigiResponse? {
-        figiSearch.securityType2 = "REIT"
+        figiSearch.securityType2 = REIT
         return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
     }
 
     private fun findAdr(figiSearch: FigiSearch): FigiResponse? {
-        figiSearch.securityType2 = "Depositary Receipt"
+        figiSearch.securityType2 = ADR
         return extractResult(figiGateway.search(getSearchArgs(figiSearch), figiConfig.apiKey))
     }
 
     companion object {
-
+        const val EQUITY: String = "Common Stock"
+        const val ADR: String = "Depositary Receipt"
+        const val REIT: String = "REIT"
         const val FIGI = "FIGI"
+        const val MF = "Mutual Fund"
         private val log = LoggerFactory.getLogger(FigiProxy::class.java)
     }
 

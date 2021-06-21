@@ -7,7 +7,7 @@ buildscript {
         // Spring Contracts/Gradle
         verifierVersion='3.0.3'
         springWebVersion = '5.3.5'
-        springKafka='2.7.0'
+        springKafka='2.7.2'
         jacksonVersion = '2.12.3'
         resilience4jVersion='1.7.0'
         assertJ='3.19+'

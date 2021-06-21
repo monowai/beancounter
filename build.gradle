@@ -6,7 +6,7 @@ buildscript {
         springDependencyManagement='1.0.11.RELEASE'
         // Spring Contracts/Gradle
         verifierVersion='3.0.3'
-        springWebVersion = '5.3.5'
+        springWebVersion = '5.3.8'
         springKafka='2.7.2'
         jacksonVersion = '2.12.3'
         resilience4jVersion='1.7.0'

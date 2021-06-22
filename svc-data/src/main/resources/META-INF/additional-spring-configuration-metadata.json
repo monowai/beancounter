@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "beancounter.enricher",
+      "type": "java.lang.String",
+      "description": "Which enricher to use to provided additional asset properties."
+    },
+    {
+      "name": "beancounter.currency.base",
+      "type": "java.lang.String",
+      "description": "System based ISO currency code."
+    }
+  ] }

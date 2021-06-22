@@ -30,9 +30,10 @@ class PositionValuationService internal constructor(
             return positions // Nothing to value
         }
         log.debug(
-            "Requesting valuation of {} positions for {}...",
+            "Requesting valuation of {} positions for {} asAt {}...",
             positions.positions.size,
-            positions.portfolio.code
+            positions.portfolio.code,
+            positions.asAt
         )
 
         // Set market data into the positions
@@ -73,9 +74,8 @@ class PositionValuationService internal constructor(
             moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
         }
         log.debug(
-            "Completed valuation of {} positions for {}...",
+            "Completed valuation of {} positions.",
             positions.positions.size,
-            positions.portfolio.code
         )
         return positions
     }

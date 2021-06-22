@@ -16,7 +16,6 @@ import java.util.Optional
 import java.util.UUID
 import java.util.stream.Stream
 import javax.transaction.Transactional
-import kotlin.collections.HashMap
 
 @Service
 @Transactional
@@ -44,12 +43,13 @@ class AssetService internal constructor(
                 defaultName = assetInput.name!!.replace("\"", "")
             }
 
-            // Enrich missing attributes
-            var asset = enrichmentFactory.getEnricher(market).enrich(
-                market,
-                assetInput.code,
-                defaultName
-            )
+            // Fill in missing asset attributes
+            var asset = enrichmentFactory.getEnricher(market)
+                .enrich(
+                    market,
+                    assetInput.code,
+                    defaultName
+                )
             if (asset == null) {
                 // User Defined Asset?
                 asset = Asset(
@@ -74,7 +74,7 @@ class AssetService internal constructor(
     override fun process(assetRequest: AssetRequest): AssetUpdateResponse {
         val assets: MutableMap<String, Asset> = HashMap()
         for (callerRef in assetRequest.data.keys) {
-            val createdAsset = create(assetRequest.data[callerRef]!!)
+            val createdAsset = create(assetRequest.data[callerRef])
             assets[callerRef] = createdAsset
         }
         return AssetUpdateResponse(assets)

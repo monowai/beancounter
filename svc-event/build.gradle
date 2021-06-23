@@ -29,7 +29,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.h2database:h2",
-            "org.postgresql:postgresql:42.2.21",
+            "org.postgresql:postgresql:42.2.22",
             "com.github.ben-manes.caffeine:caffeine",
             "org.springframework.kafka:spring-kafka:$springKafka"
     )

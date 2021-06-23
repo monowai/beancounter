@@ -10,7 +10,7 @@ buildscript {
         springKafka='2.7.2'
         jacksonVersion = '2.12.3'
         resilience4jVersion='1.7.0'
-        assertJ='3.19+'
+        assertJ='3.20+'
         kotlinVersion='1.5.10'
         jacocoVersion='0.8.7'
         guavaVersion='30.1.1-android'

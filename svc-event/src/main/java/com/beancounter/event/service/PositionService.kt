@@ -94,10 +94,21 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         }
         loginService.login()
 
+        val portfolio = portfolioService.getPortfolioById(id)
         val results = positionGateway[tokenService.bearerToken, id, asAt]
+        if (results != null) {
+            log.info(
+                "Backfill {} Corporate Actions. id: {}, code: {}, asAt: {}",
+                results.data.positions.size,
+                portfolio.id,
+                portfolio.code,
+                date
+            )
+        }
+
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]
-            if (position!!.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
+            if (position != null) {
                 assetService.backFillEvents(position.asset.id)
             }
         }

@@ -2,7 +2,7 @@ buildscript {
     ext{
         springBootVersion='2.5.1'
         springCloudVersion='2020.0.3'
-        springSecurityVersion='5.4.6'
+        springSecurityVersion='5.4.7'
         springDependencyManagement='1.0.11.RELEASE'
         // Spring Contracts/Gradle
         verifierVersion='3.0.3'

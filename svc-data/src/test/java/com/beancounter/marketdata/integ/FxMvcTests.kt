@@ -6,9 +6,9 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.providers.fxrates.EcbDate
@@ -109,8 +109,7 @@ internal class FxMvcTests {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
-        val user = SystemUser("user", "user@testing.com")
-        token = TokenUtils().getUserToken(user)
+        token = TokenUtils().getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 

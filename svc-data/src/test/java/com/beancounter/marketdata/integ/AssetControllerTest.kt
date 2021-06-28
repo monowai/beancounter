@@ -35,14 +35,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.util.Locale
 
+/**
+ * MVC tests for Assets
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureWireMock(port = 0)
-/**
- * MVC tests for Assets
- */
 internal class AssetControllerTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
@@ -59,8 +59,7 @@ internal class AssetControllerTest {
             .build()
 
         // Setup a user account
-        val user = SystemUser("user", "user@testing.com")
-        token = TokenUtils().getUserToken(user)
+        token = TokenUtils().getUserToken(systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 

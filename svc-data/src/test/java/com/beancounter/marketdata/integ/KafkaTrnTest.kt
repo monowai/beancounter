@@ -19,6 +19,7 @@ import com.beancounter.common.model.TrnType.BUY
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
@@ -212,7 +213,7 @@ class KafkaTrnTest {
         val (id) = systemUserService.save(SystemUser("mike"))
 
         token = TokenUtils()
-            .getUserToken(SystemUser(id, "user@testing.com"))
+            .getUserToken(SystemUser(id, Constants.systemUser.email))
 
         Mockito.`when`(tokenService.subject).thenReturn(id)
 

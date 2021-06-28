@@ -3,6 +3,7 @@ package com.beancounter.marketdata.integ
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -44,8 +45,7 @@ class TestRegistrationController {
     @Test
     @Throws(Exception::class)
     fun is_RegisterMeWorking() {
-        val user = SystemUser("user", "user@testing.com")
-        val token = tokenUtils.getUserToken(user)
+        val token = tokenUtils.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
         val performed = mockMvc.perform(
             MockMvcRequestBuilders.get("/me")
@@ -60,8 +60,7 @@ class TestRegistrationController {
     @Test
     @Throws(Exception::class)
     fun is_MeWithNoToken() {
-        val user = SystemUser("user", "user@testing.com")
-        val token = tokenUtils.getUserToken(user)
+        val token = tokenUtils.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
         val performed = mockMvc.perform(
             MockMvcRequestBuilders.get("/me")

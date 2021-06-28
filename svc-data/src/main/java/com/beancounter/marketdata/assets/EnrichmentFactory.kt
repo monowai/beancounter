@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import java.util.Locale
 
 /**
- * The enricher provides missing Asset data properties such as name.
+ * Return an enricher that can append missing Asset data properties such as name.
  */
 @Service
 class EnrichmentFactory {

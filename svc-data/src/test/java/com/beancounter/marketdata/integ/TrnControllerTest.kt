@@ -17,11 +17,11 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
@@ -110,8 +110,7 @@ class TrnControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
-        val user = SystemUser("TrnMvcTest", "user@testing.com")
-        token = TokenUtils().getUserToken(user)
+        token = TokenUtils().getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
         assertThat(figiProxy).isNotNull
     }

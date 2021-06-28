@@ -10,11 +10,14 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import org.springframework.stereotype.Service
 
-@Service
 /**
  * Write and return assets.
  */
-class AssetIngestService internal constructor(private val assetService: AssetService, private val marketService: MarketService) {
+@Service
+class AssetIngestService internal constructor(
+    private val assetService: AssetService,
+    private val marketService: MarketService
+) {
 
     /**
      * Create assets, if necessary, and return the hydrated assets.
@@ -23,7 +26,7 @@ class AssetIngestService internal constructor(private val assetService: AssetSer
      * @param assetCode  Code on the exchange
      * @return hydrated asset with a primary key.
      */
-    fun resolveAsset(marketCode: String, assetCode: String): Asset {
+    fun resolveAsset(marketCode: String, assetCode: String, name: String? = null): Asset {
         val market = marketService.getMarket(marketCode)
         if (market.inMemory()) {
             // Support unit testings where we don't really care about the asset
@@ -32,7 +35,7 @@ class AssetIngestService internal constructor(private val assetService: AssetSer
         val callerKey = toKey(assetCode, market.code)
 
         val assets = HashMap<String, AssetInput>()
-        assets[callerKey] = AssetInput(market.code, assetCode)
+        assets[callerKey] = AssetInput(market.code, code = assetCode, name = name)
         val assetRequest = AssetRequest(assets)
         val response = assetService.process(assetRequest)
             ?: throw BusinessException(String.format("No response returned for %s:%s", assetCode, marketCode))

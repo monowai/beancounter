@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers
+package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Market
@@ -10,9 +10,6 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.NZX
-import com.beancounter.marketdata.providers.alpha.AlphaConfig
-import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter
-import com.beancounter.marketdata.providers.alpha.AlphaService
 import com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

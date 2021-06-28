@@ -1,8 +1,7 @@
-package com.beancounter.marketdata.providers
+package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter
 import com.beancounter.marketdata.utils.AlphaMockUtils
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

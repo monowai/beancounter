@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers
+package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
@@ -23,9 +23,20 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.config.PriceSchedule
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.alpha.AlphaConfig
-import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter
-import com.beancounter.marketdata.providers.alpha.AlphaService
+import com.beancounter.marketdata.providers.PriceService
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.api
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.codeProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.highProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.keyProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.lowProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.marketProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.nameProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.openProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.prevCloseProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceDateProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceSymbolProp
 import com.beancounter.marketdata.providers.wtd.WtdService
 import com.beancounter.marketdata.service.MarketDataService
 import com.beancounter.marketdata.service.MdFactory
@@ -56,7 +67,7 @@ import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 /**
- * AlphaApi Test
+ * AlphaApi business functional
  *
  * @author mikeh
  * @since 2019-03-04
@@ -135,20 +146,6 @@ internal class AlphaVantageApiTest {
         val price = marketDataService.getPriceResponse(AssetInput(data))
         assertThat(price).hasNoNullFieldsOrProperties()
     }
-
-    private val priceSymbolProp = "priceSymbol"
-    private val api = "API"
-    private val keyProp = "key"
-    private val assetProp = "asset"
-    private val codeProp = "code"
-    private val closeProp = "close"
-    private val openProp = "open"
-    private val lowProp = "low"
-    private val highProp = "high"
-    private val priceDateProp = "priceDate"
-    private val prevCloseProp = "previousClose"
-    private val marketProp = "market"
-    private val nameProp = "name"
 
     @Test
     @Throws(Exception::class)
@@ -305,52 +302,6 @@ internal class AlphaVantageApiTest {
         assertThat(results.iterator().next())
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
             .hasFieldOrProperty(assetProp)
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun is_ApiInvalidKeyHandled() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
-        AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
-        val asset = Asset(api, Market("KEY", USD))
-        val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
-        val results = alphaProvider.getMarketData(
-            of(asset)
-        )
-        assertThat(results)
-            .isNotNull
-            .hasSize(1)
-        assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun is_ApiCallLimitExceededHandled() {
-        val nasdaq = marketService.getMarket(NASDAQ.code)
-        val asset = Asset("ABC", nasdaq)
-        asset.id = asset.code
-        AlphaMockUtils.mockGlobalResponse(
-            asset.id,
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file
-        )
-        assertThat(asset).isNotNull
-        val assetInput = AssetInput(asset)
-
-        val results = mdFactory.getMarketDataProvider(AlphaService.ID)
-            .getMarketData(
-                of(assetInput)
-            )
-        assertThat(results)
-            .isNotNull
-            .hasSize(1)
-        val mdpPrice = results.iterator().next()
-        assertThat(mdpPrice)
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-        val priceResponse = marketDataService.getPriceResponse(assetInput)
-        assertThat(priceResponse).isNotNull
     }
 
     private val changeProp = "change"

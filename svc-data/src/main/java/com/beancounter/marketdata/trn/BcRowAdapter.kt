@@ -20,7 +20,11 @@ class BcRowAdapter(
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         val marketCode = trustedTrnImportRequest.row[4]
         val assetCode = trustedTrnImportRequest.row[5]
-        val asset = assetIngestService.resolveAsset(marketCode, assetCode)
+        val asset = assetIngestService.resolveAsset(
+            marketCode,
+            assetCode = assetCode,
+            name = trustedTrnImportRequest.row[6]
+        )
         val trnType = TrnType.valueOf(trustedTrnImportRequest.row[3])
         val quantity = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[8]))
         val price = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[10]))

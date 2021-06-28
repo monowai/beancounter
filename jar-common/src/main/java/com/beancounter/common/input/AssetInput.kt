@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 data class AssetInput(
     var market: String,
     var code: String,
-    val name: String? = null,
+    val name: String? = null, // This will be the default name if it cannot be enriched by a data provider
     @JsonIgnore var resolvedAsset: Asset? = null
 ) {
     constructor(

@@ -2,12 +2,15 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
-import com.beancounter.common.model.SystemUser
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.assets.figi.FigiResponse
@@ -46,7 +49,7 @@ import java.io.File
 @ActiveProfiles("figi")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
-class FigiApiTest {
+class FigiAssetApiTest {
     @Autowired
     private lateinit var figiProxy: FigiProxy
 
@@ -55,6 +58,9 @@ class FigiApiTest {
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
+
+    @Autowired
+    private lateinit var assetService: AssetService
 
     @Autowired
     private lateinit var context: WebApplicationContext
@@ -107,9 +113,7 @@ class FigiApiTest {
             .build()
 
         // Authorise the caller to access the BC API
-        val user = SystemUser("user", "user@testing.com")
-
-        val token = TokenUtils().getUserToken(user)
+        val token = TokenUtils().getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
         val market = marketService.getMarket(NYSE.code)
         assertThat(market).isNotNull.hasFieldOrPropertyWithValue("enricher", null)
@@ -131,8 +135,26 @@ class FigiApiTest {
             .hasFieldOrPropertyWithValue("code", "BRK.B")
             .hasFieldOrPropertyWithValue("name", "BERKSHIRE HATHAWAY INC-CL B")
     }
+
+    @Test
+    fun is_DefaultAssetName() {
+        //
+        val assetRequest = AssetRequest("ZZZ", AssetInput(NASDAQ.code, "ABC", "My Default Name"))
+        val assetResponse = assetService.process(assetRequest)
+        assertThat(assetResponse).isNotNull
+        assertThat(assetResponse.data)
+            .hasSize(1)
+            .containsKey(assetRequest.data.iterator().next().key)
+
+        val createdAsset = assetResponse.data.iterator().next().value
+        assertThat(createdAsset)
+            .hasFieldOrPropertyWithValue("name", createdAsset.name)
+            .hasFieldOrPropertyWithValue("code", createdAsset.code)
+    }
+
     companion object {
         private val objectMapper: ObjectMapper = BcJson().objectMapper
+
         @BeforeAll
         @JvmStatic
         fun mockApis() {

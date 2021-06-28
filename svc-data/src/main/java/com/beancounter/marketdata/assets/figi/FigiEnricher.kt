@@ -6,10 +6,10 @@ import com.beancounter.marketdata.assets.AssetEnricher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
-@Service
 /**
- * enrich assets from bloomberg OpenFigi if supported.
+ * Enrich assets from bloomberg OpenFigi if supported.
  */
+@Service
 class FigiEnricher : AssetEnricher {
     private var figiProxy: FigiProxy? = null
 

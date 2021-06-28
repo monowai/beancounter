@@ -10,9 +10,9 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -109,8 +109,7 @@ internal class AlphaVantageApiTest {
             .build()
 
         // Setup a user account
-        val user = SystemUser("user", "user@testing.com")
-        token = tokenUtils.getUserToken(user)
+        token = tokenUtils.getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 
@@ -138,8 +137,18 @@ internal class AlphaVantageApiTest {
     }
 
     private val priceSymbolProp = "priceSymbol"
-
+    private val api = "API"
+    private val keyProp = "key"
+    private val assetProp = "asset"
     private val codeProp = "code"
+    private val closeProp = "close"
+    private val openProp = "open"
+    private val lowProp = "low"
+    private val highProp = "high"
+    private val priceDateProp = "priceDate"
+    private val prevCloseProp = "previousClose"
+    private val marketProp = "market"
+    private val nameProp = "name"
 
     @Test
     @Throws(Exception::class)
@@ -162,13 +171,11 @@ internal class AlphaVantageApiTest {
         assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(codeProp, code)
-            .hasFieldOrProperty("market")
+            .hasFieldOrProperty(marketProp)
             .hasFieldOrPropertyWithValue(priceSymbolProp, brkB)
-            .hasFieldOrPropertyWithValue("name", "Berkshire Hathaway Inc.")
+            .hasFieldOrPropertyWithValue(nameProp, "Berkshire Hathaway Inc.")
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(brkB)
     }
-
-    private val closeProp = "close"
 
     @Test
     @Throws(Exception::class)
@@ -194,21 +201,21 @@ internal class AlphaVantageApiTest {
         assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(codeProp, code)
-            .hasFieldOrProperty("market")
+            .hasFieldOrProperty(marketProp)
             .hasFieldOrPropertyWithValue("market.code", lon)
             .hasFieldOrPropertyWithValue(priceSymbolProp, symbol)
-            .hasFieldOrPropertyWithValue("name", "AXA Framlington Health Fund Z GBP Acc")
+            .hasFieldOrPropertyWithValue(nameProp, "AXA Framlington Health Fund Z GBP Acc")
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
         val priceResponse = marketDataService.getPriceResponse(AssetInput(data))
         assertThat(priceResponse.data).isNotNull
         assertThat(priceResponse.data.iterator().next())
             .isNotNull
-            .hasFieldOrPropertyWithValue("priceDate", dateUtils.getDate("2020-05-12"))
+            .hasFieldOrPropertyWithValue(priceDateProp, dateUtils.getDate("2020-05-12"))
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal("3.1620"))
-            .hasFieldOrPropertyWithValue("previousClose", BigDecimal("3.1620"))
-            .hasFieldOrPropertyWithValue("low", BigDecimal("3.1620"))
-            .hasFieldOrPropertyWithValue("high", BigDecimal("3.1620"))
-            .hasFieldOrPropertyWithValue("open", BigDecimal("3.1620"))
+            .hasFieldOrPropertyWithValue(prevCloseProp, BigDecimal("3.1620"))
+            .hasFieldOrPropertyWithValue(lowProp, BigDecimal("3.1620"))
+            .hasFieldOrPropertyWithValue(highProp, BigDecimal("3.1620"))
+            .hasFieldOrPropertyWithValue(openProp, BigDecimal("3.1620"))
     }
 
     @Test
@@ -231,9 +238,9 @@ internal class AlphaVantageApiTest {
         assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(codeProp, amp)
-            .hasFieldOrProperty("market")
+            .hasFieldOrProperty(marketProp)
             .hasFieldOrPropertyWithValue(priceSymbolProp, "$amp.AUS")
-            .hasFieldOrPropertyWithValue("name", "$amp Limited")
+            .hasFieldOrPropertyWithValue(nameProp, "$amp Limited")
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo("$amp.AUS")
     }
 
@@ -243,10 +250,10 @@ internal class AlphaVantageApiTest {
         // De-listed asset that can be found on the non-requested market
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
         val code = "DTV"
-        assetInputMap["key"] = AssetInput(NYSE.code, code)
+        assetInputMap[keyProp] = AssetInput(NYSE.code, code)
         val (data) = assetService
             .process(AssetRequest(assetInputMap))
-        val asset = data["key"]
+        val asset = data[keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, NYSE.code, code)
@@ -263,22 +270,22 @@ internal class AlphaVantageApiTest {
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data1)
             .isNotNull
-            .hasFieldOrPropertyWithValue("name", null)
+            .hasFieldOrPropertyWithValue(nameProp, null)
     }
 
     @Test
     @Throws(Exception::class)
     fun is_ApiErrorMessageHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
-        AlphaMockUtils.mockGlobalResponse("API.ERR", jsonFile)
-        val asset = Asset("API", Market("ERR", USD))
+        AlphaMockUtils.mockGlobalResponse("$api.ERR", jsonFile)
+        val asset = Asset(api, Market("ERR", USD))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
         val results = alphaProvider.getMarketData(of(asset))
         assertThat(results)
             .isNotNull
             .hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue("asset", asset)
+            .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
     }
 
@@ -286,8 +293,8 @@ internal class AlphaVantageApiTest {
     @Throws(Exception::class)
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
-        AlphaMockUtils.mockGlobalResponse("API.EMPTY", jsonFile)
-        val asset = Asset("API", Market("EMPTY", USD))
+        AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
+        val asset = Asset(api, Market("EMPTY", USD))
         val results = mdFactory
             .getMarketDataProvider(AlphaService.ID)
             .getMarketData(of(asset))
@@ -297,15 +304,15 @@ internal class AlphaVantageApiTest {
             .hasSize(1)
         assertThat(results.iterator().next())
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-            .hasFieldOrProperty("asset")
+            .hasFieldOrProperty(assetProp)
     }
 
     @Test
     @Throws(Exception::class)
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
-        AlphaMockUtils.mockGlobalResponse("API.KEY", jsonFile)
-        val asset = Asset("API", Market("KEY", USD))
+        AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
+        val asset = Asset(api, Market("KEY", USD))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
         val results = alphaProvider.getMarketData(
             of(asset)
@@ -314,7 +321,7 @@ internal class AlphaVantageApiTest {
             .isNotNull
             .hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue("asset", asset)
+            .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
     }
 
@@ -322,12 +329,12 @@ internal class AlphaVantageApiTest {
     @Throws(Exception::class)
     fun is_ApiCallLimitExceededHandled() {
         val nasdaq = marketService.getMarket(NASDAQ.code)
+        val asset = Asset("ABC", nasdaq)
+        asset.id = asset.code
         AlphaMockUtils.mockGlobalResponse(
-            "ABC",
+            asset.id,
             ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file
         )
-        val asset = Asset("ABC", nasdaq)
-        asset.id = "ABC"
         assertThat(asset).isNotNull
         val assetInput = AssetInput(asset)
 
@@ -340,11 +347,13 @@ internal class AlphaVantageApiTest {
             .hasSize(1)
         val mdpPrice = results.iterator().next()
         assertThat(mdpPrice)
-            .hasFieldOrPropertyWithValue("asset", asset)
+            .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
         val priceResponse = marketDataService.getPriceResponse(assetInput)
         assertThat(priceResponse).isNotNull
     }
+
+    private val changeProp = "change"
 
     @Test
     @Throws(Exception::class)
@@ -362,13 +371,13 @@ internal class AlphaVantageApiTest {
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
-            .hasFieldOrPropertyWithValue("asset", asset)
+            .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrProperty(closeProp)
-            .hasFieldOrProperty("open")
-            .hasFieldOrProperty("low")
-            .hasFieldOrProperty("high")
-            .hasFieldOrProperty("previousClose")
-            .hasFieldOrProperty("change")
+            .hasFieldOrProperty(openProp)
+            .hasFieldOrProperty(lowProp)
+            .hasFieldOrProperty(highProp)
+            .hasFieldOrProperty(prevCloseProp)
+            .hasFieldOrProperty(changeProp)
     }
 
     @Test
@@ -380,13 +389,13 @@ internal class AlphaVantageApiTest {
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
-            .hasFieldOrPropertyWithValue("asset", asset)
+            .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrProperty(closeProp)
-            .hasFieldOrProperty("open")
-            .hasFieldOrProperty("low")
-            .hasFieldOrProperty("high")
-            .hasFieldOrProperty("previousClose")
-            .hasFieldOrProperty("change")
+            .hasFieldOrProperty(openProp)
+            .hasFieldOrProperty(lowProp)
+            .hasFieldOrProperty(highProp)
+            .hasFieldOrProperty(prevCloseProp)
+            .hasFieldOrProperty(changeProp)
     }
 
     @Test
@@ -402,10 +411,10 @@ internal class AlphaVantageApiTest {
             ClassPathResource("/mock/alpha/price-not-found.json").file
         )
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap["key"] = AssetInput(NYSE.code, code)
+        assetInputMap[keyProp] = AssetInput(NYSE.code, code)
         val (data) = assetService
             .process(AssetRequest(assetInputMap))
-        val asset = data["key"]
+        val asset = data[keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
             asset.id,
@@ -416,7 +425,7 @@ internal class AlphaVantageApiTest {
             val priceResponse = marketDataService.getPriceResponse(priceRequest)
             assertThat(priceResponse).isNotNull.hasFieldOrProperty("data")
             val price = priceResponse.data.iterator().next()
-            assertThat(price).hasFieldOrProperty("priceDate")
+            assertThat(price).hasFieldOrProperty(priceDateProp)
         }
     }
 
@@ -430,9 +439,9 @@ internal class AlphaVantageApiTest {
         val priceResponse = alphaMapper.readValue(file, PriceResponse::class.java)
         assertThat(priceResponse.data).isNotNull
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap["key"] = AssetInput(NASDAQ.code, "KMI")
+        assetInputMap[keyProp] = AssetInput(NASDAQ.code, "KMI")
         val (dataMap) = assetService.process(AssetRequest(assetInputMap))
-        val asset = dataMap["key"]
+        val asset = dataMap[keyProp]
         assertThat(asset!!.id).isNotNull
         priceService.setEventWriter(mockEventWriter)
         marketDataService.backFill(asset)

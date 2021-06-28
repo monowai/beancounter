@@ -1,4 +1,4 @@
-package com.beancounter.marketdata
+package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Market

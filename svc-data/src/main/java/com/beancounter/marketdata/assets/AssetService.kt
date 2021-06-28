@@ -30,9 +30,9 @@ class AssetService internal constructor(
     private val keyGenUtils: KeyGenUtils,
 ) : com.beancounter.client.AssetService {
 
-    private fun create(assetInput: AssetInput?): Asset {
+    private fun create(assetInput: AssetInput): Asset {
         val foundAsset = findLocally(
-            assetInput!!.market.uppercase(Locale.getDefault()),
+            assetInput.market.uppercase(Locale.getDefault()),
             assetInput.code.uppercase(Locale.getDefault())
         )
         if (foundAsset == null) {
@@ -74,7 +74,7 @@ class AssetService internal constructor(
     override fun process(assetRequest: AssetRequest): AssetUpdateResponse {
         val assets: MutableMap<String, Asset> = HashMap()
         for (callerRef in assetRequest.data.keys) {
-            val createdAsset = create(assetRequest.data[callerRef])
+            val createdAsset = create(assetRequest.data[callerRef]!!)
             assets[callerRef] = createdAsset
         }
         return AssetUpdateResponse(assets)

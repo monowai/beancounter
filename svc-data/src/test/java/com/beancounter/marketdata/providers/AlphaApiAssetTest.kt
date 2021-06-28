@@ -1,4 +1,4 @@
-package com.beancounter.marketdata
+package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.PriceResponse
@@ -14,7 +14,7 @@ import org.springframework.core.io.ClassPathResource
  * @author mikeh
  * @since 2019-03-03
  */
-internal class AlphaAssetsTest {
+internal class AlphaApiAssetTest {
     private val assetMapper = AlphaPriceAdapter().alphaMapper
 
     @Test

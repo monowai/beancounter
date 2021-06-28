@@ -2,6 +2,7 @@ package com.beancounter.marketdata
 
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 
 /**
@@ -27,5 +28,6 @@ class Constants {
 
         val NZD = Currency("NZD")
         val NZX = Market("NZX", NZD)
+        val systemUser = SystemUser("user", "user@testing.com")
     }
 }

@@ -70,4 +70,8 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
     override fun canEnrich(asset: Asset): Boolean {
         return asset.name == null
     }
+
+    override fun id(): String {
+        return "ALPHA"
+    }
 }

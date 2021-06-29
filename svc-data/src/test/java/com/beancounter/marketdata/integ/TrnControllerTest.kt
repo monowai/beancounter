@@ -26,11 +26,13 @@ import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.utils.MockEnricher
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
@@ -83,6 +85,9 @@ class TrnControllerTest {
     @Autowired
     private lateinit var trnService: TrnService
 
+    @Autowired
+    private lateinit var enrichmentFactory: EnrichmentFactory
+
     @MockBean
     private lateinit var figiProxy: FigiProxy
     private lateinit var token: Jwt
@@ -106,6 +111,7 @@ class TrnControllerTest {
 
     @Autowired
     fun mockServices() {
+        enrichmentFactory.register(MockEnricher())
         assertThat(currencyService.currencies).isNotEmpty
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())

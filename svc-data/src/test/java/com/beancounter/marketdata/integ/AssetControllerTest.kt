@@ -13,6 +13,8 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.systemUser
+import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.utils.MockEnricher
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
@@ -49,6 +51,10 @@ internal class AssetControllerTest {
 
     @Autowired
     private lateinit var context: WebApplicationContext
+
+    @Autowired
+    private lateinit var enrichmentFactory: EnrichmentFactory
+
     private lateinit var mockMvc: MockMvc
     private lateinit var token: Jwt
 
@@ -61,6 +67,7 @@ internal class AssetControllerTest {
         // Setup a user account
         token = TokenUtils().getUserToken(systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
+        enrichmentFactory.register(MockEnricher())
     }
 
     @Test

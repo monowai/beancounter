@@ -15,6 +15,9 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.test.context.ActiveProfiles
 
+/**
+ * Tests enricher behaviour.
+ */
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("alpha")
 @Tag("slow")

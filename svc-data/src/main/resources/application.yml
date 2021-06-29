@@ -168,9 +168,6 @@ beancounter:
         multiplier: .01
     providers:
       # ToDo: default provider
-      MOCK:
-        markets: MOCK
-
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1

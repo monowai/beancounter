@@ -26,4 +26,8 @@ class FigiEnricher : AssetEnricher {
     override fun canEnrich(asset: Asset): Boolean {
         return asset.name == null
     }
+
+    override fun id(): String {
+        return "FIGI"
+    }
 }

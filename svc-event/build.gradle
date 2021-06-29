@@ -26,6 +26,7 @@ dependencies {
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
+            "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.h2database:h2",

@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserRepository
 import org.mockito.Mockito

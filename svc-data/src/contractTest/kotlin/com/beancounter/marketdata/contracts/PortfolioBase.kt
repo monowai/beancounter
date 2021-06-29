@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository

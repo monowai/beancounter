@@ -17,4 +17,6 @@ interface AssetEnricher {
      * Can this enricher enrich this asset?
      */
     fun canEnrich(asset: Asset): Boolean
+
+    fun id(): String
 }

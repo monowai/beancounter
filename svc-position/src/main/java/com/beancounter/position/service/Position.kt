@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 
 /**
- * Supports various calls to get Postion related data.
+ * Supports various calls to get Position related data.
  *
  * @author mikeh
  * @since 2019-01-27

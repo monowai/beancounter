@@ -12,18 +12,20 @@ import java.util.Locale
  */
 @Service
 class EnrichmentFactory {
-    private lateinit var enrichers: MutableMap<String, AssetEnricher>
+    private var enrichers: MutableMap<String, AssetEnricher> = HashMap()
 
     @Value("\${beancounter.enricher:ALPHA}")
     lateinit var defEnricher: String
 
     @Autowired
     fun setEnrichers(figiEnricher: AssetEnricher, alphaEnricher: AssetEnricher) {
-        enrichers = HashMap()
-        enrichers[ALPHA] = alphaEnricher
-        enrichers[FIGI] = figiEnricher
-        enrichers[MOCK] = MockEnricher()
+        register(alphaEnricher)
+        register(figiEnricher)
         log.info("Registered {} Asset Enrichers.  Default: {}", enrichers.keys.size, defEnricher)
+    }
+
+    fun register(enricher: AssetEnricher) {
+        enrichers[enricher.id()] = enricher
     }
 
     fun getEnricher(market: Market): AssetEnricher {
@@ -36,9 +38,6 @@ class EnrichmentFactory {
     }
 
     companion object {
-        const val ALPHA = "ALPHA"
-        const val MOCK = "MOCK"
-        const val FIGI = "FIGI"
         private val log = LoggerFactory.getLogger(EnrichmentFactory::class.java)
     }
 }

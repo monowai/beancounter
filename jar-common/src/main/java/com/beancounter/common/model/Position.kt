@@ -15,6 +15,9 @@ data class Position(val asset: Asset) {
     var dateValues = DateValues()
     val moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)
 
+    /**
+     * View currencies that cost is tracked in.
+     */
     enum class In {
         TRADE, PORTFOLIO, BASE
     }

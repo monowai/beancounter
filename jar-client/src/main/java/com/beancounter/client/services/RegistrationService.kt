@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestHeader
  * Handles client side registration duties.
  */
 @Service
-class RegistrationService(private val registrationGateway: RegistrationGateway, private val tokenService: TokenService) {
+class RegistrationService(
+    private val registrationGateway: RegistrationGateway,
+    private val tokenService: TokenService
+) {
     fun register(registrationRequest: RegistrationRequest): SystemUser {
         val (data) = registrationGateway
             .register(tokenService.bearerToken, registrationRequest)
@@ -37,6 +40,9 @@ class RegistrationService(private val registrationGateway: RegistrationGateway, 
     val jwtToken: JwtAuthenticationToken?
         get() = tokenService.jwtToken
 
+    /**
+     * HTTP gateway calls to svc-data
+     */
     @FeignClient(name = "registrationGw", url = "\${marketdata.url:http://localhost:9510/api}")
     interface RegistrationGateway {
         @PostMapping(

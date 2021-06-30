@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * Once a user is signed up, they need to be registered in order to create portfolios.
+ */
 @RestController
 @RequestMapping("/")
 @PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")

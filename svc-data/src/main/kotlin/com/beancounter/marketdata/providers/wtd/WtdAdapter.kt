@@ -13,6 +13,9 @@ import java.math.BigDecimal
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 
+/**
+ * Not used.  Can be refactored to support the replacement service MarketStack.
+ */
 @Service
 class WtdAdapter : MarketDataAdapter {
     private val dateUtils = DateUtils()

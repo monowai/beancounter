@@ -8,7 +8,10 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class EcbRates constructor(
+/**
+ * exchangeratesapi.io fx rate response contract.
+ */
+data class ExRatesResponse constructor(
     val base: String,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)

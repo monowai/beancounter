@@ -4,6 +4,9 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+/**
+ * Resilience wrapper around the gateway.
+ */
 @Service
 class AlphaProxy {
     private var alphaGateway: AlphaGateway? = null

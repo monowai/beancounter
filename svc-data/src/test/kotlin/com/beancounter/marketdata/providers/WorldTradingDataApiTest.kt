@@ -2,9 +2,7 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
@@ -182,25 +180,6 @@ internal class WorldTradingDataApiTest {
         @JvmStatic
         operator fun get(date: String, prices: Map<String, WtdMarketData>): WtdResponse {
             return WtdResponse(date, prices)
-        }
-
-        @JvmStatic
-        operator fun get(
-            date: String,
-            asset: Asset,
-            open: String?,
-            close: String?,
-            high: String?,
-            low: String?,
-            volume: String?,
-        ): MarketData {
-            val result = MarketData(asset, DateUtils().getDate(date))
-            result.open = BigDecimal(open)
-            result.close = BigDecimal(close)
-            result.high = BigDecimal(high)
-            result.low = BigDecimal(low)
-            result.volume = Integer.decode(volume)
-            return result
         }
 
         /**

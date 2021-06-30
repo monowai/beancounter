@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Update prices.
+ */
 @Service
 class PriceRefresh internal constructor(
     private val assetService: AssetService,

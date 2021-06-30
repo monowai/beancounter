@@ -7,7 +7,7 @@ import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
-import com.beancounter.marketdata.providers.fxrates.EcbRates
+import com.beancounter.marketdata.providers.fxrates.ExRatesResponse
 import java.math.BigDecimal
 import java.util.TreeMap
 
@@ -17,8 +17,8 @@ import java.util.TreeMap
 object EcbMockUtils {
     private val dateUtils = DateUtils()
     @JvmStatic
-    operator fun get(date: String, rates: Map<String, BigDecimal>): EcbRates {
-        return EcbRates(USD.code, dateUtils.getDate(date), rates)
+    operator fun get(date: String, rates: Map<String, BigDecimal>): ExRatesResponse {
+        return ExRatesResponse(USD.code, dateUtils.getDate(date), rates)
     }
 
     @JvmStatic

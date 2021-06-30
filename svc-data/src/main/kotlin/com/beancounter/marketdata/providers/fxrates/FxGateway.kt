@@ -23,5 +23,5 @@ interface FxGateway {
         @PathVariable("date") date: String,
         @PathVariable("base") base: String,
         @PathVariable("symbols") symbols: String
-    ): EcbRates?
+    ): ExRatesResponse?
 }

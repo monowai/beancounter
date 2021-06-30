@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.contracts
 
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.providers.fxrates.EcbRates
+import com.beancounter.marketdata.providers.fxrates.ExRatesResponse
 import com.beancounter.marketdata.providers.fxrates.FxGateway
 import com.beancounter.marketdata.utils.EcbMockUtils
 import io.restassured.module.mockmvc.RestAssuredMockMvc
@@ -71,8 +71,8 @@ class FxBase : ContractVerifierBase() {
 
     private fun mockEcbRates(
         rates: Map<String, BigDecimal>,
-        ecbRates: EcbRates,
-        rateDate: String = dateUtils.getDateString(ecbRates.date)
+        exRatesResponse: ExRatesResponse,
+        rateDate: String = dateUtils.getDateString(exRatesResponse.date)
     ) {
         Mockito.`when`(
             fxGateway.getRatesForSymbols(
@@ -80,6 +80,6 @@ class FxBase : ContractVerifierBase() {
                 java.lang.String.join(",", rates.keys)
             )
         )
-            .thenReturn(ecbRates)
+            .thenReturn(exRatesResponse)
     }
 }

@@ -87,12 +87,12 @@ class KafkaMarketDataTest {
     @Autowired
     lateinit var currencyService: CurrencyService
 
-    private final val kafkaTestUtils = KafkaConsumerUtils()
+    private val kafkaTestUtils = KafkaConsumerUtils()
 
     @Test
     @Throws(Exception::class)
     fun pricePersisted() {
-        val assetRequest = AssetRequest("test", AssetUtils.getAssetInput(NASDAQ.code, MSFT.code))
+        val assetRequest = AssetRequest("test", AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code))
         val assetResult = assetService.process(assetRequest)!!
         val asset = assetResult.data["test"]
         val idProp = "id"
@@ -123,7 +123,7 @@ class KafkaMarketDataTest {
         assets.add(
             AssetInput(
                 NASDAQ.code, Constants.AAPL.code,
-                AssetUtils.getAsset(NASDAQ.code, Constants.AAPL.code)
+                AssetUtils.getAsset(NASDAQ, Constants.AAPL.code)
             )
         )
         val priceRequest = PriceRequest(priceDate, assets)

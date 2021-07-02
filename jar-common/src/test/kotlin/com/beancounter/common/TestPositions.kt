@@ -1,9 +1,12 @@
 package com.beancounter.common
 
+import com.beancounter.common.Constants.Companion.NYSE
+import com.beancounter.common.Constants.Companion.SGD
+import com.beancounter.common.TestMarkets.Companion.NZD
+import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.DateValues
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
@@ -11,7 +14,8 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
@@ -27,11 +31,11 @@ internal class TestPositions {
     @Throws(Exception::class)
     fun is_PositionResponseChainSerializing() {
 
-        val positions = Positions(PortfolioUtils.getPortfolio("T", Currency("SGD")))
-        val asset = AssetUtils.getJsonAsset("TEST", "TEST")
+        val positions = Positions(PortfolioUtils.getPortfolio("T", SGD))
+        val asset = getJsonAsset("TEST", "TEST")
         val position = Position(asset)
         positions.add(position)
-        position.getMoneyValues(Position.In.TRADE, asset.market.currency).currency = Currency("USD")
+        position.getMoneyValues(Position.In.TRADE, asset.market.currency).currency = USD
         position.getMoneyValues(Position.In.TRADE, asset.market.currency).dividends = BigDecimal("100")
         position.quantityValues.purchased = BigDecimal(200)
 
@@ -51,8 +55,8 @@ internal class TestPositions {
 
     @Test
     fun is_MixedTradeCurrenciesHandled() {
-        val usdAsset = Asset("USDAsset", Market("USMarket", Currency("USD")))
-        val nzdAsset = Asset("NZDAsset", Market("NZMarket", Currency("NZD")))
+        val usdAsset = Asset("USDAsset", Market("USMarket", USD))
+        val nzdAsset = Asset("NZDAsset", Market("NZMarket", NZD))
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
         assertThat(positions.isMixedCurrencies).isFalse
         positions.add(positions[usdAsset])
@@ -63,8 +67,9 @@ internal class TestPositions {
 
     @Test
     fun is_DateValuesSetFromTransaction() {
-        val asset = AssetUtils.getAsset("Code", "Dates")
-        val firstTradeDate = dateUtils.getDate("2018-12-01")
+        val asset = getAsset(Market("Code"), "Dates")
+        val expectedDate = "2018-12-01"
+        val firstTradeDate = dateUtils.getDate(expectedDate)
         val secondTradeDate = dateUtils.getDate("2018-12-02")
         val positions = Positions(PortfolioUtils.getPortfolio("Twee"))
         var position = positions[asset, firstTradeDate]
@@ -72,27 +77,27 @@ internal class TestPositions {
         // Calling this should not set the "first" trade date.
         position = positions[asset, secondTradeDate]
         assertThat(position.dateValues)
-            .hasFieldOrPropertyWithValue("opened", dateUtils.getDate("2018-12-01"))
+            .hasFieldOrPropertyWithValue("opened", dateUtils.getDate(expectedDate))
     }
 
     @Test
     fun is_GetPositionNonNull() {
-        val positions = Positions(PortfolioUtils.getPortfolio("Test"))
-        val asset = AssetUtils.getAsset("TEST", "TEST")
+        val positions = Positions(PortfolioUtils.getPortfolio())
+        val asset = getAsset(NYSE, "TEST")
         val position = positions[asset]
         assertThat(position).isNotNull.hasFieldOrPropertyWithValue("asset", asset)
     }
 
     @Test
     fun is_MoneyValuesFromPosition() {
-        val asset = AssetUtils.getAsset("Twee", "Twee")
+        val asset = getAsset(NYSE, "is_MoneyValuesFromPosition")
         val position = Position(asset)
 
         // Retrieve with a currency will create if missing
-        assertThat(position.getMoneyValues(Position.In.TRADE, Currency("SGD")))
+        assertThat(position.getMoneyValues(Position.In.TRADE, SGD))
             .isNotNull
-            .hasFieldOrPropertyWithValue("currency", Currency("SGD"))
-        assertThat(position.getMoneyValues(Position.In.TRADE, Currency("SGD")))
+            .hasFieldOrPropertyWithValue("currency", SGD)
+        assertThat(position.getMoneyValues(Position.In.TRADE, SGD))
             .isNotNull
     }
 
@@ -100,8 +105,8 @@ internal class TestPositions {
     @Throws(Exception::class)
     fun is_PositionRequestSerializing() {
         val trns: MutableCollection<Trn> = ArrayList()
-        val trn = Trn(TrnType.BUY, AssetUtils.getJsonAsset("Market", "Blah"))
-        trn.portfolio = PortfolioUtils.getPortfolio("PCODE")
+        val trn = Trn(TrnType.BUY, getJsonAsset("Market", "Blah"))
+        trn.portfolio = PortfolioUtils.getPortfolio()
         trns.add(trn)
         val positionRequest = PositionRequest("TWEE", trns)
 

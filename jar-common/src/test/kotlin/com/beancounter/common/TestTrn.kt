@@ -1,5 +1,6 @@
 package com.beancounter.common
 
+import com.beancounter.common.Constants.Companion.NYSE
 import com.beancounter.common.Constants.Companion.oneString
 import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.contracts.TrnRequest
@@ -11,7 +12,6 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
-import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
@@ -41,7 +41,7 @@ internal class TestTrn {
         val trnInput = TrnInput(
             callerRef = CallerRef(oneString, oneString, abc),
             tradeDate = DateUtils().getDate("2019-10-10"),
-            assetId = getAsset("NASDAQ", "MSFT").id,
+            assetId = getAsset(NYSE, "MSFT").id,
             fees = BigDecimal.ONE,
             price = price,
             tradeAmount = BigDecimal("100.99"),
@@ -74,8 +74,7 @@ internal class TestTrn {
     @Throws(Exception::class)
     fun is_TransactionResponseSerializing() {
         val trnType = TrnType.BUY
-        val nyse = Market("NYSE", USD)
-        val asset = getAsset(nyse, "TEST")
+        val asset = getAsset(NYSE, "TEST")
         val portfolio = getPortfolio("TWEE")
         portfolio.owner = SystemUser("123", "whee", true)
         val trn = Trn(trnType, asset, BigDecimal("100.01"))
@@ -216,7 +215,7 @@ internal class TestTrn {
 
     @Test
     fun is_TradeCurrencySetFromAsset() {
-        val trn = Trn(TrnType.BUY, getAsset("NYSE", abc))
+        val trn = Trn(TrnType.BUY, getAsset(NYSE, abc))
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
     }

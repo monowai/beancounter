@@ -1,6 +1,7 @@
 package com.beancounter.position
 
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Market
 import java.math.BigDecimal
 
 /**
@@ -19,9 +20,12 @@ class Constants {
         val hundred = BigDecimal(100)
 
         val USD = Currency("USD")
+        val AUD = Currency("AUD")
         val NZD = Currency("NZD")
         val GBP = Currency("GBP")
         val SGD = Currency("SGD")
+        val NASDAQ = Market("NASDAQ")
         const val KMI = "KMI"
+        const val AAPL = "AAPL"
     }
 }

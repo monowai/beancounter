@@ -29,9 +29,9 @@ import java.time.LocalDate
  * of being based on batch sizes.
  */
 internal class DataProviderArgumentsTest {
-    private val aapl = getAsset(NASDAQ.code, AAPL.code)
-    private val msft = getAsset(NASDAQ.code, MSFT.code)
-    private val intc = getAsset(NASDAQ.code, "INTC")
+    private val aapl = getAsset(NASDAQ, AAPL.code)
+    private val msft = getAsset(NASDAQ, MSFT.code)
+    private val intc = getAsset(NASDAQ, "INTC")
 
     @Test
     fun is_BatchOfOne() {
@@ -78,21 +78,21 @@ internal class DataProviderArgumentsTest {
         assets.add(
             AssetInput(
                 marketA, code,
-                getAsset(marketA, code)
+                getAsset(Market(marketA), code)
             )
         )
         val marketB = "BBB"
         assets.add(
             AssetInput(
                 marketB, code,
-                getAsset(marketB, code)
+                getAsset(Market(marketB), code)
             )
         )
         val marketC = "CCC"
         assets.add(
             AssetInput(
                 marketC, code,
-                getAsset(marketC, code)
+                getAsset(Market(marketC), code)
             )
         )
         val priceRequest = PriceRequest(assets = assets)

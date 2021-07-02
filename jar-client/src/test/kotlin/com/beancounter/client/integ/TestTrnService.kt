@@ -3,6 +3,7 @@ package com.beancounter.client.integ
 import com.beancounter.client.Constants.Companion.portfolio
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.TrnService
+import com.beancounter.common.contracts.Payload
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -25,7 +26,7 @@ class TestTrnService {
     @Test
     fun is_TrnsReturnedForPortfolioId() {
         val trnResponse = trnService.query(portfolio)
-        assertThat(trnResponse).isNotNull.hasFieldOrProperty("data")
+        assertThat(trnResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         assertThat(trnResponse.data).isNotEmpty // Don't care about the contents here.
     }
 
@@ -35,7 +36,7 @@ class TestTrnService {
             portfolio, DateUtils().getDate("2020-05-01"), "KMI"
         )
         val queryResults = trnService.query(query)
-        assertThat(queryResults).isNotNull.hasFieldOrProperty("data")
+        assertThat(queryResults).isNotNull.hasFieldOrProperty(Payload.DATA)
         assertThat(queryResults.data).isNotEmpty // Don't care about the contents here.
     }
 }

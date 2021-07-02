@@ -12,6 +12,7 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants.Companion.MOCK
 import com.beancounter.marketdata.Constants.Companion.systemUser
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.utils.MockEnricher
@@ -73,11 +74,11 @@ internal class AssetControllerTest {
     @Test
     @Throws(Exception::class)
     fun is_AssetCreationAndFindByWorking() {
-        val firstAsset = getAsset("MOCK", "MyCode")
-        val secondAsset = getAsset("MOCK", "Second")
+        val firstAsset = getAsset(MOCK, "MyCode")
+        val secondAsset = getAsset(MOCK, "Second")
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap[toKey(firstAsset)] = getAssetInput("MOCK", "MyCode")
-        assetInputMap[toKey(secondAsset)] = getAssetInput("MOCK", "Second")
+        assetInputMap[toKey(firstAsset)] = getAssetInput(MOCK.code, "MyCode")
+        assetInputMap[toKey(secondAsset)] = getAssetInput(MOCK.code, "Second")
         val assetRequest = AssetRequest(assetInputMap)
         var mvcResult = postAssets(assetRequest)
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)

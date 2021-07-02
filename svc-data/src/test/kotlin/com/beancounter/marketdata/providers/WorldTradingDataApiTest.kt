@@ -132,7 +132,7 @@ internal class WorldTradingDataApiTest {
     fun is_WtdInvalidAssetPriceDefaulting() {
         val inputs: Collection<AssetInput> = arrayListOf(
             getAssetInput(AAPL),
-            getAssetInput(getAsset(NASDAQ.code, "${MSFT.code}x"))
+            getAssetInput(getAsset(NASDAQ, "${MSFT.code}x"))
         )
 
         val nas = Market("NAS", SGD)

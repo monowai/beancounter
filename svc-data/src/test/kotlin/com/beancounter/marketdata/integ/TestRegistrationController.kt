@@ -24,6 +24,9 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
+/**
+ * Verify user registration behaviour.
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")

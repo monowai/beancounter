@@ -123,11 +123,11 @@ internal class AlphaPriceTest {
         assertThat(alphaService.isMarketSupported(Market("NZX", NZD)))
             .isFalse
         assertThat(alphaConfig.getPriceCode(MSFT)).isEqualTo(MSFT.code)
-        val ohi = getAsset(NYSE.code, "OHI")
+        val ohi = getAsset(NYSE, "OHI")
         assertThat(alphaConfig.getPriceCode(ohi)).isEqualTo("OHI")
-        val abc = getAsset("AMEX", "ABC")
+        val abc = getAsset(Market("AMEX"), "ABC")
         assertThat(alphaConfig.getPriceCode(abc)).isEqualTo("ABC")
-        val nzx = getAsset(NZX.code, "AIRNZ")
+        val nzx = getAsset(NZX, "AIRNZ")
         assertThat(alphaConfig.getPriceCode(nzx)).isEqualTo("AIRNZ.NZX")
     }
 

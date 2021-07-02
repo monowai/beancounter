@@ -13,7 +13,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * Date based helper functions.
+ * Helper service for BC Date functions.
  *
  * @author mikeh
  * @since 2019-03-12

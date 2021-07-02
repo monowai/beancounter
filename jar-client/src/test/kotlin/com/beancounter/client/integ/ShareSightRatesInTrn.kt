@@ -59,7 +59,7 @@ class ShareSightRatesInTrn {
         val row: MutableList<String> = mutableListOf()
 
         // Portfolio is in NZD
-        val portfolio = getPortfolio("is_DividendRowWithFxConverted")
+        val portfolio = getPortfolio()
         Assertions.assertThat(portfolio).isNotNull
 
         // Trade is in USD

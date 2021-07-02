@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import java.util.Locale
 
+/**
+ * Ratelimited integration to OpenFigi.
+ */
 @Service
 @ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
 class FigiProxy internal constructor(figiConfig: FigiConfig) {

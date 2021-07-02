@@ -1,5 +1,7 @@
 package com.beancounter.common
 
+import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Market
 import java.math.BigDecimal
 
 /**
@@ -7,6 +9,8 @@ import java.math.BigDecimal
  */
 class Constants {
     companion object {
+        val SGD = Currency("SGD")
+        val NYSE = Market("NYSE")
         const val integrationErrorMsg = "Integration Error"
         const val test = "test"
         const val testUri = "/$test"

@@ -166,7 +166,7 @@ internal class TestTrnAdapter {
         Mockito.`when`(portfolioService.find(portfolioId))
             .thenReturn(getPortfolio(portfolioId))
         Mockito.`when`(assetService.find(trnInput.assetId))
-            .thenReturn(getAsset(NASDAQ.code, MSFT.code))
+            .thenReturn(getAsset(NASDAQ, MSFT.code))
         Mockito.`when`(currencyService.getCode(usdValue))
             .thenReturn(Currency(usdValue))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)

@@ -6,14 +6,16 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants.Companion.AAPL
+import com.beancounter.position.Constants.Companion.NASDAQ
+import com.beancounter.position.Constants.Companion.hundred
+import com.beancounter.position.Constants.Companion.twoK
 import com.beancounter.position.service.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -31,16 +33,16 @@ internal class TestTrnLogic {
      */
     @Test
     fun do_UnorderedTransactionsError() {
-        val apple = getAsset("NASDAQ", "AAPL")
-        val positions = Positions(getPortfolio("TEST"))
+        val apple = getAsset(NASDAQ, AAPL)
+        val positions = Positions()
         var position = positions[apple]
         assertThat(position).isNotNull
         val today = LocalDate.now()
         val yesterday = today.minus(-1, ChronoUnit.DAYS)
-        val buyYesterday = Trn(TrnType.BUY, apple, BigDecimal(100), tradeDate = DateUtils().convert(yesterday)!!)
-        buyYesterday.tradeAmount = BigDecimal(2000)
-        val buyToday = Trn(TrnType.BUY, apple, BigDecimal(100), tradeDate = DateUtils().convert(today)!!)
-        buyToday.tradeAmount = BigDecimal(2000)
+        val buyYesterday = Trn(TrnType.BUY, apple, hundred, tradeDate = DateUtils().convert(yesterday)!!)
+        buyYesterday.tradeAmount = twoK
+        val buyToday = Trn(TrnType.BUY, apple, hundred, tradeDate = DateUtils().convert(today)!!)
+        buyToday.tradeAmount = twoK
         positions.add(position)
         position = accumulator.accumulate(buyYesterday, positions.portfolio, position)
         val finalPosition = position

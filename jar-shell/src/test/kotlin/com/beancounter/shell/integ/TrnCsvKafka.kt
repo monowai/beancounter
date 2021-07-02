@@ -9,6 +9,7 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.shell.Constants.Companion.MOCK
 import com.beancounter.shell.integ.TrnCsvKafka.Companion.topic
 import com.beancounter.shell.kafka.KafkaTrnProducer
 import org.apache.kafka.clients.consumer.Consumer
@@ -71,7 +72,7 @@ class TrnCsvKafka {
         )
         val abc = "ABC"
         Mockito.`when`(trnAdapter.resolveAsset(row))
-            .thenReturn(getAsset(abc, abc))
+            .thenReturn(getAsset(MOCK, abc))
         row.add(abc)
 
         Mockito.`when`(shareSightFactory.adapter(row)).thenReturn(trnAdapter)

@@ -4,7 +4,7 @@ import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.providers.BatchConfig
+import com.beancounter.marketdata.providers.DatedBatch
 import com.beancounter.marketdata.providers.MarketDataAdapter
 import com.beancounter.marketdata.providers.ProviderArguments
 import org.slf4j.LoggerFactory
@@ -62,10 +62,10 @@ class WtdAdapter : MarketDataAdapter {
         }
     }
 
-    private fun getDefault(asset: Asset?, dpAsset: String, batchConfig: BatchConfig?): MarketData {
+    private fun getDefault(asset: Asset?, dpAsset: String, datedBatch: DatedBatch?): MarketData {
         log.trace(
             "{}/{} - unable to locate a price on {}",
-            dpAsset, asset!!.name, batchConfig!!.date
+            dpAsset, asset!!.name, datedBatch!!.date
         )
         val result = MarketData(asset)
         result.close = BigDecimal.ZERO

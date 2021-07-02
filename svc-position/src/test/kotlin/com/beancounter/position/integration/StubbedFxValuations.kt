@@ -6,6 +6,7 @@ import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
@@ -15,6 +16,8 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
+import com.beancounter.position.Constants.Companion.hundred
+import com.beancounter.position.Constants.Companion.twoK
 import com.beancounter.position.service.Accumulator
 import com.beancounter.position.service.Valuation
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -41,6 +44,9 @@ import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Optional
 
+/**
+ * Integration tests using mocked data from bc-data.
+ */
 @WebAppConfiguration
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -49,9 +55,6 @@ import java.util.Optional
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
-/**
- * Integration tests using mocked data from bc-data.
- */
 internal class StubbedFxValuations {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
@@ -85,8 +88,8 @@ internal class StubbedFxValuations {
     }
 
     private fun getPositions(asset: Asset): Positions {
-        val trn = Trn(TrnType.BUY, asset, BigDecimal(100))
-        trn.tradeAmount = BigDecimal(2000)
+        val trn = Trn(TrnType.BUY, asset, hundred)
+        trn.tradeAmount = twoK
         val portfolio = portfolioService.getPortfolioByCode("TEST")
         val positions = Positions(portfolio)
         positions.asAt = "2019-10-18"
@@ -119,7 +122,7 @@ internal class StubbedFxValuations {
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andReturn().response.contentAsString
         val fromJson = objectMapper.readValue(json, PositionResponse::class.java)
-        assertThat(fromJson).isNotNull.hasFieldOrProperty("data")
+        assertThat(fromJson).isNotNull.hasFieldOrProperty(DATA)
         val jsonPositions = fromJson.data
         assertThat(jsonPositions).isNotNull
         assertThat(jsonPositions.positions).hasSize(positions.positions.size)

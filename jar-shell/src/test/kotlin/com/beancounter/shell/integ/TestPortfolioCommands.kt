@@ -14,6 +14,8 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.key.KeyGenUtils
+import com.beancounter.shell.Constants.Companion.NZD
+import com.beancounter.shell.Constants.Companion.USD
 import com.beancounter.shell.cli.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
@@ -61,16 +63,18 @@ class TestPortfolioCommands {
             assertThat(result).isNotBlank
         }
 
+    private val pfCode = "ABC"
+
     @Test
     fun createPortfolio() {
         val owner = systemUser
-        val response = PortfoliosResponse(listOf(getPortfolio("ABC", owner)))
+        val response = PortfoliosResponse(listOf(getPortfolio(pfCode, owner)))
         Mockito.`when`(
             portfolioGw.getPortfolioByCode(
                 Mockito.anyString(),
                 Mockito.anyString()
             )
-        ).thenReturn(PortfolioResponse(getPortfolio("ABC")))
+        ).thenReturn(PortfolioResponse(getPortfolio(pfCode)))
 
         Mockito.`when`(
             portfolioGw.addPortfolios(
@@ -80,7 +84,7 @@ class TestPortfolioCommands {
         ).thenReturn(response)
 
         val result = portfolioCommands
-            .add("ABC", "ABC", "NZD", "USD")
+            .add(pfCode, pfCode, NZD.code, USD.code)
         assertThat(result).isNotNull
         val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
         assertThat(portfolio)
@@ -92,12 +96,13 @@ class TestPortfolioCommands {
     @Test
     fun is_AddPortfolioThatExists() {
         val owner = systemUser
-        val existing = getPortfolio("ZZZ", owner)
+        val code = "ZZZ"
+        val existing = getPortfolio(code, owner)
         val portfolioResponse = PortfolioResponse(existing)
         Mockito.`when`(portfolioGw.getPortfolioByCode(tokenService.bearerToken, existing.code))
             .thenReturn(portfolioResponse) // Portfolio exists
         val result = portfolioCommands
-            .add("ZZZ", "ABC", "NZD", "USD")
+            .add(code, pfCode, NZD.code, USD.code)
         assertThat(result).isNotNull
         val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
         assertThat(portfolio)

@@ -1,8 +1,9 @@
 package com.beancounter.common
 
+import com.beancounter.common.TestMarkets.Companion.USD
+import com.beancounter.common.contracts.Payload
 import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.BcJson
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test
 
 internal class TestPositionBuckets {
     private val mapper = BcJson().objectMapper
+
     @Test
     fun is_DefaultMoneyValuesSet() {
         val moneyValues = MoneyValues(USD)
@@ -26,14 +28,10 @@ internal class TestPositionBuckets {
         var json: String = mapper.writeValueAsString(positionRequest)
         assertThat(mapper.readValue(json, PositionRequest::class.java))
             .usingRecursiveComparison().isEqualTo(positionRequest)
-        val positionResponse = PositionResponse(Positions(getPortfolio("ABC")))
+        val positionResponse = PositionResponse(Positions(getPortfolio()))
         json = mapper.writeValueAsString(positionResponse)
         assertThat(mapper.readValue(json, PositionResponse::class.java))
             .isNotNull
-            .hasFieldOrProperty("data")
-    }
-
-    companion object {
-        private val USD = Currency("USD")
+            .hasFieldOrProperty(Payload.DATA)
     }
 }

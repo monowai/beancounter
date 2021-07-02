@@ -3,6 +3,7 @@ package com.beancounter.marketdata.integ
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.MarketResponse
+import com.beancounter.common.contracts.Payload
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
@@ -60,7 +61,7 @@ internal class MarketMvcTests {
             .andReturn()
         val marketResponse = objectMapper
             .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
-        Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty("data")
+        Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotEmpty
     }
 
@@ -76,7 +77,7 @@ internal class MarketMvcTests {
             .andReturn()
         val marketResponse = objectMapper
             .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
-        Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty("data")
+        Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotNull.hasSize(1)
         val nzx = marketResponse.data!!.iterator().next()
         Assertions.assertThat(nzx).hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher")

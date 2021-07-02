@@ -36,25 +36,29 @@ class TestIngestCommand {
     private var trnWriter: TrnWriter = Mockito.mock(TrnWriter::class.java)
     private val mockIngester = MockIngester()
 
+    private val pfCode = "ABC"
+
+    private val mock = "mock"
+
     @BeforeEach
     fun mockServices() {
-        Mockito.`when`(portfolioService.getPortfolioByCode("ABC"))
-            .thenReturn(getPortfolio("ABC"))
+        Mockito.`when`(portfolioService.getPortfolioByCode(pfCode))
+            .thenReturn(getPortfolio(pfCode))
         mockIngester.setPortfolioService(portfolioService)
-        Mockito.`when`(trnWriter.id()).thenReturn("mock")
+        Mockito.`when`(trnWriter.id()).thenReturn(mock)
         mockIngester.setTrnWriters(trnWriter)
     }
 
     @Test
     fun is_IngestionCommandRunning() {
-        ingestionFactory.add("MOCK", mockIngester)
+        ingestionFactory.add(mock.uppercase(), mockIngester)
         // Make sure we are not case sensitive when finding the ingestion approach to use.
         Assertions.assertThat(
             ingestionCommand.ingest(
-                "mock",
-                "mock",
-                "ABC",
-                "ABC",
+                mock,
+                mock,
+                pfCode,
+                pfCode,
             )
         )
             .isEqualTo("Done")

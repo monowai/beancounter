@@ -1,5 +1,7 @@
 package com.beancounter.client.integ
 
+import com.beancounter.client.Constants.Companion.ASX
+import com.beancounter.client.Constants.Companion.NYSE
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.client.sharesight.ShareSightFactory
@@ -41,9 +43,9 @@ internal class ShareSightAdapterTest {
 
     @Test
     fun is_ExchangeAliasReturnedInAssetCode() {
-        var expectedAsset = getAsset("NYSE", "ABBV")
+        var expectedAsset = getAsset(NYSE, "ABBV")
         verifyMarketCode("ABBV.NYSE", expectedAsset)
-        expectedAsset = getAsset("ASX", "AMP")
+        expectedAsset = getAsset(ASX, "AMP")
         verifyMarketCode("AMP.AX", expectedAsset)
     }
 
@@ -65,7 +67,7 @@ internal class ShareSightAdapterTest {
     fun is_AssetsSetIntoTransaction() {
         var row: MutableList<String> = mutableListOf()
         row.add(ShareSightTradeAdapter.id, "1")
-        row.add(ShareSightTradeAdapter.market, "ASX")
+        row.add(ShareSightTradeAdapter.market, "${ASX.code}")
         row.add(ShareSightTradeAdapter.code, "BHP")
         row.add(ShareSightTradeAdapter.name, "Test Asset")
         row.add(ShareSightTradeAdapter.type, "buy")
@@ -93,7 +95,7 @@ internal class ShareSightAdapterTest {
         row.add(ShareSightTradeAdapter.value, "2097.85")
         rows.add(row)
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
-        val portfolio = getPortfolio("TEST")
+        val portfolio = getPortfolio()
         for (columnValues in rows) {
             val trustedTrnImportRequest = TrustedTrnImportRequest(
                 portfolio, ImportFormat.SHARESIGHT,

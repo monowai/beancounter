@@ -10,10 +10,10 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.USD
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.GBP
 import com.beancounter.shell.Constants.Companion.NZD
+import com.beancounter.shell.Constants.Companion.USD
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test

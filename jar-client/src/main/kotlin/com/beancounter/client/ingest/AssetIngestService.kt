@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import org.springframework.stereotype.Service
@@ -29,8 +30,8 @@ class AssetIngestService internal constructor(
     fun resolveAsset(marketCode: String, assetCode: String, name: String? = null): Asset {
         val market = marketService.getMarket(marketCode)
         if (market.inMemory()) {
-            // Support unit testings where we don't really care about the asset
-            return getAsset("MOCK", assetCode)
+            // Support unit test where we don't really care about the asset
+            return getAsset(Market("MOCK"), assetCode)
         }
         val callerKey = toKey(assetCode, market.code)
 

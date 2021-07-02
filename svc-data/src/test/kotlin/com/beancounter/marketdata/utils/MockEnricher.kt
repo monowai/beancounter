@@ -4,6 +4,9 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetEnricher
 
+/**
+ * Test asset enricher
+ */
 class MockEnricher : AssetEnricher {
     override fun enrich(market: Market, code: String, defaultName: String?): Asset? {
         return if (code.equals("BLAH", ignoreCase = true)) {

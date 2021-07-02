@@ -22,7 +22,7 @@ internal class TestAsset {
     @Test
     fun assetKeyParses() {
         val asset = getAsset(
-            "MCODE",
+            Market("MCODE"),
             "ACODE"
         )
         val keyIn = toKey(asset)
@@ -70,20 +70,21 @@ internal class TestAsset {
     @NonNull
     private fun getAssetInput(marketCode: String, assetCode: String): AssetInput {
         return getAssetInput(
-            getAsset(marketCode, assetCode)
+            getAsset(Market(marketCode), assetCode)
         )
     }
 
     @Test
     fun assetFoundInRequest() {
-        val assetInput = AssetInput("ABC", "123")
-        val ar = AssetRequest("ABC", assetInput)
-        assertThat(ar.data).containsKey("ABC")
+        val market = Market("ABC")
+        val assetInput = AssetInput(market.code, "123")
+        val ar = AssetRequest(market.code, assetInput)
+        assertThat(ar.data).containsKey(market.code)
     }
 
     @Test
     fun defaultsFromAsset() {
-        val assetInput = AssetInput(getAsset("a", "b"))
+        val assetInput = AssetInput(getAsset(Market("a"), "b"))
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue("market", "a")
             .hasFieldOrPropertyWithValue("code", "B")
@@ -95,6 +96,6 @@ internal class TestAsset {
         if (marketAsset.size != 2) {
             throw BusinessException(String.format("Unable to parse the key %s", key))
         }
-        return getAsset(marketAsset[1], marketAsset[0])
+        return getAsset(Market(marketAsset[1]), marketAsset[0])
     }
 }

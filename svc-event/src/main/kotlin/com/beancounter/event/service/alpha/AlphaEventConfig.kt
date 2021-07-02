@@ -5,6 +5,9 @@ import com.beancounter.event.service.TaxService
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
+/**
+ * Configuration class to import necessary services.
+ */
 @Configuration
 @Import(TaxService::class, AlphaEventAdapter::class, EventBehaviourFactory::class)
 class AlphaEventConfig

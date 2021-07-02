@@ -6,6 +6,8 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants.Companion.AAPL
+import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
@@ -24,8 +26,8 @@ import java.util.Objects
 internal class TestStockSplits {
     @Test
     fun is_QuantityWorkingForSplit() {
-        val apple = getAsset("NASDAQ", "AAPL")
-        val positions = Positions(getPortfolio())
+        val apple = getAsset(NASDAQ, AAPL)
+        val positions = Positions()
         val position = positions[apple]
         assertThat(position).isNotNull
 

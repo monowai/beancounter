@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.AssetSearchResponse
+import com.beancounter.common.contracts.Payload
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.marketdata.utils.AlphaMockUtils
 import org.assertj.core.api.Assertions
@@ -36,7 +37,7 @@ internal class AlphaApiAssetTest {
         val searchResponse = assetMapper.readValue(jsonFile, AssetSearchResponse::class.java)
         Assertions.assertThat(searchResponse)
             .isNotNull
-            .hasFieldOrProperty("data")
+            .hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(searchResponse.data)
             .hasSize(1)
         Assertions.assertThat(searchResponse.data.iterator().next())

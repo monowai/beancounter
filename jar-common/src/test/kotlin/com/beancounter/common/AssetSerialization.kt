@@ -7,8 +7,10 @@ import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.utils.AssetKeyUtils
+import com.beancounter.common.model.Market
+import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.BcJson
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.assertj.core.api.Assertions.assertThat
@@ -19,24 +21,25 @@ import org.junit.jupiter.api.Test
  */
 class AssetSerialization {
     val objectMapper = BcJson().objectMapper
+
     @Test
     @Throws(Exception::class)
     fun assetUpdateResponseSerializes() {
-        val asset = AssetUtils.getJsonAsset("BBB", "AAA")
+        val asset = getJsonAsset("BBB", "AAA")
         val assetMap = HashMap<String, Asset>()
-        assetMap[AssetKeyUtils.toKey(asset)] = asset
-        assetMap["second"] = AssetUtils.getJsonAsset("Whee", "Twee")
+        assetMap[toKey(asset)] = asset
+        assetMap["second"] = getJsonAsset("Whee", "Twee")
         val assetUpdateResponse = AssetUpdateResponse(assetMap)
-        assertThat(assetUpdateResponse.data).containsKeys(AssetKeyUtils.toKey(asset))
+        assertThat(assetUpdateResponse.data).containsKeys(toKey(asset))
         val json = objectMapper.writeValueAsString(assetUpdateResponse)
         val fromJson = objectMapper.readValue(json, AssetUpdateResponse::class.java)
-        assertThat(fromJson.data).containsKeys(AssetKeyUtils.toKey(asset))
+        assertThat(fromJson.data).containsKeys(toKey(asset))
     }
 
     @Test
     @Throws(Exception::class)
     fun assetResponseSerializes() {
-        val assetResponse = AssetResponse(AssetUtils.getAsset("as", "Blah"))
+        val assetResponse = AssetResponse(AssetUtils.getAsset(Market("XXX"), "YYY"))
         assetResponse.data.marketCode = null // JsonIgnore
         val json = objectMapper.writeValueAsString(assetResponse)
         val fromJson = objectMapper.readValue(json, AssetResponse::class.java)
@@ -78,13 +81,13 @@ class AssetSerialization {
     @Test
     @Throws(Exception::class)
     fun assetRequestSerializes() {
-        val asset = AssetUtils.getJsonAsset("BBB", "AAA")
+        val asset = getJsonAsset("BBB", "AAA")
         val values = HashMap<String, AssetInput>()
-        values[AssetKeyUtils.toKey(asset)] = AssetUtils.getAssetInput("BBB", "AAA")
+        values[toKey(asset)] = AssetUtils.getAssetInput("BBB", "AAA")
         values["second"] = AssetUtils.getAssetInput("Whee", "Twee")
         val assetRequest = AssetRequest(values)
         assertThat(assetRequest.data)
-            .containsKeys(AssetKeyUtils.toKey(asset))
+            .containsKeys(toKey(asset))
         val json = objectMapper.writeValueAsString(assetRequest)
         val (data) = objectMapper.readValue(json, AssetRequest::class.java)
         assertThat(data).hasSize(assetRequest.data.size)
@@ -96,7 +99,7 @@ class AssetSerialization {
 
     @Test
     fun dataProviderAsset() {
-        val asset = AssetUtils.getAsset("1", "2")
+        val asset = AssetUtils.getAsset(Market("1"), "2")
         val assetInput = AssetInput(market = "amarket", code = "acode", asset)
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue("market", "amarket")

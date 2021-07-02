@@ -4,6 +4,7 @@ import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
+import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PriceRequest.Companion.of
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
@@ -374,7 +375,7 @@ internal class AlphaVantageApiTest {
         if (priceResult.isPresent) {
             val priceRequest = of(asset)
             val priceResponse = marketDataService.getPriceResponse(priceRequest)
-            assertThat(priceResponse).isNotNull.hasFieldOrProperty("data")
+            assertThat(priceResponse).isNotNull.hasFieldOrProperty(DATA)
             val price = priceResponse.data.iterator().next()
             assertThat(price).hasFieldOrProperty(priceDateProp)
         }

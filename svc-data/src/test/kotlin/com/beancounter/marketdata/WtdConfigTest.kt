@@ -1,5 +1,6 @@
 package com.beancounter.marketdata
 
+import com.beancounter.common.contracts.Payload
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
@@ -41,7 +42,7 @@ class WtdConfigTest {
                 DateUtils()
                     .getDateString(compareTo.toLocalDate())
             )
-            .hasFieldOrProperty("data")
+            .hasFieldOrProperty(Payload.DATA)
     }
 
     @Test

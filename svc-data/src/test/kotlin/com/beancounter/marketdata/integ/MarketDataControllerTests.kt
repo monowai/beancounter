@@ -9,7 +9,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
-import com.beancounter.marketdata.MarketDataProviderTests.Companion.mockCode
+import com.beancounter.marketdata.Constants.Companion.MOCK
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.mock.MockProviderService
@@ -133,11 +133,11 @@ internal class MarketDataControllerTests @Autowired private constructor(
         Exception::class
     )
     fun is_MdCollectionReturnedForAssets() {
-        Mockito.`when`(assetService.findLocally(mockCode, assetCode))
-            .thenReturn(getAsset(mockCode, assetCode))
+        Mockito.`when`(assetService.findLocally(MOCK.code, assetCode))
+            .thenReturn(getAsset(MOCK, assetCode))
         val assetInputs: MutableCollection<AssetInput> = ArrayList()
         assetInputs.add(
-            getAssetInput(mockCode, assetCode)
+            getAssetInput(MOCK.code, assetCode)
         )
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/prices")

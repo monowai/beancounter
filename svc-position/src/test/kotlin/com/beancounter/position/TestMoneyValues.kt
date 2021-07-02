@@ -8,6 +8,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.fourK
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.ten
@@ -27,15 +28,14 @@ import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-@SpringBootTest(classes = [Accumulator::class])
 /**
  * assert money values functionality.
  */
+@SpringBootTest(classes = [Accumulator::class])
 internal class TestMoneyValues {
-    private val nyse = "NYSE"
-    private val microsoft = getAsset(nyse, "MSFT")
-    private val intel = getAsset(nyse, "INTC")
-    private val bidu = getAsset(nyse, "BIDU")
+    private val microsoft = getAsset(NASDAQ, "MSFT")
+    private val intel = getAsset(NASDAQ, "INTC")
+    private val bidu = getAsset(NASDAQ, "BIDU")
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
@@ -58,11 +58,11 @@ internal class TestMoneyValues {
         buyTrn.tradeCashRate = ten
         buyTrn.tradePortfolioRate = tradePortfolioRate
         val buyBehaviour = BuyBehaviour()
-        val positions = Positions(getPortfolio("TEST"))
+        val positions = Positions()
         val position = positions[microsoft]
         buyBehaviour.accumulate(buyTrn, positions.portfolio, position)
         assertThat(position.quantityValues.getTotal())
-            .isEqualTo(BigDecimal("100"))
+            .isEqualTo(hundred)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency).purchases)
             .isEqualTo(twoK)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency).costBasis)
@@ -84,7 +84,7 @@ internal class TestMoneyValues {
         val dividendBehaviour = DividendBehaviour()
         dividendBehaviour.accumulate(diviTrn, positions.portfolio, position)
         assertThat(position.quantityValues.getTotal())
-            .isEqualTo(BigDecimal("100"))
+            .isEqualTo(hundred)
         val dividends = "dividends"
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(dividends, ten)
@@ -142,14 +142,13 @@ internal class TestMoneyValues {
 
     @Test
     fun is_QuantityAndMarketValueCalculated() {
-        val positions = Positions(getPortfolio("TEST"))
+        val positions = Positions()
         var position = positions[microsoft]
         assertThat(position)
             .isNotNull
         val buy = Trn(TrnType.BUY, microsoft, hundred)
-        buy.tradeAmount = BigDecimal(2000)
-        val portfolio = getPortfolio("is_QuantityAndMarketValueCalculated")
-        position = accumulator.accumulate(buy, portfolio, position)
+        buy.tradeAmount = twoK
+        position = accumulator.accumulate(buy, getPortfolio(), position)
         positions.add(position)
         position = positions[microsoft]
         assertThat(position.quantityValues)
@@ -159,7 +158,7 @@ internal class TestMoneyValues {
 
     @Test
     fun is_RealisedGainCalculated() {
-        val positions = Positions(getPortfolio("is_RealisedGainCalculated"))
+        val positions = Positions()
         var position = positions[microsoft]
         assertThat(position)
             .isNotNull
@@ -182,19 +181,18 @@ internal class TestMoneyValues {
 
     @Test
     fun is_RealisedGainWithSignedQuantitiesCalculated() {
-        val portfolio = getPortfolio("is_RealisedGainWithSignedQuantitiesCalculated")
-        val positions = Positions(portfolio)
+        val positions = Positions()
         var position = positions[bidu]
         assertThat(position)
             .isNotNull
         var buy = Trn(TrnType.BUY, bidu, BigDecimal(8))
         buy.tradeAmount = BigDecimal("1695.02")
-        position = accumulator.accumulate(buy, portfolio, position)
+        position = accumulator.accumulate(buy, positions.portfolio, position)
         positions.add(position)
         position = positions[bidu]
         buy = Trn(TrnType.BUY, bidu, BigDecimal(2))
         buy.tradeAmount = BigDecimal("405.21")
-        position = accumulator.accumulate(buy, portfolio, position)
+        position = accumulator.accumulate(buy, positions.portfolio, position)
         val tradeMoney = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
         assertThat(
             position.quantityValues.getTotal().multiply(tradeMoney.averageCost)
@@ -204,7 +202,7 @@ internal class TestMoneyValues {
         var sell = Trn(TrnType.SELL, bidu, BigDecimal(-3))
         val tradeAmount = BigDecimal("841.63")
         sell.tradeAmount = tradeAmount
-        position = accumulator.accumulate(sell, portfolio, position)
+        position = accumulator.accumulate(sell, positions.portfolio, position)
         assertThat(
             position.quantityValues.getTotal()
                 .multiply(tradeMoney.averageCost).setScale(2, RoundingMode.HALF_UP)
@@ -216,7 +214,7 @@ internal class TestMoneyValues {
             .hasFieldOrPropertyWithValue("realisedGain", BigDecimal("211.56"))
         sell = Trn(TrnType.SELL, bidu, BigDecimal(-7))
         sell.tradeAmount = BigDecimal("1871.01")
-        position = accumulator.accumulate(sell, portfolio, position)
+        position = accumulator.accumulate(sell, positions.portfolio, position)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("sales", BigDecimal("2712.64"))
@@ -226,7 +224,7 @@ internal class TestMoneyValues {
 
     @Test
     fun is_RealisedGainAfterSellingToZeroCalculated() {
-        val positions = Positions(getPortfolio("is_RealisedGainAfterSellingToZeroCalculated"))
+        val positions = Positions()
         var position = positions[microsoft]
         assertThat(position)
             .isNotNull
@@ -266,7 +264,7 @@ internal class TestMoneyValues {
 
     @Test
     fun is_RealisedGainAfterReenteringAPositionCalculated() {
-        val positions = Positions(getPortfolio("is_RealisedGainAfterReenteringAPositionCalculated"))
+        val positions = Positions()
         var position = positions[intel]
         assertThat(position)
             .isNotNull

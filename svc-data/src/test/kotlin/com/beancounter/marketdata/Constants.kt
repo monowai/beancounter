@@ -15,13 +15,14 @@ class Constants {
         val USD = Currency(usdValue)
         val NASDAQ = Market("NASDAQ")
         val NYSE = Market("NYSE")
+        val ASX = Market("ASX")
+        val MOCK = Market("MOCK")
 
         val AAPL = getAsset(NASDAQ, "AAPL")
         val MSFT = getAsset(NASDAQ, "MSFT")
-        val AMP = getAsset("ASX", "AMP")
+        val AMP = getAsset(ASX, "AMP")
         val SGD = Currency("SGD")
         val AUD = Currency("AUD")
-        val ASX = Market("ASX", AUD)
         val GBP = Currency(code = "GBP", symbol = "￡")
 
         val EUR = Currency("EUR", symbol = "€")

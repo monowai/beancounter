@@ -1,5 +1,7 @@
 package com.beancounter.client
 
+import com.beancounter.client.Constants.Companion.NYSE
+import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.TrnAdapter
 import com.beancounter.client.sharesight.ShareSightConfig
@@ -46,7 +48,7 @@ class TestAdapters {
         row.add(ShareSightDividendAdapter.name, "name")
         row.add(ShareSightDividendAdapter.date, "date")
         row.add(ShareSightDividendAdapter.fxRate, "A.B")
-        val request = TrustedTrnImportRequest(getPortfolio("TEST"), row, ImportFormat.SHARESIGHT)
+        val request = TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT)
         val dividendAdapter: TrnAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService)
         Assertions.assertThrows(BusinessException::class.java) { dividendAdapter.from(request) }
     }
@@ -56,7 +58,7 @@ class TestAdapters {
         val row: List<String> = arrayListOf("", "", "", "null", "")
 
         val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio = getPortfolio("TEST"),
+            portfolio = getPortfolio(),
             row = row,
             ImportFormat.SHARESIGHT
         )
@@ -74,7 +76,7 @@ class TestAdapters {
     fun is_BlankTrnTypeCorrect() {
         val row: List<String> = arrayListOf("", "", "", "", "")
         val trustedTrnImportRequest = TrustedTrnImportRequest(
-            getPortfolio("TEST"),
+            getPortfolio(),
             row, ImportFormat.SHARESIGHT
         )
         val tradeAdapter = ShareSightTradeAdapter(
@@ -118,7 +120,7 @@ class TestAdapters {
         row.add(ShareSightTradeAdapter.quantity, "10")
         row.add(ShareSightTradeAdapter.price, "10.0")
         row.add(ShareSightTradeAdapter.brokerage, "5.0")
-        row.add(ShareSightTradeAdapter.currency, "USD")
+        row.add(ShareSightTradeAdapter.currency, USD.code)
         row.add(ShareSightTradeAdapter.fxRate, "null")
         row.add(ShareSightTradeAdapter.value, "null")
         val shareSightTradeAdapter = ShareSightTradeAdapter(
@@ -127,10 +129,10 @@ class TestAdapters {
             dateUtils,
             tradeCalculator
         )
-        Mockito.`when`(assetIngestService.resolveAsset("NYSE", "ABC"))
-            .thenReturn(getAsset("NYSE", "ABC"))
+        Mockito.`when`(assetIngestService.resolveAsset(NYSE.code, "ABC"))
+            .thenReturn(getAsset(NYSE, "ABC"))
         val result = shareSightTradeAdapter.from(
-            TrustedTrnImportRequest(getPortfolio("TEST"), row, ImportFormat.SHARESIGHT)
+            TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT)
         )
         org.assertj.core.api.Assertions.assertThat(result)
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("105.00"))

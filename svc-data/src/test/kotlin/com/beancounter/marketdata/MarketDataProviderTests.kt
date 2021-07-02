@@ -27,10 +27,6 @@ import org.springframework.test.context.ActiveProfiles
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("test")
 class MarketDataProviderTests @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
-    companion object {
-        @JvmStatic
-        val mockCode = "MOCK"
-    }
     @Test
     fun is_DefaultMarketProvidersSet() {
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(WtdService.ID)).isNotNull

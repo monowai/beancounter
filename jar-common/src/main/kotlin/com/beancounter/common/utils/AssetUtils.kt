@@ -16,26 +16,17 @@ class AssetUtils private constructor() {
 
     companion object {
         private val objectMapper = BcJson().objectMapper
-        val USD = Currency("USD")
+        private val USD = Currency("USD")
 
+        /**
+         * Helper to create a Market with a USD currency.
+         *
+         * @param code isoCode
+         * @return Market.
+         */
         @JvmStatic
         fun getMarket(code: String): Market {
             return Market(code, USD)
-        }
-
-        /**
-         * Helper to create a simple Asset with a USD currency.
-         *
-         * @param marketCode marketCode
-         * @param assetCode  assetCode
-         * @return simple Asset.
-         */
-        @JvmStatic
-        fun getAsset(marketCode: String, assetCode: String): Asset {
-            val market = Market(marketCode, USD)
-            val asset = getAsset(market, assetCode)
-            asset.marketCode = null
-            return asset
         }
 
         /**
@@ -47,13 +38,7 @@ class AssetUtils private constructor() {
          */
         @JvmStatic
         fun getAsset(market: Market, assetCode: String): Asset {
-            val asset = Asset(assetCode)
-            asset.id = assetCode
-            asset.market = market
-            asset.name = assetCode
-            // asset.marketCode = market.code.toUpperCase()
-            asset.marketCode = null
-            return asset
+            return Asset(id = assetCode, code = assetCode, name = assetCode, market = market)
         }
 
         @JvmStatic
@@ -78,7 +63,7 @@ class AssetUtils private constructor() {
         @JvmStatic
         @Throws(JsonProcessingException::class)
         fun getJsonAsset(market: String, code: String): Asset {
-            val asset = getAsset(market, code)
+            val asset = getAsset(Market(market), code)
             return objectMapper.readValue(objectMapper.writeValueAsString(asset), Asset::class.java)
         }
 

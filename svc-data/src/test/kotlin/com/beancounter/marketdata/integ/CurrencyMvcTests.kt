@@ -3,6 +3,7 @@ package com.beancounter.marketdata.integ
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.CurrencyResponse
+import com.beancounter.common.contracts.Payload
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import org.assertj.core.api.Assertions
@@ -53,7 +54,7 @@ internal class CurrencyMvcTests {
             .andReturn()
         val currencyResponse = objectMapper
             .readValue(mvcResult.response.contentAsString, CurrencyResponse::class.java)
-        Assertions.assertThat(currencyResponse).isNotNull.hasFieldOrProperty("data")
+        Assertions.assertThat(currencyResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(currencyResponse.data).isNotEmpty
     }
 }

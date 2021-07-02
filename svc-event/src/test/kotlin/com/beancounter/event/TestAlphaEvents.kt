@@ -6,10 +6,10 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.USD
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.event.Constants.Companion.USD
 import com.beancounter.event.Constants.Companion.kmi
 import com.beancounter.event.service.EventBehaviourFactory
 import com.beancounter.event.service.alpha.AlphaEventAdapter
@@ -48,7 +48,7 @@ class TestAlphaEvents {
             asset.id,
             BigDecimal("0.2625")
         )
-        val portfolio = getPortfolio("TEST", USD)
+        val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull
         assertThat(trnEvent?.portfolio).isNotNull
@@ -79,7 +79,7 @@ class TestAlphaEvents {
             BigDecimal("0.2625")
         )
         val behaviourFactory = EventBehaviourFactory()
-        val portfolio = getPortfolio("TEST", USD)
+        val portfolio = getPortfolio()
         assertThat(
             behaviourFactory
                 .getAdapter(event)

@@ -1,6 +1,7 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
+import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDate
 import java.util.EnumMap
@@ -13,7 +14,7 @@ import java.util.TreeMap
  * @since 2019-02-07
  */
 class Positions(
-    val portfolio: Portfolio,
+    val portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     var asAt: String = "today",
     val positions: MutableMap<String, Position> = TreeMap(),
     val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java)

@@ -8,7 +8,7 @@ import com.beancounter.common.utils.DateUtils
 
 /**
  * MarketDataProviders have different ways to provide keys. THis helps us track our
- * internal view of an Asset and match it to the dataproviders ID that is returned in a response.
+ * internal view of an Asset and match it to the data providers ID that is returned in a response.
  *
  * @author mikeh
  * @since 2019-03-12
@@ -18,7 +18,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
     private var currentBatch = 0
     var date: String? = null
     private var delimiter = ","
-    private var batchConfigs: MutableMap<Int, BatchConfig?> = HashMap()
+    private var datedBatches: MutableMap<Int, DatedBatch> = HashMap()
     private var dpToBc: MutableMap<String, Asset> = HashMap()
 
     /**
@@ -32,6 +32,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
 
     /**
      * Tracks and batches the asset for the DataProvider.
+     * Requests are grouped into the valuation date.
      *
      * @param asset BeanCounter Asset
      */
@@ -41,12 +42,12 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
             dataProviderConfig.getMarketDate(asset.market, requestedDate)
         )
         dpToBc[dpKey] = asset
-        var batchConfig = batchConfigs[currentBatch]
-        if (batchConfig == null) {
-            batchConfig = BatchConfig(currentBatch, valuationDate)
-            batchConfigs[currentBatch] = batchConfig
+        var datedBatch = datedBatches[currentBatch]
+        if (datedBatch == null) {
+            datedBatch = DatedBatch(currentBatch, valuationDate)
+            datedBatches[currentBatch] = datedBatch
         }
-        var searchKey = batch[batchConfig.batch]
+        var searchKey = batch[datedBatch.batchId]
         searchKey = if (searchKey == null) {
             dpKey
         } else {
@@ -64,8 +65,8 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
         return batch[batchId]!!.split(delimiter).toTypedArray()
     }
 
-    fun getBatchConfigs(): Map<Int, BatchConfig?> {
-        return batchConfigs
+    fun getBatchConfigs(): Map<Int, DatedBatch?> {
+        return datedBatches
     }
 
     fun getDpToBc(): Map<String, Asset> {

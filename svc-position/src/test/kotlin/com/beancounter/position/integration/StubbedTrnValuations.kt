@@ -9,6 +9,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.KMI
+import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.USD
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -119,7 +120,7 @@ internal class StubbedTrnValuations {
             .isNotNull
             .hasFieldOrPropertyWithValue(code, portfolio.code)
         assertThat(positionResponse.data.asAt).isEqualTo(date)
-        assertThat(positionResponse.data[getAsset("NASDAQ", "AAPL")])
+        assertThat(positionResponse.data[getAsset(NASDAQ, "AAPL")])
             .isNotNull
     }
 

@@ -18,6 +18,8 @@ import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants.Companion.NASDAQ
+import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.accumulation.AccumulationStrategy
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
@@ -42,18 +44,16 @@ internal class TestMarketValuesWithFx {
 
     private val usd = Currency("USD")
 
-    private val hundred = BigDecimal(100)
-
     @Test
     fun is_MarketValue() {
-        val asset = getAsset("Test", "ABC")
+        val asset = getAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
         val buyTrn = Trn(TrnType.BUY, asset, hundred)
         buyTrn.tradeAmount = BigDecimal("2000.00")
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         val position = Position(asset)
-        val portfolio = getPortfolio("MV")
+        val portfolio = getPortfolio()
         buyBehaviour.accumulate(buyTrn, portfolio, position)
         val positions = Positions(portfolio)
         positions.add(position)
@@ -105,8 +105,8 @@ internal class TestMarketValuesWithFx {
 
     @Test
     fun is_GainsOnSell() {
-        val portfolio = getPortfolio("MV")
-        val asset = getAsset("Test", "ABC")
+        val portfolio = getPortfolio()
+        val asset = getAsset(NASDAQ, "ABC")
         val fxRateMap: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val simpleRate = BigDecimal("0.20")
         val pair = toPair(
@@ -169,7 +169,7 @@ internal class TestMarketValuesWithFx {
 
     @Test
     fun is_MarketValueWithNoPriceComputed() {
-        val asset = getAsset("Test", "ABC")
+        val asset = getAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
         val buyTrn = Trn(TrnType.BUY, asset, hundred)
         buyTrn.tradeAmount = BigDecimal("2000.00")
@@ -177,7 +177,7 @@ internal class TestMarketValuesWithFx {
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         val position = Position(asset)
-        val portfolio = getPortfolio("MV")
+        val portfolio = getPortfolio()
         buyBehaviour.accumulate(buyTrn, portfolio, position)
         val positions = Positions(portfolio)
         positions.add(position)

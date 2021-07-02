@@ -12,6 +12,7 @@ import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolioInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.Locale
 
 /**
  * Portfolio Pojo Tests.
@@ -30,7 +31,7 @@ class TestPortfolio {
         assertThat(objectMapper.readValue(json, PortfoliosRequest::class.java))
             .usingRecursiveComparison().isEqualTo(portfoliosRequest)
         val portfolios: MutableCollection<Portfolio> = ArrayList()
-        portfolios.add(getPortfolio("TEST"))
+        portfolios.add(getPortfolio(portfolioInput.code.uppercase(Locale.getDefault())))
         val portfoliosResponse = PortfoliosResponse(portfolios)
         json = objectMapper.writeValueAsString(portfoliosResponse)
         val fromJson = objectMapper.readValue(json, PortfoliosResponse::class.java).data
@@ -41,7 +42,7 @@ class TestPortfolio {
 
     @Test
     fun is_PortfolioResponseSerializing() {
-        val portfolioResponse = PortfolioResponse(getPortfolio("TEST"))
+        val portfolioResponse = PortfolioResponse(getPortfolio())
         val json = objectMapper.writeValueAsString(portfolioResponse)
         assertThat(objectMapper.readValue(json, PortfolioResponse::class.java).data)
             .usingRecursiveComparison().isEqualTo(portfolioResponse.data)
@@ -51,7 +52,7 @@ class TestPortfolio {
     fun is_PortfoliosResponseSerializing() {
 
         val portfolios = ArrayList<Portfolio>()
-        val portfolio = getPortfolio("TEST")
+        val portfolio = getPortfolio()
         portfolio.owner = SystemUser(
             "id",
             "email",

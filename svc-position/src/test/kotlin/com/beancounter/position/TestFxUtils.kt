@@ -8,6 +8,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.position.Constants.Companion.GBP
+import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
@@ -23,7 +24,7 @@ internal class TestFxUtils {
 
     @Test
     fun is_CurrencyPairResultsAsExpected() {
-        val (asset) = Position(getAsset(USD.code, "Test"))
+        val (asset) = Position(getAsset(NASDAQ, "Test"))
         val validCurrency = asset.market.currency
         assertThat(toPair(NZD, validCurrency))
             .isNotNull // From != To

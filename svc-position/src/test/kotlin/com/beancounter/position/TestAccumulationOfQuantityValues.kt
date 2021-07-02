@@ -1,5 +1,6 @@
 package com.beancounter.position
 
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
@@ -43,7 +44,7 @@ internal class TestAccumulationOfQuantityValues {
 
     @Test
     fun is_TotalQuantityCorrect() {
-        val buyTrn = Trn(TrnType.BUY, getAsset("marketCode", "CODE"), hundred)
+        val buyTrn = Trn(TrnType.BUY, getAsset(Market("marketCode"), "CODE"), hundred)
         buyTrn.tradeAmount = BigDecimal(2000)
         var position = Position(buyTrn.asset)
         assertThat(position.quantityValues)

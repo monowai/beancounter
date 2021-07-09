@@ -8,6 +8,7 @@ import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.integration.EventPublisher
 import com.beancounter.key.KeyGenUtils
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -35,6 +36,7 @@ class EventService(
     }
 
     fun processMessage(event: CorporateEvent): Collection<TrustedTrnEvent> {
+        log.info("processEvent: asset: {} recordDate: {}", event.assetId, event.recordDate)
         val results: MutableCollection<TrustedTrnEvent> = ArrayList()
         val response = positionService.findWhereHeld(
             event.assetId,
@@ -46,6 +48,7 @@ class EventService(
             if (trnEvent != null) {
                 trnEvent.trnInput
                 if (eventPublisher != null) {
+                    log.info("Publish code: {}, tradeDate: {}", trnEvent.portfolio.code, trnEvent.trnInput.tradeDate)
                     eventPublisher!!.send(trnEvent)
                 }
                 results.add(trnEvent)
@@ -72,7 +75,15 @@ class EventService(
             event.split,
             event.payDate
         )
-        return eventRepository.save(save)
+
+        val corporateEvent = eventRepository.save(save)
+        log.info(
+            "Recorded event: {}, assetId: {}, payDate: {}",
+            corporateEvent.id,
+            corporateEvent.assetId,
+            corporateEvent.payDate
+        )
+        return corporateEvent
     }
 
     operator fun get(id: String): CorporateEventResponse {
@@ -105,5 +116,9 @@ class EventService(
     fun getScheduledEvents(start: LocalDate): CorporateEventResponses {
         val events = eventRepository.findByStartDate(start)
         return CorporateEventResponses(events)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(EventService::class.java)
     }
 }

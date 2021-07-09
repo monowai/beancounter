@@ -60,7 +60,8 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
             if (isCurrent(priceRequest.date)) {
                 requests[batchId] = alphaProxyCache.getCurrent(
                     providerArguments.batch[batchId],
-                    priceRequest.date, apiKey
+                    priceRequest.date,
+                    apiKey
                 )
             } else {
                 requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId], date, apiKey)

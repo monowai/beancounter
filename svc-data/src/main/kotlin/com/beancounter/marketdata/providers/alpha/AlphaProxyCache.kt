@@ -26,7 +26,7 @@ class AlphaProxyCache {
     @Async("priceExecutor")
     fun getCurrent(
         code: String?,
-        date: String?,
+        date: String,
         apiKey: String
     ): Future<String?> {
         return if (code == null) {

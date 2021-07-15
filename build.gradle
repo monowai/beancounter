@@ -11,7 +11,7 @@ buildscript {
         jacksonVersion = '2.12.4'
         resilience4jVersion='1.7.1'
         assertJ='3.20+'
-        kotlinVersion='1.5.20'
+        kotlinVersion='1.5.21'
         jacocoVersion='0.8.7'
         guavaVersion='30.1.1-android'
     }

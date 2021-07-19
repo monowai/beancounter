@@ -16,7 +16,7 @@ dependencies() {
             "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
             "org.springframework:spring-web:$springWebVersion",
             "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion",
-            "io.github.openfeign:feign-core:11.2",
+            "io.github.openfeign:feign-core:11.4",
             "org.springframework.kafka:spring-kafka:$springKafka",
             "com.google.guava:guava:$guavaVersion"
     )
@@ -34,7 +34,7 @@ dependencies() {
             "org.springframework.kafka:spring-kafka:$springKafka",
             "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
             "org.assertj:assertj-core:$assertJ",
-            "io.github.openfeign:feign-core:11.2",
+            "io.github.openfeign:feign-core:11.4",
             "org.springframework:spring-web:$springWebVersion",
             "org.junit.jupiter:junit-jupiter:5+",
             "com.google.guava:guava:$guavaVersion"

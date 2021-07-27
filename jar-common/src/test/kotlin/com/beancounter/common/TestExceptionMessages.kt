@@ -27,7 +27,6 @@ internal class TestExceptionMessages {
     @Throws(Exception::class)
     fun is_SpringErrorSerializable() {
         val springExceptionMessage = SpringExceptionMessage(
-            status = 418,
             error = "I'm a teapot",
             message = "Message",
             path = testUri

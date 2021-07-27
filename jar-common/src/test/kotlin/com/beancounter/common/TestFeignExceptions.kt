@@ -120,7 +120,6 @@ class TestFeignExceptions {
     fun is_ServiceIntegrationErrorDecoded() {
         val springFeignDecoder = SpringFeignDecoder()
         val springExceptionMessage = SpringExceptionMessage(
-            status = 500,
             error = "",
             message = integrationErrorMsg,
             path = ""

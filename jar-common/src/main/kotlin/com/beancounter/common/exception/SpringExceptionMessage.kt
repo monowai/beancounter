@@ -10,7 +10,6 @@ import java.util.Date
  */
 data class SpringExceptionMessage(
     val timestamp: Date = Date(),
-    val status: Int,
     val error: String?,
     val message: String?,
     val path: String?,

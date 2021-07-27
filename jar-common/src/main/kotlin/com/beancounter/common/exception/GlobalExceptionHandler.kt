@@ -13,10 +13,10 @@ import org.springframework.web.client.ResourceAccessException
 import java.net.ConnectException
 import javax.servlet.http.HttpServletRequest
 
-@ControllerAdvice
 /**
  * When an exception is thrown, it is intercepted by this class and a JSON friendly response is returned.
  */
+@ControllerAdvice
 class GlobalExceptionHandler {
     companion object {
         private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
@@ -27,7 +27,6 @@ class GlobalExceptionHandler {
     @ResponseBody
     fun handleSystemException(request: HttpServletRequest, e: Throwable): SpringExceptionMessage {
         val error = SpringExceptionMessage(
-            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = "Unable to contact dependent system.",
             message = e.message,
             path = request.requestURI
@@ -36,39 +35,32 @@ class GlobalExceptionHandler {
         return error
     }
 
+    private val errorMessage = "We are unable to process your request."
+
     @ExceptionHandler(BusinessException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    fun handleBusinessException(request: HttpServletRequest, e: BusinessException): SpringExceptionMessage {
-        return SpringExceptionMessage(
-            status = HttpStatus.BAD_REQUEST.value(),
-            error = "We are unable to process your request.",
-            message = e.message,
-            path = request.requestURI
-        )
-    }
+    fun handleBusinessException(request: HttpServletRequest, e: BusinessException) = SpringExceptionMessage(
+        error = errorMessage,
+        message = e.message,
+        path = request.requestURI
+    )
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    fun handleBadRequest(request: HttpServletRequest): SpringExceptionMessage {
-        return SpringExceptionMessage(
-            status = HttpStatus.BAD_REQUEST.value(),
-            error = "We are unable to process your request.",
-            message = "Message not readable",
-            path = request.requestURI
-        )
-    }
+    fun handleBadRequest(request: HttpServletRequest) = SpringExceptionMessage(
+        error = errorMessage,
+        message = "Message not readable",
+        path = request.requestURI
+    )
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
-    fun handleIntegrity(request: HttpServletRequest, e: Throwable): SpringExceptionMessage {
-        return SpringExceptionMessage(
-            status = HttpStatus.CONFLICT.value(),
-            error = "Request rejected",
-            message = "Data integrity violation",
-            path = request.requestURI
-        )
-    }
+    fun handleIntegrity(request: HttpServletRequest, e: Throwable) = SpringExceptionMessage(
+        error = "Not processed",
+        message = "Data integrity violation",
+        path = request.requestURI
+    )
 }

@@ -22,7 +22,6 @@ class AlphaProxyCache {
         this.alphaProxy = alphaProxy
     }
 
-    @Cacheable("asset.prices")
     @Async("priceExecutor")
     fun getCurrent(
         code: String?,

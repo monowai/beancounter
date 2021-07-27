@@ -16,7 +16,7 @@ import com.beancounter.common.utils.DateUtils
 class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
     private var count = 0
     private var currentBatch = 0
-    var date: String? = null
+    var date: String = "today"
     private var delimiter = ","
     private var datedBatches: MutableMap<Int, DatedBatch> = HashMap()
     private var dpToBc: MutableMap<String, Asset> = HashMap()

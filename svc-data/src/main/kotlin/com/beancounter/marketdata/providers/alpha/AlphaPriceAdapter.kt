@@ -117,8 +117,6 @@ class AlphaPriceAdapter : MarketDataAdapter {
 
         if (date == null) {
             date = providerArguments.date
-            if (date == null)
-                date = dateUtils.today()
         }
         val priceDate = dateUtils.getDate(date)
 

@@ -46,15 +46,12 @@ import java.util.Locale
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureWireMock(port = 0)
-internal class AssetControllerTest {
+internal class AssetControllerTest(
+    @Autowired var context: WebApplicationContext,
+    @Autowired var enrichmentFactory: EnrichmentFactory
+) {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
-
-    @Autowired
-    private lateinit var context: WebApplicationContext
-
-    @Autowired
-    private lateinit var enrichmentFactory: EnrichmentFactory
 
     private lateinit var mockMvc: MockMvc
     private lateinit var token: Jwt

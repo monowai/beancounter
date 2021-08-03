@@ -25,15 +25,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ConnectException::class, ResourceAccessException::class, FeignException::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
-    fun handleSystemException(request: HttpServletRequest, e: Throwable): SpringExceptionMessage {
-        val error = SpringExceptionMessage(
+    fun handleSystemException(request: HttpServletRequest, e: Throwable): SpringExceptionMessage =
+        SpringExceptionMessage(
             error = "Unable to contact dependent system.",
             message = e.message,
             path = request.requestURI
-        )
-        log.error(e.message)
-        return error
-    }
+        ).also { log.error(e.message) }
 
     private val errorMessage = "We are unable to process your request."
 

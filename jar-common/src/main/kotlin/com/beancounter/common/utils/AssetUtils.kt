@@ -25,9 +25,7 @@ class AssetUtils private constructor() {
          * @return Market.
          */
         @JvmStatic
-        fun getMarket(code: String): Market {
-            return Market(code, USD)
-        }
+        fun getMarket(code: String) = Market(code, USD)
 
         /**
          * Asset on a market.
@@ -37,9 +35,8 @@ class AssetUtils private constructor() {
          * @return asset on a market
          */
         @JvmStatic
-        fun getAsset(market: Market, assetCode: String): Asset {
-            return Asset(id = assetCode, code = assetCode, name = assetCode, market = market)
-        }
+        fun getAsset(market: Market, assetCode: String) =
+            Asset(id = assetCode, code = assetCode, name = assetCode, market = market)
 
         @JvmStatic
         fun split(assets: Collection<AssetInput>): Map<String, MutableCollection<AssetInput>> {
@@ -68,14 +65,11 @@ class AssetUtils private constructor() {
         }
 
         @JvmStatic
-        fun getAssetInput(market: String, code: String): AssetInput {
-            return AssetInput(market, code, name = code)
-        }
+        fun getAssetInput(market: String, code: String) = AssetInput(market, code, name = code)
 
         @JvmStatic
-        fun getAssetInput(asset: Asset): AssetInput {
-            return AssetInput(market = asset.market.code, code = asset.code, name = asset.code, resolvedAsset = asset)
-        }
+        fun getAssetInput(asset: Asset) =
+            AssetInput(market = asset.market.code, code = asset.code, name = asset.code, resolvedAsset = asset)
     }
 
     init {

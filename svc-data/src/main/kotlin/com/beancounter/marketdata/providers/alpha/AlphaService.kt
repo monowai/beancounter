@@ -43,21 +43,18 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
     }
 
     @PostConstruct
-    fun logStatus() {
-        val isDemo = apiKey.substring(0, 4).equals("demo", ignoreCase = true)
-        log.info("BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}", if (isDemo) "demo" else "** Redacted **")
-    }
-
-    private fun isCurrent(date: String): Boolean {
-        return dateUtils.isToday(date)
-    }
+    fun logStatus() =
+        log.info(
+            "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}",
+            if (apiKey.substring(0, 4).equals("demo", ignoreCase = true)) "demo" else "** Redacted **"
+        )
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val providerArguments = getInstance(priceRequest, alphaConfig)
         val requests: MutableMap<Int, Future<String?>?> = ConcurrentHashMap()
         for (batchId in providerArguments.batch.keys) {
             val date = providerArguments.getBatchConfigs()[batchId]!!.date
-            if (isCurrent(priceRequest.date)) {
+            if (dateUtils.isToday(priceRequest.date)) {
                 requests[batchId] = alphaProxyCache.getCurrent(
                     providerArguments.batch[batchId],
                     priceRequest.date,

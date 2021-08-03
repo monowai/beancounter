@@ -35,6 +35,14 @@ class DateUtils(
     val date: LocalDate
         get() = getDate(today())
 
+    fun today() = LocalDate.now(getZoneId()).toString()
+
+    fun isToday(inDate: String?) = isToday(inDate, getZoneId())
+
+    fun getDateString(date: LocalDate) = date.toString()
+
+    fun getZoneId(): ZoneId = ZoneId.of(defaultZone)
+
     fun getDate(inDate: String?, zoneId: ZoneId = getZoneId()): LocalDate {
         return when (inDate) {
             null -> {
@@ -62,20 +70,12 @@ class DateUtils(
         }
     }
 
-    fun today(): String {
-        return LocalDate.now(getZoneId()).toString()
-    }
-
     fun getOrThrow(inDate: String?): LocalDate {
         try {
             return getDate(inDate)
         } catch (e: DateTimeParseException) {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
-    }
-
-    fun isToday(inDate: String?): Boolean {
-        return isToday(inDate, getZoneId())
     }
 
     fun isToday(inDate: String?, tz: ZoneId): Boolean {
@@ -88,14 +88,6 @@ class DateUtils(
         } catch (e: ParseException) {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
-    }
-
-    fun getDateString(date: LocalDate): String {
-        return date.toString()
-    }
-
-    fun getZoneId(): ZoneId {
-        return ZoneId.of(defaultZone)
     }
 
     companion object {

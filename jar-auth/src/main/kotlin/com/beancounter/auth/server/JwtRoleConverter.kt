@@ -24,29 +24,31 @@ class JwtRoleConverter @JvmOverloads constructor(
 
     private val defaultGrantedAuthoritiesConverter = JwtGrantedAuthoritiesConverter()
 
-    override fun convert(jwt: Jwt): AbstractAuthenticationToken {
-        return JwtAuthenticationToken(jwt, getAuthorities(jwt))
-    }
+    override fun convert(jwt: Jwt) = JwtAuthenticationToken(jwt, getAuthorities(jwt))
 
     fun extractResourceRoles(jwt: Jwt): Collection<GrantedAuthority> {
         val resourceAccess = jwt.getClaim<Map<String, Collection<String>>>(
             realmClaim
         )
         var resourceRoles: Collection<String> = mutableListOf()
-        return if (resourceAccess != null && resourceAccess[resourceId].also { resourceRoles = it!! } != null) {
+        return if (resourceAccess != null && resourceAccess[resourceId]
+            .also { resourceRoles = it!! }
+            != null
+        ) {
             resourceRoles.stream()
-                .map { role: String -> SimpleGrantedAuthority("ROLE_" + role.lowercase(Locale.getDefault())) }
+                .map { role: String
+                    ->
+                    SimpleGrantedAuthority("ROLE_" + role.lowercase(Locale.getDefault()))
+                }
                 .collect(Collectors.toSet())
         } else emptySet()
     }
 
     @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-    fun getAuthorities(jwt: Jwt): Collection<GrantedAuthority> {
-        return Stream
-            .concat(
-                defaultGrantedAuthoritiesConverter.convert(jwt).stream(),
-                extractResourceRoles(jwt).stream()
-            )
-            .collect(Collectors.toSet())
-    }
+    fun getAuthorities(jwt: Jwt): Collection<GrantedAuthority> = Stream
+        .concat(
+            defaultGrantedAuthoritiesConverter.convert(jwt).stream(),
+            extractResourceRoles(jwt).stream()
+        )
+        .collect(Collectors.toSet())
 }

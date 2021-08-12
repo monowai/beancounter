@@ -50,7 +50,7 @@ class MathUtils private constructor() {
             }
             return if (value.isBlank()) {
                 BigDecimal.ZERO
-            } else BigDecimal(numberFormat.parse(value.replace("\"", "")).toString())
+            } else BigDecimal(numberFormat.parse(value.trim().replace("\"", "")).toString())
         }
 
         @JvmStatic

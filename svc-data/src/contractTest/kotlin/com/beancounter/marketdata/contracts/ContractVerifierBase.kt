@@ -58,7 +58,7 @@ class ContractVerifierBase {
 
     val defaultUser: SystemUser = getSystemUser()
 
-    private final fun getSystemUser(): SystemUser {
+    private fun getSystemUser(): SystemUser {
         val jsonFile = ClassPathResource("contracts/register/register-response.json").file
         val response = objectMapper.readValue(jsonFile, RegistrationResponse::class.java)
         return response.data

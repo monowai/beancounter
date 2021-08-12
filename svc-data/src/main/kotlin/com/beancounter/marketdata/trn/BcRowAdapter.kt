@@ -15,17 +15,17 @@ import org.springframework.stereotype.Service
 @Service
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
-    val dateUtils: DateUtils,
+    val dateUtils: DateUtils = DateUtils(),
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
-        val marketCode = trustedTrnImportRequest.row[4]
-        val assetCode = trustedTrnImportRequest.row[5]
+        val marketCode = trustedTrnImportRequest.row[4].trim()
+        val assetCode = trustedTrnImportRequest.row[5].trim()
         val asset = assetIngestService.resolveAsset(
             marketCode,
             assetCode = assetCode,
-            name = trustedTrnImportRequest.row[6]
+            name = trustedTrnImportRequest.row[6].trim()
         )
-        val trnType = TrnType.valueOf(trustedTrnImportRequest.row[3])
+        val trnType = TrnType.valueOf(trustedTrnImportRequest.row[3].trim())
         val quantity = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[8]))
         val price = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[10]))
         val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[11]))
@@ -36,7 +36,7 @@ class BcRowAdapter(
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,
-            tradeCurrency = trustedTrnImportRequest.row[9],
+            tradeCurrency = trustedTrnImportRequest.row[9].trim(),
             tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[7]),
             tradeAmount = tradeAmount,
             fees = fees,

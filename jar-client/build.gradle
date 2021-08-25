@@ -1,43 +1,37 @@
-
-plugins {
-    id "io.spring.dependency-management"
-    id 'org.jetbrains.kotlin.jvm'
-    id 'kotlin-spring'
+apply from: '../kotlin-spring.gradle'
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springVersion}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
-
-apply from: '../javaCommon.gradle'
 
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-    }
-}
 
 dependencies {
     implementation(
             project(":jar-common"),
             project(":jar-auth"),
             "com.google.guava:guava:30.1.1-android",
-            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
+            "com.fasterxml.jackson.core:jackson-databind",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "org.springframework.cloud:spring-cloud-starter-openfeign"
     )
-    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {exclude module: 'junit-vintage-engine'}
+    testImplementation("org.springframework.boot:spring-boot-starter-test") { exclude module: 'junit-vintage-engine' }
     testImplementation(
-            "org.assertj:assertj-core:$assertJ",
-            "org.springframework.boot:spring-boot-starter-test:$springBootVersion",
-            "org.springframework.security:spring-security-test:$springSecurityVersion",
+            "org.assertj:assertj-core",
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner"
     )

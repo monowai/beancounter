@@ -4,20 +4,21 @@ buildscript {
         stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
         classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:$verifierVersion"
     }
 }
 
 plugins {
     id "io.spring.dependency-management"
-    id "org.springframework.boot"
+    id 'org.springframework.boot' version "${springVersion}"
     id "maven-publish"
     id 'org.jetbrains.kotlin.jvm'
     id 'kotlin-spring'
 }
+
 apply plugin: 'spring-cloud-contract'
-apply from: "../javaCommon.gradle"
+
+apply from: '../kotlin-spring.gradle'
 
 version = '0.1.1'
 publishing {
@@ -41,8 +42,9 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
+            "org.springframework.boot:spring-boot-starter-integration",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
+            "org.jetbrains.kotlin:kotlin-reflect",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",

@@ -26,7 +26,6 @@ class AssetsBase : ContractVerifierBase() {
     fun mock() {
         if (systemUser.id == "") {
             val mockMvc = MockMvcBuilders
-
                 .webAppContextSetup(context)
                 .build()
             systemUser = defaultUser()

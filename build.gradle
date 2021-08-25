@@ -1,33 +1,24 @@
 buildscript {
     ext{
-        springBootVersion='2.5.4'
+        springVersion='2.5.4'
         springCloudVersion='2020.0.3'
-        springSecurityVersion='5.5.2'
-        springDependencyManagement='1.0.11.RELEASE'
-        // Spring Contracts/Gradle
         verifierVersion='3.0.3'
-        springWebVersion = '5.3.9'
-        springKafka='2.7.6'
-        jacksonVersion = '2.12.4'
-        resilience4jVersion='1.7.1'
-        assertJ='3.20+'
         kotlinVersion='1.5.21'
+        resilience4jVersion='1.7.1'
         jacocoVersion='0.8.7'
-        guavaVersion='30.1.1-android'
     }
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
-        classpath("org.jmailen.gradle:kotlinter-gradle:3.3.0")
+        classpath("org.jmailen.gradle:kotlinter-gradle:3.5.0")
     }
 }
-
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion" apply false
-    id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion" apply false
-    id "io.spring.dependency-management" version "$springDependencyManagement" apply false
-    id "org.springframework.boot" version "$springBootVersion"  apply false
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+    id 'org.jetbrains.kotlin.plugin.spring' version "$kotlinVersion"
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
+
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
 

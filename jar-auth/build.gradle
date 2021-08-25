@@ -1,14 +1,8 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'kotlin-spring'
-}
-
-apply from: "../javaCommon.gradle"
-apply plugin: "kotlin-jpa"
-apply plugin: "io.spring.dependency-management"
+apply from: '../kotlin-spring.gradle'
 
 dependencyManagement {
     imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springVersion}"
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
@@ -19,44 +13,30 @@ dependencies {
     implementation(
             project(":jar-common"),
             "javax.servlet:javax.servlet-api:4.0.1",
-            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "org.springframework:spring-webmvc:$springWebVersion",
+            "com.fasterxml.jackson.core:jackson-databind",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "org.springframework:spring-webmvc",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
-            "org.springframework.security:spring-security-config:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion"
+            "org.springframework.security:spring-security-config",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose"
     )
     implementation(
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+            "org.jetbrains.kotlin:kotlin-reflect"
     )
-    compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
+    compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude module: 'junit-vintage-engine'
     }
     testImplementation(
             "org.junit.jupiter:junit-jupiter",
-            "org.assertj:assertj-core:$assertJ",
+            "org.assertj:assertj-core",
             "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
-            "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion",
-            "org.springframework.security:spring-security-test:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion"
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.springframework.boot:spring-boot-autoconfigure",
+            "org.springframework.security:spring-security-test",
+            "org.springframework.security:spring-security-oauth2-client"
 
     )
 }
 
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
-}
-
-jacoco {
-    toolVersion = "$jacocoVersion"
-}

@@ -1,12 +1,8 @@
-
 plugins {
-    id "io.spring.dependency-management"
-    id 'org.jetbrains.kotlin.jvm'
-    id "org.springframework.boot"
+    id 'org.springframework.boot' version "${springVersion}"
 }
 
-apply from: '../javaCommon.gradle'
-
+apply from: '../kotlin-spring.gradle'
 version = "0.1.1"
 
 dependencyManagement {
@@ -29,18 +25,18 @@ dependencies {
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-            "org.springframework.security:spring-security-config:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-resource-server:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-client:$springSecurityVersion",
-            "org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion",
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
+            "org.springframework.security:spring-security-config",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-client",
+            "org.springframework.security:spring-security-oauth2-jose",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
             "com.github.ben-manes.caffeine:caffeine:3.0.3",
             "com.google.code.gson:gson:2.8.7",
             "com.google.api-client:google-api-client:1.32.1",
             "com.google.oauth-client:google-oauth-client-jetty:1.31.5",
             "com.google.apis:google-api-services-sheets:v4-rev20210629-1.32.1",
-            "org.springframework.kafka:spring-kafka:$springKafka",
+            "org.springframework.kafka:spring-kafka",
             "com.opencsv:opencsv:5.5.1"
 
     )
@@ -56,7 +52,7 @@ dependencies {
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.springframework.kafka:spring-kafka-test:$springKafka",
+            "org.springframework.kafka:spring-kafka-test",
             "org.junit.jupiter:junit-jupiter"
 
     )

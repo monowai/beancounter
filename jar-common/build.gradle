@@ -1,46 +1,55 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'kotlin-spring'
+    id 'kotlin-jpa'
+}
+apply from: '../kotlin-spring.gradle'
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springVersion}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
-apply from: '../javaCommon.gradle'
-apply plugin: "kotlin-jpa"
+ext {
+    openfeignVersion = "11.5"
+    guavaVersion = '30.1.1-android'
+}
 
 dependencies() {
 
     compileOnly(
             "javax.servlet:javax.servlet-api:4.0.1",
-            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion",
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
-            "org.springframework:spring-web:$springWebVersion",
-            "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion",
-            "io.github.openfeign:feign-core:11.5",
-            "org.springframework.kafka:spring-kafka:$springKafka",
-            "com.google.guava:guava:$guavaVersion"
-    )
-    implementation(
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+            "com.fasterxml.jackson.core:jackson-databind",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "com.fasterxml.jackson.module:jackson-module-kotlin",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            "org.springframework:spring-web",
+            "org.springframework.boot:spring-boot-starter-data-jpa",
+            "io.github.openfeign:feign-core:${openfeignVersion}",
+            "org.springframework.kafka:spring-kafka",
+            "com.google.guava:guava:${guavaVersion}"
     )
     testImplementation(
-            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
-            "org.slf4j:slf4j-log4j12:1.7.32",
-            "org.mockito:mockito-core:3.11+",
-            "org.mockito:mockito-junit-jupiter:3.11+",
+            "com.fasterxml.jackson.core:jackson-databind",
+            "org.slf4j:slf4j-log4j12",
+            "org.mockito:mockito-core",
+            "org.mockito:mockito-junit-jupiter",
             "javax.servlet:javax.servlet-api:4.0.1",
-            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion",
-            "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion",
-            "org.springframework.kafka:spring-kafka:$springKafka",
-            "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion",
-            "org.assertj:assertj-core:$assertJ",
-            "io.github.openfeign:feign-core:11.5",
-            "org.springframework:spring-web:$springWebVersion",
-            "org.junit.jupiter:junit-jupiter:5+",
-            "com.google.guava:guava:$guavaVersion"
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+            "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml",
+            "org.springframework.kafka:spring-kafka",
+            "org.jetbrains.kotlin:kotlin-reflect",
+            "org.assertj:assertj-core",
+            "io.github.openfeign:feign-core:${openfeignVersion}",
+            "com.google.guava:guava:${guavaVersion}",
+            "org.springframework:spring-web",
+            "org.junit.jupiter:junit-jupiter",
+    )
+    implementation(
+            "org.jetbrains.kotlin:kotlin-reflect"
     )
 
-    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion" ) {exclude module: 'kotlin-reflect'}
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin") { exclude module: 'kotlin-reflect' }
 }
 
 idea {
@@ -49,16 +58,5 @@ idea {
         downloadSources = true
         outputDir = file("$buildDir/classes/main/")
         testOutputDir = file("$buildDir/classes/main/")
-    }
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
     }
 }

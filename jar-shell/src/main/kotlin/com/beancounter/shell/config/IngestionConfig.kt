@@ -10,6 +10,9 @@ import com.beancounter.shell.ingest.IngestionFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
+/**
+ * Config all necessary classes to support ingestion activities.
+ */
 @Configuration
 @Import(
     EnvConfig::class,
@@ -21,4 +24,4 @@ import org.springframework.context.annotation.Import
     GoogleConfig::class,
     CsvIngester::class
 )
-open class IngestionConfig
+class IngestionConfig

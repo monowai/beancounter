@@ -7,6 +7,9 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+/**
+ * Convert a sharesight exported row to a BeanCounter standardised row.
+ */
 @Service
 class ShareSightRowAdapter : RowAdapter {
     private lateinit var shareSightFactory: ShareSightFactory

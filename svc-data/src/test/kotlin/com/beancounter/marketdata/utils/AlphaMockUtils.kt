@@ -20,6 +20,7 @@ import java.io.IOException
 object AlphaMockUtils {
     const val alphaContracts = "mock/alpha"
     private val objectMapper: ObjectMapper = BcJson().objectMapper
+    const val marketCodeUrl = "/assets/{market}/{code}"
 
     @JvmStatic
     fun getAlphaApi() {

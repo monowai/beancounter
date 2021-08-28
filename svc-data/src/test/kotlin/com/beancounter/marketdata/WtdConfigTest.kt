@@ -57,16 +57,18 @@ class WtdConfigTest {
 
     private val marketDate = "2019-11-17"
 
+    private val testDate = "2019-11-15"
+
     @Test
     fun nzxValuationDateCorrect() {
         val wtdConfig = WtdConfig()
         // Overriding today, so should just return today
-        assertThat(wtdConfig.getMarketDate(NZX, "2019-11-15"))
-            .isEqualTo("2019-11-15")
+        assertThat(wtdConfig.getMarketDate(NZX, testDate))
+            .isEqualTo(testDate)
 
         // If it's Saturday, count back to Friday
         assertThat(wtdConfig.getMarketDate(NZX, marketDate))
-            .isEqualTo("2019-11-15")
+            .isEqualTo(testDate)
     }
 
     @Test

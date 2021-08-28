@@ -220,6 +220,8 @@ class TrnControllerTest {
             .andReturn()
     }
 
+    private val tradeDate = "2018-01-01"
+
     @Test
     @Throws(Exception::class)
     fun is_TrnForPortfolioInRangeFound() {
@@ -235,7 +237,7 @@ class TrnControllerTest {
             TrnType.BUY,
             BigDecimal.TEN,
             tradeCurrency,
-            dateUtils.getDate("2018-01-01"),
+            dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN
         )
 
@@ -285,7 +287,7 @@ class TrnControllerTest {
         val response = mockMvc.perform(
             get(
                 "/portfolios/asset/{assetId}/{tradeDate}",
-                msft.id, "2018-01-01"
+                msft.id, tradeDate
             )
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .contentType(APPLICATION_JSON)
@@ -319,7 +321,7 @@ class TrnControllerTest {
             PortfolioInput("Twix", "is_PersistRetrieveAndPurge", currency = NZD.code)
         )
         // Creating in random order and assert retrieved in Sort Order.
-        val tradeDate = "2018-01-01"
+        val tradeDate = tradeDate
         val trnInputA = TrnInput(
             CallerRef(callerId = "1"),
             msft.id,

@@ -15,11 +15,11 @@ import java.time.LocalDate
 import java.util.function.Consumer
 import javax.transaction.Transactional
 
-@Service
-@Transactional
 /**
  * Interactions to created and read Trn objects.
  */
+@Service
+@Transactional
 class TrnService internal constructor(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,
@@ -37,7 +37,7 @@ class TrnService internal constructor(
 
     fun save(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         var trnResponse = trnAdapter.convert(portfolio, trnRequest)
-        val (data) = findToCreate(trnResponse.data)
+        val (data) = TrnResponse(trnResponse.data)
         // Figure out
         val saved = trnRepository.saveAll(data)
         val trns: MutableCollection<Trn> = ArrayList()
@@ -50,16 +50,6 @@ class TrnService internal constructor(
             portfolio.code
         )
         return trnResponse
-    }
-
-    private fun findToCreate(data: Collection<Trn>): TrnResponse {
-        val trns = ArrayList<Trn>()
-        for (trn in data) {
-            if (trnRepository.findByCallerRef(trn.callerRef!!).isEmpty) {
-                trns.add(trn)
-            }
-        }
-        return TrnResponse(trns)
     }
 
     /**

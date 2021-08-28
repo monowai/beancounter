@@ -50,6 +50,7 @@ import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfig
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -59,13 +60,13 @@ import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Objects
 
+/**
+ * TRN Mvc Controller Tests
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
-/**
- * TRN Mvc Controller Tests
- */
 class TrnControllerTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()
@@ -99,7 +100,7 @@ class TrnControllerTest {
     private lateinit var getMsft: AssetInput
     private lateinit var getAppl: AssetInput
     private val trnsRoot = "/trns"
-    private val urlPortfolioId = "$trnsRoot/portfolio/{portfolioId}"
+    private val uriTrnForPortfolio = "$trnsRoot/portfolio/{portfolioId}"
     // End Test Constants
 
     @BeforeEach
@@ -126,7 +127,7 @@ class TrnControllerTest {
     fun is_EmptyResponseValid() {
         val portfolio = portfolio(PortfolioInput("BLAH", "is_EmptyResponseValid", currency = NZD.code))
         val mvcResult = mockMvc.perform(
-            get(urlPortfolioId, portfolio.id)
+            get(uriTrnForPortfolio, portfolio.id)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token).authorities(authorityRoleConverter)
@@ -197,6 +198,26 @@ class TrnControllerTest {
         val trnResponse = objectMapper
             .readValue(findByAsset.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(1) // 1 MSFT dividend
+    }
+
+    @Test
+    fun is_findThrowingForIllegalTrnId() {
+        val portfolio = portfolio(
+            PortfolioInput(
+                "ILLEGAL", "is_findThrowingForIllegalTrnId",
+                currency = NZD.code
+            )
+        )
+
+        mockMvc.perform(
+            get("$trnsRoot/{portfolioId}/{trnId}", portfolio.id, "x123x")
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
+        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+            .andReturn()
     }
 
     @Test
@@ -375,7 +396,7 @@ class TrnControllerTest {
 
         // Find by Portfolio, sorted by assetId and then Date
         var mvcResult = mockMvc.perform(
-            get(urlPortfolioId, portfolioId)
+            get(uriTrnForPortfolio, portfolioId)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
                 .content(objectMapper.writeValueAsBytes(trnRequest))
                 .contentType(APPLICATION_JSON)
@@ -456,12 +477,25 @@ class TrnControllerTest {
 
         // Delete all remaining transactions for the Portfolio
         mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.delete(urlPortfolioId, portfolioId)
+            MockMvcRequestBuilders.delete(uriTrnForPortfolio, portfolioId)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
             .andReturn()
         assertThat(mvcResult.response.contentAsString).isNotNull.isEqualTo("3")
+    }
+
+    @Test
+    fun is_deleteThrowingForIllegalTrnId() {
+        mockMvc.perform(
+            delete("$trnsRoot/{trnId}", "illegalTrnId")
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt()
+                        .jwt(token).authorities(authorityRoleConverter)
+                )
+        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+            .andReturn()
     }
 
     private fun postTrn(trnRequest: TrnRequest) = mockMvc.perform(

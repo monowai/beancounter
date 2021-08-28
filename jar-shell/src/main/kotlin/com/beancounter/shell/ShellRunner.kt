@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 
 /**
- * Starts the Shell.
+ * Starts an interactive command line shell to interact with the services.
  *
  * @author mikeh
  * @since 2019-02-08
@@ -19,7 +19,7 @@ import org.springframework.boot.runApplication
     scanBasePackages = ["com.beancounter.shell"]
 )
 @EnableConfigurationProperties
-open class ShellRunner
+class ShellRunner
 
 fun main(args: Array<String>) {
     runApplication<ShellRunner>(*args)

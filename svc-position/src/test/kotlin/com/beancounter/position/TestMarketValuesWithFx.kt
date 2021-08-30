@@ -19,6 +19,7 @@ import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.NASDAQ
+import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.accumulation.AccumulationStrategy
 import com.beancounter.position.accumulation.BuyBehaviour
@@ -37,19 +38,18 @@ internal class TestMarketValuesWithFx {
     private val tenThousand = BigDecimal("10000.00")
     private val oneThousand = BigDecimal("1000.00")
     private val fiveThousand = BigDecimal("5000.00")
+    private val twoThousand = BigDecimal("2000.00")
 
     private val thousandShort = BigDecimal("-1000.00")
 
     private val twenty = BigDecimal("20.00")
-
-    private val usd = Currency("USD")
 
     @Test
     fun is_MarketValue() {
         val asset = getAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
         val buyTrn = Trn(TrnType.BUY, asset, hundred)
-        buyTrn.tradeAmount = BigDecimal("2000.00")
+        buyTrn.tradeAmount = twoThousand
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         val position = Position(asset)
@@ -62,7 +62,7 @@ internal class TestMarketValuesWithFx {
         marketData.previousClose = BigDecimal("5.00")
 
         // Revalue based on marketData prices
-        val targetValues = MoneyValues(usd)
+        val targetValues = MoneyValues(USD)
         targetValues.priceData = of(marketData)
         targetValues.averageCost = twenty
         targetValues.purchases = buyTrn.tradeAmount
@@ -76,7 +76,7 @@ internal class TestMarketValuesWithFx {
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .usingRecursiveComparison()
             .isEqualTo(targetValues)
-        val baseValues = MoneyValues(usd)
+        val baseValues = MoneyValues(USD)
         baseValues.averageCost = twenty
         baseValues.priceData = of(marketData)
         baseValues.purchases = buyTrn.tradeAmount
@@ -120,7 +120,7 @@ internal class TestMarketValuesWithFx {
             )
         }
         val buyTrn = Trn(TrnType.BUY, asset, hundred)
-        buyTrn.tradeAmount = BigDecimal("2000.00")
+        buyTrn.tradeAmount = twoThousand
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         val position = Position(asset)
@@ -136,7 +136,7 @@ internal class TestMarketValuesWithFx {
         marketData.close = BigDecimal("10.00")
         marketData.previousClose = BigDecimal("9.00")
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
-        val usdValues = MoneyValues(usd)
+        val usdValues = MoneyValues(USD)
         usdValues.marketValue = BigDecimal("0")
         usdValues.averageCost = BigDecimal.ZERO
         usdValues.priceData = of(marketData, BigDecimal.ONE)

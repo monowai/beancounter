@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.IOException
 
+/**
+ * Deserialize AlphaVantage JSON response to a BC standard response object.
+ */
 class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
     @Throws(IOException::class)
     override fun deserialize(p: JsonParser, context: DeserializationContext): AssetSearchResponse {

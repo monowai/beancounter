@@ -15,6 +15,9 @@ import com.beancounter.event.service.Event
 import com.beancounter.event.service.TaxService
 import java.math.BigDecimal
 
+/**
+ * Generate a BC corporate event from an AlphaVantage data row.
+ */
 class AlphaEventAdapter(private val taxService: TaxService) : Event {
     private val dateUtils = DateUtils()
 

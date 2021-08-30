@@ -15,7 +15,6 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
-import com.beancounter.marketdata.utils.SysUserUtils.systemUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -50,7 +49,7 @@ internal class PortfolioMvcTests {
     private val objectMapper = BcJson().objectMapper
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val tokenUtils = TokenUtils()
-    val token = tokenUtils.getUserToken(systemUser)
+    val token = tokenUtils.getUserToken(SystemUser(UUID.randomUUID().toString()))
     private lateinit var mockMvc: MockMvc
 
     @Autowired
@@ -72,7 +71,7 @@ internal class PortfolioMvcTests {
     @Test
     fun notFoundByCode() {
         // Assert not found
-        val token = tokenUtils.getUserToken(systemUser)
+        val token = tokenUtils.getUserToken(SystemUser(UUID.randomUUID().toString()))
         mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioByCode, "does not exist")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
@@ -83,7 +82,7 @@ internal class PortfolioMvcTests {
 
     @Test
     fun notFoundById() {
-        val token = tokenUtils.getUserToken(systemUser)
+        val token = tokenUtils.getUserToken(SystemUser(UUID.randomUUID().toString()))
         mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioById, "invalidId")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
@@ -220,7 +219,7 @@ internal class PortfolioMvcTests {
     @Test
     @Throws(Exception::class)
     fun ownerHonoured() {
-        val userA = systemUser
+        val userA = SystemUser(UUID.randomUUID().toString())
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().uppercase(Locale.getDefault()),
             "is_OwnerHonoured",
@@ -343,7 +342,7 @@ internal class PortfolioMvcTests {
             USD.code,
             NZD.code
         )
-        val userA = systemUser
+        val userA = SystemUser(UUID.randomUUID().toString())
 
         // Add a token and repeat the call
         val token = tokenUtils.getUserToken(userA)
@@ -387,7 +386,7 @@ internal class PortfolioMvcTests {
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
         portfolios.add(portfolioInput)
         portfolios.add(portfolioInput) // Code and Owner are the same so, reject
-        val userA = systemUser
+        val userA = SystemUser(UUID.randomUUID().toString())
         val token = tokenUtils.getUserToken(userA)
         registerUser(mockMvc, token)
         // Can't create two portfolios with the same code
@@ -418,7 +417,7 @@ internal class PortfolioMvcTests {
         )
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()
         portfolios.add(portfolioInput)
-        val userA = systemUser
+        val userA = SystemUser(UUID.randomUUID().toString())
         val token = tokenUtils.getUserToken(userA)
         // registerUser(mockMvc, token);
         // Authenticated, but unregistered user can't create portfolios
@@ -441,7 +440,7 @@ internal class PortfolioMvcTests {
     @Test
     @Throws(Exception::class)
     fun updatePortfolio() {
-        val user = systemUser
+        val user = SystemUser(UUID.randomUUID().toString())
         val token = tokenUtils.getUserToken(user)
         registerUser(mockMvc, token)
         val portfolios: MutableCollection<PortfolioInput> = ArrayList()

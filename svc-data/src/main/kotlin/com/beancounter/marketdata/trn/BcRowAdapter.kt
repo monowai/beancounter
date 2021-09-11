@@ -2,12 +2,14 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.RowAdapter
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 /**
  * Converts BC compatible delimited data to the domain model
@@ -30,6 +32,11 @@ class BcRowAdapter(
         val price = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[10]))
         val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[11]))
         val tradeAmount = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[13]))
+        val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[7])
+
+        if (tradeDate.isAfter(LocalDate.now())) {
+            throw BusinessException("Cannot accept forward dated trade dates $tradeDate")
+        }
 
         return TrnInput(
             trustedTrnImportRequest.callerRef,
@@ -37,7 +44,7 @@ class BcRowAdapter(
             trnType = trnType,
             quantity = quantity,
             tradeCurrency = trustedTrnImportRequest.row[9].trim(),
-            tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[7]),
+            tradeDate = tradeDate,
             tradeAmount = tradeAmount,
             fees = fees,
             price = price,

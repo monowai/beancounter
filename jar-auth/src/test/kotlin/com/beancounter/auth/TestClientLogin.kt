@@ -20,15 +20,15 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtValidationException
 import org.springframework.test.context.ActiveProfiles
 
+/**
+ * Can the login service authenticate the user using OAuth?
+ */
 @SpringBootTest(classes = [LoginService::class, LoginService.AuthGateway::class], properties = ["auth.enabled=true"])
 @ImportAutoConfiguration(
     AuthClientConfig::class
 )
 @ActiveProfiles("auth")
 @AutoConfigureWireMock(port = 0)
-/**
- * Can the login service authenticate the user using OAuth?
- */
 class TestClientLogin {
     @Autowired
     private lateinit var loginService: LoginService

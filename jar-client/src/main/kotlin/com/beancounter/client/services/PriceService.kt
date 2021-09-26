@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
 /**
@@ -27,7 +27,7 @@ class PriceService @Autowired internal constructor(
      */
     @FeignClient(name = "prices", url = "\${marketdata.url:http://localhost:9510/api}")
     interface PriceGateway {
-        @GetMapping(value = ["/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @PostMapping(value = ["/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPrices(
             @RequestHeader("Authorization") bearerToken: String,
             priceRequest: PriceRequest

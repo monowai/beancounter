@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.ProviderUtils
@@ -50,16 +49,18 @@ class MarketDataService @Autowired internal constructor(
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
         val fromDb: MutableCollection<MarketData> = ArrayList()
         var apiResults: Collection<MarketData> = ArrayList()
-        var marketDate: LocalDate? = null
-        var lastMarket: Market? = null
+        var marketDate: LocalDate?
+        val marketData: MutableMap<String, LocalDate> = mutableMapOf()
+
         for (marketDataProvider in byFactory.keys) {
             // Pull from the DB
             val assetIterable = (byFactory[marketDataProvider] ?: error("")).iterator()
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
-                if (lastMarket == null || lastMarket.code != asset.market.code) {
-                    lastMarket = asset.market
-                    marketDate = marketDataProvider.getDate(lastMarket, priceRequest)
+                marketDate = marketData[asset.market.timezone.id]
+                if (marketDate == null) {
+                    marketDate = marketDataProvider.getDate(asset.market, priceRequest)
+                    marketData[asset.market.timezone.id] = marketDate
                     log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
                 }
 

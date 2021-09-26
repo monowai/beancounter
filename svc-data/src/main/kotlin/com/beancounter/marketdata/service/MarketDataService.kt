@@ -50,11 +50,11 @@ class MarketDataService @Autowired internal constructor(
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
         val fromDb: MutableCollection<MarketData> = ArrayList()
         var apiResults: Collection<MarketData> = ArrayList()
+        var marketDate: LocalDate? = null
+        var lastMarket: Market? = null
         for (marketDataProvider in byFactory.keys) {
             // Pull from the DB
             val assetIterable = (byFactory[marketDataProvider] ?: error("")).iterator()
-            var marketDate: LocalDate? = null
-            var lastMarket: Market? = null
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
                 if (lastMarket == null || lastMarket.code != asset.market.code) {

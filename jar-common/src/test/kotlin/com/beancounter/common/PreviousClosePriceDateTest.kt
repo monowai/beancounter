@@ -42,7 +42,6 @@ internal class PreviousClosePriceDateTest {
     fun is_TimeIgnored() {
         val asAtDate = LocalDateTime.of(2021, 3, 4, 6, 30)
         val expected = dateUtils.getDate("2021-03-03")
-        log.info("asAt: {} expected: {}", asAtDate, expected)
         assertThat(marketUtils.getPriceDate(asAtDate, nasdaq, true))
             .isEqualTo(expected) // Nasdaq last close
     }
@@ -52,7 +51,6 @@ internal class PreviousClosePriceDateTest {
         val utcDateUtils = DateUtils("UTC")
         val asAtDate = LocalDateTime.of(2021, 9, 24, 15, 0)
         val expected = utcDateUtils.getDate("2021-09-23")
-        log.info("asAt: {} expected: {}", asAtDate, expected)
         assertThat(marketUtils.getPriceDate(asAtDate, nasdaq, true))
             .isEqualTo(expected) // Nasdaq last close
     }
@@ -61,7 +59,6 @@ internal class PreviousClosePriceDateTest {
     fun is_AfternoonDateResolvedForHistoric() {
         val asAtDate = LocalDateTime.of(2021, 9, 24, 15, 0)
         val expected = dateUtils.getDate("2021-09-24")
-        log.info("asAt: {} expected: {}", asAtDate, expected)
         assertThat(marketUtils.getPriceDate(asAtDate, nasdaq, false))
             .isEqualTo(expected) // Nasdaq last close
     }

@@ -181,6 +181,8 @@ internal class TestMoneyValues {
 
     val gainValue = BigDecimal("211.56")
 
+    private val realisedGainProp = "realisedGain"
+
     @Test
     fun is_RealisedGainWithSignedQuantitiesCalculated() {
         val positions = Positions()
@@ -213,16 +215,18 @@ internal class TestMoneyValues {
         assertThat(tradeMoney)
             .hasFieldOrPropertyWithValue(costBasisField, costBasis)
             .hasFieldOrPropertyWithValue("sales", tradeAmount)
-            .hasFieldOrPropertyWithValue("realisedGain", gainValue)
+            .hasFieldOrPropertyWithValue(realisedGainProp, gainValue)
         sell = Trn(TrnType.SELL, bidu, BigDecimal(-7))
         sell.tradeAmount = BigDecimal("1871.01")
         position = accumulator.accumulate(sell, positions.portfolio, position)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("sales", BigDecimal("2712.64"))
-            .hasFieldOrPropertyWithValue("realisedGain", BigDecimal("612.41"))
+            .hasFieldOrPropertyWithValue(realisedGainProp, BigDecimal("612.41"))
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
     }
+
+    private val averageCostProp = "averageCost"
 
     @Test
     fun is_RealisedGainAfterSellingToZeroCalculated() {
@@ -242,8 +246,8 @@ internal class TestMoneyValues {
             .hasFieldOrPropertyWithValue(totalField, BigDecimal.TEN)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, costBasis)
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("210.023"))
-            .hasFieldOrPropertyWithValue("realisedGain", BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(averageCostProp, BigDecimal("210.023"))
+            .hasFieldOrPropertyWithValue(realisedGainProp, BigDecimal.ZERO)
         var sell = Trn(TrnType.SELL, microsoft, BigDecimal(3))
         sell.tradeAmount = BigDecimal("841.63")
         accumulator.accumulate(sell, positions.portfolio, position)
@@ -251,8 +255,8 @@ internal class TestMoneyValues {
         // Sell does not affect the cost basis or average cost, but it will create a signed gain
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, costBasis)
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("210.023"))
-            .hasFieldOrPropertyWithValue("realisedGain", gainValue)
+            .hasFieldOrPropertyWithValue(averageCostProp, BigDecimal("210.023"))
+            .hasFieldOrPropertyWithValue(realisedGainProp, gainValue)
         sell = Trn(TrnType.SELL, microsoft, BigDecimal(7))
         sell.tradeAmount = BigDecimal("1871.01")
         accumulator.accumulate(sell, positions.portfolio, position)
@@ -260,8 +264,8 @@ internal class TestMoneyValues {
         // Sell down to 0; reset cost basis
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, BigDecimal("0"))
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("0"))
-            .hasFieldOrPropertyWithValue("realisedGain", BigDecimal("612.41"))
+            .hasFieldOrPropertyWithValue(averageCostProp, BigDecimal("0"))
+            .hasFieldOrPropertyWithValue(realisedGainProp, BigDecimal("612.41"))
     }
 
     @Test
@@ -283,8 +287,8 @@ internal class TestMoneyValues {
         val realisedGain = BigDecimal("-372.18")
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("realisedGain", realisedGain)
+            .hasFieldOrPropertyWithValue(averageCostProp, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(realisedGainProp, realisedGain)
 
         // Re-enter the position
         buy = Trn(TrnType.BUY, intel, BigDecimal(60))
@@ -295,8 +299,8 @@ internal class TestMoneyValues {
             .hasFieldOrPropertyWithValue(totalField, buy.quantity)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, buy.tradeAmount)
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal("26.722"))
-            .hasFieldOrPropertyWithValue("realisedGain", realisedGain)
+            .hasFieldOrPropertyWithValue(averageCostProp, BigDecimal("26.722"))
+            .hasFieldOrPropertyWithValue(realisedGainProp, realisedGain)
 
         // Second sell taking us back to zero. Verify that the accumulated gains.
         sell = Trn(TrnType.SELL, intel, BigDecimal(60))
@@ -307,7 +311,7 @@ internal class TestMoneyValues {
         accumulator.accumulate(sell, positions.portfolio, position)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue(costBasisField, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("realisedGain", previousGain.add(BigDecimal("60.99")))
+            .hasFieldOrPropertyWithValue(averageCostProp, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(realisedGainProp, previousGain.add(BigDecimal("60.99")))
     }
 }

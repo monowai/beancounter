@@ -7,7 +7,7 @@ import com.beancounter.common.utils.DateUtils.Companion.today
 /**
  * Arguments by which prices on a date are located.
  */
-data class PriceRequest(val date: String = today, val assets: Collection<AssetInput>) {
+data class PriceRequest(val date: String = today, val assets: Collection<AssetInput>, val currentMode: Boolean = true) {
 
     companion object {
         @JvmStatic

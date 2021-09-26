@@ -115,7 +115,7 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
     }
 
     override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {
-        return alphaConfig.getMarketDate(market, priceRequest.date)
+        return alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
     }
 
     override fun backFill(asset: Asset): PriceResponse {

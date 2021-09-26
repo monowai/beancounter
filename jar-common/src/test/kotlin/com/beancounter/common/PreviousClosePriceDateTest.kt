@@ -5,7 +5,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -49,6 +48,25 @@ internal class PreviousClosePriceDateTest {
     }
 
     @Test
+    fun is_AfternoonDateResolvedForCurrent() {
+        val utcDateUtils = DateUtils("UTC")
+        val asAtDate = LocalDateTime.of(2021, 9, 24, 15, 0)
+        val expected = utcDateUtils.getDate("2021-09-23")
+        log.info("asAt: {} expected: {}", asAtDate, expected)
+        assertThat(marketUtils.getPriceDate(asAtDate, nasdaq, true))
+            .isEqualTo(expected) // Nasdaq last close
+    }
+
+    @Test
+    fun is_AfternoonDateResolvedForHistoric() {
+        val asAtDate = LocalDateTime.of(2021, 9, 24, 15, 0)
+        val expected = dateUtils.getDate("2021-09-24")
+        log.info("asAt: {} expected: {}", asAtDate, expected)
+        assertThat(marketUtils.getPriceDate(asAtDate, nasdaq, false))
+            .isEqualTo(expected) // Nasdaq last close
+    }
+
+    @Test
     fun is_MarketDateCalculatedWhenToday() {
         val pricesUnavailable = LocalDateTime.of(2020, 7, 17, 14, 0)
         val pricesAvailable = LocalDateTime.of(2020, 7, 18, 6, 0) // Avail next day
@@ -63,8 +81,8 @@ internal class PreviousClosePriceDateTest {
     fun is_FridayFoundFromSundayInSystemDefaultTz() {
         val sgx = Market("SGX", "SGD", "Asia/Singapore")
         val sunday = sunday
-        val found = marketUtils.getPriceDate(LocalDateTime.of(sunday, LocalTime.MIDNIGHT), sgx)
-        assertThat(dateUtils.convert(found)).isEqualTo(friday)
+        val found = marketUtils.getPriceDate(LocalDateTime.of(sunday.toLocalDate(), LocalTime.MIDNIGHT), sgx)
+        assertThat(dateUtils.convert(found)).isEqualTo(friday.toLocalDate())
     }
 
     @Test
@@ -75,8 +93,8 @@ internal class PreviousClosePriceDateTest {
         assertThat(marketUtils.isMarketOpen(monday)).isTrue // Monday
     }
 
-    private val friday: LocalDate get() = dateUtils.getDate("2019-10-18")
-    private val sunday: LocalDate get() = dateUtils.getDate("2019-10-20")
-    private val saturday: LocalDate get() = dateUtils.getDate("2019-10-19")
-    private val monday: LocalDate get() = dateUtils.getDate("2019-10-21")
+    private val friday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-18"), LocalTime.MIDNIGHT)
+    private val sunday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-20"), LocalTime.MIDNIGHT)
+    private val saturday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-19"), LocalTime.MIDNIGHT)
+    private val monday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-21"), LocalTime.MIDNIGHT)
 }

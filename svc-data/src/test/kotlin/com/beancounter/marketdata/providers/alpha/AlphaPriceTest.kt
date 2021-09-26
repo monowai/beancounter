@@ -140,7 +140,7 @@ internal class AlphaPriceTest {
 
     @Test
     fun is_PriceDateInThePastConstant() {
-        val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-28")
+        val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-28", false)
         assertThat(computedDate).isEqualTo(dateUtils.getDate("2020-04-28"))
     }
 }

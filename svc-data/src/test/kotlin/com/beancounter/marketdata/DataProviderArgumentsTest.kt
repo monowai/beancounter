@@ -128,7 +128,7 @@ internal class DataProviderArgumentsTest {
             return batchSize
         }
 
-        override fun getMarketDate(market: Market, date: String): LocalDate {
+        override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
             return if (dateUtils.isToday(date)) {
                 dateUtils.date
             } else dateUtils.getDate(date)

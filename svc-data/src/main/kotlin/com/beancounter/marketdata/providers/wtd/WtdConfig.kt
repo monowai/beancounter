@@ -40,7 +40,7 @@ class WtdConfig : DataProviderConfig {
         return (marketConfig!!.getProviders()[market.code] ?: error("Missing Market")).aliases[WtdService.ID]
     }
 
-    override fun getMarketDate(market: Market, date: String): LocalDate {
+    override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
         var daysToSubtract = 0
         if (dateUtils.isToday(date)) {
             // If Current, price date is T-daysToSubtract

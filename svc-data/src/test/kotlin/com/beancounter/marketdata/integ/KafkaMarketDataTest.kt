@@ -54,6 +54,7 @@ class KafkaMarketDataTest {
     companion object {
         const val TOPIC_EVENT = "topicEvent"
     }
+
     private val objectMapper = BcJson().objectMapper
 
     final var dateUtils: DateUtils = DateUtils()
@@ -126,7 +127,7 @@ class KafkaMarketDataTest {
                 AssetUtils.getAsset(NASDAQ, Constants.AAPL.code)
             )
         )
-        val priceRequest = PriceRequest(priceDate, assets)
+        val priceRequest = PriceRequest(priceDate, assets, currentMode = false)
 
         // First call will persist the result in an async manner
         priceResponse = marketDataService.getPriceResponse(priceRequest)

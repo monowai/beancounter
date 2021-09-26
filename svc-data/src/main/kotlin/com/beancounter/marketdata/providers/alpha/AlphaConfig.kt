@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Configuration
 @Import(AlphaService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
@@ -40,8 +41,12 @@ class AlphaConfig : DataProviderConfig {
         return nullMarket.contains(marketCode, true)
     }
 
-    override fun getMarketDate(market: Market, date: String): LocalDate {
-        return marketUtils.getPriceDate(dateUtils.getDate(date), market)
+    override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
+        return marketUtils.getPriceDate(
+            dateUtils.getDate(date).atTime(LocalTime.now(dateUtils.getZoneId())),
+            market,
+            currentMode
+        )
     }
 
     override fun getPriceCode(asset: Asset): String {

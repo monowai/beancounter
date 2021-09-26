@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.ProviderUtils
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 /**
  * Service container for MarketData information.
@@ -51,10 +53,17 @@ class MarketDataService @Autowired internal constructor(
         for (marketDataProvider in byFactory.keys) {
             // Pull from the DB
             val assetIterable = (byFactory[marketDataProvider] ?: error("")).iterator()
+            var marketDate: LocalDate? = null
+            var lastMarket: Market? = null
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
-                val mpDate = marketDataProvider.getDate(asset.market, priceRequest)
-                val md = priceService.getMarketData(asset.id, mpDate)
+                if (lastMarket == null || lastMarket.code != asset.market.code) {
+                    lastMarket = asset.market
+                    marketDate = marketDataProvider.getDate(lastMarket, priceRequest)
+                    log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
+                }
+
+                val md = priceService.getMarketData(asset.id, marketDate)
                 if (md.isPresent) {
                     val mdValue = md.get()
                     mdValue.asset = asset
@@ -73,7 +82,7 @@ class MarketDataService @Autowired internal constructor(
         }
         // Merge results into a response
         if (fromDb.size + apiResults.size > 1) {
-            log.debug("From DB: {}, from API: {}", fromDb.size, apiResults.size)
+            log.debug("From DB: ${fromDb.size}, from API: ${apiResults.size}")
         }
         if (apiResults.isNotEmpty()) {
             priceService.write(PriceResponse(apiResults)) // Async write

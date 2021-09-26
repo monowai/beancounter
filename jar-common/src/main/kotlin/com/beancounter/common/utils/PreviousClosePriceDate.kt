@@ -5,18 +5,13 @@ import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZonedDateTime
 
-@Component
 /**
  * Market TZ utilities to calculate close dates
  */
+@Component
 class PreviousClosePriceDate(private val dateUtils: DateUtils) {
-
-    fun getPriceDate(date: LocalDate, market: Market): LocalDate {
-        return getPriceDate(date.atTime(LocalTime.now(dateUtils.getZoneId())), market)
-    }
 
     fun getPriceDate(
         localDateTime: LocalDateTime, // Callers date/time
@@ -33,16 +28,24 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
                 null
             )
 
-            var daysToSubtract = market.daysToSubtract
-            // Is requested date on or after when prices are available?
-            if (zonedLocal.toLocalDate() >= zonedRemote.withZoneSameInstant(zonedLocal.zone).toLocalDate()) {
-                daysToSubtract = 0
-            }
-            getPriceDate(marketLocal.toLocalDateTime(), daysToSubtract)
+            getPriceDate(marketLocal.toLocalDateTime(), getDaysToSubtract(market, zonedLocal, zonedRemote))
         } else {
             // Just account for market open
             getPriceDate(localDateTime, 0)
         }
+    }
+
+    private fun getDaysToSubtract(
+        market: Market,
+        zonedLocal: ZonedDateTime,
+        zonedRemote: ZonedDateTime
+    ): Int {
+        var daysToSubtract = market.daysToSubtract
+        // Is requested date on or after when prices are available?
+        if (zonedLocal.toLocalDate() >= zonedRemote.withZoneSameInstant(zonedLocal.zone).toLocalDate()) {
+            daysToSubtract = 0
+        }
+        return daysToSubtract
     }
 
     fun getPriceDate(date: LocalDate, daysToSubtract: Int): Any {
@@ -56,20 +59,21 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
      * @return resolved Date
      */
     fun getPriceDate(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
-        var result = seedDate.minusDays(daysToSubtract.toLong())
-        while (!isMarketOpen(result.toLocalDate())) {
-            result = result.minusDays(1)
+        var notionalDateTime = seedDate.minusDays(daysToSubtract.toLong())
+        while (!isMarketOpen(notionalDateTime)) {
+            notionalDateTime = notionalDateTime.minusDays(1)
         }
-        return result.toLocalDate()
+        return notionalDateTime.toLocalDate()
     }
 
-    fun isMarketOpen(evaluate: LocalDate): Boolean {
+    fun isMarketOpen(dateTime: LocalDateTime): Boolean {
         // Naive implementation that is only aware of Western markets
         // ToDo: market holidays...
-        return if (evaluate.dayOfWeek == DayOfWeek.SUNDAY) {
+        val weekend = if (dateTime.dayOfWeek == DayOfWeek.SUNDAY) {
             false
         } else {
-            evaluate.dayOfWeek != DayOfWeek.SATURDAY
+            dateTime.dayOfWeek != DayOfWeek.SATURDAY
         }
+        return weekend
     }
 }

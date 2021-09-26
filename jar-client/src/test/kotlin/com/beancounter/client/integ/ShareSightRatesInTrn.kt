@@ -11,9 +11,9 @@ import com.beancounter.client.sharesight.ShareSightRowAdapter
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.github.tomakehurst.wiremock.common.Json
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -114,7 +114,8 @@ class ShareSightRatesInTrn {
             row, ImportFormat.SHARESIGHT
         )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
-        log.info(Json.getObjectMapper().writeValueAsString(trn))
+
+        log.info(BcJson().objectMapper.writeValueAsString(trn))
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue("quantity", BigDecimal(10))

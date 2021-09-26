@@ -1,22 +1,27 @@
 buildscript {
     ext{
-        springVersion='2.5.4'
-        springCloudVersion='2020.0.3'
+        springVersion='2.5.5'
+        springCloudVersion='2020.0.4'
         verifierVersion='3.0.3'
-        kotlinVersion='1.5.21'
+        kotlinVersion='1.5.31'
         resilience4jVersion='1.7.1'
         jacocoVersion='0.8.7'
     }
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
-        classpath("org.jmailen.gradle:kotlinter-gradle:3.5.0")
+        classpath("org.jmailen.gradle:kotlinter-gradle:3.6.0")
     }
 }
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
     id 'org.jetbrains.kotlin.plugin.spring' version "$kotlinVersion"
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+}
+repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal()
 }
 
 group = 'com.beancounter'

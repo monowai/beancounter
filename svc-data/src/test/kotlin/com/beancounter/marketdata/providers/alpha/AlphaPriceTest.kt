@@ -8,7 +8,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
-import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +24,8 @@ import java.math.BigDecimal
  */
 internal class AlphaPriceTest {
     private val priceMapper = AlphaPriceAdapter().alphaMapper
+    private val dateUtils = DateUtils()
+    private val alphaConfig = AlphaConfig()
 
     @Test
     @Throws(Exception::class)
@@ -59,7 +60,6 @@ internal class AlphaPriceTest {
             PriceResponse::class.java
         )
         assertThat(result.data).isNotNull.hasSize(5)
-        val dateUtils = DateUtils()
         for (marketData in result.data) {
             assertThat(marketData)
                 .hasFieldOrProperty("volume")
@@ -117,10 +117,9 @@ internal class AlphaPriceTest {
 
     @Test
     fun is_KnownMarketVariancesHandled() {
-        val alphaConfig = AlphaConfig()
         val alphaService = AlphaService(alphaConfig)
         // No configured support to handle the market
-        assertThat(alphaService.isMarketSupported(Market("NZX", NZD)))
+        assertThat(alphaService.isMarketSupported(NZX))
             .isFalse
         assertThat(alphaConfig.getPriceCode(MSFT)).isEqualTo(MSFT.code)
         val ohi = getAsset(NYSE, "OHI")
@@ -133,8 +132,6 @@ internal class AlphaPriceTest {
 
     @Test
     fun is_PriceDateAccountingForWeekends() {
-        val dateUtils = DateUtils()
-        val alphaConfig = AlphaConfig()
         // Sunday
         val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-26")
         // Resolves to Friday
@@ -143,8 +140,6 @@ internal class AlphaPriceTest {
 
     @Test
     fun is_PriceDateInThePastConstant() {
-        val dateUtils = DateUtils()
-        val alphaConfig = AlphaConfig()
         val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-28")
         assertThat(computedDate).isEqualTo(dateUtils.getDate("2020-04-28"))
     }

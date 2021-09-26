@@ -38,12 +38,8 @@ class ValuationService @Autowired internal constructor(
         )
     }
 
-    override fun getPositions(portfolio: Portfolio, valuationDate: String?, value: Boolean): PositionResponse {
-        var valDate = valuationDate
-        if (valDate == null) {
-            valDate = DateUtils.today
-        }
-        val positions = build(portfolio, valDate).data
+    override fun getPositions(portfolio: Portfolio, valuationDate: String, value: Boolean): PositionResponse {
+        val positions = build(portfolio, valuationDate).data
         return if (value) {
             value(positions)
         } else PositionResponse(positions)
@@ -56,12 +52,12 @@ class ValuationService @Autowired internal constructor(
 
     private fun buildPositions(
         portfolio: Portfolio,
-        valuationDate: String?,
+        valuationDate: String,
         trnResponse: TrnResponse
     ): PositionResponse {
         val positionRequest = PositionRequest(portfolio.id, trnResponse.data)
         val positionResponse = positionService.build(portfolio, positionRequest)
-        if (valuationDate != null && !valuationDate.equals(DateUtils.today, ignoreCase = true)) {
+        if (!valuationDate.equals(DateUtils.today, ignoreCase = true)) {
             positionResponse.data.asAt = valuationDate
         }
         return positionResponse

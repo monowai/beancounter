@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestHeader
  * Client side interface to obtain prices.
  */
 @Service
-class PriceService @Autowired internal constructor(private val priceGateway: PriceGateway, private val tokenService: TokenService) {
+class PriceService @Autowired internal constructor(
+    private val priceGateway: PriceGateway,
+    private val tokenService: TokenService
+) {
     fun getPrices(priceRequest: PriceRequest): PriceResponse {
         return priceGateway.getPrices(tokenService.bearerToken, priceRequest)
     }
@@ -26,7 +29,7 @@ class PriceService @Autowired internal constructor(private val priceGateway: Pri
     interface PriceGateway {
         @GetMapping(value = ["/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPrices(
-            @RequestHeader("Authorization") bearerToken: String?,
+            @RequestHeader("Authorization") bearerToken: String,
             priceRequest: PriceRequest
         ): PriceResponse
     }

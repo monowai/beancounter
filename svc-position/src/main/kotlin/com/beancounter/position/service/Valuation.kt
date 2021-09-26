@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.DateUtils
 
 /**
  * Valuation services are responsible for computing
@@ -23,5 +24,5 @@ interface Valuation {
     fun value(positions: Positions): PositionResponse
     fun build(portfolio: Portfolio, valuationDate: String): PositionResponse
     fun build(trnQuery: TrustedTrnQuery): PositionResponse
-    fun getPositions(portfolio: Portfolio, valuationDate: String?, value: Boolean): PositionResponse
+    fun getPositions(portfolio: Portfolio, valuationDate: String = DateUtils.today, value: Boolean): PositionResponse
 }

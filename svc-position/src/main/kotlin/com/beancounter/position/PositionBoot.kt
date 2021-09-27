@@ -21,5 +21,5 @@ import org.springframework.cloud.openfeign.EnableFeignClients
 class PositionBoot
 
 fun main(args: Array<String>) {
-    runApplication<PositionBoot>(*args)
+    runApplication<PositionBoot>(args = args)
 }

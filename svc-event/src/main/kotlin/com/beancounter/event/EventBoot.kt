@@ -27,5 +27,5 @@ import org.springframework.scheduling.annotation.EnableAsync
 class EventBoot
 
 fun main(args: Array<String>) {
-    runApplication<EventBoot>(*args)
+    runApplication<EventBoot>(args = args)
 }

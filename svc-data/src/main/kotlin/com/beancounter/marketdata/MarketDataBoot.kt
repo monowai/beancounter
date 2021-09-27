@@ -23,5 +23,5 @@ import org.springframework.boot.runApplication
 class MarketDataBoot
 
 fun main(args: Array<String>) {
-    runApplication<MarketDataBoot>(*args)
+    runApplication<MarketDataBoot>(args = args)
 }

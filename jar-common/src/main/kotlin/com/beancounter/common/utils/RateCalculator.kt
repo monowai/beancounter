@@ -47,8 +47,4 @@ class RateCalculator private constructor() {
             return FxPairResults(rates)
         }
     }
-
-    init {
-        throw UnsupportedOperationException("This is a utility class and cannot be instantiated")
-    }
 }

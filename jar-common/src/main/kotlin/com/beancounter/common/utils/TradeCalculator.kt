@@ -1,16 +1,15 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.input.TrnInput
-import com.beancounter.common.model.TrnType
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
-@Service
-@Import(NumberUtils::class)
 /**
  * Service to compute a tradeAmount in various way
  */
+@Service
+@Import(NumberUtils::class)
 class TradeCalculator(val numberUtils: NumberUtils) {
     fun amount(quantity: BigDecimal, price: BigDecimal, fees: BigDecimal = BigDecimal.ZERO): BigDecimal {
         var result: BigDecimal?
@@ -26,10 +25,6 @@ class TradeCalculator(val numberUtils: NumberUtils) {
      */
     fun amount(trnInput: TrnInput): BigDecimal {
         if (numberUtils.isSet(trnInput.tradeAmount)) return trnInput.tradeAmount
-
-        return if (TrnType.isCorporateAction(trnInput.trnType))
-            trnInput.tradeAmount
-        else
-            amount(trnInput.quantity, trnInput.price, trnInput.fees)
+        return amount(trnInput.quantity, trnInput.price, trnInput.fees)
     }
 }

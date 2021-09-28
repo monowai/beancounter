@@ -29,7 +29,4 @@ class AssetKeyUtils {
             return "$asset:$market"
         }
     }
-    init {
-        throw UnsupportedOperationException("This is a utility class and cannot be instantiated")
-    }
 }

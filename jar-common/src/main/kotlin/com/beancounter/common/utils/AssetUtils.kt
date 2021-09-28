@@ -2,7 +2,6 @@ package com.beancounter.common.utils
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.fasterxml.jackson.core.JsonProcessingException
 
@@ -12,20 +11,10 @@ import com.fasterxml.jackson.core.JsonProcessingException
  * @author mikeh
  * @since 2019-02-24
  */
-class AssetUtils private constructor() {
+class AssetUtils {
 
     companion object {
         private val objectMapper = BcJson().objectMapper
-        private val USD = Currency("USD")
-
-        /**
-         * Helper to create a Market with a USD currency.
-         *
-         * @param code isoCode
-         * @return Market.
-         */
-        @JvmStatic
-        fun getMarket(code: String) = Market(code, USD)
 
         /**
          * Asset on a market.
@@ -70,9 +59,5 @@ class AssetUtils private constructor() {
         @JvmStatic
         fun getAssetInput(asset: Asset) =
             AssetInput(market = asset.market.code, code = asset.code, name = asset.code, resolvedAsset = asset)
-    }
-
-    init {
-        throw UnsupportedOperationException("This is a utility class and cannot be instantiated")
     }
 }

@@ -60,8 +60,10 @@ class MarketDataService @Autowired internal constructor(
                 marketDate = marketData[asset.market.timezone.id]
                 if (marketDate == null) {
                     marketDate = marketDataProvider.getDate(asset.market, priceRequest)
-                    marketData[asset.market.timezone.id] = marketDate
-                    log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
+                    if (priceRequest.assets.size > 1) {
+                        marketData[asset.market.timezone.id] = marketDate
+                        log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
+                    }
                 }
 
                 val md = priceService.getMarketData(asset.id, marketDate)

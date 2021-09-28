@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 
 /**
@@ -14,36 +16,42 @@ import java.time.ZonedDateTime
 class PreviousClosePriceDate(private val dateUtils: DateUtils) {
 
     fun getPriceDate(
-        localDateTime: LocalDateTime, // Callers date/time
+        localOffsetDateTime: OffsetDateTime, // Callers date/time
         market: Market,
-        isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localDateTime.toLocalDate()))
+        isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localOffsetDateTime.toLocalDate()))
     ): LocalDate {
         return if (isCurrent) {
             // Bug here - localDateTime should be a zonedDateTime as we can't assume all clients are in the same TZ
-            val zonedLocal = ZonedDateTime.ofLocal(localDateTime, dateUtils.getZoneId(), null)
-            val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
-            val zonedRemote = ZonedDateTime.ofLocal(
-                LocalDateTime.of(marketLocal.toLocalDate(), market.priceTime),
-                market.timezone.toZoneId(),
+            val zonedLocal = ZonedDateTime.ofLocal(
+                localOffsetDateTime.toLocalDateTime(),
+                dateUtils.getZoneId(),
                 null
             )
+            val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
+            val offsetMarket = OffsetDateTime.of(
+                marketLocal.toLocalDate(),
+                LocalTime.of(19, 0), marketLocal.offset
+            )
 
-            getPriceDate(marketLocal.toLocalDateTime(), getDaysToSubtract(market, zonedLocal, zonedRemote))
+            getPriceDate(
+                marketLocal.toLocalDateTime(),
+                getDaysToSubtract(market.daysToSubtract, zonedLocal, offsetMarket)
+            )
         } else {
             // Just account for market open
-            getPriceDate(localDateTime, 0)
+            getPriceDate(localOffsetDateTime.toLocalDateTime(), 0)
         }
     }
 
     private fun getDaysToSubtract(
-        market: Market,
-        zonedLocal: ZonedDateTime,
-        zonedRemote: ZonedDateTime
+        daysToSubtract: Int,
+        requestedDate: ZonedDateTime,
+        pricesAvailable: OffsetDateTime
     ): Int {
-        var daysToSubtract = market.daysToSubtract
-        // Is requested date on or after when prices are available?
-        if (zonedLocal.toLocalDate() >= zonedRemote.withZoneSameInstant(zonedLocal.zone).toLocalDate()) {
-            daysToSubtract = 0
+        // Is requested datetime on or after when prices are available?
+        val requestedOffset = OffsetDateTime.of(requestedDate.toLocalDateTime(), requestedDate.offset)
+        if (requestedOffset >= pricesAvailable) {
+            return 0 // at this point prices are updated
         }
         return daysToSubtract
     }
@@ -60,13 +68,13 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
      */
     fun getPriceDate(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
         var notionalDateTime = seedDate.minusDays(daysToSubtract.toLong())
-        while (!isMarketOpen(notionalDateTime)) {
+        while (!isWorkingDay(notionalDateTime)) {
             notionalDateTime = notionalDateTime.minusDays(1)
         }
         return notionalDateTime.toLocalDate()
     }
 
-    fun isMarketOpen(dateTime: LocalDateTime): Boolean {
+    fun isWorkingDay(dateTime: LocalDateTime): Boolean {
         // Naive implementation that is only aware of Western markets
         // ToDo: market holidays...
         val weekend = if (dateTime.dayOfWeek == DayOfWeek.SUNDAY) {

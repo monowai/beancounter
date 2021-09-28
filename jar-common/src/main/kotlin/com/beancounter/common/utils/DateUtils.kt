@@ -6,7 +6,11 @@ import org.springframework.stereotype.Service
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
@@ -30,6 +34,17 @@ class DateUtils(
     fun convert(localDate: LocalDate): LocalDate? {
         val zoned = localDate.atStartOfDay(getZoneId())
         return getDate(zoned.toLocalDate().toString())
+    }
+
+    fun offset(date: String = today()): OffsetDateTime {
+        return OffsetDateTime.ofInstant(
+            LocalDateTime.of(getDate(date), LocalTime.now()).toInstant(ZoneOffset.UTC),
+            getZoneId()
+        )
+    }
+
+    fun offsetDateString(date: String): String {
+        return getDateString(offset(date).toLocalDate())
     }
 
     val date: LocalDate

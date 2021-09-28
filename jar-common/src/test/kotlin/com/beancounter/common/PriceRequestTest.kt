@@ -20,9 +20,10 @@ class PriceRequestTest {
     }
 
     @Test
-    fun is_OfAssetInpt() {
+    fun is_OfAssetInput() {
         val priceRequest = PriceRequest.of(AssetInput("ABC", "123"))
         assertThat(priceRequest.assets).hasSize(1)
-        assertThat(priceRequest.date).isEqualTo(DateUtils.today)
+        val dateUtils = DateUtils()
+        assertThat(priceRequest.date).isEqualTo(dateUtils.offsetDateString(dateUtils.today()))
     }
 }

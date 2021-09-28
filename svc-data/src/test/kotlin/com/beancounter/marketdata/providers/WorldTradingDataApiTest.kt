@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
@@ -13,7 +12,6 @@ import com.beancounter.marketdata.Constants.Companion.AMP
 import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.WtdConfigTest.Companion.CONTRACTS
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
 import com.beancounter.marketdata.providers.wtd.WtdResponse
@@ -34,7 +32,6 @@ import org.springframework.test.context.ActiveProfiles
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
-import java.time.LocalDate
 import kotlin.collections.set
 
 /**
@@ -49,9 +46,8 @@ import kotlin.collections.set
 @AutoConfigureWireMock(port = 0)
 internal class WorldTradingDataApiTest {
     private val dateUtils = DateUtils()
-    private val marketUtils = PreviousClosePriceDate(dateUtils)
-    private val zonedDateTime = LocalDate.now(dateUtils.getZoneId()).atStartOfDay()
     private val priceDate = "2019-11-15"
+
     @Autowired
     private lateinit var wtdService: WtdService
 
@@ -135,9 +131,16 @@ internal class WorldTradingDataApiTest {
             getAssetInput(getAsset(NASDAQ, "${MSFT.code}x"))
         )
 
-        val nas = Market("NAS", SGD)
-        val priceDate = marketUtils.getPriceDate(zonedDateTime, nas).toString()
-        mockWtdResponse(inputs, priceDate, false, ClassPathResource("$CONTRACTS/${AAPL.code}.json").file)
+        val previousClose = PreviousClosePriceDate(dateUtils)
+        val utcToday = dateUtils.offset(dateUtils.today())
+        val priceDate = previousClose.getPriceDate(utcToday, NASDAQ)
+
+        mockWtdResponse(
+            inputs,
+            dateUtils.getDateString(priceDate),
+            false,
+            ClassPathResource("$CONTRACTS/${AAPL.code}.json").file
+        )
         val mdResult = wtdService
             .getMarketData(PriceRequest(assets = inputs))
         assertThat(mdResult)

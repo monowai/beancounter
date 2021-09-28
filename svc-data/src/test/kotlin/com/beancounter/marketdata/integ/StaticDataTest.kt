@@ -22,9 +22,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 
 /**
@@ -69,32 +67,6 @@ internal class StaticDataTest @Autowired constructor(
             .hasFieldOrProperty("currency")
         AssertionsForClassTypes.assertThat(market.currency)
             .hasFieldOrPropertyWithValue("code", USD.code)
-    }
-
-    @Test
-    fun is_serTzComputed() {
-
-        //  The java.util.Date has no concept of time zone, and only represents
-        //  the number of seconds passed since the Unix epoch time – 1970-01-01T00:00:00Z.
-        //  But, if you print the Date object directly, it is always printed with the default
-        //  system time zone.
-        val dateFormat = "yyyy-MM-dd hh:mm:ss"
-        val dateInString = "2019-04-14 10:30:00"
-        // Users requested date "today in timezone"
-        val sunday = LocalDate
-            .parse(dateInString, DateTimeFormatter.ofPattern(dateFormat))
-        val resolvedDate = marketUtils.getPriceDate(
-            sunday.atStartOfDay(),
-            marketService.getMarket(NYSE.code)
-        )
-        assertThat(resolvedDate)
-            .isEqualTo(LocalDate.of(2019, 4, 12))
-        marketUtils.getPriceDate(
-            sunday.atStartOfDay(),
-            marketService.getMarket(NYSE.code)
-        )
-        assertThat(resolvedDate)
-            .isEqualTo(LocalDate.of(2019, 4, 12))
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.beancounter.common.contracts
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.today
 
 /**
@@ -24,11 +25,13 @@ data class PriceRequest(val date: String = today, val assets: Collection<AssetIn
             return PriceRequest(today, assetInputs)
         }
 
+        val dateUtils = DateUtils()
+
         @JvmStatic
         fun of(assetInput: AssetInput): PriceRequest {
             val assetInputs: MutableCollection<AssetInput> = ArrayList()
             assetInputs.add(assetInput)
-            return PriceRequest(today, assetInputs)
+            return PriceRequest(dateUtils.offsetDateString(today), assetInputs)
         }
     }
 }

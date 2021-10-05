@@ -145,7 +145,7 @@ internal class AlphaVantageApiTest {
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes
-        val price = marketDataService.getPriceResponse(AssetInput(data))
+        val price = marketDataService.getPriceResponse(of(AssetInput(data)))
         assertThat(price).hasNoNullFieldsOrProperties()
     }
 

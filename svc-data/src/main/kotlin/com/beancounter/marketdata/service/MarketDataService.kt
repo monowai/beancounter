@@ -2,7 +2,6 @@ package com.beancounter.marketdata.service
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.providers.PriceService
@@ -32,10 +31,6 @@ class MarketDataService @Autowired internal constructor(
         for (marketDataProvider in byFactory.keys) {
             priceService.process(marketDataProvider.backFill(asset))
         }
-    }
-
-    fun getPriceResponse(assetInput: AssetInput): PriceResponse {
-        return getPriceResponse(PriceRequest.of(assetInput))
     }
 
     /**

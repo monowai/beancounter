@@ -4,6 +4,7 @@ import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -122,7 +123,7 @@ class AlphaVantageEnrichmentTest {
             .hasFieldOrPropertyWithValue(AlphaConstants.priceSymbolProp, symbol)
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "AXA Framlington Health Fund Z GBP Acc")
         Assertions.assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
-        val priceResponse = marketDataService.getPriceResponse(AssetInput(data))
+        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(AssetInput(data)))
         Assertions.assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
         Assertions.assertThat(priceResponse.data.iterator().next())

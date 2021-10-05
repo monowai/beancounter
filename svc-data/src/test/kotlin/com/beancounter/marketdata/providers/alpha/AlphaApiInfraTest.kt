@@ -86,7 +86,7 @@ class AlphaApiInfraTest {
         Assertions.assertThat(mdpPrice)
             .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-        val priceResponse = marketDataService.getPriceResponse(assetInput)
+        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(assetInput))
         Assertions.assertThat(priceResponse).isNotNull
     }
 }

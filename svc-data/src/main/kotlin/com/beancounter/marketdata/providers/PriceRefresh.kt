@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.common.input.AssetInput
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.service.MarketDataService
@@ -28,7 +28,9 @@ class PriceRefresh internal constructor(
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets!!) {
-            marketDataService.getPriceResponse(AssetInput(assetService.hydrateAsset(asset)))
+            val priceRequest = PriceRequest.of(asset)
+            log.debug("priceRequest.date: ${priceRequest.date}")
+            marketDataService.getPriceResponse(priceRequest)
             assetCount.getAndIncrement()
         }
         log.info(

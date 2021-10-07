@@ -49,8 +49,7 @@ import java.io.File
 internal class FxMvcTests {
     private val authorityRoleConverter = AuthorityRoleConverter()
 
-    @Autowired
-    private lateinit var dateUtils: DateUtils
+    private var dateUtils = DateUtils()
 
     @Autowired
     private lateinit var context: WebApplicationContext

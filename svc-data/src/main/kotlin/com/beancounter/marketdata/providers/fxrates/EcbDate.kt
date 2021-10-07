@@ -13,14 +13,17 @@ class EcbDate(val dateUtils: DateUtils) {
         return dateUtils.getOrThrow(earliest)
     }
 
-    fun getValidDate(inDate: String): String {
-        if (dateUtils.isToday(inDate)) {
-            return dateUtils.getDateString(dateUtils.getDate(inDate).minusDays(1))
+    fun getValidDate(tradeDate: String): String {
+        if (dateUtils.isToday(tradeDate)) {
+            return dateUtils.getDateString(
+                dateUtils.getDate(dateUtils.offsetDateString(tradeDate))
+                    .minusDays(1)
+            )
         }
-        val requestedDate = dateUtils.getOrThrow(inDate)
+        val requestedDate = dateUtils.getOrThrow(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {
             earliest
-        } else inDate
+        } else tradeDate
     }
 
     companion object {

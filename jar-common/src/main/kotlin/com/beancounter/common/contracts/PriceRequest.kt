@@ -12,7 +12,7 @@ data class PriceRequest(val date: String = today, val assets: Collection<AssetIn
 
     companion object {
         @JvmStatic
-        fun of(asset: Asset): PriceRequest {
+        fun of(asset: Asset, date: String = today): PriceRequest {
             val assetInputs: MutableCollection<AssetInput> = ArrayList()
             assetInputs.add(
                 AssetInput(
@@ -22,16 +22,14 @@ data class PriceRequest(val date: String = today, val assets: Collection<AssetIn
                     resolvedAsset = asset
                 )
             )
-            return PriceRequest(today, assetInputs)
+            return PriceRequest(date, assetInputs)
         }
 
         val dateUtils = DateUtils()
 
         @JvmStatic
         fun of(assetInput: AssetInput): PriceRequest {
-            val assetInputs: MutableCollection<AssetInput> = ArrayList()
-            assetInputs.add(assetInput)
-            return PriceRequest(dateUtils.offsetDateString(today), assetInputs)
+            return PriceRequest(dateUtils.offsetDateString(today), arrayListOf(assetInput))
         }
     }
 }

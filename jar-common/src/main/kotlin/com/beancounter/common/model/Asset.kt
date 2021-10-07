@@ -66,8 +66,7 @@ data class Asset constructor(var code: String) {
         this.marketCode = market.code
     }
 
-    constructor(id: String, code: String, name: String, market: Market) : this(code) {
-        this.market = market
+    constructor(id: String, code: String, name: String, market: Market) : this(code, market) {
         this.name = name
         this.id = id
     }

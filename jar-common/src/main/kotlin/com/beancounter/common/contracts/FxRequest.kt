@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * Request to locate FX Rates
  */
 data class FxRequest @ConstructorBinding constructor(
-    val rateDate: String = DateUtils.today,
+    val rateDate: String = DateUtils().offsetDateString(),
     val pairs: ArrayList<IsoCurrencyPair> = ArrayList()
 ) {
     constructor(rateDate: String = DateUtils.today) : this(rateDate, ArrayList())

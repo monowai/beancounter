@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
+import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
@@ -38,21 +38,19 @@ class DateUtils(
 
     fun offset(date: String = today()): OffsetDateTime {
         return OffsetDateTime.ofInstant(
-            LocalDateTime.of(getDate(date), LocalTime.now()).toInstant(ZoneOffset.UTC),
+            LocalDateTime.of(getDate(date), LocalTime.now()).toInstant(UTC),
             getZoneId()
         )
     }
 
-    fun offsetDateString(date: String): String {
+    fun offsetDateString(date: String = today()): String {
         return getDateString(offset(date).toLocalDate())
     }
 
     val date: LocalDate
         get() = getDate(today())
 
-    fun today() = LocalDate.now(getZoneId()).toString()
-
-    fun isToday(inDate: String?) = isToday(inDate, getZoneId())
+    fun today() = LocalDate.now(UTC).toString()
 
     fun getDateString(date: LocalDate) = date.toString()
 
@@ -93,11 +91,11 @@ class DateUtils(
         }
     }
 
-    fun isToday(inDate: String?, tz: ZoneId): Boolean {
+    fun isToday(inDate: String?): Boolean {
         return if (inDate == null || inDate.isBlank() || today == inDate.lowercase(Locale.getDefault())) {
             true // Null date is BC is "today"
         } else try {
-            val today = defaultFormatter.parse(LocalDate.now(tz).toString())
+            val today = defaultFormatter.parse(offset().toLocalDate().toString())
             val compareWith = defaultFormatter.parse(inDate)
             today.compareTo(compareWith) == 0
         } catch (e: ParseException) {

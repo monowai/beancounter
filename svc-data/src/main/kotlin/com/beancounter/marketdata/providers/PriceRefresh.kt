@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -18,18 +19,17 @@ import java.util.concurrent.atomic.AtomicInteger
 class PriceRefresh internal constructor(
     private val assetService: AssetService,
     private val marketDataService: MarketDataService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
 ) {
 
     @Transactional(readOnly = true)
     @Async("priceExecutor")
-    fun updatePrices() {
+    fun updatePrices(): CompletableFuture<Int> {
         log.info("Updating Prices {}", LocalDateTime.now(dateUtils.getZoneId()))
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets!!) {
-            val priceRequest = PriceRequest.of(asset)
-            log.debug("priceRequest.date: ${priceRequest.date}")
+            val priceRequest = PriceRequest.of(assetService.hydrateAsset(asset), dateUtils.offsetDateString())
             marketDataService.getPriceResponse(priceRequest)
             assetCount.getAndIncrement()
         }
@@ -39,6 +39,7 @@ class PriceRefresh internal constructor(
             LocalDateTime.now(dateUtils.getZoneId()),
             dateUtils.getZoneId().id
         )
+        return CompletableFuture.completedFuture(assetCount.get())
     }
 
     companion object {

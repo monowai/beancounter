@@ -38,9 +38,13 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
      */
     fun addAsset(asset: Asset, requestedDate: String) {
         val dpKey = dataProviderConfig.getPriceCode(asset)
-        val valuationDate = dateUtils.getDateString(
-            dataProviderConfig.getMarketDate(asset.market, requestedDate)
-        )
+        var valuationDate = requestedDate
+        if (dateUtils.isToday(requestedDate)) {
+            valuationDate = dateUtils.offsetDateString(requestedDate)
+        }
+//        val valuationDate = dateUtils.getDateString(
+//            dataProviderConfig.getMarketDate(asset.market, requestedDate)
+//        )
         dpToBc[dpKey] = asset
         var datedBatch = datedBatches[currentBatch]
         if (datedBatch == null) {

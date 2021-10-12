@@ -41,8 +41,8 @@ class WtdService @Autowired internal constructor(
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val providerArguments = getInstance(priceRequest, wtdConfig)
         val batchedRequests: MutableMap<Int, Future<WtdResponse>> = ConcurrentHashMap()
+        val providerArguments = getInstance(priceRequest, wtdConfig)
         for (batch in providerArguments.batch.keys) {
             batchedRequests[batch] = wtdProxy.getPrices(
                 providerArguments.batch[batch],
@@ -79,7 +79,7 @@ class WtdService @Autowired internal constructor(
         val request = requests[key]
         if (request!!.isDone) {
             val batchResult = wtdAdapter[providerArguments, key, request]
-            if (!batchResult.isNullOrEmpty()) {
+            if (!batchResult.isEmpty()) {
                 results.addAll(batchResult)
             }
             requests.remove(key)

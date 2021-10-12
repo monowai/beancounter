@@ -7,7 +7,6 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
-import com.beancounter.marketdata.Constants.Companion.BLANK
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -36,9 +35,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_BatchOfOne() {
         val providerArguments = ProviderArguments(TestConfig(1))
-        providerArguments.addAsset(aapl, BLANK)
-        providerArguments.addAsset(msft, BLANK)
-        providerArguments.addAsset(intc, BLANK)
+        providerArguments.addAsset(aapl, DateUtils.today)
+        providerArguments.addAsset(msft, DateUtils.today)
+        providerArguments.addAsset(intc, DateUtils.today)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
             .containsOnlyKeys(0, 1, 2)
@@ -48,9 +47,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_BatchOfTwo() {
         val providerArguments = ProviderArguments(TestConfig(2))
-        providerArguments.addAsset(aapl, BLANK)
-        providerArguments.addAsset(msft, BLANK)
-        providerArguments.addAsset(intc, BLANK)
+        providerArguments.addAsset(aapl, DateUtils.today)
+        providerArguments.addAsset(msft, DateUtils.today)
+        providerArguments.addAsset(intc, DateUtils.today)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
             .containsOnlyKeys(0, 1)
@@ -61,9 +60,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_BatchOfThree() {
         val providerArguments = ProviderArguments(TestConfig(3))
-        providerArguments.addAsset(aapl, BLANK)
-        providerArguments.addAsset(msft, BLANK)
-        providerArguments.addAsset(intc, BLANK)
+        providerArguments.addAsset(aapl, DateUtils.today)
+        providerArguments.addAsset(msft, DateUtils.today)
+        providerArguments.addAsset(intc, DateUtils.today)
         val batch: Map<Int, String?> = providerArguments.batch
         Assertions.assertThat(batch)
             .containsOnlyKeys(0)

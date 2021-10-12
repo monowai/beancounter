@@ -6,9 +6,8 @@ import org.springframework.stereotype.Service
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.OffsetTime.now
 import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
@@ -37,10 +36,7 @@ class DateUtils(
     }
 
     fun offset(date: String = today()): OffsetDateTime {
-        return OffsetDateTime.ofInstant(
-            LocalDateTime.of(getDate(date), LocalTime.now()).toInstant(UTC),
-            getZoneId()
-        )
+        return OffsetDateTime.of(getDate(inDate = date), now().toLocalTime(), UTC)
     }
 
     fun offsetDateString(date: String = today()): String {
@@ -64,11 +60,11 @@ class DateUtils(
             today -> {
                 return date
             }
-            else -> getDate(inDate, "yyyy-MM-dd", zoneId)
+            else -> getDate(inDate, format, zoneId)
         }
     }
 
-    fun getDate(inDate: String?, dateFormat: String, zoneId: ZoneId = getZoneId()): LocalDate {
+    fun getDate(inDate: String?, dateFormat: String = format, zoneId: ZoneId = getZoneId()): LocalDate {
         return if (inDate == null) {
             date
         } else getLocalDate(inDate, dateFormat)
@@ -95,12 +91,22 @@ class DateUtils(
         return if (inDate == null || inDate.isBlank() || today == inDate.lowercase(Locale.getDefault())) {
             true // Null date is BC is "today"
         } else try {
-            val today = defaultFormatter.parse(offset().toLocalDate().toString())
+            val today = defaultFormatter.parse(today())
             val compareWith = defaultFormatter.parse(inDate)
             today.compareTo(compareWith) == 0
         } catch (e: ParseException) {
             throw BusinessException(String.format("Unable to parse the date %s", inDate))
         }
+    }
+
+    fun offsetNow(date: String): OffsetDateTime {
+        if (isToday(date)) {
+            return OffsetDateTime.now()
+        }
+        return OffsetDateTime.ofInstant(
+            getDate(date).atTime(OffsetDateTime.now().toLocalTime()).toInstant(UTC),
+            ZoneId.of(UTC.id)
+        )
     }
 
     companion object {

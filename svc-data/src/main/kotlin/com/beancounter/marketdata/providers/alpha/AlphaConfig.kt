@@ -9,11 +9,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.ZoneOffset.UTC
 
 @Configuration
 @Import(AlphaService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
@@ -46,12 +41,8 @@ class AlphaConfig : DataProviderConfig {
     }
 
     override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
-        val offSet = OffsetDateTime.ofInstant(
-            dateUtils.getDate(date).atTime(LocalTime.now(dateUtils.getZoneId())).toInstant(ZoneOffset.UTC),
-            ZoneId.of(UTC.id)
-        )
         return marketUtils.getPriceDate(
-            offSet,
+            dateUtils.offsetNow(date),
             market,
             currentMode
         )

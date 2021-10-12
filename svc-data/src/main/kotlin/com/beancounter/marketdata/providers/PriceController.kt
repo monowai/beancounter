@@ -7,6 +7,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.service.MarketDataService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -50,6 +51,7 @@ class PriceController @Autowired internal constructor(
 
     @PostMapping
     fun prices(@RequestBody priceRequest: PriceRequest): PriceResponse {
+        log.debug("priceRequestDate: ${priceRequest.date}")
         for (requestedAsset in priceRequest.assets) {
             val asset = assetService.findLocally(requestedAsset.market, requestedAsset.code)
             if (asset != null) {
@@ -62,5 +64,9 @@ class PriceController @Autowired internal constructor(
     @PostMapping("/refresh")
     fun refreshPrices() {
         priceRefresh.updatePrices()
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

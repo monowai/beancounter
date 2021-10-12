@@ -1,6 +1,9 @@
 package com.beancounter.common
 
+import com.beancounter.common.TestMarkets.Companion.USD
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Market
+import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import org.assertj.core.api.Assertions.assertThat
@@ -18,6 +21,7 @@ internal class PreviousClosePriceDateTest {
     private var dateUtils = DateUtils("Asia/Singapore")
     private var previousClose = PreviousClosePriceDate(dateUtils)
     private val nasdaq = Market("NASDAQ")
+    private val message = "close: {} localDateTime: {}"
 
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(PreviousClosePriceDateTest::class.java)
@@ -26,24 +30,13 @@ internal class PreviousClosePriceDateTest {
     @Test
     fun is_MarketDateCalculated() {
         val nasdaqClose = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())
-        var localDate = OffsetDateTime.ofInstant(
+        val localDate = OffsetDateTime.ofInstant(
             LocalDateTime.of(2020, 7, 20, 8, 0).toInstant(ZoneOffset.UTC),
-            dateUtils.getZoneId()
+            ZoneOffset.UTC
         )
 
-        val message = "close: {} localDateTime: {}"
         log.info(message, nasdaqClose, localDate)
         // When requesting on a Monday in SG, you won't have COB prices until Tuesday in SG
-        assertThat(previousClose.getPriceDate(localDate, nasdaq, true))
-            .isEqualTo(nasdaqClose)
-
-        // Monday, 8pm SGT, prices are still not available, so should return Friday.
-        localDate = OffsetDateTime.ofInstant(
-            LocalDateTime.of(2020, 7, 20, 20, 0).toInstant(ZoneOffset.UTC),
-            dateUtils.getZoneId()
-        )
-
-        log.info(message, nasdaqClose, localDate)
         assertThat(previousClose.getPriceDate(localDate, nasdaq, true))
             .isEqualTo(nasdaqClose)
     }
@@ -53,7 +46,7 @@ internal class PreviousClosePriceDateTest {
         // val utcDateUtils = DateUtils("UTC")
         val requestedDate = OffsetDateTime.ofInstant(
             LocalDateTime.of(2021, 9, 24, 12, 5).toInstant(ZoneOffset.UTC),
-            dateUtils.getZoneId()
+            ZoneOffset.UTC
         )
         assertThat(previousClose.getPriceDate(requestedDate, nasdaq, true))
             .isEqualTo(dateUtils.getDate("2021-09-23")) // Nasdaq last close
@@ -71,10 +64,25 @@ internal class PreviousClosePriceDateTest {
     }
 
     @Test
+    fun is_PreviousDayUTCAfterMarketClose() {
+        val utcEve = OffsetDateTime.ofInstant(
+            LocalDateTime.of(2021, 10, 12, 22, 15).toInstant(ZoneOffset.UTC),
+            ZoneOffset.UTC
+        )
+        // Should resolve to previous days close on the same day.
+        assertThat(previousClose.getPriceDate(utcEve, nasdaq, true))
+            .isEqualTo(dateUtils.getDate("2021-10-12"))
+
+        val ofAsset = PriceRequest.of(AssetUtils.getAsset(Market("Blah", USD), "Test"))
+        assertThat(ofAsset.date)
+            .isEqualTo(DateUtils.today)
+    }
+
+    @Test
     fun is_AfternoonDateResolvedForHistoric() {
         val asAtDate = OffsetDateTime.ofInstant(
             LocalDateTime.of(2021, 9, 24, 15, 0).toInstant(ZoneOffset.UTC),
-            dateUtils.getZoneId()
+            ZoneOffset.UTC
         )
 
         assertThat(previousClose.getPriceDate(asAtDate, nasdaq, false))
@@ -85,7 +93,7 @@ internal class PreviousClosePriceDateTest {
     fun is_MarketDateCalculatedWhenToday() {
         val pricesUnavailable = OffsetDateTime.ofInstant(
             LocalDateTime.of(2020, 7, 17, 14, 0).toInstant(ZoneOffset.UTC),
-            dateUtils.getZoneId()
+            ZoneOffset.UTC
         )
 
         // Requesting today, but prices are not yet available.
@@ -100,14 +108,6 @@ internal class PreviousClosePriceDateTest {
         val todayHasPrices = previousClose.getPriceDate(pricesAvailable, nasdaq, true)
         assertThat(todayHasPrices).isEqualTo(dateUtils.getDate("2020-07-17"))
     }
-
-//    @Test
-//    fun is_FridayFoundFromSundayInSystemDefaultTz() {
-//        val sgx = Market("SGX", "SGD", "Asia/Singapore")
-//        val sunday = sunday
-//        val found = previousClose.getPriceDate(LocalDateTime.of(sunday.toLocalDate(), LocalTime.MIDNIGHT), sgx)
-//        assertThat(dateUtils.convert(found)).isEqualTo(friday.toLocalDate())
-//    }
 
     @Test
     fun is_WeekendFound() {

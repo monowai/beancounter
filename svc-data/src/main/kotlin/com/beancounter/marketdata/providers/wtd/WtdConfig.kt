@@ -41,18 +41,10 @@ class WtdConfig : DataProviderConfig {
     }
 
     override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
-        var daysToSubtract = 0
-        if (dateUtils.isToday(date)) {
-            // If Current, price date is T-daysToSubtract
-            daysToSubtract = 1
-            if (market.code.equals("NZX", ignoreCase = true)) {
-                daysToSubtract = 2
-            }
-        }
-
-        // If startDate is not "today", assume nothing.  Discount the weekends
         return marketUtils.getPriceDate(
-            dateUtils.getDate(date).atStartOfDay(), daysToSubtract
+            dateUtils.offsetNow(date),
+            market,
+            currentMode
         )
     }
 

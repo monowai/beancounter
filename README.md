@@ -8,7 +8,7 @@ Transform financial transaction data into portfolio positions which can then be 
 
 There's a demo stack connected with KeyCloak and Postgres [over here](http://github.com/monowai/bc-demo)
 
-*   [Viewer](https://github.com/monowai/bc-view) login, create portfolios and view positions
-*   [Data Services](svc-data/README.md) Market data, portfolios, transactions, FX rates etc
-*   [Position Service](svc-position/README.md) Compute positions from the Data Services
-*   [Corporate Events](svc-event/README.md) for handling of corporate events
+*   [Viewer](https://github.com/monowai/bc-view) login, create portfolios and view positions in various currencies
+*   [Data Service](svc-data/README.md) Market data, portfolios, transactions, FX rates etc
+*   [Position Service](svc-position/README.md) Compute positions from the Data Service
+*   [Corporate Events](svc-event/README.md) for handling of various types of corporate actions

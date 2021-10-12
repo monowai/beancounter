@@ -6,7 +6,6 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.AMP
 import com.beancounter.marketdata.Constants.Companion.ASX
@@ -98,7 +97,8 @@ internal class WorldTradingDataApiTest {
         // While the request date is relative to "Today", we are testing that we get back
         //  the date as set in the response from the provider.
         mockWtdResponse(
-            inputs, priceDate,
+            inputs,
+            priceDate,
             false, // Prices are at T-1. configured date set in -test.yaml
             ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
         )
@@ -131,13 +131,11 @@ internal class WorldTradingDataApiTest {
             getAssetInput(getAsset(NASDAQ, "${MSFT.code}x"))
         )
 
-        val previousClose = PreviousClosePriceDate(dateUtils)
-        val utcToday = dateUtils.offset(dateUtils.today())
-        val priceDate = previousClose.getPriceDate(utcToday, NASDAQ)
+        val utcToday = dateUtils.offsetDateString()
 
         mockWtdResponse(
             inputs,
-            dateUtils.getDateString(priceDate),
+            utcToday,
             false,
             ClassPathResource("$CONTRACTS/${AAPL.code}.json").file
         )

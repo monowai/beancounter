@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.service.Valuation
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -39,7 +40,7 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     @GetMapping(value = ["/id/{id}/{valuationDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun byId(
         @PathVariable id: String,
-        @PathVariable(required = false) valuationDate: String = DateUtils.today,
+        @PathVariable(required = false) valuationDate: String = DateUtils().offsetDateString(),
         @RequestParam(value = "value", defaultValue = "true") value: Boolean
     ): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioById(id)
@@ -52,6 +53,7 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
         @PathVariable(required = false) valuationDate: String = DateUtils.today,
         @RequestParam(value = "value", defaultValue = "true") value: Boolean
     ): PositionResponse {
+        log.debug("valuationDate: $valuationDate")
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
         return valuationService.getPositions(portfolio, valuationDate, value)
     }
@@ -63,5 +65,9 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     )
     fun query(@RequestBody trnQuery: TrustedTrnQuery): PositionResponse {
         return valuationService.build(trnQuery)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

@@ -96,7 +96,7 @@ internal class TestMoneyValues {
         assertThat(position.dateValues.lastDividend).isNotNull
         assertThat(
             dateUtils.isToday(
-                dateUtils.getDateString(position.dateValues.lastDividend!!)
+                position.dateValues.lastDividend!!.toString()
             )
         )
         val splitTrn = Trn(TrnType.SPLIT, microsoft, BigDecimal.TEN)

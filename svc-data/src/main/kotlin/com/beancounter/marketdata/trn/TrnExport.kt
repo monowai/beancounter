@@ -39,7 +39,7 @@ class TrnExport {
             trn.asset.market.code,
             trn.asset.code,
             trn.asset.name,
-            dateUtils.getDateString(trn.tradeDate),
+            trn.tradeDate.toString(),
             trn.quantity.toString(),
             trn.tradeCurrency.code,
             trn.price.toString(),

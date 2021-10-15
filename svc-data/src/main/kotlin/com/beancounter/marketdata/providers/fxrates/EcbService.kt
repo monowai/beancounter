@@ -31,7 +31,7 @@ class EcbService @Autowired internal constructor(
                         currencyService.baseCurrency!!,
                         currencyService.getCode(code)!!,
                         ecbRates.rates[code] ?: error("No rate"),
-                        dateUtils.getDateString(ecbRates.date)
+                        ecbRates.date.toString()
                     )
                 )
             }

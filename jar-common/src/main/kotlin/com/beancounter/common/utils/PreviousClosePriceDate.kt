@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -19,7 +18,7 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
     fun getPriceDate(
         localOffsetDateTime: OffsetDateTime, // Callers requested date in UTC
         market: Market,
-        isCurrent: Boolean = dateUtils.isToday(dateUtils.getDateString(localOffsetDateTime.toLocalDate()))
+        isCurrent: Boolean = dateUtils.isToday(localOffsetDateTime.toLocalDate().toString())
     ): LocalDate {
         return if (isCurrent) {
             val zonedLocal = ZonedDateTime.ofLocal(
@@ -27,15 +26,17 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
                 ZoneOffset.UTC,
                 null
             )
+
             val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
-            val offsetMarket = OffsetDateTime.of(
+            val marketOffset = OffsetDateTime.of(
                 marketLocal.toLocalDate(),
-                LocalTime.of(19, 0), marketLocal.offset
+                market.priceTime,
+                marketLocal.offset
             )
 
             getPriceDate(
                 marketLocal.toLocalDateTime(),
-                getDaysToSubtract(market.daysToSubtract, zonedLocal, offsetMarket)
+                getDaysToSubtract(market, zonedLocal, marketOffset)
             )
         } else {
             // Just account for work days
@@ -44,7 +45,7 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
     }
 
     private fun getDaysToSubtract(
-        daysToSubtract: Int,
+        market: Market,
         requestedDate: ZonedDateTime,
         pricesAvailable: OffsetDateTime
     ): Int {
@@ -52,11 +53,7 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
         if (requestedDate.toLocalDateTime() >= pricesAvailable.toLocalDateTime()) {
             return 0 // at this point prices are updated
         }
-        return daysToSubtract
-    }
-
-    fun getPriceDate(date: LocalDate, daysToSubtract: Int): Any {
-        return getPriceDate(date.atStartOfDay(), daysToSubtract)
+        return market.daysToSubtract
     }
 
     /**
@@ -67,13 +64,13 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
      */
     fun getPriceDate(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
         var notionalDateTime = seedDate.minusDays(daysToSubtract.toLong())
-        while (!isWorkingDay(notionalDateTime)) {
+        while (!isTradingDay(notionalDateTime)) {
             notionalDateTime = notionalDateTime.minusDays(1)
         }
         return notionalDateTime.toLocalDate()
     }
 
-    fun isWorkingDay(dateTime: LocalDateTime): Boolean {
+    fun isTradingDay(dateTime: LocalDateTime): Boolean {
         // Naive implementation that is only aware of Western markets
         // ToDo: market holidays...
         val weekend = if (dateTime.dayOfWeek == DayOfWeek.SUNDAY) {

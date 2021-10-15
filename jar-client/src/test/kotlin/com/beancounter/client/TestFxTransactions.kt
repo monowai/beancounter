@@ -10,7 +10,6 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -40,8 +39,7 @@ class TestFxTransactions {
         fxRequest.addTradeCash(tradeCash)
         val trnInput = TrnInput(CallerRef(), "ABC", price = BigDecimal.TEN)
         val fxTransactions = FxTransactions(
-            Mockito.mock(FxService::class.java),
-            DateUtils()
+            Mockito.mock(FxService::class.java)
         )
         fxTransactions.setRates(pairResults, fxRequest, trnInput)
         assertThat(trnInput)
@@ -52,7 +50,7 @@ class TestFxTransactions {
 
     @Test
     fun is_FxPairsWorking() {
-        val fxTransactions = FxTransactions(Mockito.mock(FxService::class.java), DateUtils())
+        val fxTransactions = FxTransactions(Mockito.mock(FxService::class.java))
 
         assertThat(
             fxTransactions.pair(

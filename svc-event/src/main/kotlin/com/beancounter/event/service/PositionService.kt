@@ -90,7 +90,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         val asAt: String = if (date.equals(DateUtils.today, ignoreCase = true)) {
             dateUtils.today()
         } else {
-            dateUtils.getDateString(dateUtils.getDate(date))
+            dateUtils.getDate(date).toString()
         }
         loginService.login()
 

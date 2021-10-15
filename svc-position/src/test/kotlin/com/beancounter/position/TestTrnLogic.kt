@@ -39,9 +39,17 @@ internal class TestTrnLogic {
         assertThat(position).isNotNull
         val today = LocalDate.now()
         val yesterday = today.minus(-1, ChronoUnit.DAYS)
-        val buyYesterday = Trn(TrnType.BUY, apple, hundred, tradeDate = DateUtils().convert(yesterday)!!)
+        val buyYesterday = Trn(
+            TrnType.BUY, apple, hundred,
+            tradeDate = yesterday.atStartOfDay(DateUtils().getZoneId())
+                .toLocalDate()
+        )
         buyYesterday.tradeAmount = twoK
-        val buyToday = Trn(TrnType.BUY, apple, hundred, tradeDate = DateUtils().convert(today)!!)
+        val buyToday = Trn(
+            TrnType.BUY, apple, hundred,
+            tradeDate = today.atStartOfDay(DateUtils().getZoneId())
+                .toLocalDate()
+        )
         buyToday.tradeAmount = twoK
         positions.add(position)
         position = accumulator.accumulate(buyYesterday, positions.portfolio, position)

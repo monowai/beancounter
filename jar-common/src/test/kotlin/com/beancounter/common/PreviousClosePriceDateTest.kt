@@ -111,10 +111,10 @@ internal class PreviousClosePriceDateTest {
 
     @Test
     fun is_WeekendFound() {
-        assertThat(previousClose.isWorkingDay(sunday)).isFalse // Sunday
-        assertThat(previousClose.isWorkingDay(saturday)).isFalse // Saturday
-        assertThat(previousClose.isWorkingDay(friday)).isTrue // Friday
-        assertThat(previousClose.isWorkingDay(monday)).isTrue // Monday
+        assertThat(previousClose.isTradingDay(sunday)).isFalse // Sunday
+        assertThat(previousClose.isTradingDay(saturday)).isFalse // Saturday
+        assertThat(previousClose.isTradingDay(friday)).isTrue // Friday
+        assertThat(previousClose.isTradingDay(monday)).isTrue // Monday
     }
 
     private val friday: LocalDateTime get() = LocalDateTime.of(dateUtils.getDate("2019-10-18"), LocalTime.MIDNIGHT)

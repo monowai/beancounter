@@ -72,7 +72,7 @@ class FxBase : ContractVerifierBase() {
     private fun mockEcbRates(
         rates: Map<String, BigDecimal>,
         exRatesResponse: ExRatesResponse,
-        rateDate: String = dateUtils.getDateString(exRatesResponse.date)
+        rateDate: String = exRatesResponse.date.toString()
     ) {
         Mockito.`when`(
             fxGateway.getRatesForSymbols(

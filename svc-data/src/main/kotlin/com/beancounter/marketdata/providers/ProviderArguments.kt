@@ -42,9 +42,6 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
         if (dateUtils.isToday(requestedDate)) {
             valuationDate = dateUtils.offsetDateString(requestedDate)
         }
-//        val valuationDate = dateUtils.getDateString(
-//            dataProviderConfig.getMarketDate(asset.market, requestedDate)
-//        )
         dpToBc[dpKey] = asset
         var datedBatch = datedBatches[currentBatch]
         if (datedBatch == null) {

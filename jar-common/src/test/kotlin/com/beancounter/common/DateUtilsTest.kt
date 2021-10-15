@@ -16,7 +16,7 @@ internal class DateUtilsTest {
     @Test
     fun is_Today() {
         assertThat(dateUtils.isToday(dateUtils.today())).isTrue
-        assertThat(dateUtils.isToday(null)).isTrue
+        assertThat(dateUtils.isToday()).isTrue
         assertThat(dateUtils.isToday("")).isTrue
         assertThat(dateUtils.isToday(" ")).isTrue
         assertThat(dateUtils.isToday("ToDay")).isTrue
@@ -63,16 +63,15 @@ internal class DateUtilsTest {
 
     @Test
     fun is_DateString() {
-        assertThat(dateUtils.getDateString(monday)).isEqualTo("2019-10-21")
         val default = dateUtils.date
-        assertThat(dateUtils.getDate(null)).isEqualTo(default)
+        assertThat(dateUtils.getDate()).isEqualTo(default)
         assertThat(dateUtils.getDate("today")).isEqualTo(default)
     }
 
     @Test
     fun is_LocalDateString() {
         val default = dateUtils.date
-        assertThat(dateUtils.getLocalDate(null)).isEqualTo(default)
+        assertThat(dateUtils.getLocalDate()).isEqualTo(default)
         assertThat(dateUtils.getLocalDate("today")).isEqualTo(default)
         assertThat(dateUtils.getLocalDate("ToDay")).isEqualTo(default)
     }
@@ -81,7 +80,4 @@ internal class DateUtilsTest {
     fun is_ParseException() {
         assertThrows(BusinessException::class.java) { dateUtils.isToday("ABC-MM-11") }
     }
-
-    private val monday: LocalDate
-        get() = dateUtils.getDate("2019-10-21")
 }

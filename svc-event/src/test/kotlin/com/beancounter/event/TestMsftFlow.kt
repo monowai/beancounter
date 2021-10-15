@@ -57,7 +57,7 @@ class TestMsftFlow {
         val dateUtils = DateUtils()
 
         Mockito.`when`(
-            positionGateway["demo", assetId, dateUtils.getDateString(recordDate)]
+            positionGateway["demo", assetId, recordDate.toString()]
         ).thenReturn(positionResponse)
 
         val portfolio = whereHeld.data.iterator().next()
@@ -74,7 +74,7 @@ class TestMsftFlow {
             portfolioGw.getWhereHeld(
                 "demo",
                 assetId,
-                dateUtils.getDateString(recordDate)
+                recordDate.toString()
             )
         )
             .thenReturn(whereHeld)

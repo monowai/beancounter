@@ -15,10 +15,8 @@ class EcbDate(val dateUtils: DateUtils) {
 
     fun getValidDate(tradeDate: String): String {
         if (dateUtils.isToday(tradeDate)) {
-            return dateUtils.getDateString(
-                dateUtils.getDate(dateUtils.offsetDateString(tradeDate))
-                    .minusDays(1)
-            )
+            return dateUtils.getDate(dateUtils.offsetDateString(tradeDate))
+                .minusDays(1).toString()
         }
         val requestedDate = dateUtils.getOrThrow(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {

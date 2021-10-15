@@ -36,8 +36,7 @@ class WtdConfigTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "date",
-                DateUtils()
-                    .getDateString(compareTo.toLocalDate())
+                compareTo.toLocalDate().toString()
             )
             .hasFieldOrProperty(Payload.DATA)
     }

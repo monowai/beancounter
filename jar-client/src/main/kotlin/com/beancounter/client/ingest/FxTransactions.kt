@@ -7,7 +7,6 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.NumberUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -17,14 +16,13 @@ import java.math.BigDecimal
  * Client side service to obtain FX rates in response to Transaction requests.
  */
 class FxTransactions(
-    private val fxClientService: FxService,
-    private val dateUtils: DateUtils
+    private val fxClientService: FxService
 ) {
     private val numberUtils = NumberUtils()
 
     fun buildRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
         val fxRequestMap: MutableMap<String?, FxRequest> = HashMap()
-        val tradeDate = dateUtils.getDateString(trn.tradeDate)
+        val tradeDate = trn.tradeDate.toString()
         val fxRequest = getFxRequest(fxRequestMap, tradeDate)
         fxRequest.addTradePf(
             pair(portfolio.currency, trn, trn.tradePortfolioRate)

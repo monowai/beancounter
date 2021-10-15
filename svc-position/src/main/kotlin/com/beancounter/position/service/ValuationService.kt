@@ -34,7 +34,7 @@ class ValuationService @Autowired internal constructor(
         val trnResponse = trnService.query(trnQuery)
         return buildPositions(
             trnQuery.portfolio,
-            dateUtils.getDateString(trnQuery.tradeDate), trnResponse
+            trnQuery.tradeDate.toString(), trnResponse
         )
     }
 

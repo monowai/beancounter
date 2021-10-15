@@ -43,7 +43,7 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         return portfolioGw.getWhereHeld(
             tokenService.bearerToken,
             assetId,
-            dateUtils.getDateString(tradeDate)
+            tradeDate.toString()
         )
     }
 

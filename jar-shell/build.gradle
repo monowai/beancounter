@@ -13,7 +13,7 @@ dependencyManagement {
         dependency "org.eclipse.jetty:jetty-server:8+"
         dependency "org.eclipse.jetty:jetty-http:8+"
         dependency "org.eclipse.jetty:jetty-util:8+"
-        dependency "org.eclipse.jetty:jetty-io:8+"
+        dependency "org.eclipse.jetty:jetty-io:11+"
     }
 }
 dependencies {

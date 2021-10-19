@@ -99,7 +99,8 @@ class AlphaVantageEnrichmentTest {
     fun is_MutualFundAssetEnrichedAndPriceReturned() {
         val code = "B6WZJX0"
         val lon = "LON"
-        AlphaMockUtils.mockSearchResponse(code, ClassPathResource("/mock/alpha/mf-search.json").file)
+        val alphaConfig = AlphaConfig()
+        AlphaMockUtils.mockSearchResponse("$code.$lon", ClassPathResource("/mock/alpha/mf-search.json").file)
         val symbol = "0P0000XMSV.$lon"
         AlphaMockUtils.mockGlobalResponse(
             symbol, ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file

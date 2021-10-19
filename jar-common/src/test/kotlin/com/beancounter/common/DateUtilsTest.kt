@@ -37,7 +37,7 @@ internal class DateUtilsTest {
         val calendar = Calendar.Builder()
             .setTimeZone(TimeZone.getTimeZone(dateUtils.getZoneId()))
             .setInstant(Date()).build()
-        val now = dateUtils.today()
+        val now = dateUtils.offsetDateString()
         calendar[Calendar.YEAR]
         assertThat(now)
             .isNotNull
@@ -56,14 +56,14 @@ internal class DateUtilsTest {
 
     @Test
     fun is_LocalDateEqualToToday() {
-        val today = dateUtils.today()
+        val today = dateUtils.offsetDateString()
         val nowInTz = LocalDate.now(dateUtils.getZoneId())
         assertThat(nowInTz.toString()).isEqualTo(today)
     }
 
     @Test
     fun is_DateString() {
-        val default = dateUtils.date
+        val default = dateUtils.offsetDateString()
         assertThat(dateUtils.getDate()).isEqualTo(default)
         assertThat(dateUtils.getDate("today")).isEqualTo(default)
     }

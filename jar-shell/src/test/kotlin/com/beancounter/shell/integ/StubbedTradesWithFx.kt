@@ -24,6 +24,8 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
+private val londonExchange = "LON"
+
 @Tag("slow")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -50,7 +52,7 @@ internal class StubbedTradesWithFx {
 
         val row: List<String> = arrayListOf(
             "999",
-            "LSE",
+            londonExchange,
             "BHP",
             "Test Asset",
             "buy",
@@ -85,7 +87,7 @@ internal class StubbedTradesWithFx {
         Assertions.assertThat(shareSightConfig.isCalculateRates).isTrue
         val row: List<String> = arrayListOf(
             "999",
-            "LSE",
+            londonExchange,
             "BHP",
             "Test Asset",
             "buy",

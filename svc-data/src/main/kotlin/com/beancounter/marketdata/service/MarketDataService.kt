@@ -21,7 +21,7 @@ import java.time.LocalDate
 @Service
 class MarketDataService @Autowired internal constructor(
     private val providerUtils: ProviderUtils,
-    private val priceService: PriceService
+    private val priceService: PriceService,
 ) {
     @Transactional
     fun backFill(asset: Asset) {

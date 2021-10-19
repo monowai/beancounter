@@ -155,14 +155,8 @@ beancounter:
         aliases:
           FIGI: SG
 
-      - code: LSE
-        currencyId: GBP
-        timezoneId: Europe/London
-        aliases:
-          FIGI: GB
-
       - code: LON
-        # UK Mutual Funds
+        # UK assets priced in pence.
         currencyId: GBP
         timezoneId: Europe/London
         multiplier: .01

@@ -54,7 +54,7 @@ name: lseMarket
 priority: 1
 request:
   method: GET
-  url: /markets/LSE
+  url: /markets/LON
 response:
   status: 200
   bodyFromFile: "./lse.json"

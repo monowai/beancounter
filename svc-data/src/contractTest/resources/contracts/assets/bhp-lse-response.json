@@ -1,10 +1,10 @@
 {
   "data": {
-    "BHP:LSE": {
+    "BHP:LON": {
       "id": "1ozW7B4GSmOP0cKO9pl6ng",
       "code": "BHP",
       "market": {
-        "code": "LSE",
+        "code": "LON",
         "currency": {
           "code": "GBP",
           "name": "Pound",

@@ -21,7 +21,7 @@ import java.time.LocalDate
  * BC Row Adapter tests for handling various assertions around transformations.
  */
 class RowAdapaterTest {
-    val ais = Mockito.mock(AssetIngestService::class.java)
+    val ais: AssetIngestService = Mockito.mock(AssetIngestService::class.java)
 
     @BeforeEach
     fun setupMocks() {
@@ -33,7 +33,7 @@ class RowAdapaterTest {
     fun trimmedCsvInputValues() {
         // Input has been formatted with extraneous spaces.
         val values = "BC      ,USX                   ,                      ,BUY ,NASDAQ,CDNA," +
-            "                                             ,2021-08-11,20.000000  ,USD          ," +
+            "                                             ,2021-08-11,20.000000  ,,,USD          ," +
             "77.78     ,0    ,0            ,1556.60    ,"
 
         // BC will receive data in the same manner
@@ -59,7 +59,7 @@ class RowAdapaterTest {
     fun forwardTradeDateFails() {
         val tomorrow = LocalDate.now().atStartOfDay().plusDays(1)
         val values = "BC      ,USX                   ,                      ,BUY ,NASDAQ,CDNA," +
-            "                                             ,$tomorrow,20.000000  ,USD          ," +
+            "                                             ,$tomorrow,20.000000  ,,,USD          ," +
             "77.78     ,0    ,0            ,1556.60    ,"
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             Portfolio("CSV"),

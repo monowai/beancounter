@@ -133,7 +133,9 @@ class TrnControllerFlowTest {
             TrnType.BUY,
             BigDecimal.TEN,
             USD.code,
-            dateUtils.getDate(tradeDate),
+            null,
+            null,
+            tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN
         )
 
@@ -146,6 +148,8 @@ class TrnControllerFlowTest {
             TrnType.BUY,
             BigDecimal.TEN,
             USD.code,
+            null,
+            null,
             dateUtils.getDate(earlyTradeDate),
             price = BigDecimal.TEN
         )
@@ -157,6 +161,8 @@ class TrnControllerFlowTest {
             TrnType.BUY,
             BigDecimal.TEN,
             USD.code,
+            null,
+            null,
             dateUtils.getDate(earlyTradeDate),
             price = BigDecimal.TEN
         )

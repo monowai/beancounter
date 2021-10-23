@@ -40,6 +40,7 @@ class ShareSightDividendAdapter(
     private val dateUtils = DateUtils()
     private var filter = Filter(null)
     private val numberUtils = NumberUtils()
+
     @Autowired(required = false)
     fun setFilter(filter: Filter) {
         this.filter = filter
@@ -58,13 +59,15 @@ class ShareSightDividendAdapter(
                 TrnType.DIVI,
                 BigDecimal.ZERO,
                 row[currency],
-                dateUtils.getDate(
+                null,
+                null,
+                tradeDate = dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,
                     dateUtils.getZoneId()
                 ),
-                BigDecimal.ZERO,
-                BigDecimal.ZERO,
+                fees = BigDecimal.ZERO,
+                price = BigDecimal.ZERO,
                 tradeAmount = multiply(
                     parse(
                         row[net],

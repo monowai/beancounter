@@ -82,6 +82,8 @@ class ShareSightTradeAdapter(
                     shareSightConfig.numberFormat
                 )!!,
                 row[currency],
+                null,
+                null,
                 dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,

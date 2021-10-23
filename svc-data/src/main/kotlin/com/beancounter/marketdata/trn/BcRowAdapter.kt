@@ -8,6 +8,7 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
+import com.beancounter.marketdata.trn.TrnIoDefinition.Companion.colDef
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -20,19 +21,23 @@ class BcRowAdapter(
     val dateUtils: DateUtils = DateUtils(),
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
-        val marketCode = trustedTrnImportRequest.row[4].trim()
-        val assetCode = trustedTrnImportRequest.row[5].trim()
+        val marketCode = trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Market]!!].trim()
+        val assetCode = trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Code]!!].trim()
         val asset = assetIngestService.resolveAsset(
             marketCode,
             assetCode = assetCode,
-            name = trustedTrnImportRequest.row[6].trim()
+            name = trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Name]!!].trim()
         )
-        val trnType = TrnType.valueOf(trustedTrnImportRequest.row[3].trim())
-        val quantity = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[8]))
-        val price = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[10]))
-        val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[11]))
-        val tradeAmount = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[13]))
-        val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[7])
+        val trnType = TrnType.valueOf(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Type]!!].trim())
+        val quantity =
+            MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Quantity]!!]))
+        val price =
+            MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Price]!!]))
+        val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Fees]!!]))
+        val tradeBaseRate = MathUtils.parse(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.BaseRate]!!])
+        val tradeAmount =
+            MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.TradeAmount]!!]))
+        val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Date]!!])
 
         if (tradeDate.isAfter(LocalDate.now())) {
             throw BusinessException("Cannot accept forward dated trade dates $tradeDate")
@@ -43,12 +48,13 @@ class BcRowAdapter(
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,
-            tradeCurrency = trustedTrnImportRequest.row[9].trim(),
+            tradeCurrency = trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.TradeCurrency]!!].trim(),
+            tradeBaseRate = tradeBaseRate,
             tradeDate = tradeDate,
             tradeAmount = tradeAmount,
             fees = fees,
             price = price,
-            comments = trustedTrnImportRequest.row[14],
+            comments = trustedTrnImportRequest.row[colDef()[TrnIoDefinition.Columns.Comments]!!],
         )
     }
 }

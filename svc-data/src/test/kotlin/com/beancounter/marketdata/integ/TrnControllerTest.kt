@@ -148,6 +148,8 @@ class TrnControllerTest {
             TrnType.DIVI,
             BigDecimal.TEN,
             USD.code,
+            null,
+            null,
             dateUtils.getDate("2020-03-10"),
             price = BigDecimal.TEN
         )
@@ -222,6 +224,8 @@ class TrnControllerTest {
             TrnType.BUY,
             BigDecimal.TEN,
             USD.code,
+            null,
+            null,
             dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN
         )
@@ -234,6 +238,8 @@ class TrnControllerTest {
             TrnType.BUY,
             BigDecimal.TEN,
             USD.code,
+            null,
+            null,
             dateUtils.getDate("2016-01-01"),
             price = BigDecimal.TEN
         )

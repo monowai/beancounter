@@ -33,19 +33,19 @@ class TrnController {
     private lateinit var trnService: TrnService
     private lateinit var portfolioService: PortfolioService
     private lateinit var dateUtils: DateUtils
-    private lateinit var trnExport: TrnExport
+    private lateinit var trnIoDefinition: TrnIoDefinition
 
     @Autowired
     fun setServices(
         trnService: TrnService,
         portfolioService: PortfolioService,
         dateUtils: DateUtils,
-        trnExport: TrnExport,
+        trnIoDefinition: TrnIoDefinition,
     ) {
         this.trnService = trnService
         this.portfolioService = portfolioService
         this.dateUtils = dateUtils
-        this.trnExport = trnExport
+        this.trnIoDefinition = trnIoDefinition
     }
 
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -96,7 +96,11 @@ class TrnController {
         return trnService.findPortfolioAssetTrades(portfolioService.find(portfolioId), assetId)
     }
 
-    @PostMapping(value = ["/query"], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(
+        value = ["/query"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
     fun findByAsset(
         @RequestBody query: TrustedTrnQuery
     ): TrnResponse {
@@ -122,9 +126,9 @@ class TrnController {
         val csvWriter = CSVWriterBuilder(response.writer)
             .withSeparator(',')
             .build()
-        csvWriter.writeNext(trnExport.headers(), false)
+        csvWriter.writeNext(trnIoDefinition.headers().toTypedArray(), false)
         for (datum in trnResponse.data) {
-            csvWriter.writeNext(trnExport.toArray(datum), false)
+            csvWriter.writeNext(trnIoDefinition.toArray(datum), false)
         }
         csvWriter.close()
     }

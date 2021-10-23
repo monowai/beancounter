@@ -61,10 +61,19 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
             return null
         }
         val assetResult = data.iterator().next()
-        return if (assetResult.currency != market.currencyId) {
-            // Fuzzy search result returned and asset from a different exchange
+        return if (currencyMatch(assetResult.currency, market.currencyId)) {
+            assetResult
+        } else
+        // Fuzzy search result returned and asset from a different exchange
             null
-        } else assetResult
+    }
+
+    fun currencyMatch(currency: String?, currencyId: String): Boolean {
+        var match = currency
+        if (currency == "GBX") {
+            match = "GBP"
+        }
+        return match == currencyId
     }
 
     override fun canEnrich(asset: Asset): Boolean {

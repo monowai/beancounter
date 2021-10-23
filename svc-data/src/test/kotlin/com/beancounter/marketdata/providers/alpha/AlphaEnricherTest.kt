@@ -27,6 +27,9 @@ class AlphaEnricherTest {
     @Autowired
     lateinit var assetService: AssetService
 
+    @Autowired
+    lateinit var alphaEnricher: AlphaEnricher
+
     @Test
     fun is_DefaultAssetName() {
         val key = "ABC"
@@ -46,5 +49,12 @@ class AlphaEnricherTest {
         assertThat(createdAsset)
             .hasFieldOrPropertyWithValue("name", createdAsset.name)
             .hasFieldOrPropertyWithValue("code", createdAsset.code)
+    }
+
+    @Test
+    fun is_currencyMatching() {
+        assertThat(alphaEnricher.currencyMatch("GBX", "GBP")).isTrue
+        assertThat(alphaEnricher.currencyMatch("GBP", "GBP")).isTrue
+        assertThat(alphaEnricher.currencyMatch("AUD", "GBP")).isFalse
     }
 }

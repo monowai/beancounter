@@ -7,12 +7,12 @@ import org.springframework.context.annotation.Import
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 
+/**
+ * WebSecurity Authentication
+ */
 @Configuration
 @Import(TokenService::class)
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @ConditionalOnProperty(value = ["auth.enabled"], matchIfMissing = true)
-/**
- * WebSecurity Authentication
- */
 class AuthServerConfig

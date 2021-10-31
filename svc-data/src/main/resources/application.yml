@@ -9,6 +9,10 @@ management:
     port: 9511
     base-path: /
   endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState
     health.show-details: always
   endpoints:
     web:

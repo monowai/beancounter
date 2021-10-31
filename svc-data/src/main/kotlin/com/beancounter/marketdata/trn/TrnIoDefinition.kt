@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service
 class TrnIoDefinition {
     val dateUtils = DateUtils()
 
+    /**
+     * TRN columns that will be read when importing a delimited file.
+     */
     enum class Columns {
         Provider, Batch, CallerId, Type, Market, Code, Name, Date,
         Quantity, BaseCurrency, BaseRate, TradeCurrency, Price, Fees, PortfolioRate, TradeAmount, Comments

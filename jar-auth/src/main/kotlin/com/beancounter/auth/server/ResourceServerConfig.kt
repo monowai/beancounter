@@ -6,24 +6,25 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 
-@Configuration
-@ComponentScan("com.beancounter.auth.server")
 /**
  * Spring-security config to support OAuth2/JWT for MVC endpoints
  */
+@Configuration
+@ComponentScan("com.beancounter.auth.server")
 class ResourceServerConfig(private val jwtRoleConverter: JwtRoleConverter) : WebSecurityConfigurerAdapter() {
     @Value("\${auth.pattern:/api/**}")
-    private val authPattern: String? = null
+    private val apiPattern: String? = null
 
-    @Value("\${management.server.servlet.context-path:/management}")
+    @Value("\${management.server.base-path:/management}")
     private val actuatorPattern: String? = null
 
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
-        http.cors().and()
+        http
             .authorizeRequests() // Scope permits access to the API - basically, "caller is authorised"
+            .mvcMatchers("$actuatorPattern/actuator/health/**").permitAll()
             .mvcMatchers("$actuatorPattern/actuator/**").hasRole(AuthConstants.OAUTH_ADMIN)
-            .mvcMatchers(authPattern).hasAuthority(AuthConstants.SCOPE_BC)
+            .mvcMatchers(apiPattern).hasAuthority(AuthConstants.SCOPE_BC)
             .anyRequest().authenticated()
             .and()
             .oauth2ResourceServer()

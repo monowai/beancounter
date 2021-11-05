@@ -110,6 +110,20 @@ beancounter:
       - code: SGD
         name: Dollar
         symbol: "$"
+  asset.categories:
+    default: Equity
+    values:
+      - id: Equity
+        name: Equity
+      - id: Mutual Fund
+        name: Mutual Fund
+      - id: ETF
+        name: Exchange Traded Fund
+      - id: Cash
+        name: Cash
+      - id: Custom
+        name: Custom
+
   # Default asset enricher - FIGI/ALPHA/MOCK - can be set on a per market basis
   enricher: ALPHA
   market:

@@ -32,7 +32,12 @@
       "asset": {
         "id": "BguoVZpoRxWjWrITp7DEuw",
         "code": "MSFT",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NASDAQ",
           "currency": {
@@ -99,7 +104,12 @@
       "asset": {
         "id": "BguoVZpoRxWjWrITp7DEuw",
         "code": "MSFT",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NASDAQ",
           "currency": {

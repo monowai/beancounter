@@ -28,7 +28,12 @@
           "id": "MSFT",
           "code": "MSFT",
           "name": "Microsoft Corporation",
-          "category": "Equity",
+          "status": "Active",
+          "version": "1",
+          "assetCategory": {
+            "id": "Equity",
+            "name": "Equity"
+          },
           "market": {
             "code": "NASDAQ",
             "currency": {
@@ -122,7 +127,12 @@
           "id": "KMI",
           "code": "KMI",
           "name": "Kinder Morgan Inc.",
-          "category": "Equity",
+          "status": "Active",
+          "version": "1",
+          "assetCategory": {
+            "id": "Equity",
+            "name": "Equity"
+          },
           "market": {
             "code": "NYSE",
             "currency": {

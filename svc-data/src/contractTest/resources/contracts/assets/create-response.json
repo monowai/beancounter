@@ -3,6 +3,12 @@
     "MSFT:NASDAQ": {
       "id": "BguoVZpoRxWjWrITp7DEuw",
       "code": "MSFT",
+      "status": "Active",
+      "version": "1",
+      "assetCategory": {
+        "id": "Equity",
+        "name": "Equity"
+      },
       "market": {
         "code": "NASDAQ",
         "currency": {
@@ -16,6 +22,12 @@
     "BHP:ASX": {
       "id": "0ozW7B4GSmOP0cKO9pl6ng",
       "code": "BHP",
+      "status": "Active",
+      "version": "1",
+      "assetCategory": {
+        "id": "Equity",
+        "name": "Equity"
+      },
       "market": {
         "code": "ASX",
         "currency": {

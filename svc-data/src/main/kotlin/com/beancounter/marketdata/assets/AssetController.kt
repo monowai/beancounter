@@ -28,7 +28,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/assets")
 @CrossOrigin
 @PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
-class AssetController @Autowired internal constructor(private val assetService: AssetService, private val marketDataService: MarketDataService) {
+class AssetController @Autowired internal constructor(
+    private val assetService: AssetService,
+    private val marketDataService: MarketDataService,
+    private val enrichmentFactory: EnrichmentFactory,
+) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse {
         return AssetResponse(assetService.find(market, code))
@@ -41,7 +45,7 @@ class AssetController @Autowired internal constructor(private val assetService: 
 
     @PostMapping(value = ["/{assetId}/enrich"])
     fun enrichAsset(@PathVariable assetId: String): AssetResponse {
-        return AssetResponse(assetService.enrich(assetId))
+        return AssetResponse(enrichmentFactory.enrich(assetService.find(assetId)))
     }
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])

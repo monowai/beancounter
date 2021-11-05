@@ -27,7 +27,12 @@
         "id": "6VjYIJFKSCu7BtphC2GVSw",
         "code": "AAPL",
         "name": "Apple Inc",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NASDAQ",
           "currency": {
@@ -89,7 +94,12 @@
         "id": "6VjYIJFKSCu7BtphC2GVSw",
         "code": "AAPL",
         "name": "Apple Inc",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NASDAQ",
           "currency": {

@@ -17,16 +17,17 @@ import java.util.UUID
 import java.util.stream.Stream
 import javax.transaction.Transactional
 
-@Service
-@Transactional
 /**
  * Asset CRUD functionality.
  */
+@Service
+@Transactional
 class AssetService internal constructor(
     private val enrichmentFactory: EnrichmentFactory,
     private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
+    private val assetHydrationService: AssetHydrationService,
     private val keyGenUtils: KeyGenUtils,
 ) : com.beancounter.client.AssetService {
 
@@ -66,9 +67,9 @@ class AssetService internal constructor(
                 asset.market = market
                 asset.id = keyGenUtils.format(UUID.randomUUID())
             }
-            return hydrateAsset(assetRepository.save(asset))
+            return assetHydrationService.hydrateAsset(assetRepository.save(asset))
         }
-        return enrich(foundAsset)
+        return enrichmentFactory.enrich(foundAsset)
     }
 
     override fun process(assetRequest: AssetRequest): AssetUpdateResponse {
@@ -97,11 +98,12 @@ class AssetService internal constructor(
                 asset = assetRepository.save(asset)
             }
         }
-        return hydrateAsset(asset!!)
+        return assetHydrationService.hydrateAsset(asset!!)
     }
 
     override fun find(assetId: String): Asset {
-        val result: Optional<Asset> = assetRepository.findById(assetId).map { asset: Asset -> hydrateAsset(asset) }
+        val result: Optional<Asset> =
+            assetRepository.findById(assetId).map { asset: Asset -> assetHydrationService.hydrateAsset(asset) }
         if (result.isPresent) {
             return result.get()
         }
@@ -115,29 +117,7 @@ class AssetService internal constructor(
             marketCode.uppercase(Locale.getDefault()),
             code.uppercase(Locale.getDefault())
         )
-        return optionalAsset.map { asset: Asset -> hydrateAsset(asset) }.orElse(null)
-    }
-
-    fun enrich(assetId: String): Asset {
-        return enrich(find(assetId))
-    }
-
-    private fun enrich(asset: Asset): Asset {
-        val enricher = enrichmentFactory.getEnricher(asset.market)
-        if (enricher.canEnrich(asset)) {
-            val enriched = enricher.enrich(asset.market, asset.code, asset.name)
-            if (enriched != null) {
-                enriched.id = asset.id
-                assetRepository.save(enriched)
-                return enriched
-            }
-        }
-        return asset
-    }
-
-    fun hydrateAsset(asset: Asset): Asset {
-        asset.market = marketService.getMarket(asset.marketCode!!)
-        return asset
+        return optionalAsset.map { asset: Asset -> assetHydrationService.hydrateAsset(asset) }.orElse(null)
     }
 
     fun findAllAssets(): Stream<Asset>? {

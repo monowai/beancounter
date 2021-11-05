@@ -34,7 +34,12 @@
         "id": "KMI",
         "code": "KMI",
         "name": "Kinder Morgan Inc.",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NYSE",
           "currency": {
@@ -106,7 +111,12 @@
         "id": "KMI",
         "code": "KMI",
         "name": "Kinder Morgan Inc.",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NYSE",
           "currency": {
@@ -174,7 +184,12 @@
         "id": "KMI",
         "code": "KMI",
         "name": "Kinder Morgan Inc.",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NYSE",
           "currency": {
@@ -242,7 +257,12 @@
         "id": "KMI",
         "code": "KMI",
         "name": "Kinder Morgan Inc.",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NYSE",
           "currency": {
@@ -310,7 +330,12 @@
         "id": "KMI",
         "code": "KMI",
         "name": "Kinder Morgan Inc.",
-        "category": "Equity",
+        "status": "Active",
+        "version": "1",
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
         "market": {
           "code": "NYSE",
           "currency": {

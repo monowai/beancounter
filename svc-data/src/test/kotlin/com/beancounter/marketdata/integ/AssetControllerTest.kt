@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
@@ -139,6 +140,8 @@ internal class AssetControllerTest(
             .hasFieldOrPropertyWithValue("name", firstAsset.name)
             .hasFieldOrPropertyWithValue("code", firstAsset.code.uppercase(Locale.getDefault()))
             .hasFieldOrPropertyWithValue("marketCode", null)
+            .hasFieldOrPropertyWithValue("version", "1")
+            .hasFieldOrPropertyWithValue("status", Status.Active)
             .hasFieldOrProperty("id")
     }
 

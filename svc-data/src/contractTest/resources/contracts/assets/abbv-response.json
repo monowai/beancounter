@@ -3,6 +3,12 @@
     "ABBV:NYSE": {
       "id": "BguoVZpoRxWeWrITp7DEuw",
       "code": "ABBV",
+      "status": "Active",
+      "version": "1",
+      "assetCategory": {
+        "id": "Equity",
+        "name": "Equity"
+      },
       "market": {
         "code": "NYSE",
         "currency": {

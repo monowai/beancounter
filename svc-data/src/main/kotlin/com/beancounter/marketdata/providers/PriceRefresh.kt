@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.service.MarketDataService
 import org.slf4j.LoggerFactory
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @Service
 class PriceRefresh internal constructor(
     private val assetService: AssetService,
+    private val assetHydrationService: AssetHydrationService,
     private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils,
 ) {
@@ -29,7 +31,7 @@ class PriceRefresh internal constructor(
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets!!) {
-            val priceRequest = PriceRequest.of(assetService.hydrateAsset(asset), dateUtils.offsetDateString())
+            val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), dateUtils.offsetDateString())
             marketDataService.getPriceResponse(priceRequest)
             assetCount.getAndIncrement()
         }

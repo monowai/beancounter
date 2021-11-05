@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.model.Asset
 import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
@@ -28,13 +29,16 @@ internal class PriceRefreshTest {
     private lateinit var assetService: AssetService
 
     @Autowired
+    private lateinit var assetHydrationService: AssetHydrationService
+
+    @Autowired
     private lateinit var marketService: MarketService
 
     @Test
     fun updatePrices() {
         val keyGenUtils = KeyGenUtils()
         val asset = assetRepository.save(Asset(keyGenUtils.id, keyGenUtils.id, "AssetName", NASDAQ))
-        val hydratedAsset = assetService.hydrateAsset(asset)
+        val hydratedAsset = assetHydrationService.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")
         val completable = priceRefresh.updatePrices()
         assertThat(completable.get()).isGreaterThanOrEqualTo(1)

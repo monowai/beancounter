@@ -21,8 +21,7 @@ data class Portfolio @ConstructorBinding constructor(
     val name: String,
     @ManyToOne val currency: Currency,
     @ManyToOne val base: Currency,
-    @ManyToOne
-    var owner: SystemUser? = null
+    @ManyToOne var owner: SystemUser? = null
 
 ) {
 

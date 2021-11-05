@@ -29,8 +29,11 @@ data class Asset constructor(var code: String) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     var name: String? = null
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnore
     var category = "Equity"
+
+    @Transient
+    var assetCategory: AssetCategory = AssetCategory(category, category)
 
     // Market is managed externally as static data; marketCode alone is persisted.
     @Transient
@@ -40,6 +43,8 @@ data class Asset constructor(var code: String) {
     @JsonIgnore
     var marketCode: String? = null
     var priceSymbol: String? = null
+    var version: String = "1"
+    var status: Status = Status.Active
 
     constructor(
         id: String,
@@ -59,7 +64,7 @@ data class Asset constructor(var code: String) {
     }
 
     constructor(input: AssetInput, market: Market) :
-        this(input.code, input.code, input.name, null, market, market.code, input.code)
+        this(input.code, input.code, input.name, input.category, market, market.code, input.code)
 
     constructor(code: String, market: Market) : this(code) {
         this.market = market

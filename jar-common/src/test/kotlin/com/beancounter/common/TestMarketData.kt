@@ -17,6 +17,7 @@ import java.math.BigDecimal
 internal class TestMarketData {
     private val dateUtils = DateUtils()
     private val bcJson = BcJson()
+
     @Test
     @Throws(Exception::class)
     fun is_MarketDataSerializing() {
@@ -59,7 +60,7 @@ internal class TestMarketData {
             .hasFieldOrPropertyWithValue("adjustment", BigDecimal.ZERO)
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
         val json = bcJson.objectMapper.writeValueAsString(quantityValues)
-        AssertionsForClassTypes.assertThat(bcJson.objectMapper.readValue(json, QuantityValues::class.java))
+        assertThat(bcJson.objectMapper.readValue(json, QuantityValues::class.java))
             .usingRecursiveComparison().isEqualTo(quantityValues)
     }
 
@@ -71,7 +72,7 @@ internal class TestMarketData {
         val priceRequest = PriceRequest("2019-11-11", assets)
         val json = bcJson.objectMapper.writeValueAsString(priceRequest)
         val (_, assets1) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
-        AssertionsForClassTypes.assertThat(assets1.iterator().next())
+        assertThat(assets1.iterator().next())
             .usingRecursiveComparison().isEqualTo(
                 priceRequest.assets.iterator().next()
             )
@@ -79,11 +80,11 @@ internal class TestMarketData {
 
     companion object {
         fun compare(mdResponse: MarketData) {
-            AssertionsForClassTypes.assertThat(mdResponse)
+            assertThat(mdResponse)
                 .usingRecursiveComparison().ignoringFields("marketData", "asset")
-            AssertionsForClassTypes.assertThat(mdResponse.asset.market)
+            assertThat(mdResponse.asset.market)
                 .usingRecursiveComparison().ignoringFields("marketData.asset.market")
-            AssertionsForClassTypes.assertThat(mdResponse.asset)
+            assertThat(mdResponse.asset)
                 .usingRecursiveComparison().ignoringFields("marketData.asset", "market")
         }
     }

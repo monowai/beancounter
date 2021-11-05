@@ -8,7 +8,6 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.integration.PositionGateway
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
@@ -54,7 +53,6 @@ class TestMsftFlow {
         )
         val positionGateway = Mockito.mock(PositionGateway::class.java)
         val (_, _, _, assetId, recordDate) = trustedEvent.data
-        val dateUtils = DateUtils()
 
         Mockito.`when`(
             positionGateway["demo", assetId, recordDate.toString()]

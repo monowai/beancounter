@@ -1,8 +1,7 @@
-package com.beancounter.marketdata.config
+package com.beancounter.marketdata.markets
 
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.markets.MarketService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties

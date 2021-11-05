@@ -4,6 +4,12 @@
       "id": "BguoVZpoRxWjWrITp7DEuw",
       "code": "MSFT",
       "name": "Microsoft",
+      "status": "Active",
+      "version": "1",
+      "assetCategory": {
+        "id": "Equity",
+        "name": "Equity"
+      },
       "market": {
         "code": "NASDAQ",
         "currency": {

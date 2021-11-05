@@ -3,6 +3,12 @@
     "BHP:LON": {
       "id": "1ozW7B4GSmOP0cKO9pl6ng",
       "code": "BHP",
+      "status": "Active",
+      "version": "1",
+      "assetCategory": {
+        "id": "Equity",
+        "name": "Equity"
+      },
       "market": {
         "code": "LON",
         "currency": {

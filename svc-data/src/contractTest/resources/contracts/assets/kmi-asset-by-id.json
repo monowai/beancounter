@@ -3,7 +3,12 @@
     "id": "X0BNQ34fS86_sn4wmfk7qQ",
     "code": "KMI",
     "name": "Kinder Morgan Inc.",
-    "category": "Equity",
+    "status": "Active",
+    "version": "1",
+    "assetCategory": {
+      "id": "Equity",
+      "name": "Equity"
+    },
     "market": {
       "code": "NYSE",
       "currency": {

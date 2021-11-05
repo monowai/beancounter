@@ -5,6 +5,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
@@ -18,6 +19,16 @@ import org.springframework.lang.NonNull
  * Unit Tests for Asset Object
  */
 internal class TestAsset {
+    @Test
+    fun assetDefaults() {
+        val asset = getAsset(
+            Market("Any"),
+            "Thing"
+        )
+        assertThat(asset)
+            .hasFieldOrPropertyWithValue("status", Status.Active)
+            .hasFieldOrPropertyWithValue("version", "1")
+    }
 
     @Test
     fun assetKeyParses() {

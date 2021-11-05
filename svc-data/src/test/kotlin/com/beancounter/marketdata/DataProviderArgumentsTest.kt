@@ -4,12 +4,13 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.DataProviderConfig
 import com.beancounter.marketdata.providers.ProviderArguments
@@ -18,7 +19,7 @@ import com.beancounter.marketdata.providers.ProviderUtils
 import com.beancounter.marketdata.providers.mock.MockProviderService
 import com.beancounter.marketdata.service.MarketDataProvider
 import com.beancounter.marketdata.service.MdFactory
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.time.LocalDate
@@ -39,7 +40,7 @@ internal class DataProviderArgumentsTest {
         providerArguments.addAsset(msft, DateUtils.today)
         providerArguments.addAsset(intc, DateUtils.today)
         val batch: Map<Int, String?> = providerArguments.batch
-        Assertions.assertThat(batch)
+        assertThat(batch)
             .containsOnlyKeys(0, 1, 2)
             .containsValues(aapl.code, msft.code, intc.code)
     }
@@ -51,7 +52,7 @@ internal class DataProviderArgumentsTest {
         providerArguments.addAsset(msft, DateUtils.today)
         providerArguments.addAsset(intc, DateUtils.today)
         val batch: Map<Int, String?> = providerArguments.batch
-        Assertions.assertThat(batch)
+        assertThat(batch)
             .containsOnlyKeys(0, 1)
             .containsValue("${aapl.code},${msft.code}")
             .containsValue(intc.code)
@@ -64,7 +65,7 @@ internal class DataProviderArgumentsTest {
         providerArguments.addAsset(msft, DateUtils.today)
         providerArguments.addAsset(intc, DateUtils.today)
         val batch: Map<Int, String?> = providerArguments.batch
-        Assertions.assertThat(batch)
+        assertThat(batch)
             .containsOnlyKeys(0)
             .containsValue("${aapl.code},${msft.code},${intc.code}")
     }
@@ -98,27 +99,43 @@ internal class DataProviderArgumentsTest {
         val testConfig = TestConfig(10)
         val providerArguments = getInstance(priceRequest, testConfig)
         val batch: Map<Int, String?> = providerArguments.batch
-        Assertions.assertThat(batch)
+        assertThat(batch)
             .containsOnlyKeys(0, 1, 2)
     }
 
     @Test
-    fun is_ProviderUtils() {
-        val assetInputs: MutableCollection<AssetInput> = ArrayList()
-        val market = "MOCK"
-        assetInputs.add(AssetInput(market, "TWEE"))
-        val marketService = Mockito.mock(MarketService::class.java)
-        val mockMarket = Market(market, USD)
-        Mockito.`when`(marketService.getMarket(market))
-            .thenReturn(mockMarket)
-        val mdFactory = Mockito.mock(MdFactory::class.java)
-        Mockito.`when`(mdFactory.getMarketDataProvider(mockMarket)).thenReturn(MockProviderService())
-        val providerUtils = ProviderUtils(mdFactory, marketService)
-        val split: Map<MarketDataProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
-        Assertions.assertThat(split).hasSize(1)
-        for (marketDataProvider in split.keys) {
-            Assertions.assertThat(split[marketDataProvider]).hasSize(1)
+    fun activeAssetsByProvider() {
+        val providerUtils = getProviderUtils(NYSE)
+        val assetInputs: MutableCollection<AssetInput> = arrayListOf(AssetInput(NYSE.code, "TWEE"))
+        val splitResults: Map<MarketDataProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
+        assertThat(splitResults).hasSize(1)
+        splitResults.forEach {
+            assertThat(it.value).hasSize(1)
         }
+    }
+
+    @Test
+    fun inactiveAssetsExcluded() {
+        val providerUtils = getProviderUtils(NYSE)
+        val assetInput = AssetInput(NYSE.code, "Not Active")
+        assetInput.resolvedAsset = Asset(assetInput, NYSE, Status.Inactive)
+        val assetInputs: MutableCollection<AssetInput> = arrayListOf(assetInput)
+        val splitResults: Map<MarketDataProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
+        assertThat(splitResults)
+            .hasSize(1)
+
+        splitResults.forEach {
+            assertThat(it.value).isEmpty()
+        }
+    }
+
+    private fun getProviderUtils(market: Market): ProviderUtils {
+        val marketService = Mockito.mock(MarketService::class.java)
+        Mockito.`when`(marketService.getMarket(market.code))
+            .thenReturn(market)
+        val mdFactory = Mockito.mock(MdFactory::class.java)
+        Mockito.`when`(mdFactory.getMarketDataProvider(market)).thenReturn(MockProviderService())
+        return ProviderUtils(mdFactory, marketService)
     }
 
     private class TestConfig(private val batchSize: Int) : DataProviderConfig {

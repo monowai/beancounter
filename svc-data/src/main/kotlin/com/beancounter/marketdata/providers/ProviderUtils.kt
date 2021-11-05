@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.Status
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.service.MarketDataProvider
 import com.beancounter.marketdata.service.MdFactory
@@ -32,7 +33,9 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
                     mdpAssets = ArrayList()
                     mdpAssetResults[marketDataProvider] = mdpAssets
                 }
-                mdpAssets.add(input.resolvedAsset!!)
+                if (input.resolvedAsset!!.status == Status.Active) {
+                    mdpAssets.add(input.resolvedAsset!!)
+                }
             }
         }
         return mdpAssetResults

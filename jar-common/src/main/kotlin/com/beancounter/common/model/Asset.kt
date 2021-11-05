@@ -53,7 +53,8 @@ data class Asset constructor(var code: String) {
         category: String?,
         market: Market,
         marketCode: String?,
-        priceSymbol: String?
+        priceSymbol: String?,
+        status: Status = Status.Active
     ) : this(code) {
         this.id = id
         this.name = name
@@ -61,10 +62,11 @@ data class Asset constructor(var code: String) {
         this.market = market
         this.marketCode = marketCode
         this.priceSymbol = priceSymbol
+        this.status = status
     }
 
-    constructor(input: AssetInput, market: Market) :
-        this(input.code, input.code, input.name, input.category, market, market.code, input.code)
+    constructor(input: AssetInput, market: Market, status: Status = Status.Active) :
+        this(input.code, input.code, input.name, input.category, market, market.code, input.code, status)
 
     constructor(code: String, market: Market) : this(code) {
         this.market = market

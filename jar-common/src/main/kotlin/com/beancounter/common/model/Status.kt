@@ -1,10 +1,10 @@
 package com.beancounter.common.model
 
 /**
- * Constants that determine the enums foo a type of Transaction.
+ * General status values tracked by BC. These are persisted by ordinal so don't alter the order.
  *
  * @author mikeh
- * @since 2019-02-07
+ * @since 2021-11-05
  */
 enum class Status {
     Active, Inactive

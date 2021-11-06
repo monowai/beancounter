@@ -59,5 +59,15 @@ class AssetUtils {
         @JvmStatic
         fun getAssetInput(asset: Asset) =
             AssetInput(market = asset.market.code, code = asset.code, name = asset.code, resolvedAsset = asset)
+
+        @JvmStatic
+        fun getCash(currency: String) =
+            AssetInput(
+                "cash",
+                "$currency Cash",
+                "$currency Cash Balance",
+                currency = currency,
+                category = "cash"
+            )
     }
 }

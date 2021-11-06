@@ -4,6 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
+import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
@@ -50,7 +51,9 @@ class MarketServiceTests @Autowired constructor(
         val nzx = marketService.getMarket(Constants.NZX.code)
         val asx = marketService.getMarket(Constants.ASX.code)
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
-        assertThat(marketService.getMarket("nys")).isEqualTo(nyse)
+        assertThat(marketService.getMarket("nys"))
+            .isEqualTo(nyse)
+            .hasFieldOrPropertyWithValue("type", "Public")
         assertThat(marketService.getMarket("NZ")).isEqualTo(nzx)
         assertThat(marketService.getMarket("AX")).isEqualTo(asx)
         assertThat(marketService.getMarket("NAS")).isEqualTo(nasdaq)
@@ -63,6 +66,7 @@ class MarketServiceTests @Autowired constructor(
             .isNotNull
             .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(ZoneOffset.UTC))
             .hasFieldOrProperty("currency")
+            .hasFieldOrPropertyWithValue("type", "Internal")
         assertThat(market.currency)
             .hasFieldOrPropertyWithValue("code", USD.code)
     }
@@ -104,5 +108,14 @@ class MarketServiceTests @Autowired constructor(
     @Test
     fun is_IllegalArgumentsHandled() {
         assertThrows(BusinessException::class.java) { marketService.getMarket(null, true) }
+    }
+
+    @Test
+    fun is_CashMarketConfigured() {
+        // Pseudo market for cash Assets.
+        val market = marketService.getMarket(CASH.code)
+        assertThat(market)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("type", "Internal")
     }
 }

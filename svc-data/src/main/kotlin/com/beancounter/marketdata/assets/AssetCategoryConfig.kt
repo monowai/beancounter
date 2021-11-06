@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
+/**
+ * Initialise asset categories from config.
+ */
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.asset.categories")
 @Component
@@ -16,19 +18,19 @@ data class AssetCategoryConfig @Autowired constructor(
     private var categories = mutableMapOf<String, AssetCategory>()
     private val default: String = "Equity"
 
-    @PostConstruct
-    fun mapConfigs(): MutableMap<String, AssetCategory> {
-        val results = mutableMapOf<String, AssetCategory>()
-        for (assetCategory in values) {
-            categories[assetCategory.id.uppercase()] = assetCategory
+    fun getCategories(): MutableMap<String, AssetCategory> {
+        if (categories.isEmpty()) {
+            for (assetCategory in values) {
+                categories[assetCategory.id.uppercase()] = assetCategory
+            }
         }
-        return results
+        return categories
     }
 
     fun get(id: String = default): AssetCategory? {
         if (id == "Common Stock") {
-            return categories["EQUITY"]
+            return getCategories()["EQUITY"]
         }
-        return categories[id.uppercase()]
+        return getCategories()[id.uppercase()]
     }
 }

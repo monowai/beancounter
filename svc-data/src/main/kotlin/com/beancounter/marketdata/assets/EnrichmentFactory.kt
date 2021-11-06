@@ -21,14 +21,15 @@ class EnrichmentFactory(private val assetRepository: AssetRepository) {
     lateinit var defEnricher: String
 
     @Autowired
-    fun setEnrichers(figiEnricher: AssetEnricher, alphaEnricher: AssetEnricher) {
+    fun setEnrichers(figiEnricher: AssetEnricher, alphaEnricher: AssetEnricher, echoEnricher: EchoEnricher) {
         register(alphaEnricher)
         register(figiEnricher)
+        register(echoEnricher)
         log.info("Registered {} Asset Enrichers.  Default: {}", enrichers.keys.size, defEnricher)
     }
 
     fun register(enricher: AssetEnricher) {
-        enrichers[enricher.id()] = enricher
+        enrichers[enricher.id().uppercase()] = enricher
     }
 
     fun getEnricher(market: Market): AssetEnricher {

@@ -11,6 +11,7 @@ data class AssetInput(
     var code: String,
     val name: String? = null, // This will be the default name if it cannot be enriched by a data provider
     @JsonIgnore var resolvedAsset: Asset? = null,
+    val currency: String? = null,
     val category: String = "Equity"
 ) {
     constructor(

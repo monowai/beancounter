@@ -42,6 +42,8 @@ data class Asset constructor(var code: String) {
     // Caller doesn't see marketCode
     @JsonIgnore
     var marketCode: String? = null
+
+    // Either the market providers symbol or the Currency code in the case of cash.
     var priceSymbol: String? = null
     var version: String = "1"
     var status: Status = Status.Active

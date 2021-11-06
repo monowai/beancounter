@@ -30,7 +30,8 @@ data class Market @ConstructorBinding constructor(
     val daysToSubtract: Int = 1,
     val aliases: Map<String, String> = HashMap(),
     val enricher: String? = null,
-    val multiplier: BigDecimal = BigDecimal("1.0")
+    val multiplier: BigDecimal = BigDecimal("1.0"),
+    val type: String = "Public"
 ) {
 
     constructor(code: String, currency: Currency) : this(code, currency.code) {
@@ -38,6 +39,7 @@ data class Market @ConstructorBinding constructor(
     }
 
     val timezone: TimeZone = TimeZone.getTimeZone(timezoneId)
+
     @Transient
     var currency: Currency = Currency(currencyId)
 

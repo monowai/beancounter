@@ -52,15 +52,15 @@ class AssetService internal constructor(
                     defaultName
                 )
             if (asset == null) {
-                // User Defined Asset?
+                // Cash or User Defined Asset
                 asset = Asset(
                     keyGenUtils.format(UUID.randomUUID()),
                     assetInput.code.uppercase(Locale.getDefault()),
                     defaultName,
-                    "Equity",
-                    market,
-                    market.code,
-                    null
+                    assetInput.category,
+                    market = market,
+                    marketCode = market.code,
+                    priceSymbol = assetInput.currency,
                 )
             } else {
                 // Market Listed

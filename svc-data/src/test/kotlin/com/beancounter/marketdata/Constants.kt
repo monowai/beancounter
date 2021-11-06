@@ -14,6 +14,7 @@ class Constants {
         const val usdValue = "USD"
         val USD = Currency(usdValue)
         val NASDAQ = Market("NASDAQ")
+        val CASH = Market("CASH", type = "Internal")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
         val MOCK = Market("MOCK")

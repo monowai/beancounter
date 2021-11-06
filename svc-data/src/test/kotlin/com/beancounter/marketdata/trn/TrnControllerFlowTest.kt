@@ -22,13 +22,13 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.assets.MockEnricher
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.assets.MockEnricher
-import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.tradeDate
 import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.trnsRoot
 import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.uriTrnForPortfolio
+import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

@@ -4,7 +4,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
-import com.beancounter.marketdata.markets.MarketConfig
+import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.DataProviderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +17,7 @@ import java.time.LocalDate
  */
 @Configuration
 @Import(WtdService::class, WtdProxy::class, WtdAdapter::class)
-class WtdConfig : DataProviderConfig {
+class WtdConfig @Autowired constructor(val marketService: MarketService) : DataProviderConfig {
 
     @Value("\${beancounter.market.providers.WTD.batchSize:2}")
     var assetsPerRequest = 2
@@ -31,13 +31,11 @@ class WtdConfig : DataProviderConfig {
     @Value("\${beancounter.market.providers.WTD.markets}")
     var markets: String? = null
 
-    @set:Autowired
-    var marketConfig: MarketConfig? = null
     final var dateUtils = DateUtils()
     var marketUtils = PreviousClosePriceDate(dateUtils)
 
     private fun translateMarketCode(market: Market): String? {
-        return (marketConfig!!.getProviders()[market.code] ?: error("Missing Market")).aliases[WtdService.ID]
+        return marketService.getMarket(market.code).aliases[WtdService.ID]
     }
 
     override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {

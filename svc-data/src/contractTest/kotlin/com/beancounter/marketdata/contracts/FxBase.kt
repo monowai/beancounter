@@ -1,9 +1,9 @@
 package com.beancounter.marketdata.contracts
 
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.providers.fxrates.ExRatesResponse
-import com.beancounter.marketdata.providers.fxrates.FxGateway
-import com.beancounter.marketdata.utils.EcbMockUtils
+import com.beancounter.marketdata.fx.EcbMockUtils
+import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
+import com.beancounter.marketdata.fx.fxrates.FxGateway
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito

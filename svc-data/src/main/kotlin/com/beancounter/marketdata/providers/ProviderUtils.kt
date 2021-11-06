@@ -5,8 +5,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.service.MarketDataProvider
-import com.beancounter.marketdata.service.MdFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 

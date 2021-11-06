@@ -13,11 +13,10 @@ import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.config.PriceSchedule
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.service.MarketDataService
-import com.beancounter.marketdata.service.MdFactory
-import com.beancounter.marketdata.utils.AlphaMockUtils
-import com.beancounter.marketdata.utils.AlphaMockUtils.marketCodeUrl
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions

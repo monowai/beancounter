@@ -26,7 +26,7 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
     @PostConstruct
     private fun persist() {
         log.info("Persisting {} default currencies", values.size)
-        if (!values.isNullOrEmpty()) {
+        if (!values.isEmpty()) {
             val result = currencyRepository.saveAll(this.values)
             for (currency in result) {
                 log.debug("Persisted {}", currency)

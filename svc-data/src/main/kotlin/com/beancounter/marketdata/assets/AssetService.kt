@@ -7,7 +7,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.service.MarketDataService
+import com.beancounter.marketdata.providers.MarketDataService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service

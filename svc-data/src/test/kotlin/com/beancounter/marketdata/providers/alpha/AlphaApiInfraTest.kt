@@ -7,11 +7,10 @@ import com.beancounter.common.model.Market
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
-import com.beancounter.marketdata.service.MarketDataService
-import com.beancounter.marketdata.service.MdFactory
-import com.beancounter.marketdata.utils.AlphaMockUtils
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test

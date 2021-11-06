@@ -3,7 +3,6 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.Payload
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.marketdata.utils.AlphaMockUtils
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource

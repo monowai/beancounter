@@ -16,17 +16,19 @@ import java.util.Locale
  */
 @Service
 @Import(MarketConfig::class)
-class MarketService : com.beancounter.client.MarketService {
+class MarketService @Autowired constructor(val marketConfig: MarketConfig) : com.beancounter.client.MarketService {
     private val aliases: MutableMap<String, String> = HashMap()
     private var marketMap: Map<String, Market> = HashMap()
 
-    @Autowired
-    fun setMarketConfig(marketConfig: MarketConfig) {
-        marketMap = marketConfig.getProviders()
-        for (marketCode in marketMap.keys) {
-            val market = marketMap[marketCode]
-            setAlias(market, marketCode)
+    fun getMarketMap(): Map<String, Market> {
+        if (marketMap.isEmpty()) {
+            marketMap = marketConfig.getProviders()
+            for (marketCode in marketMap.keys) {
+                val market = marketMap[marketCode]
+                setAlias(market, marketCode)
+            }
         }
+        return marketMap
     }
 
     private fun setAlias(market: Market?, marketCode: String) {
@@ -63,7 +65,7 @@ class MarketService : com.beancounter.client.MarketService {
         if (marketCode == null) {
             throw BusinessException("Null Market Code")
         }
-        var market = marketMap[marketCode.uppercase(Locale.getDefault())]
+        var market = getMarketMap()[marketCode.uppercase(Locale.getDefault())]
         val errorMessage = String.format("Unable to resolve market code %s", marketCode)
         if (market == null && orByAlias) {
             val byAlias = resolveAlias(marketCode)
@@ -76,7 +78,7 @@ class MarketService : com.beancounter.client.MarketService {
     }
 
     override fun getMarkets(): MarketResponse {
-        return MarketResponse(marketMap.values)
+        return MarketResponse(getMarketMap().values)
     }
 
     fun canPersist(market: Market): Boolean {

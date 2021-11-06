@@ -5,46 +5,30 @@ import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 /**
- * Static data configuration.
+ * Market Object Management Service.
  *
  * @author mikeh
  * @since 2019-03-19
  */
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.market")
+@Import(CurrencyService::class)
 @Component
-class MarketConfig {
-    var values: Collection<Market>? = null
-    private var providers: MutableMap<String, Market> = HashMap()
-
-    @set:Autowired
-    var currencyService: CurrencyService? = null
-    var marketService: MarketService? = null
-
-    /**
-     * Convert from configured representation to Objects.
-     */
-    @PostConstruct
-    fun configure() {
-        handleMarkets()
-    }
-
-    private fun handleMarkets() {
-        for (market in values!!) {
-            market.currency = currencyService!!.getCode(market.currencyId)!!
-            providers[market.code] = market
-        }
-    }
+class MarketConfig @Autowired constructor(
+    val values: Collection<Market>,
+    val currencyService: CurrencyService,
+) {
 
     fun getProviders(): Map<String, Market> {
+        val providers: MutableMap<String, Market> = HashMap()
+        for (market in values) {
+            market.currency = currencyService.getCode(market.currencyId)!!
+            providers[market.code] = market
+        }
         return providers
-    }
-
-    fun setProviders(providers: MutableMap<String, Market>) {
-        this.providers = providers
     }
 }

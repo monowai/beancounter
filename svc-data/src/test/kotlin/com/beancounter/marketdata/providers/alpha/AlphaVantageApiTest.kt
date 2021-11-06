@@ -24,6 +24,8 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.config.PriceSchedule
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.api
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
@@ -38,12 +40,9 @@ import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.openP
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.prevCloseProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceDateProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceSymbolProp
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.getAlphaApi
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.providers.wtd.WtdService
-import com.beancounter.marketdata.service.MarketDataService
-import com.beancounter.marketdata.service.MdFactory
-import com.beancounter.marketdata.utils.AlphaMockUtils
-import com.beancounter.marketdata.utils.AlphaMockUtils.getAlphaApi
-import com.beancounter.marketdata.utils.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat

@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.service.MarketDataService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service

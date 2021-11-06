@@ -5,7 +5,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.utils.AlphaMockUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test

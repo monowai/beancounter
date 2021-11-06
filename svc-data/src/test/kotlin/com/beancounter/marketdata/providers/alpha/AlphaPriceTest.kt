@@ -9,7 +9,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZX
-import com.beancounter.marketdata.utils.AlphaMockUtils.alphaContracts
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.alphaContracts
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource

@@ -4,7 +4,7 @@ import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.marketdata.service.MarketDataService
+import com.beancounter.marketdata.providers.MarketDataService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType

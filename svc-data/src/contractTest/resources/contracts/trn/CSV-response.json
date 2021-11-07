@@ -48,7 +48,6 @@
           "timezone": "US/Eastern"
         }
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -120,7 +119,6 @@
           "timezone": "US/Eastern"
         }
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",

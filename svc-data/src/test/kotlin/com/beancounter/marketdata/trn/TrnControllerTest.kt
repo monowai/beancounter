@@ -6,29 +6,28 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.msftInput
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.MockEnricher
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.tradeDate
-import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.trnsRoot
-import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.uriTrnForPortfolio
+import com.beancounter.marketdata.utils.BcMvcHelper
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.tradeDate
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.trnsRoot
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.uriTrnForPortfolio
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
@@ -61,8 +60,6 @@ import java.math.BigDecimal
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
 class TrnControllerTest {
-    private lateinit var getAppl: AssetInput
-    private lateinit var getMsft: AssetInput
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()
 
@@ -90,8 +87,7 @@ class TrnControllerTest {
     private lateinit var mockMvc: MockMvc
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
-    // End Test Constants
-    private lateinit var trnMvcHelper: TrnMvcHelper
+    private lateinit var bcMvcHelper: BcMvcHelper
 
     @BeforeEach
     fun setupObjects() {
@@ -101,19 +97,16 @@ class TrnControllerTest {
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
         token = TokenUtils().getUserToken(Constants.systemUser)
-        trnMvcHelper = TrnMvcHelper(mockMvc, token)
+        bcMvcHelper = BcMvcHelper(mockMvc, token)
 
         RegistrationUtils.registerUser(mockMvc, token)
         assertThat(figiProxy).isNotNull
-        val nasdaq = marketService.getMarket(marketCode = "NASDAQ")
-        getMsft = getAssetInput(nasdaq.code, MSFT.code)
-        getAppl = getAssetInput(nasdaq.code, AAPL.code)
     }
 
     @Test
     @Throws(Exception::class)
     fun is_EmptyResponseValid() {
-        val portfolio = trnMvcHelper.portfolio(PortfolioInput("BLAH", "is_EmptyResponseValid", currency = NZD.code))
+        val portfolio = bcMvcHelper.portfolio(PortfolioInput("BLAH", "is_EmptyResponseValid", currency = NZD.code))
         val mvcResult = mockMvc.perform(
             get(uriTrnForPortfolio, portfolio.id)
                 .with(
@@ -132,10 +125,10 @@ class TrnControllerTest {
     @Test
     @Throws(Exception::class)
     fun is_ExistingDividendFound() {
-        val msft = trnMvcHelper.asset(
-            AssetRequest(MSFT.code, getMsft)
+        val msft = bcMvcHelper.asset(
+            AssetRequest(MSFT.code, msftInput)
         )
-        val portfolioA = trnMvcHelper.portfolio(
+        val portfolioA = bcMvcHelper.portfolio(
             PortfolioInput("DIV-TEST", "is_ExistingDividendFound", currency = NZD.code)
         )
         assertThat(msft.id).isNotNull
@@ -143,12 +136,12 @@ class TrnControllerTest {
         val trnInput = TrnInput(
             CallerRef(batch = "DIV-TEST", callerId = "1"),
             msft.id,
-            TrnType.DIVI,
-            BigDecimal.TEN,
-            USD.code,
-            null,
-            null,
-            dateUtils.getDate("2020-03-10"),
+            trnType = TrnType.DIVI,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = null,
+            tradeCashRate = null,
+            tradeDate = dateUtils.getDate("2020-03-10"),
             price = BigDecimal.TEN
         )
         trnInput.tradePortfolioRate = BigDecimal.ONE
@@ -189,7 +182,7 @@ class TrnControllerTest {
 
     @Test
     fun is_findThrowingForIllegalTrnId() {
-        val portfolio = trnMvcHelper.portfolio(
+        val portfolio = bcMvcHelper.portfolio(
             PortfolioInput(
                 "ILLEGAL", "is_findThrowingForIllegalTrnId",
                 currency = NZD.code
@@ -210,21 +203,21 @@ class TrnControllerTest {
     @Test
     @Throws(Exception::class)
     fun is_TrnForPortfolioInRangeFound() {
-        val msft = trnMvcHelper.asset(AssetRequest(MSFT.code, getMsft))
+        val msft = bcMvcHelper.asset(AssetRequest(MSFT.code, msftInput))
 
         assertThat(msft.id).isNotNull
-        val (id) = trnMvcHelper.portfolio(PortfolioInput("PFA", "is_TrnForPortfolioInRangeFound", currency = NZD.code))
+        val (id) = bcMvcHelper.portfolio(PortfolioInput("PFA", "is_TrnForPortfolioInRangeFound", currency = NZD.code))
         // Creating in random order and assert retrieved in Sort Order.
 
         var trnInput = TrnInput(
             CallerRef(batch = "0", callerId = "1"),
             msft.id,
-            TrnType.BUY,
-            BigDecimal.TEN,
-            USD.code,
-            null,
-            null,
-            dateUtils.getDate(tradeDate),
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = null,
+            tradeCashRate = null,
+            tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN
         )
 
@@ -233,25 +226,25 @@ class TrnControllerTest {
         var trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "2"),
             msft.id,
-            TrnType.BUY,
-            BigDecimal.TEN,
-            USD.code,
-            null,
-            null,
-            dateUtils.getDate("2016-01-01"),
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = null,
+            tradeCashRate = null,
+            tradeDate = dateUtils.getDate("2016-01-01"),
             price = BigDecimal.TEN
         )
         trnInputB.tradePortfolioRate = BigDecimal.ONE
         var trnInputs = arrayOf(trnInput, trnInputB)
         var trnRequest = TrnRequest(id, trnInputs)
-        trnMvcHelper.postTrn(trnRequest)
+        bcMvcHelper.postTrn(trnRequest)
 
         trnInput = TrnInput(
             CallerRef(batch = "0", callerId = "3"),
             msft.id,
-            TrnType.BUY,
-            BigDecimal.TEN,
-            USD.code,
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
             price = BigDecimal.TEN,
             tradeDate = dateUtils.getDate("2018-10-01")
 
@@ -260,7 +253,7 @@ class TrnControllerTest {
         trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "34"),
             msft.id,
-            TrnType.BUY,
+            trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getDate("2017-01-01"),
             price = BigDecimal.TEN
@@ -268,9 +261,9 @@ class TrnControllerTest {
         trnInputB.tradePortfolioRate = BigDecimal.ONE
 
         trnInputs = arrayOf(trnInput, trnInputB)
-        val (id1) = trnMvcHelper.portfolio(PortfolioInput("PFB", "is_TrnForPortfolioInRangeFound", currency = NZD.code))
+        val (id1) = bcMvcHelper.portfolio(PortfolioInput("PFB", "is_TrnForPortfolioInRangeFound", currency = NZD.code))
         trnRequest = TrnRequest(id1, trnInputs)
-        trnMvcHelper.postTrn(trnRequest)
+        bcMvcHelper.postTrn(trnRequest)
 
         // All transactions are now in place.
         val response = mockMvc.perform(

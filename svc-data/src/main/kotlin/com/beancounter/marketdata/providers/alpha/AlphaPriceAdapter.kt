@@ -8,7 +8,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.marketdata.providers.MarketDataAdapter
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.fasterxml.jackson.core.Version
@@ -78,12 +78,12 @@ class AlphaPriceAdapter : MarketDataAdapter {
 
     private fun normalise(market: Market, marketData: MarketData) {
         if (market.multiplier.compareTo(BigDecimal.ONE) != 0) {
-            marketData.close = multiply(marketData.close, market.multiplier, 4)!!
-            marketData.open = multiply(marketData.open, market.multiplier, 4)
-            marketData.high = multiply(marketData.high, market.multiplier, 4)
-            marketData.low = multiply(marketData.low, market.multiplier, 4)
-            marketData.previousClose = multiply(marketData.previousClose, market.multiplier, 4)
-            marketData.change = multiply(marketData.change, market.multiplier, 4)
+            marketData.close = multiplyAbs(marketData.close, market.multiplier, 4)!!
+            marketData.open = multiplyAbs(marketData.open, market.multiplier, 4)
+            marketData.high = multiplyAbs(marketData.high, market.multiplier, 4)
+            marketData.low = multiplyAbs(marketData.low, market.multiplier, 4)
+            marketData.previousClose = multiplyAbs(marketData.previousClose, market.multiplier, 4)
+            marketData.change = multiplyAbs(marketData.change, market.multiplier, 4)
         }
     }
 

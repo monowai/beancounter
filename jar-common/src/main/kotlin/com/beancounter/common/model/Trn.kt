@@ -30,12 +30,24 @@ data class Trn constructor(
     var asset: Asset,
     @Column(precision = 15, scale = 6)
     val quantity: BigDecimal = BigDecimal.ZERO,
+    // In trade Currency - scale is to support Mutual Fund pricing.
+    @Column(precision = 15, scale = 6)
+    var price: BigDecimal? = null,
+    // In trade Currency
+    var tradeAmount: BigDecimal = BigDecimal.ZERO,
     @ManyToOne
     val tradeCurrency: Currency = asset.market.currency,
+    @ManyToOne
+    @Deprecated("Use cashAsset.priceSymbol")
+    var cashCurrency: Currency? = null,
+    // Trade CCY to cash settlement currency
+    @Column(precision = 10, scale = 6)
+    var tradeCashRate: BigDecimal? = null,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var tradeDate: LocalDate = DateUtils().date
+    var tradeDate: LocalDate = DateUtils().date,
+    var version: String? = latestVersion
 
 ) {
 
@@ -52,17 +64,10 @@ data class Trn constructor(
     @ManyToOne
     var cashAsset: Asset? = null
 
-    @ManyToOne
-    var cashCurrency: Currency? = null
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null
-
-    // In trade Currency - scale is to support Mutual Fund pricing.
-    @Column(precision = 15, scale = 6)
-    var price: BigDecimal? = null
 
     // In trade Currency
     var fees: BigDecimal = BigDecimal.ZERO
@@ -70,15 +75,8 @@ data class Trn constructor(
     // In trade Currency
     var tax: BigDecimal = BigDecimal.ZERO
 
-    // In trade Currency
-    var tradeAmount: BigDecimal = BigDecimal.ZERO
-
-    // Trade amount in settlement currency.
+    // Cash movement amount in settlement currency.
     var cashAmount: BigDecimal? = null
-
-    // Trade CCY to cash settlement currency
-    @Column(precision = 10, scale = 6)
-    var tradeCashRate: BigDecimal? = null
 
     // Trade Currency to system Base Currency
     @Column(precision = 10, scale = 6)
@@ -87,7 +85,6 @@ data class Trn constructor(
     // Trade CCY to portfolio reference  currency
     @Column(precision = 10, scale = 6)
     var tradePortfolioRate: BigDecimal? = null
-    var version: String? = "1"
     var comments: String? = null
 
     constructor(
@@ -111,9 +108,9 @@ data class Trn constructor(
         tradeCashRate: BigDecimal?,
         tradeBaseRate: BigDecimal?,
         tradePortfolioRate: BigDecimal?,
-        version: String?,
+        version: String = latestVersion,
         comments: String?
-    ) : this(trnType, asset, quantity, tradeCurrency, tradeDate) {
+    ) : this(trnType, asset, quantity, tradeCurrency = tradeCurrency, tradeDate = tradeDate) {
         this.id = id
         this.callerRef = callerRef
         this.status = status
@@ -131,5 +128,9 @@ data class Trn constructor(
         this.tradePortfolioRate = tradePortfolioRate
         this.version = version
         this.comments = comments
+    }
+
+    companion object {
+        const val latestVersion: String = "2"
     }
 }

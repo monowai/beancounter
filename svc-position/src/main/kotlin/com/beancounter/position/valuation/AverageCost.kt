@@ -3,7 +3,7 @@ package com.beancounter.position.valuation
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -25,6 +25,6 @@ class AverageCost {
 
     fun setCostValue(position: Position, moneyValues: MoneyValues) {
         val quantityValues = position.quantityValues
-        moneyValues.costValue = multiply(moneyValues.averageCost, quantityValues.getTotal())!!
+        moneyValues.costValue = multiplyAbs(moneyValues.averageCost, quantityValues.getTotal())!!
     }
 }

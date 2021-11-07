@@ -29,7 +29,7 @@ import java.util.Locale
 /**
  * Trn Data tests.
  */
-internal class TestTrnContracts {
+internal class TrnInputTest {
     private val objectMapper = BcJson().objectMapper
 
     private val abc = "ABC"
@@ -41,20 +41,19 @@ internal class TestTrnContracts {
         val trnInput = TrnInput(
             callerRef = CallerRef(oneString, oneString, abc),
             tradeDate = DateUtils().getDate("2019-10-10"),
+            settleDate = DateUtils().getDate("2019-10-10"),
             assetId = getAsset(NYSE, "MSFT").id,
+            cashAssetId = toKey("USD-X", "USER"),
+            cashCurrency = USD.code,
             fees = BigDecimal.ONE,
             price = price,
             tradeAmount = BigDecimal("100.99"),
+            cashAmount = BigDecimal("100.99"),
+            tradeBaseRate = BigDecimal.ONE,
+            tradePortfolioRate = price,
             comments = "Comment"
         )
 
-        trnInput.cashCurrency = USD.code
-        trnInput.cashAsset = toKey("USD-X", "USER")
-        trnInput.settleDate = DateUtils().getDate("2019-10-10")
-        trnInput.cashAmount = BigDecimal("100.99")
-        trnInput.tradeBaseRate = BigDecimal("1.99")
-        trnInput.tradePortfolioRate = price
-        trnInput.tradeBaseRate = BigDecimal.ONE
         val trnRequest = TrnRequest(abc.lowercase(Locale.getDefault()), arrayOf(trnInput))
         val json = objectMapper.writeValueAsString(trnRequest)
         val fromJson = objectMapper.readValue(json, TrnRequest::class.java)

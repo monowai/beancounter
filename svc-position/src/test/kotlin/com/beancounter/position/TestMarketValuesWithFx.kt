@@ -15,7 +15,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.MathUtils.Companion.divide
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.NASDAQ
@@ -70,7 +70,7 @@ internal class TestMarketValuesWithFx {
         targetValues.costValue = buyTrn.tradeAmount
         targetValues.totalGain = thousandShort
         targetValues.unrealisedGain = thousandShort
-        targetValues.marketValue = multiply(buyTrn.quantity, marketData.close)!!
+        targetValues.marketValue = multiplyAbs(buyTrn.quantity, marketData.close)!!
         val fxRateMap = getRates(portfolio, asset, simpleRate)
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
@@ -84,7 +84,7 @@ internal class TestMarketValuesWithFx {
         baseValues.costValue = buyTrn.tradeAmount
         baseValues.totalGain = thousandShort
         baseValues.unrealisedGain = thousandShort
-        baseValues.marketValue = nullSafe(multiply(buyTrn.quantity, marketData.close))
+        baseValues.marketValue = nullSafe(multiplyAbs(buyTrn.quantity, marketData.close))
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
             .usingRecursiveComparison()
             .isEqualTo(baseValues)

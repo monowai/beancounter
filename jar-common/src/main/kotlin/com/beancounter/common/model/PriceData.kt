@@ -2,7 +2,7 @@ package com.beancounter.common.model
 
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.NumberUtils
 import com.beancounter.common.utils.PercentUtils
 import com.fasterxml.jackson.annotation.JsonFormat
@@ -37,12 +37,12 @@ data class PriceData(
         fun of(mktData: MarketData, rate: BigDecimal?): PriceData {
             val result = PriceData(
                 mktData.priceDate,
-                multiply(mktData.open, rate),
-                multiply(mktData.close, rate),
-                multiply(mktData.low, rate),
-                multiply(mktData.high, rate),
-                multiply(mktData.previousClose, rate),
-                multiply(mktData.change, rate),
+                multiplyAbs(mktData.open, rate),
+                multiplyAbs(mktData.close, rate),
+                multiplyAbs(mktData.low, rate),
+                multiplyAbs(mktData.high, rate),
+                multiplyAbs(mktData.previousClose, rate),
+                multiplyAbs(mktData.change, rate),
                 mktData.changePercent,
                 mktData.volume
             )

@@ -4,11 +4,13 @@ import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import contracts.ContractHelper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -53,54 +55,65 @@ class PortfolioBase : ContractVerifierBase() {
                 val jsonFile = ClassPathResource("contracts/portfolio/empty.json").file
                 return getPortfolio(jsonFile)
             }
-    }
 
-    private var systemUser: SystemUser = SystemUser("", "")
-
-    @BeforeEach
-    fun mock() {
-        if (systemUser.id == "") {
-            val mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .build()
-            RestAssuredMockMvc.mockMvc(mockMvc)
-            systemUser = defaultUser()
-            portfolios(keyGenUtils, portfolioRepository)
+        private fun mockPortfolio(
+            systemUser: SystemUser,
+            portfolioRepository: PortfolioRepository,
+            portfolio: Portfolio
+        ) {
+            // For the sake of convenience when testing; id and code are the same
+            Mockito.`when`(portfolioRepository.findById(portfolio.id))
+                .thenReturn(Optional.of(portfolio))
+            Mockito.`when`(portfolioRepository.findByCodeAndOwner(portfolio.code, systemUser))
+                .thenReturn(Optional.of(portfolio))
         }
-    }
 
-    fun portfolios(keyGenUtils: KeyGenUtils, portfolioRepository: PortfolioRepository) {
-        mockPortfolio(portfolioRepository, emptyPortfolio)
-        mockPortfolio(portfolioRepository, testPortfolio)
-        val portfolioCode = "TEST"
+        @JvmStatic
+        fun portfolios(systemUser: SystemUser, keyGenUtils: KeyGenUtils, portfolioRepository: PortfolioRepository) {
+            val dateUtils = DateUtils()
+            mockPortfolio(systemUser, portfolioRepository, emptyPortfolio)
+            mockPortfolio(systemUser, portfolioRepository, testPortfolio)
+            val portfolioCode = "TEST"
 
-        // All Portfolio
-        Mockito.`when`(portfolioRepository.findByOwner(systemUser)).thenReturn(
-            objectMapper.readValue(
-                ClassPathResource("contracts/portfolio/portfolios.json").file,
-                PortfoliosResponse::class.java
-            ).data
-        )
-        Mockito.`when`(
-            portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
-                "KMI",
-                dateUtils.getDate("2020-05-01", dateUtils.getZoneId())
+            // All Portfolio
+            Mockito.`when`(portfolioRepository.findByOwner(systemUser)).thenReturn(
+                objectMapper.readValue(
+                    ClassPathResource("contracts/portfolio/portfolios.json").file,
+                    PortfoliosResponse::class.java
+                ).data
             )
-        ).thenReturn(
-            arrayListOf(
-                Portfolio(
-                    id = portfolioCode,
-                    code = portfolioCode,
-                    name = Constants.NZD.code + " Portfolio",
-                    currency = Constants.NZD,
-                    base = Constants.USD,
-                    owner = systemUser
+            Mockito.`when`(
+                portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
+                    "KMI",
+                    dateUtils.getDate("2020-05-01", dateUtils.getZoneId())
+                )
+            ).thenReturn(
+                arrayListOf(
+                    Portfolio(
+                        id = portfolioCode,
+                        code = portfolioCode,
+                        name = Constants.NZD.code + " Portfolio",
+                        currency = Constants.NZD,
+                        base = Constants.USD,
+                        owner = systemUser
+                    )
                 )
             )
-        )
-        Mockito.`when`(keyGenUtils.id).thenReturn(portfolioCode)
-        Mockito.`when`(
-            portfolioRepository.saveAll(
+            Mockito.`when`(keyGenUtils.id).thenReturn(portfolioCode)
+            Mockito.`when`(
+                portfolioRepository.saveAll(
+                    arrayListOf(
+                        Portfolio(
+                            id = portfolioCode,
+                            code = Constants.SGD.code,
+                            name = Constants.SGD.code + " Balanced",
+                            currency = Constants.SGD,
+                            base = Constants.USD,
+                            owner = systemUser
+                        )
+                    )
+                )
+            ).thenReturn(
                 arrayListOf(
                     Portfolio(
                         id = portfolioCode,
@@ -112,25 +125,25 @@ class PortfolioBase : ContractVerifierBase() {
                     )
                 )
             )
-        ).thenReturn(
-            arrayListOf(
-                Portfolio(
-                    id = portfolioCode,
-                    code = Constants.SGD.code,
-                    name = Constants.SGD.code + " Balanced",
-                    currency = Constants.SGD,
-                    base = Constants.USD,
-                    owner = systemUser
-                )
-            )
-        )
+        }
     }
 
-    private fun mockPortfolio(portfolioRepository: PortfolioRepository, portfolio: Portfolio) {
-        // For the sake of convenience when testing; id and code are the same
-        Mockito.`when`(portfolioRepository.findById(portfolio.id))
-            .thenReturn(Optional.of(portfolio))
-        Mockito.`when`(portfolioRepository.findByCodeAndOwner(portfolio.code, systemUser))
-            .thenReturn(Optional.of(portfolio))
+    private lateinit var systemUser: SystemUser
+
+    @BeforeEach
+    fun mock() {
+        // if (systemUser.id == "") {
+        val mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .build()
+        RestAssuredMockMvc.mockMvc(mockMvc)
+        systemUser = ContractHelper.defaultUser(
+            jwtDecoder = jwtDecoder,
+            tokenService = tokenService,
+            systemUserRepository = systemUserRepository
+        )
+
+        portfolios(systemUser, keyGenUtils, portfolioRepository)
+        // }
     }
 }

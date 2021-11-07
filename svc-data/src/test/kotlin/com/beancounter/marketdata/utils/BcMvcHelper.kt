@@ -1,27 +1,29 @@
-package com.beancounter.marketdata.trn
+package com.beancounter.marketdata.utils
 
 import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.Constants
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 /**
- * Test helper to centralise common TrnController functionality.
- * Your tests will need to wire up your
+ * MVC helper to post secured transactions to Web endpoing.
  *
  * @Autowired
  * private lateinit var marketService: MarketService
@@ -32,7 +34,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
  * ... and register the enricher
  * enrichmentFactory.register(MockEnricher())
  */
-class TrnMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
+class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
     // Test Constants
     companion object {
         // Test Constants
@@ -60,7 +62,7 @@ class TrnMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         return data.values.iterator().next()
     }
 
-    fun postTrn(trnRequest: TrnRequest) = mockMvc.perform(
+    fun postTrn(trnRequest: TrnRequest): MvcResult = mockMvc.perform(
         MockMvcRequestBuilders.post(trnsRoot)
             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(trnRequest))
@@ -83,5 +85,24 @@ class TrnMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         val (data) = objectMapper
             .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
         return data.iterator().next()
+    }
+
+    fun registerUser() {
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/register")
+                .with(
+                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+                        .authorities(RegistrationUtils.authorityRoleConverter)
+                )
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .content(
+                    RegistrationUtils.objectMapper
+                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email))
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
     }
 }

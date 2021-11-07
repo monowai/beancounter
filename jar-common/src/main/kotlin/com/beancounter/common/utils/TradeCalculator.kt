@@ -13,7 +13,7 @@ import java.math.BigDecimal
 class TradeCalculator(val numberUtils: NumberUtils) {
     fun amount(quantity: BigDecimal, price: BigDecimal, fees: BigDecimal = BigDecimal.ZERO): BigDecimal {
         var result: BigDecimal?
-        result = MathUtils.multiply(quantity, price)
+        result = MathUtils.multiplyAbs(quantity, price)
         if (result != null && !numberUtils.isUnset(fees)) {
             result = result.add(fees)
         }

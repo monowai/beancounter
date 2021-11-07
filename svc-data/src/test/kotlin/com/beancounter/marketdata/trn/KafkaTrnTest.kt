@@ -17,7 +17,6 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType.BUY
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
-import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -32,6 +31,7 @@ import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import com.beancounter.marketdata.utils.RegistrationUtils
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -78,8 +78,6 @@ import java.math.BigDecimal.ONE
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 class KafkaTrnTest {
-
-    private val objectMapper = BcJson().objectMapper
 
     final var dateUtils: DateUtils = DateUtils()
 
@@ -236,7 +234,7 @@ class KafkaTrnTest {
         return TrnInput(
             callerRef,
             asset.id,
-            BUY,
+            trnType = BUY,
             quantity = BigDecimal.TEN,
             fees = ONE,
             tradeDate = tradeDate,

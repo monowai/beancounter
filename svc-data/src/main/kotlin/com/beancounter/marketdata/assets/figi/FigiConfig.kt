@@ -14,5 +14,5 @@ class FigiConfig {
     var apiKey: String? = null
 
     @Value("\${beancounter.market.providers.figi.enabled:true}")
-    var enabled: Boolean? = null
+    var enabled: Boolean = true
 }

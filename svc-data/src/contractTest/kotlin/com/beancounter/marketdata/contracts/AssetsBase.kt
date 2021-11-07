@@ -4,7 +4,9 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.assets.AssetService
+import contracts.ContractHelper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -20,24 +22,26 @@ import java.util.Locale
 class AssetsBase : ContractVerifierBase() {
     @MockBean
     private lateinit var assetService: AssetService
-    private var systemUser: SystemUser = SystemUser("", "")
+    private lateinit var systemUser: SystemUser
 
     @BeforeEach
     fun mock() {
-        if (systemUser.id == "") {
-            val mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .build()
-            systemUser = defaultUser()
-            RestAssuredMockMvc.mockMvc(mockMvc)
-            mockAssets(assetService)
-        }
+        val mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .build()
+        systemUser = ContractHelper.defaultUser(
+            jwtDecoder = jwtDecoder,
+            tokenService = tokenService,
+            systemUserRepository = systemUserRepository
+        )
+        RestAssuredMockMvc.mockMvc(mockMvc)
+        mockAssets(assetService)
     }
 
     fun mockAssets(assetService: AssetService) {
         Mockito.`when`(assetService.find("KMI"))
             .thenReturn(
-                objectMapper.readValue(
+                BcJson().objectMapper.readValue(
                     ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
                     AssetResponse::class.java
                 ).data
@@ -81,8 +85,8 @@ class AssetsBase : ContractVerifierBase() {
 
     @Throws(Exception::class)
     private fun mockAssetCreateResponses(jsonRequest: File, jsonResponse: File, assetService: AssetService) {
-        val assetRequest = objectMapper.readValue(jsonRequest, AssetRequest::class.java)
-        val assetUpdateResponse = objectMapper.readValue(jsonResponse, AssetUpdateResponse::class.java)
+        val assetRequest = BcJson().objectMapper.readValue(jsonRequest, AssetRequest::class.java)
+        val assetUpdateResponse = BcJson().objectMapper.readValue(jsonResponse, AssetUpdateResponse::class.java)
         Mockito.`when`(assetService.process(assetRequest))
             .thenReturn(assetUpdateResponse)
 

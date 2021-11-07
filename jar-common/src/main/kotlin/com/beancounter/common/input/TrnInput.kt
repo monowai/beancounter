@@ -17,33 +17,28 @@ import java.time.LocalDate
  */
 data class TrnInput(
     val callerRef: CallerRef = CallerRef(),
-    val assetId: String,
+    val assetId: String, // What is being traded
+    val cashAssetId: String? = null, // A specific cash balance
     val trnType: TrnType = TrnType.BUY,
+    val status: TrnStatus? = null,
     val quantity: BigDecimal = BigDecimal.ZERO,
     val tradeCurrency: String = "USD",
-    var tradeBaseRate: BigDecimal? = null,
-    var tradeCashRate: BigDecimal? = null,
+    val cashCurrency: String? = null, // Generic cash balance
+    var tradeBaseRate: BigDecimal? = null, // Trade to Portfolio Base Rate. Calculated if null
+    var tradeCashRate: BigDecimal? = null, // Trade to Cash Settlement Rate. Calculated if null
+    var tradePortfolioRate: BigDecimal? = null, // Trade CCY to portfolio Currency. Calculated if null
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val tradeDate: LocalDate = DateUtils().date,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var settleDate: LocalDate? = null,
     val fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val price: BigDecimal, // In trade Currency
     val tradeAmount: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val comments: String? = null,
-
-) {
-
-    var status: TrnStatus? = null
-    var cashAsset: String? = null
-    var cashCurrency: String? = null
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
-    var settleDate: LocalDate? = null
-
-    var cashAmount: BigDecimal? = null
-    var tradePortfolioRate: BigDecimal? = null // Trade CCY to portfolio reference  currency
-}
+    val cashAmount: BigDecimal? = null
+)

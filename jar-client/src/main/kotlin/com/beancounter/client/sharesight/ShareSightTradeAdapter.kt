@@ -13,7 +13,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.common.utils.MathUtils.Companion.divide
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.MathUtils.Companion.parse
 import com.beancounter.common.utils.NumberUtils
 import com.beancounter.common.utils.TradeCalculator
@@ -76,25 +76,25 @@ class ShareSightTradeAdapter(
             val trnInput = TrnInput(
                 CallerRef(trustedTrnImportRequest.portfolio.id, null, row[id]),
                 asset.id,
-                trnType,
-                parse(
+                trnType = trnType,
+                quantity = parse(
                     row[quantity],
                     shareSightConfig.numberFormat
                 )!!,
-                row[currency],
-                null,
-                null,
-                dateUtils.getDate(
+                tradeCurrency = row[currency],
+                tradeBaseRate = null,
+                tradeCashRate = null,
+                cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
+                tradeDate = dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,
                     dateUtils.getZoneId()
                 ),
-                fees,
-                MathUtils.nullSafe(parse(row[price], shareSightConfig.numberFormat)),
-                tradeAmount,
+                fees = fees,
+                price = MathUtils.nullSafe(parse(row[price], shareSightConfig.numberFormat)),
+                tradeAmount = tradeAmount,
                 comments = comment
             )
-            trnInput.cashCurrency = trustedTrnImportRequest.portfolio.currency.code
             // Zero and null are treated as "unknown"
             trnInput.tradeCashRate = getTradeCashRate(tradeRate)
             trnInput
@@ -129,7 +129,7 @@ class ShareSightTradeAdapter(
             tradeCalculator.amount(q, p, f)
         } else {
             // ShareSight store tradeAmount it portfolio currency, BC stores in Trade CCY
-            return multiply(result, tradeRate)!!
+            return multiplyAbs(result, tradeRate)!!
         }
         return result
     }

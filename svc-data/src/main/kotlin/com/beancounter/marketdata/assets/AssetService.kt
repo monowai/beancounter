@@ -107,7 +107,7 @@ class AssetService internal constructor(
         if (result.isPresent) {
             return result.get()
         }
-        throw BusinessException(String.format("Asset %s not found", assetId))
+        throw BusinessException("Asset $assetId not found")
     }
 
     fun findLocally(marketCode: String, code: String): Asset? {

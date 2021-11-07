@@ -6,30 +6,29 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.aaplInput
+import com.beancounter.marketdata.Constants.Companion.msftInput
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.MockEnricher
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.tradeDate
-import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.trnsRoot
-import com.beancounter.marketdata.trn.TrnMvcHelper.Companion.uriTrnForPortfolio
-import com.beancounter.marketdata.utils.RegistrationUtils
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.beancounter.marketdata.utils.BcMvcHelper
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.tradeDate
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.trnsRoot
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.uriTrnForPortfolio
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -61,8 +60,6 @@ import java.util.Objects
 @EntityScan("com.beancounter.common.model")
 class TrnControllerFlowTest {
 
-    private lateinit var getAppl: AssetInput
-    private lateinit var getMsft: AssetInput
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()
 
@@ -80,8 +77,7 @@ class TrnControllerFlowTest {
 
     private lateinit var token: Jwt
     private lateinit var mockMvc: MockMvc
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
-    private lateinit var trnMvcHelper: TrnMvcHelper
+    private lateinit var bcMvcHelper: BcMvcHelper
 
     @BeforeEach
     fun setupObjects() {
@@ -90,26 +86,23 @@ class TrnControllerFlowTest {
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
         token = TokenUtils().getUserToken(Constants.systemUser)
-        trnMvcHelper = TrnMvcHelper(mockMvc, token)
+        bcMvcHelper = BcMvcHelper(mockMvc, token)
 
-        RegistrationUtils.registerUser(mockMvc, token)
-        val nasdaq = marketService.getMarket(marketCode = "NASDAQ")
-        getMsft = AssetUtils.getAssetInput(nasdaq.code, MSFT.code)
-        getAppl = AssetUtils.getAssetInput(nasdaq.code, AAPL.code)
+        bcMvcHelper.registerUser()
     }
 
     @Test
     @Throws(Exception::class)
     fun is_PersistRetrieveAndPurge() {
         val msft = asset(
-            AssetRequest(MSFT.code, getMsft)
+            AssetRequest(MSFT.code, msftInput)
         )
         assertThat(msft.id).isNotNull
         val aapl = asset(
-            AssetRequest(AAPL.code, getAppl)
+            AssetRequest(AAPL.code, aaplInput)
         )
         assertThat(aapl.id).isNotNull
-        val portfolio = trnMvcHelper.portfolio(
+        val portfolio = bcMvcHelper.portfolio(
             PortfolioInput("Twix", "is_PersistRetrieveAndPurge", currency = NZD.code)
         )
         // Creating in random order and assert retrieved in Sort Order.
@@ -117,58 +110,56 @@ class TrnControllerFlowTest {
         val trnInputA = TrnInput(
             CallerRef(callerId = "1"),
             msft.id,
-            TrnType.BUY,
+            trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getDate(tradeDate),
-            tradeCurrency = USD.code,
             price = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradePortfolioRate = BigDecimal.ONE,
         )
-
-        trnInputA.tradePortfolioRate = BigDecimal.ONE
 
         val trnInputB = TrnInput(
             CallerRef(null, null, "3"),
             aapl.id,
-            TrnType.BUY,
-            BigDecimal.TEN,
-            USD.code,
-            null,
-            null,
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = null,
+            tradeCashRate = null,
+            tradePortfolioRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN
         )
-
-        trnInputB.tradePortfolioRate = BigDecimal.ONE
 
         val earlyTradeDate = "2017-01-01"
         val trnInputC = TrnInput(
             CallerRef(callerId = "2"),
             msft.id,
-            TrnType.BUY,
-            BigDecimal.TEN,
-            USD.code,
-            null,
-            null,
-            dateUtils.getDate(earlyTradeDate),
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = null,
+            tradeCashRate = null,
+            tradePortfolioRate = BigDecimal.ONE,
+            tradeDate = dateUtils.getDate(earlyTradeDate),
             price = BigDecimal.TEN
         )
-        trnInputC.tradePortfolioRate = BigDecimal.ONE
 
         val trnInputD = TrnInput(
             CallerRef(callerId = "4"),
             aapl.id,
-            TrnType.BUY,
-            BigDecimal.TEN,
-            USD.code,
-            null,
-            null,
-            dateUtils.getDate(earlyTradeDate),
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeCurrency = USD.code,
+            tradeBaseRate = null,
+            tradeCashRate = null,
+            tradePortfolioRate = BigDecimal.ONE,
+            tradeDate = dateUtils.getDate(earlyTradeDate),
             price = BigDecimal.TEN
         )
-        trnInputD.tradePortfolioRate = BigDecimal.ONE
 
         val trnRequest = TrnRequest(portfolio.id, arrayOf(trnInputA, trnInputB, trnInputC, trnInputD))
-        val postResult = trnMvcHelper.postTrn(trnRequest)
+        val postResult = bcMvcHelper.postTrn(trnRequest)
         var trnResponse: TrnResponse = objectMapper
             .readValue(postResult.response.contentAsString, TrnResponse::class.java)
         assertThat(trnResponse.data).isNotEmpty.hasSize(4)
@@ -187,7 +178,7 @@ class TrnControllerFlowTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TrustedTrnQuery(portfolio, assetId = msft.id)))
                 .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(trnMvcHelper.token)
+                    SecurityMockMvcRequestPostProcessors.jwt().jwt(bcMvcHelper.token)
                         .authorities(authorityRoleConverter)
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk)

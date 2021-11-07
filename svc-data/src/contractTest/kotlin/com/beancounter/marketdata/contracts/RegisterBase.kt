@@ -2,6 +2,7 @@ package com.beancounter.marketdata.contracts
 
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.currency.CurrencyService
+import contracts.ContractHelper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -33,6 +34,10 @@ class RegisterBase : ContractVerifierBase() {
         Mockito.`when`(systemUserRepository.findById(notAuthenticated))
             .thenReturn(Optional.ofNullable(null))
 
-        defaultUser()
+        ContractHelper.defaultUser(
+            jwtDecoder = jwtDecoder,
+            tokenService = tokenService,
+            systemUserRepository = systemUserRepository
+        )
     }
 }

@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
@@ -13,9 +14,11 @@ import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.Constants.Companion.usdValue
+import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.markets.MarketConfig
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -29,8 +32,16 @@ import java.util.Locale
 /**
  * TRN Adapter tests.
  */
-@SpringBootTest(classes = [TrnAdapter::class, TradeCalculator::class])
-internal class TestTrnAdapter {
+@SpringBootTest(
+    classes = [
+        TrnAdapter::class,
+        TradeCalculator::class,
+        CashServices::class,
+        MarketConfig::class,
+        KeyGenUtils::class
+    ]
+)
+internal class TrnAdapterTest {
 
     @MockBean
     private lateinit var portfolioService: PortfolioService
@@ -44,7 +55,7 @@ internal class TestTrnAdapter {
     @Autowired
     private lateinit var trnAdapter: TrnAdapter
 
-    @MockBean
+    @Autowired
     private lateinit var keyGenUtils: KeyGenUtils
 
     final val asset = MSFT
@@ -68,31 +79,33 @@ internal class TestTrnAdapter {
     fun buyInputToTrnComputingTradeAmount() {
         val trnInput = TrnInput(
             CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
-            asset.id,
+            assetId = asset.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             price = price,
-            tradeCurrency = usdValue,
+            tradeCurrency = USD.code,
+            cashAssetId = toKey("USD-X", "USER"),
             tradeDate = theDate,
+            cashAmount = BigDecimal("100.99"),
+            cashCurrency = USD.code,
+            tradeCashRate = BigDecimal("1.99"),
+            tradePortfolioRate = price,
+            tradeBaseRate = BigDecimal.ONE,
             comments = "Comment",
         )
         // TradeAmount should be computed for a buy
-        trnInput.cashAsset = toKey("USD-X", "USER")
         trnInput.settleDate = theDate
-        trnInput.cashAmount = BigDecimal("100.99")
-        trnInput.tradeBaseRate = BigDecimal("1.99")
-        trnInput.tradeCashRate = BigDecimal("1.99")
-        trnInput.tradePortfolioRate = price
-        trnInput.tradeBaseRate = BigDecimal.ONE
-        trnInput.cashCurrency = usdValue
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         Mockito.`when`(portfolioService.find(portfolioId))
             .thenReturn(getPortfolio(portfolioId))
         Mockito.`when`(assetService.find(trnInput.assetId))
             .thenReturn(MSFT)
-        Mockito.`when`(currencyService.getCode(usdValue))
-            .thenReturn(Currency(usdValue))
+        Mockito.`when`(assetService.find("USD-X:USER"))
+            .thenReturn(usdCashBalance)
+
+        Mockito.`when`(currencyService.getCode(USD.code))
+            .thenReturn(Currency(USD.code))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse.data).hasSize(1)
@@ -104,13 +117,14 @@ internal class TestTrnAdapter {
             .hasFieldOrPropertyWithValue("cashAmount", trnInput.cashAmount)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, one)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
             .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
             .hasFieldOrPropertyWithValue("tradeCashRate", trnInput.tradeCashRate)
             .hasFieldOrPropertyWithValue("tradePortfolioRate", trnInput.tradePortfolioRate)
             .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
             .hasFieldOrPropertyWithValue("tradeCurrency.code", trnInput.tradeCurrency)
-            .hasFieldOrPropertyWithValue("cashCurrency.code", trnInput.cashCurrency)
+            .hasFieldOrPropertyWithValue("cashAsset.priceSymbol", trnInput.tradeCurrency)
+            .hasFieldOrPropertyWithValue("cashCurrency.code", null)
             .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("109.90"))
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
@@ -133,8 +147,8 @@ internal class TestTrnAdapter {
             .thenReturn(getPortfolio(portfolioId))
         Mockito.`when`(assetService.find(trnInput.assetId))
             .thenReturn(MSFT)
-        Mockito.`when`(currencyService.getCode(usdValue))
-            .thenReturn(Currency(usdValue))
+        Mockito.`when`(currencyService.getCode(USD.code))
+            .thenReturn(Currency(USD.code))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse.data).hasSize(1)
@@ -143,7 +157,7 @@ internal class TestTrnAdapter {
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, one)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
             .hasFieldOrPropertyWithValue(tradeAmountProp, tradeAmount)
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
@@ -166,8 +180,8 @@ internal class TestTrnAdapter {
             .thenReturn(getPortfolio(portfolioId))
         Mockito.`when`(assetService.find(trnInput.assetId))
             .thenReturn(getAsset(NASDAQ, MSFT.code))
-        Mockito.`when`(currencyService.getCode(usdValue))
-            .thenReturn(Currency(usdValue))
+        Mockito.`when`(currencyService.getCode(USD.code))
+            .thenReturn(Currency(USD.code))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
         assertThat(trnResponse.data).hasSize(1)
@@ -176,7 +190,7 @@ internal class TestTrnAdapter {
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, one)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
             .hasFieldOrPropertyWithValue(tradeAmountProp, tradeAmount)
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)

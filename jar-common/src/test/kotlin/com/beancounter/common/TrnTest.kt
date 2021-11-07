@@ -11,15 +11,18 @@ import org.junit.jupiter.api.Test
 /**
  * Trn related defaults
  */
-class TestTrn {
+class TrnTest {
 
     private val simpleRef = "simpleRef"
 
     @Test
     fun is_trnVersion() {
-        val trn = Trn(TrnType.BUY, AssetUtils.getAsset(Constants.NYSE, simpleRef))
-        assertThat(trn)
-            .hasFieldOrPropertyWithValue("version", "1")
+        val trnDefault = Trn(TrnType.BUY, AssetUtils.getAsset(Constants.NYSE, simpleRef))
+        val trn = Trn(TrnType.BUY, version = "0", asset = AssetUtils.getAsset(Constants.NYSE, simpleRef))
+        assertThat(trnDefault)
+            .hasFieldOrProperty("version")
+        assertThat(trn.version).isEqualTo("0")
+        assertThat(trn.version).isNotEqualTo(trnDefault.version)
     }
 
     @Test

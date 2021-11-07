@@ -52,7 +52,6 @@
         },
         "priceSymbol": "KMI"
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -129,7 +128,6 @@
         },
         "priceSymbol": "KMI"
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -202,7 +200,6 @@
         },
         "priceSymbol": "KMI"
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -275,7 +272,6 @@
         },
         "priceSymbol": "KMI"
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -348,7 +344,6 @@
         },
         "priceSymbol": "KMI"
       },
-      "cashAsset": null,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",

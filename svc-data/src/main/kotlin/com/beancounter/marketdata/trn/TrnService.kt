@@ -23,12 +23,13 @@ import javax.transaction.Transactional
 class TrnService internal constructor(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,
-    private val portfolioService: PortfolioService
+    private val portfolioService: PortfolioService,
+    private val trnMigrator: TrnMigrator,
 ) {
 
     fun getPortfolioTrn(portfolio: Portfolio, trnId: String): TrnResponse {
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
-        val result = trn.map { transaction: Trn -> hydrate(setOf(transaction)) }
+        val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         if (result.isEmpty) {
             throw BusinessException(String.format("Trn %s not found", trnId))
         }
@@ -88,7 +89,7 @@ class TrnService internal constructor(
             portfolio.code,
             assetId
         )
-        return hydrate(results, true)
+        return postProcess(results, true)
     }
 
     /**
@@ -116,7 +117,7 @@ class TrnService internal constructor(
             portfolio.code,
             assetId
         )
-        return hydrate(results, false)
+        return postProcess(results, false)
     }
 
     fun findForPortfolio(portfolio: Portfolio, tradeDate: LocalDate): TrnResponse {
@@ -127,7 +128,7 @@ class TrnService internal constructor(
                 .and(Sort.by("asset.code"))
         )
         log.debug("trns: {}, portfolio: {}", results.size, portfolio.code)
-        return hydrate(results)
+        return postProcess(results)
     }
 
     /**
@@ -141,18 +142,22 @@ class TrnService internal constructor(
         return trnRepository.deleteByPortfolioId(portfolio.id)
     }
 
-    private fun setAssets(trn: Trn): Trn {
+    private fun postProcess(trn: Trn): Trn {
         trn.asset = trnAdapter.hydrate(trn.asset)!!
         trn.cashAsset = trnAdapter.hydrate(trn.cashAsset)
-        return trn
+        val upgraded = trnMigrator.upgrade(trn)
+        if (upgraded.version != trn.version) {
+            trnRepository.save(upgraded)
+        }
+        return upgraded
     }
 
-    private fun hydrate(trns: Iterable<Trn>, secure: Boolean = true): TrnResponse {
+    private fun postProcess(trns: Iterable<Trn>, secure: Boolean = true): TrnResponse {
         val results: MutableCollection<Trn> = ArrayList()
         for (trn in trns) {
             val add = !secure || portfolioService.canView(trn.portfolio)
             if (add) {
-                results.add(setAssets(trn))
+                results.add(postProcess(trn))
             }
         }
         return if (results.isEmpty()) {
@@ -182,7 +187,7 @@ class TrnService internal constructor(
             trnRepository.delete(trn)
             deleted.add(trn)
         }
-        return hydrate(deleted)
+        return postProcess(deleted)
     }
 
     companion object {

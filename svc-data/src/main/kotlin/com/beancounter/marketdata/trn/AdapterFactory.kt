@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-@Service
 /**
  * Obtain various adapters to transform delimited data into BC format.
  */
+@Service
 class AdapterFactory {
     private lateinit var bcRowAdapter: RowAdapter
     private lateinit var shareSightAdapter: RowAdapter

@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.ZoneOffset.UTC
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -35,7 +36,7 @@ internal class DateUtilsTest {
     @Test
     fun is_TodayAnIso8601String() {
         val calendar = Calendar.Builder()
-            .setTimeZone(TimeZone.getTimeZone(dateUtils.getZoneId()))
+            .setTimeZone(TimeZone.getTimeZone(UTC))
             .setInstant(Date()).build()
         val now = dateUtils.offsetDateString()
         calendar[Calendar.YEAR]
@@ -57,7 +58,7 @@ internal class DateUtilsTest {
     @Test
     fun is_LocalDateEqualToToday() {
         val today = dateUtils.offsetDateString()
-        val nowInTz = LocalDate.now(dateUtils.getZoneId())
+        val nowInTz = LocalDate.now(UTC)
         assertThat(nowInTz.toString()).isEqualTo(today)
     }
 

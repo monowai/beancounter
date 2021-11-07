@@ -4,7 +4,7 @@ import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
 import com.beancounter.common.utils.MathUtils.Companion.hasValidRate
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.MathUtils.Companion.parse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -22,35 +22,35 @@ internal class TestMathUtils {
     fun is_MultiplySafe() {
 
         assertThat(
-            multiply(
+            multiplyAbs(
                 BigDecimal(oneThousandDec),
                 BigDecimal.ZERO
             )
         )
             .isEqualTo(oneThousandDec)
         assertThat(
-            multiply(
+            multiplyAbs(
                 BigDecimal(oneThousandDec),
                 BigDecimal("0.00")
             )
         )
             .isEqualTo(oneThousandDec)
         assertThat(
-            multiply(
+            multiplyAbs(
                 BigDecimal(oneThousandDec),
                 null
             )
         )
             .isEqualTo(oneThousandDec)
         assertThat(
-            multiply(
+            multiplyAbs(
                 BigDecimal(oneThousandDec),
                 BigDecimal(ten)
             )
         )
             .isEqualTo(tenThousand)
         assertThat(
-            multiply(
+            multiplyAbs(
                 null,
                 BigDecimal(ten)
             )

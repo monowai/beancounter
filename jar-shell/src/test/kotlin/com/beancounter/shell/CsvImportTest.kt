@@ -13,7 +13,7 @@ import org.mockito.Mockito
 /**
  * Delimited Import test for trades and events.
  */
-class TestCsvImport {
+class CsvImportTest {
 
     private var trnService: TrnService = Mockito.mock(TrnService::class.java)
 

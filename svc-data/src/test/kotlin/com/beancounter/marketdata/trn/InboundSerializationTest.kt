@@ -2,7 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.fasterxml.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -11,9 +11,7 @@ import org.springframework.core.io.ClassPathResource
 /**
  * Serialization test to support import requests.
  */
-class TestInboundSerialization {
-    private val objectMapper = BcJson().objectMapper
-
+class InboundSerializationTest {
     @Test
     @Throws(Exception::class)
     fun is_InboundPayloadConverted() {

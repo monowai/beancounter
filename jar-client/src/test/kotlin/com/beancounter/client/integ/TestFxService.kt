@@ -97,12 +97,12 @@ class TestFxService {
         val trnInput = TrnInput(
             CallerRef(),
             AssetUtils.Companion.getAsset(NASDAQ, "MSFT").id,
-            TrnType.BUY,
+            cashCurrency = USD.code,
+            trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = DateUtils().getDate("2019-07-26"),
             price = BigDecimal.TEN
         )
-        trnInput.cashCurrency = USD.code
         val portfolio = getPortfolio()
         val request = fxTransactions!!.buildRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")

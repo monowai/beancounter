@@ -14,5 +14,10 @@ enum class TrnType {
         fun isCorporateAction(trnType: TrnType): Boolean {
             return (DIVI == trnType || SPLIT == trnType)
         }
+
+        @JvmStatic
+        fun isCashImpacted(trnType: TrnType): Boolean {
+            return (trnType != SPLIT)
+        }
     }
 }

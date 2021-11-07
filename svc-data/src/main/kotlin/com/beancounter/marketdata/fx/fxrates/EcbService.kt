@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Optional
 
-@Service
 /**
  * exchangeratesapi.io service implementation to obtain fx rates.  T
  */
+@Service
 class EcbService @Autowired internal constructor(
     private val fxGateway: FxGateway,
     private val currencyService: CurrencyService,

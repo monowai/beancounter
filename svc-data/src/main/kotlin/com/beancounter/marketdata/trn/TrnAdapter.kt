@@ -14,14 +14,15 @@ import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 
 /**
- * Adapt TrnInput objects to the Trn persistent model.
+ * Map TrnInput objects to the Trn persistent model.
  */
 @Service
 class TrnAdapter internal constructor(
     var assetService: AssetService,
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,
-    private val keyGenUtils: KeyGenUtils
+    val cashServices: CashServices,
+    private val keyGenUtils: KeyGenUtils = KeyGenUtils()
 ) {
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
@@ -32,30 +33,29 @@ class TrnAdapter internal constructor(
     }
 
     fun map(portfolio: Portfolio, trnInput: TrnInput): Trn {
-
+        val cashAsset = cashServices.getCashAsset(trnInput)
         return Trn(
-            keyGenUtils.id,
-            from(trnInput.callerRef, portfolio),
+            id = keyGenUtils.id,
+            callerRef = from(trnInput.callerRef, portfolio),
             trnInput.trnType,
             trnInput.status,
-            portfolio,
-            assetService.find(trnInput.assetId),
-            if (trnInput.cashAsset == null) null else assetService.find(trnInput.cashAsset!!),
-            currencyService.getCode(trnInput.tradeCurrency)!!,
-            if (trnInput.cashCurrency == null) null else currencyService.getCode(trnInput.cashCurrency!!),
-            trnInput.tradeDate,
-            trnInput.settleDate,
-            trnInput.quantity,
-            trnInput.price,
-            trnInput.fees,
-            trnInput.tax,
-            tradeCalculator.amount(trnInput),
-            trnInput.cashAmount,
-            trnInput.tradeCashRate,
-            trnInput.tradeBaseRate,
-            trnInput.tradePortfolioRate,
-            "1",
-            trnInput.comments
+            portfolio = portfolio,
+            asset = assetService.find(trnInput.assetId),
+            tradeCurrency = currencyService.getCode(trnInput.tradeCurrency)!!,
+            cashCurrency = null,
+            cashAsset = cashAsset,
+            tradeDate = trnInput.tradeDate,
+            settleDate = trnInput.settleDate,
+            quantity = trnInput.quantity,
+            price = trnInput.price,
+            fees = trnInput.fees,
+            tax = trnInput.tax,
+            tradeAmount = tradeCalculator.amount(trnInput),
+            cashAmount = cashServices.getCashImpact(trnInput),
+            tradeCashRate = trnInput.tradeCashRate,
+            tradeBaseRate = trnInput.tradeBaseRate,
+            tradePortfolioRate = trnInput.tradePortfolioRate,
+            comments = trnInput.comments
         )
     }
 

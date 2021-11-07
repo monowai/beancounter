@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Market Data MVC.
+ * FX Market Data Controller.
  *
  * @author mikeh
  * @since 2019-01-29

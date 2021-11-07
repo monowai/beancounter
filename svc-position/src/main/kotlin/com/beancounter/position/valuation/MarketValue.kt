@@ -10,7 +10,7 @@ import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.Objects
@@ -61,7 +61,7 @@ class MarketValue(private val gains: Gains) {
                 close = moneyValues.priceData!!.close
             }
             moneyValues.marketValue = Objects.requireNonNull(
-                multiply(close, total)
+                multiplyAbs(close, total)
             )!!
         }
         gains.value(total, moneyValues)

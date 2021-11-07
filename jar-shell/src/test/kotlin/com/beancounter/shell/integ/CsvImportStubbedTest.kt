@@ -23,9 +23,10 @@ import org.springframework.test.context.ActiveProfiles
 )
 @ActiveProfiles("test")
 @SpringBootTest(classes = [IngestionCommand::class, ShareSightConfig::class, ClientConfig::class, IngestionConfig::class])
-class TestCsvImportFlow {
+class CsvImportStubbedTest {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand
+
     @Test
     fun is_CsvCommandFlowWorking() {
         val result = ingestionCommand

@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
-import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -22,13 +21,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * MVC controller for Transaction related operations.
+ */
 @RestController
 @RequestMapping("/trns")
 @CrossOrigin
 @PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
-/**
- * MVC controller for Transaction related operations.
- */
 class TrnController {
     private lateinit var trnService: TrnService
     private lateinit var portfolioService: PortfolioService
@@ -104,9 +103,6 @@ class TrnController {
     fun findByAsset(
         @RequestBody query: TrustedTrnQuery
     ): TrnResponse {
-        if (query.portfolio.id == "abc") {
-            throw SystemException("You can't touch this")
-        }
         return trnService.findByPortfolioAsset(
             query.portfolio,
             query.assetId,

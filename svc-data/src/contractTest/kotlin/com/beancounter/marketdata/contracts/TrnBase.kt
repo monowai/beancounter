@@ -8,6 +8,8 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.trn.TrnService
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import contracts.ContractHelper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -32,22 +34,25 @@ class TrnBase : ContractVerifierBase() {
     @MockBean
     private lateinit var portfolioRepository: PortfolioRepository
 
-    var systemUser: SystemUser = SystemUser("")
+    private lateinit var systemUser: SystemUser
 
     @BeforeEach
     fun mock() {
-        if (systemUser.id == "") {
-            val mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .build()
-            RestAssuredMockMvc.mockMvc(mockMvc)
-            systemUser = defaultUser()
-            // This test depends on assets and portfolios being available
-            AssetsBase().mockAssets(assetService)
-            PortfolioBase().portfolios(keyGenUtils, portfolioRepository)
-            // We are testing this
-            mockPortfolioTrns()
-        }
+        val mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .build()
+        RestAssuredMockMvc.mockMvc(mockMvc)
+        systemUser = ContractHelper.defaultUser(
+            jwtDecoder = jwtDecoder,
+            tokenService = tokenService,
+            systemUserRepository = systemUserRepository
+        )
+
+        // This test depends on assets and portfolios being available
+        AssetsBase().mockAssets(assetService)
+        PortfolioBase.portfolios(systemUser, keyGenUtils, portfolioRepository)
+        // We are testing this
+        mockPortfolioTrns()
     }
 
     fun mockPortfolioTrns() {

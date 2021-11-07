@@ -12,7 +12,7 @@ import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -88,11 +88,11 @@ class ShareSightRatesInTrn {
             .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiply(BigDecimal(net), fxRate)
+                multiplyAbs(BigDecimal(net), fxRate)
             )
             .hasFieldOrPropertyWithValue(
                 "cashAmount",
-                multiply(BigDecimal(net), fxRate)
+                multiplyAbs(BigDecimal(net), fxRate)
             )
             .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("comments", row[ShareSightDividendAdapter.comments])
@@ -123,7 +123,7 @@ class ShareSightRatesInTrn {
             .hasFieldOrPropertyWithValue("fees", BigDecimal("14.45"))
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiply(BigDecimal(tradeAmount), BigDecimal(fxRate))
+                multiplyAbs(BigDecimal(tradeAmount), BigDecimal(fxRate))
             )
             .hasFieldOrPropertyWithValue("comments", testComment)
             .hasFieldOrProperty("tradeCurrency")

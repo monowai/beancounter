@@ -11,7 +11,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.MathUtils.Companion.parse
 import com.beancounter.common.utils.NumberUtils
 import com.google.common.base.CharMatcher
@@ -56,11 +56,11 @@ class ShareSightDividendAdapter(
             val trnInput = TrnInput(
                 CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[id]),
                 asset.id,
-                TrnType.DIVI,
-                BigDecimal.ZERO,
-                row[currency],
-                null,
-                null,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.ZERO,
+                tradeCurrency = row[currency],
+                tradeBaseRate = null,
+                tradeCashRate = null,
                 tradeDate = dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,
@@ -68,19 +68,19 @@ class ShareSightDividendAdapter(
                 ),
                 fees = BigDecimal.ZERO,
                 price = BigDecimal.ZERO,
-                tradeAmount = multiply(
+                tradeAmount = multiplyAbs(
                     parse(
                         row[net],
                         shareSightConfig.numberFormat
                     ),
                     tradeRate
                 )!!,
-                tax = multiply(BigDecimal(row[tax]), tradeRate)!!,
+                tax = multiplyAbs(BigDecimal(row[tax]), tradeRate)!!,
+                cashAmount = multiplyAbs(
+                    parse(row[net], shareSightConfig.numberFormat),
+                    tradeRate
+                ),
                 comments = row[comments]
-            )
-            trnInput.cashAmount = multiply(
-                parse(row[net], shareSightConfig.numberFormat),
-                tradeRate
             )
             trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)
             ) null else tradeRate

@@ -14,7 +14,7 @@ import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.GBP
 import com.beancounter.shell.Constants.Companion.NZD
 import com.beancounter.shell.Constants.Companion.USD
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +24,11 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
-private val londonExchange = "LON"
+private const val londonExchange = "LON"
+
+/**
+ * Trade tests with FX rates obtained from bc-data.
+ */
 
 @Tag("slow")
 @AutoConfigureStubRunner(
@@ -33,9 +37,6 @@ private val londonExchange = "LON"
 )
 @ActiveProfiles("test")
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
-/**
- * Trade tests with FX rates obtained from bc-data.
- */
 internal class StubbedTradesWithFx {
     @Autowired
     private lateinit var fxTransactions: FxTransactions
@@ -74,7 +75,7 @@ internal class StubbedTradesWithFx {
             row, ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
-        Assertions.assertThat(trn).isNotNull
+        assertThat(trn).isNotNull
         fxTransactions.setTrnRates(portfolio, trn)
         assertTransaction(portfolio, trn)
     }
@@ -84,7 +85,7 @@ internal class StubbedTradesWithFx {
         // NZD Portfolio
         // USD System Base
         // GBP Trade
-        Assertions.assertThat(shareSightConfig.isCalculateRates).isTrue
+        assertThat(shareSightConfig.isCalculateRates).isTrue
         val row: List<String> = arrayListOf(
             "999",
             londonExchange,
@@ -109,7 +110,7 @@ internal class StubbedTradesWithFx {
             row, ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
-        Assertions.assertThat(trn).isNotNull
+        assertThat(trn).isNotNull
         fxTransactions.setTrnRates(portfolio, trn)
         assertTransaction(portfolio, trn)
     }
@@ -153,10 +154,10 @@ internal class StubbedTradesWithFx {
             row, ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
-        Assertions.assertThat(trn).isNotNull
+        assertThat(trn).isNotNull
         fxTransactions.setTrnRates(portfolio, trn)
         val fxRate = "0.63723696"
-        Assertions.assertThat(trn)
+        assertThat(trn)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code) // Was tradeAmount calculated?
             .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("1000.00"))
             .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("1.28929253"))
@@ -191,12 +192,11 @@ internal class StubbedTradesWithFx {
             row, ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
-        Assertions.assertThat(trn).isNotNull
-        trn.cashCurrency = null
+        assertThat(trn).isNotNull
         fxTransactions.setTrnRates(portfolio, trn)
 
         // No currencies are defined so rate defaults to 1
-        Assertions.assertThat(trn)
+        assertThat(trn)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code)
             .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal.ONE)
             .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal.ONE)
@@ -204,7 +204,7 @@ internal class StubbedTradesWithFx {
     }
 
     private fun assertTransaction(portfolio: Portfolio, trn: TrnInput?) {
-        Assertions.assertThat(trn)
+        assertThat(trn)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, GBP.code)
             .hasFieldOrPropertyWithValue("cashCurrency", portfolio.currency.code)

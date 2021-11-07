@@ -5,6 +5,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.wtd.WtdGateway
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
 import com.beancounter.marketdata.providers.wtd.WtdResponse
+import contracts.ContractHelper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -23,19 +24,21 @@ class PricesBase : ContractVerifierBase() {
     @MockBean
     private lateinit var assetService: AssetService
 
-    private var systemUser: SystemUser = SystemUser("", "")
+    private lateinit var systemUser: SystemUser
 
     @BeforeEach
     fun mock() {
-        if (systemUser.id == "") {
-            val mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .build()
-            RestAssuredMockMvc.mockMvc(mockMvc)
-            systemUser = defaultUser()
-            mockPrices()
-            AssetsBase().mockAssets(assetService)
-        }
+        val mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .build()
+        RestAssuredMockMvc.mockMvc(mockMvc)
+        systemUser = ContractHelper.defaultUser(
+            jwtDecoder = jwtDecoder,
+            tokenService = tokenService,
+            systemUserRepository = systemUserRepository
+        )
+        mockPrices()
+        AssetsBase().mockAssets(assetService)
     }
 
     fun mockPrices() {

@@ -34,6 +34,15 @@ class MathUtils private constructor() {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return money
             }
+            return money!!.multiply(rate).setScale(moneyScale, RoundingMode.HALF_UP)
+        }
+
+        @JvmOverloads
+        @JvmStatic
+        fun multiplyAbs(money: BigDecimal?, rate: BigDecimal?, moneyScale: Int = this.moneyScale): BigDecimal? {
+            if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
+                return money
+            }
             return money!!.multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP)
         }
 

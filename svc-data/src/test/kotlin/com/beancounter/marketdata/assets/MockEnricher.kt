@@ -11,13 +11,13 @@ class MockEnricher : AssetEnricher {
         return if (code.equals("BLAH", ignoreCase = true)) {
             null
         } else Asset(
-            code,
-            code,
-            defaultName!!.replace("\"", ""),
-            "Equity",
-            market,
-            market.code,
-            null
+            id = code,
+            code = code,
+            name = defaultName?.replace("\"", ""),
+            category = "Equity",
+            market = market,
+            marketCode = market.code,
+            priceSymbol = null
         )
     }
 

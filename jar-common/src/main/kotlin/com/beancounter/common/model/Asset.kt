@@ -80,6 +80,12 @@ data class Asset constructor(var code: String) {
         this.id = id
     }
 
+    constructor(code: String, priceSymbol: String = code, market: Market, category: String) : this(code) {
+        this.market = market
+        this.category = category
+        this.priceSymbol = priceSymbol
+    }
+
     // Is this asset stored locally?
     @get:JsonIgnore
     @get:Transient

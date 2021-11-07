@@ -10,7 +10,8 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.MathUtils.Companion.multiply
+import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
+import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.event.service.Event
 import com.beancounter.event.service.TaxService
 import java.math.BigDecimal
@@ -21,14 +22,16 @@ import java.math.BigDecimal
 class AlphaEventAdapter(private val taxService: TaxService) : Event {
     private val dateUtils = DateUtils()
 
-    private fun calculateGross(currentPosition: Position?, rate: BigDecimal?): BigDecimal? {
-        return multiply(currentPosition!!.quantityValues.getTotal(), rate)
+    private fun calculateGross(currentPosition: Position?, rate: BigDecimal?): BigDecimal {
+        return nullSafe(multiplyAbs(currentPosition!!.quantityValues.getTotal(), rate))
     }
 
-    private fun calculateTax(currentPosition: Position?, gross: BigDecimal?): BigDecimal? {
-        return multiply(
-            gross,
-            taxService.getRate(currentPosition!!.asset.market.currency.code)
+    private fun calculateTax(currentPosition: Position?, gross: BigDecimal?): BigDecimal {
+        return nullSafe(
+            multiplyAbs(
+                gross,
+                taxService.getRate(currentPosition!!.asset.market.currency.code)
+            )
         )
     }
 
@@ -61,19 +64,18 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         val gross = calculateGross(currentPosition, corporateEvent.rate)
         val tax = calculateTax(currentPosition, gross)
         val callerRef = CallerRef(corporateEvent.source, corporateEvent.id)
-        val result = TrnInput(
+        return TrnInput(
             callerRef,
             currentPosition.asset.id,
-            TrnType.DIVI,
-            currentPosition.quantityValues.getTotal(),
+            trnType = TrnType.DIVI,
+            quantity = currentPosition.quantityValues.getTotal(),
             tradeDate = payDate,
-            tradeAmount = gross!!.subtract(tax),
+            tradeAmount = gross.subtract(tax),
             price = corporateEvent.rate,
-            tax = tax!!,
+            status = TrnStatus.PROPOSED,
+            cashCurrency = currentPosition.asset.market.currency.code,
+            tax = tax,
 
         )
-        result.status = TrnStatus.PROPOSED
-        result.cashCurrency = currentPosition.asset.market.currency.code
-        return result
     }
 }

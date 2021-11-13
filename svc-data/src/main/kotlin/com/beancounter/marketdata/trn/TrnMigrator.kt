@@ -8,6 +8,9 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.fx.FxRateService
 import org.springframework.stereotype.Service
 
+/**
+ * Support class to facilitate upgrades between versions of Trn objects.
+ */
 @Service
 class TrnMigrator(private val cashServices: CashServices, private val fxRateService: FxRateService) {
     fun upgrade(trn: Trn): Trn {

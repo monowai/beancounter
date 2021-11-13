@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/monowai/beancounter.svg?style=svg)](https://circleci.com/gh/monowai/beancounter)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2bfdd3f89fbc47b0b9d8920fe094ccd9)](https://www.codacy.com/manual/monowai/beancounter?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monowai/beancounter&amp;utm_campaign=Badge_Grade)
-[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/2bfdd3f89fbc47b0b9d8920fe094ccd9)](https://www.codacy.com/gh/monowai/beancounter/dashboard?utm_source=github.com&utm_medium=referral&utm_content=monowai/beancounter&utm_campaign=Badge_Coverage)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/3afbe48425d047edb273e629eac2dcbd)](https://www.codacy.com/gh/monowai/beancounter/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monowai/beancounter)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/3afbe48425d047edb273e629eac2dcbd)](https://www.codacy.com/gh/monowai/beancounter/dashboard?utm_source=github.com&utm_medium=referral&utm_content=monowai/beancounter)
 
 ## Financial Transaction Processing Services
 

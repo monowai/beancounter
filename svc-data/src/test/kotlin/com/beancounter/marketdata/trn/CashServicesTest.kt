@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.math.BigDecimal
 
+private val nzCashAssetId = "${NZD.code} Cash"
+
 /**
  * Cash can be a trick beast. Abstract out specific cash handling routines to allow for new uses cases.
  */
@@ -45,7 +47,7 @@ internal class CashServicesTest {
         val debitInput = TrnInput(
             callerRef = CallerRef(),
             assetId = MSFT.code,
-            cashAssetId = "${NZD.code} Cash",
+            cashAssetId = nzCashAssetId,
             trnType = TrnType.BUY,
             tradeAmount = BigDecimal(5000),
             cashAmount = BigDecimal("-2222.333"), // Caller knows best
@@ -60,7 +62,7 @@ internal class CashServicesTest {
         val debitInput = TrnInput(
             callerRef = CallerRef(),
             assetId = MSFT.code,
-            cashAssetId = "${NZD.code} Cash",
+            cashAssetId = nzCashAssetId,
             trnType = TrnType.BUY,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE
@@ -73,7 +75,7 @@ internal class CashServicesTest {
         val creditInput = TrnInput(
             callerRef = CallerRef(),
             assetId = MSFT.code,
-            cashAssetId = "${NZD.code} Cash",
+            cashAssetId = nzCashAssetId,
             trnType = TrnType.SELL,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE
@@ -86,7 +88,7 @@ internal class CashServicesTest {
         val splitInput = TrnInput(
             callerRef = CallerRef(),
             assetId = MSFT.code,
-            cashAssetId = "${NZD.code} Cash",
+            cashAssetId = nzCashAssetId,
             trnType = TrnType.SPLIT,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE

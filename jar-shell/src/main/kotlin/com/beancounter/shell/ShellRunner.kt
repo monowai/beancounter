@@ -22,5 +22,5 @@ import org.springframework.boot.runApplication
 class ShellRunner
 
 fun main(args: Array<String>) {
-    runApplication<ShellRunner>(*args)
+    runApplication<ShellRunner>(args = args)
 }

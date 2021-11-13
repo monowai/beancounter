@@ -26,11 +26,14 @@ import org.springframework.test.context.ActiveProfiles
 import java.time.ZoneOffset
 import java.util.TimeZone
 
+/**
+ * Market Configuration data tests.
+ */
 @SpringBootTest(classes = [MarketService::class, DateUtils::class])
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
-class MarketServiceTests @Autowired constructor(
+class MarketServiceTest @Autowired constructor(
     private val marketService: MarketService,
 ) {
     @MockBean

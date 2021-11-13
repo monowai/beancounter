@@ -19,7 +19,6 @@ RUN mkdir /app && \
 
 WORKDIR /app
 
-COPY wait-for-it.sh .
 COPY ${JAR_FILE} app.jar
 COPY src/test/resources/trades.csv /demo
 

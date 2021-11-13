@@ -18,7 +18,7 @@ class FigiAdapterTest {
         val asset = figiAdapter.transform(
             Market("TEST", USD),
             "BRK.B",
-            figiAsset
+            figiAsset, "ABC"
         )
         Assertions.assertThat(asset)
             .hasFieldOrPropertyWithValue("name", "BRK")

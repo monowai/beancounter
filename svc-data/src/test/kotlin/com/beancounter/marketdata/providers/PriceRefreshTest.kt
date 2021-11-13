@@ -37,7 +37,12 @@ internal class PriceRefreshTest {
     @Test
     fun updatePrices() {
         val keyGenUtils = KeyGenUtils()
-        val asset = assetRepository.save(Asset(keyGenUtils.id, keyGenUtils.id, "AssetName", NASDAQ))
+        val asset = assetRepository.save(
+            Asset(
+                code = keyGenUtils.id,
+                market = NASDAQ
+            )
+        )
         val hydratedAsset = assetHydrationService.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")
         val completable = priceRefresh.updatePrices()

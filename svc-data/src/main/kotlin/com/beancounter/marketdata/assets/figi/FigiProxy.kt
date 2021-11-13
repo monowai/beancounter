@@ -31,7 +31,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
     }
 
     @RateLimiter(name = "figi")
-    fun find(market: Market, bcAssetCode: String, defaultName: String? = null): Asset? {
+    fun find(market: Market, bcAssetCode: String, defaultName: String? = null, id: String = bcAssetCode): Asset? {
         val figiCode = bcAssetCode.replace(".", "/").uppercase(Locale.getDefault())
         val figiMarket = market.aliases[FIGI]
         val figiSearch = FigiSearch(
@@ -45,7 +45,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
             log.debug("Error {}/{} {}", figiMarket, figiCode, response.error)
             return if (response.error.equals("No identifier found.", ignoreCase = true)) {
                 // Unknown, so don't continue to hit the service - add a name value
-                figiAdapter.transform(market, bcAssetCode, defaultName = defaultName)
+                figiAdapter.transform(market, bcAssetCode, defaultName = defaultName, id)
             } else null
         }
         if (response?.data != null) {
@@ -55,7 +55,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
                         "In response to {}/{} - found {}/{}",
                         market, bcAssetCode, figiMarket, figiCode
                     )
-                    return figiAdapter.transform(market, bcAssetCode, datum)
+                    return figiAdapter.transform(market, bcAssetCode, datum, id)
                 }
             }
         }

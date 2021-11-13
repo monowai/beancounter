@@ -54,7 +54,7 @@ data class Asset constructor(var code: String) {
         name: String?,
         category: String?,
         market: Market,
-        marketCode: String?,
+        marketCode: String = market.code,
         priceSymbol: String?,
         status: Status = Status.Active
     ) : this(code) {
@@ -71,19 +71,10 @@ data class Asset constructor(var code: String) {
         this(input.code, input.code, input.name, input.category, market, market.code, input.code, status)
 
     constructor(code: String, market: Market) : this(code) {
+        this.id = code.uppercase()
+        this.name = code
         this.market = market
         this.marketCode = market.code
-    }
-
-    constructor(id: String, code: String, name: String, market: Market) : this(code, market) {
-        this.name = name
-        this.id = id
-    }
-
-    constructor(code: String, priceSymbol: String = code, market: Market, category: String) : this(code) {
-        this.market = market
-        this.category = category
-        this.priceSymbol = priceSymbol
     }
 
     // Is this asset stored locally?

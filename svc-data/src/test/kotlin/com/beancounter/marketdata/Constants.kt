@@ -35,13 +35,17 @@ class Constants {
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
         val nzdCashBalance = Asset(
-            code = "${NZD.code} Balance",
+            id = "${NZD.code} BALANCE",
+            code = "${NZD.code} BALANCE",
+            name = "${NZD.code} Balance",
             priceSymbol = NZD.code,
             market = Market("CASH", NZD),
             category = "CASH"
         )
         val usdCashBalance = Asset(
-            code = "${USD.code} Balance",
+            id = "${USD.code} BALANCE",
+            code = "${USD.code} BALANCE",
+            name = "${NZD.code} Balance",
             priceSymbol = USD.code,
             market = Market("CASH", USD),
             category = "CASH"

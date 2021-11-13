@@ -43,21 +43,22 @@ class AssetService internal constructor(
             if (assetInput.name != null) {
                 defaultName = assetInput.name!!.replace("\"", "")
             }
-
+            val id = keyGenUtils.format(UUID.randomUUID())
             // Fill in missing asset attributes
             var asset = enrichmentFactory.getEnricher(market)
                 .enrich(
-                    market,
-                    assetInput.code,
-                    defaultName
+                    id = id,
+                    market = market,
+                    code = assetInput.code,
+                    defaultName = defaultName
                 )
             if (asset == null) {
                 // Cash or User Defined Asset
                 asset = Asset(
-                    keyGenUtils.format(UUID.randomUUID()),
-                    assetInput.code.uppercase(Locale.getDefault()),
-                    defaultName,
-                    assetInput.category,
+                    id = id,
+                    code = assetInput.code.uppercase(Locale.getDefault()),
+                    name = defaultName,
+                    category = assetInput.category,
                     market = market,
                     marketCode = market.code,
                     priceSymbol = assetInput.currency,
@@ -65,7 +66,6 @@ class AssetService internal constructor(
             } else {
                 // Market Listed
                 asset.market = market
-                asset.id = keyGenUtils.format(UUID.randomUUID())
             }
             return assetHydrationService.hydrateAsset(assetRepository.save(asset))
         }
@@ -90,7 +90,12 @@ class AssetService internal constructor(
         var asset: Asset? = findLocally(marketCode, code)
         if (asset == null) {
             val market = marketService.getMarket(marketCode)
-            asset = enrichmentFactory.getEnricher(market).enrich(market, code, null)
+            asset = enrichmentFactory.getEnricher(market).enrich(
+                keyGenUtils.format(UUID.randomUUID()),
+                market,
+                code,
+                null
+            )
             if (asset == null) {
                 throw BusinessException(String.format("No asset found for %s:%s", marketCode, code))
             }

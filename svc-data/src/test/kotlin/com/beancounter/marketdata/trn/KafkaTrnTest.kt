@@ -238,6 +238,7 @@ class KafkaTrnTest {
             quantity = BigDecimal.TEN,
             fees = ONE,
             tradeDate = tradeDate,
+            cashCurrency = asset.market.currency.code,
             price = BigDecimal(5.99),
         )
     }

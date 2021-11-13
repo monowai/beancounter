@@ -22,19 +22,6 @@ internal class CashServicesTest {
     private val currencyService = Mockito.mock(CurrencyService::class.java)
     private val cashServices = CashServices(assetService, currencyService)
 
-//    @Test
-//    fun resolveCashAssetFromRequestedBalance() {
-//        // Not yet implemented.
-//        val trnInput = TrnInput(
-//            callerRef = CallerRef(),
-//            assetId = MSFT.code,
-//            trnType = TrnType.BUY,
-//            cashAssetId = "My Cash Balance",
-//            tradeAmount = BigDecimal(5000),
-//            price = BigDecimal.ONE
-//        )
-//    }
-
     @Test
     fun resolveCashBalanceFromTradeCurrency() {
         // Trade Currency, but no defined Cash Asset, resolves to a generic Balance asset.
@@ -47,7 +34,7 @@ internal class CashServicesTest {
             price = BigDecimal.ONE
         )
 
-        Mockito.`when`(assetService.find("CASH", "${NZD.code} Balance"))
+        Mockito.`when`(assetService.find("CASH", "${NZD.code} BALANCE"))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)

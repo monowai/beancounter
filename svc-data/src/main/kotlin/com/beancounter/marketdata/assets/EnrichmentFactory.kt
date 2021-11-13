@@ -44,9 +44,8 @@ class EnrichmentFactory(private val assetRepository: AssetRepository) {
     fun enrich(asset: Asset): Asset {
         val enricher = getEnricher(asset.market)
         if (enricher.canEnrich(asset)) {
-            val enriched = enricher.enrich(asset.market, asset.code, asset.name)
+            val enriched = enricher.enrich(asset.id, asset.market, asset.code, asset.name)
             if (enriched != null) {
-                enriched.id = asset.id
                 assetRepository.save(enriched) // Hmm, not sure the Repo should be here
                 return enriched
             }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class EchoEnricher : AssetEnricher {
-    override fun enrich(market: Market, code: String, defaultName: String?): Asset? {
+    override fun enrich(id: String, market: Market, code: String, defaultName: String?): Asset? {
         return null
     }
 

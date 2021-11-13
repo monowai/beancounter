@@ -28,7 +28,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         this.alphaProxyCache = alphaProxyCache
     }
 
-    override fun enrich(market: Market, code: String, defaultName: String?): Asset? {
+    override fun enrich(id: String, market: Market, code: String, defaultName: String?): Asset? {
         val marketCode = alphaConfig.translateMarketCode(market)
         var symbol = alphaConfig.translateSymbol(code)
         if (marketCode != null) {
@@ -44,13 +44,13 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         return if (assetResult == null) {
             null
         } else Asset(
+            id,
             code.uppercase(Locale.getDefault()),
-            code.uppercase(Locale.getDefault()),
-            assetResult.name,
-            assetResult.type,
-            market,
-            market.code,
-            assetResult.symbol
+            name = assetResult.name,
+            category = assetResult.type,
+            market = market,
+            marketCode = market.code,
+            priceSymbol = assetResult.symbol!!,
         )
     }
 

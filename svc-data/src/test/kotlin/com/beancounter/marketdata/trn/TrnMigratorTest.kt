@@ -39,7 +39,7 @@ internal class TrnMigratorTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(assetService.find("CASH", "${NZD.code} Balance"))
+        Mockito.`when`(assetService.find("CASH", "${NZD.code} BALANCE"))
             .thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)

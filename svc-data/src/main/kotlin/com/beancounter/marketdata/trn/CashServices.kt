@@ -37,18 +37,22 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         return BigDecimal.ZERO
     }
 
-    fun getCashAsset(trnInput: TrnInput): Asset? {
-        if (!TrnType.isCashImpacted(trnInput.trnType)) {
+    fun getCashAsset(trnType: TrnType, cashAssetId: String?, cashCurrency: String?): Asset? {
+        if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
         }
-        if (trnInput.cashAssetId == null) {
-            if (trnInput.cashCurrency == null) {
+        if (cashAssetId == null) {
+            if (cashCurrency == null) {
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.find("CASH", "${trnInput.cashCurrency} Balance")
+            return assetService.find("CASH", "$cashCurrency BALANCE")
         }
-        return assetService.find(trnInput.cashAssetId!!)
+        return assetService.find(cashAssetId)
+    }
+
+    fun getCashAsset(trnInput: TrnInput): Asset? {
+        return getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
     }
 
     @Autowired
@@ -57,7 +61,9 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         for (currency in currencyService.currencies) {
             assets[currency.code] = AssetInput(
                 marketConfig.getProviders()["CASH"]!!.code,
-                "${currency.code} Balance", currency = currency.code
+                "${currency.code} BALANCE",
+                currency = currency.code,
+                name = "${currency.code} Balance"
             )
         }
 

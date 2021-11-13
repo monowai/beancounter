@@ -15,8 +15,8 @@ class TrnIoDefinition {
      * TRN columns that will be read when importing a delimited file.
      */
     enum class Columns {
-        Provider, Batch, CallerId, Type, Market, Code, Name, Date,
-        Quantity, BaseCurrency, BaseRate, TradeCurrency, Price, Fees, PortfolioRate, TradeAmount, Comments
+        Provider, Batch, CallerId, Type, Market, Code, Name, CashAccount, CashCurrency, Date,
+        Quantity, BaseCurrency, BaseRate, TradeCurrency, Price, Fees, PortfolioRate, TradeAmount, CashAmount, Comments
     }
 
     fun headers(): List<String> {
@@ -32,6 +32,8 @@ class TrnIoDefinition {
             trn.asset.market.code,
             trn.asset.code,
             trn.asset.name,
+            trn.cashAsset?.id,
+            trn.cashAsset?.priceSymbol,
             trn.tradeDate.toString(),
             trn.quantity.toString(),
             trn.portfolio.base.code,
@@ -41,6 +43,7 @@ class TrnIoDefinition {
             trn.fees.toString(),
             trn.tradePortfolioRate.toString(),
             trn.tradeAmount.toString(),
+            trn.cashAmount.toString(),
             trn.comments
         )
     }
@@ -55,16 +58,19 @@ class TrnIoDefinition {
             Pair(Columns.Market, 4),
             Pair(Columns.Code, 5),
             Pair(Columns.Name, 6),
-            Pair(Columns.Date, 7),
-            Pair(Columns.Quantity, 8),
-            Pair(Columns.BaseCurrency, 9),
-            Pair(Columns.BaseRate, 10),
-            Pair(Columns.TradeCurrency, 11),
-            Pair(Columns.Price, 12),
-            Pair(Columns.Fees, 13),
-            Pair(Columns.PortfolioRate, 14),
-            Pair(Columns.TradeAmount, 15),
-            Pair(Columns.Comments, 16),
+            Pair(Columns.CashAccount, 7),
+            Pair(Columns.CashCurrency, 8),
+            Pair(Columns.Date, 9),
+            Pair(Columns.Quantity, 10),
+            Pair(Columns.BaseCurrency, 11),
+            Pair(Columns.BaseRate, 12),
+            Pair(Columns.TradeCurrency, 13),
+            Pair(Columns.Price, 14),
+            Pair(Columns.Fees, 15),
+            Pair(Columns.PortfolioRate, 16),
+            Pair(Columns.TradeAmount, 17),
+            Pair(Columns.CashAmount, 18),
+            Pair(Columns.Comments, 19),
         )
     }
 }

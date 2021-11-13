@@ -10,8 +10,9 @@ import com.beancounter.common.model.Market
 interface AssetEnricher {
     /**
      * Return enriched Asset props for this market/code, setting the name as default if necessary
+     * The assetId will be set if the object is created.
      */
-    fun enrich(market: Market, code: String, defaultName: String?): Asset?
+    fun enrich(id: String, market: Market, code: String, defaultName: String?): Asset?
 
     /**
      * Can this enricher enrich this asset?

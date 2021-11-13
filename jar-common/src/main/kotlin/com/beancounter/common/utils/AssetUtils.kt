@@ -25,7 +25,10 @@ class AssetUtils {
          */
         @JvmStatic
         fun getAsset(market: Market, assetCode: String) =
-            Asset(id = assetCode, code = assetCode, name = assetCode, market = market)
+            Asset(
+                code = assetCode,
+                market = market
+            )
 
         @JvmStatic
         fun split(assets: Collection<AssetInput>): Map<String, MutableCollection<AssetInput>> {

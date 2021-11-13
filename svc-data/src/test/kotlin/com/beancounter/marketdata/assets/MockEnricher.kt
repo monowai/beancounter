@@ -7,17 +7,17 @@ import com.beancounter.common.model.Market
  * Test asset enricher
  */
 class MockEnricher : AssetEnricher {
-    override fun enrich(market: Market, code: String, defaultName: String?): Asset? {
+    override fun enrich(id: String, market: Market, code: String, defaultName: String?): Asset? {
         return if (code.equals("BLAH", ignoreCase = true)) {
             null
         } else Asset(
-            id = code,
+            id = id,
             code = code,
             name = defaultName?.replace("\"", ""),
             category = "Equity",
             market = market,
             marketCode = market.code,
-            priceSymbol = null
+            priceSymbol = code
         )
     }
 

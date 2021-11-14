@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Positions
@@ -10,7 +10,6 @@ import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
-import com.beancounter.position.service.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -23,7 +22,7 @@ import java.time.temporal.ChronoUnit
  * Test rules that would prevent a transaction from accumulating.
  */
 @SpringBootTest(classes = [Accumulator::class])
-internal class TestTrnLogic {
+internal class TrnOrderTest {
     @Autowired
     private lateinit var accumulator: Accumulator
 

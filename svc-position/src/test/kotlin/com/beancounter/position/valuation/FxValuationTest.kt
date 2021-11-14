@@ -1,4 +1,4 @@
-package com.beancounter.position.integration
+package com.beancounter.position.valuation
 
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
@@ -18,8 +18,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
-import com.beancounter.position.service.Accumulator
-import com.beancounter.position.service.Valuation
+import com.beancounter.position.accumulation.Accumulator
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -55,7 +54,7 @@ import java.util.Optional
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
-internal class StubbedFxValuations {
+internal class FxValuationTest {
     private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
@@ -162,7 +161,7 @@ internal class StubbedFxValuations {
                 .content(objectMapper.writeValueAsString("{asdf}"))
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError).andReturn()
         val someException = Optional.ofNullable(result.resolvedException as HttpMessageNotReadableException)
-        assertThat(someException.isPresent).isTrue()
+        assertThat(someException.isPresent).isTrue
     }
 
     @Test

@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -9,9 +9,6 @@ import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
-import com.beancounter.position.accumulation.BuyBehaviour
-import com.beancounter.position.accumulation.SellBehaviour
-import com.beancounter.position.accumulation.SplitBehaviour
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -23,7 +20,7 @@ import java.util.Objects
  * @author mikeh
  * @since 2019-02-20
  */
-internal class TestStockSplits {
+internal class StockSplitTest {
     @Test
     fun is_QuantityWorkingForSplit() {
         val apple = getAsset(NASDAQ, AAPL)

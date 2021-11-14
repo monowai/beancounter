@@ -1,4 +1,4 @@
-package com.beancounter.position.integration
+package com.beancounter.position.valuation
 
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PositionResponse
@@ -42,7 +42,7 @@ import org.springframework.web.context.WebApplicationContext
 /**
  * Corporate actions against contracts.
  */
-internal class StubbedTrnValuations {
+internal class TrnValuationTest {
     @Autowired
     private lateinit var wac: WebApplicationContext
     private lateinit var mockMvc: MockMvc

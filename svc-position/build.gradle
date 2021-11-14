@@ -86,7 +86,7 @@ dependencyManagement {
 contracts {
     testFramework = "JUNIT5"
     testMode = "MockMvc"
-    baseClassForTests = "com.beancounter.position.ContractVerifierBase"
+    baseClassForTests = "com.beancounter.position.contracts.ContractVerifierBase"
 }
 
 contractTest {

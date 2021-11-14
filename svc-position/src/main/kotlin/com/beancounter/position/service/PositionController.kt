@@ -1,11 +1,11 @@
-package com.beancounter.position.controller
+package com.beancounter.position.service
 
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.service.Valuation
+import com.beancounter.position.valuation.Valuation
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType

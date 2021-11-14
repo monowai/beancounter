@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -14,11 +14,6 @@ import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.ten
 import com.beancounter.position.Constants.Companion.twenty
 import com.beancounter.position.Constants.Companion.twoK
-import com.beancounter.position.accumulation.BuyBehaviour
-import com.beancounter.position.accumulation.DividendBehaviour
-import com.beancounter.position.accumulation.SellBehaviour
-import com.beancounter.position.accumulation.SplitBehaviour
-import com.beancounter.position.service.Accumulator
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -32,7 +27,7 @@ import java.math.RoundingMode
  * assert money values functionality.
  */
 @SpringBootTest(classes = [Accumulator::class])
-internal class TestMoneyValues {
+internal class MoneyValueTest {
     private val microsoft = getAsset(NASDAQ, "MSFT")
     private val intel = getAsset(NASDAQ, "INTC")
     private val bidu = getAsset(NASDAQ, "BIDU")

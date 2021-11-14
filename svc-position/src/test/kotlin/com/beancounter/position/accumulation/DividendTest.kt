@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
@@ -7,7 +7,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.position.Constants.Companion.AUD
-import com.beancounter.position.service.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
 @SpringBootTest(classes = [Accumulator::class])
-internal class TestDividends {
+internal class DividendTest {
 
     @Autowired
     private lateinit var accumulator: Accumulator

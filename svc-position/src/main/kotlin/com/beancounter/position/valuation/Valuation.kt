@@ -1,4 +1,4 @@
-package com.beancounter.position.service
+package com.beancounter.position.valuation
 
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
@@ -14,6 +14,10 @@ import com.beancounter.common.utils.DateUtils
  * @since 2019-02-24
  */
 interface Valuation {
+    fun build(portfolio: Portfolio, valuationDate: String): PositionResponse
+    fun build(trnQuery: TrustedTrnQuery): PositionResponse
+    fun getPositions(portfolio: Portfolio, valuationDate: String = DateUtils.today, value: Boolean): PositionResponse
+
     /**
      * Values positions. This should also set the Asset details as the caller has only
      * minimal knowledge.  MarketData contains asset and market details
@@ -22,7 +26,4 @@ interface Valuation {
      * @return positions with values and hydrated Asset objects
      */
     fun value(positions: Positions): PositionResponse
-    fun build(portfolio: Portfolio, valuationDate: String): PositionResponse
-    fun build(trnQuery: TrustedTrnQuery): PositionResponse
-    fun getPositions(portfolio: Portfolio, valuationDate: String = DateUtils.today, value: Boolean): PositionResponse
 }

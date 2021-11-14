@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
@@ -7,7 +7,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.beancounter.position.service.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +17,7 @@ import java.math.BigDecimal
 /**
  * Quantity Accumulation tests
  */
-internal class TestAccumulationOfQuantityValues {
+internal class QuantityAccumulationTest {
     private val hundred: BigDecimal = BigDecimal("100")
     private val zero: BigDecimal = BigDecimal(0)
     private val twoHundred = BigDecimal(200)

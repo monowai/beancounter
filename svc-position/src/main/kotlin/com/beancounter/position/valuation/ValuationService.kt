@@ -1,4 +1,4 @@
-package com.beancounter.position.service
+package com.beancounter.position.valuation
 
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.PositionRequest
@@ -10,7 +10,8 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.valuation.Gains
+import com.beancounter.position.service.PositionService
+import com.beancounter.position.service.PositionValuationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
@@ -27,22 +28,16 @@ class ValuationService @Autowired internal constructor(
     private val positionValuationService: PositionValuationService,
     private val trnService: TrnService,
     private val positionService: PositionService,
-    private val gains: Gains
+    private val gains: Gains,
+    private val dateUtils: DateUtils = DateUtils()
 ) : Valuation {
-    private val dateUtils = DateUtils()
+
     override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
         val trnResponse = trnService.query(trnQuery)
         return buildPositions(
             trnQuery.portfolio,
             trnQuery.tradeDate.toString(), trnResponse
         )
-    }
-
-    override fun getPositions(portfolio: Portfolio, valuationDate: String, value: Boolean): PositionResponse {
-        val positions = build(portfolio, valuationDate).data
-        return if (value) {
-            value(positions)
-        } else PositionResponse(positions)
     }
 
     override fun build(portfolio: Portfolio, valuationDate: String): PositionResponse {
@@ -61,6 +56,15 @@ class ValuationService @Autowired internal constructor(
             positionResponse.data.asAt = valuationDate
         }
         return positionResponse
+    }
+
+    override fun getPositions(portfolio: Portfolio, valuationDate: String, value: Boolean): PositionResponse {
+        val positions = build(portfolio, valuationDate).data
+        return if (value) {
+            value(positions)
+        } else {
+            PositionResponse(positions)
+        }
     }
 
     override fun value(positions: Positions): PositionResponse {

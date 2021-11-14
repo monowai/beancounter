@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.valuation
 
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
@@ -24,8 +24,6 @@ import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.accumulation.AccumulationStrategy
 import com.beancounter.position.accumulation.BuyBehaviour
 import com.beancounter.position.accumulation.SellBehaviour
-import com.beancounter.position.valuation.Gains
-import com.beancounter.position.valuation.MarketValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -34,7 +32,7 @@ import kotlin.collections.set
 /**
  * FX Related Market Value tests.
  */
-internal class TestMarketValuesWithFx {
+internal class MarketValuesTest {
     private val tenThousand = BigDecimal("10000.00")
     private val oneThousand = BigDecimal("1000.00")
     private val fiveThousand = BigDecimal("5000.00")

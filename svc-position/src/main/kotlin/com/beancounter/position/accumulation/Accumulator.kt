@@ -1,4 +1,4 @@
-package com.beancounter.position.service
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
@@ -7,11 +7,6 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.position.accumulation.BuyBehaviour
-import com.beancounter.position.accumulation.DividendBehaviour
-import com.beancounter.position.accumulation.SellBehaviour
-import com.beancounter.position.accumulation.SplitBehaviour
-import com.beancounter.position.accumulation.TrnBehaviourFactory
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 

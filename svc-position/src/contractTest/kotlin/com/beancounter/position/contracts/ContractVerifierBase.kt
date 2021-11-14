@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.contracts
 
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
@@ -9,7 +9,8 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.USD
-import com.beancounter.position.service.Valuation
+import com.beancounter.position.PositionBoot
+import com.beancounter.position.valuation.Valuation
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach

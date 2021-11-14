@@ -1,8 +1,6 @@
-package com.beancounter.position
+package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.TrnType
-import com.beancounter.position.accumulation.TrnBehaviourFactory
-import com.beancounter.position.service.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest
  * Are known Trn behaviours wiring correctly and accessible from the factory?
  */
 @SpringBootTest(classes = [Accumulator::class])
-class TestAccumulatorInitialisation {
+class AccumulatorTest {
     @Autowired
     private lateinit var accumulator: Accumulator
 

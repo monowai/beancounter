@@ -1,4 +1,4 @@
-package com.beancounter.position
+package com.beancounter.position.utils
 
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
@@ -12,7 +12,6 @@ import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
-import com.beancounter.position.utils.FxUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

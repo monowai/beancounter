@@ -1,8 +1,7 @@
-package com.beancounter.position.controller
+package com.beancounter.position.valuation
 
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PositionResponse
-import com.beancounter.position.service.Valuation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping

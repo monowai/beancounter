@@ -284,6 +284,9 @@ workflows:
           requires:
             - build-client
       - publish-coverage:
+          filters:
+            branches:
+              only: master
           requires:
             - build-shell
             - build-position

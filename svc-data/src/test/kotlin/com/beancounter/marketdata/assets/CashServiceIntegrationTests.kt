@@ -3,6 +3,8 @@ package com.beancounter.marketdata.assets
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.trn.CashServices.Companion.cash
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
  * Cash Asset tests.
  */
 @SpringBootTest
-class CashTests {
+class CashServiceIntegrationTests {
     @Autowired
     private lateinit var assetService: AssetService
 
@@ -23,14 +25,22 @@ class CashTests {
     fun isCashAssetCreated() {
         val cashInput = AssetUtils.getCash(NZD.code)
         val category = assetCategoryConfig.get(cashInput.category.uppercase())
-        val assetResponse = assetService.process(AssetRequest(mapOf(Pair("nz-cash", cashInput))))
+        val assetResponse = assetService.process(AssetRequest(mapOf(Pair(NZD.code, cashInput))))
         assertThat(assetResponse.data).hasSize(1)
-        val cashAsset = assetResponse.data["nz-cash"]
+        val cashAsset = assetResponse.data[NZD.code]
         assertThat(cashAsset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "assetCategory", category,
             ).hasFieldOrPropertyWithValue("name", cashInput.name)
             .hasFieldOrPropertyWithValue("priceSymbol", NZD.code)
+    }
+
+    @Test
+    fun is_UsdCashBalanceFound() {
+        val found = assetService.find(cash, "${USD.code} BALANCE")
+        assertThat(found).isNotNull
+            .hasFieldOrPropertyWithValue("assetCategory.id", cash)
+            .hasFieldOrPropertyWithValue("name", "${USD.code} Balance")
     }
 }

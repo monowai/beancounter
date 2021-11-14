@@ -47,10 +47,9 @@ internal class MoneyValueTest {
     @Test
     @Throws(IOException::class)
     fun is_ValuedInTrackedCurrencies() {
-        val buyTrn = Trn(TrnType.BUY, microsoft, hundred)
-        buyTrn.tradeAmount = twoK
+        val buyTrn =
+            Trn(trnType = TrnType.BUY, asset = microsoft, quantity = hundred, tradeAmount = twoK, tradeCashRate = ten)
         buyTrn.tradeBaseRate = BigDecimal("1.00")
-        buyTrn.tradeCashRate = ten
         buyTrn.tradePortfolioRate = tradePortfolioRate
         val buyBehaviour = BuyBehaviour()
         val positions = Positions()

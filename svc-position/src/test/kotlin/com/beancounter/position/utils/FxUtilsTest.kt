@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 /**
  * FX Currency Pair tests.
  */
-internal class TestFxUtils {
+internal class FxUtilsTest {
     private val fxUtils = FxUtils()
 
     @Test

@@ -1,12 +1,17 @@
 package com.beancounter.marketdata.contracts
 
+import com.beancounter.auth.common.TokenService
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.key.KeyGenUtils
+import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
+import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import contracts.ContractHelper
@@ -14,14 +19,26 @@ import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 
 /**
  * Base class for Trn Contract tests. This is called by the spring cloud contract verifier
  */
-class TrnBase : ContractVerifierBase() {
+@SpringBootTest(
+    classes = [MarketDataBoot::class],
+    properties = ["auth.enabled=false"],
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK
+)
+@WebAppConfiguration
+@ActiveProfiles("contracts")
+class TrnBase {
     @Autowired
     private lateinit var currencyService: CurrencyService
 
@@ -35,6 +52,23 @@ class TrnBase : ContractVerifierBase() {
     private lateinit var portfolioRepository: PortfolioRepository
 
     private lateinit var systemUser: SystemUser
+
+    @Autowired
+    internal lateinit var context: WebApplicationContext
+
+    @MockBean
+    internal lateinit var jwtDecoder: JwtDecoder
+
+    @MockBean
+    internal lateinit var systemUserRepository: SystemUserRepository
+
+    @MockBean
+    internal lateinit var tokenService: TokenService
+
+    @MockBean
+    internal lateinit var keyGenUtils: KeyGenUtils
+
+    internal var dateUtils = DateUtils()
 
     @BeforeEach
     fun mock() {

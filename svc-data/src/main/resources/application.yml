@@ -113,15 +113,15 @@ beancounter:
   asset.categories:
     default: Equity
     values:
-      - id: Equity
+      - id: EQUITY
         name: Equity
-      - id: Mutual Fund
+      - id: MUTUAL FUND
         name: Mutual Fund
       - id: ETF
         name: Exchange Traded Fund
-      - id: Cash
+      - id: CASH
         name: Cash
-      - id: Custom
+      - id: CUSTOM
         name: Custom
 
   # Default asset enricher - FIGI/ALPHA/MOCK - can be set on a per market basis

@@ -46,7 +46,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.find("CASH", "$cashCurrency BALANCE")
+            return assetService.find(cash, "$cashCurrency BALANCE")
         }
         return assetService.find(cashAssetId)
     }
@@ -60,14 +60,19 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         val assets = mutableMapOf<String, AssetInput>()
         for (currency in currencyService.currencies) {
             assets[currency.code] = AssetInput(
-                marketConfig.getProviders()["CASH"]!!.code,
+                marketConfig.getProviders()[cash]!!.code,
                 "${currency.code} BALANCE",
                 currency = currency.code,
+                category = cash,
                 name = "${currency.code} Balance"
             )
         }
 
         val assetRequest = AssetRequest(assets)
         return assetService.process(assetRequest)
+    }
+
+    companion object {
+        const val cash = "CASH"
     }
 }

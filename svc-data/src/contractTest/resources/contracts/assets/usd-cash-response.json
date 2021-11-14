@@ -1,0 +1,32 @@
+{
+  "data": {
+    "USD BALANCE:CASH": {
+      "code": "USD BALANCE",
+      "id": "USD BALANCE",
+      "assetCategory": {
+        "id": "CASH",
+        "name": "CASH"
+      },
+      "market": {
+        "code": "CASH",
+        "currencyId": "USD",
+        "timezoneId": "UTC",
+        "priceTime": "19:00",
+        "daysToSubtract": 1,
+        "aliases": {},
+        "enricher": "ECHO",
+        "multiplier": 1.0,
+        "type": "Internal",
+        "timezone": "UTC",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        }
+      },
+      "priceSymbol": "USD",
+      "version": "1",
+      "status": "Active"
+    }
+  }
+}

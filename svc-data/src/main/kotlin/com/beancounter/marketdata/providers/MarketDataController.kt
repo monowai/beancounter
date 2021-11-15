@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/prices")
 @PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
-class PriceController @Autowired internal constructor(
+class MarketDataController @Autowired internal constructor(
     private val marketDataService: MarketDataService,
     private val assetService: AssetService,
     private val priceRefresh: PriceRefresh
@@ -36,7 +36,7 @@ class PriceController @Autowired internal constructor(
      *
      * @param marketCode BC Market Code or alias
      * @param assetCode  BC Asset Code
-     * @return Market Dat information for the supplied asset
+     * @return Market Data information for the supplied asset
      */
     @GetMapping(value = ["/{marketCode}/{assetCode}"])
     fun getPrice(

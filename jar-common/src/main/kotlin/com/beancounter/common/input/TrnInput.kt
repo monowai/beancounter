@@ -20,7 +20,6 @@ data class TrnInput(
     val assetId: String, // What is being traded
     val cashAssetId: String? = null, // A specific cash balance
     val trnType: TrnType = TrnType.BUY,
-    val status: TrnStatus? = null,
     val quantity: BigDecimal = BigDecimal.ZERO,
     val tradeCurrency: String = "USD",
     val cashCurrency: String? = null, // Generic cash balance
@@ -39,6 +38,7 @@ data class TrnInput(
     val price: BigDecimal, // In trade Currency
     val tradeAmount: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    val status: TrnStatus = TrnStatus.CONFIRMED,
     val comments: String? = null,
     val cashAmount: BigDecimal? = null
 )

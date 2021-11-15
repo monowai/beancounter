@@ -87,12 +87,11 @@ internal class FxValuationTest {
     }
 
     private fun getPositions(asset: Asset): Positions {
-        val trn = Trn(TrnType.BUY, asset, hundred)
+        val trn = Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred)
         trn.tradeAmount = twoK
         val portfolio = portfolioService.getPortfolioByCode("TEST")
-        val positions = Positions(portfolio)
-        positions.asAt = "2019-10-18"
-        positions.add(accumulator.accumulate(trn, portfolio, Position(asset)))
+        val positions = Positions(portfolio, asAt = "2019-10-18")
+        accumulator.accumulate(trn, positions)
         return positions
     }
 

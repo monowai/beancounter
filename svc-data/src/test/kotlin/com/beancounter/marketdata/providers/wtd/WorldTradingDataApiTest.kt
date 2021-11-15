@@ -1,9 +1,8 @@
 package com.beancounter.marketdata.providers.wtd
 
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
@@ -53,8 +52,8 @@ internal class WorldTradingDataApiTest {
         val response = getResponseMap(
             ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file
         )
-        val assets: MutableCollection<AssetInput> = ArrayList()
-        assets.add(getAssetInput(AMP))
+        val assets: MutableCollection<PriceAsset> = ArrayList()
+        assets.add(PriceAsset(AMP))
 
         stubFor(
             WireMock.get(
@@ -87,9 +86,9 @@ internal class WorldTradingDataApiTest {
     @Test
     @Throws(Exception::class)
     fun is_MarketDataDateOverridingRequestDate() {
-        val inputs: MutableCollection<AssetInput> = ArrayList()
-        inputs.add(getAssetInput(AAPL))
-        inputs.add(getAssetInput(MSFT))
+        val inputs: MutableCollection<PriceAsset> = ArrayList()
+        inputs.add(PriceAsset(AAPL))
+        inputs.add(PriceAsset(MSFT))
 
         // While the request date is relative to "Today", we are testing that we get back
         //  the date as set in the response from the provider.
@@ -123,9 +122,9 @@ internal class WorldTradingDataApiTest {
     @Test
     @Throws(Exception::class)
     fun is_WtdInvalidAssetPriceDefaulting() {
-        val inputs: Collection<AssetInput> = arrayListOf(
-            getAssetInput(AAPL),
-            getAssetInput(getAsset(NASDAQ, "${MSFT.code}x"))
+        val inputs: Collection<PriceAsset> = arrayListOf(
+            PriceAsset(AAPL),
+            PriceAsset(getAsset(NASDAQ, "${MSFT.code}x"))
         )
 
         val utcToday = dateUtils.offsetDateString()
@@ -160,8 +159,8 @@ internal class WorldTradingDataApiTest {
     @Test
     @Throws(Exception::class)
     fun is_NoDataReturned() {
-        val inputs: MutableCollection<AssetInput> = ArrayList()
-        inputs.add(getAssetInput(MSFT))
+        val inputs: MutableCollection<PriceAsset> = ArrayList()
+        inputs.add(PriceAsset(MSFT))
         mockWtdResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/NoData.json").file)
         val prices = wtdService.getMarketData(
             PriceRequest(priceDate, inputs)
@@ -192,13 +191,13 @@ internal class WorldTradingDataApiTest {
         @Throws(IOException::class)
         @JvmStatic
         fun mockWtdResponse(
-            assets: Collection<AssetInput>,
+            assets: Collection<PriceAsset>,
             asAt: String?,
             overrideAsAt: Boolean,
             jsonFile: File?,
         ) {
             var assetArg: StringBuilder? = null
-            for ((_, _, _, asset) in assets) {
+            for ((_, _, asset) in assets) {
                 assertThat(asset).isNotNull
                 assertThat(asset!!.market).isNotNull
                 val market = asset.market

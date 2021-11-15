@@ -124,7 +124,7 @@ internal class TrnAdapterTest {
             .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
             .hasFieldOrPropertyWithValue("tradeCurrency.code", trnInput.tradeCurrency)
             .hasFieldOrPropertyWithValue("cashAsset.priceSymbol", trnInput.tradeCurrency)
-            .hasFieldOrPropertyWithValue("cashCurrency.code", null)
+            .hasFieldOrPropertyWithValue("cashCurrency.code", trnInput.tradeCurrency)
             .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("109.90"))
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)

@@ -41,7 +41,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-02-12",
       "version": "2",
@@ -51,7 +55,7 @@
         "batch": "USV",
         "callerId": "YT-Onzh8RreP3mMkld80yg"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -145,7 +149,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-02-15",
       "version": "2",
@@ -155,7 +163,7 @@
         "batch": "USV",
         "callerId": "cvo6VEfcTaaCIbIHmwt8Ow"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -249,7 +257,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-05-16",
       "version": "2",
@@ -259,7 +271,7 @@
         "batch": "USV",
         "callerId": "DKlZ_gt_TIiEqeizuXm_hw"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -353,7 +365,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-08-15",
       "version": "2",
@@ -363,7 +379,7 @@
         "batch": "USV",
         "callerId": "4IJ5cQcBS4Cnc4soLpWpuA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -457,7 +473,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-11-14",
       "version": "2",
@@ -467,7 +487,7 @@
         "batch": "USV",
         "callerId": "btibGdLUTqOZkLbPUvP-Wg"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -561,7 +581,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-02-13",
       "version": "2",
@@ -571,7 +595,7 @@
         "batch": "USV",
         "callerId": "NA0hM48MRR2dIAL1JWyW7g"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -665,7 +689,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-05-15",
       "version": "2",
@@ -675,7 +703,7 @@
         "batch": "USV",
         "callerId": "7N2JDoSdTJm7n5ARIq4Sew"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -779,7 +807,7 @@
         "batch": "USV",
         "callerId": "VjlWqUIwTxOUVZO_NBvFlA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -845,7 +873,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-08-14",
       "version": "2",
@@ -855,7 +887,7 @@
         "batch": "USV",
         "callerId": "0qDdnv5mQTmG8OelVTp0vA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -949,7 +981,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-11-13",
       "version": "2",
@@ -959,7 +995,7 @@
         "batch": "USV",
         "callerId": "ncRi5UpWQI632lFTlSdrtA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1053,7 +1089,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-02-12",
       "version": "2",
@@ -1063,7 +1103,7 @@
         "batch": "USV",
         "callerId": "Z9-Ot7F5TUeGuquN-5y6Qw"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1157,7 +1197,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-05-14",
       "version": "2",
@@ -1167,7 +1211,7 @@
         "batch": "USV",
         "callerId": "Aww2J7hLR5iZdwvvJLb-Zg"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1261,7 +1305,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-08-13",
       "version": "2",
@@ -1271,7 +1319,7 @@
         "batch": "USV",
         "callerId": "jjV20vuuQF6JEDu0SeuErA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1365,7 +1413,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-11-12",
       "version": "2",
@@ -1375,7 +1427,7 @@
         "batch": "USV",
         "callerId": "unxiwFEWRDS8fFNitsv0Ww"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1469,7 +1521,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2016-01-07",
       "version": "2",
@@ -1479,7 +1535,7 @@
         "batch": "USV",
         "callerId": "bQGz3pA-S-alHXQtKRAnBA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1573,7 +1629,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2016-01-19",
       "version": "2",
@@ -1583,7 +1643,7 @@
         "batch": "USV",
         "callerId": "QLLk0-FSSJ29h3RcxhQwRA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1677,7 +1737,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-04-23",
       "version": "2",
@@ -1687,7 +1751,7 @@
         "batch": "USV",
         "callerId": "x682R3O5SXGxZzK9BxHu2g"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1781,7 +1845,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-05-17",
       "version": "2",
@@ -1791,7 +1859,7 @@
         "batch": "USV",
         "callerId": "hloTiBcdRmi58LTlhdgR2Q"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1885,7 +1953,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-08-16",
       "version": "2",
@@ -1895,7 +1967,7 @@
         "batch": "USV",
         "callerId": "TMFtya1fRNuBtszRtCBjcQ"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -1989,7 +2061,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-11-15",
       "version": "2",
@@ -1999,7 +2075,7 @@
         "batch": "USV",
         "callerId": "CWXaw8DQQLaHON46hEazUA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2093,7 +2169,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-02-14",
       "version": "2",
@@ -2103,7 +2183,7 @@
         "batch": "USV",
         "callerId": "OmzKWQ7YQYa8-1N4LTfbng"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2197,7 +2277,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-05-16",
       "version": "2",
@@ -2207,7 +2291,7 @@
         "batch": "USV",
         "callerId": "3o6px5FDQDSH0-WwasLFzw"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2301,7 +2385,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-08-15",
       "version": "2",
@@ -2311,7 +2399,7 @@
         "batch": "USV",
         "callerId": "uBKBd9rERCWZ1birOoVrfg"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2405,7 +2493,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-11-14",
       "version": "2",
@@ -2415,7 +2507,7 @@
         "batch": "USV",
         "callerId": "Mi6Pm3eFQaq7nfhPcv0kpw"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2509,7 +2601,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-01-14",
       "version": "2",
@@ -2519,7 +2615,7 @@
         "batch": "USV",
         "callerId": "iEIEB3fERHy6OfV1arNbGg"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2613,7 +2709,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-06-15",
       "version": "2",
@@ -2623,7 +2723,7 @@
         "batch": "USV",
         "callerId": "VIw9Ju0fRcmnJdrrwsQBCA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2717,7 +2817,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-08-25",
       "version": "2",
@@ -2727,7 +2831,7 @@
         "batch": "USV",
         "callerId": "l0Zv4LqGThu3mFH2B7kkvg"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2831,7 +2935,7 @@
         "batch": "USV",
         "callerId": "XGLIrgkTR4ajHK0UryioiQ"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -2897,7 +3001,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-11-24",
       "version": "2",
@@ -2907,7 +3015,7 @@
         "batch": "USV",
         "callerId": "EgbQj2D7QCWit60mcod7QA"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -3001,7 +3109,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2021-02-23",
       "version": "2",
@@ -3011,7 +3123,7 @@
         "batch": "USV",
         "callerId": "tjvVsy5qQt--VvbIkeHJXQ"
       },
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -3105,7 +3217,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2021-05-25",
       "version": "2",
@@ -3209,7 +3325,11 @@
         "name": "Dollar",
         "symbol": "$"
       },
-      "cashCurrency": null,
+      "cashCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
       "tradeCashRate": 1.000000,
       "tradeDate": "2021-08-24",
       "version": "2",

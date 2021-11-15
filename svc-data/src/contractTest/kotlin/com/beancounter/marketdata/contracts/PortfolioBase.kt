@@ -44,8 +44,14 @@ class PortfolioBase : ContractVerifierBase() {
         @get:Throws(IOException::class)
         val testPortfolio: Portfolio
             get() {
-                val jsonFile = ClassPathResource("contracts/portfolio/test.json").file
-                return getPortfolio(jsonFile)
+                return getPortfolio(ClassPathResource("contracts/portfolio/test.json").file)
+            }
+
+        @JvmStatic
+        @get:Throws(IOException::class)
+        val cashPortfolio: Portfolio
+            get() {
+                return getPortfolio(ClassPathResource("contracts/portfolio/cash-ladder.json").file)
             }
 
         @JvmStatic
@@ -57,9 +63,9 @@ class PortfolioBase : ContractVerifierBase() {
             }
 
         private fun mockPortfolio(
+            portfolio: Portfolio,
             systemUser: SystemUser,
-            portfolioRepository: PortfolioRepository,
-            portfolio: Portfolio
+            portfolioRepository: PortfolioRepository
         ) {
             // For the sake of convenience when testing; id and code are the same
             Mockito.`when`(portfolioRepository.findById(portfolio.id))
@@ -71,8 +77,9 @@ class PortfolioBase : ContractVerifierBase() {
         @JvmStatic
         fun portfolios(systemUser: SystemUser, keyGenUtils: KeyGenUtils, portfolioRepository: PortfolioRepository) {
             val dateUtils = DateUtils()
-            mockPortfolio(systemUser, portfolioRepository, emptyPortfolio)
-            mockPortfolio(systemUser, portfolioRepository, testPortfolio)
+            mockPortfolio(emptyPortfolio, systemUser, portfolioRepository)
+            mockPortfolio(testPortfolio, systemUser, portfolioRepository)
+            mockPortfolio(cashPortfolio, systemUser, portfolioRepository)
             val portfolioCode = "TEST"
 
             // All Portfolio

@@ -2,6 +2,7 @@ package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.position.utils.CurrencyResolver
@@ -16,12 +17,12 @@ import java.math.BigDecimal
 class BuyBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()
-    override fun accumulate(trn: Trn, portfolio: Portfolio, position: Position) {
-        val quantityValues = position.quantityValues
-        quantityValues.purchased = quantityValues.purchased.add(trn.quantity)
+    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
+        position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
         value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE)
         value(trn, portfolio, position, Position.In.BASE, trn.tradeBaseRate)
         value(trn, portfolio, position, Position.In.PORTFOLIO, trn.tradePortfolioRate)
+        return position
     }
 
     private fun value(
@@ -33,7 +34,7 @@ class BuyBehaviour : AccumulationStrategy {
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn)
+            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency)
         )
         moneyValues.purchases = moneyValues.purchases.add(
             divide(trn.tradeAmount, rate)

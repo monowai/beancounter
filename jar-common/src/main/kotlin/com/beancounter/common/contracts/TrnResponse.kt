@@ -4,7 +4,7 @@ import com.beancounter.common.model.Trn
 import org.springframework.boot.context.properties.ConstructorBinding
 
 /**
- * Reponse to a TrnRequest.
+ * Responses to a TrnRequest.
  */
-data class TrnResponse @ConstructorBinding constructor(override val data: Collection<Trn> = ArrayList()) :
+data class TrnResponse @ConstructorBinding constructor(override val data: Collection<Trn> = arrayListOf()) :
     Payload<Collection<Trn>>

@@ -25,110 +25,48 @@ import javax.persistence.UniqueConstraint
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "batch", "callerId"])])
 data class Trn constructor(
+    @Id
+    var id: String? = null,
     val trnType: TrnType,
     @ManyToOne
     var asset: Asset,
     @Column(precision = 15, scale = 6)
     val quantity: BigDecimal = BigDecimal.ZERO,
-    // In trade Currency - scale is to support Mutual Fund pricing.
+    @Embedded
+    var callerRef: CallerRef? = null,
     @Column(precision = 15, scale = 6)
-    var price: BigDecimal? = null,
-    // In trade Currency
-    var tradeAmount: BigDecimal = BigDecimal.ZERO,
+    var price: BigDecimal? = null, // In trade Currency - scale is to support Mutual Fund pricing.
+    var tradeAmount: BigDecimal = quantity, // In trade Currency
     @ManyToOne
     val tradeCurrency: Currency = asset.market.currency,
     @ManyToOne
-    @Deprecated("Use cashAsset.priceSymbol")
+    var cashAsset: Asset? = null,
+    @ManyToOne
     var cashCurrency: Currency? = null,
-    // Trade CCY to cash settlement currency
     @Column(precision = 10, scale = 6)
-    var tradeCashRate: BigDecimal? = null,
+    var tradeCashRate: BigDecimal? = null, // Trade CCY to cash settlement currency
+    @Column(precision = 10, scale = 6)
+    var tradeBaseRate: BigDecimal? = null, // Trade Currency to system Base Currency
+    @Column(precision = 10, scale = 6)
+    var tradePortfolioRate: BigDecimal? = null, // Trade CCY to portfolio reference  currency
+    var cashAmount: BigDecimal? = null, // Signed Cash in settlement currency.
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var tradeDate: LocalDate = DateUtils().date,
-    var version: String? = latestVersion
-
-) {
-
-    @Id
-    var id: String? = null
-
-    @Embedded
-    var callerRef: CallerRef? = null
-    var status: TrnStatus? = TrnStatus.CONFIRMED
-
     @ManyToOne
-    var portfolio: Portfolio = Portfolio("UNDEFINED")
-
-    @ManyToOne
-    var cashAsset: Asset? = null
-
+    var portfolio: Portfolio = Portfolio("UNDEFINED"),
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var settleDate: LocalDate? = null
+    var settleDate: LocalDate? = null,
+    var fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    var tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    var comments: String? = null,
+    var version: String = latestVersion,
+    var status: TrnStatus = TrnStatus.CONFIRMED
 
-    // In trade Currency
-    var fees: BigDecimal = BigDecimal.ZERO
-
-    // In trade Currency
-    var tax: BigDecimal = BigDecimal.ZERO
-
-    // Cash movement amount in settlement currency.
-    var cashAmount: BigDecimal? = null
-
-    // Trade Currency to system Base Currency
-    @Column(precision = 10, scale = 6)
-    var tradeBaseRate: BigDecimal? = null
-
-    // Trade CCY to portfolio reference  currency
-    @Column(precision = 10, scale = 6)
-    var tradePortfolioRate: BigDecimal? = null
-    var comments: String? = null
-
-    constructor(
-        id: String?,
-        callerRef: CallerRef?,
-        trnType: TrnType,
-        status: TrnStatus?,
-        portfolio: Portfolio,
-        asset: Asset,
-        cashAsset: Asset?,
-        tradeCurrency: Currency,
-        cashCurrency: Currency?,
-        tradeDate: LocalDate,
-        settleDate: LocalDate?,
-        quantity: BigDecimal,
-        price: BigDecimal?,
-        fees: BigDecimal,
-        tax: BigDecimal,
-        tradeAmount: BigDecimal,
-        cashAmount: BigDecimal?,
-        tradeCashRate: BigDecimal?,
-        tradeBaseRate: BigDecimal?,
-        tradePortfolioRate: BigDecimal?,
-        version: String = latestVersion,
-        comments: String?
-    ) : this(trnType, asset, quantity, tradeCurrency = tradeCurrency, tradeDate = tradeDate) {
-        this.id = id
-        this.callerRef = callerRef
-        this.status = status
-        this.portfolio = portfolio
-        this.cashAsset = cashAsset
-        this.cashCurrency = cashCurrency
-        this.settleDate = settleDate
-        this.price = price
-        this.fees = fees
-        this.tax = tax
-        this.tradeAmount = tradeAmount
-        this.cashAmount = cashAmount
-        this.tradeCashRate = tradeCashRate
-        this.tradeBaseRate = tradeBaseRate
-        this.tradePortfolioRate = tradePortfolioRate
-        this.version = version
-        this.comments = comments
-    }
+) {
 
     companion object {
         const val latestVersion: String = "2"

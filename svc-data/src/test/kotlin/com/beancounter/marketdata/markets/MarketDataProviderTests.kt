@@ -8,7 +8,7 @@ import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaService
-import com.beancounter.marketdata.providers.mock.MockProviderService
+import com.beancounter.marketdata.providers.mock.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.AssertionsForClassTypes
@@ -34,13 +34,13 @@ class MarketDataProviderTests @Autowired constructor(
     fun is_DefaultMarketProvidersSet() {
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(WtdService.ID)).isNotNull
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaService.ID)).isNotNull
-        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(MockProviderService.ID)).isNotNull
+        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
         val mdp = mdFactory.getMarketDataProvider(
             Market("NonExistent", Currency("ABC"))
         )
         assertThat(mdp)
             .isNotNull
-            .hasFieldOrPropertyWithValue("id", MockProviderService.ID)
+            .hasFieldOrPropertyWithValue("id", CashProviderService.ID)
     }
 
     @Test

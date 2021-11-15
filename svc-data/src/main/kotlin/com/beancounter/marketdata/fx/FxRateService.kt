@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service
 class FxRateService
 @Autowired internal constructor(private val ecbService: EcbService, private val currencyService: CurrencyService) :
     FxService {
+
     @Cacheable("fx.rates")
     override fun getRates(fxRequest: FxRequest): FxResponse {
         verify(fxRequest.pairs)

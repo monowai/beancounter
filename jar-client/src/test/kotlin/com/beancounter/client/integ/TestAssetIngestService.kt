@@ -37,15 +37,9 @@ class TestAssetIngestService {
             nasdaq, msft
         )
         assertThat(asset).isNotNull
-        assertThat(asset.id).isNotNull
-        assertThat(asset.market).isNotNull
-        assertThat(asset.market.currency).isNotNull
-    }
-
-    @Test
-    fun is_MockAssetFound() {
-        val asset = assetIngestService.resolveAsset("MOCK", msft)
-        assertThat(asset).isNotNull
+            .hasFieldOrProperty("id")
+            .hasFieldOrProperty("market")
+            .hasFieldOrProperty("market.currency")
     }
 
     @Test

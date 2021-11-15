@@ -6,11 +6,11 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,28 +33,25 @@ internal class TrnOrderTest {
     @Test
     fun do_UnorderedTransactionsError() {
         val apple = getAsset(NASDAQ, AAPL)
-        val positions = Positions()
-        var position = positions[apple]
-        assertThat(position).isNotNull
+        val positions = Positions(getPortfolio())
         val today = LocalDate.now()
         val yesterday = today.minus(-1, ChronoUnit.DAYS)
         val buyYesterday = Trn(
-            TrnType.BUY, apple, hundred,
+            trnType = TrnType.BUY, asset = apple, quantity = hundred,
             tradeDate = yesterday.atStartOfDay(DateUtils().getZoneId())
-                .toLocalDate()
+                .toLocalDate(),
+            tradeAmount = twoK,
         )
-        buyYesterday.tradeAmount = twoK
+        accumulator.accumulate(buyYesterday, positions)
         val buyToday = Trn(
-            TrnType.BUY, apple, hundred,
+            trnType = TrnType.BUY, asset = apple, quantity = hundred,
             tradeDate = today.atStartOfDay(DateUtils().getZoneId())
-                .toLocalDate()
+                .toLocalDate(),
+            tradeAmount = twoK
         )
-        buyToday.tradeAmount = twoK
-        positions.add(position)
-        position = accumulator.accumulate(buyYesterday, positions.portfolio, position)
-        val finalPosition = position
+
         assertThrows(BusinessException::class.java) {
-            accumulator.accumulate(buyToday, positions.portfolio, finalPosition)
+            accumulator.accumulate(buyToday, positions)
         }
     }
 }

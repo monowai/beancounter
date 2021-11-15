@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils.Companion.split
 import com.beancounter.common.utils.DateUtils
@@ -91,7 +91,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
             val providerArguments = ProviderArguments(dataProviderConfig)
             providerArguments.date = priceRequest.date
             // Data providers can have market dependent price dates. Batch first by market, then by size
-            val marketAssets: Map<String, Collection<AssetInput>> = split(priceRequest.assets)
+            val marketAssets: Map<String, Collection<PriceAsset>> = split(priceRequest.assets)
             for (market in marketAssets.keys) {
                 for (asset in marketAssets[market] ?: error("This should not happen")) {
                     if (asset.resolvedAsset != null) {

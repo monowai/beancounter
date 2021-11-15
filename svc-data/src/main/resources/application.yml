@@ -124,18 +124,13 @@ beancounter:
       - id: CUSTOM
         name: Custom
 
-  # Default asset enricher - FIGI/ALPHA/MOCK - can be set on a per market basis
+  # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: ALPHA
   market:
     values:
       - code: CASH
         timezoneId: UTC
         enricher: ECHO
-        type: Internal
-
-      - code: MOCK
-        timezoneId: UTC
-        enricher: MOCK
         type: Internal
 
       - code: NASDAQ

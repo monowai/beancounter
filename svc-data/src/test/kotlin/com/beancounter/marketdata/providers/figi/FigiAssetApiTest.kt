@@ -10,6 +10,8 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
+import com.beancounter.marketdata.Constants.Companion.propCode
+import com.beancounter.marketdata.Constants.Companion.propName
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
@@ -73,7 +75,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), MSFT.code)
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue("name", "MICROSOFT CORP")
+            .hasFieldOrPropertyWithValue(propName, "MICROSOFT CORP")
             .isNotNull
     }
 
@@ -82,7 +84,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), "BAIDU")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue("name", "BAIDU INC - SPON ADR")
+            .hasFieldOrPropertyWithValue(propName, "BAIDU INC - SPON ADR")
             .isNotNull
     }
 
@@ -91,7 +93,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NYSE.code), "OHI")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue("name", "OMEGA HEALTHCARE INVESTORS")
+            .hasFieldOrPropertyWithValue(propName, "OMEGA HEALTHCARE INVESTORS")
             .isNotNull
     }
 
@@ -100,7 +102,10 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NYSE.code), "XLF")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue("name", "FINANCIAL SELECT SECTOR SPDR") // Unknown to BC, but is known to FIGI
+            .hasFieldOrPropertyWithValue(
+                propName,
+                "FINANCIAL SELECT SECTOR SPDR"
+            ) // Unknown to BC, but is known to FIGI
             .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol")
             .isNotNull
     }
@@ -132,8 +137,8 @@ class FigiAssetApiTest {
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue("code", "BRK.B")
-            .hasFieldOrPropertyWithValue("name", "BERKSHIRE HATHAWAY INC-CL B")
+            .hasFieldOrPropertyWithValue(propCode, "BRK.B")
+            .hasFieldOrPropertyWithValue(propName, "BERKSHIRE HATHAWAY INC-CL B")
     }
 
     @Test
@@ -148,8 +153,8 @@ class FigiAssetApiTest {
 
         val createdAsset = assetResponse.data.iterator().next().value
         assertThat(createdAsset)
-            .hasFieldOrPropertyWithValue("name", createdAsset.name)
-            .hasFieldOrPropertyWithValue("code", createdAsset.code)
+            .hasFieldOrPropertyWithValue(propName, createdAsset.name)
+            .hasFieldOrPropertyWithValue(propCode, createdAsset.code)
     }
 
     companion object {

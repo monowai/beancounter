@@ -7,8 +7,11 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
@@ -20,16 +23,16 @@ import org.mockito.Mockito
 import java.math.BigDecimal
 import java.time.LocalDate
 
-private val cdna = "CDNA"
-
 /**
  * BC Row Adapter tests for handling various assertions around transformations.
  */
 class BcRowAdapterTest {
-    val ais: AssetIngestService = Mockito.mock(AssetIngestService::class.java)
-    val assetService = Mockito.mock(AssetService::class.java)
-    val currencyService = Mockito.mock(CurrencyService::class.java)
-    val cashServices = CashServices(assetService, currencyService)
+    private val cdna = "CDNA"
+    private val ais: AssetIngestService = Mockito.mock(AssetIngestService::class.java)
+    val assetService: AssetService = Mockito.mock(AssetService::class.java)
+    val currencyService: CurrencyService = Mockito.mock(CurrencyService::class.java)
+    private val cashServices = CashServices(assetService, currencyService)
+    private val rowAdapter = BcRowAdapter(ais, cashServices = cashServices)
 
     @BeforeEach
     fun setupMocks() {
@@ -40,25 +43,27 @@ class BcRowAdapterTest {
                     market = NASDAQ
                 )
             )
-        Mockito.`when`(assetService.find("${USD.code} Balance")).thenReturn(usdCashBalance)
+        Mockito.`when`(ais.resolveAsset(CASH.code, NZD.code, ""))
+            .thenReturn(nzdCashBalance)
+        Mockito.`when`(ais.resolveAsset(CASH.code, USD.code, ""))
+            .thenReturn(usdCashBalance)
+        Mockito.`when`(assetService.find(CASH.code, NZD.code)).thenReturn(nzdCashBalance)
+        Mockito.`when`(assetService.find(CASH.code, USD.code)).thenReturn(usdCashBalance)
+        Mockito.`when`(assetService.find(USD.code)).thenReturn(usdCashBalance)
+        Mockito.`when`(assetService.find(NZD.code)).thenReturn(nzdCashBalance)
     }
 
     @Test
     fun trimmedCsvInputValues() {
-        // Input has been formatted with extraneous spaces.
+// Input has been formatted with extraneous spaces.
         val values = "BC,USX,Kt-1jW3x1g,BUY,NASDAQ,$cdna,Caredx," +
-            "USD Balance,USD,2021-08-11,200.000000,NZD,1.000000,USD,77.780000,0.00,1.386674,2000.00,-2000.00,"
+            "USD,USD,2021-08-11,200.000000,NZD,1.000000,USD,77.780000,0.00,1.386674,2000.00,-2000.00,"
 
-        // BC will receive data in the same manner
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            Portfolio("CSV"),
-            values.split(","),
-        )
-
-        val rowAdapter = BcRowAdapter(ais, cashServices = cashServices)
+// BC will receive data in the same manner
+        val trustedTrnImportRequest = trustedTrnImportRequest(values)
 
         val result = rowAdapter.transform(trustedTrnImportRequest)
-        // Transformation should still resolve without extra spaces.
+// Transformation should still resolve without extra spaces.
         assertThat(result)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
@@ -74,17 +79,49 @@ class BcRowAdapterTest {
     @Test
     fun forwardTradeDateFails() {
         val tomorrow = LocalDate.now().atStartOfDay().plusDays(1)
-        val values = "BC      ,ee,ff-r5w,BUY ,NYSE  ,QQQ ,Invesco QQQ Trust Series 1,USD Balance,USD         ," +
-            "$tomorrow,1.000000,SGD         ,0.740494,USD          ,308.110000,0.00,1.000000     ,309.11     " +
-            ",-309.11   ,"
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            Portfolio("CSV"),
-            values.split(","),
-        )
+        val values = "BC,ee,ff-r5w,BUY ,NYSE,QQQ ,Invesco QQQ Trust Series 1,USD Balance,USD ," +
+            "$tomorrow,1.000000,SGD ,0.740494,USD,308.110000,0.00,1.000000 ,309.11 " +
+            ",-309.11 ,"
 
-        val rowAdapter = BcRowAdapter(ais, cashServices = cashServices)
+        val trustedTrnImportRequest = trustedTrnImportRequest(values)
+
         assertThrows(BusinessException::class.java) {
             rowAdapter.transform(trustedTrnImportRequest)
         }
     }
+
+    @Test
+    fun cashDeposit() {
+        val values =
+            "BC,abc,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
+
+        val trustedTrnImportRequest = trustedTrnImportRequest(values)
+        val trn = rowAdapter.transform(trustedTrnImportRequest)
+        assertThat(trn)
+            .hasFieldOrPropertyWithValue("assetId", nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue("cashAssetId", nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("10000"))
+    }
+
+    @Test
+    fun fxBuyTrade() {
+        // Buy USD, Sell NZD
+        val values =
+            "BC,abc,,FX_BUY,CASH,USD,,,NZD,2021-11-16,8359.43,NZD,,USD,1.000000,0 ,1.000000,8359.43,-10000.00,"
+
+        val trustedTrnImportRequest = trustedTrnImportRequest(values)
+        val trn = rowAdapter.transform(trustedTrnImportRequest)
+        assertThat(trn)
+            .hasFieldOrPropertyWithValue("assetId", usdCashBalance.id)
+            .hasFieldOrPropertyWithValue("cashAssetId", nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue("quantity", BigDecimal("8359.43"))
+            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("8359.43"))
+            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-10000"))
+    }
+
+    private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =
+        TrustedTrnImportRequest(
+            Portfolio("CSV"),
+            values.split(","),
+        )
 }

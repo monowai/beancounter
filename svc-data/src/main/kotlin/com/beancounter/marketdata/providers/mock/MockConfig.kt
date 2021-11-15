@@ -7,5 +7,5 @@ import org.springframework.context.annotation.Import
  * Deprecate this. Mock config for providing market data.
  */
 @Configuration
-@Import(MockProviderService::class)
+@Import(CashProviderService::class)
 class MockConfig

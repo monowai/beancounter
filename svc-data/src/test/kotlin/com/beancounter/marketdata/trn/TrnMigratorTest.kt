@@ -39,7 +39,7 @@ internal class TrnMigratorTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(assetService.find("CASH", "${NZD.code} BALANCE"))
+        Mockito.`when`(assetService.find("CASH", NZD.code))
             .thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
@@ -67,9 +67,9 @@ internal class TrnMigratorTest {
         val trnV2 = trnMigrator.upgrade(trnV1)
         assertThat(trnV2)
             .hasFieldOrPropertyWithValue("version", "2")
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-3000.00"))
+            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-333.33"))
             .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("3.00"))
             .hasFieldOrPropertyWithValue("cashAsset", Constants.nzdCashBalance)
-            .hasFieldOrPropertyWithValue("cashCurrency", null)
+            .hasFieldOrPropertyWithValue("cashCurrency", NZD)
     }
 }

@@ -17,8 +17,15 @@ class TrnTest {
 
     @Test
     fun is_trnVersion() {
-        val trnDefault = Trn(TrnType.BUY, AssetUtils.getAsset(Constants.NYSE, simpleRef))
-        val trn = Trn(TrnType.BUY, version = "0", asset = AssetUtils.getAsset(Constants.NYSE, simpleRef))
+        val trnDefault = Trn(
+            trnType = TrnType.BUY,
+            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
+        )
+        val trn = Trn(
+            trnType = TrnType.BUY,
+            version = "0",
+            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
+        )
         assertThat(trnDefault)
             .hasFieldOrProperty("version")
         assertThat(trn.version).isEqualTo("0")
@@ -61,7 +68,10 @@ class TrnTest {
 
     @Test
     fun is_TradeCurrencySetFromAsset() {
-        val trn = Trn(TrnType.BUY, AssetUtils.getAsset(Constants.NYSE, simpleRef))
+        val trn = Trn(
+            trnType = TrnType.BUY,
+            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
+        )
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
     }

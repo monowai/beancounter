@@ -24,7 +24,7 @@ response:
   headers:
     Content-Type: application/json
 ---
-name: portfolioById
+name: portfolioTest
 priority: 1
 request:
   method: GET
@@ -46,6 +46,29 @@ response:
   headers:
     Content-Type: application/json
 ---
+name: portfolioCashLadder
+priority: 1
+request:
+  method: GET
+  url: /portfolios/CASHLADDER
+response:
+  status: 200
+  bodyFromFile: "./cash-ladder.json"
+  headers:
+    Content-Type: application/json
+---
+name: portfolioCashLadderCode
+priority: 1
+request:
+  method: GET
+  url: /portfolios/code/CASHLADDER
+response:
+  status: 200
+  bodyFromFile: "./cash-ladder.json"
+  headers:
+    Content-Type: application/json
+---
+
 name: portfolioNotFoundByCode
 priority: 1
 request:

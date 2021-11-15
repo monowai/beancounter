@@ -56,7 +56,6 @@ class TrnMigrator(private val cashServices: CashServices, private val fxRateServ
         trn.version = "2" // Cash is upgraded to this point.
         trn.cashAmount = cashAmount
         trn.cashAsset = cashAsset
-        trn.cashCurrency = null
         trn.tradeCashRate = cashRates.data.rates[pair]!!.rate
         // store
         return trn

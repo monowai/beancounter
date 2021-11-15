@@ -5,6 +5,7 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
@@ -13,12 +14,12 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.math.BigDecimal
 
-private val nzCashAssetId = "${NZD.code} Cash"
-
 /**
  * Cash can be a trick beast. Abstract out specific cash handling routines to allow for new uses cases.
  */
 internal class CashServicesTest {
+    private val nzCashAssetId = "${NZD.code} Cash"
+    private val usCashAssetId = "${USD.code} Cash"
 
     private val assetService = Mockito.mock(AssetService::class.java)
     private val currencyService = Mockito.mock(CurrencyService::class.java)
@@ -36,7 +37,26 @@ internal class CashServicesTest {
             price = BigDecimal.ONE
         )
 
-        Mockito.`when`(assetService.find("CASH", "${NZD.code} BALANCE"))
+        Mockito.`when`(assetService.find("CASH", NZD.code))
+            .thenReturn(nzdCashBalance)
+        assertThat(cashServices.getCashAsset(trnInput))
+            .isEqualTo(nzdCashBalance)
+    }
+
+    @Test
+    fun resolveCashBalanceFromTradeCurrencyWithBlankAsset() {
+        // Trade Currency, but no defined Cash Asset, resolves to a generic Balance asset.
+        val trnInput = TrnInput(
+            callerRef = CallerRef(),
+            assetId = MSFT.code,
+            cashAssetId = "",
+            trnType = TrnType.BUY,
+            cashCurrency = NZD.code,
+            tradeAmount = BigDecimal(5000),
+            price = BigDecimal.ONE
+        )
+
+        Mockito.`when`(assetService.find("CASH", NZD.code))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
@@ -95,4 +115,30 @@ internal class CashServicesTest {
         )
         assertThat(cashServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
     }
+
+    @Test
+    fun isCashDebitedForFxBuy() {
+        val fxBuy = TrnInput(
+            callerRef = CallerRef(),
+            assetId = nzCashAssetId,
+            cashAssetId = usCashAssetId,
+            trnType = TrnType.FX_BUY,
+            tradeAmount = BigDecimal(5000),
+            price = BigDecimal.ONE
+        )
+        assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
+    }
+
+//    @Test
+//    fun isCashCreditedForFxSell() {
+//        val fxSell = TrnInput(
+//            callerRef = CallerRef(),
+//            assetId = nzCashAssetId,
+//            cashAssetId = usCashAssetId,
+//            trnType = TrnType.FX_SELL,
+//            tradeAmount = BigDecimal(-5000),
+//            price = BigDecimal.ONE
+//        )
+//        assertThat(cashServices.getCashImpact(fxSell)).isEqualTo(BigDecimal("5000.00")) // Fx of 1.00
+//    }
 }

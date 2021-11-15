@@ -76,11 +76,15 @@ internal class TrnInputTest {
         val asset = getAsset(NYSE, "TEST")
         val portfolio = getPortfolio("TWEE")
         portfolio.owner = SystemUser("123", "whee", true)
-        val trn = Trn(trnType, asset, BigDecimal("100.01"))
-        trn.id = "PK"
-        trn.callerRef = CallerRef(oneString, oneString, "TEST")
-        trn.portfolio = portfolio
-        trn.tradeDate = LocalDate.now()
+        val trn = Trn(
+            id = "PK",
+            callerRef = CallerRef(oneString, oneString, "TEST"),
+            portfolio = portfolio,
+            trnType = trnType,
+            asset = asset,
+            tradeDate = LocalDate.now(),
+            price = BigDecimal("100.01")
+        )
         trn.settleDate = LocalDate.now()
         trn.price = BigDecimal("22.11")
         trn.fees = BigDecimal("10")

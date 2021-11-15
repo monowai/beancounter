@@ -3,6 +3,7 @@ package com.beancounter.position.accumulation
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.AverageCost
@@ -16,7 +17,7 @@ import java.math.BigDecimal
 class SplitBehaviour : AccumulationStrategy {
     private val averageCost = AverageCost()
     private val currencyResolver = CurrencyResolver()
-    override fun accumulate(trn: Trn, portfolio: Portfolio, position: Position) {
+    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
         val total = position.quantityValues.getTotal()
         position.quantityValues
             .adjustment = trn.quantity.multiply(total).subtract(total)
@@ -24,23 +25,24 @@ class SplitBehaviour : AccumulationStrategy {
             position,
             position.getMoneyValues(
                 Position.In.TRADE,
-                currencyResolver.resolve(Position.In.TRADE, portfolio, trn)
+                currencyResolver.resolve(Position.In.TRADE, portfolio, trn.tradeCurrency)
             )
         )
         value(
             position,
             position.getMoneyValues(
                 Position.In.BASE,
-                currencyResolver.resolve(Position.In.BASE, portfolio, trn)
+                currencyResolver.resolve(Position.In.BASE, portfolio, trn.tradeCurrency)
             )
         )
         value(
             position,
             position.getMoneyValues(
                 Position.In.PORTFOLIO,
-                currencyResolver.resolve(Position.In.PORTFOLIO, portfolio, trn)
+                currencyResolver.resolve(Position.In.PORTFOLIO, portfolio, trn.tradeCurrency)
             )
         )
+        return position
     }
 
     private fun value(position: Position, moneyValues: MoneyValues) {

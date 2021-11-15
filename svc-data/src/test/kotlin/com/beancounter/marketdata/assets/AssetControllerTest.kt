@@ -13,7 +13,7 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
-import com.beancounter.marketdata.Constants.Companion.MOCK
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.systemUser
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -70,11 +70,11 @@ internal class AssetControllerTest(
     @Test
     @Throws(Exception::class)
     fun is_AssetCreationAndFindByWorking() {
-        val firstAsset = getAsset(MOCK, "MyCode")
-        val secondAsset = getAsset(MOCK, "Second")
+        val firstAsset = getAsset(NASDAQ, "MyCode")
+        val secondAsset = getAsset(NASDAQ, "Second")
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap[toKey(firstAsset)] = getAssetInput(MOCK.code, "MyCode")
-        assetInputMap[toKey(secondAsset)] = getAssetInput(MOCK.code, "Second")
+        assetInputMap[toKey(firstAsset)] = getAssetInput(NASDAQ.code, "MyCode")
+        assetInputMap[toKey(secondAsset)] = getAssetInput(NASDAQ.code, "Second")
         val assetRequest = AssetRequest(assetInputMap)
         var mvcResult = postAssets(assetRequest)
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
@@ -146,7 +146,7 @@ internal class AssetControllerTest(
     @Test
     @Throws(Exception::class)
     fun is_PostSameAssetTwiceBehaving() {
-        var asset = AssetInput("MOCK", "MyCodeX", "\"quotes should be removed\"", null)
+        var asset = AssetInput(NASDAQ.code, "MyCodeX", "\"quotes should be removed\"", null)
         var assetInputMap: MutableMap<String, AssetInput> = HashMap()
         assetInputMap[toKey(asset)] = asset
         var assetRequest = AssetRequest(assetInputMap)
@@ -168,7 +168,7 @@ internal class AssetControllerTest(
             .hasFieldOrProperty("market")
 
         // Send it a second time, should not change
-        asset = AssetInput("MOCK", "MyCodeX", "Random Change", null)
+        asset = AssetInput(NASDAQ.code, "MyCodeX", "Random Change", null)
         assetInputMap = HashMap()
         assetInputMap[toKey(asset)] = asset
         assetRequest = AssetRequest(assetInputMap)

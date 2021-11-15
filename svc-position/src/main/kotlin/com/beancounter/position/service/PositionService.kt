@@ -21,7 +21,7 @@ class PositionService internal constructor(
     override fun build(portfolio: Portfolio, positionRequest: PositionRequest): PositionResponse {
         val positions = Positions(portfolio)
         for (trn in positionRequest.trns) {
-            positions.add(accumulator.accumulate(trn, positions))
+            accumulator.accumulate(trn, positions)
         }
         return PositionResponse(positions)
     }

@@ -1,0 +1,10 @@
+{
+  "date": "2019-10-18",
+  "assets": [
+    {
+      "market": "NYSE",
+      "code": "MSFT"
+    }
+  ],
+  "currentMode": true
+}

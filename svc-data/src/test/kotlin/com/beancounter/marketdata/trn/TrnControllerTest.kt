@@ -106,7 +106,12 @@ class TrnControllerTest {
     @Test
     @Throws(Exception::class)
     fun is_EmptyResponseValid() {
-        val portfolio = bcMvcHelper.portfolio(PortfolioInput("BLAH", "is_EmptyResponseValid", currency = NZD.code))
+        val portfolio = bcMvcHelper.portfolio(
+            PortfolioInput(
+                "BLAH", "is_EmptyResponseValid",
+                currency = NZD.code
+            )
+        )
         val mvcResult = mockMvc.perform(
             get(uriTrnForPortfolio, portfolio.id)
                 .with(

@@ -19,7 +19,7 @@ import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -115,18 +115,18 @@ class AlphaVantageEnrichmentTest {
             .andReturn()
         val (data) = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        Assertions.assertThat(data)
+        assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(AlphaConstants.codeProp, code)
             .hasFieldOrProperty(AlphaConstants.marketProp)
             .hasFieldOrPropertyWithValue("market.code", lon)
             .hasFieldOrPropertyWithValue(AlphaConstants.priceSymbolProp, symbol)
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "AXA Framlington Health Fund Z GBP Acc")
-        Assertions.assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
-        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(AssetInput(data)))
-        Assertions.assertThat(priceResponse.data).isNotNull
+        assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
+        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(data))
+        assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
-        Assertions.assertThat(priceResponse.data.iterator().next())
+        assertThat(priceResponse.data.iterator().next())
             .isNotNull
             .hasFieldOrPropertyWithValue(AlphaConstants.priceDateProp, dateUtils.getDate("2020-05-12"))
             .hasFieldOrPropertyWithValue(AlphaConstants.closeProp, price)
@@ -153,13 +153,13 @@ class AlphaVantageEnrichmentTest {
             .andReturn()
         val (data) = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        Assertions.assertThat(data)
+        assertThat(data)
             .isNotNull
             .hasFieldOrPropertyWithValue(AlphaConstants.codeProp, amp)
             .hasFieldOrProperty(AlphaConstants.marketProp)
             .hasFieldOrPropertyWithValue(AlphaConstants.priceSymbolProp, "$amp.AUS")
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "$amp Limited")
-        Assertions.assertThat(alphaConfig.getPriceCode(data)).isEqualTo("$amp.AUS")
+        assertThat(alphaConfig.getPriceCode(data)).isEqualTo("$amp.AUS")
     }
 
     @Test
@@ -172,7 +172,7 @@ class AlphaVantageEnrichmentTest {
         val (data) = assetService
             .process(AssetRequest(assetInputMap))
         val asset = data[AlphaConstants.keyProp]
-        Assertions.assertThat(asset!!.priceSymbol).isNull()
+        assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, Constants.NYSE.code, code)
                 .with(
@@ -186,7 +186,7 @@ class AlphaVantageEnrichmentTest {
             .andReturn()
         val (data1) = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        Assertions.assertThat(data1)
+        assertThat(data1)
             .isNotNull
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, null)
     }

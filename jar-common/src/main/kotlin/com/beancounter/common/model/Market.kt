@@ -28,7 +28,8 @@ data class Market @ConstructorBinding constructor(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     val priceTime: LocalTime = LocalTime.of(19, 0),
     val daysToSubtract: Int = 1,
-    val aliases: Map<String, String> = HashMap(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    val aliases: Map<String, String> = mapOf(),
     val enricher: String? = null,
     val multiplier: BigDecimal = BigDecimal("1.0"),
     val type: String = "Public"

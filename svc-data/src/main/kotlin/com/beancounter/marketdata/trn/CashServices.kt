@@ -6,6 +6,8 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.model.TrnType.Companion.creditsCash
+import com.beancounter.common.model.TrnType.Companion.debitsCash
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
@@ -19,19 +21,17 @@ import java.math.BigDecimal
  */
 @Service
 class CashServices(val assetService: AssetService, val currencyService: CurrencyService) {
-    private val creditsCash = arrayOf(TrnType.DEPOSIT, TrnType.SELL, TrnType.DIVI)
-    private val debitsCash = arrayOf(TrnType.BUY, TrnType.WITHDRAWAL)
 
-    fun getCashImpact(trnInput: TrnInput): BigDecimal? {
+    fun getCashImpact(trnInput: TrnInput, tradeAmount: BigDecimal = trnInput.tradeAmount): BigDecimal? {
         if (trnInput.cashAmount != null) {
             return trnInput.cashAmount
         }
         if (TrnType.isCashImpacted(trnInput.trnType)) {
             val rate = trnInput.tradeCashRate ?: BigDecimal("1.00")
             if (creditsCash.contains(trnInput.trnType)) {
-                return MathUtils.multiply(trnInput.tradeAmount.abs(), rate)
+                return MathUtils.divide(tradeAmount.abs(), rate)
             } else if (debitsCash.contains(trnInput.trnType)) {
-                return MathUtils.multiply(BigDecimal.ZERO.minus(trnInput.tradeAmount.abs()), rate)
+                return MathUtils.divide(BigDecimal.ZERO.minus(tradeAmount.abs()), rate)
             }
         }
         return BigDecimal.ZERO
@@ -41,12 +41,12 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
         }
-        if (cashAssetId == null) {
-            if (cashCurrency == null) {
+        if (cashAssetId == null || cashAssetId.isEmpty()) {
+            if (cashCurrency == null || cashCurrency.isEmpty()) {
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.find(cash, "$cashCurrency BALANCE")
+            return assetService.find(cash, cashCurrency)
         }
         return assetService.find(cashAssetId)
     }
@@ -61,7 +61,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         for (currency in currencyService.currencies) {
             assets[currency.code] = AssetInput(
                 marketConfig.getProviders()[cash]!!.code,
-                "${currency.code} BALANCE",
+                currency.code,
                 currency = currency.code,
                 category = cash,
                 name = "${currency.code} Balance"

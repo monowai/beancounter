@@ -8,6 +8,7 @@
         "callerId": "cn9NIrvHStWEbFB14c9zUw"
       },
       "trnType": "BUY",
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",
@@ -79,6 +80,7 @@
         "callerId": "bDd4TTiETSOUy5sgJG79bg"
       },
       "trnType": "DIVI",
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "TEST",
         "code": "TEST",

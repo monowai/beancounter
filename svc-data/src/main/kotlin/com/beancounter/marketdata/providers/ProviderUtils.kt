@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.common.input.AssetInput
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
-    fun splitProviders(assets: Collection<AssetInput>): Map<MarketDataProvider, MutableCollection<Asset>> {
+    fun splitProviders(assets: Collection<PriceAsset>): Map<MarketDataProvider, MutableCollection<Asset>> {
         val mdpAssetResults: MutableMap<MarketDataProvider, MutableCollection<Asset>> = HashMap()
         for (input in assets) {
             var market: Market
@@ -21,7 +21,7 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
                 market = input.resolvedAsset!!.market
             } else {
                 market = marketService.getMarket(input.market)
-                val resolvedAsset = Asset(input, market)
+                val resolvedAsset = Asset(code = input.code, market)
                 input.resolvedAsset = resolvedAsset
             }
             val marketDataProvider = mdFactory.getMarketDataProvider(market)
@@ -39,10 +39,10 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
         return mdpAssetResults
     }
 
-    fun getInputs(apiAssets: MutableCollection<Asset>?): Collection<AssetInput> {
-        val results: MutableCollection<AssetInput> = ArrayList()
+    fun getInputs(apiAssets: MutableCollection<Asset>?): Collection<PriceAsset> {
+        val results: MutableCollection<PriceAsset> = ArrayList()
         for (apiAsset in apiAssets!!) {
-            results.add(AssetInput(apiAsset.market.code, apiAsset.code, apiAsset))
+            results.add(PriceAsset(apiAsset.market.code, apiAsset.code, apiAsset))
         }
         return results
     }

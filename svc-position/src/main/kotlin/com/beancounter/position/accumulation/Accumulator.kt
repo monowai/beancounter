@@ -1,7 +1,6 @@
 package com.beancounter.position.accumulation
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -21,35 +20,48 @@ import org.springframework.stereotype.Service
 @Import(
     DateUtils::class,
     TrnBehaviourFactory::class,
-    BuyBehaviour::class,
-    SellBehaviour::class,
-    DividendBehaviour::class,
-    SplitBehaviour::class
 )
 class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
-    fun accumulate(trn: Trn, positions: Positions): Position {
-        return accumulate(
-            trn, positions.portfolio,
-            positions[trn.asset, trn.tradeDate]
-        )
-    }
-
     /**
-     * Main calculation routine.
+     * Add the transaction into the Positions accounting for Cash.
      *
      * @param trn      Transaction to add
-     * @param position Position to accumulate the transaction into
-     * @return result object
+     * @param positions Position collection to accumulate into
+     * @return the position affected by Trn.assetId
      */
-    fun accumulate(trn: Trn, portfolio: Portfolio, position: Position): Position {
-        val dateSensitive = trn.trnType !== TrnType.DIVI
-        if (dateSensitive) {
+    fun accumulate(trn: Trn, positions: Positions): Position {
+        val position = positions[trn.asset, trn.tradeDate]
+        if (trn.trnType !== TrnType.DIVI) {
             isDateSequential(trn, position)
         }
-        val accumulationStrategy = trnBehaviourFactory[trn.trnType]!!
-        accumulationStrategy.accumulate(trn, portfolio, position)
+        val accumulationStrategy = trnBehaviourFactory[trn.trnType]
+        accumulationStrategy.accumulate(trn, positions)
         position.dateValues.last = trn.tradeDate
-        return position
+        if (isCashAccumulated(trn)) {
+            accumulateCash(trn, positions)
+        }
+        return position // The impacted Asset position
+    }
+
+    private fun isCashAccumulated(trn: Trn): Boolean {
+        if (trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType)) {
+            if (trn.trnType == TrnType.FX_BUY || trn.trnType == TrnType.DEPOSIT || trn.trnType == TrnType.WITHDRAWAL) {
+                return false // Don't accumulate cash twice
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun accumulateCash(trn: Trn, positions: Positions) {
+
+        val cashPosition = positions[trn.cashAsset, trn.tradeDate]
+        if (TrnType.isCashCredited(trn.trnType)) {
+            trnBehaviourFactory[TrnType.DEPOSIT].accumulate(trn, positions, cashPosition)
+        } else if (TrnType.isCashDebited(trn.trnType)) {
+            trnBehaviourFactory[TrnType.WITHDRAWAL].accumulate(trn, positions, cashPosition)
+        }
+        cashPosition.dateValues.last = trn.tradeDate
     }
 
     private fun isDateSequential(trn: Trn, position: Position) {

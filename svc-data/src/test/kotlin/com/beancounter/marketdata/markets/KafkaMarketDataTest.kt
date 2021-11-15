@@ -2,6 +2,7 @@ package com.beancounter.marketdata.markets
 
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
@@ -110,20 +111,20 @@ class KafkaMarketDataTest {
         val mdCollection: MutableCollection<MarketData> = ArrayList()
         mdCollection.add(marketData)
         var priceResponse = PriceResponse(mdCollection)
-        val assets: MutableCollection<AssetInput> = ArrayList()
+        val assets: MutableCollection<PriceAsset> = ArrayList()
         val results = priceWriter.processMessage(
             objectMapper.writeValueAsString(priceResponse)
         )
         assertThat(results).isNotNull.isNotEmpty
         for (result in results!!) {
             assertThat(result).hasFieldOrProperty(idProp)
-            val assetInput = AssetInput(asset.market.code, asset.code, asset)
-            assets.add(assetInput)
+            val priceAsset = PriceAsset(asset.market.code, asset.code, asset)
+            assets.add(priceAsset)
         }
 
         // Will be resolved over the mocked API
         assets.add(
-            AssetInput(
+            PriceAsset(
                 NASDAQ.code, Constants.AAPL.code,
                 AssetUtils.getAsset(NASDAQ, Constants.AAPL.code)
             )

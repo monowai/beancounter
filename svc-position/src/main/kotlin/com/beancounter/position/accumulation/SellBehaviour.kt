@@ -2,6 +2,7 @@ package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.divide
@@ -18,7 +19,7 @@ import java.math.BigDecimal
 class SellBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()
-    override fun accumulate(trn: Trn, portfolio: Portfolio, position: Position) {
+    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
         var soldQuantity = trn.quantity
         if (soldQuantity.toDouble() > 0) {
             // Sign the quantities
@@ -32,6 +33,7 @@ class SellBehaviour : AccumulationStrategy {
             trn, portfolio, position, Position.In.PORTFOLIO,
             trn.tradePortfolioRate
         )
+        return position
     }
 
     private fun value(
@@ -43,7 +45,7 @@ class SellBehaviour : AccumulationStrategy {
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn)
+            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency)
         )
         moneyValues.sales = moneyValues.sales.add(
             divide(trn.tradeAmount, rate)

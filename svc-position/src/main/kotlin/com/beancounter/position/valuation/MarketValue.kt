@@ -10,7 +10,7 @@ import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
-import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
+import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.Objects
@@ -29,42 +29,50 @@ class MarketValue(private val gains: Gains) {
         val trade = asset.market.currency
         val position = positions[asset]
         val portfolio = positions.portfolio
+        val isCash = asset.market.code == "CASH"
         val total = position.quantityValues.getTotal()
         value(
             total, position.getMoneyValues(Position.In.TRADE, asset.market.currency),
             marketData,
             FxRate(
                 marketData.asset.market.currency, marketData.asset.market.currency,
-                BigDecimal.ONE, null
-            )
+                BigDecimal.ONE, positions.asAt
+            ),
+            isCash
         )
         value(
             total, position.getMoneyValues(Position.In.BASE, portfolio.base),
             marketData,
-            rate(portfolio.base, trade, rates)
+            rate(portfolio.base, trade, rates), isCash
         )
         value(
             total, position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
             marketData,
-            rate(portfolio.currency, trade, rates)
+            rate(portfolio.currency, trade, rates), isCash
         )
         return position
     }
 
-    private fun value(total: BigDecimal, moneyValues: MoneyValues, mktData: MarketData, rate: FxRate) {
+    private fun value(total: BigDecimal, moneyValues: MoneyValues, mktData: MarketData, rate: FxRate, isCash: Boolean) {
         moneyValues.priceData = of(mktData, rate.rate)
         if (total.compareTo(BigDecimal.ZERO) == 0) {
             moneyValues.marketValue = BigDecimal.ZERO
         } else {
             var close = BigDecimal.ZERO
             if (moneyValues.priceData != null && moneyValues.priceData!!.close != null) {
-                close = moneyValues.priceData!!.close
+                close = moneyValues.priceData!!.close!!
             }
             moneyValues.marketValue = Objects.requireNonNull(
-                multiplyAbs(close, total)
+                multiply(close, total)
             )!!
         }
-        gains.value(total, moneyValues)
+        if (isCash) {
+            moneyValues.realisedGain = BigDecimal.ZERO // Will figure this out later
+            moneyValues.unrealisedGain = BigDecimal.ZERO
+            moneyValues.totalGain = BigDecimal.ZERO // moneyValues.marketValue
+        } else {
+            gains.value(total, moneyValues)
+        }
     }
 
     private fun rate(report: Currency, trade: Currency, rates: Map<IsoCurrencyPair, FxRate>): FxRate {

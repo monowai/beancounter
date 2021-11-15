@@ -145,9 +145,10 @@ internal class StubbedTradesWithFx {
 
         // Testing all currency buckets
         val portfolio = Portfolio(
-            "Test",
-            NZD,
-            GBP
+            id = "Test",
+            code = "Test",
+            currency = NZD,
+            base = GBP
         )
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,

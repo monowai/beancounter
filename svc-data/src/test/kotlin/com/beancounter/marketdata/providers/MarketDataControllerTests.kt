@@ -2,18 +2,18 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
-import com.beancounter.marketdata.Constants.Companion.MOCK
+import com.beancounter.marketdata.Constants.Companion.CASH
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.mock.MockProviderService
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -31,27 +31,33 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.util.Optional
 
+/**
+ * MVC tests related to market activities.
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
-/**
- * MVC tests related to market activities.
- */
 internal class MarketDataControllerTests @Autowired private constructor(
     private val wac: WebApplicationContext,
-    marketService: MarketService,
-    private val mockProviderService: MockProviderService,
     private val bcJson: BcJson,
+    private val mdFactory: MdFactory,
 ) {
-    private val dummy: Asset = getAsset(
-        marketService.getMarket("mock"), "dummy"
+    @MockBean
+    private lateinit var priceService: PriceService
+
+    private lateinit var priceDate: LocalDate
+    private val mockPrice = BigDecimal("999.99")
+    private val asset: Asset = getAsset(
+        NASDAQ, "dummy"
     )
 
     // Represents dummy after it has been Jackson'ized
     private val dummyJsonAsset: Asset = this.bcJson.objectMapper
-        .readValue(this.bcJson.objectMapper.writeValueAsString(dummy), Asset::class.java)
+        .readValue(this.bcJson.objectMapper.writeValueAsString(asset), Asset::class.java)
 
     @MockBean
     private lateinit var assetService: AssetService
@@ -59,20 +65,33 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @BeforeEach
     fun setUp() {
+        val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)!!
+        priceDate = marketDataProvider.getDate(asset.market, PriceRequest.of(AssetInput(asset)))
+        Mockito.`when`(priceService.getMarketData(asset.id, priceDate))
+            .thenReturn(
+                Optional.of(
+                    MarketData(
+                        dummyJsonAsset,
+                        close = mockPrice,
+                        open = mockPrice,
+                        priceDate = priceDate
+                    )
+                )
+            )
         mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
-        Assertions.assertThat(dummy.id).isNotNull
+        assertThat(asset.id).isNotNull
         Mockito.`when`(
-            assetService.find(dummy.id)
-        ).thenReturn(dummy)
+            assetService.find(asset.id)
+        ).thenReturn(asset)
         Mockito.`when`(
-            assetService.findLocally(dummy.market.code, dummy.code)
+            assetService.findLocally(asset.market.code, asset.code)
         )
-            .thenReturn(dummy)
+            .thenReturn(asset)
     }
 
     @Test
     fun is_ContextLoaded() {
-        Assertions.assertThat(wac).isNotNull
+        assertThat(wac).isNotNull
     }
 
     @Test
@@ -92,7 +111,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
             ).andReturn()
             .response.contentAsString
         val (data) = bcJson.objectMapper.readValue(json, MarketResponse::class.java)
-        Assertions.assertThat(data).isNotNull.isNotEmpty
+        assertThat(data).isNotNull.isNotEmpty
     }
 
     @Test
@@ -105,8 +124,8 @@ internal class MarketDataControllerTests @Autowired private constructor(
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get(
                 "/prices/{marketId}/{assetId}",
-                dummy.market.code,
-                dummy.code
+                asset.market.code,
+                asset.code
             )
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         )
@@ -116,12 +135,12 @@ internal class MarketDataControllerTests @Autowired private constructor(
                 MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andReturn().response.contentAsString
         val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
-        Assertions.assertThat(data).isNotNull.hasSize(1)
+        assertThat(data).isNotNull.hasSize(1)
         val marketData = data.iterator().next()
-        Assertions.assertThat(marketData)
+        assertThat(marketData)
             .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
-            .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
-            .hasFieldOrPropertyWithValue("priceDate", mockProviderService.priceDate)
+            .hasFieldOrPropertyWithValue("open", mockPrice)
+            .hasFieldOrPropertyWithValue("priceDate", priceDate)
     }
 
     private val assetCode = "assetCode"
@@ -133,11 +152,11 @@ internal class MarketDataControllerTests @Autowired private constructor(
         Exception::class
     )
     fun is_MdCollectionReturnedForAssets() {
-        Mockito.`when`(assetService.findLocally(MOCK.code, assetCode))
-            .thenReturn(getAsset(MOCK, assetCode))
-        val assetInputs: MutableCollection<AssetInput> = ArrayList()
+        Mockito.`when`(assetService.findLocally(CASH.code, assetCode))
+            .thenReturn(getAsset(CASH, assetCode))
+        val assetInputs: MutableCollection<PriceAsset> = ArrayList()
         assetInputs.add(
-            getAssetInput(MOCK.code, assetCode)
+            PriceAsset(CASH.code, assetCode)
         )
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/prices")
@@ -156,7 +175,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
             .response
             .contentAsString
         val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
-        Assertions.assertThat(data)
+        assertThat(data)
             .isNotNull
             .hasSize(assetInputs.size)
     }
@@ -171,8 +190,8 @@ internal class MarketDataControllerTests @Autowired private constructor(
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get(
                 "/prices/{marketId}/{assetId}",
-                dummy.market.code,
-                dummy.code
+                asset.market.code,
+                asset.code
             )
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
@@ -183,11 +202,11 @@ internal class MarketDataControllerTests @Autowired private constructor(
             .response
             .contentAsString
         val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
-        Assertions.assertThat(data).isNotNull.hasSize(1)
+        assertThat(data).isNotNull.hasSize(1)
         val marketData = data.iterator().next()
-        Assertions.assertThat(marketData)
+        assertThat(marketData)
             .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
-            .hasFieldOrPropertyWithValue("open", BigDecimal.valueOf(999.99))
-            .hasFieldOrPropertyWithValue("priceDate", mockProviderService.priceDate)
+            .hasFieldOrPropertyWithValue("open", mockPrice)
+            .hasFieldOrPropertyWithValue("priceDate", priceDate)
     }
 }

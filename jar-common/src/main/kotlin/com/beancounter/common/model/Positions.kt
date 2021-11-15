@@ -8,7 +8,18 @@ import java.util.EnumMap
 import java.util.TreeMap
 
 /**
- * A container for Position objects.
+ * A container for Position objects. Position will be added when requested.
+ * <pre>
+ *  val positions = Positions(getPortfolio())
+ *  val buyTrn = Trn(
+ *     TrnType.BUY, getAsset(Market("marketCode"), "CODE"),
+ *     quantity = hundred,
+ *     tradeAmount = BigDecimal(2000)
+ *  )
+ *  assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
+ *   .hasFieldOrPropertyWithValue(totalProp, hundred)
+ *   .hasFieldOrPropertyWithValue(purchasedProp, hundred)
+ *</pre>
  *
  * @author mikeh
  * @since 2019-02-07
@@ -25,7 +36,7 @@ class Positions(
     @JsonIgnore
     private val tradeCurrencies: MutableCollection<Currency> = ArrayList()
 
-    fun add(position: Position) {
+    fun add(position: Position): Position {
         positions[toKey(position.asset)] = position
         if (!isMixedCurrencies) {
             if (!tradeCurrencies.contains(position.asset.market.currency)) {
@@ -35,6 +46,7 @@ class Positions(
                 isMixedCurrencies = true
             }
         }
+        return position
     }
 
     /**
@@ -46,7 +58,7 @@ class Positions(
     @JsonIgnore
     operator fun get(asset: Asset?): Position {
         val result = positions[toKey(asset!!)]
-        return result ?: Position(asset)
+        return result ?: add(Position(asset))
     }
 
     @JsonIgnore

@@ -12,12 +12,14 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
  */
 class Constants {
     companion object {
+        val propName = "name"
+        val propCode = "code"
+
         val USD = Currency("USD")
         val NASDAQ = Market("NASDAQ")
         val CASH = Market("CASH", type = "Internal")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
-        val MOCK = Market("MOCK")
 
         val AAPL = getAsset(NASDAQ, "AAPL")
         val MSFT = getAsset(NASDAQ, "MSFT")
@@ -35,17 +37,17 @@ class Constants {
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
         val nzdCashBalance = Asset(
-            id = "${NZD.code} BALANCE",
-            code = "${NZD.code} BALANCE",
+            id = NZD.code,
+            code = NZD.code,
             name = "${NZD.code} Balance",
             priceSymbol = NZD.code,
             market = Market("CASH", NZD),
             category = "CASH"
         )
         val usdCashBalance = Asset(
-            id = "${USD.code} BALANCE",
-            code = "${USD.code} BALANCE",
-            name = "${NZD.code} Balance",
+            id = USD.code,
+            code = USD.code,
+            name = "${USD.code} Balance",
             priceSymbol = USD.code,
             market = Market("CASH", USD),
             category = "CASH"

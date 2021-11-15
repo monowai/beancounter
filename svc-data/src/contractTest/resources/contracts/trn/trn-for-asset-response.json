@@ -8,7 +8,7 @@
         "callerId": "3"
       },
       "trnType": "BUY",
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "USV",
         "code": "USV",
@@ -84,7 +84,7 @@
         "callerId": "1149"
       },
       "trnType": "DIVI",
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "USV",
         "code": "USV",
@@ -156,7 +156,7 @@
         "callerId": "1150"
       },
       "trnType": "DIVI",
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "USV",
         "code": "USV",
@@ -228,7 +228,7 @@
         "callerId": "1151"
       },
       "trnType": "DIVI",
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "USV",
         "code": "USV",
@@ -300,7 +300,7 @@
         "callerId": "1152"
       },
       "trnType": "DIVI",
-      "status": null,
+      "status": "CONFIRMED",
       "portfolio": {
         "id": "USV",
         "code": "USV",

@@ -62,6 +62,16 @@ class PricesBase : ContractVerifierBase() {
                 Integer.decode("6274307")
             )
         )
+        mockPriceResponse(
+            "MSFT",
+            WtdMarketData(
+                BigDecimal("39.21"),
+                BigDecimal("100.00"),
+                BigDecimal("38.74"),
+                BigDecimal("39.35"),
+                Integer.decode("6274307")
+            )
+        )
     }
 
     private fun mockPriceResponse(code: String, marketData: WtdMarketData) {

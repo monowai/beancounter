@@ -10,7 +10,7 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.providers.mock.MockProviderService
+import com.beancounter.marketdata.providers.mock.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -64,7 +64,7 @@ class MarketServiceTest @Autowired constructor(
 
     @Test
     fun does_MockMarketConfigurationExist() {
-        val market = marketService.getMarket(MockProviderService.ID)
+        val market = marketService.getMarket(CashProviderService.ID)
         assertThat(market)
             .isNotNull
             .hasFieldOrPropertyWithValue("timezone", TimeZone.getTimeZone(ZoneOffset.UTC))

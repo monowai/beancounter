@@ -23,12 +23,10 @@ internal class DividendTest {
     fun is_CashDividendAccumulated() {
         val asx = Market("ASX", AUD)
         val asset = getAsset(asx, "MO")
-        val trn = Trn(TrnType.DIVI, asset)
+        val trn = Trn(trnType = TrnType.DIVI, asset = asset)
         trn.tradeCashRate = BigDecimal("0.8988")
         trn.tradeAmount = BigDecimal("12.99")
-        val positions = Positions()
-        val position = positions[asset]
-        accumulator.accumulate(trn, positions.portfolio, position)
+        val position = accumulator.accumulate(trn, Positions())
         assertThat(position.getMoneyValues(Position.In.TRADE, asset.market.currency))
             .hasFieldOrPropertyWithValue("dividends", trn.tradeAmount)
     }

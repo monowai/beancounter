@@ -25,12 +25,12 @@ class PortfolioUtils private constructor() {
 
         @JvmStatic
         fun getPortfolio(code: String, currency: Currency): Portfolio {
-            return Portfolio(code, currency, Currency(USD))
+            return Portfolio(id = code, code = code, name = code, currency = currency, base = Currency(USD))
         }
 
         @JvmStatic
         fun getPortfolio(code: String, name: String, currency: Currency): Portfolio {
-            return Portfolio(code, code, name, currency, Currency(USD))
+            return Portfolio(id = code, code = code, name = name, currency = currency, base = Currency(USD))
         }
     }
 }

@@ -38,12 +38,12 @@ class PositionValuationService internal constructor(
 
         // Set market data into the positions
         // There's an issue here that without a price, gains are not computed
-        val (priceResponse, fxResponse1) = getValuationData(positions, assets)
+        val (priceResponse, fxResponse) = getValuationData(positions)
         if (priceResponse == null) {
             log.info("No prices found on date {}", positions.asAt)
             return positions // Prevent NPE
         }
-        val (data) = fxResponse1 ?: throw BusinessException("Unable to obtain FX Rates ")
+        val (data) = fxResponse ?: throw BusinessException("Unable to obtain FX Rates ")
         val rates = data.rates
         val baseTotals = Totals()
         val refTotals = Totals()
@@ -80,7 +80,7 @@ class PositionValuationService internal constructor(
         return positions
     }
 
-    private fun getValuationData(positions: Positions, assets: Collection<AssetInput>): ValuationData {
+    private fun getValuationData(positions: Positions): ValuationData {
         val futureFxResponse = asyncMdService.getFxData(
             fxUtils.buildRequest(
                 positions.portfolio.base,
@@ -88,7 +88,7 @@ class PositionValuationService internal constructor(
             )
         )
         val futurePriceResponse = asyncMdService.getMarketData(
-            PriceRequest(positions.asAt, assets)
+            PriceRequest.of(positions.asAt, positions)
         )
         return ValuationData(
             futurePriceResponse[180, TimeUnit.SECONDS],

@@ -4,7 +4,6 @@ import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -12,6 +11,7 @@ import com.beancounter.position.Constants.Companion.KMI
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.USD
+import com.beancounter.position.Constants.Companion.owner
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -31,6 +31,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
+/**
+ * Corporate actions against contracts.
+ */
+
 @WebAppConfiguration
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
@@ -39,22 +43,11 @@ import org.springframework.web.context.WebApplicationContext
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
-/**
- * Corporate actions against contracts.
- */
 internal class TrnValuationTest {
     @Autowired
     private lateinit var wac: WebApplicationContext
     private lateinit var mockMvc: MockMvc
     private val objectMapper: ObjectMapper = BcJson().objectMapper
-
-    private val id = "blah@blah.com"
-    private val owner = SystemUser(
-        id = id,
-        email = id,
-        true,
-        DateUtils().getDate("2020-06-03")
-    )
 
     private val test = "TEST"
 

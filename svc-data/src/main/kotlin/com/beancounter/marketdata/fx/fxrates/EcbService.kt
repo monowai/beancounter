@@ -14,7 +14,7 @@ import java.util.Optional
 class EcbService @Autowired internal constructor(
     private val fxGateway: FxGateway,
     private val currencyService: CurrencyService,
-    private val dateUtils: DateUtils
+    dateUtils: DateUtils
 ) {
     private val ecbDate = EcbDate(dateUtils)
     fun getRates(asAt: String): Collection<FxRate> {

@@ -24,7 +24,17 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["source", "asset_id", "priceDate"])])
-data class MarketData constructor(@ManyToOne var asset: Asset) {
+data class MarketData constructor(
+    @ManyToOne var asset: Asset,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var priceDate: LocalDate? = null,
+    @Column(precision = 15, scale = 6)
+    var close: BigDecimal = BigDecimal.ZERO,
+    @Column(precision = 15, scale = 6)
+    var open: BigDecimal? = null,
+) {
     constructor(
         id: String?,
         asset: Asset,
@@ -40,12 +50,10 @@ data class MarketData constructor(@ManyToOne var asset: Asset) {
         volume: Int?,
         dividend: BigDecimal?,
         split: BigDecimal?
-    ) : this (asset) {
+    ) : this(asset, priceDate, close, open) {
         this.id = id
         this.source = source
         this.priceDate = priceDate
-        this.open = open
-        this.close = close
         this.low = low
         this.high = high
         this.previousClose = previousClose
@@ -65,17 +73,6 @@ data class MarketData constructor(@ManyToOne var asset: Asset) {
     var id: String? = null
 
     var source: String = "ALPHA"
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
-    var priceDate: LocalDate? = null
-
-    @Column(precision = 15, scale = 6)
-    var open: BigDecimal? = null
-
-    @Column(precision = 15, scale = 6)
-    var close: BigDecimal = BigDecimal.ZERO
 
     @Column(precision = 15, scale = 6)
     var low: BigDecimal? = null

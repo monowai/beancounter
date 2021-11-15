@@ -1,6 +1,7 @@
 package com.beancounter.common
 
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
@@ -13,7 +14,6 @@ import com.beancounter.common.utils.AssetUtils.Companion.split
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import org.springframework.lang.NonNull
 
 /**
  * Unit Tests for Asset Object
@@ -60,29 +60,22 @@ internal class TestAsset {
 
     @Test
     fun assetsSplitByMarket() {
-        val assets: MutableCollection<AssetInput> = ArrayList()
+        val assets: MutableCollection<PriceAsset> = ArrayList()
         val marketCodeA = "AAA"
         val assetCodeB = "ABC"
-        assets.add(getAssetInput(marketCodeA, assetCodeB))
+        assets.add(PriceAsset(marketCodeA, assetCodeB))
         val assetCodeOne = "123"
-        assets.add(getAssetInput(marketCodeA, assetCodeOne))
+        assets.add(PriceAsset(marketCodeA, assetCodeOne))
         val marketCodeB = "BBB"
-        assets.add(getAssetInput(marketCodeB, assetCodeB))
-        assets.add(getAssetInput(marketCodeB, assetCodeOne))
+        assets.add(PriceAsset(marketCodeB, assetCodeB))
+        assets.add(PriceAsset(marketCodeB, assetCodeOne))
         val marketCodeC = "CCC"
-        assets.add(getAssetInput(marketCodeC, assetCodeOne))
+        assets.add(PriceAsset(marketCodeC, assetCodeOne))
         val results = split(assets)
         assertThat(results.size).isEqualTo(3)
         assertThat(results[marketCodeA]).hasSize(2)
         assertThat(results[marketCodeB]).hasSize(2)
         assertThat(results[marketCodeC]).hasSize(1)
-    }
-
-    @NonNull
-    private fun getAssetInput(marketCode: String, assetCode: String): AssetInput {
-        return getAssetInput(
-            getAsset(Market(marketCode), assetCode)
-        )
     }
 
     @Test

@@ -1,11 +1,10 @@
 package com.beancounter.common
 
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.QuantityValues
-import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -67,12 +66,10 @@ internal class TestMarketData {
     @Test
     @Throws(Exception::class)
     fun is_PriceRequestSerializing() {
-        val assets: MutableCollection<AssetInput> = ArrayList()
-        assets.add(getAssetInput("XYZ", "ABC"))
-        val priceRequest = PriceRequest("2019-11-11", assets)
+        val priceRequest = PriceRequest("2019-11-11", arrayListOf(PriceAsset("XYZ", "ABC")))
         val json = bcJson.objectMapper.writeValueAsString(priceRequest)
-        val (_, assets1) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
-        assertThat(assets1.iterator().next())
+        val (_, assets) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
+        assertThat(assets.iterator().next())
             .usingRecursiveComparison().isEqualTo(
                 priceRequest.assets.iterator().next()
             )

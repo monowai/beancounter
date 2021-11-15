@@ -2,7 +2,7 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.providers.alpha.AlphaService
-import com.beancounter.marketdata.providers.mock.MockProviderService
+import com.beancounter.marketdata.providers.mock.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
@@ -17,7 +17,7 @@ import java.util.Locale
  */
 @Service
 class MdFactory internal constructor(
-    mockProviderService: MockProviderService,
+    cashProviderService: CashProviderService,
     alphaService: AlphaService,
     wtdService: WtdService
 ) {
@@ -31,7 +31,7 @@ class MdFactory internal constructor(
      */
     @Cacheable("providers")
     fun getMarketDataProvider(market: Market): MarketDataProvider? {
-        return resolveProvider(market) ?: return providers[MockProviderService.ID]
+        return resolveProvider(market) ?: return providers[CashProviderService.ID]
     }
 
     fun getMarketDataProvider(provider: String): MarketDataProvider {
@@ -54,7 +54,7 @@ class MdFactory internal constructor(
     }
 
     init {
-        providers[mockProviderService.getId().uppercase(Locale.getDefault())] = mockProviderService
+        providers[cashProviderService.getId().uppercase(Locale.getDefault())] = cashProviderService
         providers[wtdService.getId().uppercase(Locale.getDefault())] = wtdService
         providers[alphaService.getId().uppercase(Locale.getDefault())] = alphaService
     }

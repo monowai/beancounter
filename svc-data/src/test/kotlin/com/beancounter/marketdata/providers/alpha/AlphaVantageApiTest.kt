@@ -10,7 +10,6 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
@@ -295,25 +294,15 @@ internal class AlphaVantageApiTest {
         AlphaMockUtils.mockAdjustedResponse("KMI", file)
         val alphaMapper = AlphaPriceAdapter().alphaMapper
         val priceResponse = alphaMapper.readValue(file, PriceResponse::class.java)
-        assertThat(priceResponse.data).isNotNull
-        val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap[keyProp] = AssetInput(NASDAQ.code, "KMI")
-        val (dataMap) = assetService.process(AssetRequest(assetInputMap))
-        val asset = dataMap[keyProp]
-        assertThat(asset!!.id).isNotNull
+        val assetInputMap = mapOf(Pair(keyProp, AssetInput(NASDAQ.code, "KMI")))
+        val asset = assetService.process(AssetRequest(assetInputMap)).data[keyProp]
+        assertThat(asset).isNotNull.hasFieldOrProperty("id")
         priceService.setEventWriter(mockEventWriter)
-        marketDataService.backFill(asset)
+        marketDataService.backFill(asset!!)
         Thread.sleep(300)
-        val date = dateUtils.getDate("2020-05-01")
-        assertThat(date).isNotNull
-        val marketData = priceService.getMarketData(asset.id, date)
-        if (marketData.isPresent) {
-            marketData.ifPresent { data: MarketData ->
-                Mockito.verify(
-                    mockEventWriter,
-                    Mockito.times(priceResponse.data.size)
-                ).write(data)
-            }
-        }
+        Mockito.verify(
+            mockEventWriter,
+            Mockito.times(1) // Found the Dividend request
+        ).write(priceResponse.data.iterator().next())
     }
 }

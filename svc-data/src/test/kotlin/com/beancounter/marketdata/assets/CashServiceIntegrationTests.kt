@@ -2,8 +2,10 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.trn.CashServices.Companion.cash
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -17,6 +19,9 @@ import org.springframework.boot.test.context.SpringBootTest
 class CashServiceIntegrationTests {
     @Autowired
     private lateinit var assetService: AssetService
+
+    @Autowired
+    private lateinit var mdFactory: MdFactory
 
     @Autowired
     private lateinit var assetCategoryConfig: AssetCategoryConfig
@@ -38,9 +43,16 @@ class CashServiceIntegrationTests {
 
     @Test
     fun is_UsdCashBalanceFound() {
-        val found = assetService.find(cash, "${USD.code} BALANCE")
+        val found = assetService.find(
+            cash, USD.code
+        )
         assertThat(found).isNotNull
             .hasFieldOrPropertyWithValue("assetCategory.id", cash)
             .hasFieldOrPropertyWithValue("name", "${USD.code} Balance")
+    }
+
+    @Test
+    fun is_MarketProviderFound() {
+        assertThat(mdFactory.getMarketDataProvider(CASH)).isNotNull
     }
 }

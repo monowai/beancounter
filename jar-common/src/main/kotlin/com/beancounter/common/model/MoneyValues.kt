@@ -3,7 +3,7 @@ package com.beancounter.common.model
 import java.math.BigDecimal
 
 /**
- * Money Values which are used in deriving various values for financial calculations.
+ * Summary Money Values used for financial calculations.
  *
  * @author mikeh
  * @since 2019-01-28

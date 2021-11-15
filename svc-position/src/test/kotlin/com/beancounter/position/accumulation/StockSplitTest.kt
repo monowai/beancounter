@@ -5,7 +5,6 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
-import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
@@ -25,21 +24,19 @@ internal class StockSplitTest {
     fun is_QuantityWorkingForSplit() {
         val apple = getAsset(NASDAQ, AAPL)
         val positions = Positions()
-        val position = positions[apple]
-        assertThat(position).isNotNull
 
-        val buyTrn = Trn(TrnType.BUY, apple, hundred)
+        val buyTrn = Trn(trnType = TrnType.BUY, asset = apple, quantity = hundred)
         val tradeAmount = BigDecimal("2000")
 
         buyTrn.tradeAmount = tradeAmount
         val buyBehaviour = BuyBehaviour()
-        buyBehaviour.accumulate(buyTrn, positions.portfolio, position)
+        val position = buyBehaviour.accumulate(buyTrn, positions)
         val totalField = "total"
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, hundred)
-        val stockSplit = Trn(TrnType.SPLIT, apple, BigDecimal("7"))
+        val stockSplit = Trn(trnType = TrnType.SPLIT, asset = apple, quantity = BigDecimal("7"))
         val splitBehaviour = SplitBehaviour()
-        splitBehaviour.accumulate(stockSplit, positions.portfolio, position)
+        splitBehaviour.accumulate(stockSplit, positions)
 
         // 7 for one split
         assertThat(position.quantityValues)
@@ -51,21 +48,21 @@ internal class StockSplitTest {
             .hasFieldOrPropertyWithValue("costBasis", costBasis)
 
         // Another buy at the adjusted price
-        buyBehaviour.accumulate(buyTrn, positions.portfolio, position)
+        buyBehaviour.accumulate(buyTrn, positions)
 
         // 7 for one split
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, BigDecimal(800))
-        val sell = Trn(TrnType.SELL, apple, BigDecimal("800"))
+        val sell = Trn(trnType = TrnType.SELL, asset = apple, quantity = BigDecimal("800"))
         sell.tradeAmount = tradeAmount
 
         // Sell the entire position
-        SellBehaviour().accumulate(sell, positions.portfolio, position)
+        SellBehaviour().accumulate(sell, positions)
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, BigDecimal.ZERO)
 
         // Repurchase; total should be equal to the quantity we just purchased
-        buyBehaviour.accumulate(buyTrn, getPortfolio(), position)
+        buyBehaviour.accumulate(buyTrn, positions)
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, buyTrn.quantity)
     }

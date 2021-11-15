@@ -26,3 +26,17 @@ response:
   bodyFromFile: "./AAPL-response.json"
   headers:
     Content-Type: application/json
+---
+name: MSFT-price
+priority: 1
+request:
+  method: POST
+  url: /prices
+  bodyFromFile: "./MSFT-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./MSFT-response.json"
+  headers:
+    Content-Type: application/json

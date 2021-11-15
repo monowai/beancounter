@@ -1,5 +1,6 @@
 package com.beancounter.common.utils
 
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -31,10 +32,9 @@ class AssetUtils {
             )
 
         @JvmStatic
-        fun split(assets: Collection<AssetInput>): Map<String, MutableCollection<AssetInput>> {
-            val results: MutableMap<String, MutableCollection<AssetInput>> = HashMap()
+        fun split(assets: Collection<PriceAsset>): Map<String, MutableCollection<PriceAsset>> {
+            val results: MutableMap<String, MutableCollection<PriceAsset>> = HashMap()
             for (input in assets) {
-
                 val marketAssets = results.computeIfAbsent(input.market) { ArrayList() }
                 marketAssets.add(input)
             }

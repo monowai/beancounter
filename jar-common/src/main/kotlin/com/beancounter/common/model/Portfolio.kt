@@ -18,7 +18,7 @@ import javax.persistence.UniqueConstraint
 data class Portfolio @ConstructorBinding constructor(
     @Id val id: String,
     val code: String,
-    val name: String,
+    val name: String = code,
     @ManyToOne val currency: Currency,
     @ManyToOne val base: Currency,
     @ManyToOne var owner: SystemUser? = null
@@ -29,5 +29,12 @@ data class Portfolio @ConstructorBinding constructor(
 
     constructor(code: String, currency: Currency) : this(code, code, code, currency, currency)
 
-    constructor(code: String, currency: Currency, base: Currency) : this(code, code, code, currency, base)
+    constructor(code: String, currency: Currency, base: Currency, systemUser: SystemUser?) : this(
+        code,
+        code,
+        code,
+        currency,
+        base,
+        systemUser
+    )
 }

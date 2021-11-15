@@ -17,14 +17,14 @@ request:
 response:
   status: 400
 ---
-name: mockMarket
+name: casahMarket
 priority: 1
 request:
   method: GET
-  url: /markets/MOCK
+  url: /markets/CASH
 response:
   status: 200
-  bodyFromFile: "./mock.json"
+  bodyFromFile: "./cash.json"
   headers:
     Content-Type: application/json
 ---

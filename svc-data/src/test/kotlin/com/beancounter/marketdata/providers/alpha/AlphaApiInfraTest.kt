@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.Constants
@@ -11,7 +10,7 @@ import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,10 +52,10 @@ class AlphaApiInfraTest {
         val results = alphaProvider.getMarketData(
             PriceRequest.Companion.of(asset)
         )
-        Assertions.assertThat(results)
+        assertThat(results)
             .isNotNull
             .hasSize(1)
-        Assertions.assertThat(results.iterator().next())
+        assertThat(results.iterator().next())
             .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
     }
@@ -71,21 +70,20 @@ class AlphaApiInfraTest {
             asset.id,
             ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file
         )
-        Assertions.assertThat(asset).isNotNull
-        val assetInput = AssetInput(asset)
+        assertThat(asset).isNotNull
 
         val results = mdFactory.getMarketDataProvider(AlphaService.ID)
             .getMarketData(
-                PriceRequest.of(assetInput)
+                PriceRequest.of(asset)
             )
-        Assertions.assertThat(results)
+        assertThat(results)
             .isNotNull
             .hasSize(1)
         val mdpPrice = results.iterator().next()
-        Assertions.assertThat(mdpPrice)
+        assertThat(mdpPrice)
             .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(assetInput))
-        Assertions.assertThat(priceResponse).isNotNull
+        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(asset))
+        assertThat(priceResponse).isNotNull
     }
 }

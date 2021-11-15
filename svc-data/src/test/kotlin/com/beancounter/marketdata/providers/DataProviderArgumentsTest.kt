@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
@@ -13,7 +14,7 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
-import com.beancounter.marketdata.providers.mock.MockProviderService
+import com.beancounter.marketdata.providers.mock.CashProviderService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -67,25 +68,25 @@ internal class DataProviderArgumentsTest {
 
     @Test
     fun is_SplitByMarket() {
-        val assets: MutableCollection<AssetInput> = ArrayList()
+        val assets: MutableCollection<PriceAsset> = ArrayList()
         val marketA = "AAA"
         val code = "ABC"
         assets.add(
-            AssetInput(
+            PriceAsset(
                 marketA, code,
                 getAsset(Market(marketA), code)
             )
         )
         val marketB = "BBB"
         assets.add(
-            AssetInput(
+            PriceAsset(
                 marketB, code,
                 getAsset(Market(marketB), code)
             )
         )
         val marketC = "CCC"
         assets.add(
-            AssetInput(
+            PriceAsset(
                 marketC, code,
                 getAsset(Market(marketC), code)
             )
@@ -101,7 +102,7 @@ internal class DataProviderArgumentsTest {
     @Test
     fun activeAssetsByProvider() {
         val providerUtils = getProviderUtils(NYSE)
-        val assetInputs: MutableCollection<AssetInput> = arrayListOf(AssetInput(NYSE.code, "TWEE"))
+        val assetInputs: MutableCollection<PriceAsset> = arrayListOf(PriceAsset(NYSE.code, "TWEE"))
         val splitResults: Map<MarketDataProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
         assertThat(splitResults).hasSize(1)
         splitResults.forEach {
@@ -112,9 +113,13 @@ internal class DataProviderArgumentsTest {
     @Test
     fun inactiveAssetsExcluded() {
         val providerUtils = getProviderUtils(NYSE)
-        val assetInput = AssetInput(NYSE.code, "Not Active")
-        assetInput.resolvedAsset = Asset(assetInput, NYSE, Status.Inactive)
-        val assetInputs: MutableCollection<AssetInput> = arrayListOf(assetInput)
+        val priceAsset =
+            PriceAsset(
+                NYSE.code,
+                "Not Active",
+                Asset(AssetInput(NYSE.code, "Not Active"), NYSE, Status.Inactive)
+            )
+        val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)
         val splitResults: Map<MarketDataProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
         assertThat(splitResults)
             .hasSize(1)
@@ -129,7 +134,7 @@ internal class DataProviderArgumentsTest {
         Mockito.`when`(marketService.getMarket(market.code))
             .thenReturn(market)
         val mdFactory = Mockito.mock(MdFactory::class.java)
-        Mockito.`when`(mdFactory.getMarketDataProvider(market)).thenReturn(MockProviderService())
+        Mockito.`when`(mdFactory.getMarketDataProvider(market)).thenReturn(CashProviderService())
         return ProviderUtils(mdFactory, marketService)
     }
 

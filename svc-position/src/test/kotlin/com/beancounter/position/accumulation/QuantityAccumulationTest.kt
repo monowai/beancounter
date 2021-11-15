@@ -1,7 +1,7 @@
 package com.beancounter.position.accumulation
 
 import com.beancounter.common.model.Market
-import com.beancounter.common.model.Position
+import com.beancounter.common.model.Positions
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
@@ -43,32 +43,29 @@ internal class QuantityAccumulationTest {
 
     @Test
     fun is_TotalQuantityCorrect() {
-        val buyTrn = Trn(TrnType.BUY, getAsset(Market("marketCode"), "CODE"), hundred)
-        buyTrn.tradeAmount = BigDecimal(2000)
-        var position = Position(buyTrn.asset)
-        assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalProp, BigDecimal.ZERO)
-        val portfolio = getPortfolio()
-        position = accumulator.accumulate(buyTrn, portfolio, position)
-        assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(purchasedProp, hundred)
+        val positions = Positions(getPortfolio())
+        val buyTrn = Trn(
+            trnType = TrnType.BUY, asset = getAsset(Market("marketCode"), "CODE"),
+            quantity = hundred,
+            tradeAmount = BigDecimal(2000)
+        )
+        assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
             .hasFieldOrPropertyWithValue(totalProp, hundred)
-        position = accumulator.accumulate(buyTrn, portfolio, position)
-        assertThat(position.quantityValues)
+            .hasFieldOrPropertyWithValue(purchasedProp, hundred)
+
+        assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
             .hasFieldOrPropertyWithValue(purchasedProp, twoHundred)
             .hasFieldOrPropertyWithValue(soldProp, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue(totalProp, twoHundred)
         // Sell to zero
-        val sell = Trn(TrnType.SELL, buyTrn.asset, hundred)
-        position = accumulator.accumulate(sell, portfolio, position)
+        val sell = Trn(trnType = TrnType.SELL, asset = buyTrn.asset, quantity = hundred)
         // Track the money
-        assertThat(position.quantityValues)
+        assertThat(accumulator.accumulate(sell, positions).quantityValues)
             .hasFieldOrPropertyWithValue(soldProp, BigDecimal(-100))
             .hasFieldOrPropertyWithValue(purchasedProp, twoHundred)
             .hasFieldOrPropertyWithValue(totalProp, hundred)
-        position = accumulator.accumulate(sell, portfolio, position)
         // But reset the quantities
-        assertThat(position.quantityValues)
+        assertThat(accumulator.accumulate(sell, positions).quantityValues)
             .hasFieldOrPropertyWithValue(soldProp, zero)
             .hasFieldOrPropertyWithValue(purchasedProp, zero)
             .hasFieldOrPropertyWithValue(totalProp, zero)

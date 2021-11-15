@@ -7,16 +7,6 @@
     "5. Time Zone": "US/Eastern"
   },
   "Time Series (Daily)": {
-    "2020-05-04": {
-      "1. open": "14.3300",
-      "2. high": "14.7900",
-      "3. low": "14.2900",
-      "4. close": "14.6500",
-      "5. adjusted close": "14.6500",
-      "6. volume": "16133123",
-      "7. dividend amount": "0.0000",
-      "8. split coefficient": "1.0000"
-    },
     "2020-05-01": {
       "1. open": "14.8500",
       "2. high": "14.9100",

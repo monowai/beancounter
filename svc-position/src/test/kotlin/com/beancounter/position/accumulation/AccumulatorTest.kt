@@ -25,5 +25,7 @@ class AccumulatorTest {
         assertThat(trnBehaviourFactory[TrnType.SELL]).isNotNull
         assertThat(trnBehaviourFactory[TrnType.DIVI]).isNotNull
         assertThat(trnBehaviourFactory[TrnType.SPLIT]).isNotNull
+        assertThat(trnBehaviourFactory[TrnType.DEPOSIT]).isNotNull
+        assertThat(trnBehaviourFactory[TrnType.FX_BUY]).isNotNull
     }
 }

@@ -3,9 +3,8 @@ package com.beancounter.client.integ
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.services.PriceService
+import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.input.AssetInput
-import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,10 +33,7 @@ class TestPriceService {
 
     @Test
     fun is_MarketDataFoundOnDate() {
-        val asset = assetIngestService.resolveAsset("NASDAQ", "EBAY")
-        val assets: MutableCollection<AssetInput> = ArrayList()
-        assets.add(getAssetInput(asset))
-        val priceRequest = PriceRequest("2019-10-18", assets)
+        val priceRequest = PriceRequest("2019-10-18", arrayListOf(PriceAsset("NASDAQ", "EBAY")))
         val response = priceService.getPrices(priceRequest)
 
         Assertions.assertThat(response).isNotNull

@@ -59,7 +59,7 @@ internal class AlphaPriceTest {
             ClassPathResource("$alphaContracts/kmi-backfill-response.json").file,
             PriceResponse::class.java
         )
-        assertThat(result.data).isNotNull.hasSize(5)
+        assertThat(result.data).isNotNull.hasSize(4)
         for (marketData in result.data) {
             assertThat(marketData)
                 .hasFieldOrProperty("volume")

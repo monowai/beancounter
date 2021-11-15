@@ -5,12 +5,11 @@ request:
   method: POST
   headers:
     Content-Type: application/json
-  bodyFromFile: "./CSV-request.json"
+  bodyFromFile: "./client-csv-request.json"
   url: /trns
 response:
   status: 200
-  #  The response is shared. Input is MSFT, output is AAPL ;-)
-  bodyFromFile: "./CSV-response.json"
+  bodyFromFile: "./client-csv-response.json"
   headers:
     Content-Type: application/json
 ---
@@ -48,5 +47,16 @@ request:
 response:
   status: 200
   bodyFromFile: "./trns-empty-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: cashLadder
+priority: 1
+request:
+  method: GET
+  url: /trns/portfolio/CASHLADDER
+response:
+  status: 200
+  bodyFromFile: "./cash-ladder-response.json"
   headers:
     Content-Type: application/json

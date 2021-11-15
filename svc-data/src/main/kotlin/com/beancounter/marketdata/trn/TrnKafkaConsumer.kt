@@ -9,13 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Controller
 import java.io.IOException
 
 /**
  * Listens to a Kafka queue for Transactions to process.
  */
-@Service
+@Controller
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 class TrnKafkaConsumer {
 

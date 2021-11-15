@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef.Companion.from
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.TradeCalculator
@@ -12,6 +13,7 @@ import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 
 /**
  * Map TrnInput objects to the Trn persistent model.
@@ -34,24 +36,31 @@ class TrnAdapter internal constructor(
 
     fun map(portfolio: Portfolio, trnInput: TrnInput): Trn {
         val cashAsset = cashServices.getCashAsset(trnInput)
+        var cashCurrency: Currency? = null
+        if (cashAsset != null) {
+            cashCurrency = currencyService.getCode(cashAsset.priceSymbol!!)
+        }
+        val tradeAmount = tradeCalculator.amount(trnInput)
+        val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
         return Trn(
             id = keyGenUtils.id,
             callerRef = from(trnInput.callerRef, portfolio),
-            trnInput.trnType,
-            trnInput.status,
+            trnType = trnInput.trnType,
             portfolio = portfolio,
             asset = assetService.find(trnInput.assetId),
             tradeCurrency = currencyService.getCode(trnInput.tradeCurrency)!!,
-            cashCurrency = null,
+            cashCurrency = cashCurrency,
             cashAsset = cashAsset,
             tradeDate = trnInput.tradeDate,
             settleDate = trnInput.settleDate,
-            quantity = trnInput.quantity,
             price = trnInput.price,
             fees = trnInput.fees,
             tax = trnInput.tax,
-            tradeAmount = tradeCalculator.amount(trnInput),
-            cashAmount = cashServices.getCashImpact(trnInput),
+            tradeAmount = tradeAmount,
+            status = trnInput.status,
+            cashAmount = cashServices.getCashImpact(trnInput, tradeAmount),
+            // Sign this value
+            quantity = quantity,
             tradeCashRate = trnInput.tradeCashRate,
             tradeBaseRate = trnInput.tradeBaseRate,
             tradePortfolioRate = trnInput.tradePortfolioRate,

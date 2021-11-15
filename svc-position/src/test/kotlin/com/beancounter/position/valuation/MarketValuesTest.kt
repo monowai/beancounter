@@ -43,20 +43,17 @@ internal class MarketValuesTest {
     private val twenty = BigDecimal("20.00")
 
     @Test
-    fun is_MarketValue() {
+    fun is_MarketValueFromBehaviour() {
         val asset = getAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
-        val buyTrn = Trn(TrnType.BUY, asset, hundred)
+        val buyTrn = Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred)
         buyTrn.tradeAmount = twoThousand
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
-        val position = Position(asset)
         val portfolio = getPortfolio()
-        buyBehaviour.accumulate(buyTrn, portfolio, position)
         val positions = Positions(portfolio)
-        positions.add(position)
-        val marketData = MarketData(asset)
-        marketData.close = BigDecimal("10.00")
+        val position = buyBehaviour.accumulate(buyTrn, positions)
+        val marketData = MarketData(asset, close = BigDecimal("10.00"))
         marketData.previousClose = BigDecimal("5.00")
 
         // Revalue based on marketData prices
@@ -102,7 +99,7 @@ internal class MarketValuesTest {
     }
 
     @Test
-    fun is_GainsOnSell() {
+    fun is_GainsOnSellBehaviour() {
         val portfolio = getPortfolio()
         val asset = getAsset(NASDAQ, "ABC")
         val fxRateMap: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
@@ -117,21 +114,27 @@ internal class MarketValuesTest {
                 simpleRate, null
             )
         }
-        val buyTrn = Trn(TrnType.BUY, asset, hundred)
-        buyTrn.tradeAmount = twoThousand
-        buyTrn.tradePortfolioRate = simpleRate
+        val buyTrn = Trn(
+            trnType = TrnType.BUY,
+            asset = asset,
+            quantity = hundred,
+            tradeAmount = twoThousand,
+            tradePortfolioRate = simpleRate
+        )
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
-        val position = Position(asset)
-        buyBehaviour.accumulate(buyTrn, portfolio, position)
         val positions = Positions(portfolio)
-        positions.add(position)
-        val sellTrn = Trn(TrnType.SELL, asset, hundred)
-        sellTrn.tradeAmount = BigDecimal("3000.00")
-        sellTrn.tradePortfolioRate = simpleRate
+        val position = buyBehaviour.accumulate(buyTrn, positions)
+        val sellTrn =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = BigDecimal("3000.00"),
+                tradePortfolioRate = simpleRate
+            )
         val sellBehaviour: AccumulationStrategy = SellBehaviour()
-        sellBehaviour.accumulate(sellTrn, portfolio, position)
-        val marketData = MarketData(asset)
-        marketData.close = BigDecimal("10.00")
+        sellBehaviour.accumulate(sellTrn, positions)
+        val marketData = MarketData(asset, close = BigDecimal("10.00"))
         marketData.previousClose = BigDecimal("9.00")
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
         val usdValues = MoneyValues(USD)
@@ -166,18 +169,18 @@ internal class MarketValuesTest {
     }
 
     @Test
-    fun is_MarketValueWithNoPriceComputed() {
+    fun is_MarketValueWithNoPriceComputedForBuyBehaviour() {
         val asset = getAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
-        val buyTrn = Trn(TrnType.BUY, asset, hundred)
-        buyTrn.tradeAmount = BigDecimal("2000.00")
+        val buyTrn = Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred, tradeAmount = BigDecimal("2000.00"))
         assertThat(buyTrn.tradeCurrency.code).isEqualTo(asset.market.currency.code)
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
+        // Behaviour tests manage their own Positions.
         val position = Position(asset)
         val portfolio = getPortfolio()
-        buyBehaviour.accumulate(buyTrn, portfolio, position)
         val positions = Positions(portfolio)
+        buyBehaviour.accumulate(buyTrn, positions)
         positions.add(position)
         val marketData = MarketData(asset)
         val fxRateMap = getRates(portfolio, asset, simpleRate)

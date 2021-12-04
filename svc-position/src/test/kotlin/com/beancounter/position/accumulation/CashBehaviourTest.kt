@@ -36,6 +36,8 @@ class CashBehaviourTest {
         assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
             .hasFieldOrPropertyWithValue("costValue", trn.quantity)
             .hasFieldOrPropertyWithValue("costBasis", trn.quantity)
+
+        assertThat(position.quantityValues).hasFieldOrPropertyWithValue("precision", 2)
     }
 
     @Test

@@ -7,6 +7,9 @@ import com.beancounter.common.utils.MathUtils
 import com.beancounter.position.utils.CurrencyResolver
 import java.math.BigDecimal
 
+/**
+ * Calculate the cost of cash
+ */
 class CashCost {
     private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()

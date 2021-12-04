@@ -45,7 +45,7 @@ class Constants {
             name = "${NZD.code} Balance",
             priceSymbol = USD.code,
             market = Market("CASH", USD),
-            category = "CASH"
+            category = "CASH",
         )
 
         private val id = "blah@blah.com"

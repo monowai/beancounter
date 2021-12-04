@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.AsyncResult
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
 import java.util.concurrent.Future
@@ -41,7 +42,7 @@ class PriceService internal constructor(
     fun process(priceResponse: PriceResponse): Iterable<MarketData>? {
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
-            if (marketData.asset.isKnown) {
+            if (writeEvent(marketData)) {
                 val existing = marketDataRepo.findByAssetIdAndPriceDate(
                     marketData.asset.id,
                     marketData.priceDate
@@ -57,6 +58,21 @@ class PriceService internal constructor(
         return if (createSet.isEmpty()) {
             createSet
         } else marketDataRepo.saveAll(createSet)
+    }
+
+    private fun writeEvent(marketData: MarketData): Boolean {
+        if (!marketData.asset.isKnown) {
+            return false
+        }
+
+        if (marketData.dividend != null && marketData.dividend!!.compareTo(BigDecimal.ZERO) != 0) {
+            return true
+        }
+
+        if (marketData.split != null && marketData.split!!.compareTo(BigDecimal.ONE) != 0) {
+            return true
+        }
+        return false
     }
 
     fun purge() {

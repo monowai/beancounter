@@ -50,7 +50,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
             category = assetResult.type,
             market = market,
             marketCode = market.code,
-            priceSymbol = assetResult.symbol!!,
+            priceSymbol = assetResult.symbol,
         )
     }
 

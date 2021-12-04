@@ -51,13 +51,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     private lateinit var priceDate: LocalDate
     private val mockPrice = BigDecimal("999.99")
-    private val asset: Asset = getAsset(
-        NASDAQ, "dummy"
-    )
-
-    // Represents dummy after it has been Jackson'ized
-    private val dummyJsonAsset: Asset = this.bcJson.objectMapper
-        .readValue(this.bcJson.objectMapper.writeValueAsString(asset), Asset::class.java)
+    private val asset: Asset = Asset(market = NASDAQ, code = "dummy")
 
     @MockBean
     private lateinit var assetService: AssetService
@@ -71,7 +65,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
             .thenReturn(
                 Optional.of(
                     MarketData(
-                        dummyJsonAsset,
+                        asset,
                         close = mockPrice,
                         open = mockPrice,
                         priceDate = priceDate
@@ -138,7 +132,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
         assertThat(data).isNotNull.hasSize(1)
         val marketData = data.iterator().next()
         assertThat(marketData)
-            .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
+            .hasFieldOrPropertyWithValue("asset.id", asset.id)
             .hasFieldOrPropertyWithValue("open", mockPrice)
             .hasFieldOrPropertyWithValue("priceDate", priceDate)
     }
@@ -203,9 +197,9 @@ internal class MarketDataControllerTests @Autowired private constructor(
             .contentAsString
         val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
         assertThat(data).isNotNull.hasSize(1)
-        val marketData = data.iterator().next()
-        assertThat(marketData)
-            .hasFieldOrPropertyWithValue("asset", dummyJsonAsset)
+        assertThat(data.iterator().next())
+            .hasFieldOrPropertyWithValue("asset.id", asset.id)
+            .hasFieldOrPropertyWithValue("asset.market.code", asset.market.code)
             .hasFieldOrPropertyWithValue("open", mockPrice)
             .hasFieldOrPropertyWithValue("priceDate", priceDate)
     }

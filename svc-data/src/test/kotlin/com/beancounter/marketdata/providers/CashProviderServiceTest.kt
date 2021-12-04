@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 /**
- * Data provider tests.
+ * Asserts CashProvider assumptions.
  *
  * @author mikeh
- * @since 2019-03-01
+ * @since 2021-12-01
  */
 internal class CashProviderServiceTest {
     @Test

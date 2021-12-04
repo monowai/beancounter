@@ -24,6 +24,7 @@ import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -94,6 +95,7 @@ class KafkaMarketDataTest {
 
     @Test
     @Throws(Exception::class)
+    @Disabled // Not yet implemented.
     fun pricePersisted() {
         val assetRequest = AssetRequest("test", AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code))
         val assetResult = assetService.process(assetRequest)!!

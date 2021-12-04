@@ -18,64 +18,40 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "marketCode"])])
-data class Asset constructor(var code: String) {
+data class Asset constructor(
+    @Id val id: String,
+    var code: String,
+    @JsonInclude(JsonInclude.Include.NON_NULL) var name: String?,
+    @Transient var market: Market,
+    @JsonIgnore val marketCode: String? = null,
+    val priceSymbol: String? = null,
+    @JsonIgnore var category: String = "Equity",
+    @Transient var assetCategory: AssetCategory = AssetCategory(category, category),
+    val status: Status = Status.Active,
+    var version: String = "1",
+) {
     init {
         code = code.uppercase(Locale.getDefault())
     }
 
-    @Id
-    lateinit var id: String
+    constructor(input: AssetInput, market: Market, status: Status = Status.Active) : this(
+        id = input.code,
+        code = input.code,
+        name = input.name,
+        category = input.category,
+        market = market,
+        marketCode = market.code,
+        priceSymbol = input.code,
+        status = status
+    )
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    var name: String? = null
-
-    @JsonIgnore
-    var category = "Equity"
-
-    @Transient
-    var assetCategory: AssetCategory = AssetCategory(category, category)
-
-    // Market is managed externally as static data; marketCode alone is persisted.
-    @Transient
-    lateinit var market: Market
-
-    // Caller doesn't see marketCode
-    @JsonIgnore
-    var marketCode: String? = null
-
-    // Either the market providers symbol or the Currency code in the case of cash.
-    var priceSymbol: String? = null
-    var version: String = "1"
-    var status: Status = Status.Active
-
-    constructor(
-        id: String,
-        code: String,
-        name: String?,
-        category: String?,
-        market: Market,
-        marketCode: String = market.code,
-        priceSymbol: String?,
-        status: Status = Status.Active
-    ) : this(code) {
-        this.id = id
-        this.name = name
-        this.category = category ?: "Equity"
-        this.market = market
-        this.marketCode = marketCode
-        this.priceSymbol = priceSymbol
-        this.status = status
-    }
-
-    constructor(input: AssetInput, market: Market, status: Status = Status.Active) :
-        this(input.code, input.code, input.name, input.category, market, market.code, input.code, status)
-
-    constructor(code: String, market: Market) : this(code) {
-        this.id = code.uppercase()
-        this.name = code
-        this.market = market
-        this.marketCode = market.code
-    }
+    constructor(code: String, market: Market, marketCode: String? = null) : this(
+        id = code.uppercase(),
+        code = code,
+        name = code,
+        market = market,
+        marketCode = marketCode
+    )
 
     // Is this asset stored locally?
     @get:JsonIgnore

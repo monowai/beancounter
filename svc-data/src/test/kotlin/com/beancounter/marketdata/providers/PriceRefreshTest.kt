@@ -40,7 +40,8 @@ internal class PriceRefreshTest {
         val asset = assetRepository.save(
             Asset(
                 code = keyGenUtils.id,
-                market = NASDAQ
+                market = NASDAQ,
+                marketCode = NASDAQ.code
             )
         )
         val hydratedAsset = assetHydrationService.hydrateAsset(asset)

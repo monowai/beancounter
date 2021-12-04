@@ -78,6 +78,7 @@ dependencies {
     testImplementation(
             "org.junit.jupiter:junit-jupiter",
             "org.assertj:assertj-core",
+            "org.mockito.kotlin:mockito-kotlin:4.0.0",
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",

@@ -6,7 +6,6 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PriceRequest.Companion.of
-import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -41,7 +40,10 @@ import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.price
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceSymbolProp
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.getAlphaApi
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedResponse
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
 import com.beancounter.marketdata.providers.wtd.WtdService
+import com.beancounter.marketdata.trn.CashServices
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
@@ -49,8 +51,10 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Spy
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -99,6 +103,9 @@ internal class AlphaVantageApiTest {
 
     @Autowired
     private lateinit var priceSchedule: PriceSchedule
+
+    @MockBean
+    private lateinit var cashServices: CashServices
 
     @Autowired
     private lateinit var assetService: AssetService
@@ -259,7 +266,7 @@ internal class AlphaVantageApiTest {
     @Throws(Exception::class)
     fun is_PriceNotFoundSetIntoAsset() {
         val code = "BWLD"
-        AlphaMockUtils.mockSearchResponse(
+        mockSearchResponse(
             code,
             ClassPathResource("$mockAlpha/bwld-search.json").file
         )
@@ -288,21 +295,22 @@ internal class AlphaVantageApiTest {
 
     @Test
     @Throws(Exception::class)
-    fun is_BackFillNasdaqIncludingDividendEvent() {
-        AlphaMockUtils.mockSearchResponse("KMI", ClassPathResource("$mockAlpha/kmi-search.json").file)
-        val file = ClassPathResource("$mockAlpha/kmi-backfill-response.json").file
-        AlphaMockUtils.mockAdjustedResponse("KMI", file)
-        val alphaMapper = AlphaPriceAdapter().alphaMapper
-        val priceResponse = alphaMapper.readValue(file, PriceResponse::class.java)
-        val assetInputMap = mapOf(Pair(keyProp, AssetInput(NASDAQ.code, "KMI")))
-        val asset = assetService.process(AssetRequest(assetInputMap)).data[keyProp]
-        assertThat(asset).isNotNull.hasFieldOrProperty("id")
+    fun is_BackFillWritingDividendEvent() {
         priceService.setEventWriter(mockEventWriter)
+        val assetCode = "KMI"
+        mockSearchResponse(assetCode, ClassPathResource("$mockAlpha/kmi-search.json").file)
+        val file = ClassPathResource("$mockAlpha/kmi-backfill-response.json").file
+        mockAdjustedResponse(assetCode, file)
+        val asset =
+            assetService.process(
+                AssetRequest(mapOf(Pair(keyProp, AssetInput(NASDAQ.code, assetCode))))
+            ).data[keyProp]
+        assertThat(asset).isNotNull.hasFieldOrProperty("id")
         marketDataService.backFill(asset!!)
         Thread.sleep(300)
         Mockito.verify(
             mockEventWriter,
-            Mockito.times(1) // Found the Dividend request
-        ).write(priceResponse.data.iterator().next())
+            Mockito.times(1) // Found the Dividend request; ignored the prices
+        ).write(any())
     }
 }

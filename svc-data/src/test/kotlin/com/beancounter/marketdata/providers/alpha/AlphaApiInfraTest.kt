@@ -65,7 +65,6 @@ class AlphaApiInfraTest {
     fun is_ApiCallLimitExceededHandled() {
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
         val asset = Asset("ABC", nasdaq)
-        asset.id = asset.code
         AlphaMockUtils.mockGlobalResponse(
             asset.id,
             ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file

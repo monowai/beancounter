@@ -1,5 +1,6 @@
 package com.beancounter.common
 
+import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetSearchResponse
@@ -39,10 +40,8 @@ class AssetSerialization {
     @Test
     @Throws(Exception::class)
     fun assetResponseSerializes() {
-        val assetResponse = AssetResponse(AssetUtils.getAsset(Market("XXX"), "YYY"))
-        assetResponse.data.marketCode = null // JsonIgnore
-        val json = objectMapper.writeValueAsString(assetResponse)
-        val fromJson = objectMapper.readValue(json, AssetResponse::class.java)
+        val assetResponse = AssetResponse(Asset(market = Market("XXX"), code = "YYY"))
+        val fromJson = objectMapper.readValue(objectMapper.writeValueAsString(assetResponse), AssetResponse::class.java)
         assertThat(fromJson.data)
             .isEqualTo(assetResponse.data)
     }
@@ -55,14 +54,14 @@ class AssetSerialization {
             "Some Name",
             "Non Default",
             "Some Region",
-            "USD"
+            USD.code
         )
         val withDefaults = AssetSearchResult(
             "Symbol",
             "Name",
-            null,
+            "Equity",
             "Some Region",
-            "USD"
+            USD.code
         )
 
         val results: MutableCollection<AssetSearchResult> = ArrayList()

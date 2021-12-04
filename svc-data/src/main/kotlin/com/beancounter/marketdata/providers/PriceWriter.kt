@@ -10,13 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.DependsOn
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 
 /**
  * Write prices in relation to incoming messages.
  */
-@Service
+@Controller
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 @Transactional
 @DependsOn("kafkaConfig")

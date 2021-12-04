@@ -10,7 +10,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -70,8 +69,8 @@ internal class AssetControllerTest(
     @Test
     @Throws(Exception::class)
     fun is_AssetCreationAndFindByWorking() {
-        val firstAsset = getAsset(NASDAQ, "MyCode")
-        val secondAsset = getAsset(NASDAQ, "Second")
+        val firstAsset = Asset(market = NASDAQ, code = "MyCode")
+        val secondAsset = Asset(market = NASDAQ, code = "Second")
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
         assetInputMap[toKey(firstAsset)] = getAssetInput(NASDAQ.code, "MyCode")
         assetInputMap[toKey(secondAsset)] = getAssetInput(NASDAQ.code, "Second")

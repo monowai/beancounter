@@ -26,9 +26,9 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
             )
             for (row in rows) {
                 val searchResult = AssetSearchResult(
-                    row["1. symbol"],
-                    row["2. name"],
-                    row["3. type"],
+                    row["1. symbol"]!!,
+                    row["2. name"]!!,
+                    row["3. type"]!!,
                     null,
                     row["8. currency"]
                 )

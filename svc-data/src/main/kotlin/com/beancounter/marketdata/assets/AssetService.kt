@@ -43,7 +43,7 @@ class AssetService internal constructor(
             if (assetInput.name != null) {
                 defaultName = assetInput.name!!.replace("\"", "")
             }
-            val id = keyGenUtils.format(UUID.randomUUID())
+            val id = keyGenUtils.id
             // Fill in missing asset attributes
             var asset = enrichmentFactory.getEnricher(market)
                 .enrich(

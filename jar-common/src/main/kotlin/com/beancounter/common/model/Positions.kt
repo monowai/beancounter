@@ -37,6 +37,9 @@ class Positions(
     private val tradeCurrencies: MutableCollection<Currency> = ArrayList()
 
     fun add(position: Position): Position {
+        if (position.asset.assetCategory.id === "CASH") {
+            position.quantityValues.setPrecision(2)
+        }
         positions[toKey(position.asset)] = position
         if (!isMixedCurrencies) {
             if (!tradeCurrencies.contains(position.asset.market.currency)) {

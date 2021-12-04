@@ -23,9 +23,7 @@ class MarketDataService @Autowired internal constructor(
 ) {
     @Transactional
     fun backFill(asset: Asset) {
-        val assets: MutableCollection<Asset> = ArrayList()
-        assets.add(asset)
-        val byFactory = providerUtils.splitProviders(providerUtils.getInputs(assets))
+        val byFactory = providerUtils.splitProviders(providerUtils.getInputs(mutableListOf(asset)))
         for (marketDataProvider in byFactory.keys) {
             priceService.process(marketDataProvider.backFill(asset))
         }

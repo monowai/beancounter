@@ -1,5 +1,6 @@
 package com.beancounter.common
 
+import com.beancounter.common.Constants.Companion.NYSE
 import com.beancounter.common.Constants.Companion.changePercentProp
 import com.beancounter.common.Constants.Companion.changeProp
 import com.beancounter.common.Constants.Companion.closeProp
@@ -18,9 +19,11 @@ import java.math.BigDecimal
  * Pojo Price tests
  */
 class TestPriceData {
+    val asset = Asset(code = "ABC", market = NYSE)
+
     @Test
     fun is_PriceDataWithRates() {
-        val marketData = MarketData(Asset(""))
+        val marketData = MarketData(asset)
         marketData.changePercent = BigDecimal("1.01")
         marketData.previousClose = BigDecimal("1.00")
         marketData.change = BigDecimal("1.00")
@@ -45,7 +48,7 @@ class TestPriceData {
 
     @Test
     fun is_ChangeWithRatesComputing() {
-        val marketData = MarketData(Asset("X"))
+        val marketData = MarketData(asset)
 
         marketData.previousClose = BigDecimal("40.92")
         marketData.close = BigDecimal("41.35")
@@ -68,7 +71,7 @@ class TestPriceData {
 
     @Test
     fun is_PriceDataNullOk() {
-        val marketData = MarketData(Asset(""))
+        val marketData = MarketData(asset)
         val change = "1.01"
         marketData.changePercent = BigDecimal(change)
         marketData.previousClose = null
@@ -81,7 +84,7 @@ class TestPriceData {
         val noFx = PriceData.of(marketData)
         assertThat(noFx).isNotNull
 
-        val mdWithFx = MarketData(Asset(""))
+        val mdWithFx = MarketData(asset)
         mdWithFx.changePercent = BigDecimal(change)
         mdWithFx.previousClose = one
         mdWithFx.change = one

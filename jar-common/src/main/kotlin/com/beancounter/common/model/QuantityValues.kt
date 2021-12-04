@@ -10,9 +10,9 @@ import java.math.BigDecimal
  * @since 2019-01-28
  */
 class QuantityValues {
-    var sold = BigDecimal.ZERO
-    var purchased = BigDecimal.ZERO
-    var adjustment = BigDecimal.ZERO
+    var sold: BigDecimal = BigDecimal.ZERO
+    var purchased: BigDecimal = BigDecimal.ZERO
+    var adjustment: BigDecimal = BigDecimal.ZERO
     private var precision: Int? = null
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -28,7 +28,7 @@ class QuantityValues {
         return if (getTotal().remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) 0 else 3
     }
 
-    fun setPrecision(precision: Int) {
+    fun setPrecision(precision: Int = 2) {
         this.precision = precision
     }
 }

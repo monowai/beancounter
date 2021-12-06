@@ -23,10 +23,10 @@ import java.math.BigDecimal
 class CashServices(val assetService: AssetService, val currencyService: CurrencyService) {
 
     fun getCashImpact(trnInput: TrnInput, tradeAmount: BigDecimal = trnInput.tradeAmount): BigDecimal? {
-        if (trnInput.cashAmount != null) {
-            return trnInput.cashAmount
-        }
         if (TrnType.isCashImpacted(trnInput.trnType)) {
+            if (trnInput.cashAmount != null && trnInput.cashAmount!!.compareTo(BigDecimal.ZERO) != 0) {
+                return trnInput.cashAmount // Cash amount has been set by the caller
+            }
             val rate = trnInput.tradeCashRate ?: BigDecimal("1.00")
             if (creditsCash.contains(trnInput.trnType)) {
                 return MathUtils.divide(tradeAmount.abs(), rate)

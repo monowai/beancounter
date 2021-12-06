@@ -39,7 +39,7 @@ class MarketDataService @Autowired internal constructor(
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
         val fromDb: MutableCollection<MarketData> = ArrayList()
-        var apiResults: Collection<MarketData> = ArrayList()
+        var fromApi: Collection<MarketData> = ArrayList()
         var marketDate: LocalDate?
         val marketData: MutableMap<String, LocalDate> = mutableMapOf()
 
@@ -48,14 +48,13 @@ class MarketDataService @Autowired internal constructor(
             val assetIterable = (byFactory[marketDataProvider] ?: error("")).iterator()
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
-                marketDate = marketData[asset.market.timezone.id]
-                if (marketDate == null) {
-                    marketDate = marketDataProvider.getDate(asset.market, priceRequest)
-                    if (priceRequest.assets.size > 1) {
-                        marketData[asset.market.timezone.id] = marketDate
-                        log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
-                    }
-                }
+                marketDate = getMarketDate(
+                    marketData[asset.market.timezone.id],
+                    marketDataProvider,
+                    asset,
+                    priceRequest,
+                    marketData
+                )
 
                 val md = priceService.getMarketData(asset.id, marketDate)
                 if (md.isPresent) {
@@ -67,22 +66,50 @@ class MarketDataService @Autowired internal constructor(
             }
 
             // Pull the balance over external API integration
-            val apiAssets = byFactory[marketDataProvider]
-            if (!apiAssets!!.isEmpty()) {
-                val assetInputs = providerUtils.getInputs(apiAssets)
-                val apiRequest = PriceRequest(priceRequest.date, assetInputs)
-                apiResults = marketDataProvider.getMarketData(apiRequest)
-            }
+            fromApi = getExternally(byFactory[marketDataProvider], priceRequest, fromApi, marketDataProvider)
         }
         // Merge results into a response
-        if (fromDb.size + apiResults.size > 1) {
-            log.debug("From DB: ${fromDb.size}, from API: ${apiResults.size}")
+        if (fromDb.size + fromApi.size > 1) {
+            log.debug("From DB: ${fromDb.size}, from API: ${fromApi.size}")
         }
-        if (apiResults.isNotEmpty()) {
-            priceService.write(PriceResponse(apiResults)) // Async write
+        if (fromApi.isNotEmpty()) {
+            priceService.write(PriceResponse(fromApi)) // Async write
         }
-        fromDb.addAll(apiResults)
+        fromDb.addAll(fromApi)
         return PriceResponse(fromDb)
+    }
+
+    private fun getExternally(
+        apiAssets: MutableCollection<Asset>?,
+        priceRequest: PriceRequest,
+        apiResults: Collection<MarketData>,
+        marketDataProvider: MarketDataProvider
+    ): Collection<MarketData> {
+        var apiResults1 = apiResults
+        if (!apiAssets!!.isEmpty()) {
+            val assetInputs = providerUtils.getInputs(apiAssets)
+            val apiRequest = PriceRequest(priceRequest.date, assetInputs)
+            apiResults1 = marketDataProvider.getMarketData(apiRequest)
+        }
+        return apiResults1
+    }
+
+    private fun getMarketDate(
+        forTimezone: LocalDate?,
+        marketDataProvider: MarketDataProvider,
+        asset: Asset,
+        priceRequest: PriceRequest,
+        marketData: MutableMap<String, LocalDate>
+    ): LocalDate {
+        var marketDate = forTimezone
+        if (marketDate == null) {
+            marketDate = marketDataProvider.getDate(asset.market, priceRequest)
+            if (priceRequest.assets.size > 1) {
+                marketData[asset.market.timezone.id] = marketDate
+                log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
+            }
+        }
+        return marketDate
     }
 
     /**

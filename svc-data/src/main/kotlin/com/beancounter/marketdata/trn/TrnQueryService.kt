@@ -14,7 +14,7 @@ import javax.transaction.Transactional
  */
 @Service
 @Transactional
-class TrnQueryService (val trnService: TrnService, val trnRepository: TrnRepository) {
+class TrnQueryService(val trnService: TrnService, val trnRepository: TrnRepository) {
 
     /**
      * Trades in a portfolio for the specified asset.
@@ -43,6 +43,7 @@ class TrnQueryService (val trnService: TrnService, val trnRepository: TrnReposit
         )
         return trnService.postProcess(results, false)
     }
+
     fun findAssetTrades(portfolio: Portfolio, assetId: String): TrnResponse {
         val typeFilter = ArrayList<TrnType>()
         typeFilter.add(TrnType.BUY)
@@ -85,5 +86,4 @@ class TrnQueryService (val trnService: TrnService, val trnRepository: TrnReposit
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)
     }
-
 }

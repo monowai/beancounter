@@ -83,8 +83,8 @@ class CashLadderTrnTests {
     }
 
     private val fiveK = BigDecimal("5000.00")
-
     private val propTradeAmount = "tradeAmount"
+    private val propCashAmount = "cashAmount"
 
     @Test
     fun depositCash() {
@@ -110,7 +110,7 @@ class CashLadderTrnTests {
         val cashTrn = trns.data.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(propTradeAmount, cashDeposit.tradeAmount)
-            .hasFieldOrPropertyWithValue("cashAmount", fiveK)
+            .hasFieldOrPropertyWithValue(propCashAmount, fiveK)
             .hasFieldOrPropertyWithValue("tradeCashRate", cashDeposit.tradeCashRate)
             .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
             .hasFieldOrPropertyWithValue("cashCurrency", NZD)
@@ -136,7 +136,7 @@ class CashLadderTrnTests {
         val cashTrn = trns.data.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(propTradeAmount, buy.tradeAmount)
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-10000.00"))
+            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-10000.00"))
             .hasFieldOrPropertyWithValue("tradeCashRate", buy.tradeCashRate)
             .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
             .hasFieldOrPropertyWithValue("cashCurrency", NZD)
@@ -217,7 +217,7 @@ class CashLadderTrnTests {
             .hasFieldOrPropertyWithValue(propTradeAmount, BigDecimal("1000.00"))
             .hasFieldOrPropertyWithValue("cashAsset.id", nzCashAsset.id)
             .hasFieldOrPropertyWithValue("cashCurrency.code", NZD.code)
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-1492.54"))
+            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-1492.54"))
 
         val trnResponse = TrnResponse(
             arrayListOf(

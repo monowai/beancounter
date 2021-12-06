@@ -14,6 +14,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.registration.SystemUserRepository
+import com.beancounter.marketdata.trn.TrnQueryService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import contracts.ContractHelper
@@ -69,6 +70,9 @@ class TrnBase {
     internal lateinit var tokenService: TokenService
 
     @MockBean
+    internal lateinit var trnQueryService: TrnQueryService
+
+    @MockBean
     internal lateinit var keyGenUtils: KeyGenUtils
 
     internal var dateUtils = DateUtils()
@@ -114,7 +118,7 @@ class TrnBase {
             "contracts/trn/cash-ladder-response.json"
         )
         Mockito.`when`(
-            trnService.findByPortfolioAsset(
+            trnQueryService.findAssetTrades(
                 PortfolioBase.testPortfolio,
                 "KMI",
                 dateUtils.getDate("2020-05-01", dateUtils.getZoneId())

@@ -42,36 +42,17 @@ class PricesBase : ContractVerifierBase() {
     }
 
     fun mockPrices() {
-        mockPriceResponse(
-            "EBAY",
-            WtdMarketData(
-                BigDecimal("39.21"),
-                BigDecimal("100.00"),
-                BigDecimal("38.74"),
-                BigDecimal("39.35"),
-                Integer.decode("6274307")
-            )
+        val marketData = WtdMarketData(
+            BigDecimal("39.21"),
+            BigDecimal("100.00"),
+            BigDecimal("38.74"),
+            BigDecimal("39.35"),
+            Integer.decode("6274307")
         )
-        mockPriceResponse(
-            "AAPL",
-            WtdMarketData(
-                BigDecimal("39.21"),
-                BigDecimal("100.00"),
-                BigDecimal("38.74"),
-                BigDecimal("39.35"),
-                Integer.decode("6274307")
-            )
-        )
-        mockPriceResponse(
-            "MSFT",
-            WtdMarketData(
-                BigDecimal("39.21"),
-                BigDecimal("100.00"),
-                BigDecimal("38.74"),
-                BigDecimal("39.35"),
-                Integer.decode("6274307")
-            )
-        )
+
+        mockPriceResponse("EBAY", marketData)
+        mockPriceResponse("AAPL", marketData)
+        mockPriceResponse("MSFT", marketData)
     }
 
     private fun mockPriceResponse(code: String, marketData: WtdMarketData) {

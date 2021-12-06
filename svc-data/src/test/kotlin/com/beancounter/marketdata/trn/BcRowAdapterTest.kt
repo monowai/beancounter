@@ -53,11 +53,16 @@ class BcRowAdapterTest {
         Mockito.`when`(assetService.find(NZD.code)).thenReturn(nzdCashBalance)
     }
 
+    private val propAssetId = "assetId"
+    private val cashAssetId = "cashAssetId"
+    private val tradeAmount = "tradeAmount"
+    private val propQuantity = "quantity"
+    private val propCashAmount = "cashAmount"
+
     @Test
     fun trimmedCsvInputValues() {
-// Input has been formatted with extraneous spaces.
-        val values = "BC,USX,Kt-1jW3x1g,BUY,NASDAQ,$cdna,Caredx," +
-            "USD,USD,2021-08-11,200.000000,NZD,1.000000,USD,77.780000,0.00,1.386674,2000.00,-2000.00,"
+        val values = "BC  ,USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$cdna,Caredx," +
+            "USD ,USD ,2021-08-11 ,200.000000  ,NZD  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
 
 // BC will receive data in the same manner
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
@@ -69,11 +74,11 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
             .hasFieldOrPropertyWithValue("comments", "")
             .hasFieldOrPropertyWithValue("tradeDate", DateUtils().getOrThrow("2021-08-11"))
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal(200))
-            .hasFieldOrPropertyWithValue("assetId", cdna)
-            .hasFieldOrPropertyWithValue("cashAssetId", usdCashBalance.code)
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-2000")) // Nothing sent, so nothing computed
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("2000"))
+            .hasFieldOrPropertyWithValue(propQuantity, BigDecimal(200))
+            .hasFieldOrPropertyWithValue(propAssetId, cdna)
+            .hasFieldOrPropertyWithValue(cashAssetId, usdCashBalance.code)
+            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-2000")) // Nothing sent, so nothing computed
+            .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("2000"))
     }
 
     @Test
@@ -98,9 +103,9 @@ class BcRowAdapterTest {
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
         assertThat(trn)
-            .hasFieldOrPropertyWithValue("assetId", nzdCashBalance.id)
-            .hasFieldOrPropertyWithValue("cashAssetId", nzdCashBalance.id)
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("10000"))
+            .hasFieldOrPropertyWithValue(propAssetId, nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue(cashAssetId, nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("10000"))
     }
 
     @Test
@@ -111,12 +116,13 @@ class BcRowAdapterTest {
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
+        val amount = BigDecimal("8359.43")
         assertThat(trn)
-            .hasFieldOrPropertyWithValue("assetId", usdCashBalance.id)
-            .hasFieldOrPropertyWithValue("cashAssetId", nzdCashBalance.id)
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal("8359.43"))
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("8359.43"))
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-10000"))
+            .hasFieldOrPropertyWithValue(propAssetId, usdCashBalance.id)
+            .hasFieldOrPropertyWithValue(cashAssetId, nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue(propQuantity, amount)
+            .hasFieldOrPropertyWithValue(tradeAmount, amount)
+            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-10000"))
     }
 
     private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =

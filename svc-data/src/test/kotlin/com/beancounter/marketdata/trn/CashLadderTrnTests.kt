@@ -82,6 +82,10 @@ class CashLadderTrnTests {
         enrichmentFactory.register(MockEnricher())
     }
 
+    private val fiveK = BigDecimal("5000.00")
+
+    private val propTradeAmount = "tradeAmount"
+
     @Test
     fun depositCash() {
         val cashInput = AssetUtils.getCash(NZD.code)
@@ -98,15 +102,15 @@ class CashLadderTrnTests {
             cashAssetId = nzCashAsset.id,
             trnType = TrnType.DEPOSIT,
             tradeCashRate = BigDecimal("1.00"),
-            tradeAmount = BigDecimal("5000.00"),
+            tradeAmount = fiveK,
             price = ONE
         )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(cashDeposit)))
         assertThat(trns.data).isNotNull.hasSize(1)
         val cashTrn = trns.data.iterator().next()
         assertThat(cashTrn)
-            .hasFieldOrPropertyWithValue("tradeAmount", cashDeposit.tradeAmount)
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("5000.00"))
+            .hasFieldOrPropertyWithValue(propTradeAmount, cashDeposit.tradeAmount)
+            .hasFieldOrPropertyWithValue("cashAmount", fiveK)
             .hasFieldOrPropertyWithValue("tradeCashRate", cashDeposit.tradeCashRate)
             .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
             .hasFieldOrPropertyWithValue("cashCurrency", NZD)
@@ -124,14 +128,14 @@ class CashLadderTrnTests {
             assetId = equity!!.id,
             cashAssetId = nzCashAsset!!.id,
             tradeCashRate = BigDecimal("0.50"),
-            tradeAmount = BigDecimal("5000.00"),
+            tradeAmount = fiveK,
             price = ONE
         )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(buy)))
         assertThat(trns.data).isNotNull.hasSize(1)
         val cashTrn = trns.data.iterator().next()
         assertThat(cashTrn)
-            .hasFieldOrPropertyWithValue("tradeAmount", buy.tradeAmount)
+            .hasFieldOrPropertyWithValue(propTradeAmount, buy.tradeAmount)
             .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-10000.00"))
             .hasFieldOrPropertyWithValue("tradeCashRate", buy.tradeCashRate)
             .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
@@ -210,7 +214,7 @@ class CashLadderTrnTests {
             )
         )
         assertThat(buyTrn.data.iterator().next())
-            .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("1000.00"))
+            .hasFieldOrPropertyWithValue(propTradeAmount, BigDecimal("1000.00"))
             .hasFieldOrPropertyWithValue("cashAsset.id", nzCashAsset.id)
             .hasFieldOrPropertyWithValue("cashCurrency.code", NZD.code)
             .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-1492.54"))

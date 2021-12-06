@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
+/**
+ * Buy the trade asset, sell the cash asset.
+ */
 @SpringBootTest(classes = [Accumulator::class])
 class FxBuyBehaviourTest {
 

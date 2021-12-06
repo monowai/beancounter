@@ -38,13 +38,13 @@ import java.util.Locale
 import java.util.UUID
 import java.util.function.Consumer
 
+/**
+ * MVC Controller tests for Portfolios.
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @WebAppConfiguration
-/**
- * MVC Controller tests for Portfolios.
- */
 internal class PortfolioMvcTests {
     private val objectMapper = BcJson().objectMapper
     private val authorityRoleConverter = AuthorityRoleConverter()

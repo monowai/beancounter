@@ -79,6 +79,9 @@ class TrnControllerTest {
     private lateinit var trnService: TrnService
 
     @Autowired
+    private lateinit var trnQueryService: TrnQueryService
+
+    @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
 
     @MockBean

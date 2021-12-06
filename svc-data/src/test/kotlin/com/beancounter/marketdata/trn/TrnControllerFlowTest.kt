@@ -109,7 +109,7 @@ class TrnControllerFlowTest {
         val tradeDate = tradeDate
         val trnInputA = TrnInput(
             CallerRef(callerId = "1"),
-            msft.id,
+            assetId = msft.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getDate(tradeDate),
@@ -120,7 +120,7 @@ class TrnControllerFlowTest {
 
         val trnInputB = TrnInput(
             CallerRef(null, null, "3"),
-            aapl.id,
+            assetId = aapl.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
@@ -134,7 +134,7 @@ class TrnControllerFlowTest {
         val earlyTradeDate = "2017-01-01"
         val trnInputC = TrnInput(
             CallerRef(callerId = "2"),
-            msft.id,
+            assetId = msft.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
@@ -147,7 +147,7 @@ class TrnControllerFlowTest {
 
         val trnInputD = TrnInput(
             CallerRef(callerId = "4"),
-            aapl.id,
+            assetId = aapl.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,

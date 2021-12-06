@@ -6,7 +6,6 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
-import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -53,73 +52,6 @@ class TrnService internal constructor(
         return trnResponse
     }
 
-    /**
-     * Display order.
-     *
-     * @param portfolio fully qualified portfolio the caller is authorised to view
-     * @param assetId   filter by pk
-     * @return Transactions in display order that is friendly for viewing.
-     */
-    fun findPortfolioAssetEvents(portfolio: Portfolio, assetId: String): TrnResponse {
-        val typeFilter = ArrayList<TrnType>()
-        typeFilter.add(TrnType.DIVI)
-        typeFilter.add(TrnType.SPLIT)
-        return trnResponse(portfolio, assetId, typeFilter)
-    }
-
-    fun findPortfolioAssetTrades(portfolio: Portfolio, assetId: String): TrnResponse {
-        val typeFilter = ArrayList<TrnType>()
-        typeFilter.add(TrnType.BUY)
-        typeFilter.add(TrnType.SELL)
-        return trnResponse(portfolio, assetId, typeFilter)
-    }
-
-    private fun trnResponse(portfolio: Portfolio, assetId: String, typeFilter: ArrayList<TrnType>): TrnResponse {
-        val results = trnRepository
-            .findByPortfolioIdAndAssetIdAndTrnType(
-                portfolio.id,
-                assetId,
-                typeFilter,
-                Sort.by("asset.code")
-                    .and(Sort.by("tradeDate").descending())
-            )
-        log.debug(
-            "Found {} for portfolio {} and asset {}",
-            results.size,
-            portfolio.code,
-            assetId
-        )
-        return postProcess(results, true)
-    }
-
-    /**
-     * Processing order.
-     *
-     * @param portfolio trusted
-     * @param assetId   filter by pk
-     * @param tradeDate until this date inclusive
-     * @return transactions that can be accumulated into a position
-     */
-    fun findByPortfolioAsset(
-        portfolio: Portfolio,
-        assetId: String,
-        tradeDate: LocalDate
-    ): TrnResponse {
-        val results = trnRepository
-            .findByPortfolioIdAndAssetIdUpTo(
-                portfolio.id,
-                assetId,
-                tradeDate
-            )
-        log.debug(
-            "Found {} for portfolio {} and asset {}",
-            results.size,
-            portfolio.code,
-            assetId
-        )
-        return postProcess(results, false)
-    }
-
     fun findForPortfolio(portfolio: Portfolio, tradeDate: LocalDate): TrnResponse {
         val results = trnRepository.findByPortfolioId(
             portfolio.id,
@@ -152,7 +84,7 @@ class TrnService internal constructor(
         return upgraded
     }
 
-    private fun postProcess(trns: Iterable<Trn>, secure: Boolean = true): TrnResponse {
+    internal fun postProcess(trns: Iterable<Trn>, secure: Boolean = true): TrnResponse {
         val results: MutableCollection<Trn> = ArrayList()
         for (trn in trns) {
             val add = !secure || portfolioService.canView(trn.portfolio)
@@ -191,6 +123,6 @@ class TrnService internal constructor(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(TrnService::class.java)
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

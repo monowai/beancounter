@@ -7,7 +7,6 @@ import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.opencsv.CSVWriterBuilder
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -28,24 +27,13 @@ import javax.servlet.http.HttpServletResponse
 @RequestMapping("/trns")
 @CrossOrigin
 @PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
-class TrnController {
-    private lateinit var trnService: TrnService
-    private lateinit var portfolioService: PortfolioService
-    private lateinit var dateUtils: DateUtils
-    private lateinit var trnIoDefinition: TrnIoDefinition
-
-    @Autowired
-    fun setServices(
-        trnService: TrnService,
-        portfolioService: PortfolioService,
-        dateUtils: DateUtils,
-        trnIoDefinition: TrnIoDefinition,
-    ) {
-        this.trnService = trnService
-        this.portfolioService = portfolioService
-        this.dateUtils = dateUtils
-        this.trnIoDefinition = trnIoDefinition
-    }
+class TrnController(
+    var trnService: TrnService,
+    var trnQueryService: TrnQueryService,
+    var portfolioService: PortfolioService,
+    var dateUtils: DateUtils,
+    var trnIoDefinition: TrnIoDefinition,
+) {
 
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun find(@PathVariable("portfolioId") portfolioId: String): TrnResponse {
@@ -84,7 +72,7 @@ class TrnController {
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("assetId") assetId: String
     ): TrnResponse {
-        return trnService.findPortfolioAssetEvents(portfolioService.find(portfolioId), assetId)
+        return trnQueryService.findEvents(portfolioService.find(portfolioId), assetId)
     }
 
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/trades"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -92,7 +80,7 @@ class TrnController {
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("assetId") assetId: String
     ): TrnResponse {
-        return trnService.findPortfolioAssetTrades(portfolioService.find(portfolioId), assetId)
+        return trnQueryService.findAssetTrades(portfolioService.find(portfolioId), assetId)
     }
 
     @PostMapping(
@@ -103,7 +91,7 @@ class TrnController {
     fun findByAsset(
         @RequestBody query: TrustedTrnQuery
     ): TrnResponse {
-        return trnService.findByPortfolioAsset(
+        return trnQueryService.findAssetTrades(
             query.portfolio,
             query.assetId,
             query.tradeDate

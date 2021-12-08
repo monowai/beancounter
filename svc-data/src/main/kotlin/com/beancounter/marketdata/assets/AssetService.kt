@@ -129,9 +129,7 @@ class AssetService internal constructor(
         return assetRepository.findAllAssets()
     }
 
-    fun purge() {
-        assetRepository.deleteAll()
-    }
+    fun purge() = assetRepository.deleteAll()
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetService::class.java)

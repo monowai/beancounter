@@ -61,9 +61,7 @@ class MarketDataController @Autowired internal constructor(
     }
 
     @PostMapping("/refresh")
-    fun refreshPrices() {
-        priceRefresh.updatePrices()
-    }
+    fun refreshPrices() = priceRefresh.updatePrices()
 
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)

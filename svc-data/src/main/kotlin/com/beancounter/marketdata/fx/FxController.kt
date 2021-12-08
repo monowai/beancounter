@@ -23,7 +23,5 @@ import org.springframework.web.bind.annotation.RestController
 @PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
 class FxController @Autowired internal constructor(private val fxRateService: FxRateService) {
     @PostMapping
-    fun getRates(@RequestBody fxRequest: FxRequest): FxResponse {
-        return fxRateService.getRates(fxRequest)
-    }
+    fun getRates(@RequestBody fxRequest: FxRequest): FxResponse = fxRateService.getRates(fxRequest)
 }

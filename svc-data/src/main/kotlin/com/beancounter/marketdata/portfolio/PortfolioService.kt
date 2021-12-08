@@ -65,7 +65,8 @@ class PortfolioService internal constructor(
 
     fun find(id: String): Portfolio {
         val found = portfolioRepository.findById(id)
-        val portfolio = found.orElseThrow { BusinessException(String.format("Could not find a portfolio with ID %s", id)) }
+        val portfolio =
+            found.orElseThrow { BusinessException(String.format("Could not find a portfolio with ID %s", id)) }
         if (canView(portfolio)) {
             return portfolio
         }

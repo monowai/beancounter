@@ -26,8 +26,5 @@ class MarketController internal constructor(private val marketService: MarketSer
         get() = marketService.getMarkets()
 
     @GetMapping(value = ["/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getMarket(@PathVariable code: String): MarketResponse {
-        val market = marketService.getMarket(code)
-        return MarketResponse(setOf(market))
-    }
+    fun getMarket(@PathVariable code: String): MarketResponse = MarketResponse(setOf(marketService.getMarket(code)))
 }

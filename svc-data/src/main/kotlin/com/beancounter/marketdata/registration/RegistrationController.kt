@@ -21,16 +21,13 @@ import org.springframework.web.bind.annotation.RestController
 @PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")
 class RegistrationController internal constructor(private val systemUserService: SystemUserService) {
     @GetMapping("/me")
-    fun getMe(@AuthenticationPrincipal jwt: Jwt): RegistrationResponse {
-        val su = systemUserService.find(jwt.subject) ?: throw ForbiddenException("Authenticated, but unregistered")
-        return RegistrationResponse(su)
-    }
+    fun getMe(@AuthenticationPrincipal jwt: Jwt): RegistrationResponse = RegistrationResponse(
+        systemUserService.find(jwt.subject) ?: throw ForbiddenException("Authenticated, but unregistered")
+    )
 
     @PostMapping(value = ["/register"])
     fun register(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody(required = false) registrationRequest: RegistrationRequest
-    ): RegistrationResponse {
-        return systemUserService.register(jwt)
-    }
+    ): RegistrationResponse = systemUserService.register(jwt)
 }

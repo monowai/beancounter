@@ -34,28 +34,23 @@ class AssetController @Autowired internal constructor(
     private val enrichmentFactory: EnrichmentFactory,
 ) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse {
-        return AssetResponse(assetService.find(market, code))
-    }
+    fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse =
+        AssetResponse(assetService.find(market, code))
 
     @GetMapping(value = ["/{assetId}"])
-    fun getAsset(@PathVariable assetId: String): AssetResponse {
-        return AssetResponse(assetService.find(assetId))
-    }
+    fun getAsset(@PathVariable assetId: String): AssetResponse =
+        AssetResponse(assetService.find(assetId))
 
     @PostMapping(value = ["/{assetId}/enrich"])
-    fun enrichAsset(@PathVariable assetId: String): AssetResponse {
-        return AssetResponse(enrichmentFactory.enrich(assetService.find(assetId)))
-    }
+    fun enrichAsset(@PathVariable assetId: String): AssetResponse =
+        AssetResponse(enrichmentFactory.enrich(assetService.find(assetId)))
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun update(@RequestBody assetRequest: AssetRequest): AssetUpdateResponse {
-        return assetService.process(assetRequest)
-    }
+    fun update(@RequestBody assetRequest: AssetRequest): AssetUpdateResponse =
+        assetService.process(assetRequest)
 
     @PostMapping(value = ["/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun backFill(@PathVariable assetId: String) {
+    fun backFill(@PathVariable assetId: String) =
         marketDataService.backFill(assetService.find(assetId))
-    }
 }

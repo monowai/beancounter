@@ -29,14 +29,12 @@ class EventController(private val eventService: EventService) {
     operator fun get(
         @PathVariable portfolioId: String,
         @PathVariable(required = false) valuationDate: String = DateUtils.today
-    ) {
+    ) =
         eventService.backFillEvents(portfolioId, valuationDate)
-    }
 
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getEvent(@PathVariable id: String): CorporateEventResponse {
-        return eventService[id]
-    }
+    fun getEvent(@PathVariable id: String): CorporateEventResponse =
+        eventService[id]
 
     @PostMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -47,12 +45,10 @@ class EventController(private val eventService: EventService) {
     }
 
     @GetMapping(value = ["/asset/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getAssetEvents(@PathVariable id: String): CorporateEventResponses {
-        return eventService.getAssetEvents(id)
-    }
+    fun getAssetEvents(@PathVariable id: String): CorporateEventResponses =
+        eventService.getAssetEvents(id)
 
     @GetMapping(value = ["/scheduled/{date}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getScheduledEvents(@PathVariable date: String): CorporateEventResponses {
-        return eventService.getScheduledEvents(DateUtils().getDate(date))
-    }
+    fun getScheduledEvents(@PathVariable date: String): CorporateEventResponses =
+        eventService.getScheduledEvents(DateUtils().getDate(date))
 }

@@ -1,6 +1,7 @@
 package com.beancounter.marketdata
 
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
@@ -41,6 +42,7 @@ class Constants {
             code = NZD.code,
             name = "${NZD.code} Balance",
             priceSymbol = NZD.code,
+            assetCategory = AssetCategory("CASH", "Cash"),
             market = Market("CASH", NZD),
             category = "CASH"
         )
@@ -49,6 +51,7 @@ class Constants {
             code = USD.code,
             name = "${USD.code} Balance",
             priceSymbol = USD.code,
+            assetCategory = AssetCategory("CASH", "Cash"),
             market = Market("CASH", USD),
             category = "CASH"
         )

@@ -1,7 +1,7 @@
 {
   "data": {
-    "NZD BALANCE:CASH": {
-      "code": "NZD BALANCE",
+    "NZD:CASH": {
+      "code": "NZD",
       "market": "CASH"
     }
   }

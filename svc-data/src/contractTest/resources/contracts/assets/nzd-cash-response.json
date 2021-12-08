@@ -1,11 +1,12 @@
 {
   "data": {
-    "NZD BALANCE:CASH": {
-      "code": "NZD BALANCE",
-      "id": "NZD BALANCE",
+    "NZD:CASH": {
+      "code": "NZD",
+      "id": "NZD",
+      "name": "NZD Balance",
       "assetCategory": {
         "id": "CASH",
-        "name": "CASH"
+        "name": "Cash"
       },
       "market": {
         "code": "CASH",

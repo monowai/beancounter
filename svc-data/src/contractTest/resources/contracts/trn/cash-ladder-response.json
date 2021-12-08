@@ -3,9 +3,9 @@
     {
       "trnType": "DEPOSIT",
       "asset": {
-        "code": "NZD CASH",
+        "code": "NZD",
         "id": "bifngC1PRTyH5PlBskp6Ew",
-        "name": "NZD Cash Balance",
+        "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
           "name": "Cash"
@@ -39,9 +39,9 @@
         "symbol": "$"
       },
       "cashAsset": {
-        "code": "NZD CASH",
+        "code": "NZD",
         "id": "bifngC1PRTyH5PlBskp6Ew",
-        "name": "NZD Cash Balance",
+        "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
           "name": "Cash"
@@ -113,9 +113,9 @@
     {
       "trnType": "FX_BUY",
       "asset": {
-        "code": "USD CASH",
+        "code": "USD",
         "id": "iuCTdR5URoKQjQgkEZc-wA",
-        "name": "USD Cash Balance",
+        "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
           "name": "Cash"
@@ -149,9 +149,9 @@
         "symbol": "$"
       },
       "cashAsset": {
-        "code": "NZD CASH",
+        "code": "NZD",
         "id": "bifngC1PRTyH5PlBskp6Ew",
-        "name": "NZD Cash Balance",
+        "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
           "name": "Cash"
@@ -261,9 +261,9 @@
         "symbol": "$"
       },
       "cashAsset": {
-        "code": "NZD CASH",
+        "code": "NZD",
         "id": "bifngC1PRTyH5PlBskp6Ew",
-        "name": "NZD Cash Balance",
+        "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
           "name": "Cash"

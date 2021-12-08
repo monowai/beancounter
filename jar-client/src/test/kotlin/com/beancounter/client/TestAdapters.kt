@@ -22,10 +22,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
 
-@SpringBootTest(classes = [ShareSightConfig::class])
 /**
  * Sharesight transaction adapter tests
  */
+@SpringBootTest(classes = [ShareSightConfig::class])
 class TestAdapters {
     @Autowired
     private lateinit var shareSightConfig: ShareSightConfig

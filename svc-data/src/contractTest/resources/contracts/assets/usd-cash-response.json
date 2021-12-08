@@ -1,8 +1,9 @@
 {
   "data": {
     "USD BALANCE:CASH": {
-      "code": "USD BALANCE",
-      "id": "USD BALANCE",
+      "code": "USD",
+      "id": "USD",
+      "name": "USD Balance",
       "assetCategory": {
         "id": "CASH",
         "name": "CASH"

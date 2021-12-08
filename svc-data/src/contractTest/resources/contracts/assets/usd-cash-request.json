@@ -1,7 +1,7 @@
 {
   "data": {
-    "USD BALANCE:CASH": {
-      "code": "USD BALANCE",
+    "USD:CASH": {
+      "code": "USD",
       "market": "CASH"
     }
   }

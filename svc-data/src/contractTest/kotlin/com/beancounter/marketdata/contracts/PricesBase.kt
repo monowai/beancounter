@@ -37,8 +37,8 @@ class PricesBase : ContractVerifierBase() {
             tokenService = tokenService,
             systemUserRepository = systemUserRepository
         )
-        mockPrices()
         AssetsBase().mockAssets(assetService)
+        mockPrices()
     }
 
     fun mockPrices() {
@@ -51,17 +51,19 @@ class PricesBase : ContractVerifierBase() {
         )
 
         mockPriceResponse("EBAY", marketData)
-        mockPriceResponse("AAPL", marketData)
         mockPriceResponse("MSFT", marketData)
+        mockPriceResponse("AAPL", marketData)
+        // Cash Ladder Prices
+        mockPriceResponse("AAPL", marketData, "2021-10-18")
     }
 
-    private fun mockPriceResponse(code: String, marketData: WtdMarketData) {
+    private fun mockPriceResponse(code: String, marketData: WtdMarketData, date: String = rateDate) {
         val result: MutableMap<String, WtdMarketData> = HashMap()
         result[code] = marketData
-        val priceResponse = WtdResponse(rateDate, result)
+        val priceResponse = WtdResponse(date, result)
         Mockito.`when`(
             wtdGateway
-                .getPrices(code, rateDate, "demo")
+                .getPrices(code, date, "demo")
         ).thenReturn(priceResponse)
     }
 }

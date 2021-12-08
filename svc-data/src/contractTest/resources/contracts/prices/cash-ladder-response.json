@@ -1,0 +1,121 @@
+{
+  "data": [
+    {
+      "asset": {
+        "id": "USD",
+        "code": "USD",
+        "name": "USD Balance",
+        "market": {
+          "code": "CASH",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "ECHO",
+          "multiplier": 1.0,
+          "type": "Internal"
+        },
+        "priceSymbol": "USD",
+        "assetCategory": {
+          "id": "CASH",
+          "name": "Cash"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-10-18",
+      "close": 1,
+      "open": null,
+      "source": "ALPHA",
+      "low": null,
+      "high": null,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": null,
+      "dividend": null,
+      "split": null
+    },
+    {
+      "asset": {
+        "id": "NZD",
+        "code": "NZD",
+        "name": "NZD Balance",
+        "market": {
+          "code": "CASH",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "ECHO",
+          "multiplier": 1.0,
+          "type": "Internal"
+        },
+        "priceSymbol": "NZD",
+        "assetCategory": {
+          "id": "CASH",
+          "name": "Cash"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-10-18",
+      "close": 1,
+      "open": null,
+      "source": "ALPHA",
+      "low": null,
+      "high": null,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": null,
+      "dividend": null,
+      "split": null
+    },
+    {
+      "asset": {
+        "id": "AAPL",
+        "code": "AAPL",
+        "market": {
+          "code": "NASDAQ",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "aliases": {
+            "SHARESIGHT": "NAS",
+            "FIGI": "US"
+          },
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-10-18",
+      "open": 39.21,
+      "close": 100.00,
+      "low": 38.74,
+      "high": 39.35,
+      "volume": 6274307
+    }
+  ]
+}

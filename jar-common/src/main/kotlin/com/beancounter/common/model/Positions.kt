@@ -65,6 +65,9 @@ class Positions(
     }
 
     @JsonIgnore
+    operator fun contains(asset: Asset) = positions.contains(toKey(asset))
+
+    @JsonIgnore
     operator fun get(asset: Asset?, tradeDate: LocalDate?): Position {
         val firstTrade = !positions.containsKey(toKey(asset!!))
         val position = get(asset)

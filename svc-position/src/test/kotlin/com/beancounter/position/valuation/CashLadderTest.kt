@@ -2,10 +2,10 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.PositionResponse
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.position.Constants.Companion.CASH
 import com.beancounter.position.Constants.Companion.NASDAQ
@@ -69,10 +69,11 @@ internal class CashLadderTest {
     @Test
     @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     fun positionRequestFromTransactions() {
-        val date = "2019-10-18"
-        val msft = getAsset(NASDAQ, "AAPL")
-        val usdCash = getAsset(CASH, "${USD.code} ${CASH.code}")
-        val nzdCash = getAsset(CASH, "${NZD.code} ${CASH.code}")
+        val date = "2021-10-18"
+        val msft = Asset(code = "AAPL", market = NASDAQ)
+
+        val usdCash = Asset(USD.code, CASH)
+        val nzdCash = Asset(NZD.code, CASH)
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -100,6 +101,10 @@ internal class CashLadderTest {
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue("total", BigDecimal("2500.0"))
 
+        assertThat(positionResponse.data.positions[toKey(usdCash)]!!.moneyValues[Position.In.TRADE])
+            .hasFieldOrPropertyWithValue("marketValue", BigDecimal("2500.00"))
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("2500.00"))
+
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue("total", BigDecimal("3507.46"))
 
@@ -109,6 +114,6 @@ internal class CashLadderTest {
 
         // ToDo: Figure out cash fx rates to apply at cost.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal("5174.13"))
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal("4945.52"))
     }
 }

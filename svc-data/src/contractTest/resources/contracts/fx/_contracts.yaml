@@ -1,3 +1,17 @@
+---
+name: cashLadderRates
+request:
+  method: POST
+  url: /fx
+  bodyFromFile: "./cash-ladder-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./cash-ladder-response.json"
+  headers:
+    Content-Type: application/json
+---
 name: nzdUsd
 request:
   method: POST

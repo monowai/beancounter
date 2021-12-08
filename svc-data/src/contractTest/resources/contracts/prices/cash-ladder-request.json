@@ -1,0 +1,17 @@
+{
+  "date": "2021-10-18",
+  "assets": [
+    {
+      "market": "NASDAQ",
+      "code": "AAPL"
+    },
+    {
+      "market": "CASH",
+      "code": "USD"
+    },
+    {
+      "market": "CASH",
+      "code": "NZD"
+    }
+  ]
+}

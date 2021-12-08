@@ -27,6 +27,9 @@ class MarketValue(private val gains: Gains) {
     ): Position {
         val asset = marketData.asset
         val trade = asset.market.currency
+        if (!positions.contains(asset)) {
+            throw BusinessException("Unable to find $asset in the supplied positions")
+        }
         val position = positions[asset]
         val portfolio = positions.portfolio
         val isCash = asset.market.code == "CASH"
@@ -59,7 +62,7 @@ class MarketValue(private val gains: Gains) {
             moneyValues.marketValue = BigDecimal.ZERO
         } else {
             var close = BigDecimal.ZERO
-            if (moneyValues.priceData != null && moneyValues.priceData!!.close != null) {
+            if (moneyValues.priceData!!.close != null) {
                 close = moneyValues.priceData!!.close!!
             }
             moneyValues.marketValue = Objects.requireNonNull(
@@ -70,6 +73,7 @@ class MarketValue(private val gains: Gains) {
             moneyValues.realisedGain = BigDecimal.ZERO // Will figure this out later
             moneyValues.unrealisedGain = BigDecimal.ZERO
             moneyValues.totalGain = BigDecimal.ZERO // moneyValues.marketValue
+            moneyValues.costValue = moneyValues.marketValue // For the time being we aren't tracking cost of cash.
         } else {
             gains.value(total, moneyValues)
         }

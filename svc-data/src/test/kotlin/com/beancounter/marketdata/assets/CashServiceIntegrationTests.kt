@@ -35,9 +35,8 @@ class CashServiceIntegrationTests {
         val cashAsset = assetResponse.data[NZD.code]
         assertThat(cashAsset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(
-                "assetCategory", category,
-            ).hasFieldOrPropertyWithValue("name", cashInput.name)
+            .hasFieldOrPropertyWithValue("assetCategory", category)
+            .hasFieldOrPropertyWithValue("name", cashInput.name)
             .hasFieldOrPropertyWithValue("priceSymbol", NZD.code)
     }
 

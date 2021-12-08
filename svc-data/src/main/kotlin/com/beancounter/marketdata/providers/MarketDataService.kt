@@ -39,7 +39,7 @@ class MarketDataService @Autowired internal constructor(
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
         val fromDb: MutableCollection<MarketData> = ArrayList()
-        var fromApi: Collection<MarketData> = ArrayList()
+        val fromApi: MutableCollection<MarketData> = mutableListOf()
         var marketDate: LocalDate?
         val marketData: MutableMap<String, LocalDate> = mutableMapOf()
 
@@ -66,7 +66,7 @@ class MarketDataService @Autowired internal constructor(
             }
 
             // Pull the balance over external API integration
-            fromApi = getExternally(byFactory[marketDataProvider], priceRequest, fromApi, marketDataProvider)
+            fromApi.addAll(getExternally(byFactory[marketDataProvider], priceRequest.date, marketDataProvider))
         }
         // Merge results into a response
         if (fromDb.size + fromApi.size > 1) {
@@ -81,17 +81,15 @@ class MarketDataService @Autowired internal constructor(
 
     private fun getExternally(
         apiAssets: MutableCollection<Asset>?,
-        priceRequest: PriceRequest,
-        apiResults: Collection<MarketData>,
+        date: String,
         marketDataProvider: MarketDataProvider
     ): Collection<MarketData> {
-        var apiResults1 = apiResults
         if (!apiAssets!!.isEmpty()) {
             val assetInputs = providerUtils.getInputs(apiAssets)
-            val apiRequest = PriceRequest(priceRequest.date, assetInputs)
-            apiResults1 = marketDataProvider.getMarketData(apiRequest)
+            val apiRequest = PriceRequest(date, assetInputs)
+            return marketDataProvider.getMarketData(apiRequest)
         }
-        return apiResults1
+        return arrayListOf()
     }
 
     private fun getMarketDate(

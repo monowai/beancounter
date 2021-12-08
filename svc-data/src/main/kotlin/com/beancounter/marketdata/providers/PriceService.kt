@@ -72,6 +72,9 @@ class PriceService internal constructor(
         if (marketData.split != null && marketData.split!!.compareTo(BigDecimal.ONE) != 0) {
             return true
         }
+        if (marketData.asset.assetCategory.id == "CASH") {
+            return false
+        }
         return false
     }
 

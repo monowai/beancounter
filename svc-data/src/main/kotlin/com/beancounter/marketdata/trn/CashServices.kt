@@ -8,6 +8,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.model.TrnType.Companion.creditsCash
 import com.beancounter.common.model.TrnType.Companion.debitsCash
+import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
@@ -59,13 +60,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
     fun createCashBalanceAssets(marketConfig: MarketConfig): AssetUpdateResponse {
         val assets = mutableMapOf<String, AssetInput>()
         for (currency in currencyService.currencies) {
-            assets[currency.code] = AssetInput(
-                marketConfig.getProviders()[cash]!!.code,
-                currency.code,
-                currency = currency.code,
-                category = cash,
-                name = "${currency.code} Balance"
-            )
+            assets[currency.code] = AssetUtils.getCash(currency.code)
         }
 
         val assetRequest = AssetRequest(assets)

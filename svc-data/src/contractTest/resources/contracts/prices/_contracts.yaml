@@ -1,4 +1,18 @@
 ---
+name: cash-ladder
+priority: 1
+request:
+  method: POST
+  url: /prices
+  bodyFromFile: "./cash-ladder-request.json"
+  headers:
+    Content-Type: application/json
+response:
+  status: 200
+  bodyFromFile: "./cash-ladder-response.json"
+  headers:
+    Content-Type: application/json
+---
 name: EBAY-price
 priority: 1
 request:

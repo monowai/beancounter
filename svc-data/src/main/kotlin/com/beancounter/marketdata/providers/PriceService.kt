@@ -42,7 +42,7 @@ class PriceService internal constructor(
     fun process(priceResponse: PriceResponse): Iterable<MarketData>? {
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
-            if (writeEvent(marketData)) {
+            if (!marketData.asset.assetCategory.isCash()) {
                 val existing = marketDataRepo.findByAssetIdAndPriceDate(
                     marketData.asset.id,
                     marketData.priceDate
@@ -52,12 +52,16 @@ class PriceService internal constructor(
                     marketData.id = keyGenUtils.id
                     createSet.add(marketData)
                 }
-                eventWriter.write(marketData)
+                if (writeEvent(marketData)) {
+                    eventWriter.write(marketData)
+                }
             }
         }
         return if (createSet.isEmpty()) {
             createSet
-        } else marketDataRepo.saveAll(createSet)
+        } else {
+            marketDataRepo.saveAll(createSet)
+        }
     }
 
     private fun writeEvent(marketData: MarketData): Boolean {
@@ -72,10 +76,8 @@ class PriceService internal constructor(
         if (marketData.split != null && marketData.split!!.compareTo(BigDecimal.ONE) != 0) {
             return true
         }
-        if (marketData.asset.assetCategory.id == "CASH") {
-            return false
-        }
-        return true
+
+        return false
     }
 
     fun purge() {

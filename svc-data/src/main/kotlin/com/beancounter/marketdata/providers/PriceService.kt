@@ -75,7 +75,7 @@ class PriceService internal constructor(
         if (marketData.asset.assetCategory.id == "CASH") {
             return false
         }
-        return false
+        return true
     }
 
     fun purge() {

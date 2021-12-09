@@ -38,8 +38,8 @@ class MarketDataService @Autowired internal constructor(
     @Transactional
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
-        val fromDb: MutableCollection<MarketData> = ArrayList()
-        val fromApi: MutableCollection<MarketData> = mutableListOf()
+        val foundInDb: MutableCollection<MarketData> = ArrayList()
+        val foundOverApi: MutableCollection<MarketData> = mutableListOf()
         var marketDate: LocalDate?
         val marketData: MutableMap<String, LocalDate> = mutableMapOf()
 
@@ -60,23 +60,23 @@ class MarketDataService @Autowired internal constructor(
                 if (md.isPresent) {
                     val mdValue = md.get()
                     mdValue.asset = asset
-                    fromDb.add(mdValue)
+                    foundInDb.add(mdValue)
                     assetIterable.remove() // One less external query to make
                 }
             }
 
             // Pull the balance over external API integration
-            fromApi.addAll(getExternally(byFactory[marketDataProvider], priceRequest.date, marketDataProvider))
+            foundOverApi.addAll(getExternally(byFactory[marketDataProvider], priceRequest.date, marketDataProvider))
         }
         // Merge results into a response
-        if (fromDb.size + fromApi.size > 1) {
-            log.debug("From DB: ${fromDb.size}, from API: ${fromApi.size}")
+        if (foundInDb.size + foundOverApi.size > 1) {
+            log.debug("From DB: ${foundInDb.size}, from API: ${foundOverApi.size}")
         }
-        if (fromApi.isNotEmpty()) {
-            priceService.write(PriceResponse(fromApi)) // Async write
+        if (foundOverApi.isNotEmpty()) {
+            priceService.write(PriceResponse(foundOverApi)) // Async write
         }
-        fromDb.addAll(fromApi)
-        return PriceResponse(fromDb)
+        foundInDb.addAll(foundOverApi)
+        return PriceResponse(foundInDb)
     }
 
     private fun getExternally(

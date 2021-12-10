@@ -8,5 +8,5 @@ import org.springframework.boot.context.properties.ConstructorBinding
  */
 data class AssetRequest @ConstructorBinding
 constructor(override var data: Map<String, AssetInput> = HashMap()) : Payload<Map<String, AssetInput>> {
-    constructor(code: String, assetInput: AssetInput) : this(data = mapOf(code to assetInput))
+    constructor(assetInput: AssetInput, code: String = assetInput.code) : this(data = mapOf(code to assetInput))
 }

@@ -264,7 +264,7 @@ class KafkaTrnTest {
     }
 
     private fun getAsset(code: String, market: Market): Asset {
-        val qcomRequest = AssetRequest(code, getAssetInput(market.code, code))
+        val qcomRequest = AssetRequest(getAssetInput(market.code, code), code)
         val response = assetService.process(qcomRequest)!!
         assertThat(response).isNotNull
         return response.data[code]!!

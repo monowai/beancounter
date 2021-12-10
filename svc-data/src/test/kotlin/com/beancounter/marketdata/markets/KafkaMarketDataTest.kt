@@ -97,7 +97,7 @@ class KafkaMarketDataTest {
     @Throws(Exception::class)
     @Disabled // Not yet implemented.
     fun pricePersisted() {
-        val assetRequest = AssetRequest("test", AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code))
+        val assetRequest = AssetRequest(AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code), "test")
         val assetResult = assetService.process(assetRequest)!!
         val asset = assetResult.data["test"]
         val idProp = "id"

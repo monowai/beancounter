@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.auth.server.AuthConstants
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -49,6 +51,20 @@ class TrnController(
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun update(@RequestBody trnRequest: TrnRequest): TrnResponse =
         trnService.save(portfolioService.find(trnRequest.portfolioId), trnRequest)
+
+    @PatchMapping(
+        value = ["/{portfolioId}/{trnId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun patch(
+        @PathVariable("portfolioId") portfolioId: String,
+        @PathVariable("trnId") trnId: String,
+        @RequestBody trnInput: TrnInput
+    ): TrnResponse {
+        val portfolio = portfolioService.find(portfolioId)
+        // ToDo: Support moving a transaction between portfolios
+        return trnService.patch(portfolio, trnId, trnInput)
+    }
 
     @DeleteMapping(value = ["/portfolio/{portfolioId}"])
     fun purge(@PathVariable("portfolioId") portfolioId: String): Long =

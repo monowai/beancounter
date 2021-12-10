@@ -95,11 +95,11 @@ class TrnControllerFlowTest {
     @Throws(Exception::class)
     fun is_PersistRetrieveAndPurge() {
         val msft = asset(
-            AssetRequest(MSFT.code, msftInput)
+            AssetRequest(msftInput, MSFT.code)
         )
         assertThat(msft.id).isNotNull
         val aapl = asset(
-            AssetRequest(AAPL.code, aaplInput)
+            AssetRequest(aaplInput, AAPL.code)
         )
         assertThat(aapl.id).isNotNull
         val portfolio = bcMvcHelper.portfolio(

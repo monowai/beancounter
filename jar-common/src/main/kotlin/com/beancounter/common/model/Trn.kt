@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 import javax.persistence.Column
 import javax.persistence.Embedded
 import javax.persistence.Entity
@@ -26,7 +27,7 @@ import javax.persistence.UniqueConstraint
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "batch", "callerId"])])
 data class Trn constructor(
     @Id
-    var id: String? = null,
+    var id: String = UUID.randomUUID().toString(),
     val trnType: TrnType,
     @ManyToOne
     var asset: Asset,

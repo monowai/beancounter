@@ -18,10 +18,12 @@ class TrnTest {
     @Test
     fun is_trnVersion() {
         val trnDefault = Trn(
+            id = "any",
             trnType = TrnType.BUY,
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
         )
         val trn = Trn(
+            id = "any",
             trnType = TrnType.BUY,
             version = "0",
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
@@ -69,6 +71,7 @@ class TrnTest {
     @Test
     fun is_TradeCurrencySetFromAsset() {
         val trn = Trn(
+            id = "any",
             trnType = TrnType.BUY,
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
         )

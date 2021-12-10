@@ -121,7 +121,7 @@ class CashLadderTrnTests {
         val nzCashAsset = getCashBalance(NZD)
         assertThat(nzCashAsset).isNotNull
         val equity =
-            assetService.process(AssetRequest(MSFT.code, AssetInput(NYSE.code, MSFT.code))).data[MSFT.code]
+            assetService.process(AssetRequest(AssetInput(NYSE.code, MSFT.code), MSFT.code)).data[MSFT.code]
         val usPortfolio = bcMvcHelper.portfolio(PortfolioInput(code = "buyDebitsCash"))
         val buy = TrnInput(
             callerRef = CallerRef(),
@@ -149,7 +149,7 @@ class CashLadderTrnTests {
         val portfolio = bcMvcHelper.portfolio(PortfolioInput(code = "CASHLADDER", base = "NZD", currency = "USD"))
 
         val equity =
-            assetService.process(AssetRequest(AAPL.code, AssetInput(NASDAQ.code, AAPL.code))).data[AAPL.code]
+            assetService.process(AssetRequest(AssetInput(NASDAQ.code, AAPL.code), AAPL.code)).data[AAPL.code]
 
         // Let's start with a base currency deposit
         val nzTrn = trnService.save(

@@ -37,7 +37,7 @@ class AlphaEnricherTest {
             ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
         )
 
-        val assetRequest = AssetRequest(key, AssetInput(Constants.NASDAQ.code, key, "My Default Name"))
+        val assetRequest = AssetRequest(AssetInput(Constants.NASDAQ.code, key, "My Default Name"))
         val assetResponse = assetService.process(assetRequest)
         assertThat(assetResponse).isNotNull
         assertThat(assetResponse.data)

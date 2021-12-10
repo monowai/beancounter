@@ -29,12 +29,12 @@ class TrnAdapter internal constructor(
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {
-            trns.add(map(portfolio, trnInput))
+            trns.add(map(portfolio = portfolio, trnInput = trnInput))
         }
         return TrnResponse(trns)
     }
 
-    fun map(portfolio: Portfolio, trnInput: TrnInput): Trn {
+    fun map(portfolio: Portfolio, trnInput: TrnInput, existing: Trn? = null): Trn {
         val cashAsset = cashServices.getCashAsset(trnInput)
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
@@ -43,11 +43,11 @@ class TrnAdapter internal constructor(
         val tradeAmount = tradeCalculator.amount(trnInput)
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
         return Trn(
-            id = keyGenUtils.id,
-            callerRef = from(trnInput.callerRef, portfolio),
+            id = existing?.id ?: keyGenUtils.id,
+            callerRef = existing?.callerRef ?: from(trnInput.callerRef, portfolio),
             trnType = trnInput.trnType,
             portfolio = portfolio,
-            asset = assetService.find(trnInput.assetId),
+            asset = existing?.asset ?: assetService.find(trnInput.assetId!!),
             tradeCurrency = currencyService.getCode(trnInput.tradeCurrency)!!,
             cashCurrency = cashCurrency,
             cashAsset = cashAsset,
@@ -64,7 +64,7 @@ class TrnAdapter internal constructor(
             tradeCashRate = trnInput.tradeCashRate,
             tradeBaseRate = trnInput.tradeBaseRate,
             tradePortfolioRate = trnInput.tradePortfolioRate,
-            comments = trnInput.comments
+            comments = existing?.comments ?: trnInput.comments
         )
     }
 

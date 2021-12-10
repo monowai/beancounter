@@ -17,6 +17,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.aaplInput
 import com.beancounter.marketdata.Constants.Companion.msftInput
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.MockEnricher
@@ -134,7 +135,7 @@ class TrnControllerTest {
     @Throws(Exception::class)
     fun is_ExistingDividendFound() {
         val msft = bcMvcHelper.asset(
-            AssetRequest(MSFT.code, msftInput)
+            AssetRequest(msftInput)
         )
         val portfolioA = bcMvcHelper.portfolio(
             PortfolioInput("DIV-TEST", "is_ExistingDividendFound", currency = NZD.code)
@@ -150,9 +151,9 @@ class TrnControllerTest {
             tradeBaseRate = null,
             tradeCashRate = null,
             tradeDate = dateUtils.getDate("2020-03-10"),
-            price = BigDecimal.TEN
+            price = BigDecimal.TEN,
+            tradePortfolioRate = BigDecimal.ONE,
         )
-        trnInput.tradePortfolioRate = BigDecimal.ONE
         val existingTrns = arrayOf(trnInput)
         val trnRequest = TrnRequest(portfolioA.id, existingTrns)
         trnService.save(portfolioA, trnRequest)
@@ -211,7 +212,7 @@ class TrnControllerTest {
     @Test
     @Throws(Exception::class)
     fun is_TrnForPortfolioInRangeFound() {
-        val msft = bcMvcHelper.asset(AssetRequest(MSFT.code, msftInput))
+        val msft = bcMvcHelper.asset(AssetRequest(msftInput, MSFT.code))
 
         assertThat(msft.id).isNotNull
         val (id) = bcMvcHelper.portfolio(PortfolioInput("PFA", "is_TrnForPortfolioInRangeFound", currency = NZD.code))
@@ -226,10 +227,9 @@ class TrnControllerTest {
             tradeBaseRate = null,
             tradeCashRate = null,
             tradeDate = dateUtils.getDate(tradeDate),
-            price = BigDecimal.TEN
+            price = BigDecimal.TEN,
+            tradePortfolioRate = BigDecimal.ONE,
         )
-
-        trnInput.tradePortfolioRate = BigDecimal.ONE
 
         var trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "2"),
@@ -240,9 +240,10 @@ class TrnControllerTest {
             tradeBaseRate = null,
             tradeCashRate = null,
             tradeDate = dateUtils.getDate("2016-01-01"),
-            price = BigDecimal.TEN
+            price = BigDecimal.TEN,
+            tradePortfolioRate = BigDecimal.ONE,
         )
-        trnInputB.tradePortfolioRate = BigDecimal.ONE
+
         var trnInputs = arrayOf(trnInput, trnInputB)
         var trnRequest = TrnRequest(id, trnInputs)
         bcMvcHelper.postTrn(trnRequest)
@@ -254,23 +255,28 @@ class TrnControllerTest {
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
             price = BigDecimal.TEN,
-            tradeDate = dateUtils.getDate("2018-10-01")
-
+            tradeDate = dateUtils.getDate("2018-10-01"),
+            tradePortfolioRate = BigDecimal.ONE,
         )
-        trnInput.tradePortfolioRate = BigDecimal.ONE
         trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "34"),
             msft.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getDate("2017-01-01"),
-            price = BigDecimal.TEN
+            price = BigDecimal.TEN,
+            tradePortfolioRate = BigDecimal.ONE,
         )
-        trnInputB.tradePortfolioRate = BigDecimal.ONE
 
         trnInputs = arrayOf(trnInput, trnInputB)
-        val (id1) = bcMvcHelper.portfolio(PortfolioInput("PFB", "is_TrnForPortfolioInRangeFound", currency = NZD.code))
-        trnRequest = TrnRequest(id1, trnInputs)
+        val (portfolioId) = bcMvcHelper.portfolio(
+            PortfolioInput(
+                "PFB",
+                "is_TrnForPortfolioInRangeFound",
+                currency = NZD.code
+            )
+        )
+        trnRequest = TrnRequest(portfolioId, trnInputs)
         bcMvcHelper.postTrn(trnRequest)
 
         // All transactions are now in place.
@@ -307,5 +313,77 @@ class TrnControllerTest {
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
             .andReturn()
+    }
+
+    @Test
+    fun is_TrnPatched() {
+        val aapl = bcMvcHelper.asset(
+            AssetRequest(aaplInput)
+        )
+        val portfolio = bcMvcHelper.portfolio(
+            PortfolioInput("PATCH", "is_TrnPatched", currency = NZD.code)
+        )
+        val trnResponse = objectMapper.readValue(
+            bcMvcHelper.postTrn(
+                TrnRequest(
+                    portfolio.id,
+                    arrayOf(
+                        TrnInput(
+                            assetId = aapl.id,
+                            trnType = TrnType.BUY,
+                            quantity = BigDecimal.TEN,
+                            tradeCurrency = USD.code,
+                            tradeBaseRate = null,
+                            tradeCashRate = null,
+                            tradeDate = dateUtils.getDate("2020-03-10"),
+                            price = BigDecimal.ONE,
+                            tradePortfolioRate = BigDecimal.TEN,
+                            comments = "The Comments Will Not Change"
+                        )
+                    )
+                )
+            ).response.contentAsString,
+            TrnResponse::class.java
+        )
+        assertThat(trnResponse.data).hasSize(1)
+        val trn = trnResponse.data.iterator().next()
+        // Update from the UI should update the existing transaction
+        // preserving unchanged fields.
+        val updatedResponse = objectMapper.readValue(
+            bcMvcHelper.patchTrn(
+                portfolio.id,
+                trn.id,
+                TrnInput(
+                    assetId = aapl.id,
+                    trnType = TrnType.BUY,
+                    quantity = BigDecimal.TEN,
+                    tradeCurrency = USD.code,
+                    tradeDate = dateUtils.getDate("2021-03-10"),
+                    price = BigDecimal.TEN,
+                    tradePortfolioRate = BigDecimal.ONE,
+                )
+            ).response.contentAsString,
+            TrnResponse::class.java
+        )
+        assertThat(updatedResponse.data.size).isEqualTo(1)
+        val updatedTrn = objectMapper.readValue(
+            bcMvcHelper.getTrnById(portfolio.id, trn.id).response.contentAsString,
+            TrnResponse::class.java
+        ).data.iterator().next()
+
+        assertThat(updatedTrn)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("id", trn.id)
+            .hasFieldOrPropertyWithValue("comments", trn.comments)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.000000"))
+            .hasFieldOrPropertyWithValue("price", BigDecimal("10.000000"))
+            .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2021-03-10"))
+    }
+
+    @Test
+    fun fm_Json() {
+        val json =
+            "{\"tradePortfolioRate\":1,\"tradeCashRate\":1,\"tradeBaseRate\":0.69662,\"price\":429.265,\"tax\":0,\"fees\":1.08,\"cashAmount\":-859.6,\"tradeAmount\":859.6,\"quantity\":2,\"tradeCurrency\":\"USD\",\"trnType\":\"BUY\",\"tradeDate\":\"2021-10-06\"}"
+        assertThat(objectMapper.readValue(json, TrnInput::class.java)).isNotNull
     }
 }

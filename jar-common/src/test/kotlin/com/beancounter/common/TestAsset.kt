@@ -82,7 +82,7 @@ internal class TestAsset {
     fun assetFoundInRequest() {
         val market = Market("ABC")
         val assetInput = AssetInput(market.code, "123")
-        val ar = AssetRequest(market.code, assetInput)
+        val ar = AssetRequest(assetInput, market.code)
         assertThat(ar.data).containsKey(market.code)
     }
 

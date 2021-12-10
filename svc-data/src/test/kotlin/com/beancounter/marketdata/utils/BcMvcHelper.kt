@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.PortfolioInput
+import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson
@@ -62,10 +63,27 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         return data.values.iterator().next()
     }
 
+    fun getTrnById(portfolioId: String, trnId: String): MvcResult = mockMvc.perform(
+        MockMvcRequestBuilders.get("$trnsRoot/$portfolioId/$trnId")
+            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(MockMvcResultMatchers.status().isOk)
+        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn()
+
     fun postTrn(trnRequest: TrnRequest): MvcResult = mockMvc.perform(
         MockMvcRequestBuilders.post(trnsRoot)
             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
             .content(objectMapper.writeValueAsBytes(trnRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+    ).andExpect(MockMvcResultMatchers.status().isOk)
+        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn()
+
+    fun patchTrn(portfolioId: String, trnId: String, trnInput: TrnInput): MvcResult = mockMvc.perform(
+        MockMvcRequestBuilders.patch("$trnsRoot/$portfolioId/$trnId")
+            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            .content(objectMapper.writeValueAsBytes(trnInput))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(MockMvcResultMatchers.status().isOk)
         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))

@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
@@ -101,7 +102,7 @@ class TrnService internal constructor(
         val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(20)
         return trnRepository.findExisting(
             trustedTrnEvent.portfolio.id,
-            trustedTrnEvent.trnInput.assetId,
+            trustedTrnEvent.trnInput.assetId!!,
             trustedTrnEvent.trnInput.trnType,
             trustedTrnEvent.trnInput.tradeDate,
             endDate
@@ -120,6 +121,13 @@ class TrnService internal constructor(
             deleted.add(trn)
         }
         return postProcess(deleted)
+    }
+
+    fun patch(portfolio: Portfolio, trnId: String, trnInput: TrnInput): TrnResponse {
+        val existing = getPortfolioTrn(portfolio, trnId)
+        val trn = trnAdapter.map(portfolio, trnInput, existing.data.iterator().next())
+        trnRepository.save(trn)
+        return TrnResponse(arrayListOf(trn))
     }
 
     companion object {

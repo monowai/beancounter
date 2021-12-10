@@ -17,7 +17,7 @@ import java.time.LocalDate
  */
 data class TrnInput(
     val callerRef: CallerRef = CallerRef(),
-    val assetId: String, // What is being traded
+    val assetId: String?, // What is being traded
     val cashAssetId: String? = null, // A specific cash balance
     val trnType: TrnType = TrnType.BUY,
     val quantity: BigDecimal = BigDecimal.ZERO,
@@ -39,6 +39,6 @@ data class TrnInput(
     val tradeAmount: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val status: TrnStatus = TrnStatus.CONFIRMED,
-    val comments: String? = null,
+    var comments: String? = null,
     val cashAmount: BigDecimal? = null
 )

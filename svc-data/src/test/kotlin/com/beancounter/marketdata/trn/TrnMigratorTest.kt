@@ -53,6 +53,7 @@ internal class TrnMigratorTest {
     @Test
     fun upgrade() {
         val trnV1 = Trn(
+            id = "TrnV1",
             trnType = TrnType.BUY,
             version = "1",
             asset = MSFT,

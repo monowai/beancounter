@@ -39,7 +39,7 @@ class AssetServiceClient internal constructor(private val assetGateway: AssetGat
 
     @Async("taskScheduler")
     override fun backFillEvents(assetId: String) {
-        log.debug("Back fill for {}", assetId)
+        // log.debug("Back fill for {}", assetId)
         assetGateway.backFill(tokenService.bearerToken, assetId)
     }
 

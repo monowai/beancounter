@@ -14,7 +14,11 @@ interface PortfolioRepository : CrudRepository<Portfolio, String> {
     fun findByCodeAndOwner(code: String, systemUser: SystemUser): Optional<Portfolio>
     fun findByOwner(systemUser: SystemUser): Iterable<Portfolio>
 
-    @Query("select distinct t.portfolio from Trn t where t.asset.id = ?1 and t.tradeDate <= ?2")
+    @Query(
+        "select distinct t.portfolio from Trn t " +
+            "where (t.asset.id = ?1 and (t.cashAsset.id is null or t.cashAsset.id <> ?1)) " +
+            "and t.tradeDate <= ?2  "
+    )
     fun findDistinctPortfolioByAssetIdAndTradeDate(
         assetId: String,
         tradeDate: LocalDate

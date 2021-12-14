@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.client.FxService
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
@@ -24,8 +26,10 @@ class TrnAdapter internal constructor(
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,
     val cashServices: CashServices,
-    private val keyGenUtils: KeyGenUtils = KeyGenUtils()
+    val fxService: FxService,
+    val fxTransactions: FxTransactions,
 ) {
+    private val keyGenUtils: KeyGenUtils = KeyGenUtils()
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {
@@ -35,6 +39,12 @@ class TrnAdapter internal constructor(
     }
 
     fun map(portfolio: Portfolio, trnInput: TrnInput, existing: Trn? = null): Trn {
+        if (fxTransactions.needsRates(trnInput)) {
+            val fxRequest = fxTransactions.getFxRequest(portfolio, trnInput)
+            val (data) = fxService.getRates(fxRequest)
+            fxTransactions.setRates(data, fxRequest, trnInput)
+        }
+
         val cashAsset = cashServices.getCashAsset(trnInput)
         var cashCurrency: Currency? = null
         if (cashAsset != null) {

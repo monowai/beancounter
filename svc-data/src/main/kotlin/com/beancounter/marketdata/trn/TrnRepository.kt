@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import org.springframework.data.domain.Sort
@@ -23,7 +22,6 @@ interface TrnRepository : CrudRepository<Trn, String> {
 
     fun deleteByPortfolioId(portfolioId: String): Long
     fun findByPortfolioIdAndId(portfolioId: String, trnId: String): Optional<Trn>
-    fun findByCallerRef(callerRef: CallerRef): Optional<Trn>
 
     @Query(
         "select t from Trn t " +

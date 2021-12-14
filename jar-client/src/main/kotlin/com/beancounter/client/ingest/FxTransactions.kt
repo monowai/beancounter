@@ -11,16 +11,16 @@ import com.beancounter.common.utils.NumberUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
-@Service
 /**
  * Client side service to obtain FX rates in response to Transaction requests.
  */
+@Service
 class FxTransactions(
     private val fxClientService: FxService
 ) {
     private val numberUtils = NumberUtils()
 
-    fun buildRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
+    fun getFxRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
         val fxRequestMap: MutableMap<String?, FxRequest> = HashMap()
         val tradeDate = trn.tradeDate.toString()
         val fxRequest = getFxRequest(fxRequestMap, tradeDate)
@@ -41,22 +41,22 @@ class FxTransactions(
     fun setRates(
         rates: FxPairResults,
         fxRequest: FxRequest,
-        trn: TrnInput
+        trnInput: TrnInput
     ) {
-        if (fxRequest.tradePf != null && numberUtils.isUnset(trn.tradePortfolioRate)) {
-            trn.tradePortfolioRate = rates.rates[fxRequest.tradePf!!]!!.rate
+        if (fxRequest.tradePf != null && numberUtils.isUnset(trnInput.tradePortfolioRate)) {
+            trnInput.tradePortfolioRate = rates.rates[fxRequest.tradePf!!]!!.rate
         } else {
-            trn.tradePortfolioRate = BigDecimal.ONE
+            trnInput.tradePortfolioRate = BigDecimal.ONE
         }
-        if (fxRequest.tradeBase != null && numberUtils.isUnset(trn.tradeBaseRate)) {
-            trn.tradeBaseRate = rates.rates[fxRequest.tradeBase!!]!!.rate
+        if (fxRequest.tradeBase != null && numberUtils.isUnset(trnInput.tradeBaseRate)) {
+            trnInput.tradeBaseRate = rates.rates[fxRequest.tradeBase!!]!!.rate
         } else {
-            trn.tradeBaseRate = BigDecimal.ONE
+            trnInput.tradeBaseRate = BigDecimal.ONE
         }
-        if (fxRequest.tradeCash != null && numberUtils.isUnset(trn.tradeCashRate)) {
-            trn.tradeCashRate = rates.rates[fxRequest.tradeCash!!]!!.rate
+        if (fxRequest.tradeCash != null && numberUtils.isUnset(trnInput.tradeCashRate)) {
+            trnInput.tradeCashRate = rates.rates[fxRequest.tradeCash!!]!!.rate
         } else {
-            trn.tradeCashRate = BigDecimal.ONE
+            trnInput.tradeCashRate = BigDecimal.ONE
         }
     }
 
@@ -78,8 +78,14 @@ class FxTransactions(
     }
 
     fun setTrnRates(portfolio: Portfolio, trnInput: TrnInput) {
-        val fxRequest = buildRequest(portfolio, trnInput)
+        val fxRequest = getFxRequest(portfolio, trnInput)
         val (data) = fxClientService.getRates(fxRequest)
         setRates(data, fxRequest, trnInput)
+    }
+
+    fun needsRates(trnInput: TrnInput): Boolean {
+        return numberUtils.isUnset(trnInput.tradePortfolioRate) ||
+            numberUtils.isUnset(trnInput.tradeBaseRate) ||
+            numberUtils.isUnset(trnInput.tradeCashRate)
     }
 }

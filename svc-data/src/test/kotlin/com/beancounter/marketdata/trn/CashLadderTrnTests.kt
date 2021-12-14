@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.common.TokenUtils
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -61,6 +62,9 @@ class CashLadderTrnTests {
 
     @MockBean
     private lateinit var figiProxy: FigiProxy
+
+    @MockBean
+    private lateinit var fxTransactions: FxTransactions
 
     @Autowired
     private lateinit var wac: WebApplicationContext

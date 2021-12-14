@@ -76,10 +76,12 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
         if (positionResponse != null) {
             if (positionResponse.data.hasPositions()) {
                 val position = positionResponse.data.positions.values.iterator().next()
-                if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
-                    val behaviour = behaviourFactory.getAdapter(event)!!
-                    return behaviour
-                        .calculate(positionResponse.data.portfolio, position, event)
+                // Ignore cash positions.
+                if (!position.asset.assetCategory.isCash()) {
+                    if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
+                        val behaviour = behaviourFactory.getAdapter(event)!!
+                        return behaviour.calculate(positionResponse.data.portfolio, position, event)
+                    }
                 }
             }
         }
@@ -108,7 +110,7 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
 
         for (key in results!!.data.positions.keys) {
             val position = results.data.positions[key]
-            if (position != null) {
+            if (position != null && !position.asset.assetCategory.isCash()) {
                 assetService.backFillEvents(position.asset.id)
             }
         }

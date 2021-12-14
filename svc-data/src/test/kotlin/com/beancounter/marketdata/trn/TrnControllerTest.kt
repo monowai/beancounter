@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.TrnRequest
@@ -87,6 +88,10 @@ class TrnControllerTest {
 
     @MockBean
     private lateinit var figiProxy: FigiProxy
+
+    @MockBean
+    private lateinit var fxTransactions: FxTransactions
+
     private lateinit var token: Jwt
     private lateinit var mockMvc: MockMvc
     private val objectMapper: ObjectMapper = BcJson().objectMapper

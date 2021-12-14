@@ -45,9 +45,7 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
     }
 
     fun findAssetTrades(portfolio: Portfolio, assetId: String): TrnResponse {
-        val typeFilter = ArrayList<TrnType>()
-        typeFilter.add(TrnType.BUY)
-        typeFilter.add(TrnType.SELL)
+        val typeFilter = arrayListOf(TrnType.BUY, TrnType.SELL, TrnType.DEPOSIT, TrnType.WITHDRAWAL)
         return trnResponse(portfolio, assetId, typeFilter)
     }
 
@@ -71,8 +69,8 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
                 portfolio.id,
                 assetId,
                 typeFilter,
-                Sort.by("asset.code")
-                    .and(Sort.by("tradeDate").descending())
+                Sort.by("tradeDate").descending()
+                    .and(Sort.by("asset.code"))
             )
         log.debug(
             "Found {} for portfolio {} and asset {}",

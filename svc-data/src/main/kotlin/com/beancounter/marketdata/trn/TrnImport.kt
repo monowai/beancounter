@@ -89,9 +89,6 @@ class TrnImport {
     }
 
     private fun writeTrn(portfolio: Portfolio, trnInput: TrnInput): TrnResponse {
-        val fxRequest = fxTransactions.buildRequest(portfolio, trnInput)
-        val (data) = fxRateService.getRates(fxRequest)
-        fxTransactions.setRates(data, fxRequest, trnInput)
         val trnRequest = TrnRequest(portfolio.id, arrayOf(trnInput))
         return trnService.save(portfolio, trnRequest)
     }

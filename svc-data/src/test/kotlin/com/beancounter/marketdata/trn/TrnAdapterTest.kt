@@ -1,5 +1,7 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.client.FxService
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
@@ -51,6 +53,12 @@ internal class TrnAdapterTest {
 
     @MockBean
     private lateinit var currencyService: CurrencyService
+
+    @MockBean
+    private lateinit var fxTransactions: FxTransactions
+
+    @MockBean
+    private lateinit var fxService: FxService
 
     @Autowired
     private lateinit var trnAdapter: TrnAdapter

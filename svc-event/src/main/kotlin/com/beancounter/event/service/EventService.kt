@@ -36,7 +36,6 @@ class EventService(
     }
 
     fun processMessage(event: CorporateEvent): Collection<TrustedTrnEvent> {
-        log.info("processEvent: asset: {} recordDate: {}", event.assetId, event.recordDate)
         val results: MutableCollection<TrustedTrnEvent> = ArrayList()
         val response = positionService.findWhereHeld(
             event.assetId,
@@ -48,7 +47,14 @@ class EventService(
             if (trnEvent != null) {
                 trnEvent.trnInput
                 if (eventPublisher != null) {
-                    log.info("Publish code: {}, tradeDate: {}", trnEvent.portfolio.code, trnEvent.trnInput.tradeDate)
+                    log.info(
+                        "event: {}, asset: {} code: {}, tradeDate: {}",
+                        event.id,
+                        event.assetId,
+                        trnEvent.portfolio.code,
+                        trnEvent
+                            .trnInput.tradeDate
+                    )
                     eventPublisher!!.send(trnEvent)
                 }
                 results.add(trnEvent)
@@ -95,7 +101,7 @@ class EventService(
 
     fun getAssetEvents(assetId: String): CorporateEventResponses {
         val events = eventRepository.findByAssetId(assetId)
-        if (events.isNullOrEmpty()) {
+        if (events.isEmpty()) {
             return CorporateEventResponses()
         }
         return CorporateEventResponses(events)

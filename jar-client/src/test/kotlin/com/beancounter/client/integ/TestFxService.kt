@@ -104,7 +104,7 @@ class TestFxService {
             price = BigDecimal.TEN
         )
         val portfolio = getPortfolio()
-        val request = fxTransactions!!.buildRequest(portfolio, trnInput)
+        val request = fxTransactions!!.getFxRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")
         fxTransactions.setTrnRates(portfolio, trnInput)
         assertThat(trnInput)

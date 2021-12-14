@@ -5,6 +5,10 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.model.TrnType.DEPOSIT
+import com.beancounter.common.model.TrnType.DIVI
+import com.beancounter.common.model.TrnType.FX_BUY
+import com.beancounter.common.model.TrnType.WITHDRAWAL
 import com.beancounter.common.utils.DateUtils
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
@@ -31,7 +35,7 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
      */
     fun accumulate(trn: Trn, positions: Positions): Position {
         val position = positions[trn.asset, trn.tradeDate]
-        if (trn.trnType !== TrnType.DIVI) {
+        if (trn.trnType !== DIVI) {
             isDateSequential(trn, position)
         }
         val accumulationStrategy = trnBehaviourFactory[trn.trnType]
@@ -45,7 +49,7 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
 
     private fun isCashAccumulated(trn: Trn): Boolean {
         if (trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType)) {
-            if (trn.trnType == TrnType.FX_BUY || trn.trnType == TrnType.DEPOSIT || trn.trnType == TrnType.WITHDRAWAL) {
+            if (trn.trnType == FX_BUY || trn.trnType == DEPOSIT || trn.trnType == WITHDRAWAL) {
                 return false // Don't accumulate cash twice
             }
             return true
@@ -54,12 +58,11 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     }
 
     private fun accumulateCash(trn: Trn, positions: Positions) {
-
         val cashPosition = positions[trn.cashAsset, trn.tradeDate]
         if (TrnType.isCashCredited(trn.trnType)) {
-            trnBehaviourFactory[TrnType.DEPOSIT].accumulate(trn, positions, cashPosition)
+            trnBehaviourFactory[DEPOSIT].accumulate(trn, positions, cashPosition)
         } else if (TrnType.isCashDebited(trn.trnType)) {
-            trnBehaviourFactory[TrnType.WITHDRAWAL].accumulate(trn, positions, cashPosition)
+            trnBehaviourFactory[WITHDRAWAL].accumulate(trn, positions, cashPosition)
         }
         cashPosition.dateValues.last = trn.tradeDate
     }

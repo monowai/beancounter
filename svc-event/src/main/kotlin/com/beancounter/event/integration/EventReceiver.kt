@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Controller
 
 /**
  * Responds to Kafka events.
  */
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
-@Service
+@Controller
 class EventReceiver(private val eventService: EventService) {
 
     @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")

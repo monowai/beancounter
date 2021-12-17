@@ -24,6 +24,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-actuator",
             "org.springframework.boot:spring-boot-starter-integration",
             "org.jetbrains.kotlin:kotlin-reflect",
+            "org.mockito.kotlin:mockito-kotlin:4.0.0",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
@@ -31,7 +32,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion",
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.h2database:h2",
-            "org.postgresql:postgresql:42.2.23",
+            'org.postgresql:postgresql:42.3.1',
             "com.github.ben-manes.caffeine:caffeine",
             "org.springframework.kafka:spring-kafka"
     )

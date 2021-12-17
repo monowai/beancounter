@@ -23,6 +23,132 @@
     },
     "asAt": "2020-06-07",
     "positions": {
+      "USD:CASH": {
+        "asset": {
+          "id": "USD",
+          "code": "USD",
+          "name": "USD Balance",
+          "market": {
+            "code": "CASH",
+            "currencyId": "USD",
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "type": "Internal"
+          },
+          "priceSymbol": "USD",
+          "assetCategory": {
+            "id": "CASH",
+            "name": "Cash"
+          },
+          "status": "Active",
+          "version": "1"
+        },
+        "quantityValues": {
+          "sold": -2000.00,
+          "purchased": 9000.0000,
+          "adjustment": 0,
+          "precision": 2,
+          "total": 7000.0
+        },
+        "dateValues": {
+          "opened": "2020-06-07",
+          "last": "2020-06-07"
+        },
+        "moneyValues": {
+          "TRADE": {
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "dividends": 0,
+            "costValue": 1819.87,
+            "costBasis": 1819.87,
+            "fees": 0,
+            "purchases": 0,
+            "sales": 0,
+            "marketValue": 1819.87,
+            "weight": 0.206983,
+            "priceData": {
+              "priceDate": "2020-06-07",
+              "close": 1.00,
+              "low": null,
+              "high": null,
+              "previousClose": null,
+              "change": null,
+              "changePercent": null,
+              "volume": null
+            },
+            "averageCost": 1,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0
+          },
+          "PORTFOLIO": {
+            "currency": {
+              "code": "USD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "dividends": 0,
+            "costValue": 1819.87,
+            "costBasis": 1819.87,
+            "fees": 0,
+            "purchases": 0,
+            "sales": 0,
+            "marketValue": 1819.87,
+            "weight": 0.206983,
+            "priceData": {
+              "priceDate": "2020-06-07",
+              "open": null,
+              "close": 1.00,
+              "low": null,
+              "high": null,
+              "previousClose": null,
+              "change": null,
+              "changePercent": null,
+              "volume": null
+            },
+            "averageCost": 1,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0
+          },
+          "BASE": {
+            "currency": {
+              "code": "NZD",
+              "name": "Dollar",
+              "symbol": "$"
+            },
+            "dividends": 0,
+            "costValue": 2693.41,
+            "costBasis": -1028.10,
+            "fees": 0,
+            "purchases": 0,
+            "sales": 0,
+            "marketValue": 2693.41,
+            "weight": 0.206482,
+            "priceData": {
+              "priceDate": "2020-06-07",
+              "open": null,
+              "close": 1.48,
+              "low": null,
+              "high": null,
+              "previousClose": null,
+              "change": null,
+              "changePercent": null,
+              "volume": null
+            },
+            "averageCost": -0.5649304621,
+            "realisedGain": 0,
+            "unrealisedGain": 0,
+            "totalGain": 0
+          }
+        }
+      },
       "MSFT:NASDAQ": {
         "asset": {
           "id": "MSFT",
@@ -56,7 +182,6 @@
         "dateValues": {
           "opened": "2019-10-02",
           "last": "2020-06-07",
-          "closed": null,
           "lastDividend": "2020-06-07"
         },
         "moneyValues": {
@@ -155,7 +280,6 @@
         "dateValues": {
           "opened": "2019-03-07",
           "last": "2020-02-18",
-          "closed": null,
           "lastDividend": "2020-02-18"
         },
         "moneyValues": {

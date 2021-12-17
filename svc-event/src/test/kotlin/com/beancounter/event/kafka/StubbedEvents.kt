@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
@@ -42,6 +43,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
+
+/**
+ * Test inbound Kafka corporate action events
+ */
 
 @EmbeddedKafka(
     partitions = 1,
@@ -62,9 +67,6 @@ import java.math.BigDecimal
 @Tag("slow")
 @SpringBootTest(classes = [EventBoot::class], properties = ["auth.enabled=false"])
 @ActiveProfiles("kafka")
-/**
- * Test inbound Kafka corporate action events
- */
 class StubbedEvents {
     private val om = BcJson().objectMapper
 
@@ -163,12 +165,12 @@ class StubbedEvents {
 
         Thread.sleep(400)
 
-        // Verify that the backfill request is dispatched
+        // Verify that the backfill request is dispatched, but not for cash
         Mockito.verify(
             assetSpy,
-            Mockito.times(1)
+            Mockito.times(2)
         )
-            .backFillEvents(eventInput.data.assetId)
+            .backFillEvents(any())
     }
 
     // We're working with exactly the same event, so output should be the same

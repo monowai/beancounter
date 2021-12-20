@@ -14,7 +14,7 @@ import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
-import com.beancounter.marketdata.providers.mock.CashProviderService
+import com.beancounter.marketdata.providers.cash.CashProviderService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

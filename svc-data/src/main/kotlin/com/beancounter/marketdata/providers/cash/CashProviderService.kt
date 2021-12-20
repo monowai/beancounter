@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.providers.mock
+package com.beancounter.marketdata.providers.cash
 
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
@@ -12,11 +12,10 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * For testing purposes. Part of the main source in order to allow for an off-line provider
- * that will force certain error conditions.
+ * Cash still has a price, and we need to be able to resolve it for valuation reasons
  *
  * @author mikeh
- * @since 2019-03-01
+ * @since 2021-12-01
  */
 @Service
 class CashProviderService : MarketDataProvider {
@@ -42,7 +41,7 @@ class CashProviderService : MarketDataProvider {
     }
 
     override fun isMarketSupported(market: Market): Boolean {
-        return "CASH".equals(market.code, ignoreCase = true)
+        return ID.equals(market.code, ignoreCase = true)
     }
 
     val priceDate: LocalDate?
@@ -53,7 +52,7 @@ class CashProviderService : MarketDataProvider {
     }
 
     override fun backFill(asset: Asset): PriceResponse {
-        return PriceResponse()
+        throw UnsupportedOperationException("Cash does not support backfill requests")
     }
 
     companion object {

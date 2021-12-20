@@ -10,7 +10,7 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.providers.mock.CashProviderService
+import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows

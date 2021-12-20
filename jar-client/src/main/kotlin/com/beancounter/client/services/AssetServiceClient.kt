@@ -33,7 +33,7 @@ class AssetServiceClient internal constructor(private val assetGateway: AssetGat
         log.info("marketdata.url: {}", marketDataUrl)
     }
 
-    override fun process(assetRequest: AssetRequest): AssetUpdateResponse? {
+    override fun handle(assetRequest: AssetRequest): AssetUpdateResponse? {
         return assetGateway.process(tokenService.bearerToken, assetRequest)
     }
 

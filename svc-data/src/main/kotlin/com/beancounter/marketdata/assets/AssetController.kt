@@ -47,7 +47,7 @@ class AssetController @Autowired internal constructor(
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun update(@RequestBody assetRequest: AssetRequest): AssetUpdateResponse =
-        assetService.process(assetRequest)
+        assetService.handle(assetRequest)
 
     @PostMapping(value = ["/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)

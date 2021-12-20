@@ -145,7 +145,7 @@ internal class FxValuationTest {
             val assetInputMap: MutableMap<String, AssetInput> = HashMap()
             assetInputMap["EBAY:NASDAQ"] = AssetInput("NASDAQ", "EBAY")
             val assetRequest = AssetRequest(assetInputMap)
-            val assetResponse = assetService.process(assetRequest)
+            val assetResponse = assetService.handle(assetRequest)
             assertThat(assetResponse!!.data).hasSize(1)
             return assetResponse.data["EBAY:NASDAQ"] ?: error("EBAY Not Found. This should never happen")
         }

@@ -145,7 +145,7 @@ class FigiAssetApiTest {
     fun is_DefaultAssetName() {
         //
         val assetRequest = AssetRequest(AssetInput(NASDAQ.code, "ABC", "My Default Name"), "ZZZ")
-        val assetResponse = assetService.process(assetRequest)
+        val assetResponse = assetService.handle(assetRequest)
         assertThat(assetResponse).isNotNull
         assertThat(assetResponse.data)
             .hasSize(1)

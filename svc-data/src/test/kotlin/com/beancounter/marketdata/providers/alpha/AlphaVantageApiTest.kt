@@ -275,7 +275,7 @@ internal class AlphaVantageApiTest {
             ClassPathResource("$mockAlpha/price-not-found.json").file
         )
         val (data) = assetService
-            .process(AssetRequest(mapOf(Pair(keyProp, AssetInput(NYSE.code, code)))))
+            .handle(AssetRequest(mapOf(Pair(keyProp, AssetInput(NYSE.code, code)))))
         val asset = data[keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
@@ -299,7 +299,7 @@ internal class AlphaVantageApiTest {
         val file = ClassPathResource("$mockAlpha/kmi-backfill-response.json").file
         mockAdjustedResponse(assetCode, file)
         val asset =
-            assetService.process(
+            assetService.handle(
                 AssetRequest(mapOf(Pair(keyProp, AssetInput(NASDAQ.code, assetCode))))
             ).data[keyProp]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")

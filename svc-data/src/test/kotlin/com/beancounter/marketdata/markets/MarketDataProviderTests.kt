@@ -8,7 +8,7 @@ import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaService
-import com.beancounter.marketdata.providers.mock.CashProviderService
+import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.AssertionsForClassTypes

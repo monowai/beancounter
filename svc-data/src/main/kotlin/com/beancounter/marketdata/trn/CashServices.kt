@@ -64,7 +64,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         }
 
         val assetRequest = AssetRequest(assets)
-        return assetService.process(assetRequest)
+        return assetService.handle(assetRequest)
     }
 
     companion object {

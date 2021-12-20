@@ -98,7 +98,7 @@ class KafkaMarketDataTest {
     @Disabled // Not yet implemented.
     fun pricePersisted() {
         val assetRequest = AssetRequest(AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code), "test")
-        val assetResult = assetService.process(assetRequest)!!
+        val assetResult = assetService.handle(assetRequest)!!
         val asset = assetResult.data["test"]
         val idProp = "id"
         assertThat(asset).isNotNull.hasFieldOrProperty(idProp)
@@ -155,7 +155,7 @@ class KafkaMarketDataTest {
     fun corporateEventDispatched() {
         val data: MutableMap<String, AssetInput> = HashMap()
         data["a"] = AssetInput(NASDAQ.code, "TWEE")
-        val assetResult = assetService.process(AssetRequest(data))!!
+        val assetResult = assetService.handle(AssetRequest(data))!!
         assertThat(assetResult.data).hasSize(1)
         val asset = assetResult.data["a"]
         assertThat(asset!!.id).isNotNull

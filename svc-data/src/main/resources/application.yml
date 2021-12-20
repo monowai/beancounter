@@ -133,6 +133,11 @@ beancounter:
         enricher: ECHO
         type: Internal
 
+      - code: CUSTOM
+        timezoneId: UTC
+        enricher: ECHO
+        type: Community
+
       - code: NASDAQ
         timezoneId: US/Eastern
         currencyId: USD
@@ -190,6 +195,10 @@ beancounter:
         url: https://www.worldtradingdata.com
         batchSize: 2
         markets:
+
+      CUSTOM:
+        batchSize: 1
+        markets: CUSTOM
 
 
 resilience4j.ratelimiter:

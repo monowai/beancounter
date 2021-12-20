@@ -30,7 +30,7 @@ class CashServiceIntegrationTests {
     fun isCashAssetCreated() {
         val cashInput = AssetUtils.getCash(NZD.code)
         val category = assetCategoryConfig.get(cashInput.category.uppercase())
-        val assetResponse = assetService.process(AssetRequest(mapOf(Pair(NZD.code, cashInput))))
+        val assetResponse = assetService.handle(AssetRequest(mapOf(Pair(NZD.code, cashInput))))
         assertThat(assetResponse.data).hasSize(1)
         val cashAsset = assetResponse.data[NZD.code]
         assertThat(cashAsset)

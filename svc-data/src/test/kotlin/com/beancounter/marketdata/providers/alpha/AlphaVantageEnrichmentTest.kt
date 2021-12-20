@@ -170,7 +170,7 @@ class AlphaVantageEnrichmentTest {
         val code = "DTV"
         assetInputMap[AlphaConstants.keyProp] = AssetInput(Constants.NYSE.code, code)
         val (data) = assetService
-            .process(AssetRequest(assetInputMap))
+            .handle(AssetRequest(assetInputMap))
         val asset = data[AlphaConstants.keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(

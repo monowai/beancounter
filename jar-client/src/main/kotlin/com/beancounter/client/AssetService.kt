@@ -11,7 +11,7 @@ interface AssetService {
     /**
      * Create/Locate the requested assets and return a response.
      */
-    fun process(assetRequest: AssetRequest): AssetUpdateResponse?
+    fun handle(assetRequest: AssetRequest): AssetUpdateResponse?
     /**
      * Locate missing corporate actions for the supplied assetId.
      */

@@ -38,7 +38,7 @@ class AlphaEnricherTest {
         )
 
         val assetRequest = AssetRequest(AssetInput(Constants.NASDAQ.code, key, "My Default Name"))
-        val assetResponse = assetService.process(assetRequest)
+        val assetResponse = assetService.handle(assetRequest)
         assertThat(assetResponse).isNotNull
         assertThat(assetResponse.data)
             .hasSize(1)

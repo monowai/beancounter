@@ -38,7 +38,7 @@ class PriceWriter {
 
     fun processMessage(priceResponse: PriceResponse): Iterable<MarketData?>? {
         log.trace("Received Message {}", priceResponse.toString())
-        return priceService!!.process(priceResponse)
+        return priceService!!.handle(priceResponse)
     }
 
     companion object {

@@ -47,7 +47,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
     private val mdFactory: MdFactory,
 ) {
     @MockBean
-    private lateinit var priceService: PriceService
+    private lateinit var marketDataRepo: MarketDataRepo
 
     private lateinit var priceDate: LocalDate
     private val mockPrice = BigDecimal("999.99")
@@ -61,7 +61,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
     fun setUp() {
         val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)!!
         priceDate = marketDataProvider.getDate(asset.market, PriceRequest.of(AssetInput(asset)))
-        Mockito.`when`(priceService.getMarketData(asset.id, priceDate))
+        Mockito.`when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate))
             .thenReturn(
                 Optional.of(
                     MarketData(

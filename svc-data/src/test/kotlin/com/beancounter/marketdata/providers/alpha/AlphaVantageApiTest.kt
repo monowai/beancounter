@@ -274,19 +274,16 @@ internal class AlphaVantageApiTest {
             code,
             ClassPathResource("$mockAlpha/price-not-found.json").file
         )
-        val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-        assetInputMap[keyProp] = AssetInput(NYSE.code, code)
         val (data) = assetService
-            .process(AssetRequest(assetInputMap))
+            .process(AssetRequest(mapOf(Pair(keyProp, AssetInput(NYSE.code, code)))))
         val asset = data[keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
-            asset.id,
+            asset,
             dateUtils.date
         )
         if (priceResult.isPresent) {
-            val priceRequest = of(asset)
-            val priceResponse = marketDataService.getPriceResponse(priceRequest)
+            val priceResponse = marketDataService.getPriceResponse(of(asset))
             assertThat(priceResponse).isNotNull.hasFieldOrProperty(DATA)
             val price = priceResponse.data.iterator().next()
             assertThat(price).hasFieldOrProperty(priceDateProp)

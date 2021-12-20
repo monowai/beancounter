@@ -25,7 +25,7 @@ class MarketDataService @Autowired internal constructor(
     fun backFill(asset: Asset) {
         val byFactory = providerUtils.splitProviders(providerUtils.getInputs(mutableListOf(asset)))
         for (marketDataProvider in byFactory.keys) {
-            priceService.process(marketDataProvider.backFill(asset))
+            priceService.handle(marketDataProvider.backFill(asset))
         }
     }
 
@@ -56,7 +56,7 @@ class MarketDataService @Autowired internal constructor(
                     marketData
                 )
 
-                val md = priceService.getMarketData(asset.id, marketDate)
+                val md = priceService.getMarketData(asset, marketDate)
                 if (md.isPresent) {
                     val mdValue = md.get()
                     mdValue.asset = asset

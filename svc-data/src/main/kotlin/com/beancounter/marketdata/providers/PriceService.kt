@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.event.EventWriter
@@ -30,23 +31,23 @@ class PriceService internal constructor(
         this.eventWriter = eventWriter
     }
 
-    fun getMarketData(assetId: String, date: LocalDate?): Optional<MarketData> {
-        return marketDataRepo.findByAssetIdAndPriceDate(assetId, date)
+    fun getMarketData(asset: Asset, date: LocalDate?): Optional<MarketData> {
+        return marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)
     }
 
     @Async("priceExecutor")
     fun write(priceResponse: PriceResponse): Future<Iterable<MarketData>?> {
-        return AsyncResult(process(priceResponse))
+        return AsyncResult(handle(priceResponse))
     }
 
-    fun process(priceResponse: PriceResponse): Iterable<MarketData>? {
+    /**
+     * Persistence and distribution of MarketData objects.
+     */
+    fun handle(priceResponse: PriceResponse): Iterable<MarketData>? {
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
             if (!marketData.asset.assetCategory.isCash()) {
-                val existing = marketDataRepo.findByAssetIdAndPriceDate(
-                    marketData.asset.id,
-                    marketData.priceDate
-                )
+                val existing = getMarketData(marketData.asset, marketData.priceDate)
                 if (existing.isEmpty) {
                     // Create
                     marketData.id = keyGenUtils.id

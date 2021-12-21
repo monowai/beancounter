@@ -121,8 +121,8 @@ beancounter:
         name: Exchange Traded Fund
       - id: CASH
         name: Cash
-      - id: CUSTOM
-        name: Custom
+      - id: RE
+        name: Real Estate
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: ALPHA

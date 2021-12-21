@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.assets
 
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,18 +13,18 @@ import javax.transaction.Transactional
  */
 @Service
 @Transactional
-class EnrichmentFactory(private val assetRepository: AssetRepository) {
+class EnrichmentFactory(val defaultEnricher: DefaultEnricher) {
     private var enrichers: MutableMap<String, AssetEnricher> = HashMap()
 
     @Value("\${beancounter.enricher:ALPHA}")
     lateinit var defEnricher: String
 
     @Autowired
-    fun setEnrichers(figiEnricher: AssetEnricher, alphaEnricher: AssetEnricher, echoEnricher: EchoEnricher) {
+    fun setEnrichers(figiEnricher: AssetEnricher, alphaEnricher: AssetEnricher) {
+        register(defaultEnricher)
         register(alphaEnricher)
         register(figiEnricher)
-        register(echoEnricher)
-        log.info("Registered {} Asset Enrichers.  Default: {}", enrichers.keys.size, defEnricher)
+        log.info("Registered ${enrichers.keys.size} Asset Enrichers.  Default: $defEnricher")
     }
 
     fun register(enricher: AssetEnricher) {
@@ -39,18 +38,6 @@ class EnrichmentFactory(private val assetRepository: AssetRepository) {
         }
 
         return enrichers[enricher.uppercase(Locale.getDefault())]!!
-    }
-
-    fun enrich(asset: Asset): Asset {
-        val enricher = getEnricher(asset.market)
-        if (enricher.canEnrich(asset)) {
-            val enriched = enricher.enrich(asset.id, asset.market, asset.code, asset.name)
-            if (enriched != null) {
-                assetRepository.save(enriched) // Hmm, not sure the Repo should be here
-                return enriched
-            }
-        }
-        return asset
     }
 
     companion object {

@@ -20,8 +20,8 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.aaplInput
 import com.beancounter.marketdata.Constants.Companion.msftInput
+import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
-import com.beancounter.marketdata.assets.MockEnricher
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketService
@@ -100,7 +100,7 @@ class TrnControllerTest {
 
     @BeforeEach
     fun setupObjects() {
-        enrichmentFactory.register(MockEnricher())
+        enrichmentFactory.register(DefaultEnricher())
         assertThat(currencyService.currencies).isNotEmpty
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())

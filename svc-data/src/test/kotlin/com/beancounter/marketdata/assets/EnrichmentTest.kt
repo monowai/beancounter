@@ -17,7 +17,7 @@ class EnrichmentTest {
 
     @Test
     fun is_FigiEnrichment() {
-        val enricher: AssetEnricher = FigiEnricher()
+        val enricher: AssetEnricher = FigiEnricher(DefaultEnricher())
         val asset = Asset(id = "123", code = code, market = NYSE, name = null)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
@@ -26,7 +26,7 @@ class EnrichmentTest {
 
     @Test
     fun is_AlphaEnrichment() {
-        val enricher: AssetEnricher = AlphaEnricher(AlphaConfig())
+        val enricher: AssetEnricher = AlphaEnricher(AlphaConfig(), DefaultEnricher())
         val asset = Asset(id = "123", code = code, market = NYSE, name = null)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name

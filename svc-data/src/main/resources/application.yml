@@ -130,12 +130,12 @@ beancounter:
     values:
       - code: CASH
         timezoneId: UTC
-        enricher: ECHO
+        enricher: DEFAULT
         type: Internal
 
       - code: CUSTOM
         timezoneId: UTC
-        enricher: ECHO
+        enricher: DEFAULT
         type: Community
 
       - code: NASDAQ

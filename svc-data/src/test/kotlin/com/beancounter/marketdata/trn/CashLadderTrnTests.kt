@@ -23,8 +23,8 @@ import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
-import com.beancounter.marketdata.assets.MockEnricher
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
@@ -83,7 +83,7 @@ class CashLadderTrnTests {
         )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
-        enrichmentFactory.register(MockEnricher())
+        enrichmentFactory.register(DefaultEnricher())
     }
 
     private val fiveK = BigDecimal("5000.00")

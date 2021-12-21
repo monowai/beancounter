@@ -5,7 +5,7 @@ kafka:
   enabled: false
 
 beancounter:
-  enricher: MOCK
+  enricher: DEFAULT
 
   market.providers:
     ALPHA:

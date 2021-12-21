@@ -43,7 +43,7 @@ class AssetController @Autowired internal constructor(
 
     @PostMapping(value = ["/{assetId}/enrich"])
     fun enrichAsset(@PathVariable assetId: String): AssetResponse =
-        AssetResponse(enrichmentFactory.enrich(assetService.find(assetId)))
+        AssetResponse(assetService.enrich(assetService.find(assetId)))
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun update(@RequestBody assetRequest: AssetRequest): AssetUpdateResponse =

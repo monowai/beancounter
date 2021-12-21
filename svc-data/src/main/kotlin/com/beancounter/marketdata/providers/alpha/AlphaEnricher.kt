@@ -3,9 +3,11 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.exception.SystemException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetEnricher
+import com.beancounter.marketdata.assets.DefaultEnricher
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -16,7 +18,8 @@ import java.util.Locale
  * Backfills missing asset data from a 3rd party. Basically adds asset.name for a supplied asset.code.
  */
 @Service
-class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
+class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnricher: DefaultEnricher) :
+    AssetEnricher {
     private val objectMapper = AlphaPriceAdapter().alphaMapper
     private var alphaProxyCache: AlphaProxyCache? = null
 
@@ -28,9 +31,9 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
         this.alphaProxyCache = alphaProxyCache
     }
 
-    override fun enrich(id: String, market: Market, code: String, defaultName: String?): Asset? {
+    override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
         val marketCode = alphaConfig.translateMarketCode(market)
-        var symbol = alphaConfig.translateSymbol(code)
+        var symbol = alphaConfig.translateSymbol(assetInput.code)
         if (marketCode != null) {
             symbol = "$symbol.$marketCode"
         }
@@ -42,10 +45,14 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig) : AssetEnricher {
             throw SystemException("This shouldn't have happened")
         }
         return if (assetResult == null) {
-            null
+            defaultEnricher.enrich(
+                id,
+                market,
+                assetInput,
+            )
         } else Asset(
             id,
-            code.uppercase(Locale.getDefault()),
+            assetInput.code.uppercase(Locale.getDefault()),
             name = assetResult.name,
             category = assetResult.type,
             market = market,

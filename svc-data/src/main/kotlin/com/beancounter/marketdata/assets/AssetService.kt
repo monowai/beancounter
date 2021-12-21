@@ -30,45 +30,40 @@ class AssetService internal constructor(
     private val assetHydrationService: AssetHydrationService,
 ) : com.beancounter.client.AssetService {
     private val keyGenUtils = KeyGenUtils()
+
+    fun enrich(asset: Asset): Asset {
+        val enricher = enrichmentFactory.getEnricher(asset.market)
+        if (enricher.canEnrich(asset)) {
+            val enriched = enricher.enrich(
+                asset.id,
+                asset.market,
+                AssetInput(asset.market.code, asset.code, category = asset.category.uppercase())
+            )
+            assetRepository.save(enriched) // Hmm, not sure the Repo should be here
+            return enriched
+        }
+        return asset
+    }
+
     private fun create(assetInput: AssetInput): Asset {
         val foundAsset = findLocally(
             assetInput.market.uppercase(Locale.getDefault()),
             assetInput.code.uppercase(Locale.getDefault())
         )
-        if (foundAsset == null) {
+        return if (foundAsset == null) {
             // Is the market supported?
             val market = marketService.getMarket(assetInput.market, false)
-            var defaultName: String? = null
-            if (assetInput.name != null) {
-                defaultName = assetInput.name!!.replace("\"", "")
-            }
-            val id = keyGenUtils.id
             // Fill in missing asset attributes
-            var asset = enrichmentFactory.getEnricher(market)
+            val asset = enrichmentFactory.getEnricher(market)
                 .enrich(
-                    id = id,
+                    id = keyGenUtils.id,
                     market = market,
-                    code = assetInput.code,
-                    defaultName = defaultName
+                    assetInput = assetInput,
                 )
-            if (asset == null) {
-                // Cash or User Defined Asset
-                asset = Asset(
-                    id = id,
-                    code = assetInput.code.uppercase(Locale.getDefault()),
-                    name = defaultName,
-                    category = assetInput.category,
-                    market = market,
-                    marketCode = market.code,
-                    priceSymbol = assetInput.currency,
-                )
-            } else {
-                // Market Listed
-                asset.market = market
-            }
-            return assetHydrationService.hydrateAsset(assetRepository.save(asset))
+            assetHydrationService.hydrateAsset(assetRepository.save(asset))
+        } else {
+            assetHydrationService.hydrateAsset(foundAsset)
         }
-        return enrichmentFactory.enrich(foundAsset)
     }
 
     override fun handle(assetRequest: AssetRequest): AssetUpdateResponse {
@@ -90,14 +85,10 @@ class AssetService internal constructor(
         if (asset == null) {
             val market = marketService.getMarket(marketCode)
             asset = enrichmentFactory.getEnricher(market).enrich(
-                keyGenUtils.format(UUID.randomUUID()),
-                market,
-                code,
-                null
+                id = keyGenUtils.format(UUID.randomUUID()),
+                market = market,
+                assetInput = AssetInput(marketCode, code)
             )
-            if (asset == null) {
-                throw BusinessException(String.format("No asset found for %s:%s", marketCode, code))
-            }
             if (marketService.canPersist(market)) {
                 asset = assetRepository.save(asset)
             }

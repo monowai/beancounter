@@ -63,7 +63,7 @@ internal class AssetControllerTest(
         // Setup a user account
         token = TokenUtils().getUserToken(systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
-        enrichmentFactory.register(MockEnricher())
+        enrichmentFactory.register(DefaultEnricher())
     }
 
     @Test

@@ -2,7 +2,9 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
+import com.beancounter.marketdata.currency.CurrencyRepository
 import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.utils.MockRepos
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,12 +20,12 @@ internal class AssetServiceCustomTest {
     @MockBean
     private lateinit var marketDataService: MarketDataService
 
-    @Autowired
-    private lateinit var mockRepos: MockRepos
+    @MockBean
+    private lateinit var currencyRepository: CurrencyRepository
 
     @BeforeEach
     fun mockRepos() {
-        mockRepos.currencies()
+        MockRepos.currencies(currencyRepository)
     }
 
     @Test

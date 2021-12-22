@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
-import com.beancounter.key.KeyGenUtils
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.event.EventWriter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async

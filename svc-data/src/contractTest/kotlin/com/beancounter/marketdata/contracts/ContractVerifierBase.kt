@@ -2,7 +2,7 @@ package com.beancounter.marketdata.contracts
 
 import com.beancounter.auth.common.TokenService
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.key.KeyGenUtils
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.trn.CashServices

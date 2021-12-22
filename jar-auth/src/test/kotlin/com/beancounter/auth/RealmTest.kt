@@ -3,7 +3,7 @@ package com.beancounter.auth
 import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.JwtRoleConverter
 import com.beancounter.common.model.SystemUser
-import com.beancounter.key.KeyGenUtils
+import com.beancounter.common.utils.KeyGenUtils
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority

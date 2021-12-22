@@ -3,7 +3,7 @@ package com.beancounter.marketdata.portfolio
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.key.KeyGenUtils
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.currency.CurrencyService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

@@ -10,8 +10,8 @@ import com.beancounter.common.model.CallerRef.Companion.from
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
-import com.beancounter.key.KeyGenUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
@@ -29,7 +29,8 @@ class TrnAdapter internal constructor(
     val fxService: FxService,
     val fxTransactions: FxTransactions,
 ) {
-    private val keyGenUtils: KeyGenUtils = KeyGenUtils()
+    private val keyGenUtils: KeyGenUtils =
+        KeyGenUtils()
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {

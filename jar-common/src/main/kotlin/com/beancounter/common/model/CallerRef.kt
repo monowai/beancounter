@@ -1,6 +1,6 @@
 package com.beancounter.common.model
 
-import com.beancounter.key.KeyGenUtils
+import com.beancounter.common.utils.KeyGenUtils
 import java.io.Serializable
 import javax.persistence.Embeddable
 

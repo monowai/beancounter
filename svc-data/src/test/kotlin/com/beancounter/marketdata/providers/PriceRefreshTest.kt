@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Asset
-import com.beancounter.key.KeyGenUtils
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetRepository

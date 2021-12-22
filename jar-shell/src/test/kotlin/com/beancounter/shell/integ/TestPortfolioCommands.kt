@@ -12,8 +12,8 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.beancounter.key.KeyGenUtils
 import com.beancounter.shell.Constants.Companion.NZD
 import com.beancounter.shell.Constants.Companion.USD
 import com.beancounter.shell.cli.PortfolioCommands

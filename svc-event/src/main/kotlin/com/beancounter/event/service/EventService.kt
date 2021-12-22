@@ -4,10 +4,10 @@ import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
+import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.integration.EventPublisher
-import com.beancounter.key.KeyGenUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service

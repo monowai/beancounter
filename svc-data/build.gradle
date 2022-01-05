@@ -15,14 +15,9 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'kotlin-spring'
 }
-apply from: '../kotlin-spring.gradle'
-apply plugin: 'spring-cloud-contract'
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    gradlePluginPortal()
-}
+apply plugin: 'spring-cloud-contract'
+apply from: '../kotlin-spring.gradle'
 
 version = "0.1.1"
 
@@ -105,17 +100,6 @@ contractTest {
 task pubStubs {
     dependsOn build
     dependsOn publishToMavenLocal
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
 }
 
 jacoco {

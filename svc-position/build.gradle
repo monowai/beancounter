@@ -17,7 +17,6 @@ plugins {
 }
 
 apply plugin: 'spring-cloud-contract'
-
 apply from: '../kotlin-spring.gradle'
 
 version = '0.1.1'
@@ -30,6 +29,13 @@ publishing {
         }
     }
 }
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
+}
+
 dependencies {
     implementation(
             project(":jar-common"),
@@ -78,12 +84,6 @@ dependencies {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-    }
-}
-
 contracts {
     testFramework = "JUNIT5"
     testMode = "MockMvc"
@@ -100,17 +100,6 @@ contractTest {
 task pubStubs {
     dependsOn build
     dependsOn publishToMavenLocal
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "15"
-    }
 }
 
 jacoco {

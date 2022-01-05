@@ -35,16 +35,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
-
+/**
+ * MVC Auth controller tests for OAuth.
+ */
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [MockServletContext::class, TokenService::class, SimpleController::class, NimbusJwtDecoder::class, DefaultJWTProcessor::class, ResourceServerConfig::class])
 @ImportAutoConfiguration(
     WebMvcAutoConfiguration::class
 )
 @WebAppConfiguration
-/**
- * MVC Auth controller tests for OAuth.
- */
 class AuthTest {
     private val roleConverter = AuthorityRoleConverter()
 

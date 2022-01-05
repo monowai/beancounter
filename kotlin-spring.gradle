@@ -20,9 +20,6 @@ apply plugin: "checkstyle"
 apply plugin: 'jacoco'
 apply plugin: 'org.jmailen.kotlinter'
 
-sourceCompatibility = JavaVersion.VERSION_15
-targetCompatibility = JavaVersion.VERSION_15
-
 compileKotlin {
     kotlinOptions {
         jvmTarget = "${sourceCompatibility}"
@@ -35,7 +32,8 @@ compileTestKotlin {
 }
 
 checkstyle {
-    toolVersion = '8.41'
+    //  Property 'scope' does not exist, please check the documentation @8.42
+    toolVersion = '8.41.1'
     configFile = project.file('../checkstyle.xml')
     configDirectory = file("$rootProject.projectDir/buildtools")
 

@@ -1,10 +1,8 @@
 ext{
-  springVersion='2.5.6'
-  springCloudVersion='2020.0.4'
+  springVersion='2.5.8'
+  springCloudVersion='2020.0.5'
   verifierVersion='3.0.4'
-  kotlinVersion='1.5.31'
+  kotlinVersion='1.6.10'
   resilience4jVersion='1.7.1'
   jacocoVersion='0.8.7'
 }
-
-

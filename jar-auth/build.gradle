@@ -21,9 +21,6 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-resource-server",
             "org.springframework.security:spring-security-oauth2-jose"
     )
-    implementation(
-            "org.jetbrains.kotlin:kotlin-reflect"
-    )
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude module: 'junit-vintage-engine'

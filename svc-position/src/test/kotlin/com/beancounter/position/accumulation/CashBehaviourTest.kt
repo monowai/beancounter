@@ -36,6 +36,7 @@ class CashBehaviourTest {
         assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
             .hasFieldOrPropertyWithValue("costValue", trn.quantity)
             .hasFieldOrPropertyWithValue("costBasis", trn.quantity)
+            .hasFieldOrPropertyWithValue("purchases", trn.quantity)
 
         assertThat(position.quantityValues).hasFieldOrPropertyWithValue("precision", 2)
     }
@@ -63,6 +64,7 @@ class CashBehaviourTest {
         assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
             .hasFieldOrPropertyWithValue("costBasis", trn.cashAmount)
             .hasFieldOrPropertyWithValue("costValue", trn.cashAmount)
+            .hasFieldOrPropertyWithValue("purchases", trn.cashAmount)
     }
 
     @Test
@@ -81,6 +83,7 @@ class CashBehaviourTest {
         assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
             .hasFieldOrPropertyWithValue("costBasis", trn.quantity)
             .hasFieldOrPropertyWithValue("costValue", trn.quantity)
+            .hasFieldOrPropertyWithValue("sales", trn.quantity)
     }
 
     @Test

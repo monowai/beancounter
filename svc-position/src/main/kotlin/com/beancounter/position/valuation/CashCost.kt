@@ -26,6 +26,11 @@ class CashCost {
             `in`,
             currencyResolver.resolve(`in`, portfolio, currency)
         )
+        if (quantity > BigDecimal.ZERO) {
+            moneyValues.purchases = moneyValues.purchases.add(MathUtils.divide(quantity, rate))
+        } else {
+            moneyValues.sales = moneyValues.sales.add(MathUtils.divide(quantity, rate))
+        }
         moneyValues.costBasis = moneyValues.costBasis.add(
             MathUtils.divide(quantity, rate)
         )

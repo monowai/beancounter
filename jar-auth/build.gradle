@@ -27,7 +27,7 @@ dependencies {
     }
     testImplementation(
             "org.junit.jupiter:junit-jupiter",
-            "org.assertj:assertj-core",
+            "org.assertj:assertj-core:3.18.1",
             "org.springframework.cloud:spring-cloud-starter-contract-stub-runner",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "org.springframework.boot:spring-boot-autoconfigure",

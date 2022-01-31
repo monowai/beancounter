@@ -7,7 +7,15 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 /**
- * Builds shorter web-safe keys from GUIDs.
+ * Builds shorter web-safe keys from a a UUID byte array (of exactly 16 bytes), base64 encodes it,
+ * using a URL-safe encoding scheme.  The resulting string will be 22 characters in length with no extra
+ * padding on the end (e.g. no "==" on the end).
+ *
+ * Base64 encoding takes each three bytes from the array and converts them into
+ * four characters.  This implementation, not using padding, converts the last byte into two
+ * characters.
+ *
+ * @return a URL-safe base64-encoded string.
  */
 @Service
 class KeyGenUtils {
@@ -24,7 +32,7 @@ class KeyGenUtils {
         if (uuid == null) {
             throw BusinessException("Null UUID")
         }
-        val bytes = toByteArray(uuid)
+        val bytes = extract(uuid)
         return encodeBase64(bytes)
     }
 
@@ -58,14 +66,8 @@ class KeyGenUtils {
         return UUID(bb.long, bb.long)
     }
 
-    /**
-     * Extracts the bytes from a UUID instance in MSB, LSB order.
-     *
-     * @param uuid a UUID instance.
-     * @return the bytes from the UUID instance.
-     */
     @NonNull
-    private fun toByteArray(uuid: UUID): ByteArray {
+    private fun extract(uuid: UUID): ByteArray {
         val bb = ByteBuffer.wrap(ByteArray(16))
         bb.putLong(uuid.mostSignificantBits)
         bb.putLong(uuid.leastSignificantBits)
@@ -85,19 +87,6 @@ class KeyGenUtils {
             }
         }
 
-        /**
-         * Accepts a UUID byte array (of exactly 16 bytes) and base64 encodes it, using a URL-safe
-         * encoding scheme.  The resulting string will be 22 characters in length with no extra
-         * padding on the end (e.g. no "==" on the end).
-         *
-         *
-         * Base64 encoding takes each three bytes from the array and converts them into
-         * four characters.  This implementation, not using padding, converts the last byte into two
-         * characters.
-         *
-         * @param bytes a UUID byte array.
-         * @return a URL-safe base64-encoded string.
-         */
         private fun encodeBase64(bytes: ByteArray): String {
 
             // Output is always 22 characters.
@@ -123,18 +112,6 @@ class KeyGenUtils {
             return String(chars)
         }
 
-        /**
-         * Base64 decodes a short, 22-character UUID string (or 24-characters with padding)
-         * into a byte array. The resulting byte array contains 16 bytes.
-         *
-         *
-         * Base64 decoding essentially takes each four characters from the string and converts
-         * them into three bytes. This implementation, not using padding, converts the final
-         * two characters into one byte.
-         *
-         * @param s key
-         * @return bytes
-         */
         private fun decodeBase64(s: String): ByteArray {
 
             // Output is always 16 bytes (UUID).

@@ -101,9 +101,10 @@ internal class CashLadderTest {
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue("total", BigDecimal("2500.0"))
 
+        val cashResult = "2500.00"
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue("marketValue", BigDecimal("2500.00"))
-            .hasFieldOrPropertyWithValue("costValue", BigDecimal("2500.00"))
+            .hasFieldOrPropertyWithValue("marketValue", BigDecimal(cashResult))
+            .hasFieldOrPropertyWithValue("costValue", BigDecimal(cashResult))
 
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue("total", BigDecimal("3507.46"))

@@ -57,9 +57,9 @@ dependencies {
             "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2", // Dev
-            "org.postgresql:postgresql:42.2.23",
+            'org.postgresql:postgresql:42.3.1',
             "org.springframework.kafka:spring-kafka",
-            "com.opencsv:opencsv:5.5.1",
+            'com.opencsv:opencsv:5.5.2',
     )
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin") { exclude module: 'kotlin-reflect' }

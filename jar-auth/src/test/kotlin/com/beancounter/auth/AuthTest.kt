@@ -84,8 +84,7 @@ class AuthTest {
         assertThat(converted).isNotNull
         val defaultGrants = converted.authorities
         assertThat(defaultGrants)
-            .contains(SimpleGrantedAuthority(AuthConstants.ROLE_USER))
-            .contains(SimpleGrantedAuthority(AuthConstants.SCOPE_BC))
+            .contains(SimpleGrantedAuthority(AuthConstants.ROLE_USER), SimpleGrantedAuthority(AuthConstants.SCOPE_BC))
     }
 
     @Test

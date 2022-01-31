@@ -4,7 +4,7 @@ import com.beancounter.auth.common.TokenUtils
 import com.beancounter.auth.server.JwtRoleConverter
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.KeyGenUtils
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.UUID
@@ -14,10 +14,10 @@ import java.util.UUID
  */
 class RealmTest {
     @Test
-    fun roleConverterdFromOAuthToGrantedAuth() {
+    fun roleConvertedFromOAuthToGrantedAuth() {
         val jwtRoleConverter = JwtRoleConverter("empty", "nothing")
         val su = SystemUser(KeyGenUtils().format(UUID.randomUUID()))
-        Assertions.assertThat(
+        assertThat(
             jwtRoleConverter.getAuthorities(
                 TokenUtils().getUserToken(su)
             )

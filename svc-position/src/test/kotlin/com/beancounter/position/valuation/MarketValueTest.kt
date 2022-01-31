@@ -32,11 +32,13 @@ import kotlin.collections.set
 /**
  * FX Related Market Value tests.
  */
-internal class MarketValuesTest {
+internal class MarketValueTest {
     private val tenThousand = BigDecimal("10000.00")
     private val oneThousand = BigDecimal("1000.00")
     private val fiveThousand = BigDecimal("5000.00")
     private val twoThousand = BigDecimal("2000.00")
+    private val gainOnDay = BigDecimal("500.00")
+    private val oneHundred = BigDecimal("100.00")
 
     private val thousandShort = BigDecimal("-1000.00")
 
@@ -65,6 +67,7 @@ internal class MarketValuesTest {
         targetValues.costValue = buyTrn.tradeAmount
         targetValues.totalGain = thousandShort
         targetValues.unrealisedGain = thousandShort
+        targetValues.gainOnDay = gainOnDay
         targetValues.marketValue = multiplyAbs(buyTrn.quantity, marketData.close)!!
         val fxRateMap = getRates(portfolio, asset, simpleRate)
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
@@ -79,6 +82,7 @@ internal class MarketValuesTest {
         baseValues.costValue = buyTrn.tradeAmount
         baseValues.totalGain = thousandShort
         baseValues.unrealisedGain = thousandShort
+        baseValues.gainOnDay = gainOnDay
         baseValues.marketValue = nullSafe(multiplyAbs(buyTrn.quantity, marketData.close))
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
             .usingRecursiveComparison()
@@ -88,11 +92,12 @@ internal class MarketValuesTest {
         pfValues.purchases = tenThousand
         pfValues.priceData = of(marketData, simpleRate)
         pfValues.marketValue = BigDecimal("200.00")
-        pfValues.averageCost = BigDecimal("100.00")
+        pfValues.averageCost = oneHundred
         pfValues.costValue = tenThousand
         val gain = BigDecimal("-9800.00")
         pfValues.unrealisedGain = gain
         pfValues.totalGain = gain
+        pfValues.gainOnDay = oneHundred
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency))
             .usingRecursiveComparison()
             .isEqualTo(pfValues)

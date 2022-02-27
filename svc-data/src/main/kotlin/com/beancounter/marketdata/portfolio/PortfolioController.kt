@@ -1,12 +1,13 @@
 package com.beancounter.marketdata.portfolio
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.utils.DateUtils
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -17,11 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * MVC controller for Portfolio activities.
+ * Rest controller for Portfolio activities.
  */
 @RestController
 @RequestMapping("/portfolios")
-@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
+@CrossOrigin
+@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
 class PortfolioController internal constructor(
     private val portfolioService: PortfolioService,
     private val dateUtils: DateUtils

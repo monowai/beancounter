@@ -1,90 +1,59 @@
 package com.beancounter.auth
 
-import com.beancounter.auth.AuthTest.SimpleController
-import com.beancounter.auth.common.TokenService
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthConstants
-import com.beancounter.auth.server.AuthorityRoleConverter
-import com.beancounter.auth.server.JwtRoleConverter
-import com.beancounter.auth.server.ResourceServerConfig
-import com.beancounter.common.model.SystemUser
+import com.beancounter.auth.model.AuthConstants
+import com.beancounter.auth.server.WebResourceServerConfig
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockServletContext
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.context.WebApplicationContext
+import org.springframework.web.client.RestOperations
+
 /**
  * MVC Auth controller tests for OAuth.
  */
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [MockServletContext::class, TokenService::class, SimpleController::class, NimbusJwtDecoder::class, DefaultJWTProcessor::class, ResourceServerConfig::class])
-@ImportAutoConfiguration(
-    WebMvcAutoConfiguration::class
+@ContextConfiguration(
+    classes = [
+        AuthTest.SimpleController::class,
+        WebResourceServerConfig::class,
+        DefaultJWTProcessor::class
+    ],
 )
-@WebAppConfiguration
+
+@WebMvcTest(AuthTest.SimpleController::class, properties = ["auth.enabled=true"])
 class AuthTest {
-    private val roleConverter = AuthorityRoleConverter()
 
-    private val tokenUtils: TokenUtils = TokenUtils()
+    @MockBean
+    private lateinit var jwtDecoder: JwtDecoder
+
+    @MockBean
+    private lateinit var jwtRestOperations: RestOperations
+
+    @MockBean
+    private lateinit var authConfig: AuthConfig
 
     @Autowired
-    private lateinit var context: WebApplicationContext
-
-    @Autowired
-    private lateinit var tokenService: TokenService
-
     private lateinit var mockMvc: MockMvc
 
     companion object {
-        private const val hello = "/hello"
-        const val what = "/what"
-    }
-
-    @BeforeEach
-    fun setupMockMvc() {
-        mockMvc = MockMvcBuilders
-            .webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-    }
-
-    @Test
-    fun is_BearerToken() {
-        assertThat(tokenService.getBearerToken("Test")).isEqualTo("Bearer Test")
-    }
-
-    @Test
-    fun are_DefaultGrantsConvertedFromToken() {
-        val jwtRoleConverter = JwtRoleConverter()
-        val user = SystemUser("user")
-        val token = tokenUtils.getUserToken(user)
-        val converted = jwtRoleConverter.convert(token)
-        assertThat(converted).isNotNull
-        val defaultGrants = converted.authorities
-        assertThat(defaultGrants)
-            .contains(SimpleGrantedAuthority(AuthConstants.ROLE_USER), SimpleGrantedAuthority(AuthConstants.SCOPE_BC))
+        private const val hello = "/api/hello"
+        const val what = "/api/what"
     }
 
     @Test
@@ -107,91 +76,53 @@ class AuthTest {
 
     @Test
     @Throws(Exception::class)
-    fun has_AuthorityToSayHelloButNotToSayWhat() {
-        val user = SystemUser("user")
-        val token = tokenUtils.getUserToken(user)
+    @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
+    fun has_AuthorityToSayHello() {
+        mockMvc.perform(MockMvcRequestBuilders.get(hello))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+    }
+
+    @Test
+    @Throws(Exception::class)
+    @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_USER])
+    fun has_NoAuthorityToSayWhat() {
+        mockMvc.perform(MockMvcRequestBuilders.get(what))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isForbidden)
+            .andReturn()
+    }
+
+    @Test
+    @Throws(Exception::class)
+    @WithMockUser(username = "testUser", authorities = ["no-valid-auth"])
+    fun has_tokenButNoRoleToSayAnything() {
         mockMvc.perform(
             MockMvcRequestBuilders.get(hello)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter))
                 .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isOk)
+        ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
+
         val result = mockMvc.perform(
             MockMvcRequestBuilders.get(what)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter)
-                ).contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isForbidden)
-            .andReturn()
-        assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun has_tokenButNoRoleToSayAnything() {
-        val user = SystemUser(id = "user")
-        val token = tokenUtils.getUserToken(user, tokenUtils.getRoles("blah"))
-        var result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/hello")
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter)
-                )
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
-        result = mockMvc.perform(
-            MockMvcRequestBuilders.get(what)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter)
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isForbidden)
-            .andReturn()
-        assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun has_NoIdentityCrisis() {
-        val user = SystemUser("user")
-        val token = tokenUtils.getUserToken(user)
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/me")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(roleConverter))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
-        assertThat(result.response.contentAsString)
-            .isEqualTo(user.id)
-    }
-
-    @Test
-    fun is_BearerTokenBearing() {
-        assertThat(tokenService.bearerToken)
-            .isEqualTo(TokenService.BEARER + tokenService.token)
     }
 
     @RestController
     internal class SimpleController {
-        @Autowired
-        private lateinit var tokenService: TokenService
 
         @GetMapping(hello)
-        @PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")
+        @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
         fun sayHello(): String {
             return "hello"
         }
 
-        @GetMapping("/me")
-        @PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")
-        fun me(): String? {
-            assert(tokenService.jwtToken != null)
-            return tokenService.jwtToken!!.name
-        }
-
         @GetMapping(what)
-        @PreAuthorize("hasRole('no-one')")
+        @PreAuthorize("hasAuthority('" + AuthConstants.ADMIN + "')")
         fun sayWhat(): String {
             return "no one can call this"
         }

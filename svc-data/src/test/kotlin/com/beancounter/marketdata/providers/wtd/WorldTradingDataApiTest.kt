@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.wtd
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
@@ -39,6 +40,7 @@ import kotlin.collections.set
 @ActiveProfiles("wtd")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockAuth
 internal class WorldTradingDataApiTest {
     private val dateUtils = DateUtils()
     private val priceDate = "2019-11-15"

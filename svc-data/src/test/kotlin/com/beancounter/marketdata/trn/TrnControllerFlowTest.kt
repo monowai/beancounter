@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
@@ -36,19 +36,16 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Objects
 
@@ -59,13 +56,17 @@ import java.util.Objects
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 class TrnControllerFlowTest {
 
-    private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()
 
     @Autowired
-    private lateinit var wac: WebApplicationContext
+    private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var marketService: MarketService
@@ -78,20 +79,14 @@ class TrnControllerFlowTest {
 
     @MockBean
     private lateinit var fxTransactions: FxTransactions
-
     private lateinit var token: Jwt
-    private lateinit var mockMvc: MockMvc
     private lateinit var bcMvcHelper: BcMvcHelper
 
     @BeforeEach
     fun setupObjects() {
         enrichmentFactory.register(DefaultEnricher())
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-        token = TokenUtils().getUserToken(Constants.systemUser)
+        token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper = BcMvcHelper(mockMvc, token)
-
         bcMvcHelper.registerUser()
     }
 
@@ -183,7 +178,7 @@ class TrnControllerFlowTest {
                 .content(objectMapper.writeValueAsString(TrustedTrnQuery(portfolio, assetId = msft.id)))
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt().jwt(bcMvcHelper.token)
-                        .authorities(authorityRoleConverter)
+
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -195,7 +190,7 @@ class TrnControllerFlowTest {
         // Find by Portfolio, sorted by assetId and then Date
         var mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(uriTrnForPortfolio, portfolioId)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(trnRequest))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -220,7 +215,7 @@ class TrnControllerFlowTest {
         mockMvc.perform(
             MockMvcRequestBuilders.get(getTrnId, portfolio.id, "illegalId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 
@@ -228,7 +223,7 @@ class TrnControllerFlowTest {
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(getTrnId, portfolio.id, trn.id)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -240,7 +235,7 @@ class TrnControllerFlowTest {
         val findByAsset = mockMvc.perform(
             MockMvcRequestBuilders.get("$trnsRoot/{portfolioId}/asset/{assetId}/trades", portfolioId, msft.id)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -256,14 +251,14 @@ class TrnControllerFlowTest {
         val getTrnById = "$trnsRoot/{trnId}"
         mockMvc.perform(
             MockMvcRequestBuilders.delete(getTrnById, "illegalId")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 
         // Delete a single transaction by primary key
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.delete(getTrnById, toDelete.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -276,7 +271,7 @@ class TrnControllerFlowTest {
         // Delete all remaining transactions for the Portfolio
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.delete(uriTrnForPortfolio, portfolioId)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -287,7 +282,7 @@ class TrnControllerFlowTest {
     private fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/assets/")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(assetRequest))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)

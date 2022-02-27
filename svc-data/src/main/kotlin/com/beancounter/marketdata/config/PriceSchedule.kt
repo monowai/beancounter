@@ -11,12 +11,12 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import java.time.LocalDateTime
 
-@EnableScheduling
-@EnableAsync
-@Configuration
 /**
  * Scheduled updated of market prices.
  */
+@EnableScheduling
+@EnableAsync
+@Configuration
 class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtils: DateUtils) {
 
     companion object {
@@ -42,6 +42,10 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
             LocalDateTime.now(dateUtils.getZoneId()),
             dateUtils.defaultZone
         )
-        priceRefresh.updatePrices()
+        try {
+            priceRefresh.updatePrices()
+        } catch (e: Exception) {
+            // Do nothing.
+        }
     }
 }

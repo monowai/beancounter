@@ -1,6 +1,8 @@
 package com.beancounter.event
 
-import com.beancounter.auth.common.TokenService
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.TokenService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw
 import com.beancounter.common.contracts.PortfoliosResponse
@@ -24,9 +26,10 @@ import org.springframework.test.context.ActiveProfiles
 /**
  * Simple flow of various corporate events for Microsoft.
  */
-@SpringBootTest(classes = [EventBoot::class])
+@SpringBootTest
 @ActiveProfiles("test") // Ignore Kafka
 @MockBean(PositionGateway::class)
+@AutoConfigureMockAuth
 class TestMsftFlow {
     @Autowired
     private lateinit var eventService: EventService
@@ -36,10 +39,13 @@ class TestMsftFlow {
 
     @Autowired
     private lateinit var positionGateway: PositionGateway
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Test
-    @Throws(Exception::class)
     fun is_DividendRequestIgnoreDueToZeroHolding() {
         val trustedEvent = objectMapper.readValue(
             ClassPathResource("/msft-flow/1-event.json").file,

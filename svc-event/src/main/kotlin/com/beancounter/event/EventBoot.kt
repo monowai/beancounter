@@ -1,7 +1,6 @@
 package com.beancounter.event
 
-import com.beancounter.auth.client.AuthClientConfig
-import com.beancounter.auth.server.AuthServerConfig
+import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.config.ClientConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -13,10 +12,10 @@ import org.springframework.scheduling.annotation.EnableAsync
  * Corporate Action Service.
  */
 @SpringBootApplication(
-    scanBasePackageClasses = [AuthServerConfig::class, ClientConfig::class, AuthClientConfig::class],
+    scanBasePackageClasses = [ClientConfig::class, ClientPasswordConfig::class],
     scanBasePackages = [
-        "com.beancounter.key",
         "com.beancounter.event",
+        "com.beancounter.auth",
         "com.beancounter.common.utils",
         "com.beancounter.common.exception",
     ]

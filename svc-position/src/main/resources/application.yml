@@ -23,22 +23,18 @@ marketdata:
   url: "http://localhost:9510/api"
 
 auth:
-  uri: "http://keycloak:9620/auth"
-  realm: "bc-dev"
+  uri: "http://your-auth0-endpoint/"
+  audience: "auth0-audience"
+  enabled: true
 
 spring:
   application:
     name: bc-position
   security:
     oauth2:
-      registration:
-        custom:
-          client-id: bc-service
-          client-secret: not-set
-          authorization-grant-type: client_credentials
       resourceserver:
         jwt:
-          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+          issuer-uri: ${auth.uri}
 
 endpoints:
   default.web.enabled: true

@@ -1,5 +1,6 @@
 package com.beancounter.client.integ
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.ASX
 import com.beancounter.client.Constants.Companion.NYSE
 import com.beancounter.client.config.ClientConfig
@@ -18,6 +19,7 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
@@ -40,6 +42,9 @@ internal class ShareSightAdapterTest {
 
     @Autowired
     private lateinit var shareSightRowProcessor: ShareSightRowAdapter
+
+    @MockBean
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_ExchangeAliasReturnedInAssetCode() {

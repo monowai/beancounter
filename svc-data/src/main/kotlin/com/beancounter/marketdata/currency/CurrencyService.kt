@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import java.util.Locale
+import java.util.Optional
 import javax.annotation.PostConstruct
 
 /**
@@ -53,6 +54,20 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
     @get:Cacheable("currency.all")
     val currencies: Iterable<Currency>
         get() = currencyRepository.findAllByOrderByCodeAsc()
+
+    val currenciesAs: String
+        get() {
+            val values = currencies
+            var result: java.lang.StringBuilder? = null
+            for ((code) in values) {
+                if (result == null) {
+                    result = Optional.ofNullable(code).map { str: String? -> StringBuilder(str) }.orElse(null)
+                } else {
+                    result.append(",").append(code)
+                }
+            }
+            return result.toString()
+        }
 
     companion object {
         private val log = LoggerFactory.getLogger(CurrencyService::class.java)

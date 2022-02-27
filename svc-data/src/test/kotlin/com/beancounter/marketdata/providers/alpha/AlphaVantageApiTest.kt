@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.Payload.Companion.DATA
@@ -76,15 +75,16 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-03-04
  */
-@SpringBootTest(classes = [MarketDataBoot::class])
+@SpringBootTest(classes = [MarketDataBoot::class, MockAuthConfig::class])
 @ActiveProfiles("alpha")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 internal class AlphaVantageApiTest {
-    private val authorityRoleConverter = AuthorityRoleConverter()
-    private val tokenUtils: TokenUtils = TokenUtils()
     private val dateUtils = DateUtils()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var mdFactory: MdFactory
@@ -127,7 +127,7 @@ internal class AlphaVantageApiTest {
             .build()
 
         // Setup a user account
-        token = tokenUtils.getUserToken(Constants.systemUser)
+        token = mockAuthConfig.getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 
@@ -140,7 +140,7 @@ internal class AlphaVantageApiTest {
         assetService.purge()
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, ASX.code, amp)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
@@ -162,7 +162,7 @@ internal class AlphaVantageApiTest {
             MockMvcRequestBuilders.get(marketCodeUrl, NYSE.code, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
                 .contentType(MediaType.APPLICATION_JSON)
         )

@@ -6,6 +6,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -16,6 +17,7 @@ import java.time.LocalDate
  * @author mikeh
  * @since 2019-01-28
  */
+@Import(ProviderUtils::class)
 @Service
 class MarketDataService @Autowired internal constructor(
     private val providerUtils: ProviderUtils,

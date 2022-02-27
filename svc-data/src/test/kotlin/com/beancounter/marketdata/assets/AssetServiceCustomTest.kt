@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.currency.CurrencyRepository
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 
 @SpringBootTest
+@AutoConfigureMockAuth
 internal class AssetServiceCustomTest {
     @Autowired
     private lateinit var assetService: AssetService

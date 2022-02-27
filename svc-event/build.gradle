@@ -52,7 +52,8 @@ dependencies {
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            "org.springframework.kafka:spring-kafka-test"
+            "org.springframework.kafka:spring-kafka-test",
+            project(":jar-auth").sourceSets.test.output,
 
     )
     testImplementation("org.beancounter:svc-position:0.1.1:stubs") {

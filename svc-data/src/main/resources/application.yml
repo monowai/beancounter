@@ -37,23 +37,30 @@ logging:
     org:
       springframework: error
       springframework.scheduling: info
+#      springframework.security: trace
       hibernate: error
       apache: error
       postgres: error
       postgresql: error
 
 auth:
-  uri: "http://keycloak:9620/auth"
-  realm: "bc-dev"
+  uri: "http://your-auth0-endpoint/"
+  audience: "auth0-audience"
+  enabled: true
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${auth.uri}
   lifecycle:
     timeout-per-shutdown-phase: 10s
 
   application:
     name: bc-data
   cache:
-    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext, currency.code, currency.all
+    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext, currency.code, currency.all, jwt.token
   jpa:
     open-in-view: false
     generate-ddl: true
@@ -61,16 +68,6 @@ spring:
     username: sa
     password:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-  security:
-    oauth2:
-      registration:
-        custom:
-          client-id: bc-service
-          client-secret: not-set
-          authorization-grant-type: client_credentials
-      resourceserver:
-        jwt:
-          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
 
   kafka:
     bootstrap-servers: kafka:9092

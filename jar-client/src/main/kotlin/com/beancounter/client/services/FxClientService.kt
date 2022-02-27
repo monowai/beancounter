@@ -1,6 +1,6 @@
 package com.beancounter.client.services
 
-import com.beancounter.auth.common.TokenService
+import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest

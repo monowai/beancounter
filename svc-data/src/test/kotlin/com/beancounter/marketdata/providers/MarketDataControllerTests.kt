@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
@@ -20,16 +22,16 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
@@ -41,8 +43,11 @@ import java.util.Optional
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 internal class MarketDataControllerTests @Autowired private constructor(
-    private val wac: WebApplicationContext,
+    private val mockMvc: MockMvc,
+    private val mockAuthConfig: MockAuthConfig,
     private val bcJson: BcJson,
     private val mdFactory: MdFactory,
 ) {
@@ -55,7 +60,6 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @MockBean
     private lateinit var assetService: AssetService
-    private lateinit var mockMvc: MockMvc
 
     @BeforeEach
     fun setUp() {
@@ -72,7 +76,6 @@ internal class MarketDataControllerTests @Autowired private constructor(
                     )
                 )
             )
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
         assertThat(asset.id).isNotNull
         Mockito.`when`(
             assetService.find(asset.id)
@@ -85,17 +88,18 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     fun is_ContextLoaded() {
-        assertThat(wac).isNotNull
+        assertThat(mockMvc).isNotNull
     }
 
     @Test
-    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
     @Throws(
         Exception::class
     )
     fun is_MarketsReturned() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         )
             .andExpect(
@@ -110,7 +114,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     @Tag("slow")
-    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
     @Throws(
         Exception::class
     )
@@ -121,6 +125,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
                 asset.market.code,
                 asset.code
             )
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         )
             .andExpect(
@@ -141,7 +146,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     @Tag("slow")
-    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
     @Throws(
         Exception::class
     )
@@ -155,6 +160,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/prices")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .content(
                     bcJson.objectMapper.writeValueAsString(
                         PriceRequest(assets = assetInputs)
@@ -176,7 +182,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     @Tag("slow")
-    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
+    @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
     @Throws(
         Exception::class
     )
@@ -187,6 +193,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
                 asset.market.code,
                 asset.code
             )
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             MockMvcResultMatchers.status().isOk

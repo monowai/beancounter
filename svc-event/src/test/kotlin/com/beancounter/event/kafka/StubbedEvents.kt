@@ -1,5 +1,7 @@
 package com.beancounter.event.kafka
 
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.event.CorporateEvent
@@ -16,7 +18,6 @@ import com.beancounter.event.Constants.Companion.NZD
 import com.beancounter.event.Constants.Companion.USD
 import com.beancounter.event.Constants.Companion.alpha
 import com.beancounter.event.Constants.Companion.kmi
-import com.beancounter.event.EventBoot
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
@@ -37,12 +39,15 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
+
+private const val email = "blah@blah.com"
 
 /**
  * Test inbound Kafka corporate action events
@@ -65,10 +70,18 @@ import java.math.BigDecimal
     ]
 )
 @Tag("slow")
-@SpringBootTest(classes = [EventBoot::class], properties = ["auth.enabled=false"])
+@SpringBootTest
 @ActiveProfiles("kafka")
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 class StubbedEvents {
     private val om = BcJson().objectMapper
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var eventService: EventService
@@ -82,9 +95,9 @@ class StubbedEvents {
 
     @Autowired
     private lateinit var wac: WebApplicationContext
-    private val owner = SystemUser(
-        id = "blah@blah.com",
-        email = "blah@blah.com",
+    private val systemUser = SystemUser(
+        id = email,
+        email = email,
         true,
         DateUtils().getDate("2020-03-08")
     )
@@ -95,7 +108,7 @@ class StubbedEvents {
         name = "NZD Portfolio",
         currency = NZD,
         base = USD,
-        owner = owner
+        owner = systemUser
     )
     val caDate = "2020-05-01"
 
@@ -113,7 +126,6 @@ class StubbedEvents {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_DividendTransactionGenerated() {
         val consumerProps = KafkaTestUtils.consumerProps("event-test", "false", embeddedKafkaBroker)
         consumerProps["session.timeout.ms"] = 6000
@@ -137,11 +149,11 @@ class StubbedEvents {
         val events = eventService.forAsset(kmi)
         assertThat(events).hasSize(1)
         val (id) = events.iterator().next()
-        val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
-
+        val token = mockAuthConfig.getUserToken(systemUser)
         // Reprocess the corporate event
         val mvcResult = mockMvc.perform(
             post("/{id}", id)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(
             status().isAccepted
         ).andReturn()
@@ -159,6 +171,7 @@ class StubbedEvents {
 
         mockMvc.perform(
             post("/backfill/{portfolioId}/{caDate}", portfolio.id, caDate)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(
             status().isAccepted
         ).andReturn()

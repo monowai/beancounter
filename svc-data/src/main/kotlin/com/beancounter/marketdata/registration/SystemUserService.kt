@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.registration
 
-import com.beancounter.auth.common.TokenService
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.TokenService
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
@@ -36,8 +36,12 @@ class SystemUserService internal constructor(
         // ToDo: Find by email
         var result = find(jwt.subject)
         if (result == null) {
-            val systemUser = SystemUser(jwt.subject, jwt.getClaim("email"))
-            result = save(systemUser)
+            if (tokenService.hasEmail()) {
+                val systemUser = SystemUser(jwt.subject, tokenService.getEmail())
+                result = save(systemUser)
+            } else {
+                throw BusinessException("Unable to identify your email")
+            }
         }
         return RegistrationResponse(result)
     }
@@ -50,7 +54,7 @@ class SystemUserService internal constructor(
         if (systemUser == null) {
             throw ForbiddenException("Unable to identify the owner")
         }
-        if (systemUser.id == AuthConstants.OAUTH_M2M) {
+        if (systemUser.id == AuthConstants.SYSTEM) {
             return
         }
         if (!systemUser.active) {

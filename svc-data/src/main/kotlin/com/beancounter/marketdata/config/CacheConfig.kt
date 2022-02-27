@@ -6,12 +6,12 @@ import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Configuration
 import javax.annotation.PostConstruct
 
-@Configuration
-@EnableCaching
-@ConditionalOnProperty(value = ["cache.enabled"], matchIfMissing = true)
 /**
  * Cache Enablement configuration.
  */
+@Configuration
+@EnableCaching
+@ConditionalOnProperty(value = ["cache.enabled"], matchIfMissing = true)
 class CacheConfig {
     @PostConstruct
     fun status() {

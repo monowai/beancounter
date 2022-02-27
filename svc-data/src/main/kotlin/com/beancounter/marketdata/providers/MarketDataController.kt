@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/prices")
-@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
 class MarketDataController @Autowired internal constructor(
     private val marketDataService: MarketDataService,
     private val assetService: AssetService,

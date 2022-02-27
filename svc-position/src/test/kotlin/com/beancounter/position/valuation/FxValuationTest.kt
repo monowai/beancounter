@@ -1,7 +1,9 @@
 package com.beancounter.position.valuation
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AuthConfig
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.TokenUtils
 import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.StaticService
@@ -24,6 +26,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
@@ -31,15 +34,11 @@ import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Optional
 
@@ -54,17 +53,19 @@ import java.util.Optional
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 internal class FxValuationTest {
-    private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
-
-    @Autowired
-    private lateinit var context: WebApplicationContext
 
     @Autowired
     private lateinit var accumulator: Accumulator
 
+    @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var valuation: Valuation
@@ -77,13 +78,16 @@ internal class FxValuationTest {
 
     @Autowired
     private lateinit var portfolioService: PortfolioServiceClient
-    private var token: Jwt = TokenUtils().getUserToken(SystemUser("user", "user@testing.com"))
 
     @Autowired
-    fun mockServices() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
+    private lateinit var authConfig: AuthConfig
+    lateinit var token: Jwt
+    lateinit var tokenUtils: TokenUtils
+
+    @Autowired
+    fun setDefaultUser() {
+        tokenUtils = TokenUtils(authConfig)
+        token = tokenUtils.getUserToken(SystemUser("user", "user@testing.com"))
     }
 
     private fun getPositions(asset: Asset): Positions {
@@ -113,7 +117,7 @@ internal class FxValuationTest {
         assertThat(mockMvc).isNotNull
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/value")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(positionResponse))
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -155,7 +159,7 @@ internal class FxValuationTest {
     fun is_MvcRestException() {
         val result = mockMvc.perform(
             MockMvcRequestBuilders.post("/value")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString("{asdf}"))
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError).andReturn()

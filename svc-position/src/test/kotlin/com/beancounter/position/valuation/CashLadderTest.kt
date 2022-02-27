@@ -1,6 +1,7 @@
 package com.beancounter.position.valuation
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
@@ -14,22 +15,20 @@ import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.http.MediaType
-import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 private const val propCostValue = "costValue"
@@ -46,10 +45,16 @@ private const val propCostValue = "costValue"
 @ActiveProfiles("test")
 @Tag("slow")
 @SpringBootTest
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 internal class CashLadderTest {
+
     @Autowired
-    private lateinit var wac: WebApplicationContext
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     private val test = "CASHLADDER"
@@ -63,13 +68,7 @@ internal class CashLadderTest {
         owner = owner
     )
 
-    @BeforeEach
-    fun setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
-    }
-
     @Test
-    @WithMockUser(username = "test-user", roles = [AuthConstants.OAUTH_USER])
     fun positionRequestFromTransactions() {
         val date = "2021-10-18"
         val msft = Asset(code = "AAPL", market = NASDAQ)
@@ -78,6 +77,7 @@ internal class CashLadderTest {
         val nzdCash = Asset(NZD.code, CASH)
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(

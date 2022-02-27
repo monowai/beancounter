@@ -1,5 +1,6 @@
 package com.beancounter.client.integ
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.NZD
 import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.config.ClientConfig
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
@@ -44,6 +46,9 @@ class ShareSightRatesInTrn {
 
     @Autowired
     private lateinit var shareSightRowProcessor: ShareSightRowAdapter
+
+    @MockBean
+    private lateinit var tokenService: TokenService
 
     @BeforeEach
     fun is_IgnoreRatesDefaultCorrect() {

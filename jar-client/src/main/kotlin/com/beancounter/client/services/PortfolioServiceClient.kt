@@ -1,6 +1,6 @@
 package com.beancounter.client.services
 
-import com.beancounter.auth.common.TokenService
+import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse

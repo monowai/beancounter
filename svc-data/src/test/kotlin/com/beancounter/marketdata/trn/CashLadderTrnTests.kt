@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.common.TokenUtils
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
@@ -33,13 +34,11 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
+import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
 
@@ -50,6 +49,8 @@ import java.math.BigDecimal.ONE
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 class CashLadderTrnTests {
 
     @Autowired
@@ -67,7 +68,10 @@ class CashLadderTrnTests {
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
-    private lateinit var wac: WebApplicationContext
+    private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
@@ -76,10 +80,8 @@ class CashLadderTrnTests {
     @BeforeEach
     fun setupObjects() {
         bcMvcHelper = BcMvcHelper(
-            MockMvcBuilders.webAppContextSetup(wac)
-                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-                .build(),
-            TokenUtils().getUserToken(Constants.systemUser)
+            mockMvc,
+            mockAuthConfig.getUserToken(Constants.systemUser)
         )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull

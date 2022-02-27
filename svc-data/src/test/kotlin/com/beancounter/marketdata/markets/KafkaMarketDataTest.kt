@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.markets
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PriceAsset
@@ -52,6 +53,7 @@ import java.math.BigDecimal
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("kafka")
 @Tag("slow")
+@AutoConfigureMockAuth
 class KafkaMarketDataTest {
 
     companion object {
@@ -151,7 +153,6 @@ class KafkaMarketDataTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun corporateEventDispatched() {
         val data: MutableMap<String, AssetInput> = HashMap()
         data["a"] = AssetInput(NASDAQ.code, "TWEE")

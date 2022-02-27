@@ -1,5 +1,6 @@
 package com.beancounter.client
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.services.PortfolioServiceClient
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 
@@ -25,22 +27,25 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
  */
 class WiringServices {
     @Autowired
-    private val assetIngestService: AssetIngestService? = null
+    private lateinit var assetIngestService: AssetIngestService
 
     @Autowired
-    private val fxRateService: FxService? = null
+    private lateinit var fxRateService: FxService
 
     @Autowired
-    private val portfolioService: PortfolioServiceClient? = null
+    private lateinit var portfolioService: PortfolioServiceClient
 
     @Autowired
-    private val priceService: PriceService? = null
+    private lateinit var priceService: PriceService
 
     @Autowired
-    private val staticService: StaticService? = null
+    private lateinit var staticService: StaticService
 
     @Autowired
-    private val trnService: TrnService? = null
+    private lateinit var trnService: TrnService
+
+    @MockBean
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_Wired() {

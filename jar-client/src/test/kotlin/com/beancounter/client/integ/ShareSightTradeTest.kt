@@ -1,5 +1,6 @@
 package com.beancounter.client.integ
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.AUD
 import com.beancounter.client.Constants.Companion.NZD
 import com.beancounter.client.config.ClientConfig
@@ -17,9 +18,9 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
-import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
 /**
@@ -28,15 +29,11 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-02-12
  */
-@ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
-/**
- * Importing Sharesight data.
- */
 internal class ShareSightTradeTest {
 
     @Autowired
@@ -44,6 +41,9 @@ internal class ShareSightTradeTest {
 
     @Autowired
     private lateinit var shareSightFactory: ShareSightFactory
+
+    @MockBean
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_SplitTransformerFoundForRow() {

@@ -45,16 +45,18 @@ logging:
       postgresql: error
     kafa: info
 
-auth:
-  uri: "http://keycloak:9620/auth"
-  realm: "bc-dev"
-  enabled: true
-
 marketdata:
   url: "http://localhost:9510/api"
 
 position:
   url: "http://localhost:9500/api"
+
+auth:
+  uri: "http://your-auth0-endpoint/"
+  audience: "auth0-audience"
+  enabled: true
+  client-id: "not-set"
+  client-secret: "not-set"
 
 spring:
   application:
@@ -70,14 +72,22 @@ spring:
     generate-ddl: true
   security:
     oauth2:
-      registration:
-        custom:
-          client-id: bc-service
-          client-secret: not-set
-          authorization-grant-type: client_credentials
       resourceserver:
         jwt:
-          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+          issuer-uri: ${auth.uri}
+      registration:
+        custom:
+          client-id: ${auth.client-id}
+          client-secret: ${auth.client-secret}
+          scope:
+            - openid
+            - profile
+            - email
+            - beancounter
+            - beancounter:user
+            - beancounter:admin
+          authorization-grant-type: client_credentials
+
   kafka:
     bootstrap-servers: kafka:9092
     producer:

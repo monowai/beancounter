@@ -1,10 +1,10 @@
 package com.beancounter.auth.client
 
+import com.beancounter.auth.model.OAuth2Response
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.cloud.openfeign.EnableFeignClients
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.core.AuthorizationGrantType
@@ -13,20 +13,22 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PostMapping
 
-@Service
-@Configuration
-@EnableFeignClients(basePackages = ["com.beancounter.auth"])
 /**
- * OAuth2 login service to service both User and M2M authentication requests
+ * OAuth2 client-credential login service to service M2M authentication requests
  */
+@Service
+@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
 class LoginService(private val authGateway: AuthGateway, private val jwtDecoder: JwtDecoder) {
-    private val log = LoggerFactory.getLogger(LoginService::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     @Value("\${spring.security.oauth2.registration.custom.client-id:bc-service}")
     private lateinit var clientId: String
 
     @Value("\${spring.security.oauth2.registration.custom.client-secret:not-set}")
     private lateinit var secret: String
+
+    @Value("\${auth.audience:beancounter:service}")
+    private lateinit var audience: String
 
     fun login(user: String, password: String, clientId: String = this.clientId) {
         val loginRequest = LoginRequest(
@@ -56,7 +58,8 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         }
         val login = MachineRequest(
             client_secret = secret,
-            client_id = clientId
+            client_id = clientId,
+            audience = audience,
         )
         val response = authGateway.login(login)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
@@ -69,19 +72,6 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
     }
 
     /**
-     * The OAuth 2 gateway call.
-     */
-    @FeignClient(name = "oauth", url = "\${auth.uri:http://keycloak:9620/auth}", configuration = [AuthBeans::class])
-    interface AuthGateway {
-        @PostMapping(
-            value = ["/realms/\${auth.realm:bc-dev}/protocol/openid-connect/token"],
-            consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
-        )
-        fun login(authRequest: AuthRequest): OAuth2Response
-    }
-
-    /**
      * Interface to support various oAuth login request types.
      */
     interface AuthRequest
@@ -89,8 +79,6 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
     /**
      * OAuth2 interactive login request. These properties are interpreted literally by Spring, so
      * need the underscores in the variable names otherwise they're not mapped correctly
-     *
-     * Spring won't map val properties.
      */
     data class LoginRequest(
         var client_id: String,
@@ -105,6 +93,18 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
     data class MachineRequest(
         var client_id: String,
         var client_secret: String = "not-set",
+        var audience: String,
+        var scope: String = "beancounter beancounter:system",
         var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
     ) : AuthRequest
+
+    @FeignClient(name = "oauth", url = "\${auth.uri:http://keycloak:9620/auth/}")
+    interface AuthGateway {
+        @PostMapping(
+            value = ["oauth/token"],
+            consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
+        )
+        fun login(authRequest: AuthRequest): OAuth2Response
+    }
 }

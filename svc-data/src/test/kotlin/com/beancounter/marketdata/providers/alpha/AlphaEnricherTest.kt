@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.Constants
@@ -21,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("alpha")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockAuth
 class AlphaEnricherTest {
 
     @Autowired

@@ -1,5 +1,6 @@
 package com.beancounter.shell.integ
 
+import com.beancounter.auth.AuthConfig
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.shell.cli.IngestionCommand
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
@@ -26,6 +28,8 @@ import org.springframework.test.context.ActiveProfiles
 class CsvImportStubbedTest {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand
+    @MockBean
+    private lateinit var authConfig: AuthConfig
 
     @Test
     fun is_CsvCommandFlowWorking() {

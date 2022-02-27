@@ -50,12 +50,12 @@ class UserCommands(
 
     @ShellMethod("Register your Account")
     @Throws(JsonProcessingException::class)
-    fun register(): String {
+    fun register(emailClaim: String): String {
         val token = registrationService.jwtToken ?: throw UnauthorizedException("Please login")
         return bcJson.writer
             .writeValueAsString(
                 registrationService
-                    .register(RegistrationRequest(token.token.getClaim("email")))
+                    .register(RegistrationRequest(token.token.getClaim(emailClaim)))
             )
     }
 }

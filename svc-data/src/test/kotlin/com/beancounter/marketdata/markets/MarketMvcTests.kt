@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.Payload
 import com.beancounter.common.exception.BusinessException
@@ -14,38 +14,36 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 internal class MarketMvcTests {
     private val objectMapper = BcJson().objectMapper
-    private val authorityRoleConverter = AuthorityRoleConverter()
 
     @Autowired
-    private lateinit var wac: WebApplicationContext
     private lateinit var mockMvc: MockMvc
-    private var token: Jwt = TokenUtils()
-        .getUserToken(SystemUser("MarketMvcTests", "MarketMvcTests@testing.com"))
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
+    private lateinit var token: Jwt
 
     @BeforeEach
     fun mockServices() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
+        token = mockAuthConfig.getUserToken(SystemUser("MarketMvcTests", "MarketMvcTests@testing.com"))
         registerUser(mockMvc, token)
     }
 
@@ -54,7 +52,7 @@ internal class MarketMvcTests {
     fun is_AllMarketsFound() {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets/")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -70,7 +68,7 @@ internal class MarketMvcTests {
     fun is_SingleMarketFoundCaseInsensitive() {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets/nzx")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -88,7 +86,7 @@ internal class MarketMvcTests {
     fun is_SingleMarketBadRequest() {
         val result = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets/non-existent")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         Assertions.assertThat(result.andReturn().resolvedException)

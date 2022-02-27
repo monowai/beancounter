@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -14,9 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 
+/**
+ * verify that prices and assets are correcectlly hydrated.
+ */
 @SpringBootTest
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockAuth
 internal class PriceRefreshTest {
 
     @Autowired

@@ -1,6 +1,6 @@
 package com.beancounter.shell
 
-import com.beancounter.auth.client.AuthClientConfig
+import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.common.utils.UtilConfig
@@ -15,7 +15,12 @@ import org.springframework.boot.runApplication
  * @since 2019-02-08
  */
 @SpringBootApplication(
-    scanBasePackageClasses = [AuthClientConfig::class, ShareSightConfig::class, UtilConfig::class, ClientConfig::class],
+    scanBasePackageClasses = [
+        ClientPasswordConfig::class,
+        ShareSightConfig::class,
+        UtilConfig::class,
+        ClientConfig::class
+    ],
     scanBasePackages = ["com.beancounter.shell"]
 )
 @EnableConfigurationProperties

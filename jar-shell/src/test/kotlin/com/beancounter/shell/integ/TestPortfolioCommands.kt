@@ -1,8 +1,7 @@
 package com.beancounter.shell.integ
 
-import com.beancounter.auth.client.AuthClientConfig
-import com.beancounter.auth.common.TokenService
-import com.beancounter.auth.common.TokenUtils
+import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw
 import com.beancounter.client.services.RegistrationService
@@ -21,20 +20,19 @@ import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.cache.CacheManager
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
 import java.util.UUID
 
 /**
  * Verify portfolio commands.
  */
-@SpringBootTest(classes = [ShellConfig::class, AuthClientConfig::class])
+@SpringBootTest(classes = [ShellConfig::class, ClientPasswordConfig::class, MockAuthConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
@@ -44,14 +42,21 @@ class TestPortfolioCommands {
     @MockBean
     private lateinit var registrationService: RegistrationService
 
-    @MockBean
-    private lateinit var jwtDecoder: JwtDecoder
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
     private val bcJson = BcJson()
 
-    private val tokenService = TokenService()
-    private var portfolioGw: PortfolioGw = Mockito.mock(PortfolioGw::class.java)
-    private var portfolioCommands: PortfolioCommands =
-        PortfolioCommands(PortfolioServiceClient(portfolioGw, tokenService))
+    @MockBean
+    private lateinit var portfolioGw: PortfolioGw
+
+    @MockBean
+    private lateinit var cacheManager: CacheManager
+    private lateinit var portfolioCommands: PortfolioCommands
+
+    @Autowired
+    fun initAuth() {
+        portfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, mockAuthConfig.tokenService))
+    }
 
     @get:Test
     val portfolios: Unit
@@ -78,7 +83,7 @@ class TestPortfolioCommands {
 
         Mockito.`when`(
             portfolioGw.addPortfolios(
-                Mockito.eq(tokenService.bearerToken),
+                Mockito.eq(mockAuthConfig.tokenService.bearerToken),
                 Mockito.isA(PortfoliosRequest::class.java)
             )
         ).thenReturn(response)
@@ -99,7 +104,7 @@ class TestPortfolioCommands {
         val code = "ZZZ"
         val existing = getPortfolio(code, owner)
         val portfolioResponse = PortfolioResponse(existing)
-        Mockito.`when`(portfolioGw.getPortfolioByCode(tokenService.bearerToken, existing.code))
+        Mockito.`when`(portfolioGw.getPortfolioByCode(mockAuthConfig.tokenService.bearerToken, existing.code))
             .thenReturn(portfolioResponse) // Portfolio exists
         val result = portfolioCommands
             .add(code, pfCode, NZD.code, USD.code)
@@ -112,13 +117,7 @@ class TestPortfolioCommands {
 
     private val systemUser: SystemUser
         get() {
-            val owner = SystemUser(KeyGenUtils().format(UUID.randomUUID()))
-            val jwt = TokenUtils().getUserToken(owner)
-            Mockito.`when`(jwtDecoder.decode("token")).thenReturn(jwt)
-            Mockito.`when`(registrationService.me()).thenReturn(owner)
-            SecurityContextHolder.getContext().authentication =
-                JwtAuthenticationToken(jwtDecoder.decode("token"))
-            return owner
+            return SystemUser(KeyGenUtils().format(UUID.randomUUID()))
         }
 
     private fun getPortfolio(code: String, owner: SystemUser): Portfolio {

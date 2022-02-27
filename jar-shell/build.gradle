@@ -53,7 +53,8 @@ dependencies {
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.springframework.kafka:spring-kafka-test",
-            "org.junit.jupiter:junit-jupiter"
+            "org.junit.jupiter:junit-jupiter",
+            project(":jar-auth").sourceSets.test.output,
 
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {

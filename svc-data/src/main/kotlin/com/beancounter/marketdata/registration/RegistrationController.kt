@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.registration
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.ForbiddenException
@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/")
-@PreAuthorize("hasRole('" + AuthConstants.OAUTH_USER + "')")
-class RegistrationController internal constructor(private val systemUserService: SystemUserService) {
+@PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
+class RegistrationController internal constructor(
+    private val systemUserService: SystemUserService
+) {
     @GetMapping("/me")
     fun getMe(@AuthenticationPrincipal jwt: Jwt): RegistrationResponse = RegistrationResponse(
         systemUserService.find(jwt.subject) ?: throw ForbiddenException("Authenticated, but unregistered")

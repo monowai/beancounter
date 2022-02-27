@@ -22,6 +22,16 @@ class GlobalExceptionHandler {
         private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
 
+    @ExceptionHandler(AccessDeniedException::class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    fun handleAccessDenied(request: HttpServletRequest, e: Throwable): SpringExceptionMessage =
+        SpringExceptionMessage(
+            error = "Access Denied.",
+            message = e.message,
+            path = request.requestURI
+        )
+
     @ExceptionHandler(ConnectException::class, ResourceAccessException::class, FeignException::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody

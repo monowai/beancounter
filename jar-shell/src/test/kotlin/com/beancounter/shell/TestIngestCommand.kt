@@ -1,5 +1,6 @@
 package com.beancounter.shell
 
+import com.beancounter.auth.AuthConfig
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.cli.IngestionCommand
@@ -18,17 +19,21 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 
-@SpringBootTest(classes = [IngestionConfig::class, IngestionCommand::class])
-@Import(IngestionConfig::class)
 /**
  * Integration tests for Ingestion.
  */
+
+@SpringBootTest(classes = [IngestionConfig::class, IngestionCommand::class])
+@Import(IngestionConfig::class)
 class TestIngestCommand {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand
 
     @Autowired
     private lateinit var ingestionFactory: IngestionFactory
+
+    @MockBean
+    private lateinit var authConfig: AuthConfig
 
     @MockBean
     private lateinit var portfolioService: PortfolioServiceClient

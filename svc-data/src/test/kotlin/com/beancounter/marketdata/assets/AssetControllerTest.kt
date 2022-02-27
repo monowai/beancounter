@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.assets
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
@@ -13,27 +13,22 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.Constants.Companion.systemUser
-import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.http.MediaType
-import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.Locale
 
 /**
@@ -42,40 +37,42 @@ import java.util.Locale
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
-@EntityScan("com.beancounter.common.model")
-@AutoConfigureWireMock(port = 0)
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 internal class AssetControllerTest(
-    @Autowired var context: WebApplicationContext,
-    @Autowired var enrichmentFactory: EnrichmentFactory
+    @Autowired var enrichmentFactory: EnrichmentFactory,
 ) {
-    private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
+    @Autowired
     private lateinit var mockMvc: MockMvc
-    private lateinit var token: Jwt
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     fun mockServices() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-
-        // Setup a user account
-        token = TokenUtils().getUserToken(systemUser)
-        RegistrationUtils.registerUser(mockMvc, token)
         enrichmentFactory.register(DefaultEnricher())
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_AssetCreationAndFindByWorking() {
         val firstAsset = Asset(market = NASDAQ, code = "MyCode")
         val secondAsset = Asset(market = NASDAQ, code = "Second")
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
         assetInputMap[toKey(firstAsset)] = getAssetInput(NASDAQ.code, "MyCode")
         assetInputMap[toKey(secondAsset)] = getAssetInput(NASDAQ.code, "Second")
-        val assetRequest = AssetRequest(assetInputMap)
-        var mvcResult = postAssets(assetRequest)
+        var mvcResult = mockMvc.perform(
+            MockMvcRequestBuilders.post("/assets")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                .content(objectMapper.writeValueAsString(AssetRequest(assetInputMap)))
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andReturn()
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
         assertThat(data).hasSize(2)
 
@@ -86,9 +83,9 @@ internal class AssetControllerTest(
         val asset = data[toKey(secondAsset)]
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/{assetId}", asset!!.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+        ).andExpect(status().isOk)
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andReturn()
 
         // Find by Primary Key
@@ -104,9 +101,9 @@ internal class AssetControllerTest(
                 asset.market.code,
                 asset.code
             )
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+        ).andExpect(status().isOk)
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andReturn()
 
         assertThat(
@@ -115,16 +112,6 @@ internal class AssetControllerTest(
             ).data
         ).isEqualTo(asset)
     }
-
-    private fun postAssets(assetRequest: AssetRequest) = mockMvc.perform(
-        MockMvcRequestBuilders.post("/assets")
-            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-            .content(objectMapper.writeValueAsString(assetRequest))
-            .contentType(MediaType.APPLICATION_JSON)
-    )
-        .andExpect(MockMvcResultMatchers.status().isOk)
-        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-        .andReturn()
 
     private fun isAssetValid(
         dataAsset: Asset?,
@@ -143,7 +130,6 @@ internal class AssetControllerTest(
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_PostSameAssetTwiceBehaving() {
         var asset = AssetInput(NASDAQ.code, "MyCodeX", "\"quotes should be removed\"", null)
         var assetInputMap: MutableMap<String, AssetInput> = HashMap()
@@ -151,11 +137,12 @@ internal class AssetControllerTest(
         var assetRequest = AssetRequest(assetInputMap)
         var mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/assets")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .content(objectMapper.writeValueAsBytes(assetRequest))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+        ).andExpect(status().isOk)
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andReturn()
         var assetUpdateResponse = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
@@ -173,11 +160,12 @@ internal class AssetControllerTest(
         assetRequest = AssetRequest(assetInputMap)
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/assets/")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                .with(csrf())
                 .content(objectMapper.writeValueAsBytes(assetRequest))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .contentType(APPLICATION_JSON)
+        ).andExpect(status().isOk)
+            .andExpect(content().contentType(APPLICATION_JSON))
             .andReturn()
         assetUpdateResponse = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetUpdateResponse::class.java)
@@ -186,14 +174,14 @@ internal class AssetControllerTest(
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MissingAssetBadRequest() {
         // Invalid market
         var result = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/twee/blah")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+        ).andExpect(status().is4xxClientError)
         assertThat(result.andReturn().resolvedException)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
@@ -201,18 +189,18 @@ internal class AssetControllerTest(
         // Invalid Asset
         result = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/MOCK/blah")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                .contentType(APPLICATION_JSON)
+        ).andExpect(status().is4xxClientError)
         assertThat(result.andReturn().resolvedException)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)
 
         result = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/{assetId}", "doesn't exist")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
-                .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                .contentType(APPLICATION_JSON)
+        ).andExpect(status().is4xxClientError)
         assertThat(result.andReturn().resolvedException)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)

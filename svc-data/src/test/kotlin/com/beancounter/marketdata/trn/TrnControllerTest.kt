@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PortfoliosResponse
@@ -38,20 +38,17 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 /**
@@ -61,12 +58,16 @@ import java.math.BigDecimal
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 class TrnControllerTest {
-    private val authorityRoleConverter = AuthorityRoleConverter()
     private val dateUtils = DateUtils()
 
     @Autowired
-    private lateinit var wac: WebApplicationContext
+    private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var marketService: MarketService
@@ -91,9 +92,7 @@ class TrnControllerTest {
 
     @MockBean
     private lateinit var fxTransactions: FxTransactions
-
     private lateinit var token: Jwt
-    private lateinit var mockMvc: MockMvc
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     private lateinit var bcMvcHelper: BcMvcHelper
@@ -102,10 +101,8 @@ class TrnControllerTest {
     fun setupObjects() {
         enrichmentFactory.register(DefaultEnricher())
         assertThat(currencyService.currencies).isNotEmpty
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-        token = TokenUtils().getUserToken(Constants.systemUser)
+
+        token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper = BcMvcHelper(mockMvc, token)
 
         RegistrationUtils.registerUser(mockMvc, token)
@@ -125,7 +122,7 @@ class TrnControllerTest {
             get(uriTrnForPortfolio, portfolio.id)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
@@ -181,7 +178,7 @@ class TrnControllerTest {
                 .contentType(APPLICATION_JSON)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(
@@ -207,7 +204,7 @@ class TrnControllerTest {
             get("$trnsRoot/{portfolioId}/{trnId}", portfolio.id, "x123x")
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
@@ -290,7 +287,7 @@ class TrnControllerTest {
                 "/portfolios/asset/{assetId}/{tradeDate}",
                 msft.id, tradeDate
             )
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
@@ -313,7 +310,7 @@ class TrnControllerTest {
             delete("$trnsRoot/{trnId}", "illegalTrnId")
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))

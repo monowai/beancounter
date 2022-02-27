@@ -1,11 +1,11 @@
 package com.beancounter.marketdata.markets
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.marketdata.Constants.Companion.NZX
-import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaService
 import com.beancounter.marketdata.providers.cash.CashProviderService
@@ -24,8 +24,9 @@ import org.springframework.test.context.ActiveProfiles
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest(classes = [MarketDataBoot::class])
+@SpringBootTest
 @ActiveProfiles("test")
+@AutoConfigureMockAuth
 class MarketDataProviderTests @Autowired constructor(
     private val mdFactory: MdFactory,
     private val marketService: MarketService

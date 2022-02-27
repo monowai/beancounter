@@ -1,7 +1,8 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.common.TokenService
-import com.beancounter.auth.common.TokenUtils
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.TokenService
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
@@ -17,6 +18,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType.BUY
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -24,7 +26,6 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
-import com.beancounter.marketdata.fx.FxMvcTests
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceWriter
@@ -32,6 +33,7 @@ import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -39,10 +41,12 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
@@ -50,14 +54,10 @@ import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
@@ -77,14 +77,17 @@ import java.math.BigDecimal.ONE
 @ActiveProfiles("kafka")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 class KafkaTrnTest {
 
     final var dateUtils: DateUtils = DateUtils()
 
     @Autowired
-    private lateinit var wac: WebApplicationContext
-
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     private lateinit var token: Jwt
 
@@ -204,14 +207,9 @@ class KafkaTrnTest {
     }
 
     private fun mockEnv() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-
         val (id) = systemUserService.save(SystemUser("mike"))
 
-        token = TokenUtils()
-            .getUserToken(SystemUser(id, Constants.systemUser.email))
+        token = mockAuthConfig.getUserToken(SystemUser(id, Constants.systemUser.email))
 
         Mockito.`when`(tokenService.subject).thenReturn(id)
 
@@ -224,7 +222,7 @@ class KafkaTrnTest {
         assertThat(eventWriter.kafkaEnabled).isTrue
         val rateResponse = ClassPathResource("mock/fx/fx-current-rates.json").file
 
-        FxMvcTests.stubFx(
+        stubFx(
             "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
             rateResponse
         )
@@ -248,7 +246,6 @@ class KafkaTrnTest {
             MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
-                        .authorities(RegistrationUtils.authorityRoleConverter)
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         )
@@ -292,5 +289,24 @@ class KafkaTrnTest {
     companion object {
         const val TOPIC_CSV_IO = "topicCsvIo"
         private val log = LoggerFactory.getLogger(KafkaTrnTest::class.java)
+        @JvmStatic
+        fun stubFx(url: String, rateResponse: File) {
+            WireMock.stubFor(
+                WireMock.get(WireMock.urlEqualTo(url))
+                    .willReturn(
+                        WireMock.aResponse()
+                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(
+                                BcJson().objectMapper.writeValueAsString(
+                                    BcJson().objectMapper.readValue(
+                                        rateResponse,
+                                        HashMap::class.java
+                                    )
+                                )
+                            )
+                            .withStatus(200)
+                    )
+            )
+        }
     }
 }

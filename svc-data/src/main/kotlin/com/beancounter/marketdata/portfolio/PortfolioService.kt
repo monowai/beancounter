@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.portfolio
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.PortfolioInput
@@ -38,7 +38,7 @@ class PortfolioService internal constructor(
 
     fun canView(found: Portfolio): Boolean {
         val systemUser = systemUserService.getOrThrow
-        return systemUser.id == AuthConstants.OAUTH_M2M || found.owner!!.id == systemUser.id
+        return systemUser.id == AuthConstants.SYSTEM || found.owner!!.id == systemUser.id
     }
 
     val portfolios: Collection<Portfolio>

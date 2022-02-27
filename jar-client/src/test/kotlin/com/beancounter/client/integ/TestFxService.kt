@@ -1,5 +1,6 @@
 package com.beancounter.client.integ
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.EUR
 import com.beancounter.client.Constants.Companion.GBP
 import com.beancounter.client.Constants.Companion.NASDAQ
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import java.math.BigDecimal
@@ -43,6 +45,9 @@ class TestFxService {
 
     @Autowired
     private val fxTransactions: FxTransactions? = null
+
+    @MockBean
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_FxContractHonoured() {

@@ -6,8 +6,9 @@ spring:
           client-secret: secret
       resourceserver:
         jwt:
-          jwk-set-uri: "${auth.uri}/realms/${auth.realm}/protocol/openid-connect/certs"
+          issuer-uri: "${auth.uri}"
 
 auth:
-  uri: http://localhost:${wiremock.server.port}/auth
-  realm: bc-test
+  enabled: true
+  uri: http://localhost:${wiremock.server.port}/
+  audience: audience-api-url

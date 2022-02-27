@@ -15,7 +15,7 @@ class SerializationTests {
 
     @Test
     fun is_MachineToMachineJsonCorrect() {
-        val machineRequest = LoginService.MachineRequest(client_id = "abc", client_secret = "*secret*")
+        val machineRequest = LoginService.MachineRequest(client_id = "abc", client_secret = "*secret*", audience = "my-audience")
         assertThat(machineRequest.grant_type).isNotNull
         val json = BcJson().objectMapper.writeValueAsString(machineRequest)
         assertThat(json).contains(

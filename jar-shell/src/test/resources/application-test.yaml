@@ -8,3 +8,9 @@ spring:
       enabled: false
     script:
       enabled: false
+  security:
+    oauth2:
+      registration:
+        custom:
+          client-id: not-set
+          client-secret: not-set

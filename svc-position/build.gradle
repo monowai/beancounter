@@ -76,8 +76,8 @@ dependencies {
             //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
             "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            "org.junit.jupiter:junit-jupiter"
-
+            "org.junit.jupiter:junit-jupiter",
+            project(":jar-auth").sourceSets.test.output
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
@@ -87,7 +87,7 @@ dependencies {
 contracts {
     testFramework = "JUNIT5"
     testMode = "MockMvc"
-    baseClassForTests = "com.beancounter.position.contracts.ContractVerifierBase"
+    baseClassForTests = "com.contracts.position.ContractVerifierBase"
 }
 
 contractTest {

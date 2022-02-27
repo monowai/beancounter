@@ -1,6 +1,6 @@
 package com.beancounter.client.services
 
-import com.beancounter.auth.common.TokenService
+import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnQuery

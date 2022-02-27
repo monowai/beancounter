@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 @RequestMapping("/trns")
 @CrossOrigin
-@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
 class TrnController(
     var trnService: TrnService,
     var trnQueryService: TrnQueryService,

@@ -1,6 +1,6 @@
 package com.beancounter.client.services
 
-import com.beancounter.auth.common.TokenService
+import com.beancounter.auth.TokenService
 import com.beancounter.client.MarketService
 import com.beancounter.common.contracts.CurrencyResponse
 import com.beancounter.common.contracts.MarketResponse

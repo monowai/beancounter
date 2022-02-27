@@ -1,5 +1,7 @@
 package com.beancounter.event.controller
 
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.model.TrnType
@@ -16,13 +18,16 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 import java.util.Objects
@@ -31,9 +36,11 @@ import java.util.Objects
  * MVC tests for Corporate Actions/Events.
  */
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(properties = ["auth.enabled=false"])
+@SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
+@AutoConfigureMockAuth
+@AutoConfigureMockMvc
 internal class EventControllerTest {
     private val dateUtils = DateUtils()
 
@@ -46,14 +53,24 @@ internal class EventControllerTest {
     @Autowired
     private lateinit var positionService: PositionService
 
+    @Autowired
+    private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     private val objectMapper: ObjectMapper = BcJson().objectMapper
+    lateinit var token: Jwt
+    @Autowired
+    fun setDefaultUser() {
+        token = mockAuthConfig.getUserToken()
+    }
 
     @Test
-    @Throws(Exception::class)
     fun is_IllegalEventBad() {
-        val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -64,10 +81,8 @@ internal class EventControllerTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_EventCreatedAndFoundOk() {
         // Create
-        val mockMvc = MockMvcBuilders.webAppContextSetup(wac).build()
         var event = CorporateEvent(
             TrnType.DIVI,
             dateUtils.getDate("2020-10-10"),
@@ -81,6 +96,7 @@ internal class EventControllerTest {
         // Find By PK
         var mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/{eventId}", event.id)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -91,6 +107,7 @@ internal class EventControllerTest {
         assertThat(data).usingRecursiveComparison().isEqualTo(event)
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()

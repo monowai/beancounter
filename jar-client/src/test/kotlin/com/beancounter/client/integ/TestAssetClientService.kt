@@ -1,5 +1,6 @@
 package com.beancounter.client.integ
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.AssetService
 import com.beancounter.client.config.ClientConfig
 import org.assertj.core.api.Assertions.assertThat
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 
@@ -19,6 +21,9 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 class TestAssetClientService {
     @Autowired
     private lateinit var assetService: AssetService
+
+    @MockBean
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_AssetByIdOk() {

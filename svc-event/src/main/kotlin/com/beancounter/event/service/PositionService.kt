@@ -1,7 +1,7 @@
 package com.beancounter.event.service
 
+import com.beancounter.auth.TokenService
 import com.beancounter.auth.client.LoginService
-import com.beancounter.auth.common.TokenService
 import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosResponse
@@ -23,13 +23,15 @@ import javax.annotation.PostConstruct
  * Locate positions to support nominal corporate events.
  */
 @Service
-class PositionService(private val behaviourFactory: EventBehaviourFactory) {
+class PositionService(
+    private val behaviourFactory: EventBehaviourFactory,
+    private val loginService: LoginService
+) {
     private val dateUtils = DateUtils()
     private lateinit var assetService: AssetService
     private lateinit var positionGateway: PositionGateway
     private lateinit var portfolioService: PortfolioServiceClient
     private lateinit var tokenService: TokenService
-    private lateinit var loginService: LoginService
 
     @Value("\${position.url:http://localhost:9500/api}")
     private lateinit var positionUrl: String
@@ -52,11 +54,6 @@ class PositionService(private val behaviourFactory: EventBehaviourFactory) {
     @Autowired
     fun setPortfolioClientService(portfolioServiceClient: PortfolioServiceClient) {
         portfolioService = portfolioServiceClient
-    }
-
-    @Autowired
-    fun setLoginService(loginService: LoginService) {
-        this.loginService = loginService
     }
 
     @PostConstruct

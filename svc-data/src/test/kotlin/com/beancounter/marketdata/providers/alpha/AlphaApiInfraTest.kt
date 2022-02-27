@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -30,6 +31,7 @@ import java.math.BigDecimal
 @ActiveProfiles("alpha")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockAuth
 class AlphaApiInfraTest {
     private val api = "API"
 
@@ -43,7 +45,6 @@ class AlphaApiInfraTest {
     private lateinit var marketService: MarketService
 
     @Test
-    @Throws(Exception::class)
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)

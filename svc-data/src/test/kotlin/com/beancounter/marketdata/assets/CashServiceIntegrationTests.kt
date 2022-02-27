@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.marketdata.Constants.Companion.CASH
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
  * Cash Asset tests.
  */
 @SpringBootTest
+@AutoConfigureMockAuth
 class CashServiceIntegrationTests {
     @Autowired
     private lateinit var assetService: AssetService

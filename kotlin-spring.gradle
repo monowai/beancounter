@@ -20,17 +20,6 @@ apply plugin: "checkstyle"
 apply plugin: 'jacoco'
 apply plugin: 'org.jmailen.kotlinter'
 
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "${sourceCompatibility}"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "${sourceCompatibility}"
-    }
-}
-
 checkstyle {
     //  Property 'scope' does not exist, please check the documentation @8.42
     toolVersion = '8.41.1'

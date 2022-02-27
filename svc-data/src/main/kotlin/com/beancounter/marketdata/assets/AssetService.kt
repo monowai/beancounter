@@ -9,6 +9,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.util.Locale
@@ -21,6 +22,10 @@ import javax.transaction.Transactional
  * Asset CRUD functionality.
  */
 @Service
+@Import(
+    DefaultEnricher::class,
+    MarketDataService::class,
+)
 @Transactional
 class AssetService internal constructor(
     private val enrichmentFactory: EnrichmentFactory,

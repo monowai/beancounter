@@ -33,7 +33,8 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-test",
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
-            "org.springframework.cloud:spring-cloud-contract-stub-runner"
+            "org.springframework.cloud:spring-cloud-contract-stub-runner",
+            project(":jar-auth").sourceSets.test.output,
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false

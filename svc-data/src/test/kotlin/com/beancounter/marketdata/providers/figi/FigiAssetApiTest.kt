@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers.figi
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.input.AssetInput
@@ -51,7 +51,12 @@ import java.io.File
 @ActiveProfiles("figi")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockAuth
 class FigiAssetApiTest {
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     @Autowired
     private lateinit var figiProxy: FigiProxy
 
@@ -118,7 +123,7 @@ class FigiAssetApiTest {
             .build()
 
         // Authorise the caller to access the BC API
-        val token = TokenUtils().getUserToken(Constants.systemUser)
+        val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
         val market = marketService.getMarket(NYSE.code)
         assertThat(market).isNotNull.hasFieldOrPropertyWithValue("enricher", null)
@@ -127,7 +132,7 @@ class FigiAssetApiTest {
 
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/{market}/{code}", NYSE.code, "BRK.B")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(AuthorityRoleConverter()))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)

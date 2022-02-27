@@ -1,5 +1,6 @@
 package com.beancounter.shell.integ
 
+import com.beancounter.auth.AuthConfig
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.client.sharesight.ShareSightConfig
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
@@ -47,6 +49,9 @@ internal class StubbedTradesWithFx {
     @Autowired
     private lateinit var shareSightConfig: ShareSightConfig
     private val testDate = "27/07/2019" // Sharesight format
+
+    @MockBean
+    private lateinit var authConfig: AuthConfig
 
     @Test
     fun is_FxRatesSetFromCurrencies() {

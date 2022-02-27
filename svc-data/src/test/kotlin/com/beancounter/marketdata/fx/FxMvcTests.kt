@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.fx
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.BusinessException
@@ -11,111 +11,65 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbDate
-import com.beancounter.marketdata.utils.RegistrationUtils
-import com.github.tomakehurst.wiremock.client.WireMock
+import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
+import com.beancounter.marketdata.fx.fxrates.FxGateway
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
-import org.springframework.core.io.ClassPathResource
-import org.springframework.http.HttpHeaders
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultMatcher
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
-import java.io.File
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * FX MVC tests for rates at today and historic dates
  */
 @SpringBootTest
-@ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
-@AutoConfigureWireMock(port = 0)
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 internal class FxMvcTests {
-    private val authorityRoleConverter = AuthorityRoleConverter()
 
     private var dateUtils = DateUtils()
 
     @Autowired
-    private lateinit var context: WebApplicationContext
     private lateinit var mockMvc: MockMvc
-    private lateinit var token: Jwt
-
-    companion object {
-        val nzd = NZD.code
-        val usd = USD.code
-        const val fxRoot = "/fx"
-        val usdNzd = IsoCurrencyPair(usd, nzd)
-        val nzdUsd = IsoCurrencyPair(nzd, usd)
-        const val fxMock = "/mock/fx"
-
-        @BeforeAll
-        @JvmStatic
-        fun mockResponse() {
-            val rateResponse = ClassPathResource("$fxMock/fx-current-rates.json").file
-            val today = EcbDate(dateUtils = DateUtils()).getValidDate("today")
-
-            stubFx(
-                // Matches all supported currencies
-                "/v1/2019-08-27?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
-                rateResponse
-            )
-            stubFx(
-                "/v1/$today?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
-                rateResponse
-            )
-        }
-
-        @JvmStatic
-        fun stubFx(url: String, rateResponse: File) {
-            WireMock.stubFor(
-                WireMock.get(WireMock.urlEqualTo(url))
-                    .willReturn(
-                        WireMock.aResponse()
-                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(
-                                BcJson().objectMapper.writeValueAsString(
-                                    BcJson().objectMapper.readValue(
-                                        rateResponse,
-                                        HashMap::class.java
-                                    )
-                                )
-                            )
-                            .withStatus(200)
-                    )
-            )
-        }
-    }
 
     @Autowired
-    fun mockServices() {
+    private lateinit var mockAuthConfig: MockAuthConfig
 
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-        token = TokenUtils().getUserToken(Constants.systemUser)
-        RegistrationUtils.registerUser(mockMvc, token)
-    }
+    @Autowired
+    private lateinit var currencyService: CurrencyService
+
+    @MockBean
+    private lateinit var fxGateway: FxGateway
 
     @Test
-    @Throws(Exception::class)
     fun fxResponseObjectReturned() {
         val date = "2019-08-27"
+        `when`(fxGateway.getRatesForSymbols(eq(date), eq("USD"), eq(currencyService.currenciesAs)))
+            .thenReturn(
+                ExRatesResponse(
+                    "USD", LocalDate.now(),
+                    getFxRates()
+                )
+            )
         val fxRequest = FxRequest(
             rateDate = date,
             pairs = arrayListOf(
@@ -142,9 +96,17 @@ internal class FxMvcTests {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_NullDateReturningCurrent() {
+
         val fxRequest = FxRequest(pairs = arrayListOf(nzdUsd))
+        `when`(fxGateway.getRatesForSymbols(any(), eq("USD"), eq(currencyService.currenciesAs)))
+            .thenReturn(
+                ExRatesResponse(
+                    "USD",
+                    LocalDate.now(),
+                    getFxRates()
+                )
+            )
         val mvcResult = fxPost(fxRequest)
         val (results) = BcJson().objectMapper
             .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
@@ -159,13 +121,22 @@ internal class FxMvcTests {
         }
     }
 
-    private fun fxPost(fxRequest: FxRequest, expectedResult: ResultMatcher = MockMvcResultMatchers.status().isOk) =
+    private fun getFxRates(): Map<String, BigDecimal> {
+        val ecbResponse = mutableMapOf<String, BigDecimal>()
+        currencyService.currencies.forEach { currency ->
+            ecbResponse[currency.code] = BigDecimal.ONE
+        }
+        return ecbResponse
+    }
+
+    private fun fxPost(fxRequest: FxRequest, expectedResult: ResultMatcher = status().isOk) =
         mockMvc.perform(
             MockMvcRequestBuilders.post(fxRoot)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(mockAuthConfig.getUserToken(Constants.systemUser))
                 )
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     BcJson().objectMapper.writeValueAsString(fxRequest)
@@ -182,7 +153,6 @@ internal class FxMvcTests {
     }
 
     @Test
-    @Throws(Exception::class)
     fun invalidCurrenciesReturned() {
         val date = "2019-08-27"
         val from = "ANC"
@@ -191,9 +161,18 @@ internal class FxMvcTests {
         val fxRequest = FxRequest(date)
         fxRequest.add(invalid)
 
-        val mvcResult = fxPost(fxRequest, MockMvcResultMatchers.status().is4xxClientError)
+        val mvcResult = fxPost(fxRequest, status().is4xxClientError)
         val someException = java.util.Optional.ofNullable(mvcResult.resolvedException as BusinessException)
         assertThat(someException.isPresent).isTrue
         assertThat(someException.get()).hasMessageContaining(from).hasMessageContaining(to)
+    }
+
+    companion object {
+        val nzd = NZD.code
+        val usd = USD.code
+        const val fxRoot = "/fx"
+        val usdNzd = IsoCurrencyPair(usd, nzd)
+        val nzdUsd = IsoCurrencyPair(nzd, usd)
+        const val fxMock = "/mock/fx"
     }
 }

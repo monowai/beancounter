@@ -16,7 +16,7 @@ import javax.persistence.Id
  */
 data class SystemUser @ConstructorBinding constructor(
     @Id var id: String,
-    var email: String,
+    val email: String = "testUser",
     var active: Boolean = true,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
@@ -24,7 +24,7 @@ data class SystemUser @ConstructorBinding constructor(
     var since: LocalDate = LocalDate.now()
 ) {
 
-    constructor(id: String, email: String = "") :
+    constructor(id: String, email: String) :
         this(id, email, true, LocalDate.now())
 
     override fun equals(other: Any?): Boolean {

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.currency
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.marketdata.Constants.Companion.USD
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -19,9 +20,7 @@ import org.springframework.test.context.ActiveProfiles
 @EntityScan("com.beancounter.common.model")
 @EnableAutoConfiguration
 @ActiveProfiles("test")
-/**
- * Integration tests for static data related functionality.
- */
+@AutoConfigureMockAuth
 internal class CurrencyTests @Autowired constructor(
     private val currencyService: CurrencyService,
 ) {

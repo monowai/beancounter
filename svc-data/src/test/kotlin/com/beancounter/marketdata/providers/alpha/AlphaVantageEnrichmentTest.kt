@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers.alpha
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.PriceRequest
@@ -9,7 +9,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.config.PriceSchedule
 import com.beancounter.marketdata.markets.MarketService
@@ -23,33 +22,30 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 /**
  * Enrichment integration tests.
  */
-@SpringBootTest(classes = [MarketDataBoot::class])
+@SpringBootTest
 @ActiveProfiles("alpha")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 class AlphaVantageEnrichmentTest {
 
-    private val authorityRoleConverter = AuthorityRoleConverter()
-    private val tokenUtils: TokenUtils = TokenUtils()
     private val dateUtils = DateUtils()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
@@ -75,21 +71,19 @@ class AlphaVantageEnrichmentTest {
     private lateinit var assetService: AssetService
 
     @Autowired
-    private lateinit var context: WebApplicationContext
-
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     private lateinit var token: Jwt
 
     @Autowired
     @Throws(Exception::class)
     fun mockServices() {
         AlphaMockUtils.getAlphaApi()
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-
         // Set up a user account
-        token = tokenUtils.getUserToken(Constants.systemUser)
+        token = mockAuthConfig.getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
     }
 
@@ -107,7 +101,7 @@ class AlphaVantageEnrichmentTest {
 
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, lon, code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
@@ -144,7 +138,7 @@ class AlphaVantageEnrichmentTest {
             MockMvcRequestBuilders.get(marketCodeUrl, Constants.ASX.code, amp)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -177,7 +171,7 @@ class AlphaVantageEnrichmentTest {
             MockMvcRequestBuilders.get(marketCodeUrl, Constants.NYSE.code, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token).authorities(authorityRoleConverter)
+                        .jwt(token)
                 )
                 .contentType(MediaType.APPLICATION_JSON)
         )

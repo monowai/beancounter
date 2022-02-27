@@ -1,28 +1,24 @@
 package com.beancounter.marketdata.registration
 
-import com.beancounter.auth.common.TokenUtils
-import com.beancounter.auth.server.AuthorityRoleConverter
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 
 /**
  * Verify user registration behaviour.
@@ -31,28 +27,24 @@ import org.springframework.web.context.WebApplicationContext
 @ActiveProfiles("test")
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@AutoConfigureMockMvc
+@AutoConfigureMockAuth
 class TestRegistrationController {
-    private lateinit var mockMvc: MockMvc
-    private val tokenUtils = TokenUtils()
 
     @Autowired
-    private lateinit var context: WebApplicationContext
+    private lateinit var mockMvc: MockMvc
 
-    @BeforeEach
-    fun mockServices() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-    }
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Test
     @Throws(Exception::class)
     fun is_RegisterMeWorking() {
-        val token = tokenUtils.getUserToken(Constants.systemUser)
+        val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
         val performed = mockMvc.perform(
             MockMvcRequestBuilders.get("/me")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(AuthorityRoleConverter()))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
@@ -63,7 +55,7 @@ class TestRegistrationController {
     @Test
     @Throws(Exception::class)
     fun is_MeWithNoToken() {
-        val token = tokenUtils.getUserToken(Constants.systemUser)
+        val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
         val performed = mockMvc.perform(
             MockMvcRequestBuilders.get("/me")
@@ -81,10 +73,10 @@ class TestRegistrationController {
             "is_MeUnregistered",
             "is_MeUnregistered@testing.com"
         )
-        val token = tokenUtils.getUserToken(user)
+        val token = mockAuthConfig.getUserToken(user)
         val performed = mockMvc.perform(
             MockMvcRequestBuilders.get("/me")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(AuthorityRoleConverter()))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)

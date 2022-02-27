@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.fx
 
-import com.beancounter.auth.server.AuthConstants
+import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/fx")
 @CrossOrigin
-@PreAuthorize("hasAnyRole('" + AuthConstants.OAUTH_USER + "', '" + AuthConstants.OAUTH_M2M + "')")
+@PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
 class FxController @Autowired internal constructor(private val fxRateService: FxRateService) {
     @PostMapping
     fun getRates(@RequestBody fxRequest: FxRequest): FxResponse = fxRateService.getRates(fxRequest)

@@ -1,6 +1,8 @@
 package com.beancounter.client.integ
 
-import com.beancounter.auth.common.TokenUtils
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.RegistrationRequest
@@ -13,11 +15,9 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
 /**
@@ -28,22 +28,26 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ImportAutoConfiguration(ClientConfig::class)
-@SpringBootTest(classes = [ClientConfig::class])
+@SpringBootTest(classes = [ClientConfig::class, MockAuthConfig::class])
+@AutoConfigureMockAuth
 class TestRegistrationService {
     @Autowired
     private lateinit var registrationService: RegistrationService
 
-    @MockBean
-    private lateinit var jwtDecoder: JwtDecoder
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var tokenService: TokenService
 
     @Test
     fun registeringAuthenticatedUser() {
-        setupAuth("blah@blah.com")
+        val email = "blah@blah.com"
+        setupAuth(email)
         assertThat(registrationService.jwtToken).isNotNull
         assertThat(registrationService.token).isNotNull
-        // Currently matching is on email
         val registeredUser = registrationService
-            .register(RegistrationRequest("blah@blah.com"))
+            .register(RegistrationRequest(email))
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
         val me = registrationService.me()
         assertThat(me)
@@ -53,7 +57,7 @@ class TestRegistrationService {
 
     @Test
     fun unauthenticatedUserRejectedFromRegistration() {
-        // Setup the authenticated context
+        // Set up the authenticated context
         val email = "not@authenticated.com"
         setupAuth(email)
         assertThrows(UnauthorizedException::class.java) {
@@ -62,8 +66,9 @@ class TestRegistrationService {
     }
 
     private fun setupAuth(email: String) {
-        val jwt = TokenUtils().getUserToken(SystemUser(email, email))
-        Mockito.`when`(jwtDecoder.decode(email)).thenReturn(jwt)
-        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(jwtDecoder.decode(email))
+        val jwt = mockAuthConfig.getUserToken(SystemUser(email, email))
+        Mockito.`when`(mockAuthConfig.jwtDecoder.decode(email)).thenReturn(jwt)
+        SecurityContextHolder.getContext().authentication =
+            JwtAuthenticationToken(mockAuthConfig.jwtDecoder.decode(email))
     }
 }

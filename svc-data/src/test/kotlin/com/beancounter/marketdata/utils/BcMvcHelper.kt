@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.utils
 
-import com.beancounter.auth.server.AuthorityRoleConverter
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.PortfoliosRequest
@@ -44,14 +43,13 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         const val tradeDate = "2018-01-01"
     }
 
-    private val authorityRoleConverter = AuthorityRoleConverter()
     private val objectMapper = BcJson().objectMapper
 
     @Throws(Exception::class)
     fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/assets/")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(assetRequest))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -65,7 +63,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
 
     fun getTrnById(portfolioId: String, trnId: String): MvcResult = mockMvc.perform(
         MockMvcRequestBuilders.get("$trnsRoot/$portfolioId/$trnId")
-            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(MockMvcResultMatchers.status().isOk)
         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -73,7 +71,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
 
     fun postTrn(trnRequest: TrnRequest): MvcResult = mockMvc.perform(
         MockMvcRequestBuilders.post(trnsRoot)
-            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             .content(objectMapper.writeValueAsBytes(trnRequest))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -82,7 +80,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
 
     fun patchTrn(portfolioId: String, trnId: String, trnInput: TrnInput): MvcResult = mockMvc.perform(
         MockMvcRequestBuilders.patch("$trnsRoot/$portfolioId/$trnId")
-            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             .content(objectMapper.writeValueAsBytes(trnInput))
             .contentType(MediaType.APPLICATION_JSON)
     ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -94,7 +92,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         val createRequest = PortfoliosRequest(setOf(portfolio))
         val portfolioResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/portfolios", portfolio.code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token).authorities(authorityRoleConverter))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(ObjectMapper().writeValueAsBytes(createRequest))
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -110,7 +108,6 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
             MockMvcRequestBuilders.post("/register")
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
-                        .authorities(RegistrationUtils.authorityRoleConverter)
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(

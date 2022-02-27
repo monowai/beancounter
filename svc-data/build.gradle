@@ -19,6 +19,10 @@ plugins {
 apply plugin: 'spring-cloud-contract'
 apply from: '../kotlin-spring.gradle'
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(15))
+}
+
 version = "0.1.1"
 
 publishing {
@@ -78,15 +82,15 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
+            project(":jar-auth").sourceSets.test.output,
     )
 }
 
 contracts {
     testFramework = "JUNIT5"
-    testMode = "MockMvc"
     failOnInProgress = false
-    baseClassForTests = "com.beancounter.marketdata.contracts.ContractVerifierBase"
-    packageWithBaseClasses = "com.beancounter.marketdata.contracts"
+    packageWithBaseClasses = "com.contracts.data"
+    baseClassForTests = "com.contracts.data.ContractVerifierBase"
 }
 
 contractTest {

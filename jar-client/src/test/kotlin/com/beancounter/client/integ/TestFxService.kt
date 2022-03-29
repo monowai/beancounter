@@ -41,10 +41,10 @@ import java.math.BigDecimal
 @SpringBootTest(classes = [ClientConfig::class])
 class TestFxService {
     @Autowired
-    private val fxRateService: FxService? = null
+    lateinit var fxRateService: FxService
 
     @Autowired
-    private val fxTransactions: FxTransactions? = null
+    lateinit var fxTransactions: FxTransactions
 
     @MockBean
     private lateinit var tokenService: TokenService
@@ -56,7 +56,7 @@ class TestFxService {
         isoCurrencyPairs.add(IsoCurrencyPair(USD.code, GBP.code))
         isoCurrencyPairs.add(IsoCurrencyPair(USD.code, NZD.code))
         val testDate = "2019-11-12"
-        val fxResponse = fxRateService!!.getRates(FxRequest(testDate, pairs = isoCurrencyPairs))
+        val fxResponse = fxRateService.getRates(FxRequest(testDate, pairs = isoCurrencyPairs))
         assertThat(fxResponse).isNotNull.hasNoNullFieldsOrProperties()
         val fxPairResults: FxPairResults = fxResponse.data
         assertThat(fxPairResults.rates).isNotNull
@@ -77,7 +77,7 @@ class TestFxService {
         isoCurrencyPairs.add(IsoCurrencyPair(USD.code, SGD.code))
         isoCurrencyPairs.add(IsoCurrencyPair(GBP.code, NZD.code))
         val testDate = "1996-07-27" // Earlier than when ECB started recording rates
-        val fxResponse = fxRateService!!.getRates(FxRequest(testDate, isoCurrencyPairs))
+        val fxResponse = fxRateService.getRates(FxRequest(testDate, isoCurrencyPairs))
         assertThat(fxResponse)
             .isNotNull
             .hasNoNullFieldsOrProperties()
@@ -92,13 +92,13 @@ class TestFxService {
 
     @Test
     fun is_EmptyResponseReturning() {
-        val fxResponse = fxRateService!!.getRates(FxRequest("2020-10-01"))
+        val fxResponse = fxRateService.getRates(FxRequest("2020-10-01"))
         assertThat(fxResponse).isNotNull
         assertThat(fxResponse.data.rates).isEmpty()
     }
 
     @Test
-    fun is_fxTransactionsSettingCorrectRates() {
+    fun is_fxTransactionsSettingCorrectlyWhenRatesNull() {
         val trnInput = TrnInput(
             CallerRef(),
             AssetUtils.Companion.getAsset(NASDAQ, "MSFT").id,
@@ -109,7 +109,30 @@ class TestFxService {
             price = BigDecimal.TEN
         )
         val portfolio = getPortfolio()
-        val request = fxTransactions!!.getFxRequest(portfolio, trnInput)
+        val request = fxTransactions.getFxRequest(portfolio, trnInput)
+        assertThat(request).hasFieldOrProperty("tradePf")
+        fxTransactions.setTrnRates(portfolio, trnInput)
+        assertThat(trnInput)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("0.66428103"))
+    }
+
+    @Test
+    fun is_fxTransactionsSettingCorrectlyWhenRatesAreZero() {
+        val trnInput = TrnInput(
+            CallerRef(),
+            AssetUtils.Companion.getAsset(NASDAQ, "MSFT").id,
+            cashCurrency = USD.code,
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeDate = DateUtils().getDate("2019-07-26"),
+            price = BigDecimal.TEN,
+            tradePortfolioRate = BigDecimal.ZERO,
+        )
+        val portfolio = getPortfolio()
+        val request = fxTransactions.getFxRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")
         fxTransactions.setTrnRates(portfolio, trnInput)
         assertThat(trnInput)
@@ -121,7 +144,7 @@ class TestFxService {
 
     @Test
     fun is_NoArgsWorking() {
-        var response = fxRateService!!.getRates(FxRequest("2020-01-10"))
+        var response = fxRateService.getRates(FxRequest("2020-01-10"))
         assertThat(response)
             .isNotNull
             .hasFieldOrProperty(DATA)

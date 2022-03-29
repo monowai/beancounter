@@ -62,16 +62,16 @@ class FxTransactions(
 
     fun pair(currency: Currency, trn: TrnInput, rate: BigDecimal?): IsoCurrencyPair? {
         val from = Currency(trn.tradeCurrency)
-        if (rate == null && !trn.tradeCurrency.equals(currency.code, ignoreCase = true)) {
+        if (numberUtils.isUnset(rate) && !trn.tradeCurrency.equals(currency.code, ignoreCase = true)) {
             return IsoCurrencyPair(from = from.code, to = currency.code)
         }
         return null
     }
 
-    private fun getFxRequest(fxRequests: MutableMap<String?, FxRequest>, tradeDate: String?): FxRequest {
+    private fun getFxRequest(fxRequests: MutableMap<String?, FxRequest>, tradeDate: String): FxRequest {
         var fxRequest = fxRequests[tradeDate]
         if (fxRequest == null) {
-            fxRequest = FxRequest(tradeDate!!, ArrayList())
+            fxRequest = FxRequest(tradeDate, ArrayList())
             fxRequests[tradeDate] = fxRequest
         }
         return fxRequest

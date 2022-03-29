@@ -12,16 +12,12 @@ object AuthConstants {
     const val SYSTEM = "$APP_NAME:system"
     const val ADMIN = "$APP_NAME:admin"
 
-    const val ROLE_USER = "ROLE_$USER"
-    const val ROLE_SYSTEM = "ROLE_$SYSTEM"
-    const val ROLE_ADMIN = "ROLE_$ADMIN"
-
-    @JvmField
-    val AUTH_M2M = SimpleGrantedAuthority(ROLE_SYSTEM)
     const val SCOPE_BC = "SCOPE_$APP_NAME"
     const val SCOPE_USER = "SCOPE_$USER"
     const val SCOPE_SYSTEM = "SCOPE_$SYSTEM"
     const val SCOPE_ADMIN = "SCOPE_$ADMIN"
-    val m2mSystemUser = SystemUser(id = SYSTEM)
+    @JvmField
+    val AUTH_M2M = SimpleGrantedAuthority(SCOPE_SYSTEM)
+    val authSystem = SystemUser(id = SYSTEM)
     const val SCOPE = "$APP_NAME profile email $ADMIN $USER"
 }

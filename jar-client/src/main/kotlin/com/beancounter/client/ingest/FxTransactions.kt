@@ -7,6 +7,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.NumberUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -84,8 +85,10 @@ class FxTransactions(
     }
 
     fun needsRates(trnInput: TrnInput): Boolean {
-        return numberUtils.isUnset(trnInput.tradePortfolioRate) ||
-            numberUtils.isUnset(trnInput.tradeBaseRate) ||
-            numberUtils.isUnset(trnInput.tradeCashRate)
+        return (
+            numberUtils.isUnset(trnInput.tradePortfolioRate) ||
+                numberUtils.isUnset(trnInput.tradeBaseRate) ||
+                numberUtils.isUnset(trnInput.tradeCashRate)
+            ) && trnInput.trnType != TrnType.SPLIT
     }
 }

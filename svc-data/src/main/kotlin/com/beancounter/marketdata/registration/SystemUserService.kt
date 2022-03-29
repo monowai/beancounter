@@ -65,7 +65,7 @@ class SystemUserService internal constructor(
     val getOrThrow: SystemUser
         get() {
             if (isServiceAccount()) {
-                return AuthConstants.m2mSystemUser
+                return AuthConstants.authSystem
             }
             val systemUser = getActiveUser()
             verifySystemUser(systemUser)

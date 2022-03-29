@@ -72,8 +72,8 @@ class OAuthConfig(val cacheManager: CacheManager) {
     }
 
     internal class AudienceValidator(private val audience: String) : OAuth2TokenValidator<Jwt> {
+        val error = OAuth2Error("invalid_token", "The required audience is missing", null)
         override fun validate(jwt: Jwt): OAuth2TokenValidatorResult {
-            val error = OAuth2Error("invalid_token", "The required audience is missing", null)
             return if (jwt.audience.contains(audience)) {
                 OAuth2TokenValidatorResult.success()
             } else OAuth2TokenValidatorResult.failure(error)

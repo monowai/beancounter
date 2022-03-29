@@ -6,7 +6,6 @@ import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.DateUtils
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -21,7 +20,6 @@ import java.time.LocalDate
  */
 @Service
 class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val tokenService: TokenService) {
-    private val dateUtils = DateUtils()
     fun getPortfolioByCode(portfolioCode: String): Portfolio {
         val response: PortfolioResponse? = portfolioGw.getPortfolioByCode(tokenService.bearerToken, portfolioCode)
         return getOrThrow(portfolioCode, response)
@@ -54,10 +52,10 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         return response.data
     }
 
-    @FeignClient(name = "portfolios", url = "\${marketdata.url:http://localhost:9510/api}")
     /**
      * BC-DATA api calls to obtain portfolio data.
      */
+    @FeignClient(name = "portfolios", url = "\${marketdata.url:http://localhost:9510/api}")
     interface PortfolioGw {
         @GetMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolios(

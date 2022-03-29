@@ -85,7 +85,7 @@ spring:
             - email
             - beancounter
             - beancounter:user
-            - beancounter:admin
+            - beancounter:system
           authorization-grant-type: client_credentials
 
   kafka:

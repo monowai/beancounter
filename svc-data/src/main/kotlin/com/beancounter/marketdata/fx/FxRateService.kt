@@ -9,8 +9,10 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.RateCalculator
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 
 /**
@@ -22,6 +24,8 @@ class FxRateService
     FxService {
 
     @Cacheable("fx.rates")
+    @Retryable
+    @RateLimiter(name = "fxRates")
     override fun getRates(fxRequest: FxRequest): FxResponse {
         verify(fxRequest.pairs)
         val rates: Collection<FxRate>

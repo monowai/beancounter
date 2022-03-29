@@ -198,29 +198,42 @@ beancounter:
         markets: CUSTOM
 
 
-resilience4j.ratelimiter:
-  instances:
-    figi:
-      registerHealthIndicator: false
-      limitForPeriod: 60
-      limitRefreshPeriod: 65s
-      timeoutDuration: 80s
-      eventConsumerBufferSize: 200
-    alphaVantage:
-      registerHealthIndicator: true
-      limitForPeriod: 30
-      limitRefreshPeriod: 60s
-      timeoutDuration: 70s
-      eventConsumerBufferSize: 200
+resilience4j:
+  ratelimiter:
+    instances:
+      figi:
+        registerHealthIndicator: false
+        limitForPeriod: 60
+        limitRefreshPeriod: 65s
+        timeoutDuration: 80s
+        eventConsumerBufferSize: 200
+      alphaVantage:
+        registerHealthIndicator: false
+        limitForPeriod: 30
+        limitRefreshPeriod: 60s
+        timeoutDuration: 70s
+        eventConsumerBufferSize: 200
+      fxRates:
+        registerHealthIndicator: false
+        limitForPeriod: 5
+        limitRefreshPeriod: PT2S
+        timeoutDuration: PT5S
+        eventConsumerBufferSize: 200
 
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      failureRateThreshold: 3
-      slidingWindowSize: 10
-      permittedNumberOfCallsInHalfOpenState: 3
-      slidingWindowType: TIME_BASED
-      waitDurationInOpenState: 5s
-      registerHealthIndicator: true
-      recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
-
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 3
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: TIME_BASED
+        waitDurationInOpenState: 5s
+        registerHealthIndicator: true
+        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+  retry:
+    instances:
+      backend:
+        maxRetryAttempts: 3
+        waitDuration: PT10S
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2

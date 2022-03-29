@@ -32,6 +32,13 @@ class EventController(private val eventService: EventService) {
     ) =
         eventService.backFillEvents(portfolioId, valuationDate)
 
+    @PostMapping(value = ["/reprocess/{fromDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    fun reprocessEvents(
+        @PathVariable(required = false) fromDate: String = DateUtils.today
+    ) =
+        eventService.reprocessEvents(DateUtils().getDate(fromDate))
+
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getEvent(@PathVariable id: String): CorporateEventResponse =
         eventService[id]
@@ -40,7 +47,7 @@ class EventController(private val eventService: EventService) {
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun reprocess(@PathVariable id: String): CorporateEventResponse {
         val corporateEventResponse = eventService[id]
-        eventService.processMessage(corporateEventResponse.data)
+        eventService.processEvent(corporateEventResponse.data)
         return corporateEventResponse
     }
 

@@ -29,13 +29,13 @@ class EventService(
         this.eventPublisher = eventPublisher
     }
 
-    fun processMessage(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
-        return processMessage(
+    fun processEvent(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
+        return processEvent(
             save(eventRequest.data)
         )
     }
 
-    fun processMessage(event: CorporateEvent): Collection<TrustedTrnEvent> {
+    fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
         val results: MutableCollection<TrustedTrnEvent> = ArrayList()
         val response = positionService.findWhereHeld(
             event.assetId,
@@ -113,6 +113,16 @@ class EventService(
 
     fun backFillEvents(portfolioId: String, valuationDate: String) {
         positionService.backFillEvents(portfolioId, valuationDate)
+    }
+
+    fun reprocessEvents(start: LocalDate) {
+        val events = eventRepository.findByDateRange(start, LocalDate.now())
+        var count = 0
+        for (event in events) {
+            processEvent(event)
+            count ++
+        }
+        log.info("Reprocessed $count stored events")
     }
 
     fun findInRange(start: LocalDate, end: LocalDate): Collection<CorporateEvent> {

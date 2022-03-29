@@ -53,7 +53,7 @@ class EventSchedule(
         val start = end.minusDays(5)
         val events = eventService.findInRange(start, end)
         for (event in events) {
-            eventService.processMessage(event)
+            eventService.processEvent(event)
         }
         if (!events.isEmpty()) {
             log.info("Processed {} events", events.size)

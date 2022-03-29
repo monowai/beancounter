@@ -88,7 +88,7 @@ class TestMsftFlow {
         val portfolioServiceClient = PortfolioServiceClient(portfolioGw, tokenService)
         positionService.setTokenService(tokenService)
         positionService.setPortfolioClientService(portfolioServiceClient)
-        val results = eventService.processMessage(trustedEvent)
+        val results = eventService.processEvent(trustedEvent)
         assertThat(results).isEmpty()
     }
 }

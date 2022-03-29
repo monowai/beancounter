@@ -141,7 +141,7 @@ class StubbedEvents {
             BigDecimal("0.2625")
         )
         val eventInput = TrustedEventInput(corporateEvent)
-        val trnEvents = eventService.processMessage(eventInput)
+        val trnEvents = eventService.processEvent(eventInput)
         assertThat(trnEvents).isNotNull.hasSize(1)
 
         // Check the receiver gets what we send

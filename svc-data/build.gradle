@@ -19,10 +19,6 @@ plugins {
 apply plugin: 'spring-cloud-contract'
 apply from: '../kotlin-spring.gradle'
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(15))
-}
-
 version = "0.1.1"
 
 publishing {

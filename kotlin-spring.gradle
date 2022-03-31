@@ -10,6 +10,9 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.addAll('-Xlint:unchecked','-parameters')
     options.deprecation = true
 }
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
 
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.jetbrains.kotlin.jvm'

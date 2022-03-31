@@ -5,6 +5,8 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.FxPairResults
+import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.PortfolioInput
@@ -12,6 +14,8 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
@@ -21,13 +25,15 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.CUSTOM
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
@@ -38,7 +44,8 @@ import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -129,6 +136,15 @@ class KafkaTrnTest {
     @Autowired
     lateinit var currencyService: CurrencyService
 
+    @MockBean
+    private lateinit var mdFactory: MdFactory
+
+    @MockBean
+    private lateinit var fxService: FxRateService
+
+    @MockBean
+    private lateinit var cashServices: CashServices
+
     private val kafkaTestUtils = KafkaConsumerUtils()
 
     private val tradeDateString = "2020-01-01"
@@ -148,14 +164,24 @@ class KafkaTrnTest {
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
         val portfolio = pfResponse.iterator().next()
-
+        `when`(fxService.getRates(any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01")))
+                )
+            )
+        )
+//        `when`(enrichmentFactory.getEnricher(any()))
+//            .thenReturn(Mockito.mock(AssetEnricher::class.java))
         val provider = "BC"
         val batch = "batch"
+        val qcom = getAsset("QCOM", CUSTOM)
+        val trex = getAsset("TREX", CUSTOM)
         val trnRequest = TrnRequest(
             portfolio.id,
             arrayOf(
-                getTrnInput(getAsset("QCOM", NASDAQ), CallerRef(provider, batch, "1")),
-                getTrnInput(getAsset("TREX", NASDAQ), CallerRef(provider, batch, "2"))
+                getTrnInput(qcom, CallerRef(provider, batch, "1")),
+                getTrnInput(trex, CallerRef(provider, batch, "2"))
             )
         )
         val trnResponse = trnService.save(
@@ -211,7 +237,7 @@ class KafkaTrnTest {
 
         token = mockAuthConfig.getUserToken(SystemUser(id, Constants.systemUser.email))
 
-        Mockito.`when`(tokenService.subject).thenReturn(id)
+        `when`(tokenService.subject).thenReturn(id)
 
         RegistrationUtils.registerUser(
             mockMvc,
@@ -261,8 +287,8 @@ class KafkaTrnTest {
     }
 
     private fun getAsset(code: String, market: Market): Asset {
-        val qcomRequest = AssetRequest(getAssetInput(market.code, code), code)
-        val response = assetService.handle(qcomRequest)!!
+        val asset = AssetRequest(getAssetInput(market.code, code), code)
+        val response = assetService.handle(asset)!!
         assertThat(response).isNotNull
         return response.data[code]!!
     }

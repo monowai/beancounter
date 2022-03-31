@@ -1,14 +1,15 @@
 package com.beancounter.marketdata.markets
 
 import com.beancounter.auth.AutoConfigureMockAuth
-import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnImportRequest
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.BcJson
@@ -17,6 +18,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.markets.KafkaMarketDataTest.Companion.TOPIC_EVENT
@@ -28,8 +30,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
@@ -78,7 +82,7 @@ class KafkaMarketDataTest {
     @Autowired
     lateinit var marketDataService: MarketDataService
 
-    @Autowired
+    @MockBean
     lateinit var assetService: AssetService
 
     @Autowired
@@ -100,7 +104,7 @@ class KafkaMarketDataTest {
     @Disabled // Not yet implemented.
     fun pricePersisted() {
         val assetRequest = AssetRequest(AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code), "test")
-        val assetResult = assetService.handle(assetRequest)!!
+        val assetResult = assetService.handle(assetRequest)
         val asset = assetResult.data["test"]
         val idProp = "id"
         assertThat(asset).isNotNull.hasFieldOrProperty(idProp)
@@ -156,7 +160,10 @@ class KafkaMarketDataTest {
     fun corporateEventDispatched() {
         val data: MutableMap<String, AssetInput> = HashMap()
         data["a"] = AssetInput(NASDAQ.code, "TWEE")
-        val assetResult = assetService.handle(AssetRequest(data))!!
+        val assetRequest = AssetRequest(data)
+        `when`(assetService.handle(assetRequest))
+            .thenReturn(AssetUpdateResponse(mapOf(Pair("a", Asset("id", market = NASDAQ)))))
+        val assetResult = assetService.handle(assetRequest)
         assertThat(assetResult.data).hasSize(1)
         val asset = assetResult.data["a"]
         assertThat(asset!!.id).isNotNull

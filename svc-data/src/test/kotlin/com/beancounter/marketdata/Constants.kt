@@ -18,6 +18,7 @@ class Constants {
 
         val USD = Currency("USD")
         val NASDAQ = Market("NASDAQ")
+        val CUSTOM = Market("CUSTOM") // Echo enricher to support mocking scenarios
         val CASH = Market("CASH", type = "Internal")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")

@@ -31,7 +31,7 @@ class FxTransactions(
         fxRequest.addTradeBase(
             pair(portfolio.base, trn, trn.tradeBaseRate)
         )
-        if (trn.cashCurrency != null) {
+        if (trn.cashCurrency != null && trn.cashCurrency != "") {
             fxRequest.addTradeCash(
                 pair(Currency(trn.cashCurrency!!), trn, trn.tradeCashRate)
             )

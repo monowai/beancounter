@@ -10,10 +10,10 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.config.PriceSchedule
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
+import com.beancounter.marketdata.providers.PriceSchedule
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.utils.RegistrationUtils
@@ -101,28 +101,21 @@ class AlphaVantageEnrichmentTest {
 
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, lon, code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data) = objectMapper
-            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        assertThat(data)
-            .isNotNull
-            .hasFieldOrPropertyWithValue(AlphaConstants.codeProp, code)
-            .hasFieldOrProperty(AlphaConstants.marketProp)
-            .hasFieldOrPropertyWithValue("market.code", lon)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)).contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+        val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        assertThat(data).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.codeProp, code)
+            .hasFieldOrProperty(AlphaConstants.marketProp).hasFieldOrPropertyWithValue("market.code", lon)
             .hasFieldOrPropertyWithValue(AlphaConstants.priceSymbolProp, symbol)
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "AXA Framlington Health Fund Z GBP Acc")
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
         val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(data))
         assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
-        assertThat(priceResponse.data.iterator().next())
-            .isNotNull
-            .hasFieldOrPropertyWithValue(AlphaConstants.priceDateProp, dateUtils.getDate("2020-05-12"))
+        assertThat(
+            priceResponse.data.iterator().next()
+        ).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.priceDateProp, dateUtils.getDate("2020-05-12"))
             .hasFieldOrPropertyWithValue(AlphaConstants.closeProp, price)
             .hasFieldOrPropertyWithValue(AlphaConstants.prevCloseProp, price)
             .hasFieldOrPropertyWithValue(AlphaConstants.lowProp, price)
@@ -135,21 +128,13 @@ class AlphaVantageEnrichmentTest {
     fun is_EnrichedMarketCodeTranslated() {
         val amp = "AMP"
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, Constants.ASX.code, amp)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data) = objectMapper
-            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        assertThat(data)
-            .isNotNull
-            .hasFieldOrPropertyWithValue(AlphaConstants.codeProp, amp)
+            MockMvcRequestBuilders.get(marketCodeUrl, Constants.ASX.code, amp).with(
+                SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+            ).contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+        val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        assertThat(data).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.codeProp, amp)
             .hasFieldOrProperty(AlphaConstants.marketProp)
             .hasFieldOrPropertyWithValue(AlphaConstants.priceSymbolProp, "$amp.AUS")
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "$amp Limited")
@@ -163,25 +148,16 @@ class AlphaVantageEnrichmentTest {
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()
         val code = "DTV"
         assetInputMap[AlphaConstants.keyProp] = AssetInput(Constants.NYSE.code, code)
-        val (data) = assetService
-            .handle(AssetRequest(assetInputMap))
+        val (data) = assetService.handle(AssetRequest(assetInputMap))
         val asset = data[AlphaConstants.keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, Constants.NYSE.code, code)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data1) = objectMapper
-            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        assertThat(data1)
-            .isNotNull
-            .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, null)
+            MockMvcRequestBuilders.get(marketCodeUrl, Constants.NYSE.code, code).with(
+                SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+            ).contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+        val (data1) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        assertThat(data1).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.nameProp, null)
     }
 }

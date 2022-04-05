@@ -13,7 +13,7 @@ import org.springframework.core.io.ClassPathResource
 
 internal class TestMarkets {
     var jsonMapper = BcJson().objectMapper
-    var yamlMapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule())
+    var yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule.Builder().build())
 
     @Test
     @Throws(Exception::class)

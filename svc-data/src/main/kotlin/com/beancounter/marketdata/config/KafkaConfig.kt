@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
+import org.springframework.kafka.config.TopicBuilder
 
 /**
  * Kafka related properties and beans.
@@ -25,14 +26,18 @@ class KafkaConfig {
     lateinit var topicPriceName: String
 
     @Bean
-    fun topicTrnCvs(): NewTopic {
-        return NewTopic(topicTrnCsvName, 1, 1.toShort())
-    }
+    fun topicTrnCvs(): NewTopic = TopicBuilder.name(topicTrnCsvName)
+        .partitions(1)
+        .replicas(1)
+        .compact()
+        .build()
 
     @Bean
-    fun topicTrnEvent(): NewTopic {
-        return NewTopic(topicTrnEventName, 1, 1.toShort())
-    }
+    fun topicTrnEvent(): NewTopic = TopicBuilder.name(topicTrnEventName)
+        .partitions(1)
+        .replicas(1)
+        .compact()
+        .build()
 
     @Bean
     fun trnCsvTopic(): String? {
@@ -47,9 +52,11 @@ class KafkaConfig {
     }
 
     @Bean
-    fun topicPrice(kafaConfig: KafkaConfig): NewTopic {
-        return NewTopic(topicPriceName, 1, 1.toShort())
-    }
+    fun topicPrice(kafaConfig: KafkaConfig): NewTopic = TopicBuilder.name(topicPriceName)
+        .partitions(1)
+        .replicas(1)
+        .compact()
+        .build()
 
     @Bean
     fun priceTopic(): String {

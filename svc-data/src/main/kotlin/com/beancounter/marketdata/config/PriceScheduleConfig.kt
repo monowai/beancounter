@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
+/**
+ * Initialise the beans required for PriceSchedule execution to work. Failed to init when located in PriceSchedule
+ */
 @Configuration
 @EnableScheduling
 class PriceScheduleConfig {

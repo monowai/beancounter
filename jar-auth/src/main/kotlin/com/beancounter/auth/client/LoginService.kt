@@ -98,6 +98,9 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
     ) : AuthRequest
 
+    /**
+     * Gateway call to the Auth server.
+     */
     @FeignClient(name = "oauth", url = "\${auth.uri:http://keycloak:9620/auth/}")
     interface AuthGateway {
         @PostMapping(

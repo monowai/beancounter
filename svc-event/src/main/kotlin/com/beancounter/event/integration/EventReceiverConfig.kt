@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.TopicBuilder
 
+/**
+ * Configuration properties for Corporate Actions.
+ */
 @Configuration
 class EventReceiverConfig {
     @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")

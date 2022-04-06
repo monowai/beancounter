@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 
+/**
+ * TokenService verification.
+ */
 @SpringBootTest(classes = [TokenService::class])
 class TokenServiceTest {
     @Autowired

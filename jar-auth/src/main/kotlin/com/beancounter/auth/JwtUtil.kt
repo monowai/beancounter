@@ -85,8 +85,6 @@ internal object JwtUtil {
                 val configuration = response.body ?: throw SystemException("Unable to obtain JWT Config")
                 Assert.isTrue(configuration["jwks_uri"] != null, "The public JWK set URI must not be null")
                 return configuration
-            } catch (ex: IllegalArgumentException) {
-                throw ex
             } catch (ex: RuntimeException) {
                 if (!(
                     ex is HttpClientErrorException &&

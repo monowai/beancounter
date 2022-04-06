@@ -11,6 +11,9 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 
+/**
+ * Verifies that auth can be disabled correctly.
+ */
 @SpringBootTest(properties = ["auth.enabled=false"])
 @ContextConfiguration(classes = [TokenService::class, LoginService::class, AuthConfig::class])
 class AuthDisabledTest {

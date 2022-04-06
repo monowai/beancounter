@@ -11,6 +11,9 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 
+/**
+ * Verifies correctly configured auth wires the correct beans.
+ */
 @SpringBootTest(
     properties = [
         "auth.enabled=true",

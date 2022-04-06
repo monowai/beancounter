@@ -70,15 +70,13 @@ class PositionService(
             tokenService.bearerToken,
             TrustedTrnQuery(portfolio, event.recordDate, event.assetId)
         )
-        if (positionResponse != null) {
-            if (positionResponse.data.hasPositions()) {
-                val position = positionResponse.data.positions.values.iterator().next()
-                // Ignore cash positions.
-                if (!position.asset.assetCategory.isCash()) {
-                    if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
-                        val behaviour = behaviourFactory.getAdapter(event)!!
-                        return behaviour.calculate(positionResponse.data.portfolio, position, event)
-                    }
+        if (positionResponse != null && positionResponse.data.hasPositions()) {
+            val position = positionResponse.data.positions.values.iterator().next()
+            // Cash positions do not have Events and Interest is not currently calculated.
+            if (!position.asset.assetCategory.isCash()) {
+                if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
+                    val behaviour = behaviourFactory.getAdapter(event)!!
+                    return behaviour.calculate(positionResponse.data.portfolio, position, event)
                 }
             }
         }

@@ -23,10 +23,6 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
             LocalDateTime.now(dateUtils.getZoneId()),
             dateUtils.defaultZone
         )
-        try {
-            priceRefresh.updatePrices()
-        } catch (e: Exception) {
-            // Do nothing.
-        }
+        priceRefresh.updatePrices()
     }
 }

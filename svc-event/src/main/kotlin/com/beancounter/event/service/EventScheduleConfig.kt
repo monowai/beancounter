@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
+/**
+ * Schedule properties for triggering corporate actions.
+ */
 @EnableScheduling
 @Configuration
 class EventScheduleConfig {

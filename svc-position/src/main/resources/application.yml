@@ -6,7 +6,7 @@ server:
 management:
   server:
     port: 9501
-    base-path: /
+    base-path: ""
   endpoint:
     health:
       show-details: always
@@ -14,6 +14,11 @@ management:
     web:
       exposure:
         include: "*"
+  health:
+    livenessstate:
+      enabled: true
+    readinessState:
+      enabled: true
 
 # Requires bearer auth in default config
 # http://localhost:9501/actuator/circuitbreakerevents

@@ -12,7 +12,13 @@ management:
   endpoints:
     web:
       exposure.include: '*'
-      base-path: "/"
+      base-path: ""
+  health:
+    livenessstate:
+      enabled: true
+    readinessState:
+      enabled: true
+
 feign:
   client:
     config:

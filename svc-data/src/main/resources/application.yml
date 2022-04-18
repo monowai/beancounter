@@ -7,13 +7,16 @@ server:
 management:
   server:
     port: 9511
-    base-path: /
+    base-path: "" # i.e. /
+  health:
+    livenessstate:
+      enabled: true
+    readinessState:
+      enabled: true
+
   endpoint:
     health:
-      group:
-        readiness:
-          include: readinessState
-    health.show-details: always
+      show-details: always
   endpoints:
     web:
       exposure:

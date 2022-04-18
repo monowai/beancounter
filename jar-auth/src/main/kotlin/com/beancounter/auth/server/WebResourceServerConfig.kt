@@ -48,14 +48,20 @@ class WebResourceServerConfig : WebSecurityConfigurerAdapter() {
         corsConfiguration.allowedMethods =
             listOf("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE")
         corsConfiguration.allowCredentials = true
-        corsConfiguration.exposedHeaders = exposedHeaders
         http.authorizeRequests() // Scope permits access to the API - basically, "caller is authorised"
-            .mvcMatchers("$actuatorPattern/actuator/health/**").permitAll()
-            .mvcMatchers("$actuatorPattern/actuator/**").hasAuthority(AuthConstants.SCOPE_ADMIN)
-            .mvcMatchers(apiPattern).hasAuthority(AuthConstants.SCOPE_BC)
+            .mvcMatchers(
+                "$actuatorPattern/actuator/health/ping",
+                "$actuatorPattern/actuator/health/livenessState",
+                "$actuatorPattern/actuator/health/readinessState",
+            ).permitAll()
+            .mvcMatchers("$actuatorPattern/actuator/**")
+            .hasAuthority(AuthConstants.SCOPE_ADMIN)
+            .mvcMatchers(apiPattern)
+            .hasAuthority(AuthConstants.SCOPE_BC)
             .anyRequest().authenticated()
             .and().csrf().disable().cors().configurationSource { corsConfiguration }
             .and().oauth2ResourceServer()
             .jwt() // User roles are carried in the claims and used for fine grained control
+        corsConfiguration.exposedHeaders = exposedHeaders
     }
 }

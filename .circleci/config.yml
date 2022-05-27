@@ -215,6 +215,7 @@ jobs:
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find **/jacoco*.xml -printf '-r %p ')
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
 
+
   publish-docker:
     docker:
       - image: circleci/buildpack-deps:stretch

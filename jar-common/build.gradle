@@ -11,7 +11,7 @@ dependencyManagement {
 }
 
 ext {
-    openfeignVersion = "11.7"
+    openfeignVersion = "11.9"
     guavaVersion = '30.1.1-android'
 }
 

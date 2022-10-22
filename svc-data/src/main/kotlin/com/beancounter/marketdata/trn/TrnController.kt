@@ -89,9 +89,7 @@ class TrnController(
         trnQueryService.findAssetTrades(portfolioService.find(portfolioId), assetId)
 
     @PostMapping(
-        value = ["/query"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = [MediaType.APPLICATION_JSON_VALUE]
+        value = ["/query"]
     )
     fun findByAsset(
         @RequestBody query: TrustedTrnQuery

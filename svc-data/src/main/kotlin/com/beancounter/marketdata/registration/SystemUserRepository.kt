@@ -7,6 +7,6 @@ import java.util.Optional
 /**
  * CRUD repo for SystemUser.  A SystemUser can own portfolios in BC.
  */
-interface SystemUserRepository : CrudRepository<SystemUser?, String?> {
+interface SystemUserRepository : CrudRepository<SystemUser, String?> {
     fun findById(id: String): Optional<SystemUser>
 }

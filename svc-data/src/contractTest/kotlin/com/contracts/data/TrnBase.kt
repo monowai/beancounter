@@ -35,7 +35,6 @@ import java.util.Optional
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    properties = ["auth.enabled=false"],
     webEnvironment = SpringBootTest.WebEnvironment.MOCK
 )
 @WebAppConfiguration

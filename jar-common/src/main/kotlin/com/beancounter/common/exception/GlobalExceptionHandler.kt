@@ -18,9 +18,6 @@ import javax.servlet.http.HttpServletRequest
  */
 @ControllerAdvice
 class GlobalExceptionHandler {
-    companion object {
-        private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
-    }
 
     @ExceptionHandler(AccessDeniedException::class)
     @ResponseBody
@@ -70,4 +67,8 @@ class GlobalExceptionHandler {
         message = "Data integrity violation",
         path = request.requestURI
     )
+
+    companion object {
+        private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+    }
 }

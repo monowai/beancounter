@@ -1,4 +1,4 @@
-FROM openjdk:17-oraclelinux8
+FROM amazoncorretto:17-alpine
 #docker build . --build-arg JAR_FILE=build/libs/svc-event -t monowai/bc-event
 #docker build . -t monowai/bc-event
 ARG JAR_FILE=build/libs/svc-event-0.1.1.jar
@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY ${JAR_FILE} app.jar
 
-RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
-USER beancounter
+#RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
+#USER beancounter
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

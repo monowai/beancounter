@@ -1,4 +1,4 @@
-FROM openjdk:17-oraclelinux8
+FROM amazoncorretto:17-alpine
 #docker build . --build-arg JAR_FILE=build/libs/jar-shell-0.1.1.jar  -t monowai/bc-shell
 #docker build . -t bc/shell
 
@@ -22,7 +22,7 @@ WORKDIR /app
 COPY ${JAR_FILE} app.jar
 COPY src/test/resources/trades.csv /demo
 
-RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
-USER beancounter
+#RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
+#USER beancounter
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

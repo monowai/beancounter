@@ -1,4 +1,4 @@
-FROM openjdk:17-oraclelinux8
+FROM amazoncorretto:17-alpine
 #docker build . --build-arg JAR_FILE=build/libs/svc-position-0.1.1.jar -t monowai/bc-position
 
 ARG JAR_FILE=build/libs/svc-position-0.1.1.jar
@@ -15,10 +15,10 @@ WORKDIR /app
 
 EXPOSE 9500 9501
 
-RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
+#RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
 
 COPY ${JAR_FILE} app.jar
 COPY build/resources/main/application.yml .
-USER beancounter
+#USER beancounter
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

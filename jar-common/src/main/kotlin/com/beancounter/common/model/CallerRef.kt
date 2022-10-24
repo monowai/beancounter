@@ -12,18 +12,17 @@ import javax.persistence.Embeddable
  */
 @Embeddable
 data class CallerRef(
-    var provider: String? = null,
-    var batch: String? = null,
-    var callerId: String? = null
+    var provider: String = "",
+    var batch: String = "",
+    var callerId: String = ""
 ) : Serializable {
 
     companion object {
         @JvmStatic
-        fun from(callerRef: CallerRef?, portfolio: Portfolio?): CallerRef {
-
-            val provider = if (callerRef?.provider == null) "BC" else callerRef.provider!!
-            val batch = if (callerRef?.batch == null) portfolio?.code ?: "-" else callerRef.batch!!
-            val callerId = if (callerRef?.callerId == null) KeyGenUtils().id else callerRef.callerId!!
+        fun from(callerRef: CallerRef, portfolio: Portfolio): CallerRef {
+            val provider = if (callerRef.provider.isBlank()) "BC" else callerRef.provider
+            val batch = callerRef.batch.ifBlank { portfolio.code }
+            val callerId = if (callerRef.callerId.isBlank()) KeyGenUtils().id else callerRef.callerId
             return CallerRef(provider, batch, callerId)
         }
     }

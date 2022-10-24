@@ -1,6 +1,7 @@
 package com.beancounter.common
 
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
@@ -36,16 +37,25 @@ class TrnTest {
 
     @Test
     fun is_TrnIdDefaulting() {
-        val fromNull: CallerRef = CallerRef.from(null, null)
+        val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef(), portfolio = Portfolio("ABC"))
         assertThat(fromNull).hasNoNullFieldsOrProperties()
         val id = CallerRef("provider", "batch", "456")
-        assertThat(CallerRef.from(id, null)).usingRecursiveComparison().isEqualTo(id)
+        assertThat(CallerRef.from(id, Portfolio("ABC"))).usingRecursiveComparison().isEqualTo(id)
+    }
+
+    @Test
+    fun callerRefDefaults() {
+        val fromNull: CallerRef = CallerRef.from(CallerRef(), Portfolio("ABC"))
+        assertThat(fromNull)
+            .hasNoNullFieldsOrProperties()
+            .hasFieldOrPropertyWithValue("provider", "BC")
+            .hasFieldOrPropertyWithValue("batch", "ABC") // Default to Code
     }
 
     @Test
     fun is_TrnIdDefaults() {
         var callerRef = CallerRef()
-        assertThat(callerRef).hasAllNullFieldsOrProperties()
+        assertThat(callerRef).hasNoNullFieldsOrProperties()
         val batchProp = "batch"
         val providerProp = "provider"
         val callerIdProp = "callerId"

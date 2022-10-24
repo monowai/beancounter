@@ -39,7 +39,7 @@ class ShareSightTradeAdapter(
     private val shareSightConfig: ShareSightConfig,
     private val assetIngestService: AssetIngestService,
     private val dateUtils: DateUtils,
-    private val tradeCalculator: TradeCalculator,
+    private val tradeCalculator: TradeCalculator
 ) : TrnAdapter {
     private val numberUtils = NumberUtils()
     private var filter = Filter(null)
@@ -74,7 +74,7 @@ class ShareSightTradeAdapter(
                 throw BusinessException("Unable to resolve asset [%s]\", row")
             }
             val trnInput = TrnInput(
-                CallerRef(trustedTrnImportRequest.portfolio.id, null, row[id]),
+                CallerRef(trustedTrnImportRequest.portfolio.id, "", row[id]),
                 asset.id,
                 trnType = trnType,
                 quantity = parse(

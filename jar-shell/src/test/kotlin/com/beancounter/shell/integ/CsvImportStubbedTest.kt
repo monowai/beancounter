@@ -28,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles
 class CsvImportStubbedTest {
     @Autowired
     private lateinit var ingestionCommand: IngestionCommand
+
     @MockBean
     private lateinit var authConfig: AuthConfig
 

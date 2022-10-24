@@ -4,7 +4,7 @@
     {
       "callerRef": {
         "provider": "TEST",
-        "batch": null,
+        "batch": "",
         "callerId": "1"
       },
       "assetId": "BguoVZpoRxWjWrITp7DEuw",
@@ -29,7 +29,7 @@
     {
       "callerRef": {
         "provider": "TEST",
-        "batch": null,
+        "batch": "",
         "callerId": "2"
       },
       "assetId": "BguoVZpoRxWjWrITp7DEuw",

@@ -21,7 +21,7 @@ import java.time.LocalDate
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
     val cashServices: CashServices,
-    val dateUtils: DateUtils = DateUtils(),
+    val dateUtils: DateUtils = DateUtils()
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[colDef()[Columns.Date]!!].trim())
@@ -65,7 +65,7 @@ class BcRowAdapter(
             cashAssetId = cashAssetId,
             fees = fees,
             price = price,
-            comments = trustedTrnImportRequest.row[colDef()[Columns.Comments]!!],
+            comments = trustedTrnImportRequest.row[colDef()[Columns.Comments]!!]
         )
     }
 

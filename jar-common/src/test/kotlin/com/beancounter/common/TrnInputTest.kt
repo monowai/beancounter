@@ -112,9 +112,7 @@ internal class TrnInputTest {
     @Test
     @Throws(Exception::class)
     fun is_TrustedTrnRequestValid() {
-        val row: MutableList<String> = ArrayList()
-        row.add(abc)
-        row.add(abc)
+        val row: List<String> = listOf(abc, abc, abc)
         val ttr = TrustedTrnImportRequest(getPortfolio("TWEE"), row)
         assertThat(ttr)
             .hasFieldOrPropertyWithValue(importFormatProp, ImportFormat.BC)

@@ -218,14 +218,14 @@ class FigiAssetApiTest {
         private fun mock(
             jsonFile: File,
             code: String,
-            securityType: String,
+            securityType: String
         ) {
-
             val search = FigiSearch(code, "US", securityType, true)
             val searchCollection: MutableCollection<FigiSearch> = ArrayList()
             searchCollection.add(search)
             val response: Collection<FigiResponse> = objectMapper.readValue(
-                jsonFile, object : TypeReference<Collection<FigiResponse>>() {}
+                jsonFile,
+                object : TypeReference<Collection<FigiResponse>>() {}
             )
             stubFor(
                 WireMock.post(WireMock.urlEqualTo("/v2/mapping"))

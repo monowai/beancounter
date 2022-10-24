@@ -42,11 +42,12 @@ class TestAlphaEvents {
         val onDate = dateUtils.getDate("2020-05-01")
         assertThat(onDate).isNotNull
         val event = CorporateEvent(
-            TrnType.DIVI,
-            onDate,
-            "ALPHA",
-            asset.id,
-            BigDecimal("0.2625")
+            id = "123",
+            trnType = TrnType.DIVI,
+            recordDate = onDate,
+            source = "ALPHA",
+            assetId = asset.id,
+            rate = BigDecimal("0.2625")
         )
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)

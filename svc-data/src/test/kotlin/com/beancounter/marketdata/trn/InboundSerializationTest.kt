@@ -50,7 +50,8 @@ class InboundSerializationTest {
     @Throws(Exception::class)
     fun is_IncomingTrustedEvent() {
         val inbound = objectMapper.readValue(
-            ClassPathResource("/kafka/event-incoming.json").file, TrustedTrnEvent::class.java
+            ClassPathResource("/kafka/event-incoming.json").file,
+            TrustedTrnEvent::class.java
         )
         assertThat(inbound).isNotNull
     }

@@ -49,7 +49,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ActiveProfiles("kafka")
 class TrnCsvKafka {
     private val log = LoggerFactory.getLogger(TrnCsvKafka::class.java)
-    private val row: MutableList<String> = ArrayList()
+    val abc = "ABC"
+    private val row: List<String> = listOf(abc, abc, abc)
 
     @Autowired
     private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
@@ -71,10 +72,8 @@ class TrnCsvKafka {
         val trnAdapter = Mockito.mock(
             TrnAdapter::class.java
         )
-        val abc = "ABC"
         Mockito.`when`(trnAdapter.resolveAsset(row))
             .thenReturn(getAsset(MOCK, abc))
-        row.add(abc)
 
         Mockito.`when`(shareSightFactory.adapter(row)).thenReturn(trnAdapter)
 
@@ -95,7 +94,8 @@ class TrnCsvKafka {
     fun is_TrnRequestSendingCorrectly() {
         val trnRequest = TrustedTrnImportRequest(
             getPortfolio(),
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         kafkaTrnProducer!!.write(trnRequest)
         log.info("Waiting for Result")

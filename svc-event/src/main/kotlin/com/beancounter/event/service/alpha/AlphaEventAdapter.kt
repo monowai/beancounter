@@ -63,7 +63,7 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         }
         val gross = calculateGross(currentPosition, corporateEvent.rate)
         val tax = calculateTax(currentPosition, gross)
-        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id)
+        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id!!)
         return TrnInput(
             callerRef,
             currentPosition.asset.id,

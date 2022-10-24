@@ -118,7 +118,7 @@ class TrnControllerFlowTest {
         )
 
         val trnInputB = TrnInput(
-            CallerRef(null, null, "3"),
+            CallerRef(callerId = "3"),
             assetId = aapl.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,

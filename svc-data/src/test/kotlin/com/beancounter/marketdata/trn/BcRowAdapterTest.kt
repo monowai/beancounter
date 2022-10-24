@@ -109,6 +109,19 @@ class BcRowAdapterTest {
     }
 
     @Test
+    fun callerRef() {
+        val values =
+            "TEST,CALLER_REF,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
+
+        val trustedTrnImportRequest = trustedTrnImportRequest(values)
+        val trn = rowAdapter.transform(trustedTrnImportRequest)
+        assertThat(trn.callerRef)
+            .hasFieldOrPropertyWithValue("provider", "TEST")
+            .hasFieldOrPropertyWithValue("batch", "CALLER_REF")
+            .hasFieldOrProperty("callerId")
+    }
+
+    @Test
     fun fxBuyTrade() {
         // Buy USD, Sell NZD
         val values =

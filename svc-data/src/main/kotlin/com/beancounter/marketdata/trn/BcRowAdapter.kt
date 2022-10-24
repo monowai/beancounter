@@ -6,6 +6,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
@@ -52,7 +53,11 @@ class BcRowAdapter(
             MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.TradeAmount]!!]))
 
         return TrnInput(
-            trustedTrnImportRequest.callerRef,
+            callerRef = CallerRef(
+                trustedTrnImportRequest.row[0],
+                trustedTrnImportRequest.row[1],
+                trustedTrnImportRequest.row[2]
+            ),
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,

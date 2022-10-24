@@ -24,8 +24,9 @@ class AdapterFactory {
         this.bcRowAdapter = bcRowAdapter
     }
 
-    fun get(importFormat: ImportFormat): RowAdapter = if (importFormat == ImportFormat.SHARESIGHT)
+    fun get(importFormat: ImportFormat): RowAdapter = if (importFormat == ImportFormat.SHARESIGHT) {
         this.shareSightAdapter
-    else
+    } else {
         bcRowAdapter
+    }
 }

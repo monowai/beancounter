@@ -1,6 +1,5 @@
 package com.beancounter.common.model
 
-import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.utils.KeyGenUtils
 import java.io.Serializable
 import javax.persistence.Embeddable

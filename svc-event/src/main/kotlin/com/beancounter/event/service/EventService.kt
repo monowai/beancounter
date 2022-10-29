@@ -20,12 +20,12 @@ import java.time.LocalDate
 class EventService(
     private val positionService: PositionService,
     private val eventRepository: EventRepository,
-    private val keyGenUtils: KeyGenUtils,
+    private val keyGenUtils: KeyGenUtils
 ) {
     private var eventPublisher: EventPublisher? = null
 
     @Autowired(required = false)
-    fun setEventPublisher(eventPublisher: EventPublisher?) {
+    fun setEventPublisher(eventPublisher: EventPublisher) {
         this.eventPublisher = eventPublisher
     }
 
@@ -120,7 +120,7 @@ class EventService(
         var count = 0
         for (event in events) {
             processEvent(event)
-            count ++
+            count++
         }
         log.info("Reprocessed $count stored events")
     }
@@ -135,6 +135,6 @@ class EventService(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(EventService::class.java)
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

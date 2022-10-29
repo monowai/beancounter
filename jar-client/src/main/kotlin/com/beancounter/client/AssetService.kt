@@ -12,10 +12,12 @@ interface AssetService {
      * Create/Locate the requested assets and return a response.
      */
     fun handle(assetRequest: AssetRequest): AssetUpdateResponse?
+
     /**
      * Locate missing corporate actions for the supplied assetId.
      */
     fun backFillEvents(assetId: String)
+
     /**
      * Find a single Asset
      */

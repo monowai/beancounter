@@ -34,7 +34,7 @@ class AlphaProxyCache {
     }
 
     @Async("priceExecutor")
-    fun getHistoric(code: String?, date: String?, apiKey: String?): Future<String?> {
+    fun getHistoric(code: String?, date: String?, apiKey: String): Future<String?> {
         return AsyncResult(alphaProxy!!.getHistoric(code, apiKey))
     }
 

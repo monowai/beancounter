@@ -53,9 +53,7 @@ class TestAlphaEvents {
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull
         assertThat(trnEvent?.portfolio).isNotNull
-        assertThat(trnEvent?.trnInput)
-            .isNotNull
-            .hasFieldOrPropertyWithValue("assetId", asset.id)
+        assertThat(trnEvent?.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
             .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
             .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
             .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2020-05-19"))
@@ -74,18 +72,15 @@ class TestAlphaEvents {
         assertThat(today).isNotNull
         val event = CorporateEvent(
             TrnType.DIVI,
-            today,
-            "ALPHA",
-            asset.id,
-            BigDecimal("0.2625")
+            recordDate = today,
+            source = "ALPHA",
+            assetId = asset.id,
+            rate = BigDecimal("0.2625")
         )
         val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
         assertThat(
-            behaviourFactory
-                .getAdapter(event)
-                ?.calculate(portfolio, Position(asset), event)
-        )
-            .isNull()
+            behaviourFactory.getAdapter(event).calculate(portfolio, Position(asset), event)
+        ).isNull()
     }
 }

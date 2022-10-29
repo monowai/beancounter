@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service
  */
 @Service
 class EventBehaviourFactory {
-    final var adapters: MutableMap<String, Event> = HashMap()
-    fun getAdapter(event: CorporateEvent?): Event? {
-        return adapters[event!!.source]
+    // final var adapters: MutableMap<String, Event> = HashMap()
+    private final val alphaEventAdapter = AlphaEventAdapter(TaxService())
+    fun getAdapter(event: CorporateEvent): Event {
+        return alphaEventAdapter // We only have one adapter
+        // return adapters["ALPHA"]
     }
 
-    init {
-        adapters["ALPHA"] = AlphaEventAdapter(TaxService())
-    }
+//    init {
+//        adapters["ALPHA"] = AlphaEventAdapter(TaxService())
+//    }
 }

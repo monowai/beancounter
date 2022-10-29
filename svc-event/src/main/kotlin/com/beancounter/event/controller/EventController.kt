@@ -24,13 +24,13 @@ import org.springframework.web.bind.annotation.RestController
 @CrossOrigin
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
 class EventController(private val eventService: EventService) {
-    @PostMapping(value = ["/backfill/{portfolioId}/{valuationDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
     operator fun get(
         @PathVariable portfolioId: String,
-        @PathVariable(required = false) valuationDate: String = DateUtils.today
+        @PathVariable(required = false) fromDate: String = DateUtils.today
     ) =
-        eventService.backFillEvents(portfolioId, valuationDate)
+        eventService.backFillEvents(portfolioId, fromDate)
 
     @PostMapping(value = ["/reprocess/{fromDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)

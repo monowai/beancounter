@@ -27,7 +27,8 @@ import org.springframework.test.context.ActiveProfiles
  * Simple flow of various corporate events for Microsoft.
  */
 @SpringBootTest
-@ActiveProfiles("test") // Ignore Kafka
+@ActiveProfiles("test")
+// Ignore Kafka
 @MockBean(PositionGateway::class)
 @AutoConfigureMockAuth
 class TestMsftFlow {
@@ -52,10 +53,12 @@ class TestMsftFlow {
             TrustedEventInput::class.java
         )
         val whereHeld = objectMapper.readValue(
-            ClassPathResource("/msft-flow/2-where-held.json").file, PortfoliosResponse::class.java
+            ClassPathResource("/msft-flow/2-where-held.json").file,
+            PortfoliosResponse::class.java
         )
         val positionResponse = objectMapper.readValue(
-            ClassPathResource("/msft-flow/3-position.json").file, PositionResponse::class.java
+            ClassPathResource("/msft-flow/3-position.json").file,
+            PositionResponse::class.java
         )
         val positionGateway = Mockito.mock(PositionGateway::class.java)
         val (_, _, _, assetId, recordDate) = trustedEvent.data

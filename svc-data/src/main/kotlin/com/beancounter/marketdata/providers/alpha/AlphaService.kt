@@ -57,10 +57,11 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
             if (dateUtils.isToday(priceRequest.date)) {
                 requests[batchId] = alphaProxyCache.getCurrent(
                     providerArguments.batch[batchId],
-                    priceRequest.date,
+                    "today",
                     apiKey
                 )
             } else {
+                // Dividends Only
                 requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId], date, apiKey)
             }
         }
@@ -87,14 +88,17 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
     private fun addToBatch(
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
-        batch: Int,
+        batchId: Int,
         requests: MutableMap<Int, Future<String?>?>
     ) {
         try {
-            results.addAll(
-                alphaPriceAdapter[providerArguments, batch, requests[batch]!!.get()]
-            )
-            requests.remove(batch)
+            if (requests[batchId]!!.isDone) {
+                val batchRequest = requests[batchId]!!.get()
+                results.addAll(
+                    alphaPriceAdapter[providerArguments, batchId, batchRequest]
+                )
+                requests.remove(batchId)
+            }
         } catch (e: InterruptedException) {
             log.error(e.message)
             throw SystemException(unexpectedMsg)

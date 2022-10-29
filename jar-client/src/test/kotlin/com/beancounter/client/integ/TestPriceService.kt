@@ -6,7 +6,7 @@ import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
@@ -41,16 +41,28 @@ class TestPriceService {
         val priceRequest = PriceRequest("2019-10-18", arrayListOf(PriceAsset("NASDAQ", "EBAY")))
         val response = priceService.getPrices(priceRequest)
 
-        Assertions.assertThat(response).isNotNull
-        Assertions.assertThat(response.data).isNotNull.hasSize(1)
+        assertThat(response).isNotNull
+        assertThat(response.data).isNotNull.hasSize(1)
 
         val marketData = response.data.iterator().next()
-        Assertions.assertThat(marketData.asset.market).isNotNull
-        Assertions.assertThat(marketData)
+        assertThat(marketData.asset.market).isNotNull
+        assertThat(marketData)
             .hasFieldOrProperty("close")
             .hasFieldOrProperty("open")
             .hasFieldOrProperty("high")
             .hasFieldOrProperty("low")
             .hasFieldOrProperty("priceDate")
+    }
+
+    @Test
+    fun is_EventsFound() {
+        val response = priceService.getEvents("NDAQ")
+        assertThat(response)
+            .isNotNull
+            .hasFieldOrProperty("data")
+
+        for (datum in response.data) {
+            assertThat(datum.isSplit() || datum.isDividend())
+        }
     }
 }

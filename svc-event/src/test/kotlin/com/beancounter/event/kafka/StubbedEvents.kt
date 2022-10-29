@@ -2,7 +2,6 @@ package com.beancounter.event.kafka
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.ImportFormat
@@ -19,6 +18,7 @@ import com.beancounter.event.Constants.Companion.USD
 import com.beancounter.event.Constants.Companion.alpha
 import com.beancounter.event.Constants.Companion.kmi
 import com.beancounter.event.contract.CorporateEventResponse
+import com.beancounter.event.service.BackfillService
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
 import com.fasterxml.jackson.core.JsonProcessingException
@@ -33,6 +33,7 @@ import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -83,7 +84,7 @@ class StubbedEvents {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @Autowired
+    @SpyBean
     private lateinit var eventService: EventService
 
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -92,6 +93,9 @@ class StubbedEvents {
 
     @Autowired
     private lateinit var positionService: PositionService
+
+    @SpyBean
+    private lateinit var backfillService: BackfillService
 
     @Autowired
     private lateinit var wac: WebApplicationContext
@@ -115,11 +119,12 @@ class StubbedEvents {
     @Test
     fun is_NoQuantityOnDateNull() {
         val corporateEvent = CorporateEvent(
-            TrnType.DIVI,
-            DateUtils().getDate(caDate),
-            alpha,
-            "MSFT",
-            BigDecimal("0.2625")
+            id = null,
+            trnType = TrnType.DIVI,
+            recordDate = DateUtils().getDate(caDate),
+            source = alpha,
+            assetId = "MSFT",
+            rate = BigDecimal("0.2625")
         )
         val trnEvent = positionService.process(portfolio, corporateEvent)
         assertThat(trnEvent).isNull()
@@ -134,14 +139,14 @@ class StubbedEvents {
         val consumer = cf.createConsumer()
         embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TRN_EVENT)
         val corporateEvent = CorporateEvent(
-            TrnType.DIVI,
-            DateUtils().getDate(caDate),
-            alpha,
-            kmi,
-            BigDecimal("0.2625")
+            trnType = TrnType.DIVI,
+            recordDate = DateUtils().getDate(caDate),
+            source = alpha,
+            assetId = kmi,
+            rate = BigDecimal("0.2625")
         )
         val eventInput = TrustedEventInput(corporateEvent)
-        val trnEvents = eventService.processEvent(eventInput)
+        val trnEvents = eventService.process(eventInput)
         assertThat(trnEvents).isNotNull.hasSize(1)
 
         // Check the receiver gets what we send
@@ -152,7 +157,7 @@ class StubbedEvents {
         val token = mockAuthConfig.getUserToken(systemUser)
         // Reprocess the corporate event
         val mvcResult = mockMvc.perform(
-            post("/{id}", id)
+            post("/$id")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(
             status().isAccepted
@@ -165,12 +170,8 @@ class StubbedEvents {
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
 
-        // Back-fill Portfolio events up to, and as at, the supplied date
-        val assetSpy = Mockito.spy(AssetService::class.java)
-        positionService.setAssetService(assetSpy)
-
         mockMvc.perform(
-            post("/backfill/{portfolioId}/{caDate}", portfolio.id, caDate)
+            post("/backfill/${portfolio.id}/$caDate/$caDate")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
         ).andExpect(
             status().isAccepted
@@ -178,12 +179,14 @@ class StubbedEvents {
 
         Thread.sleep(400)
 
-        // Verify that the backfill request is dispatched, but not for cash
         Mockito.verify(
-            assetSpy,
-            Mockito.times(2)
-        )
-            .backFillEvents(any())
+            backfillService,
+            Mockito.times(1)
+        ).backFillEvents(portfolio.id, caDate, caDate)
+
+        // Verify that the backfill request is dispatched, but not for cash
+        Mockito.verify(eventService, Mockito.times(1))
+            .process(any())
     }
 
     // We're working with exactly the same event, so output should be the same

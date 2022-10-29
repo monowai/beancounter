@@ -19,7 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 @SpringBootTest(
     classes = [
         AssetHydrationService::class,
-        AssetCategoryConfig::class,
+        AssetCategoryConfig::class
     ]
 )
 internal class AssetHydrationServiceTest {
@@ -33,7 +33,7 @@ internal class AssetHydrationServiceTest {
     private lateinit var assetCategoryConfig: AssetCategoryConfig
 
     @BeforeEach
-    private fun mockData() {
+    fun mockData() {
         Mockito.`when`(marketService.getMarket(NYSE.code)).thenReturn(NYSE)
     }
 

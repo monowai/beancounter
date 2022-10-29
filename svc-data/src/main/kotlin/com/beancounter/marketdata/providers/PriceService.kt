@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.AsyncResult
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
 import java.util.concurrent.Future
@@ -66,19 +65,7 @@ class PriceService internal constructor(
     }
 
     private fun writeEvent(marketData: MarketData): Boolean {
-        if (!marketData.asset.isKnown) {
-            return false
-        }
-
-        if (marketData.dividend != null && marketData.dividend!!.compareTo(BigDecimal.ZERO) != 0) {
-            return true
-        }
-
-        if (marketData.split != null && marketData.split!!.compareTo(BigDecimal.ONE) != 0) {
-            return true
-        }
-
-        return false
+        return marketData.asset.isKnown && (marketData.isDividend() || marketData.isSplit())
     }
 
     fun purge() {

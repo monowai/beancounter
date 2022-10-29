@@ -1,17 +1,15 @@
 package com.beancounter.event.service
 
 import com.beancounter.auth.TokenService
-import com.beancounter.auth.client.LoginService
 import com.beancounter.client.AssetService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PortfoliosResponse
+import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
-import com.beancounter.common.utils.DateUtils
-import com.beancounter.event.common.DateSplitter
 import com.beancounter.event.integration.PositionGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,11 +24,9 @@ import javax.annotation.PostConstruct
  */
 @Service
 class PositionService(
-    private val behaviourFactory: EventBehaviourFactory,
-    private val loginService: LoginService
+    private val behaviourFactory: EventBehaviourFactory
+
 ) {
-    private val dateUtils = DateUtils()
-    private val dateSplitter = DateSplitter(dateUtils)
     private lateinit var assetService: AssetService
     private lateinit var positionGateway: PositionGateway
     private lateinit var portfolioService: PortfolioServiceClient
@@ -89,36 +85,11 @@ class PositionService(
         return (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0)
     }
 
-    fun backFillEvents(id: String, date: String = "today") {
-        loginService.login()
-        val asAt: String = if (date.equals(DateUtils.today, ignoreCase = true)) {
-            dateUtils.today()
-        } else {
-            dateUtils.getDate(date).toString()
-        }
-        val portfolio = portfolioService.getPortfolioById(id)
-        val dates = dateSplitter.split(from = asAt, until = asAt)
-        for (thisDate in dates) {
-            val positionResponse = positionGateway[tokenService.bearerToken, id, thisDate.toString()]
-            if (positionResponse.data.hasPositions()) {
-                log.info(
-                    "Backfill {} Corporate Actions. id: {}, code: {}, asAt: {}",
-                    positionResponse.data.positions.size,
-                    portfolio.id,
-                    portfolio.code,
-                    thisDate
-                )
-            }
-            for (key in positionResponse.data.positions.keys) {
-                val position = positionResponse.data.positions[key]
-                if (position != null && !position.asset.assetCategory.isCash()) {
-                    assetService.backFillEvents(position.asset.id)
-                }
-            }
-        }
+    fun getPositions(portfolio: Portfolio, asAt: String): PositionResponse {
+        return positionGateway.get(tokenService.bearerToken, portfolio.id, asAt)
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(PositionService::class.java)
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

@@ -29,7 +29,7 @@ class EventService(
         this.eventPublisher = eventPublisher
     }
 
-    fun processEvent(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
+    fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
         return processEvent(
             save(eventRequest.data)
         )
@@ -83,8 +83,9 @@ class EventService(
         )
 
         val corporateEvent = eventRepository.save(save)
-        log.info(
-            "Recorded event: {}, assetId: {}, payDate: {}",
+        log.trace(
+            "Recorded type: {}, id: {}, assetId: {}, payDate: {}",
+            corporateEvent.trnType,
             corporateEvent.id,
             corporateEvent.assetId,
             corporateEvent.payDate
@@ -111,20 +112,6 @@ class EventService(
         return eventRepository.findByAssetId(assetId)
     }
 
-    fun backFillEvents(portfolioId: String, valuationDate: String) {
-        positionService.backFillEvents(portfolioId, valuationDate)
-    }
-
-    fun reprocessEvents(start: LocalDate) {
-        val events = eventRepository.findByDateRange(start, LocalDate.now())
-        var count = 0
-        for (event in events) {
-            processEvent(event)
-            count++
-        }
-        log.info("Reprocessed $count stored events")
-    }
-
     fun findInRange(start: LocalDate, end: LocalDate): Collection<CorporateEvent> {
         return eventRepository.findByDateRange(start, end)
     }
@@ -132,6 +119,10 @@ class EventService(
     fun getScheduledEvents(start: LocalDate): CorporateEventResponses {
         val events = eventRepository.findByStartDate(start)
         return CorporateEventResponses(events)
+    }
+
+    fun find(assetIds: Collection<String>, recordDate: LocalDate): Collection<CorporateEvent> {
+        return eventRepository.findByAssetsAndRecordDate(assetIds, recordDate)
     }
 
     companion object {

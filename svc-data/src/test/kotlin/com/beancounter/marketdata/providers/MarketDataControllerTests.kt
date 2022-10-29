@@ -93,9 +93,6 @@ internal class MarketDataControllerTests @Autowired private constructor(
 
     @Test
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
-    @Throws(
-        Exception::class
-    )
     fun is_MarketsReturned() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets")
@@ -115,9 +112,6 @@ internal class MarketDataControllerTests @Autowired private constructor(
     @Test
     @Tag("slow")
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
-    @Throws(
-        Exception::class
-    )
     fun is_PriceFormMarketAssetFound() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get(
@@ -147,9 +141,6 @@ internal class MarketDataControllerTests @Autowired private constructor(
     @Test
     @Tag("slow")
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
-    @Throws(
-        Exception::class
-    )
     fun is_MdCollectionReturnedForAssets() {
         Mockito.`when`(assetService.findLocally(CASH.code, assetCode))
             .thenReturn(getAsset(CASH, assetCode))
@@ -183,9 +174,6 @@ internal class MarketDataControllerTests @Autowired private constructor(
     @Test
     @Tag("slow")
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
-    @Throws(
-        Exception::class
-    )
     fun is_ValuationRequestHydratingAssets() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get(

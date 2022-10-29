@@ -20,7 +20,9 @@
       "close": 100.00,
       "low": 38.74,
       "high": 39.35,
-      "volume": 6274307
+      "volume": 6274307,
+      "split": 1,
+      "dividend": 0
     }
   ]
 }

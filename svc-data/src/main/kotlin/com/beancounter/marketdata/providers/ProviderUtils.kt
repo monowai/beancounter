@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
-    fun splitProviders(assets: Collection<PriceAsset>): Map<MarketDataProvider, MutableCollection<Asset>> {
-        val mdpAssetResults: MutableMap<MarketDataProvider, MutableCollection<Asset>> = HashMap()
+    fun splitProviders(assets: Collection<PriceAsset>): Map<MarketDataPriceProvider, MutableCollection<Asset>> {
+        val mdpAssetResults: MutableMap<MarketDataPriceProvider, MutableCollection<Asset>> = HashMap()
         for (input in assets) {
             var market: Market
             if (input.resolvedAsset != null) {

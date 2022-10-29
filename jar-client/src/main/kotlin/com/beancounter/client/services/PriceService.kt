@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
@@ -22,6 +24,9 @@ class PriceService @Autowired internal constructor(
         return priceGateway.getPrices(tokenService.bearerToken, priceRequest)
     }
 
+    fun getEvents(assetId: String): PriceResponse =
+        priceGateway.getEvents(tokenService.bearerToken, assetId)
+
     /**
      * Gateway call to the MarketData service to obtain the prices.
      */
@@ -31,6 +36,12 @@ class PriceService @Autowired internal constructor(
         fun getPrices(
             @RequestHeader("Authorization") bearerToken: String,
             priceRequest: PriceRequest
+        ): PriceResponse
+
+        @GetMapping(value = ["/prices/{assetId}/events"])
+        fun getEvents(
+            @RequestHeader("Authorization") bearerToken: String,
+            @PathVariable assetId: String
         ): PriceResponse
     }
 }

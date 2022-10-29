@@ -12,6 +12,13 @@ import java.util.Optional
  */
 interface EventRepository : CrudRepository<CorporateEvent, String> {
     fun findByAssetIdAndRecordDate(assetId: String, recordDate: LocalDate): Optional<CorporateEvent>
+
+    @Query(
+        "select e from CorporateEvent e " +
+            "where e.assetId in (?1) and e.recordDate = ?2 order by e.recordDate asc "
+    )
+    fun findByAssetsAndRecordDate(assetIds: Collection<String>, recordDate: LocalDate): Collection<CorporateEvent>
+
     fun findByAssetId(assetId: String): Collection<CorporateEvent>
 
     @Query(

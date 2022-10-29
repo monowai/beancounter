@@ -1,0 +1,414 @@
+{
+  "data": [
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2022-09-15",
+      "close": 61.11,
+      "open": 61.8,
+      "source": "ALPHA",
+      "low": 61.03,
+      "high": 62.21,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 1477032,
+      "dividend": 0.2000,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2022-08-29",
+      "close": 59.7,
+      "open": 60.32,
+      "source": "ALPHA",
+      "low": 59.64,
+      "high": 60.82,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 1742694,
+      "dividend": 0.0000,
+      "split": 3.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2022-06-09",
+      "close": 152.75,
+      "open": 153.24,
+      "source": "ALPHA",
+      "low": 152.51,
+      "high": 154.72,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 806605,
+      "dividend": 0.6000,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2022-03-10",
+      "close": 166.48,
+      "open": 166.36,
+      "source": "ALPHA",
+      "low": 162.5801,
+      "high": 167.3,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 879178,
+      "dividend": 0.5400,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-12-02",
+      "close": 201.23,
+      "open": 200.02,
+      "source": "ALPHA",
+      "low": 198.101,
+      "high": 203.08,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 940800,
+      "dividend": 0.5400,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-09-09",
+      "close": 197.94,
+      "open": 197.86,
+      "source": "ALPHA",
+      "low": 197.52,
+      "high": 199.88,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 520636,
+      "dividend": 0.5400,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-06-10",
+      "close": 168.36,
+      "open": 169.56,
+      "source": "ALPHA",
+      "low": 168.075,
+      "high": 169.56,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 560326,
+      "dividend": 0.5400,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2021-03-11",
+      "close": 144.1,
+      "open": 144.9,
+      "source": "ALPHA",
+      "low": 142.75,
+      "high": 144.9,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 714509,
+      "dividend": 0.4900,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2020-12-03",
+      "close": 124.9,
+      "open": 126.87,
+      "source": "ALPHA",
+      "low": 123.27,
+      "high": 127.04,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 1865661,
+      "dividend": 0.4900,
+      "split": 1.0
+    },
+    {
+      "asset": {
+        "id": "NDAQ",
+        "code": "NDAQ",
+        "name": "NDAQ",
+        "market": {
+          "code": "US",
+          "currencyId": "USD",
+          "timezoneId": "US/Eastern",
+          "timezone": "US/Eastern",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "multiplier": 1.0,
+          "type": "Public"
+        },
+        "priceSymbol": null,
+        "assetCategory": {
+          "id": "Equity",
+          "name": "Equity"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "priceDate": "2020-09-10",
+      "close": 124.91,
+      "open": 129.06,
+      "source": "ALPHA",
+      "low": 124.72,
+      "high": 129.06,
+      "previousClose": null,
+      "change": null,
+      "changePercent": null,
+      "volume": 808299,
+      "dividend": 0.4900,
+      "split": 1.0
+    }
+  ]
+}

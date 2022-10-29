@@ -21,38 +21,22 @@ import javax.persistence.UniqueConstraint
  * Representation of a Corporate Action or Event.
  */
 data class CorporateEvent constructor(
-    @Id val id: String?,
-    val trnType: TrnType,
-    val source: String,
+    @Id val id: String? = null,
+    val trnType: TrnType = TrnType.DIVI,
+    val source: String = "ALPHA",
     var assetId: String,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var recordDate: LocalDate,
+    var recordDate: LocalDate = DateUtils().date,
 
-    @Column(precision = 15, scale = 4) var rate: BigDecimal,
-    @Column(precision = 15, scale = 4) var split: BigDecimal? = null,
+    @Column(precision = 15, scale = 4)
+    var rate: BigDecimal = BigDecimal.ZERO,
+    @Column(precision = 15, scale = 4)
+    var split: BigDecimal = BigDecimal("1.0000"),
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    val payDate: LocalDate? = null
-) {
-    constructor(
-        trnType: TrnType = TrnType.DIVI,
-        recordDate: LocalDate = DateUtils().date,
-        source: String,
-        assetId: String,
-        rate: BigDecimal
-    ) :
-        this(
-            null,
-            trnType,
-            source,
-            assetId,
-            recordDate,
-            rate,
-            BigDecimal("1.0000"),
-            recordDate
-        )
-}
+    val payDate: LocalDate = recordDate
+)

@@ -7,7 +7,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.providers.MarketDataProvider
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import org.slf4j.LoggerFactory
@@ -28,7 +28,7 @@ import kotlin.collections.set
  * @since 2019-03-03
  */
 @Service
-class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
+class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceProvider {
     private val dateUtils = DateUtils()
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
@@ -61,7 +61,6 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
                     apiKey
                 )
             } else {
-                // Dividends Only
                 requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId], date, apiKey)
             }
         }
@@ -143,6 +142,6 @@ class AlphaService(private val alphaConfig: AlphaConfig) : MarketDataProvider {
 
     companion object {
         const val ID = "ALPHA"
-        private val log = LoggerFactory.getLogger(AlphaService::class.java)
+        private val log = LoggerFactory.getLogger(AlphaPriceService::class.java)
     }
 }

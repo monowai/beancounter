@@ -67,7 +67,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
                 response.token
             )
         )
-        log.info("Service logged into {}", clientId)
+        log.debug("Service logged into {}", clientId)
         return response.token
     }
 

@@ -6,7 +6,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.providers.MarketDataProvider
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -19,7 +19,7 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class CustomProviderService : MarketDataProvider {
+class CustomProviderService : MarketDataPriceProvider {
     private val dateUtils = DateUtils()
     private fun getMarketData(asset: Asset): MarketData {
         val result = MarketData(asset, priceDate!!)

@@ -18,7 +18,7 @@ import java.math.BigDecimal
 internal class CashProviderServiceTest {
     @Test
     fun is_CashProviderReturningValues() {
-        val provider: MarketDataProvider = CashProviderService()
+        val provider: MarketDataPriceProvider = CashProviderService()
         val result = provider.getMarketData(of(getAsset(CASH, NZD.code)))
         assertThat(result)
             .isNotNull

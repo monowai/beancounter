@@ -81,7 +81,7 @@ class TrnBase {
         systemUser = ContractHelper.defaultUser(
             systemUserRepository = systemUserRepository,
             jwtDecoder = authConfig.jwtDecoder,
-            tokenService = authConfig.tokenService,
+            tokenService = authConfig.tokenService
 
         )
 
@@ -103,7 +103,7 @@ class TrnBase {
             name = "cashLadderFlow",
             currency = Constants.USD,
             base = Constants.NZD,
-            owner = ContractHelper.getSystemUser(),
+            owner = ContractHelper.getSystemUser()
         )
         Mockito.`when`(portfolioRepository.findById(cashPortfolio.id))
             .thenReturn(Optional.of(cashPortfolio))
@@ -144,12 +144,14 @@ class TrnBase {
             trnService.save(
                 portfolio,
                 RegistrationUtils.objectMapper.readValue(
-                    ClassPathResource("contracts/trn/client-csv-request.json").file, TrnRequest::class.java
+                    ClassPathResource("contracts/trn/client-csv-request.json").file,
+                    TrnRequest::class.java
                 )
             )
         ).thenReturn(
             RegistrationUtils.objectMapper.readValue(
-                ClassPathResource("contracts/trn/client-csv-response.json").file, TrnResponse::class.java
+                ClassPathResource("contracts/trn/client-csv-response.json").file,
+                TrnResponse::class.java
             )
         )
     }

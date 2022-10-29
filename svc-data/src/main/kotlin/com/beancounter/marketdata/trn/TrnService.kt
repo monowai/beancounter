@@ -24,7 +24,7 @@ class TrnService internal constructor(
     private val trnRepository: TrnRepository,
     private val trnAdapter: TrnAdapter,
     private val portfolioService: PortfolioService,
-    private val trnMigrator: TrnMigrator,
+    private val trnMigrator: TrnMigrator
 ) {
 
     fun getPortfolioTrn(portfolio: Portfolio, trnId: String): TrnResponse {
@@ -60,7 +60,7 @@ class TrnService internal constructor(
             Sort.by("tradeDate")
                 .and(Sort.by("asset.code"))
         )
-        log.debug("trns: {}, portfolio: {}", results.size, portfolio.code)
+        log.debug("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
     }
 

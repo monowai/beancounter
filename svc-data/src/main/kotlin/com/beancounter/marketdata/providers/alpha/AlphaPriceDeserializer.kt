@@ -19,6 +19,12 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Objects
 
+private const val SPLIT = "8. split coefficient"
+
+private const val DIVI = "7. dividend amount"
+
+private const val VOLUME = "6. volume"
+
 /**
  * Deserialize various AlphaVantage responses to a normalised PriceResponse.
  *
@@ -84,11 +90,15 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         if (asset != null) {
             val mapType = mapper.typeFactory
                 .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
-            val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(source["Time Series (Daily)"].toString(), mapType)
+            val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
+                source["Time Series (Daily)"].toString(),
+                mapType
+            )
             for (key in allValues.keys) {
                 val rawData: Map<String, Any>? = allValues[key.toString()]
                 val localDateTime = dateUtils.getLocalDate(
-                    key.toString(), "yyyy-M-dd"
+                    key.toString(),
+                    "yyyy-M-dd"
                 )
                 val priceData = getPrice(asset, localDateTime, rawData)
                 if (priceData != null) {
@@ -102,14 +112,25 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     private fun getPrice(asset: Asset, priceDate: LocalDate?, data: Map<String, Any>?): MarketData? {
         var price: MarketData? = null
         if (data != null) {
-            price = MarketData(asset, Objects.requireNonNull(priceDate)!!)
-            price.open = BigDecimal(data["1. open"].toString())
-            price.close = BigDecimal(data["4. close"].toString())
-            price.high = BigDecimal(data["2. high"].toString())
-            price.low = BigDecimal(data["3. low"].toString())
-            price.volume = BigDecimal(data["6. volume"].toString()).intValueExact()
-            price.split = BigDecimal(data["8. split coefficient"].toString())
-            price.dividend = BigDecimal(data["7. dividend amount"].toString())
+            try {
+                price = MarketData(asset, Objects.requireNonNull(priceDate)!!)
+                price.low = BigDecimal(data["3. low"].toString())
+                price.high = BigDecimal(data["2. high"].toString())
+                price.open = BigDecimal(data["1. open"].toString())
+                price.close = BigDecimal(data["4. close"].toString())
+                if (data[VOLUME] != null) {
+                    price.volume = BigDecimal(data[VOLUME].toString()).intValueExact()
+                }
+                if (data[SPLIT] != null) {
+                    price.split = BigDecimal(data[SPLIT].toString())
+                }
+                if (data[DIVI] != null) {
+                    price.dividend = BigDecimal(data[DIVI].toString())
+                }
+            } catch (e: NumberFormatException) {
+                // oops
+                return MarketData(asset, priceDate)
+            }
         }
         return price
     }

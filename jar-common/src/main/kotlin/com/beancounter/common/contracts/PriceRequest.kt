@@ -31,7 +31,7 @@ data class PriceRequest(val date: String = today, val assets: Collection<PriceAs
         }
 
         private fun parse(assetInput: AssetInput): PriceAsset {
-            return PriceAsset(assetInput.market, assetInput.code)
+            return PriceAsset(market = assetInput.market, code = assetInput.code)
         }
 
         private fun parse(asset: Asset): PriceAsset {

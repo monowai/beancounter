@@ -71,7 +71,7 @@ class TestAlphaEvents {
         val today = dateUtils.date
         assertThat(today).isNotNull
         val event = CorporateEvent(
-            TrnType.DIVI,
+            trnType = TrnType.DIVI,
             recordDate = today,
             source = "ALPHA",
             assetId = asset.id,

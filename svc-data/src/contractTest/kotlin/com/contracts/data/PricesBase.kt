@@ -1,6 +1,5 @@
 package com.contracts.data
 
-import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.wtd.WtdGateway
 import com.beancounter.marketdata.providers.wtd.WtdMarketData
@@ -21,15 +20,8 @@ class PricesBase : ContractVerifierBase() {
     @MockBean
     private lateinit var assetService: AssetService
 
-    private lateinit var systemUser: SystemUser
-
     @BeforeEach
     fun initAssets() {
-//        systemUser = ContractHelper.defaultUser(
-//            systemUserRepository = systemUserRepository,
-//            jwtDecoder = jwtDecoder,
-//            tokenService = tokenService,
-//        )
         AssetsBase().mockAssets(assetService)
         mockPrices()
     }

@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.model.Market
-import com.beancounter.marketdata.providers.alpha.AlphaService
+import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.CustomProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
@@ -19,11 +19,11 @@ import java.util.Locale
 @Service
 class MdFactory internal constructor(
     cashProviderService: CashProviderService,
-    alphaService: AlphaService,
+    alphaPriceService: AlphaPriceService,
     customProviderService: CustomProviderService,
     wtdService: WtdService
 ) {
-    private val providers: MutableMap<String, MarketDataProvider> = HashMap()
+    private val providers: MutableMap<String, MarketDataPriceProvider> = HashMap()
 
     /**
      * Locate a price provider for the requested market.
@@ -32,15 +32,15 @@ class MdFactory internal constructor(
      * @return the provider that supports the asset
      */
     @Cacheable("providers")
-    fun getMarketDataProvider(market: Market): MarketDataProvider? {
+    fun getMarketDataProvider(market: Market): MarketDataPriceProvider? {
         return resolveProvider(market) ?: return providers[CashProviderService.ID]
     }
 
-    fun getMarketDataProvider(provider: String): MarketDataProvider {
+    fun getMarketDataProvider(provider: String): MarketDataPriceProvider {
         return providers[provider.uppercase(Locale.getDefault())]!!
     }
 
-    private fun resolveProvider(market: Market): MarketDataProvider? {
+    private fun resolveProvider(market: Market): MarketDataPriceProvider? {
         // ToDo: Map Market to Provider
         for (key in providers.keys) {
             if (providers[key]!!.isMarketSupported(market)) {
@@ -58,7 +58,7 @@ class MdFactory internal constructor(
     init {
         providers[cashProviderService.getId().uppercase(Locale.getDefault())] = cashProviderService
         providers[wtdService.getId().uppercase(Locale.getDefault())] = wtdService
-        providers[alphaService.getId().uppercase(Locale.getDefault())] = alphaService
+        providers[alphaPriceService.getId().uppercase(Locale.getDefault())] = alphaPriceService
         providers[customProviderService.getId().uppercase(Locale.getDefault())] = customProviderService
     }
 }

@@ -117,9 +117,9 @@ internal class AlphaPriceTest {
 
     @Test
     fun is_KnownMarketVariancesHandled() {
-        val alphaService = AlphaService(alphaConfig)
+        val alphaPriceService = AlphaPriceService(alphaConfig)
         // No configured support to handle the market
-        assertThat(alphaService.isMarketSupported(NZX))
+        assertThat(alphaPriceService.isMarketSupported(NZX))
             .isFalse
         assertThat(alphaConfig.getPriceCode(MSFT)).isEqualTo(MSFT.code)
         val ohi = getAsset(NYSE, "OHI")

@@ -24,7 +24,7 @@ import javax.transaction.Transactional
 @Service
 @Import(
     DefaultEnricher::class,
-    MarketDataService::class,
+    MarketDataService::class
 )
 @Transactional
 class AssetService internal constructor(
@@ -32,7 +32,7 @@ class AssetService internal constructor(
     private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
-    private val assetHydrationService: AssetHydrationService,
+    private val assetHydrationService: AssetHydrationService
 ) : com.beancounter.client.AssetService {
     private val keyGenUtils = KeyGenUtils()
 
@@ -63,7 +63,7 @@ class AssetService internal constructor(
                 .enrich(
                     id = keyGenUtils.id,
                     market = market,
-                    assetInput = assetInput,
+                    assetInput = assetInput
                 )
             assetHydrationService.hydrateAsset(assetRepository.save(asset))
         } else {
@@ -117,7 +117,9 @@ class AssetService internal constructor(
             marketCode.uppercase(Locale.getDefault()),
             code.uppercase(Locale.getDefault())
         )
-        return optionalAsset.map { asset: Asset -> assetHydrationService.hydrateAsset(asset) }.orElse(null)
+        return optionalAsset.map { asset: Asset ->
+            assetHydrationService.hydrateAsset(asset)
+        }.orElse(null)
     }
 
     fun findAllAssets(): Stream<Asset>? {

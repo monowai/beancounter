@@ -33,9 +33,7 @@ internal class TestMarketData {
             BigDecimal("9.56"), // Previous CLOSE
             BigDecimal("1.56"), // Change
             BigDecimal("0.04"), // change %
-            10,
-            null,
-            null
+            10
         )
         marketDataCollection.add(marketData)
         val priceResponse = PriceResponse(marketDataCollection)

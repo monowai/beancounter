@@ -16,6 +16,6 @@ class EventReceiver(private val eventService: EventService) {
 
     @KafkaListener(topics = ["#{@caTopic}"], errorHandler = "bcErrorHandler")
     fun processMessage(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
-        return eventService.processEvent(eventRequest)
+        return eventService.process(eventRequest)
     }
 }

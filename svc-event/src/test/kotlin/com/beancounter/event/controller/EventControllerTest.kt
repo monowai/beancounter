@@ -61,6 +61,7 @@ internal class EventControllerTest {
 
     private val objectMapper: ObjectMapper = BcJson().objectMapper
     lateinit var token: Jwt
+
     @Autowired
     fun setDefaultUser() {
         token = mockAuthConfig.getUserToken()
@@ -84,11 +85,11 @@ internal class EventControllerTest {
     fun is_EventCreatedAndFoundOk() {
         // Create
         var event = CorporateEvent(
-            TrnType.DIVI,
-            dateUtils.getDate("2020-10-10"),
-            "SOURCE",
-            "ABC123",
-            BigDecimal("0.1234")
+            trnType = TrnType.DIVI,
+            recordDate = dateUtils.getDate("2020-10-10"),
+            source = "SOURCE",
+            assetId = "ABC123",
+            rate = BigDecimal("0.1234")
         )
         event = eventService.save(event)
         assertThat(event).hasFieldOrProperty("id")
@@ -123,11 +124,11 @@ internal class EventControllerTest {
     @Test
     fun is_ServiceBasedDividendCreateAndFindOk() {
         val event = CorporateEvent(
-            TrnType.DIVI,
-            Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
-            alpha,
-            "assetId",
-            BigDecimal("2.3400")
+            trnType = TrnType.DIVI,
+            payDate = Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
+            source = alpha,
+            assetId = "assetId",
+            rate = BigDecimal("2.3400")
         )
         val saved = eventService.save(event)
         assertThat(saved.id).isNotNull
@@ -140,10 +141,11 @@ internal class EventControllerTest {
         // Check it can be found within a date range
         val events = eventService
             .findInRange(
-                Objects.requireNonNull(event.recordDate).minusDays(2),
+                event.recordDate.minusDays(2),
                 event.recordDate
             )
         assertThat(events).hasSize(1)
-        assertThat(events.iterator().next()).usingRecursiveComparison().isEqualTo(saved)
+        assertThat(events.iterator().next())
+            .usingRecursiveComparison().isEqualTo(saved)
     }
 }

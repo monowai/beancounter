@@ -4,6 +4,8 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
+import com.beancounter.event.service.BackfillService
+import com.beancounter.event.service.EventLoader
 import com.beancounter.event.service.EventService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -23,21 +25,34 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 @CrossOrigin
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
-class EventController(private val eventService: EventService) {
-    @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+class EventController(
+    private val eventService: EventService,
+    private val backfillService: BackfillService,
+    private val eventLoader: EventLoader
+) {
+    @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
     operator fun get(
         @PathVariable portfolioId: String,
-        @PathVariable(required = false) fromDate: String = DateUtils.today
+        @PathVariable(required = false) fromDate: String = DateUtils.today,
+        @PathVariable toDate: String = fromDate
     ) =
-        eventService.backFillEvents(portfolioId, fromDate)
+        backfillService.backFillEvents(portfolioId, fromDate, toDate)
 
-    @PostMapping(value = ["/reprocess/{fromDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(value = ["/load/{asAtDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun reprocessEvents(
-        @PathVariable(required = false) fromDate: String = DateUtils.today
+    fun loadEvents(
+        @PathVariable(required = false) asAtDate: String = DateUtils.today
     ) =
-        eventService.reprocessEvents(DateUtils().getDate(fromDate))
+        eventLoader.loadEvents(DateUtils().getDate(asAtDate))
+
+    @PostMapping(value = ["/load/{portfolioId}/{asAtDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    fun loadPortfolioEvents(
+        @PathVariable(required = false) asAtDate: String = DateUtils.today,
+        @PathVariable portfolioId: String
+    ) =
+        eventLoader.loadEvents(portfolioId, DateUtils().getDate(asAtDate))
 
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getEvent(@PathVariable id: String): CorporateEventResponse =

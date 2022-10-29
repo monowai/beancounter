@@ -7,7 +7,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.alpha.AlphaService
+import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
@@ -27,14 +27,14 @@ import org.springframework.test.context.ActiveProfiles
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
-class MarketDataProviderTests @Autowired constructor(
+class MarketDataPriceProviderTests @Autowired constructor(
     private val mdFactory: MdFactory,
     private val marketService: MarketService
 ) {
     @Test
     fun is_DefaultMarketProvidersSet() {
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(WtdService.ID)).isNotNull
-        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaService.ID)).isNotNull
+        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
         val mdp = mdFactory.getMarketDataProvider(
             Market("NonExistent", Currency("ABC"))
@@ -48,7 +48,7 @@ class MarketDataProviderTests @Autowired constructor(
     fun is_FoundByMarket() {
         val amp = getAsset(marketService.getMarket("ASX"), "AMP")
         val asxMarket = mdFactory.getMarketDataProvider(amp.market)
-        assertThat(asxMarket!!.getId()).isEqualTo(AlphaService.ID)
+        assertThat(asxMarket!!.getId()).isEqualTo(AlphaPriceService.ID)
         val gne = getAsset(marketService.getMarket(NZX.code), "GNE")
         val nzxMarket = mdFactory.getMarketDataProvider(gne.market)
         AssertionsForClassTypes.assertThat(nzxMarket!!.getId()).isEqualTo(WtdService.ID)

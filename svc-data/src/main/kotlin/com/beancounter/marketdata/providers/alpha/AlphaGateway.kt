@@ -36,12 +36,22 @@ interface AlphaGateway {
     @RequestMapping(
         method = [RequestMethod.GET],
         headers = ["Content-Type: text/plain"],
-        value = ["/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}"]
+        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full"]
+    )
+    fun getFullOutput(
+        @PathVariable("assetId") assetId: String,
+        @PathVariable("apiKey") apiKey: String
+    ): String?
+
+    @RequestMapping(
+        method = [RequestMethod.GET],
+        headers = ["Content-Type: text/plain"],
+        value = ["/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}&outputsize=full"]
     )
     fun getAdjusted(
         @PathVariable("assetId") assetId: String?,
         @PathVariable("apiKey") apiKey: String?
-    ): String?
+    ): String
 
     @RequestMapping(
         method = [RequestMethod.GET],

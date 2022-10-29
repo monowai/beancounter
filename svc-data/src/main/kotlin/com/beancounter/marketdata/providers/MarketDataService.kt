@@ -84,26 +84,26 @@ class MarketDataService @Autowired internal constructor(
     private fun getExternally(
         apiAssets: MutableCollection<Asset>?,
         date: String,
-        marketDataProvider: MarketDataProvider
+        marketDataPriceProvider: MarketDataPriceProvider
     ): Collection<MarketData> {
         if (!apiAssets!!.isEmpty()) {
             val assetInputs = providerUtils.getInputs(apiAssets)
             val apiRequest = PriceRequest(date, assetInputs)
-            return marketDataProvider.getMarketData(apiRequest)
+            return marketDataPriceProvider.getMarketData(apiRequest)
         }
         return arrayListOf()
     }
 
     private fun getMarketDate(
         forTimezone: LocalDate?,
-        marketDataProvider: MarketDataProvider,
+        marketDataPriceProvider: MarketDataPriceProvider,
         asset: Asset,
         priceRequest: PriceRequest,
         marketData: MutableMap<String, LocalDate>
     ): LocalDate {
         var marketDate = forTimezone
         if (marketDate == null) {
-            marketDate = marketDataProvider.getDate(asset.market, priceRequest)
+            marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
             if (priceRequest.assets.size > 1) {
                 marketData[asset.market.timezone.id] = marketDate
                 log.debug("Requested date ${priceRequest.date} resolved as $marketDate")

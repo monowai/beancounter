@@ -3,7 +3,6 @@ package com.contracts.data
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.assets.AssetService
 import org.junit.jupiter.api.BeforeEach
@@ -19,15 +18,9 @@ import java.util.Locale
 class AssetsBase : ContractVerifierBase() {
     @MockBean
     private lateinit var assetService: AssetService
-    private lateinit var systemUser: SystemUser
 
     @BeforeEach
     fun mockAssets() {
-//        systemUser = ContractHelper.defaultUser(
-//            systemUserRepository = systemUserRepository,
-//            jwtDecoder = jwtDecoder,
-//            tokenService = tokenService,
-//        )
         mockAssets(assetService)
     }
 
@@ -39,6 +32,14 @@ class AssetsBase : ContractVerifierBase() {
                     AssetResponse::class.java
                 ).data
             )
+        Mockito.`when`(assetService.find("NASDAQ", "NDAQ"))
+            .thenReturn(
+                BcJson().objectMapper.readValue(
+                    ClassPathResource("contracts/assets/ndaq-asset.json").file,
+                    AssetResponse::class.java
+                ).data
+            )
+
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/nzd-cash-request.json").file,
             ClassPathResource("contracts/assets/nzd-cash-response.json").file,

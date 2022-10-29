@@ -26,32 +26,35 @@ object AlphaMockUtils {
     fun getAlphaApi() {
         mockSearchResponse(
             MSFT.code,
-            ClassPathResource(alphaContracts + "/msft-response.json").file
+            ClassPathResource("$alphaContracts/msft-response.json").file
         )
         mockSearchResponse(
             "BRK-B",
-            ClassPathResource(alphaContracts + "/brkb-response.json").file
+            ClassPathResource("$alphaContracts/brkb-response.json").file
         )
         mockSearchResponse(
             "AAPL",
-            ClassPathResource(alphaContracts + "/aapl-response.json").file
+            ClassPathResource("$alphaContracts/aapl-response.json").file
         )
         mockSearchResponse(
             "AMP.AX",
-            ClassPathResource(alphaContracts + "/amp-search.json").file
+            ClassPathResource("$alphaContracts/amp-search.json").file
         )
         mockSearchResponse(
             "DTV",
-            ClassPathResource(alphaContracts + "/dtv-search.json").file
+            ClassPathResource("$alphaContracts/dtv-search.json").file
         )
         mockGlobalResponse(
-            "AMP.AX", ClassPathResource(alphaContracts + "/amp-global.json").file
+            "AMP.AX",
+            ClassPathResource("$alphaContracts/amp-global.json").file
         )
         mockGlobalResponse(
-            "AMP.AUS", ClassPathResource(alphaContracts + "/amp-global.json").file
+            "AMP.AUS",
+            ClassPathResource("$alphaContracts/amp-global.json").file
         )
         mockGlobalResponse(
-            MSFT.code, ClassPathResource(alphaContracts + "/msft-global.json").file
+            MSFT.code,
+            ClassPathResource("$alphaContracts/msft-global.json").file
         )
     }
 
@@ -64,7 +67,7 @@ object AlphaMockUtils {
     @Throws(IOException::class)
     fun mockAdjustedResponse(symbol: String, jsonFile: File?) {
         mockGetResponse(
-            "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo",
+            "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo&outputsize=full",
             jsonFile
         )
     }
@@ -105,7 +108,7 @@ object AlphaMockUtils {
     }
 
     @Throws(IOException::class)
-    fun mockSearchResponse(code: String, response: File?) {
+    fun mockSearchResponse(code: String, file: File) {
         stubFor(
             WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))
                 .willReturn(
@@ -114,7 +117,7 @@ object AlphaMockUtils {
                         .withBody(
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
-                                    response,
+                                    file,
                                     HashMap::class.java
                                 )
                             )

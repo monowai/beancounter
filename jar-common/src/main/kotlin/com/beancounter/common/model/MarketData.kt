@@ -33,7 +33,7 @@ data class MarketData constructor(
     @Column(precision = 15, scale = 6)
     var close: BigDecimal = BigDecimal.ZERO,
     @Column(precision = 15, scale = 6)
-    var open: BigDecimal? = null,
+    var open: BigDecimal? = null
 ) {
     constructor(
         id: String?,
@@ -48,8 +48,8 @@ data class MarketData constructor(
         change: BigDecimal?,
         changePercent: BigDecimal?,
         volume: Int?,
-        dividend: BigDecimal?,
-        split: BigDecimal?
+        dividend: BigDecimal = BigDecimal.ZERO,
+        split: BigDecimal = BigDecimal.ONE
     ) : this(asset, priceDate, close, open) {
         this.id = id
         this.source = source
@@ -91,8 +91,16 @@ data class MarketData constructor(
     var volume: Int? = null
 
     @Column(precision = 7, scale = 4)
-    var dividend: BigDecimal? = null
+    var dividend: BigDecimal = BigDecimal.ZERO
 
     @Column(precision = 7, scale = 4)
-    var split: BigDecimal? = null
+    var split: BigDecimal = BigDecimal.ONE
+
+    fun isSplit(): Boolean {
+        return BigDecimal.ONE.compareTo(split) != 0
+    }
+
+    fun isDividend(): Boolean {
+        return BigDecimal.ZERO.compareTo(dividend) != 0
+    }
 }

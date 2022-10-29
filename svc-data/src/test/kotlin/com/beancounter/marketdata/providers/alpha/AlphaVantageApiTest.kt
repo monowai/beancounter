@@ -99,6 +99,9 @@ internal class AlphaVantageApiTest {
     private lateinit var alphaConfig: AlphaConfig
 
     @Autowired
+    private lateinit var alphaEventService: AlphaEventService
+
+    @Autowired
     private lateinit var priceService: PriceService
 
     @Autowired
@@ -187,7 +190,7 @@ internal class AlphaVantageApiTest {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
         AlphaMockUtils.mockGlobalResponse("$api.ERR", jsonFile)
         val asset = Asset(api, Market("ERR", USD))
-        val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
+        val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(of(asset))
         assertThat(results)
             .isNotNull
@@ -204,7 +207,7 @@ internal class AlphaVantageApiTest {
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
         val asset = Asset(api, Market("EMPTY", USD))
         val results = mdFactory
-            .getMarketDataProvider(AlphaService.ID)
+            .getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(of(asset))
 
         assertThat(results) // Contains a default price
@@ -225,7 +228,7 @@ internal class AlphaVantageApiTest {
         val nasdaq = Market(NASDAQ.code, USD)
         val asset = Asset(MSFT.code, nasdaq)
         val priceRequest = of(asset = asset)
-        val mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
+        val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(priceRequest)
 
         // Coverage - WTD does not support this market
@@ -246,7 +249,7 @@ internal class AlphaVantageApiTest {
     fun is_CurrentPriceAsxFound() {
         val asset = Asset(amp, ASX)
         val priceRequest = of(asset)
-        val mdResult = mdFactory.getMarketDataProvider(AlphaService.ID)
+        val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(priceRequest)
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
@@ -291,7 +294,6 @@ internal class AlphaVantageApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_BackFillWritingDividendEvent() {
         priceService.setEventWriter(mockEventWriter)
         val assetCode = "KMI"

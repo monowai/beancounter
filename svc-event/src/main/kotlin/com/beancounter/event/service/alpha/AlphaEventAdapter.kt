@@ -44,17 +44,34 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             val trnInput = toDividend(currentPosition, corporateEvent)
                 ?: return null // We didn't create anything
             return TrustedTrnEvent(portfolio, trnInput)
+        } else if (corporateEvent.trnType == TrnType.SPLIT) {
+            return TrustedTrnEvent(portfolio, toSplit(currentPosition, corporateEvent))
         }
         throw SystemException(String.format("Unsupported event type %s", corporateEvent.trnType))
     }
 
+    private fun toSplit(
+        currentPosition: Position,
+        corporateEvent: CorporateEvent
+    ): TrnInput {
+        val callerRef = CallerRef(corporateEvent.source, corporateEvent.id!!)
+        return TrnInput(
+            callerRef,
+            currentPosition.asset.id,
+            trnType = TrnType.DIVI,
+            quantity = corporateEvent.split,
+            tradeDate = corporateEvent.recordDate,
+            price = corporateEvent.split,
+            status = TrnStatus.CONFIRMED,
+            cashCurrency = currentPosition.asset.market.currency.code
+
+        )
+    }
+
     private fun toDividend(
         currentPosition: Position,
-        corporateEvent: CorporateEvent?
+        corporateEvent: CorporateEvent
     ): TrnInput? {
-        if (corporateEvent == null) {
-            return null
-        }
         val payDate = corporateEvent.recordDate.plusDays(18)
         if (payDate != null) {
             if (payDate > dateUtils.date) {
@@ -74,7 +91,7 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             price = corporateEvent.rate,
             status = TrnStatus.PROPOSED,
             cashCurrency = currentPosition.asset.market.currency.code,
-            tax = tax,
+            tax = tax
 
         )
     }

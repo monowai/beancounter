@@ -49,7 +49,7 @@ class AlphaApiInfraTest {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
         val asset = Asset(api, Market("KEY", Constants.USD))
-        val alphaProvider = mdFactory.getMarketDataProvider(AlphaService.ID)
+        val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(
             PriceRequest.Companion.of(asset)
         )
@@ -72,7 +72,7 @@ class AlphaApiInfraTest {
         )
         assertThat(asset).isNotNull
 
-        val results = mdFactory.getMarketDataProvider(AlphaService.ID)
+        val results = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(
                 PriceRequest.of(asset)
             )

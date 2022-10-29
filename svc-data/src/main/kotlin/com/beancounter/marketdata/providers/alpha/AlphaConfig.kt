@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import
 import java.time.LocalDate
 
 @Configuration
-@Import(AlphaService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
+@Import(AlphaPriceService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
 /**
  * Helper functions for Alpha data provider. Enable dependant supporting classes
  */

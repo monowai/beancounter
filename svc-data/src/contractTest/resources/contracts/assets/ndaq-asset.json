@@ -1,0 +1,33 @@
+{
+  "data": {
+    "id": "NDAQ",
+    "code": "NDAQ",
+    "name": "Nasdaq Inc - 144A",
+    "market": {
+      "code": "NASDAQ",
+      "currencyId": "USD",
+      "timezoneId": "US/Eastern",
+      "aliases": {
+        "SHARESIGHT": "NAS",
+        "FIGI": "US"
+      },
+      "timezone": "US/Eastern",
+      "currency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "priceTime": "19:00",
+      "daysToSubtract": 1,
+      "multiplier": 1.0,
+      "type": "Public"
+    },
+    "priceSymbol": "NDAQ",
+    "assetCategory": {
+      "id": "EQUITY",
+      "name": "Equity"
+    },
+    "status": "Active",
+    "version": "1"
+  }
+}

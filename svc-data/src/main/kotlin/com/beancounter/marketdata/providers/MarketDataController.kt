@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
@@ -28,7 +29,8 @@ import org.springframework.web.bind.annotation.RestController
 class MarketDataController @Autowired internal constructor(
     private val marketDataService: MarketDataService,
     private val assetService: AssetService,
-    private val priceRefresh: PriceRefresh
+    private val priceRefresh: PriceRefresh,
+    private val eventService: AlphaEventService
 ) {
 
     /**
@@ -48,8 +50,21 @@ class MarketDataController @Autowired internal constructor(
         return marketDataService.getPriceResponse(PriceRequest.of(AssetInput(asset)))
     }
 
+    /**
+     * Market:Asset i.e. NYSE:MSFT.
+     *
+     * @param assetId Internal BC Asset identifier
+     * @return Market Data information for the requested asset
+     */
+    @GetMapping(value = ["/{assetId}/events"])
+    fun getEvents(
+        @PathVariable("assetId") assetId: String
+    ): PriceResponse {
+        return eventService.getEvents(assetService.find(assetId))
+    }
+
     @PostMapping
-    fun prices(@RequestBody priceRequest: PriceRequest): PriceResponse {
+    fun postPrices(@RequestBody priceRequest: PriceRequest): PriceResponse {
         log.debug("priceRequestDate: ${priceRequest.date}")
         for (requestedAsset in priceRequest.assets) {
             val asset = assetService.findLocally(requestedAsset.market, requestedAsset.code)

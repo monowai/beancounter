@@ -5,7 +5,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.marketdata.providers.MarketDataProvider
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
 import org.slf4j.LoggerFactory
@@ -28,7 +28,7 @@ class WtdService @Autowired internal constructor(
     private val wtdProxy: WtdProxy,
     private val wtdConfig: WtdConfig,
     private val wtdAdapter: WtdAdapter
-) : MarketDataProvider {
+) : MarketDataPriceProvider {
     @Value("\${beancounter.market.providers.WTD.key:demo}")
     private val apiKey: String? = null
 

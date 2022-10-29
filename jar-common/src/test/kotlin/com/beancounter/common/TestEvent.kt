@@ -5,7 +5,6 @@ import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -41,7 +40,13 @@ class TestEvent {
 
     @Test
     fun is_EventConstructingAndSerializing() {
-        val event = CorporateEvent(TrnType.DIVI, DateUtils().date, "TEST", "assetId", BigDecimal.TEN)
+        val event = CorporateEvent(
+            id = null,
+            trnType = TrnType.DIVI,
+            source = "TEST",
+            "assetId",
+            rate = BigDecimal.TEN
+        )
         val eventRequest = EventRequest(event)
         val json = objectMapper.writeValueAsBytes(eventRequest)
         val fromJson = objectMapper.readValue(json, EventRequest::class.java)

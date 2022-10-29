@@ -3,8 +3,8 @@ package com.beancounter.client.config
 import com.beancounter.auth.TokenService
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.FxTransactions
-import com.beancounter.client.services.AssetServiceClient
 import com.beancounter.client.services.FxClientService
+import com.beancounter.client.services.MarketDataClient
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.client.services.RegistrationService
@@ -31,9 +31,9 @@ import org.springframework.context.annotation.Import
     TrnService::class,
     PortfolioServiceClient::class,
     RegistrationService::class,
-    AssetServiceClient::class,
+    MarketDataClient::class,
     TrnService::class,
-    TokenService::class,
+    TokenService::class
 )
 @EnableFeignClients(basePackages = ["com.beancounter.client"])
 @ImportAutoConfiguration(HttpMessageConvertersAutoConfiguration::class, FeignAutoConfiguration::class)

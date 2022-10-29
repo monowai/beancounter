@@ -13,7 +13,7 @@ import java.time.LocalDate
  * @author mikeh
  * @since 2019-01-27
  */
-interface MarketDataProvider {
+interface MarketDataPriceProvider {
     fun getMarketData(priceRequest: PriceRequest): Collection<MarketData>
 
     /**

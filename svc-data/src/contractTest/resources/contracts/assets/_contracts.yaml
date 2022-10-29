@@ -136,3 +136,14 @@ response:
   bodyFromFile: "./msft-response.json"
   headers:
     Content-Type: application/json
+---
+name: ndaq-asset
+priority: 1
+request:
+  method: GET
+  url: /assets/NASDAQ/NDAQ
+response:
+  status: 200
+  bodyFromFile: "./ndaq-asset.json"
+  headers:
+    Content-Type: application/json

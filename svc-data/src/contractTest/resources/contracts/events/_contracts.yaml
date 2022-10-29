@@ -1,0 +1,10 @@
+name: ndaq-events
+priority: 1
+request:
+  method: GET
+  url: /prices/NDAQ/events
+response:
+  status: 200
+  bodyFromFile: "./ndaq-response.json"
+  headers:
+    Content-Type: application/json

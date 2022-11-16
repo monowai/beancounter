@@ -14,6 +14,6 @@ class AuthConfig {
     @Value("\${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     val issuer: String = "not-set"
 
-    @Value("\${auth.email:{audience}/claims/email}")
+    @Value("\${auth.email}")
     lateinit var claimEmail: String
 }

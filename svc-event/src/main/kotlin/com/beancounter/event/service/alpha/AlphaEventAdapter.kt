@@ -58,7 +58,7 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         return TrnInput(
             callerRef,
             currentPosition.asset.id,
-            trnType = TrnType.DIVI,
+            trnType = TrnType.SPLIT,
             quantity = corporateEvent.split,
             tradeDate = corporateEvent.recordDate,
             price = corporateEvent.split,

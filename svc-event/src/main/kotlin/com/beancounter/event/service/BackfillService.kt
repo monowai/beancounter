@@ -18,6 +18,7 @@ class BackfillService(
 ) {
     private val dateUtils = DateUtils()
     private val dateSplitter = DateSplitter(dateUtils)
+    private val log = LoggerFactory.getLogger(BackfillService::class.java)
 
     @Async("applicationTaskExecutor")
     fun backFillEvents(portfolioId: String, date: String = "today", toDate: String = date) {
@@ -40,15 +41,11 @@ class BackfillService(
             }
             val events = eventService.find(assets, asAtDate)
             for (event in events) {
-                log.debug("Loading ${events.size} asAt: $asAtDate")
+                log.trace("Loading events: ${events.size}, asAt: $asAtDate")
                 eventService.processEvent(event)
                 eventCount += events.size
             }
         }
         log.info("Processed $eventCount events over $dayCount days")
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

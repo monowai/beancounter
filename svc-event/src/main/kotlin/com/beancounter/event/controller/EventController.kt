@@ -1,6 +1,7 @@
 package com.beancounter.event.controller
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
@@ -28,16 +29,29 @@ import org.springframework.web.bind.annotation.RestController
 class EventController(
     private val eventService: EventService,
     private val backfillService: BackfillService,
-    private val eventLoader: EventLoader
+    private val eventLoader: EventLoader,
+    private val portfolioService: PortfolioServiceClient
 ) {
     @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
     operator fun get(
         @PathVariable portfolioId: String,
         @PathVariable(required = false) fromDate: String = DateUtils.today,
-        @PathVariable toDate: String = fromDate
+        @PathVariable(required = false) toDate: String = DateUtils.today
     ) =
         backfillService.backFillEvents(portfolioId, fromDate, toDate)
+
+    @PostMapping(value = ["/backfill/{fromDate}/{toDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    fun backfillPortfolios(
+        @PathVariable(required = false) fromDate: String = DateUtils.today,
+        @PathVariable(required = false) toDate: String = DateUtils.today
+    ) {
+        val portfolios = portfolioService.portfolios
+        for (portfolio in portfolios.data) {
+            backfillService.backFillEvents(portfolio.id, fromDate, toDate)
+        }
+    }
 
     @PostMapping(value = ["/load/{asAtDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)

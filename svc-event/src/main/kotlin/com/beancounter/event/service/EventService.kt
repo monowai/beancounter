@@ -24,6 +24,8 @@ class EventService(
 ) {
     private var eventPublisher: EventPublisher? = null
 
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     @Autowired(required = false)
     fun setEventPublisher(eventPublisher: EventPublisher) {
         this.eventPublisher = eventPublisher
@@ -123,9 +125,5 @@ class EventService(
 
     fun find(assetIds: Collection<String>, recordDate: LocalDate): Collection<CorporateEvent> {
         return eventRepository.findByAssetsAndRecordDate(assetIds, recordDate)
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

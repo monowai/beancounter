@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
-@Service
 /**
  * Obtains necessary prices and fx rates for the requested positions, returning them as valued positions in
  * various currencies.
  */
+@Service
 class PositionValuationService internal constructor(
     private val asyncMdService: AsyncMdService,
     private val marketValue: MarketValue,
@@ -30,7 +30,7 @@ class PositionValuationService internal constructor(
             return positions // Nothing to value
         }
         log.debug(
-            "Requesting valuation of {} positions for {} asAt {}...",
+            "Requesting valuation positions: {}, code: {}, asAt: {}...",
             positions.positions.size,
             positions.portfolio.code,
             positions.asAt
@@ -50,11 +50,13 @@ class PositionValuationService internal constructor(
         for (marketData in priceResponse.data) {
             val position = marketValue.value(positions, marketData, rates)
             val baseAmount = position.getMoneyValues(
-                Position.In.BASE, positions.portfolio.base
+                Position.In.BASE,
+                positions.portfolio.base
             ).marketValue
             baseTotals.total = baseTotals.total.add(baseAmount)
             val refAmount = position.getMoneyValues(
-                Position.In.PORTFOLIO, position.asset.market.currency
+                Position.In.PORTFOLIO,
+                position.asset.market.currency
             ).marketValue
             refTotals.total = refTotals.total.add(refAmount)
         }
@@ -75,7 +77,7 @@ class PositionValuationService internal constructor(
         }
         log.debug(
             "Completed valuation of {} positions.",
-            positions.positions.size,
+            positions.positions.size
         )
         return positions
     }

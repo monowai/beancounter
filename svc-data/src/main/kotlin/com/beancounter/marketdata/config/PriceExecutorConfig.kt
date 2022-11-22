@@ -32,7 +32,7 @@ class PriceExecutorConfig {
         priceExecutor.corePoolSize = corePoolSize
         priceExecutor.maxPoolSize = maxPoolSize
         priceExecutor.setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
-        priceExecutor.setQueueCapacity(queueCapacity)
+        priceExecutor.queueCapacity = queueCapacity
         priceExecutor.keepAliveSeconds = threadTimeout
         return priceExecutor
     }

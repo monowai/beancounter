@@ -21,7 +21,7 @@ import java.time.LocalDate
 @Service
 class MarketDataService @Autowired internal constructor(
     private val providerUtils: ProviderUtils,
-    private val priceService: PriceService,
+    private val priceService: PriceService
 ) {
     @Transactional
     fun backFill(asset: Asset) {
@@ -106,7 +106,7 @@ class MarketDataService @Autowired internal constructor(
             marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
             if (priceRequest.assets.size > 1) {
                 marketData[asset.market.timezone.id] = marketDate
-                log.debug("Requested date ${priceRequest.date} resolved as $marketDate")
+                log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate, asset: ${asset.name}, assetId: ${asset.id}")
             }
         }
         return marketDate

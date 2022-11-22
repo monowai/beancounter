@@ -28,7 +28,7 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
             if (marketDataProvider != null) {
                 var mdpAssets = mdpAssetResults[marketDataProvider]
                 if (mdpAssets == null) {
-                    mdpAssets = ArrayList()
+                    mdpAssets = mutableListOf()
                     mdpAssetResults[marketDataProvider] = mdpAssets
                 }
                 if (input.resolvedAsset!!.status == Status.Active) {

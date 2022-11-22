@@ -70,7 +70,7 @@ feign:
     config:
       default:
         # Loooong because of API limits with data providers
-        readTimeout: 75000
+        readTimeout: 150000
         connectTimeout: 5000
         errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
         loggerLevel: NONE

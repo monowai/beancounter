@@ -48,7 +48,7 @@ class AlphaApiInfraTest {
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
-        val asset = Asset(api, Market("KEY", Constants.USD))
+        val asset = Asset(api, Market("KEY", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(
             PriceRequest.Companion.of(asset)

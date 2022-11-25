@@ -31,9 +31,9 @@ internal class FxUtilsTest {
 
     @Test
     fun is_FxRequestCorrect() {
-        val gbpMarket = Market(GBP.code, GBP)
+        val gbpMarket = Market(GBP.code, GBP.code)
         val gbpPosition = Position(getAsset(gbpMarket, "$GBP.code Asset"))
-        val usdMarket = Market(USD.code, USD)
+        val usdMarket = Market(USD.code)
         val usdPosition = Position(getAsset(usdMarket, "$USD.code Asset"))
         val otherUsdPosition = Position(
             getAsset(usdMarket, "$USD.code Asset Other")

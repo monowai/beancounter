@@ -55,8 +55,8 @@ internal class TestPositions {
 
     @Test
     fun is_MixedTradeCurrenciesHandled() {
-        val usdAsset = Asset("USDAsset", Market("USMarket", USD))
-        val nzdAsset = Asset("NZDAsset", Market("NZMarket", NZD))
+        val usdAsset = Asset("USDAsset", Market("USMarket"))
+        val nzdAsset = Asset("NZDAsset", Market("NZMarket", NZD.code))
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
         assertThat(positions.isMixedCurrencies).isFalse
         positions.add(positions[usdAsset])

@@ -33,7 +33,7 @@ class Constants {
         val EUR = Currency("EUR", symbol = "€")
         val NZD = Currency("NZD")
 
-        val NZX = Market("NZX", NZD)
+        val NZX = Market("NZX", NZD.code)
         val systemUser = SystemUser("user", "user@testing.com")
 
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
@@ -44,7 +44,7 @@ class Constants {
             name = "${NZD.code} Balance",
             priceSymbol = NZD.code,
             assetCategory = AssetCategory("CASH", "Cash"),
-            market = Market("CASH", NZD),
+            market = Market("CASH", NZD.code),
             category = "CASH"
         )
         val usdCashBalance = Asset(
@@ -53,7 +53,7 @@ class Constants {
             name = "${USD.code} Balance",
             priceSymbol = USD.code,
             assetCategory = AssetCategory("CASH", "Cash"),
-            market = Market("CASH", USD),
+            market = Market("CASH", USD.code),
             category = "CASH"
         )
     }

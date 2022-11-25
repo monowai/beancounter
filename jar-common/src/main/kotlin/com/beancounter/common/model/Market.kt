@@ -38,30 +38,8 @@ data class Market @ConstructorBinding constructor(
     val type: String = "Public"
 ) {
 
-    constructor(code: String, currency: Currency) : this(code, currency.code) {
-        this.currency = currency
-    }
-
     @JsonIgnore
     fun inMemory(): Boolean {
         return code.equals("MOCK", ignoreCase = true)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Market
-
-        if (code != other.code) return false
-        if (currencyId != other.currencyId) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = code.hashCode()
-        result = 31 * result + currencyId.hashCode()
-        return result
     }
 }

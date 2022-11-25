@@ -21,7 +21,7 @@ internal class DividendTest {
 
     @Test
     fun is_CashDividendAccumulated() {
-        val asx = Market("ASX", AUD)
+        val asx = Market("ASX", AUD.code)
         val asset = getAsset(asx, "MO")
         val trn = Trn(trnType = TrnType.DIVI, asset = asset)
         trn.tradeCashRate = BigDecimal("0.8988")

@@ -18,8 +18,8 @@ internal class TestMarkets {
     @Test
     @Throws(Exception::class)
     fun is_MarketResponseSerializing() {
-        val nasdaq = Market("NASDAQ", USD)
-        val nzx = Market("NZX", NZD)
+        val nasdaq = Market("NASDAQ")
+        val nzx = Market("NZX", NZD.code)
         val markets: MutableCollection<Market> = ArrayList()
         markets.add(nasdaq)
         markets.add(nzx)

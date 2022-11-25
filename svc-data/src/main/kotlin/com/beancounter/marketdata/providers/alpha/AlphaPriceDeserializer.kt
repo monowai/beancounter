@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.BcJson
@@ -141,10 +140,10 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
             val symbols = nodeValue[assetField] ?: return null
 
             val values = symbols.asText().split(":").toTypedArray()
-            var market = Market("US", Currency("USD"))
+            var market = Market("US")
             if (values.size > 1) {
                 // We have a market
-                market = Market(values[1], Currency("USD"))
+                market = Market(values[1])
             }
             asset = Asset(values[0], market)
         }

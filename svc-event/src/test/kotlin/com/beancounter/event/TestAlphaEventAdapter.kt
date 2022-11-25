@@ -30,7 +30,7 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_UsDividendCalculated() {
-        val market = Market("NASDAQ", USD)
+        val market = Market("NASDAQ")
         val asset = getAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
@@ -64,7 +64,7 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_FutureDatedTrnIgnored() {
-        val market = Market("NASDAQ", USD)
+        val market = Market("NASDAQ", USD.code)
         val asset = getAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
@@ -88,7 +88,7 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_SplitCalculated() {
-        val market = Market("NASDAQ", USD)
+        val market = Market("NASDAQ")
         val asset = getAsset(market, kmi)
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")

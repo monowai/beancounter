@@ -189,7 +189,7 @@ internal class AlphaVantageApiTest {
     fun is_ApiErrorMessageHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
         AlphaMockUtils.mockGlobalResponse("$api.ERR", jsonFile)
-        val asset = Asset(api, Market("ERR", USD))
+        val asset = Asset(api, Market("ERR", USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(of(asset))
         assertThat(results)
@@ -205,7 +205,7 @@ internal class AlphaVantageApiTest {
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
-        val asset = Asset(api, Market("EMPTY", USD))
+        val asset = Asset(api, Market("EMPTY", USD.code))
         val results = mdFactory
             .getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(of(asset))
@@ -225,7 +225,7 @@ internal class AlphaVantageApiTest {
     fun is_CurrentPriceFound() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file
         AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
-        val nasdaq = Market(NASDAQ.code, USD)
+        val nasdaq = Market(NASDAQ.code, USD.code)
         val asset = Asset(MSFT.code, nasdaq)
         val priceRequest = of(asset = asset)
         val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)

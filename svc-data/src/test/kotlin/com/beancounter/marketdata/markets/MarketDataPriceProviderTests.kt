@@ -2,7 +2,6 @@ package com.beancounter.marketdata.markets
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.marketdata.Constants.Companion.NZX
@@ -37,7 +36,7 @@ class MarketDataPriceProviderTests @Autowired constructor(
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
         val mdp = mdFactory.getMarketDataProvider(
-            Market("NonExistent", Currency("ABC"))
+            Market("NonExistent", "ABC")
         )
         assertThat(mdp)
             .isNotNull

@@ -1,6 +1,5 @@
 package com.beancounter.common
 
-import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils
@@ -73,7 +72,7 @@ internal class PreviousClosePriceDateTest {
         assertThat(previousClose.getPriceDate(utcEve, nasdaq, true))
             .isEqualTo(dateUtils.getDate("2021-10-12"))
 
-        val ofAsset = PriceRequest.of(AssetUtils.getAsset(Market("Blah", USD), "Test"))
+        val ofAsset = PriceRequest.of(AssetUtils.getAsset(Market("Blah"), "Test"))
         assertThat(ofAsset.date)
             .isEqualTo(DateUtils.today)
     }

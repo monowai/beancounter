@@ -96,7 +96,8 @@ class AlphaVantageEnrichmentTest {
         AlphaMockUtils.mockSearchResponse("$code.$lon", ClassPathResource("/mock/alpha/mf-search.json").file)
         val symbol = "0P0000XMSV.$lon"
         AlphaMockUtils.mockGlobalResponse(
-            symbol, ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file
+            symbol,
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file
         )
 
         val mvcResult = mockMvc.perform(

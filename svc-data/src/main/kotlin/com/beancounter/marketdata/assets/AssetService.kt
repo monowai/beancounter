@@ -92,7 +92,7 @@ class AssetService internal constructor(
             asset = enrichmentFactory.getEnricher(market).enrich(
                 id = keyGenUtils.format(UUID.randomUUID()),
                 market = market,
-                assetInput = AssetInput(marketCode, code)
+                assetInput = AssetInput(market = marketCode, code = code)
             )
             if (marketService.canPersist(market)) {
                 asset = assetRepository.save(asset)

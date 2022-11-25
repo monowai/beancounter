@@ -73,21 +73,24 @@ internal class DataProviderArgumentsTest {
         val code = "ABC"
         assets.add(
             PriceAsset(
-                marketA, code,
+                marketA,
+                code,
                 getAsset(Market(marketA), code)
             )
         )
         val marketB = "BBB"
         assets.add(
             PriceAsset(
-                marketB, code,
+                marketB,
+                code,
                 getAsset(Market(marketB), code)
             )
         )
         val marketC = "CCC"
         assets.add(
             PriceAsset(
-                marketC, code,
+                marketC,
+                code,
                 getAsset(Market(marketC), code)
             )
         )
@@ -103,7 +106,8 @@ internal class DataProviderArgumentsTest {
     fun activeAssetsByProvider() {
         val providerUtils = getProviderUtils(NYSE)
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(PriceAsset(NYSE.code, "TWEE"))
-        val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
+        val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
+            providerUtils.splitProviders(assetInputs)
         assertThat(splitResults).hasSize(1)
         splitResults.forEach {
             assertThat(it.value).hasSize(1)
@@ -120,7 +124,8 @@ internal class DataProviderArgumentsTest {
                 Asset(AssetInput(NYSE.code, "Not Active"), NYSE, Status.Inactive)
             )
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)
-        val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> = providerUtils.splitProviders(assetInputs)
+        val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
+            providerUtils.splitProviders(assetInputs)
         assertThat(splitResults)
             .hasSize(1)
 

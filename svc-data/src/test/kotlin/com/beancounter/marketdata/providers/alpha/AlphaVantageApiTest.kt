@@ -129,7 +129,7 @@ internal class AlphaVantageApiTest {
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
 
-        // Setup a user account
+        // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)
     }
@@ -149,11 +149,11 @@ internal class AlphaVantageApiTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        val (data) = objectMapper
+        val (asset) = objectMapper
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes
-        val price = marketDataService.getPriceResponse(of(AssetInput(data)))
+        val price = marketDataService.getPriceResponse(of(AssetInput(asset.market.code, asset.code)))
         assertThat(price).hasNoNullFieldsOrProperties()
     }
 

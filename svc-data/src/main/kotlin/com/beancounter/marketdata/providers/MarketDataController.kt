@@ -47,7 +47,14 @@ class MarketDataController @Autowired internal constructor(
     ): PriceResponse {
         val asset = assetService.findLocally(marketCode, assetCode)
             ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
-        return marketDataService.getPriceResponse(PriceRequest.of(AssetInput(asset)))
+        return marketDataService.getPriceResponse(
+            PriceRequest.of(
+                AssetInput(
+                    market = asset.market.code,
+                    code = asset.code
+                )
+            )
+        )
     }
 
     /**

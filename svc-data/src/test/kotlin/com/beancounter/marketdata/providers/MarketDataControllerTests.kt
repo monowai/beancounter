@@ -49,7 +49,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
     private val mockMvc: MockMvc,
     private val mockAuthConfig: MockAuthConfig,
     private val bcJson: BcJson,
-    private val mdFactory: MdFactory,
+    private val mdFactory: MdFactory
 ) {
     @MockBean
     private lateinit var marketDataRepo: MarketDataRepo
@@ -64,7 +64,10 @@ internal class MarketDataControllerTests @Autowired private constructor(
     @BeforeEach
     fun setUp() {
         val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)!!
-        priceDate = marketDataProvider.getDate(asset.market, PriceRequest.of(AssetInput(asset)))
+        priceDate = marketDataProvider.getDate(
+            asset.market,
+            PriceRequest.of(AssetInput(market = asset.market.code, code = asset.code))
+        )
         Mockito.`when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate))
             .thenReturn(
                 Optional.of(

@@ -49,7 +49,7 @@ import java.math.BigDecimal
     partitions = 1,
     topics = [
         "topicPrice",
-        TOPIC_EVENT,
+        TOPIC_EVENT
     ],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = ["log.dir=./build/kafka-md", "auto.create.topics.enable=true"]
@@ -133,7 +133,8 @@ class KafkaMarketDataTest {
         // Will be resolved over the mocked API
         assets.add(
             PriceAsset(
-                NASDAQ.code, Constants.AAPL.code,
+                NASDAQ.code,
+                Constants.AAPL.code,
                 AssetUtils.getAsset(NASDAQ, Constants.AAPL.code)
             )
         )

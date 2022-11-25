@@ -22,4 +22,4 @@ import org.springframework.context.annotation.Import
     DataCommands::class,
     ClientConfig::class
 )
-open class ShellConfig
+class ShellConfig

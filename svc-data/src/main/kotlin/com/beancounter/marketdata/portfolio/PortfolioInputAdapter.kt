@@ -15,7 +15,7 @@ import java.util.Locale
 @Service
 class PortfolioInputAdapter internal constructor(
     private val currencyService: CurrencyService,
-    private val keyGenUtils: KeyGenUtils,
+    private val keyGenUtils: KeyGenUtils
 ) {
     fun prepare(owner: SystemUser, portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val results: MutableCollection<Portfolio> = ArrayList()

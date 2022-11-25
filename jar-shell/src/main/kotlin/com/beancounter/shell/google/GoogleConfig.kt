@@ -8,4 +8,4 @@ import org.springframework.context.annotation.Import
 /**
  * Imports Google Doc related dependencies.
  */
-open class GoogleConfig
+class GoogleConfig

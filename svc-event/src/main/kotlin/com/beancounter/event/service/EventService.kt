@@ -22,7 +22,7 @@ class EventService(
     private val eventRepository: EventRepository,
     private val keyGenUtils: KeyGenUtils
 ) {
-    private var eventPublisher: EventPublisher? = null
+    private lateinit var eventPublisher: EventPublisher
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -48,17 +48,15 @@ class EventService(
             // Don't create forward dated transactions
             if (trnEvent != null) {
                 trnEvent.trnInput
-                if (eventPublisher != null) {
-                    log.info(
-                        "event: {}, asset: {} code: {}, tradeDate: {}",
-                        event.id,
-                        event.assetId,
-                        trnEvent.portfolio.code,
-                        trnEvent
-                            .trnInput.tradeDate
-                    )
-                    eventPublisher!!.send(trnEvent)
-                }
+                log.info(
+                    "event: {}, asset: {} code: {}, tradeDate: {}",
+                    event.id,
+                    event.assetId,
+                    trnEvent.portfolio.code,
+                    trnEvent
+                        .trnInput.tradeDate
+                )
+                eventPublisher.send(trnEvent)
                 results.add(trnEvent)
             }
         }

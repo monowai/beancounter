@@ -24,7 +24,7 @@ import java.math.BigDecimal
  * AlphaVantage API tests.
  */
 @SpringBootTest(classes = [AlphaEventConfig::class])
-class TestAlphaEvents {
+class TestAlphaEventAdapater {
     @Autowired
     private lateinit var alphaEventAdapter: AlphaEventAdapter
 
@@ -82,5 +82,38 @@ class TestAlphaEvents {
         assertThat(
             behaviourFactory.getAdapter(event).calculate(portfolio, Position(asset), event)
         ).isNull()
+    }
+
+    @Test
+    fun is_SplitCalculated() {
+        val market = Market("NASDAQ", USD)
+        val asset = getAsset(market, kmi)
+        val quantityValues = QuantityValues()
+        quantityValues.purchased = BigDecimal("80")
+        val position = Position(asset)
+        position.quantityValues = quantityValues
+        assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal("80"))
+        val dateUtils = DateUtils()
+        val onDate = dateUtils.getDate("2020-05-01")
+        assertThat(onDate).isNotNull
+        val event = CorporateEvent(
+            id = "123",
+            trnType = TrnType.SPLIT,
+            recordDate = onDate,
+            source = "ALPHA",
+            assetId = asset.id,
+            split = BigDecimal("10")
+        )
+        val portfolio = getPortfolio()
+        val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
+        assertThat(trnEvent).isNotNull
+        assertThat(trnEvent?.portfolio).isNotNull
+        assertThat(trnEvent?.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
+            .hasFieldOrPropertyWithValue("trnType", TrnType.SPLIT)
+            .hasFieldOrPropertyWithValue("status", TrnStatus.CONFIRMED)
+            .hasFieldOrPropertyWithValue("tradeDate", onDate)
+            .hasFieldOrPropertyWithValue("price", BigDecimal("10"))
+            .hasFieldOrPropertyWithValue("quantity", BigDecimal("10"))
+            .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO) // @ 30%
     }
 }

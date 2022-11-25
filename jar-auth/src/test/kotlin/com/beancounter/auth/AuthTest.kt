@@ -33,7 +33,7 @@ import org.springframework.web.client.RestOperations
         AuthTest.SimpleController::class,
         WebResourceServerConfig::class,
         DefaultJWTProcessor::class
-    ],
+    ]
 )
 
 @WebMvcTest(AuthTest.SimpleController::class, properties = ["auth.enabled=true"])
@@ -59,7 +59,6 @@ class AuthTest {
     @Test
     @Throws(Exception::class)
     fun has_NoTokenAndIsUnauthorized() {
-
         var result = mockMvc.perform(
             MockMvcRequestBuilders.get(hello)
                 .contentType(MediaType.APPLICATION_JSON)

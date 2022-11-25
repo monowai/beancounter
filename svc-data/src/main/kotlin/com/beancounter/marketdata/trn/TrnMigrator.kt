@@ -49,7 +49,7 @@ class TrnMigrator(private val cashServices: CashServices, private val fxRateServ
             tradeBaseRate = trn.tradeBaseRate,
             tradePortfolioRate = trn.tradePortfolioRate,
             tradeCashRate = cashRates.data.rates[pair]!!.rate,
-            quantity = trn.quantity,
+            quantity = trn.quantity
         )
         val cashAmount = cashServices.getCashImpact(trnInput)
         val cashAsset = cashServices.getCashAsset(trnInput)

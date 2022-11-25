@@ -40,7 +40,7 @@ logging:
     org:
       springframework: error
       springframework.scheduling: info
-#      springframework.security: trace
+      #      springframework.security: trace
       hibernate: error
       apache: error
       postgres: error

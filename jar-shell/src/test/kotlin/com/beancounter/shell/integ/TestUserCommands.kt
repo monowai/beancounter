@@ -32,9 +32,11 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class])
 class TestUserCommands {
     private val bcJson = BcJson()
+
     @Autowired
     private lateinit var authConfig: AuthConfig
     private var client: String = "bc-dev"
+
     @Autowired
     private lateinit var tokenService: TokenService
     private var lineReader: LineReader = Mockito.mock(LineReader::class.java)
@@ -43,12 +45,12 @@ class TestUserCommands {
     private var jwtDecoder: JwtDecoder = Mockito.mock(JwtDecoder::class.java)
 
     private lateinit var userCommands: UserCommands
+
     @Autowired
     private lateinit var tokenUtils: TokenUtils
 
     @Autowired
     fun initAuth() {
-
         userCommands = UserCommands(
             LoginService(authGateway, jwtDecoder),
             RegistrationService(registrationGateway, tokenService),
@@ -80,7 +82,8 @@ class TestUserCommands {
         val loginRequest = LoginService.LoginRequest(client_id = client, username = userId, password = password)
         val systemUser = SystemUser(userId, "blah@blah.com")
         val jwt = tokenUtils.getUserToken(systemUser)
-        val authResponse = OAuth2Response(userId, scope = "beancounter", expiry = 0L, refreshToken = "", type = "password")
+        val authResponse =
+            OAuth2Response(userId, scope = "beancounter", expiry = 0L, refreshToken = "", type = "password")
         Mockito.`when`(authGateway.login(loginRequest))
             .thenReturn(authResponse)
         Mockito.`when`(jwtDecoder.decode(authResponse.token))

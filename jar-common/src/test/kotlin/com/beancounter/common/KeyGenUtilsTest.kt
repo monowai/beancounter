@@ -12,6 +12,7 @@ import java.util.UUID
  */
 class KeyGenUtilsTest {
     private var keyGenUtils = KeyGenUtils()
+
     @Test
     fun uuidGenerating() {
         val uuid = UUID.randomUUID()

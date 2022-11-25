@@ -11,11 +11,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [GoogleGateway::class, GoogleAuthConfig::class])
 /**
  * Not mocking Google, so this is just a simple wiring test.
  */
+@ExtendWith(SpringExtension::class)
+@SpringBootTest(classes = [GoogleGateway::class, GoogleAuthConfig::class])
 class TestGoogleSheet {
     @Autowired
     private lateinit var googleGateway: GoogleGateway

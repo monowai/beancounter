@@ -26,7 +26,7 @@ class PriceExecutorConfig {
     private val threadTimeout = 10
 
     @Bean
-    fun priceExecutor(): ThreadPoolTaskExecutor? {
+    fun priceExecutor(): ThreadPoolTaskExecutor {
         val priceExecutor = ThreadPoolTaskExecutor()
         priceExecutor.setThreadGroupName("price-")
         priceExecutor.corePoolSize = corePoolSize

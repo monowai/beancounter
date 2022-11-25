@@ -196,7 +196,7 @@ internal class WorldTradingDataApiTest {
             assets: Collection<PriceAsset>,
             asAt: String?,
             overrideAsAt: Boolean,
-            jsonFile: File?,
+            jsonFile: File?
         ) {
             var assetArg: StringBuilder? = null
             for ((_, _, asset) in assets) {

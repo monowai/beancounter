@@ -39,7 +39,8 @@ class TestAssetIngestService {
     @Test
     fun is_HydratedAssetFound() {
         val asset = assetIngestService.resolveAsset(
-            nasdaq, msft
+            nasdaq,
+            msft
         )
         assertThat(asset).isNotNull
             .hasFieldOrProperty("id")

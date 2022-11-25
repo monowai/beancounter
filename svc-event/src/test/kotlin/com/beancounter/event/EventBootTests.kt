@@ -20,6 +20,7 @@ import org.springframework.web.context.WebApplicationContext
 internal class EventBootTests @Autowired private constructor(private val context: WebApplicationContext) {
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
+
     @Test
     fun contextLoads() {
         Assertions.assertThat(context).isNotNull

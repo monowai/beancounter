@@ -42,6 +42,7 @@ class ShareSightConfig {
 
     companion object {
         private val log = LoggerFactory.getLogger("ShareSightImporter")
+
         @JvmStatic
         fun logFirst(type: String, message: String?, row: List<String>): BusinessException {
             log.error(

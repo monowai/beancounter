@@ -17,6 +17,7 @@ import java.math.BigDecimal
  */
 internal class TestFx {
     private val objectMapper = BcJson().objectMapper
+
     @Test
     fun is_DefaultPropertiesSet() {
         assertThat(FxRequest("2020-10-01").pairs).isNotNull

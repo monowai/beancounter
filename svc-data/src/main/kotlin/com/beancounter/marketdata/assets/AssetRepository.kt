@@ -15,5 +15,5 @@ interface AssetRepository : CrudRepository<Asset, String> {
 
     @Query("select a from Asset a")
     @Transactional(readOnly = true)
-    fun findAllAssets(): Stream<Asset>?
+    fun findAllAssets(): Stream<Asset>
 }

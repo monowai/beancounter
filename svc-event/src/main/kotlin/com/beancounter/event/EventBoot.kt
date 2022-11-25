@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableAsync
         "com.beancounter.event",
         "com.beancounter.auth",
         "com.beancounter.common.utils",
-        "com.beancounter.common.exception",
+        "com.beancounter.common.exception"
     ]
 )
 @EntityScan("com.beancounter.common.event")

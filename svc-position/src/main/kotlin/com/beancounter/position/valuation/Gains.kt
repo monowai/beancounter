@@ -4,10 +4,10 @@ import com.beancounter.common.model.MoneyValues
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
-@Service
 /**
  * Compute a gain from supplied arguments
  */
+@Service
 class Gains {
     /**
      * Compute various gain buckets.

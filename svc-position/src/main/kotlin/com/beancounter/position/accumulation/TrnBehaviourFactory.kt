@@ -18,7 +18,7 @@ import java.util.EnumMap
     WithdrawalBehaviour::class,
     DividendBehaviour::class,
     SplitBehaviour::class,
-    FxBuyBehaviour::class,
+    FxBuyBehaviour::class
 )
 @Service
 class TrnBehaviourFactory {

@@ -17,7 +17,6 @@ interface TrnRepository : CrudRepository<Trn, String> {
             "where t.portfolio.id =?1  " +
             "and t.tradeDate <= ?2"
     )
-
     fun findByPortfolioId(portfolioId: String, tradeDate: LocalDate, sort: Sort): Collection<Trn>
 
     fun deleteByPortfolioId(portfolioId: String): Long
@@ -29,7 +28,12 @@ interface TrnRepository : CrudRepository<Trn, String> {
             "and t.asset.id = ?2 " +
             "and t.trnType in (?3) "
     )
-    fun findByPortfolioIdAndAssetIdAndTrnType(portfolioId: String, assetId: String, trnType: ArrayList<TrnType>, sort: Sort): Collection<Trn>
+    fun findByPortfolioIdAndAssetIdAndTrnType(
+        portfolioId: String,
+        assetId: String,
+        trnType: ArrayList<TrnType>,
+        sort: Sort
+    ): Collection<Trn>
 
     @Query(
         "select t from Trn t " +

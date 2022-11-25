@@ -10,10 +10,10 @@ import com.beancounter.position.valuation.AverageCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
-@Service
 /**
  * Logic to accumulate a buy transaction into a position.
  */
+@Service
 class BuyBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()

@@ -16,6 +16,7 @@ object AuthConstants {
     const val SCOPE_USER = "SCOPE_$USER"
     const val SCOPE_SYSTEM = "SCOPE_$SYSTEM"
     const val SCOPE_ADMIN = "SCOPE_$ADMIN"
+
     @JvmField
     val AUTH_M2M = SimpleGrantedAuthority(SCOPE_SYSTEM)
     val authSystem = SystemUser(id = SYSTEM)

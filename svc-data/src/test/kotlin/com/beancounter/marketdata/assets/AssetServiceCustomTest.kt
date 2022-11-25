@@ -3,15 +3,17 @@ package com.beancounter.marketdata.assets
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
+import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.currency.CurrencyRepository
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.utils.MockRepos
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import java.util.Optional
 
 @SpringBootTest
 @AutoConfigureMockAuth
@@ -27,7 +29,16 @@ internal class AssetServiceCustomTest {
 
     @BeforeEach
     fun mockRepos() {
-        MockRepos.currencies(currencyRepository)
+        Mockito.`when`(currencyRepository.findById(Constants.USD.code))
+            .thenReturn(Optional.of(Constants.USD))
+        Mockito.`when`(currencyRepository.findById(Constants.AUD.code))
+            .thenReturn(Optional.of(Constants.AUD))
+        Mockito.`when`(currencyRepository.findById(Constants.NZD.code))
+            .thenReturn(Optional.of(Constants.NZD))
+        Mockito.`when`(currencyRepository.findById(Constants.SGD.code))
+            .thenReturn(Optional.of(Constants.SGD))
+        Mockito.`when`(currencyRepository.findById(Constants.GBP.code))
+            .thenReturn(Optional.of(Constants.GBP))
     }
 
     @Test

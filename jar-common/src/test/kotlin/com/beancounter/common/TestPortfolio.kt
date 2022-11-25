@@ -50,7 +50,6 @@ class TestPortfolio {
 
     @Test
     fun is_PortfoliosResponseSerializing() {
-
         val portfolios = ArrayList<Portfolio>()
         val portfolio = getPortfolio()
         portfolio.owner = SystemUser(

@@ -1,17 +1,22 @@
 # BeanCounter Auth Module
-Services are secured using OAuth2 and the exchange of JWT tokens. 
 
-The purpose of this module is to make it easy to include a jar, wire up a bit of configuration and then get on with building your service
+Services are secured using OAuth2 and the exchange of JWT tokens.
 
-This guide is focused on how to make the security mechanism work and how to test it.   
+The purpose of this module is to make it easy to include a jar, wire up a bit of configuration and then get on with
+building your service
+
+This guide is focused on how to make the security mechanism work and how to test it.
 
 I wanted to be able to:
-*   Use `MockMvc` to test my Auth mechanism
-*   Have a simple configuration mechanism that enabled security to "just work"
-*   Provide support for both SCOPE and ROLE as returned by KeyCloak  
+
+* Use `MockMvc` to test my Auth mechanism
+* Have a simple configuration mechanism that enabled security to "just work"
+* Provide support for both SCOPE and ROLE as returned by KeyCloak
 
 ## Key Classes
-The easiest way to see how things work is to check out the `AuthTest` class which injects a simple secured controller and then uses the various classes, via MockMvc, to verify security 
+
+The easiest way to see how things work is to check out the `AuthTest` class which injects a simple secured controller
+and then uses the various classes, via MockMvc, to verify security
 
 `SecurityConfig` Enable/Disable security _in your service_ - run with `nosecurity` to disable AUTH mechanisms
 
@@ -23,7 +28,7 @@ The easiest way to see how things work is to check out the `AuthTest` class whic
 
 `TokenUtils` Utility class that returns JWT tokens that can be used for testing purposes
 
-`AuthorityRoleConverter` Used by `MockMvc` to extract realm claims from the JWT   
+`AuthorityRoleConverter` Used by `MockMvc` to extract realm claims from the JWT
 
 ### Configuring your service
 
@@ -36,7 +41,7 @@ implementation(
 ```
 
 Add the following config to your file, changing URI and realm as appropriate
- 
+
 ```$yaml
 
 keycloak:
@@ -54,7 +59,8 @@ spring:
 
 ## Scope and Roles
 
-This is an example of how roles and scopes are returned in a JWT token 
+This is an example of how roles and scopes are returned in a JWT token
+
 ```json
 "realm_access": {
     "roles": [
@@ -66,7 +72,8 @@ This is an example of how roles and scopes are returned in a JWT token
 "scope": "beancounter profile email roles"
 ```
 
-In BC, the entire API is secured using a scope as you can see in `ResourceServerConfig` 
+In BC, the entire API is secured using a scope as you can see in `ResourceServerConfig`
+
 ```java
     http.cors().and()
         .authorizeRequests()
@@ -80,15 +87,22 @@ In BC, the entire API is secured using a scope as you can see in `ResourceServer
         //  this converter is not used when using Mock testing but is used when running with a full configuration
         .jwtAuthenticationConverter(jwtRoleConverter);
 ```
-A scope of `beancounter` basically means "authorized"; You have to be authorized to call the API.   
+
+A scope of `beancounter` basically means "authorized"; You have to be authorized to call the API.
 
 In KeyCloak, it is generally more efficient assign roles to groups and then put users into groups.
 
-By default `spring-security-test` supports OAuth `scope`. You can't call `hasRole` to check a scope or `hasScope` to check a role. While there is [no difference](https://stackoverflow.com/questions/19525380/difference-between-role-and-grantedauthority-in-spring-security) between a `SCOPE_` and a `ROLE_` except for the prefix, there is if you use the wrong annotation. You can see this by setting a breakpoint on `SecurityExpressionRoot.hasAnyAuthorityName`
-  
-`JwtRoleConverter` is responsible for merging scope and roles into a `GrantedAuthority` set allowing us to check by ROLE or SCOPE.  
+By default `spring-security-test` supports OAuth `scope`. You can't call `hasRole` to check a scope or `hasScope` to
+check a role. While there
+is [no difference](https://stackoverflow.com/questions/19525380/difference-between-role-and-grantedauthority-in-spring-security)
+between a `SCOPE_` and a `ROLE_` except for the prefix, there is if you use the wrong annotation. You can see this by
+setting a breakpoint on `SecurityExpressionRoot.hasAnyAuthorityName`
+
+`JwtRoleConverter` is responsible for merging scope and roles into a `GrantedAuthority` set allowing us to check by ROLE
+or SCOPE.
 
 A controller can be simply secured with the `@PreAuthorize` annotation, or `@Secured` if you prefer
+
 ```java
   @RestController
   static class SimpleController {
@@ -108,6 +122,7 @@ A controller can be simply secured with the `@PreAuthorize` annotation, or `@Sec
 ```
 
 To unit test the above controller, you're going to do something like this:
+
 ```java
 ```java
 @ExtendWith(SpringExtension.class)
@@ -171,19 +186,24 @@ public class AuthTest {
 All of the above code can be seen in the `AuthTest` class
 
 ## KcConfig
-To test tokens in a service, you need to have KeyCloak running. 
 
-Start by getting KeyCloak started and configured.  KC config work is discussed in [bc-demo](../bc-demo/README.md) and is beyond the scope of this guide.  Thanks to the magic of Docker and the way KC is packaged, most of the config work has been done for you, allowing you to focus on the internals of securing your app.
+To test tokens in a service, you need to have KeyCloak running.
+
+Start by getting KeyCloak started and configured. KC config work is discussed in [bc-demo](../bc-demo/README.md) and is
+beyond the scope of this guide. Thanks to the magic of Docker and the way KC is packaged, most of the config work has
+been done for you, allowing you to focus on the internals of securing your app.
 
 You can start KC, in a configured to work with development defaults from the `bc-demo` folder with the following command
+
 ```shell script
 cd ../bc-demo
 docker-compose start postgres keycloak
 ```
 
 ### Further reading and  references
- 
-There's a ton of information on the internet and I recommend reading the following links it you want to dive deeper. All of these links have provided useful information which I believe I've consolidated into this module  
+
+There's a ton of information on the internet and I recommend reading the following links it you want to dive deeper. All
+of these links have provided useful information which I believe I've consolidated into this module
 
 <https://docs.spring.io/spring-security/site/docs/current/reference/html5/>
 
@@ -194,6 +214,7 @@ There's a ton of information on the internet and I recommend reading the followi
 <https://www.keycloak.org/docs/latest/authorization_services/>
 
 #### Decrypt  tokens
+
 <https://jwt.io/>
 
 #### Your token is not application state

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import
 @Import(FigiProxy::class)
 class FigiConfig {
     @Value("\${beancounter.market.providers.figi.key:demo}")
-    var apiKey: String? = null
+    lateinit var apiKey: String
 
     @Value("\${beancounter.market.providers.figi.enabled:true}")
     var enabled: Boolean = true

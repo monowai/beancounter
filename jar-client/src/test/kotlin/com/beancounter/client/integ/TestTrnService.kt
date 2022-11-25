@@ -15,10 +15,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
+
 /**
  * Basic client side transaction tests.
  */
-@AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+)
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
 class TestTrnService {
@@ -38,7 +42,9 @@ class TestTrnService {
     @Test
     fun is_TrnsReturnedForPortfolioAssetId() {
         val query = TrustedTrnQuery(
-            portfolio, DateUtils().getDate("2020-05-01"), "KMI"
+            portfolio,
+            DateUtils().getDate("2020-05-01"),
+            "KMI"
         )
         val queryResults = trnService.query(query)
         assertThat(queryResults).isNotNull.hasFieldOrProperty(Payload.DATA)

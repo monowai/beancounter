@@ -18,7 +18,7 @@ class PortfolioInputAdapter internal constructor(
     private val keyGenUtils: KeyGenUtils
 ) {
     fun prepare(owner: SystemUser, portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
-        val results: MutableCollection<Portfolio> = ArrayList()
+        val results: MutableCollection<Portfolio> = mutableListOf()
         for (portfolio in portfolios) {
             results.add(prepare(owner, portfolio))
         }

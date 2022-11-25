@@ -15,7 +15,10 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 /**
  * Contract based asset tests.
  */
-@AutoConfigureStubRunner(stubsMode = StubRunnerProperties.StubsMode.LOCAL, ids = ["org.beancounter:svc-data:+:stubs:10999"])
+@AutoConfigureStubRunner(
+    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
+    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+)
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
 class TestAssetClientService {

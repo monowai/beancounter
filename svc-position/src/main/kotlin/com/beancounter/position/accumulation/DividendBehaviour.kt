@@ -10,10 +10,10 @@ import com.beancounter.position.utils.CurrencyResolver
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
-@Service
 /**
  * Logic to accumulate a dividend transaction event into a position.
  */
+@Service
 class DividendBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
@@ -21,7 +21,10 @@ class DividendBehaviour : AccumulationStrategy {
         value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE)
         value(trn, portfolio, position, Position.In.BASE, trn.tradeBaseRate)
         value(
-            trn, portfolio, position, Position.In.PORTFOLIO,
+            trn,
+            portfolio,
+            position,
+            Position.In.PORTFOLIO,
             trn.tradePortfolioRate
         )
         return position

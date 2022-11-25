@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component
 @Component
 class MarketConfig @Autowired constructor(
     val values: Collection<Market>,
-    val currencyService: CurrencyService,
+    val currencyService: CurrencyService
 ) {
 
     fun getProviders(): Map<String, Market> {

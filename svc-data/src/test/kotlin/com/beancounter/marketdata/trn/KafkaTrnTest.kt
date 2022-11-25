@@ -263,7 +263,7 @@ class KafkaTrnTest {
             fees = ONE,
             tradeDate = tradeDate,
             cashCurrency = asset.market.currency.code,
-            price = BigDecimal(5.99),
+            price = BigDecimal(5.99)
         )
     }
 
@@ -315,6 +315,7 @@ class KafkaTrnTest {
     companion object {
         const val TOPIC_CSV_IO = "topicCsvIo"
         private val log = LoggerFactory.getLogger(KafkaTrnTest::class.java)
+
         @JvmStatic
         fun stubFx(url: String, rateResponse: File) {
             WireMock.stubFor(

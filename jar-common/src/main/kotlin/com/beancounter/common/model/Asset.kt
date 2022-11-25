@@ -28,7 +28,7 @@ data class Asset constructor(
     @JsonIgnore var category: String = "Equity",
     @Transient var assetCategory: AssetCategory = AssetCategory(category, category),
     val status: Status = Status.Active,
-    var version: String = "1",
+    var version: String = "1"
 ) {
     init {
         code = code.uppercase(Locale.getDefault())

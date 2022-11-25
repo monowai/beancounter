@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.currency
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -20,9 +21,9 @@ import javax.annotation.PostConstruct
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.currency")
 class CurrencyService(val currencyRepository: CurrencyRepository) {
-    var base: String = "USD"
+    final var base: String = "USD"
     var values: Collection<Currency> = ArrayList()
-    var baseCurrency: Currency? = null
+    var baseCurrency: Currency = Currency(base)
 
     @PostConstruct
     private fun persist() {
@@ -30,9 +31,8 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
         if (!values.isEmpty()) {
             val result = currencyRepository.saveAll(this.values)
             for (currency in result) {
-                log.debug("Persisted {}", currency)
+                log.trace("Persisted {}", currency)
             }
-            baseCurrency = getCode(base) // Default base currency
         }
     }
 
@@ -43,12 +43,12 @@ class CurrencyService(val currencyRepository: CurrencyRepository) {
      * @return resolved currency
      */
     @Cacheable("currency.code")
-    fun getCode(code: String): Currency? {
+    fun getCode(code: String): Currency {
         val result = currencyRepository.findById(code.uppercase(Locale.getDefault()))
         if (result.isPresent) {
             return result.get()
         }
-        return null
+        throw BusinessException("$code is an unknown currency")
     }
 
     @get:Cacheable("currency.all")

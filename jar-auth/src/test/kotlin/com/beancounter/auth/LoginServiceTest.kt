@@ -32,7 +32,9 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(classes = [ClientPasswordConfig::class])
 @ImportAutoConfiguration(
-    ClientPasswordConfig::class, HttpMessageConvertersAutoConfiguration::class, FeignAutoConfiguration::class
+    ClientPasswordConfig::class,
+    HttpMessageConvertersAutoConfiguration::class,
+    FeignAutoConfiguration::class
 )
 @ActiveProfiles("auth")
 @AutoConfigureWireMock(port = 0)
@@ -101,7 +103,6 @@ class LoginServiceTest {
 
     @Test
     fun is_LoginGatewayWorking() {
-
         assertThat(
             authGateway.login(
                 LoginService.LoginRequest(

@@ -65,7 +65,6 @@ internal class PortfolioControllerTests {
 
     @Autowired
     fun registerUser() {
-
         token = registerUser(
             mockMvc,
             mockAuthConfig.getUserToken(SystemUser(TEST_USER, TEST_USER))
@@ -142,7 +141,8 @@ internal class PortfolioControllerTests {
         assertThat(
             objectMapper
                 .readValue(
-                    mvcResult.response.contentAsString, PortfoliosResponse::class.java
+                    mvcResult.response.contentAsString,
+                    PortfoliosResponse::class.java
                 ).data
         ).hasSize(1)
 
@@ -169,7 +169,8 @@ internal class PortfolioControllerTests {
         assertThat(
             objectMapper
                 .readValue(
-                    mvcResult.response.contentAsString, PortfoliosResponse::class.java
+                    mvcResult.response.contentAsString,
+                    PortfoliosResponse::class.java
                 ).data
         ).hasSize(0)
     }
@@ -433,7 +434,10 @@ internal class PortfolioControllerTests {
             .readValue(portfolioResult.response.contentAsString, PortfoliosResponse::class.java)
         val (id, _, _, _, _, owner) = data.iterator().next()
         val updateTo = PortfolioInput(
-            "123", "Mikey", USD.code, SGD.code
+            "123",
+            "Mikey",
+            USD.code,
+            SGD.code
         )
         val patchResult = mockMvc.perform(
             MockMvcRequestBuilders.patch(portfolioById, id)

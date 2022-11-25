@@ -8,11 +8,11 @@ import org.springframework.kafka.listener.ListenerExecutionFailedException
 import org.springframework.messaging.Message
 import org.springframework.stereotype.Service
 
-@Service
-@ConditionalOnProperty(value = ["kafka.enabled"])
 /**
  * Helpers to extract nested exceptions from Kafka exceptions.
  */
+@Service
+@ConditionalOnProperty(value = ["kafka.enabled"])
 class KafkaUtils {
     fun findBcCause(e: ListenerExecutionFailedException): String {
         val stackTrace = e.mostSpecificCause.stackTrace

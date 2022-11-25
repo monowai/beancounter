@@ -30,7 +30,8 @@ class WtdConfigTest {
         val jsonFile = ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         val compareTo = ZonedDateTime.of(
-            LocalDate.parse("2019-03-08").atStartOfDay(), ZoneId.of("UTC")
+            LocalDate.parse("2019-03-08").atStartOfDay(),
+            ZoneId.of("UTC")
         )
         assertThat(response)
             .isNotNull

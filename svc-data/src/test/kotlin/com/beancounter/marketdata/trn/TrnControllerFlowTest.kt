@@ -114,7 +114,7 @@ class TrnControllerFlowTest {
             tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradePortfolioRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE
         )
 
         val trnInputB = TrnInput(

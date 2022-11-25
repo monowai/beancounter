@@ -22,7 +22,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
 internal class CurrencyTests @Autowired constructor(
-    private val currencyService: CurrencyService,
+    private val currencyService: CurrencyService
 ) {
 
     @Test

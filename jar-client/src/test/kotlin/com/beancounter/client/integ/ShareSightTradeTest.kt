@@ -92,7 +92,8 @@ internal class ShareSightTradeTest {
         val trn = shareSightRowProcessor.transform(
             TrustedTrnImportRequest(
                 portfolio,
-                row, ImportFormat.SHARESIGHT
+                row,
+                ImportFormat.SHARESIGHT
             )
         )
         Assertions.assertThat(trn)
@@ -116,7 +117,9 @@ internal class ShareSightTradeTest {
         ) {
             shareSightRowProcessor.transform(
                 TrustedTrnImportRequest(
-                    getPortfolio("Test", NZD), row, ImportFormat.SHARESIGHT
+                    getPortfolio("Test", NZD),
+                    row,
+                    ImportFormat.SHARESIGHT
                 )
             )
         }
@@ -140,7 +143,7 @@ internal class ShareSightTradeTest {
             market: String,
             tranType: String,
             fxRate: String,
-            tradeAmount: String,
+            tradeAmount: String
         ): List<String> {
             val row: MutableList<String> = mutableListOf()
             row.add(ShareSightTradeAdapter.id, "1")

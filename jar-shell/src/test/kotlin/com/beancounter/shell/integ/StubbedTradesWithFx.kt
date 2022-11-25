@@ -55,7 +55,6 @@ internal class StubbedTradesWithFx {
 
     @Test
     fun is_FxRatesSetFromCurrencies() {
-
         val row: List<String> = arrayListOf(
             "999",
             londonExchange,
@@ -77,7 +76,8 @@ internal class StubbedTradesWithFx {
         val portfolio = getPortfolio("NZDTest", Currency("NZD"))
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -112,7 +112,8 @@ internal class StubbedTradesWithFx {
         val portfolio = getPortfolio("Test", NZD)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -130,7 +131,6 @@ internal class StubbedTradesWithFx {
 
     @Test
     fun is_FxRatesSetAndTradeAmountCalculated() {
-
         // Trade CCY USD
         val row: List<String> = arrayListOf(
             "333",
@@ -157,7 +157,8 @@ internal class StubbedTradesWithFx {
         )
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -173,7 +174,6 @@ internal class StubbedTradesWithFx {
 
     @Test
     fun is_RateOfOneSetForUndefinedCurrencies() {
-
         // Trade CCY USD
         val row: List<String> = arrayListOf(
             "222",
@@ -195,7 +195,8 @@ internal class StubbedTradesWithFx {
         val portfolio = getPortfolio("TEST", USD)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull

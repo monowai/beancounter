@@ -30,7 +30,6 @@ class WtdAdapter : MarketDataAdapter {
             val assets = providerArguments.getAssets(batchId)
             val batchConfig = providerArguments.getBatchConfigs()[batchId]
             for (dpAsset in assets) {
-
                 // Ensure we return a MarketData result for each requested asset
                 val bcAsset = providerArguments.getDpToBc()[dpAsset]
                 if (message != null) {
@@ -65,7 +64,9 @@ class WtdAdapter : MarketDataAdapter {
     private fun getDefault(asset: Asset?, dpAsset: String, datedBatch: DatedBatch?): MarketData {
         log.trace(
             "{}/{} - unable to locate a price on {}",
-            dpAsset, asset!!.name, datedBatch!!.date
+            dpAsset,
+            asset!!.name,
+            datedBatch!!.date
         )
         val result = MarketData(asset)
         result.close = BigDecimal.ZERO

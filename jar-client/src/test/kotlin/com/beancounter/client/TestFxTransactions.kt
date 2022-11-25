@@ -56,7 +56,7 @@ class TestFxTransactions {
             fxTransactions.pair(
                 Currency("NZD"),
                 TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
-                BigDecimal.TEN,
+                BigDecimal.TEN
             )
         )
             .isNull() // We have a rate, so don't request one

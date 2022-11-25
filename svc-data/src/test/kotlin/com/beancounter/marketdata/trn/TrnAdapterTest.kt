@@ -99,7 +99,7 @@ internal class TrnAdapterTest {
             tradeCashRate = BigDecimal("1.99"),
             tradePortfolioRate = price,
             tradeBaseRate = BigDecimal.ONE,
-            comments = "Comment",
+            comments = "Comment"
         )
         // TradeAmount should be computed for a buy
         trnInput.settleDate = theDate
@@ -147,7 +147,7 @@ internal class TrnAdapterTest {
             trnType = TrnType.DIVI,
             quantity = BigDecimal.TEN,
             price = price,
-            tradeAmount = tradeAmount,
+            tradeAmount = tradeAmount
         )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
@@ -180,7 +180,7 @@ internal class TrnAdapterTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             price = price,
-            tradeAmount = tradeAmount,
+            tradeAmount = tradeAmount
         )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))

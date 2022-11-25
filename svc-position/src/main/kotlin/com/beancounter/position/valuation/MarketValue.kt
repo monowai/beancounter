@@ -35,23 +35,30 @@ class MarketValue(private val gains: Gains) {
         val isCash = asset.market.code == "CASH"
         val total = position.quantityValues.getTotal()
         value(
-            total, position.getMoneyValues(Position.In.TRADE, asset.market.currency),
+            total,
+            position.getMoneyValues(Position.In.TRADE, asset.market.currency),
             marketData,
             FxRate(
-                marketData.asset.market.currency, marketData.asset.market.currency,
-                BigDecimal.ONE, positions.asAt
+                marketData.asset.market.currency,
+                marketData.asset.market.currency,
+                BigDecimal.ONE,
+                positions.asAt
             ),
             isCash
         )
         value(
-            total, position.getMoneyValues(Position.In.BASE, portfolio.base),
+            total,
+            position.getMoneyValues(Position.In.BASE, portfolio.base),
             marketData,
-            rate(portfolio.base, trade, rates), isCash
+            rate(portfolio.base, trade, rates),
+            isCash
         )
         value(
-            total, position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
+            total,
+            position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
             marketData,
-            rate(portfolio.currency, trade, rates), isCash
+            rate(portfolio.currency, trade, rates),
+            isCash
         )
         return position
     }

@@ -18,7 +18,7 @@ class IngestionRequestTest {
             "",
             file = "TWEE",
             provider = "TheProvider",
-            portfolioCode = "Test",
+            portfolioCode = "Test"
         )
         assertThat(ingestionRequest.ratesIgnored).isTrue
         val json = objectMapper.writeValueAsString(ingestionRequest)

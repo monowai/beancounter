@@ -21,7 +21,7 @@ class IngestionCommand {
         @ShellOption(help = "CSV, GSHEET", defaultValue = "CSV") reader: String = "CSV",
         @ShellOption(help = "HTTP, KAFKA", defaultValue = "HTTP") writer: String = "HTTP",
         @ShellOption(help = "ID of the item to import - file name, sheetId") file: String,
-        @ShellOption(help = "Portfolio code to write to") portfolio: String,
+        @ShellOption(help = "Portfolio code to write to") portfolio: String
     ): String {
         val ingestionRequest =
             IngestionRequest(reader = reader, file = file, writer = writer, portfolioCode = portfolio)

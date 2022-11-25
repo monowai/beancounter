@@ -63,7 +63,7 @@ class TestIngestCommand {
                 mock,
                 mock,
                 pfCode,
-                pfCode,
+                pfCode
             )
         )
             .isEqualTo("Done")

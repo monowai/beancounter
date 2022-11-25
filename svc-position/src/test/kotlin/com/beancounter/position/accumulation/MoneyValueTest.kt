@@ -49,7 +49,8 @@ internal class MoneyValueTest {
     fun is_ValuedInTrackedCurrencies() {
         val buyTrn =
             Trn(
-                trnType = TrnType.BUY, asset = microsoft,
+                trnType = TrnType.BUY,
+                asset = microsoft,
                 quantity = hundred,
                 tradeAmount = twoK,
                 tradeCashRate = ten,
@@ -103,8 +104,13 @@ internal class MoneyValueTest {
             )
         )
         val splitTrn = Trn(
-            trnType = TrnType.SPLIT, asset = microsoft, quantity = BigDecimal.TEN, cashAmount = BigDecimal.TEN,
-            tradeBaseRate = BigDecimal.ONE, tradeCashRate = BigDecimal.TEN, tradePortfolioRate = tradePortfolioRate
+            trnType = TrnType.SPLIT,
+            asset = microsoft,
+            quantity = BigDecimal.TEN,
+            cashAmount = BigDecimal.TEN,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.TEN,
+            tradePortfolioRate = tradePortfolioRate
         )
         SplitBehaviour().accumulate(splitTrn, positions)
         var moneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
@@ -120,7 +126,8 @@ internal class MoneyValueTest {
         assertThat(moneyValues.costBasis)
             .isEqualTo(deepCopy.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency).costBasis)
         val sellTrn = Trn(
-            trnType = TrnType.SELL, asset = microsoft,
+            trnType = TrnType.SELL,
+            asset = microsoft,
             quantity = position.quantityValues.getTotal(),
             tradeAmount = fourK,
             tradeBaseRate = BigDecimal.ONE,
@@ -180,12 +187,16 @@ internal class MoneyValueTest {
         val positions = Positions()
         var buy =
             Trn(
-                trnType = TrnType.BUY, asset = bidu, quantity = BigDecimal(8),
+                trnType = TrnType.BUY,
+                asset = bidu,
+                quantity = BigDecimal(8),
                 tradeAmount = BigDecimal("1695.02")
             )
         val position = accumulator.accumulate(buy, positions)
         buy = Trn(
-            trnType = TrnType.BUY, asset = bidu, quantity = BigDecimal(2),
+            trnType = TrnType.BUY,
+            asset = bidu,
+            quantity = BigDecimal(2),
             tradeAmount = BigDecimal("405.21")
         )
         accumulator.accumulate(buy, positions)
@@ -197,7 +208,9 @@ internal class MoneyValueTest {
             .isEqualTo(tradeMoney.costBasis)
         var sell =
             Trn(
-                trnType = TrnType.SELL, asset = bidu, quantity = BigDecimal(-3),
+                trnType = TrnType.SELL,
+                asset = bidu,
+                quantity = BigDecimal(-3),
                 tradeAmount = BigDecimal("841.63")
             )
         accumulator.accumulate(sell, positions)

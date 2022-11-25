@@ -77,7 +77,8 @@ class TestAdapters {
         val row: List<String> = arrayListOf("", "", "", "", "")
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             getPortfolio(),
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val tradeAdapter = ShareSightTradeAdapter(
             shareSightConfig,

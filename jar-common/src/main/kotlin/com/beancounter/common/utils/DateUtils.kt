@@ -25,7 +25,7 @@ import java.util.TimeZone
 @Service
 class DateUtils(
     @Value("\${beancounter.zone:#{null}}")
-    val defaultZone: String = TimeZone.getDefault().id,
+    val defaultZone: String = TimeZone.getDefault().id
 ) {
 
     fun today() = LocalDate.now(UTC).toString()
@@ -48,6 +48,7 @@ class DateUtils(
             today -> {
                 return LocalDate.now(UTC)
             }
+
             else -> getDate(inDate, format, zoneId)
         }
     }

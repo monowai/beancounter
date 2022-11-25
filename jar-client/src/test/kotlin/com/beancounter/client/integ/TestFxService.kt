@@ -63,7 +63,6 @@ class TestFxService {
         assertThat(fxPairResults.rates.size).isEqualTo(isoCurrencyPairs.size)
 
         for (isoCurrencyPair in isoCurrencyPairs) {
-
             assertThat(fxPairResults).isNotNull.hasFieldOrProperty("rates")
             assertThat(fxPairResults.rates).containsKeys(isoCurrencyPair)
             assertThat(fxPairResults.rates[isoCurrencyPair])
@@ -129,7 +128,7 @@ class TestFxService {
             quantity = BigDecimal.TEN,
             tradeDate = DateUtils().getDate("2019-07-26"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ZERO,
+            tradePortfolioRate = BigDecimal.ZERO
         )
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)

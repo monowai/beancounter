@@ -27,15 +27,15 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
+/**
+ * FX rates set in incoming csv data are preserved.
+ */
 @ActiveProfiles("infile")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
-/**
- * FX rates set in incoming csv data are preserved.
- */
 class ShareSightRatesInTrn {
 
     @Autowired
@@ -83,7 +83,8 @@ class ShareSightRatesInTrn {
         val dividends = shareSightFactory.adapter(row)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val trn = dividends.from(trustedTrnImportRequest)
         val fxRate = BigDecimal(rate)
@@ -116,7 +117,8 @@ class ShareSightRatesInTrn {
         // System base currency
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row, ImportFormat.SHARESIGHT
+            row,
+            ImportFormat.SHARESIGHT
         )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 

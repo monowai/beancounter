@@ -102,7 +102,8 @@ class ShareSightDividendAdapter(
     override fun resolveAsset(row: List<String>): Asset {
         val values = parseAsset(row[code])
         return assetIngestService.resolveAsset(
-            values[1].uppercase(Locale.getDefault()), values[0]
+            values[1].uppercase(Locale.getDefault()),
+            values[0]
         )
     }
 

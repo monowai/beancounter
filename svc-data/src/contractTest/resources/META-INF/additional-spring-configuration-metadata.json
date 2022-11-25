@@ -4,5 +4,6 @@
       "name": "auth.enabled",
       "type": "java.lang.String",
       "description": "Toggle auth WebMvc."
-  }
-] }
+    }
+  ]
+}

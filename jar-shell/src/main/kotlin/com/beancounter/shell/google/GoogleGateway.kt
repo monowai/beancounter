@@ -30,7 +30,8 @@ class GoogleGateway internal constructor(private val googleAuthConfig: GoogleAut
 
     fun getSheets(httpTransport: NetHttpTransport?): Sheets {
         return Sheets.Builder(
-            httpTransport, GsonFactory.getDefaultInstance(),
+            httpTransport,
+            GsonFactory.getDefaultInstance(),
             googleAuthConfig.getCredentials(httpTransport)
         )
             .setApplicationName("BeanCounter")

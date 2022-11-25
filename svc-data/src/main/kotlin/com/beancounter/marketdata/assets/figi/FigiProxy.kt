@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 import java.util.Locale
 
 /**
- * Ratelimited integration to OpenFigi.
+ * Rate limited integration to OpenFigi.
  */
 @Service
 @ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
@@ -53,7 +53,10 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
                 if (filter.contains(datum.securityType2.uppercase(Locale.getDefault()))) {
                     log.trace(
                         "In response to {}/{} - found {}/{}",
-                        market, bcAssetCode, figiMarket, figiCode
+                        market,
+                        bcAssetCode,
+                        figiMarket,
+                        figiCode
                     )
                     return figiAdapter.transform(market, bcAssetCode, datum, id)
                 }

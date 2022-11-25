@@ -88,7 +88,6 @@ class KeyGenUtils {
         }
 
         private fun encodeBase64(bytes: ByteArray): String {
-
             // Output is always 22 characters.
             val chars = CharArray(22)
             var i = 0
@@ -113,7 +112,6 @@ class KeyGenUtils {
         }
 
         private fun decodeBase64(s: String): ByteArray {
-
             // Output is always 16 bytes (UUID).
             val bytes = ByteArray(16)
             var i = 0

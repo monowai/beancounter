@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
 @Service
 @Import(
     DateUtils::class,
-    TrnBehaviourFactory::class,
+    TrnBehaviourFactory::class
 )
 class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     /**

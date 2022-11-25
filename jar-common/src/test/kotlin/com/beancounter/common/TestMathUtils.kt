@@ -20,7 +20,6 @@ internal class TestMathUtils {
 
     @Test
     fun is_MultiplySafe() {
-
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),

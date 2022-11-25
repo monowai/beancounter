@@ -45,7 +45,8 @@ internal class QuantityAccumulationTest {
     fun is_TotalQuantityCorrect() {
         val positions = Positions(getPortfolio())
         val buyTrn = Trn(
-            trnType = TrnType.BUY, asset = getAsset(Market("marketCode"), "CODE"),
+            trnType = TrnType.BUY,
+            asset = getAsset(Market("marketCode"), "CODE"),
             quantity = hundred,
             tradeAmount = BigDecimal(2000)
         )

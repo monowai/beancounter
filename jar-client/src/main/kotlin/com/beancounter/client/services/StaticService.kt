@@ -21,12 +21,12 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
 import java.util.Locale
 
-@Service
-@EnableConfigurationProperties
-@ConfigurationProperties(prefix = "beancounter.exchanges")
 /**
  * Client side access to static configuration business data.
  */
+@Service
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix = "beancounter.exchanges")
 class StaticService internal constructor(
     val staticGateway: StaticGateway,
     private val tokenService: TokenService
@@ -69,10 +69,10 @@ class StaticService internal constructor(
         }
     }
 
-    @FeignClient(name = "static", url = "\${marketdata.url:http://localhost:9510/api}")
     /**
      * API calls to the BC-DATA service to obtain the data.
      */
+    @FeignClient(name = "static", url = "\${marketdata.url:http://localhost:9510/api}")
     interface StaticGateway {
         @GetMapping(value = ["/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarkets(

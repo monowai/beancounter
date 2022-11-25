@@ -8,11 +8,11 @@ import org.springframework.core.annotation.Order
 import org.springframework.shell.jline.PromptProvider
 import org.springframework.stereotype.Component
 
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 /**
  * Customise the prompt in the Shell.
  */
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 class ShellPrompt : PromptProvider {
     override fun getPrompt(): AttributedString {
         val builder = AttributedStringBuilder()

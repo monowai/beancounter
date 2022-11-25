@@ -97,9 +97,11 @@ class AlphaPriceAdapter : MarketDataAdapter {
             result.contains("Error Message") -> {
                 field = "Error Message"
             }
+
             result.contains("\"Note\":") -> {
                 field = "Note"
             }
+
             result.contains("\"Information\":") -> {
                 field = "Information"
             }

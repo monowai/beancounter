@@ -40,13 +40,13 @@ class KafkaConfig {
         .build()
 
     @Bean
-    fun trnCsvTopic(): String? {
+    fun trnCsvTopic(): String {
         log.info("BEANCOUNTER_TOPICS_TRN_CSV: {}", topicTrnCsvName)
         return topicTrnCsvName
     }
 
     @Bean
-    fun trnEventTopic(): String? {
+    fun trnEventTopic(): String {
         log.info("BEANCOUNTER_TOPICS_TRN_EVENT: {}", topicTrnEventName)
         return topicTrnEventName
     }

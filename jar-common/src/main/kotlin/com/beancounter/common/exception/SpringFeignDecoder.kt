@@ -45,8 +45,9 @@ class SpringFeignDecoder : ErrorDecoder {
         }
         return if (response.status() in 500..599) {
             SystemException(reason)
-        } else
+        } else {
             FeignException.errorStatus(methodKey, response)
+        }
     }
 
     @Throws(IOException::class)

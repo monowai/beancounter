@@ -17,7 +17,7 @@ import javax.transaction.Transactional
 @Transactional
 class SystemUserService internal constructor(
     private val systemUserRepository: SystemUserRepository,
-    private val tokenService: TokenService,
+    private val tokenService: TokenService
 ) {
     fun save(systemUser: SystemUser): SystemUser {
         return systemUserRepository.save(systemUser)

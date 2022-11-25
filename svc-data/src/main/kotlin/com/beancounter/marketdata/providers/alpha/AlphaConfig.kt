@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import java.time.LocalDate
 
-@Configuration
-@Import(AlphaPriceService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
 /**
  * Helper functions for Alpha data provider. Enable dependant supporting classes
  */
+@Configuration
+@Import(AlphaPriceService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
 class AlphaConfig : DataProviderConfig {
 
     @Value("\${beancounter.market.providers.ALPHA.markets}")

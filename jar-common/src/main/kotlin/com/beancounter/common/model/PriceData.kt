@@ -19,7 +19,8 @@ import java.time.LocalDate
 data class PriceData(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
     @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class) var priceDate: LocalDate?,
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var priceDate: LocalDate?,
     var open: BigDecimal?,
     var close: BigDecimal?,
     var low: BigDecimal?,

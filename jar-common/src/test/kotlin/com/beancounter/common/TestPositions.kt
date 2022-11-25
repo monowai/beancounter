@@ -30,7 +30,6 @@ internal class TestPositions {
     @Test
     @Throws(Exception::class)
     fun is_PositionResponseChainSerializing() {
-
         val positions = Positions(PortfolioUtils.getPortfolio("T", SGD))
         val asset = getJsonAsset("TEST", "TEST")
         val position = Position(asset)

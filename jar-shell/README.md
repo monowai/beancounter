@@ -2,13 +2,14 @@
 
 Data import reader using CSV.
 
-Convert CSV rows to BeanCounter trade format.  
+Convert CSV rows to BeanCounter trade format.
 
-Exchange rates are calculated if not provided.  TradeAmount is Qty * Price - Fees if not supplied and should be in tradeCurrency.  
+Exchange rates are calculated if not provided. TradeAmount is Qty * Price - Fees if not supplied and should be in
+tradeCurrency.
 
 TradeCurrency defaults to USD if not supplied
 
-First row is always skipped as it's assumed to be a header.  Headers are included for clarity
+First row is always skipped as it's assumed to be a header. Headers are included for clarity
 Use # to indicate a comment
 Columns shown with an * are optional and will be calculated by BeanCounter
 
@@ -22,11 +23,14 @@ Dividends - TranAmount is the value in tradeCurrency
 provider*,batch*,callerId*,type,market,code,name*,date,quantity,tradeCurrency*,price*,fees*,portfolioRate*,tradeAmount,comments*
 Owq3jmXaRgu9S_O8DZrIpQ,USX,21,DIVI,NYSE,AVLR,Avalara Inc.,2019-11-12,0.000000,USD,null,0.00,1.283500,20.18,share
 ```
-    
+
 It is assumed that you are running all commands from the root of the `BeanCounter` project
 
 ## General import flow from a CSV
-Ingestion flow against the BC_DEMO stack.  Assumes you've already registered and successfully logged in @ <http://localhost:4000>
+
+Ingestion flow against the BC_DEMO stack. Assumes you've already registered and successfully logged in
+@ <http://localhost:4000>
+
 ```shell script
  # running the shell in DEV mode against the bc-demo stack
 

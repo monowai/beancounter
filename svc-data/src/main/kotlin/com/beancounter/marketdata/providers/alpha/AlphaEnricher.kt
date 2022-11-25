@@ -48,7 +48,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
             defaultEnricher.enrich(
                 id,
                 market,
-                assetInput,
+                assetInput
             )
         } else Asset(
             id,
@@ -57,7 +57,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
             category = assetResult.type,
             market = market,
             marketCode = market.code,
-            priceSymbol = assetResult.symbol,
+            priceSymbol = assetResult.symbol
         )
     }
 
@@ -70,9 +70,10 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
         val assetResult = data.iterator().next()
         return if (currencyMatch(assetResult.currency, market.currencyId)) {
             assetResult
-        } else
-        // Fuzzy search result returned and asset from a different exchange
+        } else {
+            // Fuzzy search result returned and asset from a different exchange
             null
+        }
     }
 
     fun currencyMatch(currency: String?, currencyId: String): Boolean {

@@ -20,7 +20,7 @@ class PriceRefresh internal constructor(
     private val assetService: AssetService,
     private val assetHydrationService: AssetHydrationService,
     private val marketDataService: MarketDataService,
-    private val dateUtils: DateUtils,
+    private val dateUtils: DateUtils
 ) {
 
     @Transactional(readOnly = true)

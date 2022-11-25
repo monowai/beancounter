@@ -10,14 +10,14 @@ import com.beancounter.common.model.Portfolio
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
-@Service
 /**
  * Write to the BC HTTP api.
  */
+@Service
 class HttpWriter(
     private val trnService: TrnService,
     private val rowAdapter: RowAdapter,
-    private val fxTransactions: FxTransactions,
+    private val fxTransactions: FxTransactions
 ) : TrnWriter {
     private val log = LoggerFactory.getLogger(HttpWriter::class.java)
     var trnInputs: MutableCollection<TrnInput> = ArrayList()

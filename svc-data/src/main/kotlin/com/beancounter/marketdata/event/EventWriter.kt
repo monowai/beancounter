@@ -12,10 +12,10 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 
-@Service
 /**
  * Kafka Corporate Action/Event subscriber.
  */
+@Service
 class EventWriter {
 
     @Value("\${kafka.enabled:true}")

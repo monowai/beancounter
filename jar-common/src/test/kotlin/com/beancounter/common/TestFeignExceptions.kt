@@ -39,8 +39,11 @@ class TestFeignExceptions {
             .status(HttpStatus.BAD_REQUEST.value())
             .request(
                 Request.create(
-                    GET, testUri,
-                    java.util.HashMap(), empty(), requestTemplate
+                    GET,
+                    testUri,
+                    java.util.HashMap(),
+                    empty(),
+                    requestTemplate
                 )
             )
             .build()
@@ -59,8 +62,11 @@ class TestFeignExceptions {
             .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .request(
                 Request.create(
-                    GET, testUri, java.util.HashMap(),
-                    empty(), requestTemplate
+                    GET,
+                    testUri,
+                    java.util.HashMap(),
+                    empty(),
+                    requestTemplate
                 )
             )
             .build()
@@ -79,8 +85,11 @@ class TestFeignExceptions {
             .status(HttpStatus.SWITCHING_PROTOCOLS.value())
             .request(
                 Request.create(
-                    GET, testUri, java.util.HashMap(),
-                    empty(), requestTemplate
+                    GET,
+                    testUri,
+                    java.util.HashMap(),
+                    empty(),
+                    requestTemplate
                 )
             )
             .build()
@@ -129,8 +138,11 @@ class TestFeignExceptions {
             .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .request(
                 Request.create(
-                    GET, testUri, HashMap(),
-                    empty(), RequestTemplate()
+                    GET,
+                    testUri,
+                    HashMap(),
+                    empty(),
+                    RequestTemplate()
                 )
             )
             .body(
@@ -154,8 +166,11 @@ class TestFeignExceptions {
             .status(FORBIDDEN.value())
             .request(
                 Request.create(
-                    GET, testUri, java.util.HashMap(),
-                    empty(), requestTemplate
+                    GET,
+                    testUri,
+                    java.util.HashMap(),
+                    empty(),
+                    requestTemplate
                 )
             )
             .build()

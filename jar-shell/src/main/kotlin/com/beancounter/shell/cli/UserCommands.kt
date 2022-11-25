@@ -13,22 +13,22 @@ import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 
-@ShellComponent
-@DependsOn("shell", "lineReader")
 /**
  * Interactive access to BeanCounter from the commandline.
  */
+@ShellComponent
+@DependsOn("shell", "lineReader")
 class UserCommands(
     private val loginService: LoginService,
     private val registrationService: RegistrationService,
     private val envConfig: EnvConfig,
-    private val lineReader: LineReader,
+    private val lineReader: LineReader
 ) {
     private val bcJson = BcJson()
 
     @ShellMethod("Identify yourself")
     fun login(
-        @ShellOption(help = "User ID") user: String,
+        @ShellOption(help = "User ID") user: String
     ) {
         val password = lineReader.readLine("Password: ", '*')
         loginService.login(user, password, envConfig.client)

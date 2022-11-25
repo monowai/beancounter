@@ -27,10 +27,11 @@ class TrnAdapter internal constructor(
     var tradeCalculator: TradeCalculator,
     val cashServices: CashServices,
     val fxService: FxService,
-    val fxTransactions: FxTransactions,
+    val fxTransactions: FxTransactions
 ) {
     private val keyGenUtils: KeyGenUtils =
         KeyGenUtils()
+
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {

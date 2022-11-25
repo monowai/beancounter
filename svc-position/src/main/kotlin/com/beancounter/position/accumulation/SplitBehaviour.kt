@@ -10,10 +10,10 @@ import com.beancounter.position.valuation.AverageCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
-@Service
 /**
  * Logic to accumulate a split transaction event into a position.
  */
+@Service
 class SplitBehaviour : AccumulationStrategy {
     private val averageCost = AverageCost()
     private val currencyResolver = CurrencyResolver()

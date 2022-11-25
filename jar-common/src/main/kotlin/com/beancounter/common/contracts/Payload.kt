@@ -5,6 +5,7 @@ package com.beancounter.common.contracts
  */
 interface Payload<T> {
     val data: T
+
     companion object {
         const val DATA = "data"
     }

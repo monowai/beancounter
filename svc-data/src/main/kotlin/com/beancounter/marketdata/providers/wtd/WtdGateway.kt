@@ -11,9 +11,15 @@ import org.springframework.web.bind.annotation.RequestMethod
  * @author mikeh
  * @since 2019-03-03
  */
-@FeignClient(name = "worldTradingData", url = "\${beancounter.market.providers.WTD.url:https://www.worldtradingdata.com}")
+@FeignClient(
+    name = "worldTradingData",
+    url = "\${beancounter.market.providers.WTD.url:https://www.worldtradingdata.com}"
+)
 interface WtdGateway {
-    @RequestMapping(method = [RequestMethod.GET], value = ["/api/v1/history_multi_single_day?symbol={assets}&date={date}&api_token={apiKey}"])
+    @RequestMapping(
+        method = [RequestMethod.GET],
+        value = ["/api/v1/history_multi_single_day?symbol={assets}&date={date}&api_token={apiKey}"]
+    )
     fun getPrices(
         @PathVariable("assets") assetId: String?,
         @PathVariable("date") date: String?,

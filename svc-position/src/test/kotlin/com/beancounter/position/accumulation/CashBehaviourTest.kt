@@ -40,7 +40,7 @@ internal class CashBehaviourTest {
             trnType = TrnType.DEPOSIT,
             asset = usdCashBalance,
             cashCurrency = USD,
-            quantity = BigDecimal("10000.00"), // Buy
+            quantity = BigDecimal("10000.00") // Buy
         )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
@@ -62,7 +62,7 @@ internal class CashBehaviourTest {
             tradeAmount = BigDecimal.ONE,
             cashAsset = usdCashBalance,
             cashCurrency = USD,
-            cashAmount = cashAmount.abs(), // Cash is signed
+            cashAmount = cashAmount.abs() // Cash is signed
         )
 
         val positions = Positions()
@@ -84,7 +84,7 @@ internal class CashBehaviourTest {
             trnType = TrnType.WITHDRAWAL,
             asset = usdCashBalance,
             cashCurrency = USD,
-            quantity = cashAmount, // Cash is signed
+            quantity = cashAmount // Cash is signed
         )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
@@ -107,7 +107,7 @@ internal class CashBehaviourTest {
             tradeAmount = BigDecimal.ONE,
             cashAsset = usdCashBalance,
             cashCurrency = USD,
-            cashAmount = cashAmount,
+            cashAmount = cashAmount
         )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)

@@ -23,7 +23,7 @@ import org.springframework.test.context.ContextConfiguration
     ]
 )
 @ContextConfiguration(
-    classes = [MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class],
+    classes = [MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class]
 )
 @ActiveProfiles("auth")
 class AuthEnabledTest {

@@ -40,7 +40,7 @@ import java.util.Locale
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
 internal class AssetControllerTest(
-    @Autowired var enrichmentFactory: EnrichmentFactory,
+    @Autowired var enrichmentFactory: EnrichmentFactory
 ) {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
@@ -90,7 +90,8 @@ internal class AssetControllerTest(
 
         // Find by Primary Key
         val (data1) = objectMapper.readValue(
-            mvcResult.response.contentAsString, AssetResponse::class.java
+            mvcResult.response.contentAsString,
+            AssetResponse::class.java
         )
         assertThat(data1).isEqualTo(asset)
 
@@ -108,7 +109,8 @@ internal class AssetControllerTest(
 
         assertThat(
             objectMapper.readValue(
-                mvcResult.response.contentAsString, AssetResponse::class.java
+                mvcResult.response.contentAsString,
+                AssetResponse::class.java
             ).data
         ).isEqualTo(asset)
     }

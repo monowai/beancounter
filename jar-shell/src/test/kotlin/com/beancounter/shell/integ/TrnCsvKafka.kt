@@ -114,6 +114,7 @@ class TrnCsvKafka {
             embeddedKafkaBroker.destroy()
         }
     }
+
     companion object {
         const val topic: String = "shellTrnTopic"
     }

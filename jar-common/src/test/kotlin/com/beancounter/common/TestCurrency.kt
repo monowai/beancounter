@@ -28,7 +28,6 @@ internal class TestCurrency {
     @Test
     @Throws(Exception::class)
     fun is_CurrencyResponseSerializing() {
-
         val currencies: MutableCollection<Currency> = ArrayList()
         val currency = Currency("SomeId", "Some Name", "$")
         currencies.add(currency)
@@ -53,7 +52,8 @@ internal class TestCurrency {
         assertThat(byCode).usingRecursiveComparison().isEqualTo(byCurrency)
         assertThat(
             toPair(
-                Currency(report), Currency(report)
+                Currency(report),
+                Currency(report)
             )
         )
             .isNull()

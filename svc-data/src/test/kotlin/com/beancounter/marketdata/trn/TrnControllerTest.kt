@@ -114,7 +114,8 @@ class TrnControllerTest {
     fun is_EmptyResponseValid() {
         val portfolio = bcMvcHelper.portfolio(
             PortfolioInput(
-                "BLAH", "is_EmptyResponseValid",
+                "BLAH",
+                "is_EmptyResponseValid",
                 currency = NZD.code
             )
         )
@@ -154,7 +155,7 @@ class TrnControllerTest {
             tradeCashRate = null,
             tradeDate = dateUtils.getDate("2020-03-10"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE
         )
         val existingTrns = arrayOf(trnInput)
         val trnRequest = TrnRequest(portfolioA.id, existingTrns)
@@ -173,7 +174,8 @@ class TrnControllerTest {
         val findByAsset = mockMvc.perform(
             get(
                 "$trnsRoot/{portfolioId}/asset/{assetId}/events",
-                portfolioA.id, msft.id
+                portfolioA.id,
+                msft.id
             )
                 .contentType(APPLICATION_JSON)
                 .with(
@@ -195,7 +197,8 @@ class TrnControllerTest {
     fun is_findThrowingForIllegalTrnId() {
         val portfolio = bcMvcHelper.portfolio(
             PortfolioInput(
-                "ILLEGAL", "is_findThrowingForIllegalTrnId",
+                "ILLEGAL",
+                "is_findThrowingForIllegalTrnId",
                 currency = NZD.code
             )
         )
@@ -230,7 +233,7 @@ class TrnControllerTest {
             tradeCashRate = null,
             tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE
         )
 
         var trnInputB = TrnInput(
@@ -243,7 +246,7 @@ class TrnControllerTest {
             tradeCashRate = null,
             tradeDate = dateUtils.getDate("2016-01-01"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE
         )
 
         var trnInputs = arrayOf(trnInput, trnInputB)
@@ -258,7 +261,7 @@ class TrnControllerTest {
             tradeCurrency = USD.code,
             price = BigDecimal.TEN,
             tradeDate = dateUtils.getDate("2018-10-01"),
-            tradePortfolioRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE
         )
         trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "34"),
@@ -267,7 +270,7 @@ class TrnControllerTest {
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getDate("2017-01-01"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE
         )
 
         trnInputs = arrayOf(trnInput, trnInputB)
@@ -285,7 +288,8 @@ class TrnControllerTest {
         val response = mockMvc.perform(
             get(
                 "/portfolios/asset/{assetId}/{tradeDate}",
-                msft.id, tradeDate
+                msft.id,
+                tradeDate
             )
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(APPLICATION_JSON)
@@ -362,7 +366,7 @@ class TrnControllerTest {
                     tradeCurrency = USD.code,
                     tradeDate = dateUtils.getDate("2021-03-10"),
                     price = BigDecimal.TEN,
-                    tradePortfolioRate = BigDecimal.ONE,
+                    tradePortfolioRate = BigDecimal.ONE
                 )
             ).response.contentAsString,
             TrnResponse::class.java

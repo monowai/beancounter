@@ -14,11 +14,11 @@ import java.io.Reader
 import java.nio.file.Files
 import java.nio.file.Paths
 
-@Service
 /**
  * Import delimited files.
  * Ignores anything starting with a #
  */
+@Service
 class CsvIngester : AbstractIngester() {
     private var reader: Reader? = null
     private val log = LoggerFactory.getLogger(CsvIngester::class.java)

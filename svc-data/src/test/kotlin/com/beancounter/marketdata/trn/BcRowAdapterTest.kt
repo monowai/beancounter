@@ -141,6 +141,6 @@ class BcRowAdapterTest {
     private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             Portfolio("CSV"),
-            values.split(","),
+            values.split(",")
         )
 }

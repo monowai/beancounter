@@ -66,7 +66,8 @@ internal class FxMvcTests {
         `when`(fxGateway.getRatesForSymbols(eq(date), eq("USD"), eq(currencyService.currenciesAs)))
             .thenReturn(
                 ExRatesResponse(
-                    "USD", LocalDate.now(),
+                    "USD",
+                    LocalDate.now(),
                     getFxRates()
                 )
             )
@@ -76,7 +77,7 @@ internal class FxMvcTests {
                 nzdUsd,
                 usdNzd,
                 IsoCurrencyPair(usd, usd),
-                IsoCurrencyPair(nzd, nzd),
+                IsoCurrencyPair(nzd, nzd)
             )
         )
 
@@ -97,7 +98,6 @@ internal class FxMvcTests {
 
     @Test
     fun is_NullDateReturningCurrent() {
-
         val fxRequest = FxRequest(pairs = arrayListOf(nzdUsd))
         `when`(fxGateway.getRatesForSymbols(any(), eq("USD"), eq(currencyService.currenciesAs)))
             .thenReturn(
@@ -153,7 +153,7 @@ internal class FxMvcTests {
     }
 
     @Test
-    fun invalidCurrenciesReturned() {
+    fun invalidCurrenciesThrowError() {
         val date = "2019-08-27"
         val from = "ANC"
         val to = "SDF"
@@ -164,7 +164,7 @@ internal class FxMvcTests {
         val mvcResult = fxPost(fxRequest, status().is4xxClientError)
         val someException = java.util.Optional.ofNullable(mvcResult.resolvedException as BusinessException)
         assertThat(someException.isPresent).isTrue
-        assertThat(someException.get()).hasMessageContaining(from).hasMessageContaining(to)
+        assertThat(someException.get()).hasMessageContaining(from)
     }
 
     companion object {

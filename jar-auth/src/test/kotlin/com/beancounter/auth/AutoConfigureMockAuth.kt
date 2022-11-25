@@ -15,7 +15,9 @@ import org.springframework.test.context.TestPropertySource
     ]
 )
 @Import(
-    MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class
+    MockAuthConfig::class,
+    AuthConfig::class,
+    ClientPasswordConfig::class
 )
 /**
  * Configures mock OAuth behaviour for unit testing.

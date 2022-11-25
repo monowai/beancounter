@@ -34,7 +34,7 @@ class TrnController(
     var trnQueryService: TrnQueryService,
     var portfolioService: PortfolioService,
     var dateUtils: DateUtils,
-    var trnIoDefinition: TrnIoDefinition,
+    var trnIoDefinition: TrnIoDefinition
 ) {
 
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -54,7 +54,8 @@ class TrnController(
 
     @PatchMapping(
         value = ["/{portfolioId}/{trnId}"],
-        produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE]
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun patch(
         @PathVariable("portfolioId") portfolioId: String,

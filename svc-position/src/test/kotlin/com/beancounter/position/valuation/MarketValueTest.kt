@@ -115,8 +115,10 @@ internal class MarketValueTest {
         )
         if (pair != null) {
             fxRateMap[pair] = FxRate(
-                Currency("X"), Currency("X"),
-                simpleRate, null
+                Currency("X"),
+                Currency("X"),
+                simpleRate,
+                null
             )
         }
         val buyTrn = Trn(
@@ -207,8 +209,10 @@ internal class MarketValueTest {
         )
         if (pair != null) {
             fxRateMap[pair] = FxRate(
-                Currency("test"), Currency("TEST"),
-                simpleRate, null
+                Currency("test"),
+                Currency("TEST"),
+                simpleRate,
+                null
             )
         }
         return fxRateMap

@@ -103,7 +103,8 @@ internal class ShareSightAdapterTest {
         val portfolio = getPortfolio()
         for (columnValues in rows) {
             val trustedTrnImportRequest = TrustedTrnImportRequest(
-                portfolio, ImportFormat.SHARESIGHT,
+                portfolio,
+                ImportFormat.SHARESIGHT,
                 CallerRef(),
                 "",
                 columnValues

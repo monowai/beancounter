@@ -63,7 +63,10 @@ class GoogleAuthConfig {
             val clientSecrets =
                 GoogleClientSecrets.load(GsonFactory.getDefaultInstance(), InputStreamReader(`in`))
             val flow = GoogleAuthorizationCodeFlow.Builder(
-                netHttpTransport, GsonFactory.getDefaultInstance(), clientSecrets, SCOPES
+                netHttpTransport,
+                GsonFactory.getDefaultInstance(),
+                clientSecrets,
+                SCOPES
             )
                 .setAccessType("offline")
                 .setDataStoreFactory(

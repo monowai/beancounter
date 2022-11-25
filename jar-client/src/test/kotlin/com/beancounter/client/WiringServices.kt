@@ -16,15 +16,15 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 
+/**
+ * Simple wiring tests
+ */
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
-/**
- * Simple wiring tests
- */
 class WiringServices {
     @Autowired
     private lateinit var assetIngestService: AssetIngestService

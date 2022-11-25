@@ -9,10 +9,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Service
 import java.util.Locale
 
-@Service
 /**
  * All known Ingestion request handlers.
  */
+@Service
 class IngestionFactory {
     private val ingesterMap: MutableMap<String, Ingester> = HashMap()
 
@@ -28,7 +28,6 @@ class IngestionFactory {
     }
 
     fun getIngester(ingestionRequest: IngestionRequest): Ingester {
-
         return ingesterMap[ingestionRequest.reader.uppercase(Locale.getDefault())]
             ?: throw SystemException("Unable to resolve ingestor for ${ingestionRequest.reader}")
     }

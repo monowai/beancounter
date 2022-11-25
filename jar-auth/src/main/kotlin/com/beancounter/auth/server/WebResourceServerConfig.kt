@@ -52,7 +52,7 @@ class WebResourceServerConfig : WebSecurityConfigurerAdapter() {
             .mvcMatchers(
                 "$actuatorPattern/actuator/health/ping",
                 "$actuatorPattern/actuator/health/livenessState",
-                "$actuatorPattern/actuator/health/readinessState",
+                "$actuatorPattern/actuator/health/readinessState"
             ).permitAll()
             .mvcMatchers("$actuatorPattern/actuator/**")
             .hasAuthority(AuthConstants.SCOPE_ADMIN)

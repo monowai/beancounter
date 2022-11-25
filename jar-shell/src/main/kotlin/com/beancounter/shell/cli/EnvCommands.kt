@@ -8,10 +8,10 @@ import org.springframework.shell.standard.ShellMethod
 import java.nio.file.FileSystems
 import java.util.TreeMap
 
-@ShellComponent
 /**
  * Environmental related commands.
  */
+@ShellComponent
 class EnvCommands(private val envConfig: EnvConfig) {
     @ShellMethod("Current working directory")
     fun pwd(): String {

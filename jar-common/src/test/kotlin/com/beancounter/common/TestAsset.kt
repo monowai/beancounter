@@ -88,7 +88,7 @@ internal class TestAsset {
 
     @Test
     fun defaultsFromAsset() {
-        val assetInput = AssetInput(getAsset(Market("a"), "b"))
+        val assetInput = AssetInput(getAsset(market = Market("a"), assetCode = "b"))
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue("market", "a")
             .hasFieldOrPropertyWithValue("code", "B")

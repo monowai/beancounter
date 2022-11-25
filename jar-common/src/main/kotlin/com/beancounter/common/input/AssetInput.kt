@@ -20,13 +20,6 @@ data class AssetInput(
     ) :
         this(market = market, code = code, name = null, resolvedAsset = null)
 
-    constructor(
-        market: String,
-        code: String,
-        asset: Asset?
-    ) :
-        this(market = market, code = code, name = null, resolvedAsset = asset)
-
     constructor(asset: Asset) : this(market = asset.market.code, code = asset.code, resolvedAsset = asset)
 
     override fun equals(other: Any?): Boolean {

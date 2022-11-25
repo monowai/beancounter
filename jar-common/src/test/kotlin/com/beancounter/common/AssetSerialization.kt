@@ -99,7 +99,7 @@ class AssetSerialization {
     @Test
     fun dataProviderAsset() {
         val asset = AssetUtils.getAsset(Market("1"), "2")
-        val assetInput = AssetInput(market = "amarket", code = "acode", asset)
+        val assetInput = AssetInput(market = "amarket", code = "acode", resolvedAsset = asset)
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue("market", "amarket")
             .hasFieldOrPropertyWithValue("code", "acode")

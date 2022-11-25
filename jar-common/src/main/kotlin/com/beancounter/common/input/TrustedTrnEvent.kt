@@ -1,6 +1,7 @@
 package com.beancounter.common.input
 
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.TrnType
 
 /**
  * Contract to write transactions, of a format, into BC for the requested Portfolio.
@@ -12,7 +13,7 @@ data class TrustedTrnEvent(
     override val portfolio: Portfolio,
     override val importFormat: ImportFormat = ImportFormat.BC,
     override val message: String = "",
-    val trnInput: TrnInput
+    val trnInput: TrnInput = TrnInput(trnType = TrnType.IGNORE)
 ) :
     TrnImport {
     constructor(portfolio: Portfolio, trnInput: TrnInput) : this(

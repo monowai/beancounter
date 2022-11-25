@@ -64,7 +64,7 @@ class PositionService(
         return portfolioService.getWhereHeld(assetId, date)
     }
 
-    fun process(portfolio: Portfolio, event: CorporateEvent): TrustedTrnEvent? {
+    fun process(portfolio: Portfolio, event: CorporateEvent): TrustedTrnEvent {
         val positionResponse = positionGateway.query(
             tokenService.bearerToken,
             TrustedTrnQuery(portfolio, event.recordDate, event.assetId)
@@ -77,7 +77,7 @@ class PositionService(
                     .calculate(positionResponse.data.portfolio, position, event)
             }
         }
-        return null // Ignore
+        return TrustedTrnEvent(portfolio) // Ignore
     }
 
     fun includePosition(position: Position): Boolean {

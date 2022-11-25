@@ -13,5 +13,5 @@ interface Event {
         portfolio: Portfolio,
         currentPosition: Position,
         corporateEvent: CorporateEvent
-    ): TrustedTrnEvent?
+    ): TrustedTrnEvent
 }

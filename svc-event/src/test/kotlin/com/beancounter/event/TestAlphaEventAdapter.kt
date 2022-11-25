@@ -24,7 +24,7 @@ import java.math.BigDecimal
  * AlphaVantage API tests.
  */
 @SpringBootTest(classes = [AlphaEventConfig::class])
-class TestAlphaEventAdapater {
+class TestAlphaEventAdapter {
     @Autowired
     private lateinit var alphaEventAdapter: AlphaEventAdapter
 
@@ -52,8 +52,8 @@ class TestAlphaEventAdapater {
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull
-        assertThat(trnEvent?.portfolio).isNotNull
-        assertThat(trnEvent?.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
+        assertThat(trnEvent.portfolio).isNotNull
+        assertThat(trnEvent.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
             .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
             .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
             .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2020-05-19"))
@@ -80,8 +80,10 @@ class TestAlphaEventAdapater {
         val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
         assertThat(
-            behaviourFactory.getAdapter(event).calculate(portfolio, Position(asset), event)
-        ).isNull()
+            behaviourFactory.getAdapter(event)
+                .calculate(portfolio, Position(asset), event)
+                .trnInput.trnType
+        ).isEqualTo(TrnType.IGNORE)
     }
 
     @Test
@@ -107,8 +109,8 @@ class TestAlphaEventAdapater {
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull
-        assertThat(trnEvent?.portfolio).isNotNull
-        assertThat(trnEvent?.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
+        assertThat(trnEvent.portfolio).isNotNull
+        assertThat(trnEvent.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
             .hasFieldOrPropertyWithValue("trnType", TrnType.SPLIT)
             .hasFieldOrPropertyWithValue("status", TrnStatus.CONFIRMED)
             .hasFieldOrPropertyWithValue("tradeDate", onDate)

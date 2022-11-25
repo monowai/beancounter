@@ -127,7 +127,7 @@ class StubbedEvents {
             rate = BigDecimal("0.2625")
         )
         val trnEvent = positionService.process(portfolio, corporateEvent)
-        assertThat(trnEvent).isNull()
+        assertThat(trnEvent.trnInput.trnType).isEqualTo(TrnType.IGNORE)
     }
 
     @Test

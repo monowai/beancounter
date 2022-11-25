@@ -39,10 +39,10 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         portfolio: Portfolio,
         currentPosition: Position,
         corporateEvent: CorporateEvent
-    ): TrustedTrnEvent? {
+    ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
             val trnInput = toDividend(currentPosition, corporateEvent)
-                ?: return null // We didn't create anything
+                ?: return TrustedTrnEvent(portfolio, TrnInput(trnType = TrnType.IGNORE)) // We didn't create anything
             return TrustedTrnEvent(portfolio, trnInput)
         } else if (corporateEvent.trnType == TrnType.SPLIT) {
             return TrustedTrnEvent(portfolio, toSplit(currentPosition, corporateEvent))

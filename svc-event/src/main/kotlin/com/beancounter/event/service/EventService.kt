@@ -4,6 +4,7 @@ import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnEvent
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
@@ -46,7 +47,7 @@ class EventService(
         for (portfolio in response.data) {
             val trnEvent = positionService.process(portfolio, event)
             // Don't create forward dated transactions
-            if (trnEvent != null) {
+            if (trnEvent.trnInput.trnType != TrnType.IGNORE) {
                 trnEvent.trnInput
                 log.info(
                     "event: {}, asset: {} code: {}, tradeDate: {}",

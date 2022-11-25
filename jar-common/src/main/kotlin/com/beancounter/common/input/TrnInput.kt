@@ -17,7 +17,7 @@ import java.time.LocalDate
  */
 data class TrnInput(
     val callerRef: CallerRef = CallerRef(),
-    val assetId: String?, // What is being traded
+    val assetId: String? = null, // What is being traded
     val cashAssetId: String? = null, // A specific cash balance
     val trnType: TrnType = TrnType.BUY,
     val quantity: BigDecimal = BigDecimal.ZERO,
@@ -35,7 +35,7 @@ data class TrnInput(
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null,
     val fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
-    val price: BigDecimal, // In trade Currency
+    val price: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val tradeAmount: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
     val status: TrnStatus = TrnStatus.CONFIRMED,

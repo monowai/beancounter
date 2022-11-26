@@ -23,7 +23,8 @@ apply plugin: 'org.jmailen.kotlinter'
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(17)
+//        vendor = JvmVendorSpec.ADOPTOPENJDK
     }
 }
 checkstyle {

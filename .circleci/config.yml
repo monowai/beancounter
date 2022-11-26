@@ -4,10 +4,10 @@ executors:
   java-build:
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=true"
 
     docker:
-      - image: cimg/openjdk:15.0.2
+      - image: cimg/openjdk:17.0
 jobs:
   build-common:
     executor: java-build

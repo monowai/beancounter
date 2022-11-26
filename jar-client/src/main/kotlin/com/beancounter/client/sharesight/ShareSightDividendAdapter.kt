@@ -82,8 +82,11 @@ class ShareSightDividendAdapter(
                 ),
                 comments = row[comments]
             )
-            trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)
-            ) null else tradeRate
+            trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
+                null
+            } else {
+                tradeRate
+            }
             trnInput // Result!
         } catch (e: NumberFormatException) {
             val message = e.message
@@ -96,7 +99,7 @@ class ShareSightDividendAdapter(
 
     override fun isValid(row: List<String>): Boolean {
         val rate = row[fxRate].uppercase(Locale.getDefault())
-        return rate.contains(".") // divis have an fx rate in this column
+        return rate.contains(".") // dividends have a fx rate in this column
     }
 
     override fun resolveAsset(row: List<String>): Asset {
@@ -108,7 +111,7 @@ class ShareSightDividendAdapter(
     }
 
     private fun parseAsset(input: String?): List<String> {
-        if (input == null || input.isEmpty()) {
+        if (input.isNullOrEmpty()) {
             throw BusinessException("Unable to resolve Asset code")
         }
         val values = Splitter

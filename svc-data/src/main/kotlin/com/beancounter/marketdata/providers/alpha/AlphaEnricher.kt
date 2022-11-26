@@ -50,15 +50,17 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
                 market,
                 assetInput
             )
-        } else Asset(
-            id,
-            assetInput.code.uppercase(Locale.getDefault()),
-            name = assetResult.name,
-            category = assetResult.type,
-            market = market,
-            marketCode = market.code,
-            priceSymbol = assetResult.symbol
-        )
+        } else {
+            Asset(
+                id,
+                assetInput.code.uppercase(Locale.getDefault()),
+                name = assetResult.name,
+                category = assetResult.type,
+                market = market,
+                marketCode = market.code,
+                priceSymbol = assetResult.symbol
+            )
+        }
     }
 
     @Throws(JsonProcessingException::class)

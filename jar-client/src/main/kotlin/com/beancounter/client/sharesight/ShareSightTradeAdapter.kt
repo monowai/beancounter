@@ -128,7 +128,7 @@ class ShareSightTradeAdapter(
                 MathUtils.nullSafe(MathUtils[row[brokerage]])
             tradeCalculator.amount(q, p, f)
         } else {
-            // ShareSight store tradeAmount it portfolio currency, BC stores in Trade CCY
+            // ShareSight store tradeAmount in portfolio currency, BC stores in Trade CCY
             return multiplyAbs(result, tradeRate)!!
         }
         return result
@@ -153,7 +153,9 @@ class ShareSightTradeAdapter(
         val asset = assetIngestService.resolveAsset(marketCode, assetCode)
         return if (!filter.inFilter(asset)) {
             null
-        } else asset
+        } else {
+            asset
+        }
     }
 
     companion object {

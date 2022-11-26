@@ -55,7 +55,9 @@ class EventWriter {
     private fun isValidDividend(marketData: MarketData?): Boolean {
         return if (marketData == null) {
             false
-        } else !numberUtils.isUnset(marketData.dividend)
+        } else {
+            !numberUtils.isUnset(marketData.dividend)
+        }
     }
 
     companion object {

@@ -114,7 +114,9 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceP
     override fun isMarketSupported(market: Market): Boolean {
         return if (alphaConfig.markets == null) {
             false
-        } else alphaConfig.markets!!.contains(market.code)
+        } else {
+            alphaConfig.markets!!.contains(market.code)
+        }
     }
 
     override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {

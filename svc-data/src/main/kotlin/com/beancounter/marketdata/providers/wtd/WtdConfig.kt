@@ -48,9 +48,11 @@ class WtdConfig @Autowired constructor(val marketService: MarketService) : DataP
 
     override fun getPriceCode(asset: Asset): String {
         val marketCode = translateMarketCode(asset.market)
-        return if (marketCode != null && marketCode.isNotEmpty()) {
+        return if (!marketCode.isNullOrEmpty()) {
             asset.code + "." + marketCode
-        } else asset.code
+        } else {
+            asset.code
+        }
     }
 
     override fun getBatchSize(): Int {

@@ -19,6 +19,8 @@ class PercentUtils {
     fun percent(previous: BigDecimal?, current: BigDecimal?, percentScale: Int): BigDecimal? {
         return if (numberUtils.isUnset(previous) || numberUtils.isUnset(current)) {
             null
-        } else previous!!.divide(current, percentScale, RoundingMode.HALF_UP)
+        } else {
+            previous!!.divide(current, percentScale, RoundingMode.HALF_UP)
+        }
     }
 }

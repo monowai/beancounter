@@ -8,6 +8,9 @@ import org.springframework.test.context.TestPropertySource
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
+@Import(
+    NoAuthConfig::class
+)
 @TestPropertySource(
     properties = [
         "auth.enabled=false",
@@ -16,8 +19,4 @@ import org.springframework.test.context.TestPropertySource
         "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri"
     ]
 )
-@Import(
-    NoAuthConfig::class
-)
-
 annotation class AutoConfigureNoAuth

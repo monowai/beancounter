@@ -22,7 +22,9 @@ class FxClientService internal constructor(private val fxGateway: FxGateway, pri
     override fun getRates(fxRequest: FxRequest): FxResponse {
         return if (fxRequest.pairs.isEmpty()) {
             FxResponse(FxPairResults())
-        } else fxGateway.getRates(tokenService.bearerToken, fxRequest)
+        } else {
+            fxGateway.getRates(tokenService.bearerToken, fxRequest)
+        }
     }
 
     /**

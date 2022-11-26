@@ -25,7 +25,9 @@ class ShareSightFactory(
     fun adapter(row: List<String>): TrnAdapter {
         return if (TRADE_TYPES.contains(row[ShareSightTradeAdapter.type].uppercase(Locale.getDefault()))) {
             shareSightTrade
-        } else shareSightDivi
+        } else {
+            shareSightDivi
+        }
     }
 
     companion object {

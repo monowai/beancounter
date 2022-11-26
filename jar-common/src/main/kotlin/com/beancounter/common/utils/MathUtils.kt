@@ -59,7 +59,9 @@ class MathUtils private constructor() {
             }
             return if (value.isBlank()) {
                 BigDecimal.ZERO
-            } else BigDecimal(numberFormat.parse(value.trim().replace("\"", "")).toString())
+            } else {
+                BigDecimal(numberFormat.parse(value.trim().replace("\"", "")).toString())
+            }
         }
 
         @JvmStatic
@@ -74,7 +76,9 @@ class MathUtils private constructor() {
             }
             return if (rate.compareTo(BigDecimal.ZERO) == 0) {
                 false
-            } else rate.compareTo(BigDecimal.ONE) != 0
+            } else {
+                rate.compareTo(BigDecimal.ONE) != 0
+            }
         }
 
         @JvmStatic

@@ -30,7 +30,9 @@ class AlphaProxyCache {
     ): Future<String?> {
         return if (code == null) {
             AsyncResult(null)
-        } else AsyncResult(alphaProxy!!.getCurrent(code, apiKey))
+        } else {
+            AsyncResult(alphaProxy!!.getCurrent(code, apiKey))
+        }
     }
 
     @Async("priceExecutor")

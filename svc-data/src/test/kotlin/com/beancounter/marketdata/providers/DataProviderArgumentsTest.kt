@@ -152,7 +152,9 @@ internal class DataProviderArgumentsTest {
         override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
             return if (dateUtils.isToday(date)) {
                 dateUtils.date
-            } else dateUtils.getDate(date)
+            } else {
+                dateUtils.getDate(date)
+            }
         }
 
         override fun getPriceCode(asset: Asset): String {

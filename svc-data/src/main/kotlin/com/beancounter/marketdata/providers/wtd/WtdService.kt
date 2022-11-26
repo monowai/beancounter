@@ -93,7 +93,9 @@ class WtdService @Autowired internal constructor(
     override fun isMarketSupported(market: Market): Boolean {
         return if (wtdConfig.markets!!.isBlank()) {
             false
-        } else wtdConfig.markets!!.contains(market.code)
+        } else {
+            wtdConfig.markets!!.contains(market.code)
+        }
     }
 
     override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {

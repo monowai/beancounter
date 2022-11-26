@@ -26,7 +26,9 @@ class Filter(@Value("\${filter:#{null}}") filter: String?) {
     fun inFilter(asset: Asset): Boolean {
         return if (!filteredAssets.isEmpty()) {
             filteredAssets.contains(asset.code.uppercase(Locale.getDefault()))
-        } else true
+        } else {
+            true
+        }
     }
 
     /**

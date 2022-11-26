@@ -26,7 +26,7 @@ class MarketConfig @Autowired constructor(
     fun getProviders(): Map<String, Market> {
         val providers: MutableMap<String, Market> = HashMap()
         for (market in values) {
-            market.currency = currencyService.getCode(market.currencyId)!!
+            market.currency = currencyService.getCode(market.currencyId)
             providers[market.code] = market
         }
         return providers

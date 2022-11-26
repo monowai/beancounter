@@ -60,7 +60,7 @@ class TrnAdapter internal constructor(
             trnType = trnInput.trnType,
             portfolio = portfolio,
             asset = existing?.asset ?: assetService.find(trnInput.assetId!!),
-            tradeCurrency = currencyService.getCode(trnInput.tradeCurrency)!!,
+            tradeCurrency = currencyService.getCode(trnInput.tradeCurrency),
             cashCurrency = cashCurrency,
             cashAsset = cashAsset,
             tradeDate = trnInput.tradeDate,

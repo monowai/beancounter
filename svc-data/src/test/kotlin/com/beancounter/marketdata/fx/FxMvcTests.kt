@@ -63,10 +63,10 @@ internal class FxMvcTests {
     @Test
     fun fxResponseObjectReturned() {
         val date = "2019-08-27"
-        `when`(fxGateway.getRatesForSymbols(eq(date), eq("USD"), eq(currencyService.currenciesAs)))
+        `when`(fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)))
             .thenReturn(
                 ExRatesResponse(
-                    "USD",
+                    USD.code,
                     LocalDate.now(),
                     getFxRates()
                 )
@@ -99,10 +99,10 @@ internal class FxMvcTests {
     @Test
     fun is_NullDateReturningCurrent() {
         val fxRequest = FxRequest(pairs = arrayListOf(nzdUsd))
-        `when`(fxGateway.getRatesForSymbols(any(), eq("USD"), eq(currencyService.currenciesAs)))
+        `when`(fxGateway.getRatesForSymbols(any(), eq(usd), eq(currencyService.currenciesAs)))
             .thenReturn(
                 ExRatesResponse(
-                    "USD",
+                    usd,
                     LocalDate.now(),
                     getFxRates()
                 )

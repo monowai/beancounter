@@ -7,12 +7,13 @@ import com.beancounter.auth.model.AuthConstants
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.EnableCaching
-import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.stereotype.Service
 import org.springframework.web.cors.CorsConfiguration
 
 /**
@@ -23,8 +24,8 @@ import org.springframework.web.cors.CorsConfiguration
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
 @EnableWebSecurity
 @EnableCaching
-@Configuration
-class WebResourceServerConfig : WebSecurityConfigurerAdapter() {
+@Service
+class WebResourceServerConfig {
     @Value("\${auth.pattern:/**}")
     private lateinit var apiPattern: String // All these EPs are by default secured
 
@@ -40,8 +41,8 @@ class WebResourceServerConfig : WebSecurityConfigurerAdapter() {
     @Value("\${cors.exposedHeaders:Authorization}")
     private lateinit var exposedHeaders: List<String>
 
-    @Throws(Exception::class)
-    override fun configure(http: HttpSecurity) {
+    @Bean
+    fun configureBcSecurity(http: HttpSecurity): SecurityFilterChain {
         val corsConfiguration = CorsConfiguration()
         corsConfiguration.allowedHeaders = headers
         corsConfiguration.allowedOrigins = origins
@@ -61,7 +62,8 @@ class WebResourceServerConfig : WebSecurityConfigurerAdapter() {
             .anyRequest().authenticated()
             .and().csrf().disable().cors().configurationSource { corsConfiguration }
             .and().oauth2ResourceServer()
-            .jwt() // User roles are carried in the claims and used for fine grained control
+            .jwt() // User roles are carried in the claims and used for fine-grained control
         corsConfiguration.exposedHeaders = exposedHeaders
+        return http.build()
     }
 }

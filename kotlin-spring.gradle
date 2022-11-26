@@ -1,17 +1,15 @@
-// Common config for a Kotlin/Bring builds
+// Common config for a Kotlin/Spring builds
 
 repositories {
     mavenLocal()
     mavenCentral()
+    jcenter()
     gradlePluginPortal()
 }
 
 tasks.withType(JavaCompile) {
     options.compilerArgs.addAll('-Xlint:unchecked','-parameters')
     options.deprecation = true
-}
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -23,6 +21,11 @@ apply plugin: "checkstyle"
 apply plugin: 'jacoco'
 apply plugin: 'org.jmailen.kotlinter'
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
 checkstyle {
     //  Property 'scope' does not exist, please check the documentation @8.42
     toolVersion = '8.41.1'

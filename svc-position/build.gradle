@@ -51,11 +51,11 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-integration",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "org.jetbrains.kotlin:kotlin-reflect",
-            "io.github.resilience4j:resilience4j-spring-cloud2:$resilience4jVersion",
-            "io.github.resilience4j:resilience4j-annotations:$resilience4jVersion",
-            "io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion",
-            "io.github.resilience4j:resilience4j-timelimiter:$resilience4jVersion",
-            "io.github.resilience4j:resilience4j-reactor:$resilience4jVersion"
+            "io.github.resilience4j:resilience4j-spring-cloud2",
+            "io.github.resilience4j:resilience4j-annotations",
+            "io.github.resilience4j:resilience4j-circuitbreaker",
+            "io.github.resilience4j:resilience4j-timelimiter",
+            "io.github.resilience4j:resilience4j-reactor"
     )
 
     compileOnly(

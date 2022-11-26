@@ -32,7 +32,9 @@ class AlphaConfig : DataProviderConfig {
         }
         return if (market.code.equals("ASX", ignoreCase = true)) {
             "AX"
-        } else market.code
+        } else {
+            market.code
+        }
     }
 
     val nullMarket = "NASDAQ|NYSE|AMEX"
@@ -55,7 +57,9 @@ class AlphaConfig : DataProviderConfig {
         val marketCode = translateMarketCode(asset.market)
         return if (marketCode != null && marketCode.isNotEmpty()) {
             asset.code + "." + marketCode
-        } else asset.code
+        } else {
+            asset.code
+        }
     }
 
     fun translateSymbol(code: String): String {

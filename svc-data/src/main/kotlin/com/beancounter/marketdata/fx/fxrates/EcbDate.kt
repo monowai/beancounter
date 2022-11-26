@@ -21,7 +21,9 @@ class EcbDate(val dateUtils: DateUtils) {
         val requestedDate = dateUtils.getOrThrow(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {
             earliest
-        } else tradeDate
+        } else {
+            tradeDate
+        }
     }
 
     companion object {

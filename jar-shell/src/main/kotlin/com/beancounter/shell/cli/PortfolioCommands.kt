@@ -35,7 +35,9 @@ class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
         val (data) = portfolioService.portfolios
         return if (data.isEmpty()) {
             "No portfolios"
-        } else bcJson.writer.writeValueAsString(data)
+        } else {
+            bcJson.writer.writeValueAsString(data)
+        }
     }
 
     @ShellMethod("Find by id")

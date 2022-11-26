@@ -46,7 +46,9 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
             return if (response.error.equals("No identifier found.", ignoreCase = true)) {
                 // Unknown, so don't continue to hit the service - add a name value
                 figiAdapter.transform(market, bcAssetCode, defaultName = defaultName, id)
-            } else null
+            } else {
+                null
+            }
         }
         if (response?.data != null) {
             for (datum in response.data!!) {
@@ -89,7 +91,9 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
     private fun extractResult(search: Collection<FigiResponse?>?): FigiResponse? {
         return if (search!!.isEmpty()) {
             null
-        } else search.iterator().next()
+        } else {
+            search.iterator().next()
+        }
     }
 
     private fun findEquity(figiSearch: FigiSearch): FigiResponse? {

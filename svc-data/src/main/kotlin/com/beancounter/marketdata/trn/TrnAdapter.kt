@@ -83,6 +83,8 @@ class TrnAdapter internal constructor(
     fun hydrate(asset: Asset?): Asset? {
         return if (asset == null) {
             null
-        } else assetService.find(asset.id)
+        } else {
+            assetService.find(asset.id)
+        }
     }
 }

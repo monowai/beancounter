@@ -95,7 +95,9 @@ class TrnService internal constructor(
         }
         return if (results.isEmpty()) {
             TrnResponse() // Empty
-        } else TrnResponse(results)
+        } else {
+            TrnResponse(results)
+        }
     }
 
     fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {

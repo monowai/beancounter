@@ -29,7 +29,7 @@ import java.util.Objects
  * Configuration to integrate with Auth0.  This config has eager initialization, so you might want to
  * mock this out in Unit Tests:
  *
- * @see com.beancounter.auth.MockAuth
+ * @see com.beancounter.auth.MockAuthConfig
  */
 @Configuration
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
@@ -76,7 +76,9 @@ class OAuthConfig(val cacheManager: CacheManager) {
         override fun validate(jwt: Jwt): OAuth2TokenValidatorResult {
             return if (jwt.audience.contains(audience)) {
                 OAuth2TokenValidatorResult.success()
-            } else OAuth2TokenValidatorResult.failure(error)
+            } else {
+                OAuth2TokenValidatorResult.failure(error)
+            }
         }
     }
 }

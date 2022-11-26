@@ -28,6 +28,10 @@ import org.springframework.web.client.RestOperations
  * MVC Auth controller tests for OAuth.
  */
 @ExtendWith(SpringExtension::class)
+@WebMvcTest(
+    AuthTest.SimpleController::class,
+    properties = ["auth.enabled=true"]
+)
 @ContextConfiguration(
     classes = [
         AuthTest.SimpleController::class,
@@ -35,8 +39,6 @@ import org.springframework.web.client.RestOperations
         DefaultJWTProcessor::class
     ]
 )
-
-@WebMvcTest(AuthTest.SimpleController::class, properties = ["auth.enabled=true"])
 class AuthTest {
 
     @MockBean

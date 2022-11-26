@@ -93,13 +93,15 @@ class MarketValue(private val gains: Gains) {
     private fun rate(report: Currency, trade: Currency, rates: Map<IsoCurrencyPair, FxRate>): FxRate {
         return if (report.code == trade.code) {
             FxRate(trade, report, BigDecimal.ONE, null)
-        } else rates[toPair(report, trade)]
-            ?: throw BusinessException(
-                String.format(
-                    "No rate for %s:%s",
-                    report.code,
-                    trade.code
+        } else {
+            rates[toPair(report, trade)]
+                ?: throw BusinessException(
+                    String.format(
+                        "No rate for %s:%s",
+                        report.code,
+                        trade.code
+                    )
                 )
-            )
+        }
     }
 }

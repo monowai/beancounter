@@ -77,12 +77,14 @@ class DateUtils(
     fun isToday(inDate: String = today): Boolean {
         return if (inDate.isBlank() || today == inDate.lowercase(Locale.getDefault())) {
             true // Null date is BC is "today"
-        } else try {
-            val today = defaultFormatter.parse(today())
-            val compareWith = defaultFormatter.parse(inDate)
-            today.compareTo(compareWith) == 0
-        } catch (e: ParseException) {
-            throw BusinessException(String.format("Unable to parse the date %s", inDate))
+        } else {
+            try {
+                val today = defaultFormatter.parse(today())
+                val compareWith = defaultFormatter.parse(inDate)
+                today.compareTo(compareWith) == 0
+            } catch (e: ParseException) {
+                throw BusinessException(String.format("Unable to parse the date %s", inDate))
+            }
         }
     }
 

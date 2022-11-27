@@ -19,14 +19,23 @@ import java.time.LocalDate
  * Client exposed Portfolio functions.
  */
 @Service
-class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val tokenService: TokenService) {
+class PortfolioServiceClient(
+    private val portfolioGw: PortfolioGw,
+    private val tokenService: TokenService
+) {
     fun getPortfolioByCode(portfolioCode: String): Portfolio {
-        val response: PortfolioResponse? = portfolioGw.getPortfolioByCode(tokenService.bearerToken, portfolioCode)
+        val response: PortfolioResponse? = portfolioGw.getPortfolioByCode(
+            tokenService.bearerToken,
+            portfolioCode
+        )
         return getOrThrow(portfolioCode, response)
     }
 
     fun getPortfolioById(portfolioId: String): Portfolio {
-        val response: PortfolioResponse? = portfolioGw.getPortfolioById(tokenService.bearerToken, portfolioId)
+        val response: PortfolioResponse? = portfolioGw.getPortfolioById(
+            tokenService.bearerToken,
+            portfolioId
+        )
         return getOrThrow(portfolioId, response)
     }
 
@@ -68,13 +77,19 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
             @PathVariable("id") id: String?
         ): PortfolioResponse?
 
-        @GetMapping(value = ["/portfolios/code/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(
+            value = ["/portfolios/code/{code}"],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
+        )
         fun getPortfolioByCode(
             @RequestHeader("Authorization") bearerToken: String?,
             @PathVariable("code") code: String?
         ): PortfolioResponse?
 
-        @GetMapping(value = ["/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(
+            value = ["/portfolios/asset/{assetId}/{tradeDate}"],
+            produces = [MediaType.APPLICATION_JSON_VALUE]
+        )
         fun getWhereHeld(
             @RequestHeader("Authorization") bearerToken: String?,
             @PathVariable("assetId") assetId: String?,

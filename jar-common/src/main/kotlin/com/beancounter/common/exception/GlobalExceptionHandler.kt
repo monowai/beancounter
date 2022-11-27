@@ -1,6 +1,7 @@
 package com.beancounter.common.exception
 
 import feign.FeignException
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.client.ResourceAccessException
 import java.net.ConnectException
-import javax.servlet.http.HttpServletRequest
 
 /**
  * When an exception is thrown, it is intercepted by this class and a JSON friendly response is returned.

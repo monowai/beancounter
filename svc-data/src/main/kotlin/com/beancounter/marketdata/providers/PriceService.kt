@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.event.EventWriter
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.AsyncResult
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.Optional
 import java.util.concurrent.Future
-import javax.transaction.Transactional
 
 /**
  * Persist prices obtained from providers and detect if Corporate Events need to be dispatched.

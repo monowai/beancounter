@@ -3,11 +3,11 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import javax.transaction.Transactional
 
 /**
  * Queries that return collections of transactions

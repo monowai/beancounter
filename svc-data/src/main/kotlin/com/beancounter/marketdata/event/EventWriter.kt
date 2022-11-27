@@ -5,12 +5,12 @@ import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.NumberUtils
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 /**
  * Kafka Corporate Action/Event subscriber.

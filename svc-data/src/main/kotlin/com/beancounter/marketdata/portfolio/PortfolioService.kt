@@ -8,12 +8,12 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.Locale
 import java.util.function.Consumer
-import javax.transaction.Transactional
 
 /**
  * Server side portfolio activities.

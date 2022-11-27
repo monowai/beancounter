@@ -8,6 +8,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.Async
@@ -16,7 +17,6 @@ import java.util.Locale
 import java.util.Optional
 import java.util.UUID
 import java.util.stream.Stream
-import javax.transaction.Transactional
 
 /**
  * Asset CRUD functionality.

@@ -84,7 +84,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         var client_id: String,
         var username: String,
         var password: String,
-        var grant_type: String = AuthorizationGrantType.PASSWORD.value
+        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value
     ) : AuthRequest
 
     /**

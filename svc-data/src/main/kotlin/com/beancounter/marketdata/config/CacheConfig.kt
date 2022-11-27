@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.config
 
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Configuration
-import javax.annotation.PostConstruct
 
 /**
  * Cache Enablement configuration.

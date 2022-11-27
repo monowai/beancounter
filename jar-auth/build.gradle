@@ -12,7 +12,6 @@ version = '0.0.1'
 dependencies {
     implementation(
             project(":jar-common"),
-            "javax.servlet:javax.servlet-api:4.0.1",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
             "org.springframework:spring-webmvc",

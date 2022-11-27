@@ -68,7 +68,7 @@ dependencies {
     contractTestImplementation(group: 'org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
     contractTestImplementation(
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
-            'javax.inject:javax.inject:1',
+            'jakarta.inject:jakarta.inject:1',
     )
     testImplementation(
             "org.junit.jupiter:junit-jupiter",

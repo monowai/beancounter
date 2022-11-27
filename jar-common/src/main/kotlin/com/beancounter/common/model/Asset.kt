@@ -3,12 +3,12 @@ package com.beancounter.common.model
 import com.beancounter.common.input.AssetInput
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.Transient
+import jakarta.persistence.UniqueConstraint
 import java.util.Locale
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
 
 /**
  * Persistent representation of an instrument traded on a market.

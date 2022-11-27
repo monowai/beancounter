@@ -1,11 +1,10 @@
 package com.beancounter.common.model
 
-import org.springframework.boot.context.properties.ConstructorBinding
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.UniqueConstraint
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 
 /**
  * Portfolio that owns transactions on behalf of a systemUser
@@ -15,7 +14,7 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "owner_id"])])
-data class Portfolio @ConstructorBinding constructor(
+data class Portfolio constructor(
     @Id val id: String,
     val code: String,
     val name: String = code,

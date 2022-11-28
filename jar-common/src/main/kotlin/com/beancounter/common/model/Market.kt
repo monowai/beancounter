@@ -1,7 +1,6 @@
 package com.beancounter.common.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -36,10 +35,4 @@ data class Market @ConstructorBinding constructor(
     val enricher: String? = null,
     val multiplier: BigDecimal = BigDecimal("1.0"),
     val type: String = "Public"
-) {
-
-    @JsonIgnore
-    fun inMemory(): Boolean {
-        return code.equals("MOCK", ignoreCase = true)
-    }
-}
+)

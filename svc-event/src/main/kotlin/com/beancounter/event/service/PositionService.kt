@@ -10,6 +10,7 @@ import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.event.integration.PositionGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +32,7 @@ class PositionService(
     private lateinit var positionGateway: PositionGateway
     private lateinit var portfolioService: PortfolioServiceClient
     private lateinit var tokenService: TokenService
+    private val cashUtils = CashUtils()
 
     @Value("\${position.url:http://localhost:9500/api}")
     private lateinit var positionUrl: String
@@ -81,7 +83,7 @@ class PositionService(
     }
 
     fun includePosition(position: Position): Boolean {
-        if (position.asset.assetCategory.isCash()) return false
+        if (cashUtils.isCash(position.asset)) return false
         return (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0)
     }
 

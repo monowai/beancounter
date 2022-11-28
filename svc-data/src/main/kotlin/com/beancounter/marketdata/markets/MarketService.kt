@@ -83,6 +83,6 @@ class MarketService @Autowired constructor(val marketConfig: MarketConfig) : com
 
     fun canPersist(market: Market): Boolean {
         // Don't persist Mock market assets
-        return !market.inMemory()
+        return market.code != "MOCK"
     }
 }

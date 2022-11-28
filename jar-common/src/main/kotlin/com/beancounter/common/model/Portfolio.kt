@@ -1,6 +1,5 @@
 package com.beancounter.common.model
 
-import org.springframework.boot.context.properties.ConstructorBinding
 import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.ManyToOne
@@ -15,7 +14,7 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "owner_id"])])
-data class Portfolio @ConstructorBinding constructor(
+data class Portfolio(
     @Id val id: String,
     val code: String,
     val name: String = code,

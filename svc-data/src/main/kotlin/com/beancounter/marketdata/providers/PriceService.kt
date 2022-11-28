@@ -3,6 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.event.EventWriter
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +25,7 @@ class PriceService internal constructor(
     private val keyGenUtils: KeyGenUtils
 ) {
     private lateinit var eventWriter: EventWriter
+    private val cashUtils = CashUtils()
 
     @Autowired
     fun setEventWriter(eventWriter: EventWriter) {
@@ -45,7 +47,7 @@ class PriceService internal constructor(
     fun handle(priceResponse: PriceResponse): Iterable<MarketData>? {
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
-            if (!marketData.asset.assetCategory.isCash()) {
+            if (!cashUtils.isCash(marketData.asset)) {
                 val existing = getMarketData(marketData.asset, marketData.priceDate)
                 if (existing.isEmpty) {
                     // Create

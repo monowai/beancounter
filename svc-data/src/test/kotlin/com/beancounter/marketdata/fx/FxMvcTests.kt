@@ -63,7 +63,9 @@ internal class FxMvcTests {
     @Test
     fun fxResponseObjectReturned() {
         val date = "2019-08-27"
-        `when`(fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)))
+        `when`(
+            fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs))
+        )
             .thenReturn(
                 ExRatesResponse(
                     USD.code,
@@ -162,7 +164,9 @@ internal class FxMvcTests {
         fxRequest.add(invalid)
 
         val mvcResult = fxPost(fxRequest, status().is4xxClientError)
-        val someException = java.util.Optional.ofNullable(mvcResult.resolvedException as BusinessException)
+        val someException = java.util.Optional.ofNullable(
+            mvcResult.resolvedException as BusinessException
+        )
         assertThat(someException.isPresent).isTrue
         assertThat(someException.get()).hasMessageContaining(from)
     }

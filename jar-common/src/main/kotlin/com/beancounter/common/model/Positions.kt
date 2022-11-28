@@ -1,6 +1,7 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDate
@@ -34,10 +35,13 @@ class Positions(
     var isMixedCurrencies = false
 
     @JsonIgnore
+    private val cashUtils: CashUtils = CashUtils()
+
+    @JsonIgnore
     private val tradeCurrencies: MutableCollection<Currency> = ArrayList()
 
     fun add(position: Position): Position {
-        if (position.asset.assetCategory.isCash()) {
+        if (cashUtils.isCash(position.asset)) {
             position.quantityValues.setPrecision(2)
         }
         positions[toKey(position.asset)] = position
@@ -56,7 +60,7 @@ class Positions(
      * Locate a position for an asset. Creates if missing.
      *
      * @param asset qualified asset
-     * @return value if found.
+     * @return Position for the asset.
      */
     @JsonIgnore
     operator fun get(asset: Asset?): Position {

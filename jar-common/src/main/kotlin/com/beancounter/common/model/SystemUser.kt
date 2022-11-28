@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
-import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.LocalDate
 import javax.persistence.Entity
 import javax.persistence.Id
@@ -14,7 +13,7 @@ import javax.persistence.Id
 /**
  * User of this service that is Authenticated.  SystemUsers can own portfolios.
  */
-data class SystemUser @ConstructorBinding constructor(
+data class SystemUser(
     @Id var id: String,
     val email: String = "testUser",
     var active: Boolean = true,

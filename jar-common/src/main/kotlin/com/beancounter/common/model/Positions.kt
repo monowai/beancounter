@@ -38,7 +38,7 @@ class Positions(
     private val cashUtils: CashUtils = CashUtils()
 
     @JsonIgnore
-    private val tradeCurrencies: MutableCollection<Currency> = ArrayList()
+    private val tradeCurrencies: MutableCollection<Currency> = arrayListOf()
 
     fun add(position: Position): Position {
         if (cashUtils.isCash(position.asset)) {
@@ -63,8 +63,8 @@ class Positions(
      * @return Position for the asset.
      */
     @JsonIgnore
-    operator fun get(asset: Asset?): Position {
-        val result = positions[toKey(asset!!)]
+    operator fun get(asset: Asset): Position {
+        val result = positions[toKey(asset)]
         return result ?: add(Position(asset))
     }
 
@@ -72,8 +72,8 @@ class Positions(
     operator fun contains(asset: Asset) = positions.contains(toKey(asset))
 
     @JsonIgnore
-    operator fun get(asset: Asset?, tradeDate: LocalDate?): Position {
-        val firstTrade = !positions.containsKey(toKey(asset!!))
+    operator fun get(asset: Asset, tradeDate: LocalDate): Position {
+        val firstTrade = !positions.containsKey(toKey(asset))
         val position = get(asset)
         if (firstTrade) {
             position.dateValues.opened = tradeDate

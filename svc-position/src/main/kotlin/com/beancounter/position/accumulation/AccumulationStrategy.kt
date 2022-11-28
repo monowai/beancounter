@@ -21,5 +21,5 @@ interface AccumulationStrategy {
         trn: Trn,
         position: Position,
         positions: Positions
-    ) = if (TrnType.isCash(trn.trnType)) position else positions[trn.cashAsset]
+    ) = if (TrnType.isCash(trn.trnType)) position else positions[trn.cashAsset!!]
 }

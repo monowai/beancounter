@@ -58,7 +58,7 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     }
 
     private fun accumulateCash(trn: Trn, positions: Positions) {
-        val cashPosition = positions[trn.cashAsset, trn.tradeDate]
+        val cashPosition = positions[trn.cashAsset!!, trn.tradeDate]
         if (TrnType.isCashCredited(trn.trnType)) {
             trnBehaviourFactory[DEPOSIT].accumulate(trn, positions, cashPosition)
         } else if (TrnType.isCashDebited(trn.trnType)) {

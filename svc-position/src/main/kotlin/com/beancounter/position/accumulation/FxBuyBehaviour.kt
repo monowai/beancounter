@@ -41,7 +41,18 @@ class FxBuyBehaviour : AccumulationStrategy {
             trn.tradePortfolioRate
         )
 
-        val counterPosition = positions[trn.cashAsset, trn.tradeDate]
+        if (trn.cashAsset != null) {
+            handleCash(positions[trn.cashAsset!!, trn.tradeDate], trn, portfolio)
+        }
+
+        return position
+    }
+
+    private fun handleCash(
+        counterPosition: Position,
+        trn: Trn,
+        portfolio: Portfolio
+    ) {
         counterPosition.quantityValues.sold = counterPosition.quantityValues.sold.add(trn.cashAmount)
         cashCost.value(
             trn.cashCurrency!!,
@@ -69,8 +80,6 @@ class FxBuyBehaviour : AccumulationStrategy {
             Position.In.PORTFOLIO,
             trn.tradePortfolioRate
         )
-
-        return position
     }
 
     //        val cashToBase = IsoCurrencyPair(position.asset.priceSymbol!!, portfolio.base.code)

@@ -118,6 +118,7 @@ class StubbedEvents {
 
     @Test
     fun is_NoQuantityOnDateNull() {
+        mockAuthConfig.setupAuth("noquantity")
         val corporateEvent = CorporateEvent(
             id = null,
             trnType = TrnType.DIVI,

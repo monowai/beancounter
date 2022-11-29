@@ -1,6 +1,6 @@
 package com.beancounter.shell.integ
 
-import com.beancounter.auth.AuthConfig
+import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.shell.cli.IngestionCommand
@@ -30,7 +30,7 @@ class CsvImportStubbedTest {
     private lateinit var ingestionCommand: IngestionCommand
 
     @MockBean
-    private lateinit var authConfig: AuthConfig
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_CsvCommandFlowWorking() {

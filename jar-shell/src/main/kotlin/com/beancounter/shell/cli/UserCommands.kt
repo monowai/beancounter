@@ -3,7 +3,6 @@ package com.beancounter.shell.cli
 import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.RegistrationRequest
-import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.config.EnvConfig
 import com.fasterxml.jackson.core.JsonProcessingException
@@ -51,7 +50,7 @@ class UserCommands(
     @ShellMethod("Register your Account")
     @Throws(JsonProcessingException::class)
     fun register(emailClaim: String): String {
-        val token = registrationService.jwtToken ?: throw UnauthorizedException("Please login")
+        val token = registrationService.jwtToken
         return bcJson.writer
             .writeValueAsString(
                 registrationService

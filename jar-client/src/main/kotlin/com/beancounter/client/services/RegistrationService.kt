@@ -37,7 +37,7 @@ class RegistrationService(
     val token: String?
         get() = tokenService.token
 
-    val jwtToken: JwtAuthenticationToken?
+    val jwtToken: JwtAuthenticationToken
         get() = tokenService.jwt
 
     /**

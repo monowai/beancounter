@@ -1,7 +1,7 @@
 package com.beancounter.shell.integ
 
-import com.beancounter.auth.AuthConfig
-import com.beancounter.auth.OAuthConfig
+import com.beancounter.auth.AutoConfigureMockAuth
+import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
@@ -18,10 +18,8 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
-import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.shell.jline.PromptProvider
 import org.springframework.test.context.ActiveProfiles
 
@@ -33,14 +31,9 @@ import org.springframework.test.context.ActiveProfiles
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
-@SpringBootTest(classes = [ShellConfig::class, AuthConfig::class, ShareSightConfig::class])
+@SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class, ShareSightConfig::class])
+@AutoConfigureMockAuth
 class TestCommands {
-    @MockBean
-    private lateinit var oAuthConfig: OAuthConfig
-
-    @MockBean
-    private lateinit var jwtDecoder: JwtDecoder
-
     @Autowired
     private lateinit var dataCommands: DataCommands
 
@@ -49,6 +42,9 @@ class TestCommands {
 
     @Autowired
     private lateinit var portfolioCommands: PortfolioCommands
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Autowired
     private lateinit var promptProvider: PromptProvider

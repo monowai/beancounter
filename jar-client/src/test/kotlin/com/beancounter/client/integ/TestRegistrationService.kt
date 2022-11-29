@@ -7,18 +7,14 @@ import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.exception.UnauthorizedException
-import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
 /**
  * Test all user registration behaviour.
@@ -43,9 +39,7 @@ class TestRegistrationService {
     @Test
     fun registeringAuthenticatedUser() {
         val email = "blah@blah.com"
-        setupAuth(email)
-        assertThat(registrationService.jwtToken).isNotNull
-        assertThat(registrationService.token).isNotNull
+        mockAuthConfig.setupAuth(email)
         val registeredUser = registrationService
             .register(RegistrationRequest(email))
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
@@ -59,16 +53,9 @@ class TestRegistrationService {
     fun unauthenticatedUserRejectedFromRegistration() {
         // Set up the authenticated context
         val email = "not@authenticated.com"
-        setupAuth(email)
+        mockAuthConfig.setupAuth(email)
         assertThrows(UnauthorizedException::class.java) {
             registrationService.register(RegistrationRequest(email))
         }
-    }
-
-    private fun setupAuth(email: String) {
-        val jwt = mockAuthConfig.getUserToken(SystemUser(email, email))
-        Mockito.`when`(mockAuthConfig.jwtDecoder.decode(email)).thenReturn(jwt)
-        SecurityContextHolder.getContext().authentication =
-            JwtAuthenticationToken(mockAuthConfig.jwtDecoder.decode(email))
     }
 }

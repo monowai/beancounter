@@ -1,6 +1,6 @@
 package com.beancounter.shell.integ
 
-import com.beancounter.auth.AuthConfig
+import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.client.sharesight.ShareSightConfig
@@ -51,7 +51,7 @@ internal class StubbedTradesWithFx {
     private val testDate = "27/07/2019" // Sharesight format
 
     @MockBean
-    private lateinit var authConfig: AuthConfig
+    private lateinit var tokenService: TokenService
 
     @Test
     fun is_FxRatesSetFromCurrencies() {

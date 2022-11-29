@@ -1,25 +1,23 @@
 package com.beancounter.auth
 
-import com.beancounter.auth.client.LoginService
+import com.beancounter.common.exception.UnauthorizedException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 
 /**
  * TokenService verification.
  */
-@SpringBootTest(classes = [TokenService::class])
+@SpringBootTest(classes = [TokenService::class, MockAuthConfig::class])
+@AutoConfigureMockAuth
 class TokenServiceTest {
     @Autowired
     private lateinit var tokenService: TokenService
 
-    @MockBean
-    private lateinit var loginService: LoginService
-
-    @MockBean
-    private lateinit var authConfig: AuthConfig
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
     @Test
     fun is_BearerToken() {
@@ -28,7 +26,19 @@ class TokenServiceTest {
 
     @Test
     fun is_BearerTokenBearing() {
-        assertThat(tokenService.bearerToken)
-            .isEqualTo(TokenService.BEARER + tokenService.token)
+        mockAuthConfig.resetAuth()
+        assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
+    }
+
+    @Test
+    fun noSecurityContextIsUnauthorized() {
+        mockAuthConfig.resetAuth()
+        assertThrows(UnauthorizedException::class.java) { tokenService.bearerToken }
+    }
+
+    @Test
+    fun validSecurityContextIsAuthorized() {
+        mockAuthConfig.setupAuth("anything here will do")
+        assertThat(tokenService.bearerToken).isNotNull
     }
 }

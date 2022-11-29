@@ -18,6 +18,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
+import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
 import com.beancounter.position.accumulation.Accumulator
@@ -41,6 +42,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
 import java.util.Optional
+
+private const val stockCode = "EBAY"
 
 /**
  * Integration tests using mocked data from bc-data.
@@ -87,7 +90,9 @@ internal class FxValuationTest {
     @Autowired
     fun setDefaultUser() {
         tokenUtils = TokenUtils(authConfig)
-        token = tokenUtils.getUserToken(SystemUser("user", "user@testing.com"))
+        val user = "user@testing.com"
+        token = tokenUtils.getUserToken(SystemUser("user", user))
+        mockAuthConfig.setupAuth(user)
     }
 
     private fun getPositions(asset: Asset): Positions {
@@ -147,11 +152,11 @@ internal class FxValuationTest {
     private val ebay: Asset
         get() {
             val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-            assetInputMap["EBAY:NASDAQ"] = AssetInput("NASDAQ", "EBAY")
+            assetInputMap["$stockCode:${NASDAQ.code}"] = AssetInput(NASDAQ.code, stockCode)
             val assetRequest = AssetRequest(assetInputMap)
             val assetResponse = assetService.handle(assetRequest)
             assertThat(assetResponse!!.data).hasSize(1)
-            return assetResponse.data["EBAY:NASDAQ"] ?: error("EBAY Not Found. This should never happen")
+            return assetResponse.data["$stockCode:${NASDAQ.code}"] ?: error("$stockCode Not Found. This should never happen")
         }
 
     @Test

@@ -2,12 +2,15 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.model.SystemUser
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 
 /**
@@ -44,9 +47,20 @@ class MockAuthConfig {
     @Autowired
     fun setDefaultObjects(authConfig: AuthConfig) {
         this.tokenUtils = TokenUtils(authConfig)
+        setupAuth("autologin")
     }
 
     fun getUserToken(systemUser: SystemUser = SystemUser("user", "user@testing.com")): Jwt {
         return tokenUtils.getUserToken(systemUser)
+    }
+    fun setupAuth(email: String) {
+        val jwt = getUserToken(SystemUser(email, email))
+        Mockito.`when`(jwtDecoder.decode(email)).thenReturn(jwt)
+        SecurityContextHolder.getContext().authentication =
+            JwtAuthenticationToken(jwtDecoder.decode(email))
+    }
+
+    fun resetAuth() {
+        SecurityContextHolder.getContext().authentication = null
     }
 }

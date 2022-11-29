@@ -17,14 +17,16 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.cli.UserCommands
 import com.beancounter.shell.config.EnvConfig
 import com.beancounter.shell.config.ShellConfig
+import org.assertj.core.api.Assertions.assertThat
 import org.jline.reader.LineReader
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
+
+private const val email = "blah@blah.com"
 
 /**
  * User commands related to AUTH activities.
@@ -35,6 +37,10 @@ class TestUserCommands {
 
     @Autowired
     private lateinit var authConfig: AuthConfig
+
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
+
     private var client: String = "bc-dev"
 
     @Autowired
@@ -61,15 +67,8 @@ class TestUserCommands {
 
     @Test
     fun is_UnauthorizedThrowing() {
-        SecurityContextHolder.getContext().authentication = null
-        Mockito.`when`(registrationGateway.me(tokenService.bearerToken))
-            .thenReturn(null)
+        mockAuthConfig.resetAuth()
         assertThrows(UnauthorizedException::class.java) { userCommands.me() }
-        Mockito.`when`(
-            registrationGateway
-                .register(tokenService.bearerToken, RegistrationRequest("someone@nowhere.com"))
-        )
-            .thenReturn(null)
         assertThrows(UnauthorizedException::class.java) { userCommands.register(authConfig.claimEmail) }
     }
 
@@ -80,7 +79,8 @@ class TestUserCommands {
         Mockito.`when`(lineReader.readLine("Password: ", '*'))
             .thenReturn(password)
         val loginRequest = LoginService.LoginRequest(client_id = client, username = userId, password = password)
-        val systemUser = SystemUser(userId, "blah@blah.com")
+        val systemUser = SystemUser(userId, email)
+        mockAuthConfig.setupAuth(email)
         val jwt = tokenUtils.getUserToken(systemUser)
         val authResponse =
             OAuth2Response(userId, scope = "beancounter", expiry = 0L, refreshToken = "", type = "password")
@@ -96,8 +96,8 @@ class TestUserCommands {
         Mockito.`when`(registrationGateway.me(tokenService.bearerToken))
             .thenReturn(RegistrationResponse(systemUser))
         val me = bcJson.objectMapper.readValue(userCommands.me(), SystemUser::class.java)
-        org.assertj.core.api.Assertions.assertThat(me).isNotNull.hasFieldOrPropertyWithValue("id", systemUser.id)
-        org.assertj.core.api.Assertions.assertThat(userCommands.token()).isEqualTo(authResponse.token)
+        assertThat(me).isNotNull.hasFieldOrPropertyWithValue("id", systemUser.id)
+        assertThat(userCommands.token()).isEqualTo(authResponse.token)
         Mockito.`when`(
             registrationGateway.register(
                 tokenService.bearerToken,
@@ -108,6 +108,6 @@ class TestUserCommands {
         val registrationResponse = userCommands.register(authConfig.claimEmail)
         val registered = bcJson.objectMapper
             .readValue(registrationResponse, SystemUser::class.java)
-        org.assertj.core.api.Assertions.assertThat(registered).isNotNull.hasFieldOrPropertyWithValue("id", userId)
+        assertThat(registered).isNotNull.hasFieldOrPropertyWithValue("id", userId)
     }
 }

@@ -1,5 +1,6 @@
 package com.beancounter.shell.integ
 
+import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.services.PortfolioServiceClient
@@ -38,6 +39,7 @@ import java.util.UUID
     ids = ["org.beancounter:svc-data:+:stubs:10999"]
 )
 @ActiveProfiles("test")
+@AutoConfigureMockAuth
 class TestPortfolioCommands {
     @MockBean
     private lateinit var registrationService: RegistrationService

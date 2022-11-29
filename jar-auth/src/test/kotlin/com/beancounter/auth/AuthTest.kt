@@ -117,13 +117,13 @@ class AuthTest {
     internal class SimpleController {
 
         @GetMapping(hello)
-        @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
+        @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_USER}')")
         fun sayHello(): String {
             return "hello"
         }
 
         @GetMapping(what)
-        @PreAuthorize("hasAuthority('" + AuthConstants.ADMIN + "')")
+        @PreAuthorize("hasAuthority('${AuthConstants.ADMIN}')")
         fun sayWhat(): String {
             return "no one can call this"
         }

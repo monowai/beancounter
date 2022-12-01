@@ -72,7 +72,7 @@
         "symbol": "$"
       },
       "tradeCashRate": 1,
-      "tradeBaseRate": null,
+      "tradeBaseRate": 1,
       "tradePortfolioRate": 1,
       "cashAmount": 10000.00,
       "tradeDate": "2021-11-24",
@@ -182,7 +182,7 @@
         "symbol": "$"
       },
       "tradeCashRate": 1.5,
-      "tradeBaseRate": null,
+      "tradeBaseRate": 1,
       "tradePortfolioRate": 1.5,
       "cashAmount": -5000.00,
       "tradeDate": "2021-11-24",
@@ -294,8 +294,8 @@
         "symbol": "$"
       },
       "tradeCashRate": 0.67,
-      "tradeBaseRate": null,
-      "tradePortfolioRate": null,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 1,
       "cashAmount": -1492.54,
       "tradeDate": "2021-11-24",
       "comments": null,

@@ -114,6 +114,8 @@ class TrnControllerFlowTest {
             tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN,
             tradeCurrency = USD.code,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE
         )
 
@@ -123,8 +125,8 @@ class TrnControllerFlowTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradeBaseRate = null,
-            tradeCashRate = null,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate(tradeDate),
             price = BigDecimal.TEN
@@ -137,8 +139,8 @@ class TrnControllerFlowTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradeBaseRate = null,
-            tradeCashRate = null,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate(earlyTradeDate),
             price = BigDecimal.TEN
@@ -150,8 +152,8 @@ class TrnControllerFlowTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradeBaseRate = null,
-            tradeCashRate = null,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate(earlyTradeDate),
             price = BigDecimal.TEN

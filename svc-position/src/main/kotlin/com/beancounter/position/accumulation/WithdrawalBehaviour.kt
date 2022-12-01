@@ -17,7 +17,7 @@ class WithdrawalBehaviour : AccumulationStrategy {
     private val cashCost = CashCost()
     override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
         val cashPosition = getCashPosition(trn, position, positions)
-        val quantity = if (TrnType.isCash(trn.trnType)) trn.quantity else trn.cashAmount!!
+        val quantity = if (TrnType.isCash(trn.trnType)) trn.quantity else trn.cashAmount
         cashPosition.quantityValues.sold = position.quantityValues.sold.add(quantity)
         cashCost.value(
             trn.cashCurrency!!,

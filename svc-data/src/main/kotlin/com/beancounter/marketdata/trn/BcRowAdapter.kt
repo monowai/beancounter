@@ -13,6 +13,7 @@ import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
 import com.beancounter.marketdata.trn.TrnIoDefinition.Companion.colDef
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -44,7 +45,6 @@ class BcRowAdapter(
         val cashAssetId = getCashAssetId(trnType, asset, cashAccount, cashCurrency)
         val quantity =
             MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.Quantity]!!]))
-        val cashAmount = MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.CashAmount]!!])
         val price =
             MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.Price]!!]))
         val fees = MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.Fees]!!]))
@@ -65,7 +65,8 @@ class BcRowAdapter(
             tradeBaseRate = tradeBaseRate,
             tradeDate = tradeDate,
             tradeAmount = tradeAmount,
-            cashAmount = cashAmount,
+            cashAmount = MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.CashAmount]!!])
+                ?: BigDecimal.ZERO,
             cashCurrency = cashCurrency,
             cashAssetId = cashAssetId,
             fees = fees,

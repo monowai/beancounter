@@ -151,8 +151,8 @@ class TrnControllerTest {
             trnType = TrnType.DIVI,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradeBaseRate = null,
-            tradeCashRate = null,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate("2020-03-10"),
             price = BigDecimal.TEN,
             tradePortfolioRate = BigDecimal.ONE
@@ -229,11 +229,11 @@ class TrnControllerTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradeBaseRate = null,
-            tradeCashRate = null,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate(tradeDate),
-            price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE
+            price = BigDecimal.TEN
         )
 
         var trnInputB = TrnInput(
@@ -242,8 +242,8 @@ class TrnControllerTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
-            tradeBaseRate = null,
-            tradeCashRate = null,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate("2016-01-01"),
             price = BigDecimal.TEN,
             tradePortfolioRate = BigDecimal.ONE
@@ -260,8 +260,10 @@ class TrnControllerTest {
             quantity = BigDecimal.TEN,
             tradeCurrency = USD.code,
             price = BigDecimal.TEN,
-            tradeDate = dateUtils.getDate("2018-10-01"),
-            tradePortfolioRate = BigDecimal.ONE
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal.ONE,
+            tradeDate = dateUtils.getDate("2018-10-01")
         )
         trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "34"),
@@ -270,6 +272,8 @@ class TrnControllerTest {
             quantity = BigDecimal.TEN,
             tradeDate = dateUtils.getDate("2017-01-01"),
             price = BigDecimal.TEN,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE
         )
 
@@ -339,8 +343,8 @@ class TrnControllerTest {
                             trnType = TrnType.BUY,
                             quantity = BigDecimal.TEN,
                             tradeCurrency = USD.code,
-                            tradeBaseRate = null,
-                            tradeCashRate = null,
+                            tradeBaseRate = BigDecimal.ONE,
+                            tradeCashRate = BigDecimal.ONE,
                             tradeDate = dateUtils.getDate("2020-03-10"),
                             price = BigDecimal.ONE,
                             tradePortfolioRate = BigDecimal.TEN,
@@ -364,6 +368,8 @@ class TrnControllerTest {
                     trnType = TrnType.BUY,
                     quantity = BigDecimal.TEN,
                     tradeCurrency = USD.code,
+                    tradeBaseRate = BigDecimal.ONE,
+                    tradeCashRate = BigDecimal.ONE,
                     tradeDate = dateUtils.getDate("2021-03-10"),
                     price = BigDecimal.TEN,
                     tradePortfolioRate = BigDecimal.ONE

@@ -82,8 +82,6 @@ class ShareSightTradeAdapter(
                     shareSightConfig.numberFormat
                 )!!,
                 tradeCurrency = row[currency],
-                tradeBaseRate = null,
-                tradeCashRate = null,
                 cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
                 tradeDate = dateUtils.getDate(
                     row[date],
@@ -110,7 +108,7 @@ class ShareSightTradeAdapter(
         return if (shareSightConfig.isCalculateAmount || result == null) {
             result ?: BigDecimal.ZERO
         } else {
-            return divide(result, tradeRate)!!
+            return divide(result, tradeRate)
         }
     }
 
@@ -129,7 +127,7 @@ class ShareSightTradeAdapter(
             tradeCalculator.amount(q, p, f)
         } else {
             // ShareSight store tradeAmount in portfolio currency, BC stores in Trade CCY
-            return multiplyAbs(result, tradeRate)!!
+            return multiplyAbs(result, tradeRate)
         }
         return result
     }

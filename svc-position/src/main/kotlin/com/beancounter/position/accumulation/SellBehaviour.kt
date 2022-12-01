@@ -55,9 +55,9 @@ class SellBehaviour : AccumulationStrategy {
         )
         if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
             val unitCost = divide(trn.tradeAmount, rate)
-                ?.divide(trn.quantity.abs(), getMathContext())
-            val unitProfit = unitCost?.subtract(moneyValues.averageCost)
-            val realisedGain = unitProfit?.multiply(trn.quantity.abs())
+                .divide(trn.quantity.abs(), getMathContext())
+            val unitProfit = unitCost.subtract(moneyValues.averageCost)
+            val realisedGain = unitProfit.multiply(trn.quantity.abs())
             moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)
         }
         if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) == 0) {

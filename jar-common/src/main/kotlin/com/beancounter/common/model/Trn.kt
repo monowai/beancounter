@@ -45,12 +45,12 @@ data class Trn constructor(
     @ManyToOne
     var cashCurrency: Currency? = null,
     @Column(precision = 10, scale = 6)
-    var tradeCashRate: BigDecimal? = null, // Trade CCY to cash settlement currency
+    var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade CCY to cash settlement currency
     @Column(precision = 10, scale = 6)
-    var tradeBaseRate: BigDecimal? = null, // Trade Currency to system Base Currency
+    var tradeBaseRate: BigDecimal = BigDecimal.ONE, // Trade Currency to system Base Currency
     @Column(precision = 10, scale = 6)
-    var tradePortfolioRate: BigDecimal? = null, // Trade CCY to portfolio reference  currency
-    var cashAmount: BigDecimal? = null, // Signed Cash in settlement currency.
+    var tradePortfolioRate: BigDecimal = BigDecimal.ONE, // Trade CCY to portfolio reference  currency
+    var cashAmount: BigDecimal = BigDecimal.ZERO, // Signed Cash in settlement currency.
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

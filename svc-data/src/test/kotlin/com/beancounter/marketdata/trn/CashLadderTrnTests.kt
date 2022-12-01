@@ -3,7 +3,10 @@ package com.beancounter.marketdata.trn
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
+import com.beancounter.client.sharesight.ShareSightTradeAdapter.Companion.price
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.FxPairResults
+import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.AssetInput
@@ -27,11 +30,14 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
+import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -65,6 +71,9 @@ class CashLadderTrnTests {
     private lateinit var figiProxy: FigiProxy
 
     @MockBean
+    private lateinit var fxClientService: FxRateService
+
+    @Autowired
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
@@ -86,6 +95,9 @@ class CashLadderTrnTests {
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
+        Mockito.`when`(fxClientService.getRates(any()))
+            .thenReturn(FxResponse(FxPairResults()))
+//        Mockito.`when`(fxTransactions.)
     }
 
     private val fiveK = BigDecimal("5000.00")
@@ -172,6 +184,7 @@ class CashLadderTrnTests {
                         cashAmount = BigDecimal("10000.00"),
                         tradePortfolioRate = ONE,
                         tradeCashRate = ONE,
+                        tradeBaseRate = ONE,
                         price = ONE
                     )
                 )
@@ -194,6 +207,7 @@ class CashLadderTrnTests {
                         cashAmount = BigDecimal("-5000.00"),
                         tradePortfolioRate = usNzRate, // US/NZ
                         tradeCashRate = usNzRate, // US/NZ
+                        tradeBaseRate = usNzRate,
                         price = ONE
                     )
                 )
@@ -213,6 +227,7 @@ class CashLadderTrnTests {
                         assetId = equity!!.id,
                         cashAssetId = nzCashAsset.id,
                         tradeCashRate = nzUsRate,
+                        tradeBaseRate = nzUsRate,
                         quantity = BigDecimal("1000.00"),
                         price = ONE
                     )

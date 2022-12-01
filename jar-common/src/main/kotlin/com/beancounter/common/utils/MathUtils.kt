@@ -21,9 +21,9 @@ class MathUtils private constructor() {
         }
 
         @JvmStatic
-        fun divide(money: BigDecimal?, rate: BigDecimal?): BigDecimal? {
+        fun divide(money: BigDecimal?, rate: BigDecimal?): BigDecimal {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
-                return money
+                return BigDecimal.ZERO
             }
             return money!!.divide(rate, moneyScale, RoundingMode.HALF_UP)
         }
@@ -39,9 +39,9 @@ class MathUtils private constructor() {
 
         @JvmOverloads
         @JvmStatic
-        fun multiplyAbs(money: BigDecimal?, rate: BigDecimal?, moneyScale: Int = this.moneyScale): BigDecimal? {
+        fun multiplyAbs(money: BigDecimal?, rate: BigDecimal?, moneyScale: Int = this.moneyScale): BigDecimal {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
-                return money
+                return BigDecimal.ZERO
             }
             return money!!.multiply(rate).abs().setScale(moneyScale, RoundingMode.HALF_UP)
         }

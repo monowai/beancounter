@@ -52,8 +52,7 @@ internal class MarketValueTest {
         buyTrn.tradeAmount = twoThousand
         buyTrn.tradePortfolioRate = simpleRate
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
-        val portfolio = getPortfolio()
-        val positions = Positions(portfolio)
+        val positions = Positions(getPortfolio())
         val position = buyBehaviour.accumulate(buyTrn, positions)
         val marketData = MarketData(asset, close = BigDecimal("10.00"))
         marketData.previousClose = BigDecimal("5.00")
@@ -68,8 +67,8 @@ internal class MarketValueTest {
         targetValues.totalGain = thousandShort
         targetValues.unrealisedGain = thousandShort
         targetValues.gainOnDay = gainOnDay
-        targetValues.marketValue = multiplyAbs(buyTrn.quantity, marketData.close)!!
-        val fxRateMap = getRates(portfolio, asset, simpleRate)
+        targetValues.marketValue = multiplyAbs(buyTrn.quantity, marketData.close)
+        val fxRateMap = getRates(positions.portfolio, asset, simpleRate)
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .usingRecursiveComparison()
@@ -87,7 +86,7 @@ internal class MarketValueTest {
         assertThat(position.getMoneyValues(Position.In.BASE, positions.portfolio.base))
             .usingRecursiveComparison()
             .isEqualTo(baseValues)
-        val pfValues = MoneyValues(portfolio.currency)
+        val pfValues = MoneyValues(positions.portfolio.currency)
         pfValues.costBasis = tenThousand
         pfValues.purchases = tenThousand
         pfValues.priceData = of(marketData, simpleRate)
@@ -164,9 +163,9 @@ internal class MarketValueTest {
         pfValues.marketValue = BigDecimal("0")
         pfValues.averageCost = BigDecimal.ZERO
         pfValues.priceData = of(marketData, simpleRate)
-        pfValues.purchases = divide(buyTrn.tradeAmount, simpleRate)!!
+        pfValues.purchases = divide(buyTrn.tradeAmount, simpleRate)
         pfValues.costValue = BigDecimal.ZERO
-        pfValues.sales = divide(sellTrn.tradeAmount, simpleRate)!!
+        pfValues.sales = divide(sellTrn.tradeAmount, simpleRate)
         pfValues.realisedGain = fiveThousand
         pfValues.unrealisedGain = BigDecimal.ZERO
         pfValues.totalGain = fiveThousand

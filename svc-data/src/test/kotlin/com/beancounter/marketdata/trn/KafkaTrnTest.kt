@@ -68,6 +68,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
+import java.math.BigDecimal.ZERO
 
 /**
  * CSV file export and import via Kafka.
@@ -184,6 +185,7 @@ class KafkaTrnTest {
                 getTrnInput(trex, CallerRef(provider, batch, "2"))
             )
         )
+        `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
         val trnResponse = trnService.save(
             portfolio,
             trnRequest = trnRequest

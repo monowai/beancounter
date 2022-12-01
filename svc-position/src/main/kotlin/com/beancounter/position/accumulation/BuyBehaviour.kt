@@ -30,7 +30,7 @@ class BuyBehaviour : AccumulationStrategy {
         portfolio: Portfolio,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal?
+        rate: BigDecimal
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,

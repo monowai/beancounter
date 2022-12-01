@@ -38,7 +38,7 @@
     "fees": 0,
     "tax": 1.69,
     "tradeAmount": 3.94,
-    "cashAmount": null,
+    "cashAmount": 0,
     "tradeCashRate": null,
     "tradeBaseRate": null,
     "tradePortfolioRate": null,

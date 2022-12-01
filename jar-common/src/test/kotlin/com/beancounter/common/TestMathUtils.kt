@@ -26,21 +26,21 @@ internal class TestMathUtils {
                 BigDecimal.ZERO
             )
         )
-            .isEqualTo(oneThousandDec)
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
                 BigDecimal("0.00")
             )
         )
-            .isEqualTo(oneThousandDec)
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
                 null
             )
         )
-            .isEqualTo(oneThousandDec)
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
@@ -54,7 +54,7 @@ internal class TestMathUtils {
                 BigDecimal(ten)
             )
         )
-            .isNull()
+            .isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -65,28 +65,28 @@ internal class TestMathUtils {
                 BigDecimal(zeroDec)
             )
         )
-            .isEqualTo(oneThousandDec)
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
                 BigDecimal(zeroDec)
             )
         )
-            .isEqualTo(oneThousandDec)
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
                 null
             )
         )
-            .isEqualTo(oneThousandDec)
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 null,
                 BigDecimal(ten)
             )
         )
-            .isNull()
+            .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),

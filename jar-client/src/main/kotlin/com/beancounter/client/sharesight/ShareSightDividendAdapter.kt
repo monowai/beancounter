@@ -52,15 +52,13 @@ class ShareSightDividendAdapter(
         val row = trustedTrnImportRequest!!.row
         return try {
             val asset = resolveAsset(row)
-            val tradeRate = parse(row[fxRate], shareSightConfig.numberFormat)
+            val tradeRate = parse(row[fxRate], shareSightConfig.numberFormat)!!
             val trnInput = TrnInput(
                 CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[id]),
                 asset.id,
                 trnType = TrnType.DIVI,
                 quantity = BigDecimal.ZERO,
                 tradeCurrency = row[currency],
-                tradeBaseRate = null,
-                tradeCashRate = null,
                 tradeDate = dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,
@@ -74,8 +72,8 @@ class ShareSightDividendAdapter(
                         shareSightConfig.numberFormat
                     ),
                     tradeRate
-                )!!,
-                tax = multiplyAbs(BigDecimal(row[tax]), tradeRate)!!,
+                ),
+                tax = multiplyAbs(BigDecimal(row[tax]), tradeRate),
                 cashAmount = multiplyAbs(
                     parse(row[net], shareSightConfig.numberFormat),
                     tradeRate

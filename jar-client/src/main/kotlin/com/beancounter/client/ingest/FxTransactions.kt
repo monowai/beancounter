@@ -47,17 +47,23 @@ class FxTransactions(
         if (fxRequest.tradePf != null && numberUtils.isUnset(trnInput.tradePortfolioRate)) {
             trnInput.tradePortfolioRate = rates.rates[fxRequest.tradePf!!]!!.rate
         } else {
-            trnInput.tradePortfolioRate = BigDecimal.ONE
+            if (numberUtils.isUnset(trnInput.tradePortfolioRate)) {
+                trnInput.tradePortfolioRate = BigDecimal.ONE
+            }
         }
         if (fxRequest.tradeBase != null && numberUtils.isUnset(trnInput.tradeBaseRate)) {
             trnInput.tradeBaseRate = rates.rates[fxRequest.tradeBase!!]!!.rate
         } else {
-            trnInput.tradeBaseRate = BigDecimal.ONE
+            if (numberUtils.isUnset(trnInput.tradeBaseRate)) {
+                trnInput.tradeBaseRate = BigDecimal.ONE
+            }
         }
         if (fxRequest.tradeCash != null && numberUtils.isUnset(trnInput.tradeCashRate)) {
             trnInput.tradeCashRate = rates.rates[fxRequest.tradeCash!!]!!.rate
         } else {
-            trnInput.tradeCashRate = BigDecimal.ONE
+            if (numberUtils.isUnset(trnInput.tradeCashRate)) {
+                trnInput.tradeCashRate = BigDecimal.ONE
+            }
         }
     }
 

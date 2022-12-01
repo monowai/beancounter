@@ -147,6 +147,9 @@ internal class TrnAdapterTest {
             trnType = TrnType.DIVI,
             quantity = BigDecimal.TEN,
             price = price,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ZERO,
+            tradePortfolioRate = BigDecimal.ONE,
             tradeAmount = tradeAmount
         )
 
@@ -180,6 +183,9 @@ internal class TrnAdapterTest {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             price = price,
+            tradeBaseRate = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ZERO,
+            tradePortfolioRate = BigDecimal.ONE,
             tradeAmount = tradeAmount
         )
 

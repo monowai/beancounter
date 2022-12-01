@@ -56,7 +56,7 @@ class FxBuyBehaviour : AccumulationStrategy {
         counterPosition.quantityValues.sold = counterPosition.quantityValues.sold.add(trn.cashAmount)
         cashCost.value(
             trn.cashCurrency!!,
-            trn.cashAmount!!,
+            trn.cashAmount,
             portfolio,
             counterPosition,
             Position.In.TRADE,
@@ -66,7 +66,7 @@ class FxBuyBehaviour : AccumulationStrategy {
 
         cashCost.value(
             trn.cashCurrency!!,
-            trn.cashAmount!!,
+            trn.cashAmount,
             portfolio,
             counterPosition,
             Position.In.BASE,
@@ -74,25 +74,11 @@ class FxBuyBehaviour : AccumulationStrategy {
         )
         cashCost.value(
             trn.cashCurrency!!,
-            trn.cashAmount!!,
+            trn.cashAmount,
             portfolio,
             counterPosition,
             Position.In.PORTFOLIO,
             trn.tradePortfolioRate
         )
     }
-
-    //        val cashToBase = IsoCurrencyPair(position.asset.priceSymbol!!, portfolio.base.code)
-//        val cashToPortfolio = IsoCurrencyPair(position.asset.priceSymbol!!, portfolio.currency.code)
-//        val fxResponse = fxService.getRates(
-//            fxRequest = FxRequest(
-//                trn.tradeDate.toString(),
-//                arrayListOf(
-//                    cashToBase,
-//                    cashToPortfolio
-//                )
-//            )
-//        )
-//        value(trn, portfolio, position, Position.In.BASE, fxResponse.data.rates[cashToBase]?.rate)
-//        value(trn, portfolio, position, Position.In.PORTFOLIO, fxResponse.data.rates[cashToPortfolio]?.rate)
 }

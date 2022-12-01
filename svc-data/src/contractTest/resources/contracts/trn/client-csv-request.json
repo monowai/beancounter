@@ -24,7 +24,7 @@
       "tax": 0,
       "status": "CONFIRMED",
       "comments": "",
-      "cashAmount": null
+      "cashAmount": 0
     },
     {
       "callerRef": {

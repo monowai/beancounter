@@ -23,9 +23,9 @@ import java.math.BigDecimal
 @Service
 class CashServices(val assetService: AssetService, val currencyService: CurrencyService) {
 
-    fun getCashImpact(trnInput: TrnInput, tradeAmount: BigDecimal = trnInput.tradeAmount): BigDecimal? {
+    fun getCashImpact(trnInput: TrnInput, tradeAmount: BigDecimal = trnInput.tradeAmount): BigDecimal {
         if (TrnType.isCashImpacted(trnInput.trnType)) {
-            if (trnInput.cashAmount != null && trnInput.cashAmount!!.compareTo(BigDecimal.ZERO) != 0) {
+            if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
                 return trnInput.cashAmount // Cash amount has been set by the caller
             }
             val rate = trnInput.tradeCashRate ?: BigDecimal("1.00")
@@ -42,8 +42,8 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
         }
-        if (cashAssetId == null || cashAssetId.isEmpty()) {
-            if (cashCurrency == null || cashCurrency.isEmpty()) {
+        if (cashAssetId.isNullOrEmpty()) {
+            if (cashCurrency.isNullOrEmpty()) {
                 return null // no cash to look up.
             }
             // Generic Cash Balance

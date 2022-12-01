@@ -56,12 +56,12 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceP
             val date = providerArguments.getBatchConfigs()[batchId]!!.date
             if (dateUtils.isToday(priceRequest.date)) {
                 requests[batchId] = alphaProxyCache.getCurrent(
-                    providerArguments.batch[batchId],
+                    providerArguments.batch[batchId]!!,
                     "today",
                     apiKey
                 )
             } else {
-                requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId], date, apiKey)
+                requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId]!!, date, apiKey)
             }
         }
         return getMarketData(providerArguments, requests)

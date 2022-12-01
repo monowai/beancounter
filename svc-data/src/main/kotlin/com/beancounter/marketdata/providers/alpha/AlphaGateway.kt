@@ -61,5 +61,5 @@ interface AlphaGateway {
     fun search(
         @PathVariable("symbol") symbol: String?,
         @PathVariable("apiKey") apiKey: String?
-    ): String?
+    ): String
 }

@@ -29,7 +29,7 @@ class PriceRefresh internal constructor(
         log.info("Updating Prices {}", LocalDateTime.now(dateUtils.getZoneId()))
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
-        for (asset in assets!!) {
+        for (asset in assets) {
             val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), dateUtils.offsetDateString())
             marketDataService.getPriceResponse(priceRequest)
             assetCount.getAndIncrement()

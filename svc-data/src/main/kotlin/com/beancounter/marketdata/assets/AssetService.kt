@@ -122,7 +122,7 @@ class AssetService internal constructor(
         }.orElse(null)
     }
 
-    fun findAllAssets(): Stream<Asset>? {
+    fun findAllAssets(): Stream<Asset> {
         return assetRepository.findAllAssets()
     }
 

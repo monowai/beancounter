@@ -24,7 +24,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
     private var alphaProxyCache: AlphaProxyCache? = null
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
-    private val apiKey: String? = null
+    private val apiKey: String = "demo"
 
     @Autowired(required = false)
     fun setAlphaProxyCache(alphaProxyCache: AlphaProxyCache?) {

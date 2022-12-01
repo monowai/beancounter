@@ -18,13 +18,13 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
     private var currentBatch = 0
     var date: String = "today"
     private var delimiter = ","
-    private var datedBatches: MutableMap<Int, DatedBatch> = HashMap()
-    private var dpToBc: MutableMap<String, Asset> = HashMap()
+    private var datedBatches: MutableMap<Int, DatedBatch> = mutableMapOf()
+    private var dpToBc: MutableMap<String, Asset> = mutableMapOf()
 
     /**
      * How the MarketDataProvider wants the search key for all assets to be passed.
      */
-    var batch: MutableMap<Int, String> = HashMap()
+    var batch: MutableMap<Int, String> = mutableMapOf()
 
     private fun bumpBatch() {
         currentBatch++

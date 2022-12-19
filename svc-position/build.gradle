@@ -9,11 +9,14 @@ buildscript {
 }
 
 plugins {
-    id "io.spring.dependency-management"
-    id 'org.springframework.boot' version "${springVersion}"
-    id "maven-publish"
+    id 'io.spring.dependency-management'
     id 'org.jetbrains.kotlin.jvm'
     id 'kotlin-spring'
+    id 'idea'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'org.jmailen.kotlinter'
+    id "maven-publish"
 }
 
 apply plugin: 'spring-cloud-contract'
@@ -22,6 +25,7 @@ apply from: '../kotlin-spring.gradle'
 version = '0.1.1'
 publishing {
     publications {
+        // https://youtrack.jetbrains.com/issue/IDEA-162281
         stubs(MavenPublication) {
             groupId "org.beancounter"
             artifactId "${project.name}"
@@ -30,14 +34,10 @@ publishing {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-    }
-}
-
 dependencies {
     implementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
             project(":jar-client"),
             project(":jar-auth"),
@@ -61,7 +61,6 @@ dependencies {
     compileOnly(
             "org.springframework.boot:spring-boot-configuration-processor"
     )
-    contractTestImplementation(group: 'org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
     contractTestImplementation(
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             'javax.inject:javax.inject:1',
@@ -73,11 +72,9 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.mockito.kotlin:mockito-kotlin:4.0.0",
-            //https://github.com/spring-cloud/spring-cloud-contract/issues/1419
-            "org.springframework.cloud:spring-cloud-loadbalancer",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.junit.jupiter:junit-jupiter",
-            project(":jar-auth").sourceSets.test.output
+            testFixtures(project(":jar-auth")),
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
@@ -97,11 +94,11 @@ contractTest {
     }
 }
 
-task pubStubs {
+tasks.register('pubStubs') {
     dependsOn build
     dependsOn publishToMavenLocal
 }
 
-jacoco {
-    toolVersion = "$jacocoVersion"
+tasks.lintKotlinContractTest {
+    dependsOn generateContractTests
 }

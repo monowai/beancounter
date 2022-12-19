@@ -47,13 +47,13 @@ class MockAuthConfig {
     @Autowired
     fun setDefaultObjects(authConfig: AuthConfig) {
         this.tokenUtils = TokenUtils(authConfig)
-        setupAuth("autologin")
     }
 
     fun getUserToken(systemUser: SystemUser = SystemUser("user", "user@testing.com")): Jwt {
         return tokenUtils.getUserToken(systemUser)
     }
-    fun setupAuth(email: String) {
+
+    fun mockLogin(email: String = "test@nowhere.com") {
         val jwt = getUserToken(SystemUser(email, email))
         Mockito.`when`(jwtDecoder.decode(email)).thenReturn(jwt)
         SecurityContextHolder.getContext().authentication =

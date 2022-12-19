@@ -3,7 +3,6 @@
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
     gradlePluginPortal()
 }
 
@@ -12,14 +11,6 @@ tasks.withType(JavaCompile) {
     options.deprecation = true
 }
 
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'org.jetbrains.kotlin.jvm'
-apply plugin: 'kotlin-spring'
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: "checkstyle"
-apply plugin: 'jacoco'
-apply plugin: 'org.jmailen.kotlinter'
 
 java {
     toolchain {
@@ -52,10 +43,9 @@ jacoco {
 
 jacocoTestReport {
     reports {
-        xml.enabled true
-        html.enabled false
+        xml.required = true
+        html.required = false
     }
 }
 
 check.dependsOn jacocoTestReport
-

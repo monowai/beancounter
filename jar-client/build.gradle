@@ -1,17 +1,21 @@
-apply from: '../kotlin-spring.gradle'
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${springVersion}"
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
+plugins {
+    id 'io.spring.dependency-management'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
+    id 'idea'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'org.jmailen.kotlinter'
 }
+apply from: '../kotlin-spring.gradle'
 
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
 
-
 dependencies {
     implementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
             project(":jar-auth"),
             'com.google.guava:guava:31.1-android',
@@ -34,7 +38,7 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
-            project(":jar-auth").sourceSets.test.output,
+            testFixtures(project(":jar-auth")),
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false

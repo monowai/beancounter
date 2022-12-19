@@ -39,7 +39,7 @@ class TestRegistrationService {
     @Test
     fun registeringAuthenticatedUser() {
         val email = "blah@blah.com"
-        mockAuthConfig.setupAuth(email)
+        mockAuthConfig.mockLogin(email)
         val registeredUser = registrationService
             .register(RegistrationRequest(email))
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
@@ -53,7 +53,7 @@ class TestRegistrationService {
     fun unauthenticatedUserRejectedFromRegistration() {
         // Set up the authenticated context
         val email = "not@authenticated.com"
-        mockAuthConfig.setupAuth(email)
+        mockAuthConfig.mockLogin(email)
         assertThrows(UnauthorizedException::class.java) {
             registrationService.register(RegistrationRequest(email))
         }

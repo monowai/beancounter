@@ -1,16 +1,22 @@
-apply from: '../kotlin-spring.gradle'
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${springVersion}"
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
+plugins {
+    id 'io.spring.dependency-management'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'kotlin-spring'
+    id 'idea'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'org.jmailen.kotlinter'
+    id "java-test-fixtures"
 }
+
+apply from: '../kotlin-spring.gradle'
 
 version = '0.0.1'
 
 dependencies {
     implementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
             "javax.servlet:javax.servlet-api:4.0.1",
             "com.fasterxml.jackson.core:jackson-databind",
@@ -33,6 +39,17 @@ dependencies {
             "org.springframework.boot:spring-boot-autoconfigure",
             "org.springframework.security:spring-security-test",
             "org.springframework.security:spring-security-oauth2-client"
+
+    )
+    testFixturesImplementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
+            project(":jar-common"),
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.security:spring-security-test",
+            "org.springframework.security:spring-security-oauth2-client",
+            "org.springframework.security:spring-security-oauth2-resource-server",
+            "org.springframework.security:spring-security-oauth2-jose"
 
     )
 }

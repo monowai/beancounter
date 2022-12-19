@@ -1,8 +1,11 @@
 plugins {
-    id "io.spring.dependency-management"
-    id 'org.springframework.boot' version "${springVersion}"
+    id 'io.spring.dependency-management'
     id 'org.jetbrains.kotlin.jvm'
     id 'kotlin-spring'
+    id 'idea'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'org.jmailen.kotlinter'
     id 'kotlin-jpa'
 }
 apply from: '../kotlin-spring.gradle'
@@ -11,6 +14,8 @@ version = "0.1.1"
 
 dependencies {
     implementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
             project(":jar-auth"),
             project(":jar-client"),
@@ -32,7 +37,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-ratelimiter",
             "io.github.resilience4j:resilience4j-timelimiter",
             "com.h2database:h2",
-            'org.postgresql:postgresql:42.5.0',
+            'org.postgresql:postgresql:42.5.1',
             "com.github.ben-manes.caffeine:caffeine",
             "org.springframework.kafka:spring-kafka"
     )
@@ -53,7 +58,7 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
-            project(":jar-auth").sourceSets.test.output,
+            testFixtures(project(":jar-auth")),
 
     )
     testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
@@ -62,10 +67,10 @@ dependencies {
 
 }
 
-dependencyManagement {
-    imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
+tasks.formatKotlinMain {
+    exclude { it.file.path.contains("contractTest/")}
 }
 
-jacoco {
-    toolVersion = "$jacocoVersion"
+tasks.lintKotlinMain {
+    exclude { it.file.path.contains("contractTest/")}
 }

@@ -92,7 +92,7 @@ internal class FxValuationTest {
         tokenUtils = TokenUtils(authConfig)
         val user = "user@testing.com"
         token = tokenUtils.getUserToken(SystemUser("user", user))
-        mockAuthConfig.setupAuth(user)
+        mockAuthConfig.mockLogin(user)
     }
 
     private fun getPositions(asset: Asset): Positions {

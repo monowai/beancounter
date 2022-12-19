@@ -26,6 +26,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -48,7 +49,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
-private const val email = "blah@blah.com"
+private const val EMAIL = "blah@blah.com"
 
 /**
  * Test inbound Kafka corporate action events
@@ -100,11 +101,16 @@ class StubbedEvents {
     @Autowired
     private lateinit var wac: WebApplicationContext
     private val systemUser = SystemUser(
-        id = email,
-        email = email,
+        id = EMAIL,
+        email = EMAIL,
         true,
         DateUtils().getDate("2020-03-08")
     )
+
+    @BeforeEach
+    fun mockLogin() {
+        mockAuthConfig.mockLogin()
+    }
 
     var portfolio: Portfolio = Portfolio(
         id = "TEST",
@@ -118,7 +124,6 @@ class StubbedEvents {
 
     @Test
     fun is_NoQuantityOnDateNull() {
-        mockAuthConfig.setupAuth("noquantity")
         val corporateEvent = CorporateEvent(
             id = null,
             trnType = TrnType.DIVI,

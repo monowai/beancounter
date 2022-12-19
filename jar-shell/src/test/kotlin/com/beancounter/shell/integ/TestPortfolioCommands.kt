@@ -19,6 +19,7 @@ import com.beancounter.shell.Constants.Companion.USD
 import com.beancounter.shell.cli.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,17 +61,12 @@ class TestPortfolioCommands {
         portfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, mockAuthConfig.tokenService))
     }
 
-    @get:Test
-    val portfolios: Unit
-        get() {
-            systemUser
-            Mockito.`when`(portfolioGw.getPortfolios(Mockito.anyString()))
-                .thenReturn(PortfoliosResponse(ArrayList()))
-            val result = portfolioCommands.portfolios()
-            assertThat(result).isNotBlank
-        }
-
     private val pfCode = "ABC"
+
+    @BeforeEach
+    fun autoLogin() {
+        mockAuthConfig.mockLogin()
+    }
 
     @Test
     fun createPortfolio() {

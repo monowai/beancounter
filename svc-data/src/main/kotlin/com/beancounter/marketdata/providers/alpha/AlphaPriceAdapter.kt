@@ -78,7 +78,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
 
     private fun normalise(market: Market, marketData: MarketData) {
         if (market.multiplier.compareTo(BigDecimal.ONE) != 0) {
-            marketData.close = multiplyAbs(marketData.close, market.multiplier, 4)!!
+            marketData.close = multiplyAbs(marketData.close, market.multiplier, 4)
             marketData.open = multiplyAbs(marketData.open, market.multiplier, 4)
             marketData.high = multiplyAbs(marketData.high, market.multiplier, 4)
             marketData.low = multiplyAbs(marketData.low, market.multiplier, 4)

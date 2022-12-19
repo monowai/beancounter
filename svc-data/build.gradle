@@ -9,11 +9,15 @@ buildscript {
 }
 
 plugins {
-    id "io.spring.dependency-management"
-    id 'org.springframework.boot' version "${springVersion}"
-    id "maven-publish"
+    id 'io.spring.dependency-management'
     id 'org.jetbrains.kotlin.jvm'
     id 'kotlin-spring'
+    id 'idea'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'org.jmailen.kotlinter'
+    id 'org.springframework.boot' version "${springVersion}"
+    id "maven-publish"
 }
 
 apply plugin: 'spring-cloud-contract'
@@ -31,12 +35,11 @@ publishing {
     }
 }
 
-dependencyManagement {
-    imports { mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" }
-}
 
 dependencies {
     implementation(
+            platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
+            platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
             project(":jar-auth"),
             project(":jar-client"),
@@ -57,7 +60,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-timelimiter",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2", // Dev
-            'org.postgresql:postgresql:42.5.0',
+            'org.postgresql:postgresql:42.5.1',
             "org.springframework.kafka:spring-kafka",
             'com.opencsv:opencsv:5.7.1',
     )
@@ -65,7 +68,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin") { exclude module: 'kotlin-reflect' }
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
-    contractTestImplementation(group: 'org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
+    // contractTestImplementation('org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
     contractTestImplementation(
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             'javax.inject:javax.inject:1',
@@ -78,7 +81,7 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
-            project(":jar-auth").sourceSets.test.output,
+            testFixtures(project(":jar-auth")),
     )
 }
 
@@ -97,11 +100,11 @@ contractTest {
 }
 
 
-task pubStubs {
+tasks.register('pubStubs') {
     dependsOn build
     dependsOn publishToMavenLocal
 }
 
-jacoco {
-    toolVersion = "$jacocoVersion"
+tasks.lintKotlinContractTest {
+    dependsOn generateContractTests
 }

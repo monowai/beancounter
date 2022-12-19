@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -50,8 +51,12 @@ class TestCommands {
     private lateinit var promptProvider: PromptProvider
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
+    @BeforeEach
+    fun mockLogin() {
+        mockAuthConfig.mockLogin()
+    }
+
     @Test
-    @Throws(Exception::class)
     fun is_MarketCommandsReturning() {
         var json = dataCommands.markets("NASDAQ")
         var marketResponse = objectMapper.readValue(json, MarketResponse::class.java)
@@ -64,7 +69,6 @@ class TestCommands {
     private val test = "TEST"
 
     @Test
-    @Throws(Exception::class)
     fun is_PortfolioByCode() {
         val json = portfolioCommands.portfolioCode(test)
         val portfolio = objectMapper.readValue(json, Portfolio::class.java)
@@ -75,7 +79,6 @@ class TestCommands {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_PortfolioById() {
         val json = portfolioCommands.portfolio(test)
         val portfolio = objectMapper.readValue(json, Portfolio::class.java)

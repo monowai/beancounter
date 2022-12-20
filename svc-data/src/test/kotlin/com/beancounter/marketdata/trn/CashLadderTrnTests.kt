@@ -85,6 +85,7 @@ class CashLadderTrnTests {
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
     val usNzRate = BigDecimal("1.5")
+    val tenK = BigDecimal("10000.00")
 
     @BeforeEach
     fun setupObjects() {
@@ -179,9 +180,9 @@ class CashLadderTrnTests {
                         callerRef = CallerRef(),
                         trnType = TrnType.DEPOSIT,
                         assetId = nzCashAsset!!.id,
-                        tradeAmount = BigDecimal("10000.00"),
+                        tradeAmount = tenK,
                         cashAssetId = nzCashAsset.id,
-                        cashAmount = BigDecimal("10000.00"),
+                        cashAmount = tenK,
                         tradePortfolioRate = ONE,
                         tradeCashRate = ONE,
                         tradeBaseRate = ONE,

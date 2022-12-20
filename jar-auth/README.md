@@ -9,9 +9,9 @@ This guide is focused on how to make the security mechanism work and how to test
 
 I wanted to be able to:
 
-* Use `MockMvc` to test my Auth mechanism
-* Have a simple configuration mechanism that enabled security to "just work"
-* Provide support for both SCOPE and ROLE as returned by KeyCloak
+*   Use `MockMvc` to test my Auth mechanism
+*   Have a simple configuration mechanism that enabled security to "just work"
+*   Provide support for both SCOPE and ROLE as returned by KeyCloak
 
 ## Key Classes
 

@@ -68,7 +68,6 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin") { exclude module: 'kotlin-reflect' }
 
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
-    // contractTestImplementation('org.springframework.cloud', name: 'spring-cloud-stream', classifier: 'test-binder')
     contractTestImplementation(
             'org.springframework.cloud:spring-cloud-starter-contract-verifier',
             'javax.inject:javax.inject:1',

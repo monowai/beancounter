@@ -9,7 +9,6 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.beancounter.event.Constants.Companion.USD
 import com.beancounter.event.Constants.Companion.kmi
 import com.beancounter.event.service.EventBehaviourFactory
 import com.beancounter.event.service.alpha.AlphaEventAdapter
@@ -27,10 +26,10 @@ import java.math.BigDecimal
 class TestAlphaEventAdapter {
     @Autowired
     private lateinit var alphaEventAdapter: AlphaEventAdapter
+    val market = Market("NASDAQ")
 
     @Test
     fun is_UsDividendCalculated() {
-        val market = Market("NASDAQ")
         val asset = getAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
@@ -45,7 +44,6 @@ class TestAlphaEventAdapter {
             id = "123",
             trnType = TrnType.DIVI,
             recordDate = onDate,
-            source = "ALPHA",
             assetId = asset.id,
             rate = BigDecimal("0.2625")
         )
@@ -64,7 +62,6 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_FutureDatedTrnIgnored() {
-        val market = Market("NASDAQ", USD.code)
         val asset = getAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
@@ -73,7 +70,6 @@ class TestAlphaEventAdapter {
         val event = CorporateEvent(
             trnType = TrnType.DIVI,
             recordDate = today,
-            source = "ALPHA",
             assetId = asset.id,
             rate = BigDecimal("0.2625")
         )
@@ -102,7 +98,6 @@ class TestAlphaEventAdapter {
             id = "123",
             trnType = TrnType.SPLIT,
             recordDate = onDate,
-            source = "ALPHA",
             assetId = asset.id,
             split = BigDecimal("10")
         )

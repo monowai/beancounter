@@ -7,6 +7,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
+/**
+ * Obtains corporate actions since inception. Alpha stores these in price history.  This
+ * service will drop anything that is not considered an event.
+ */
 @Service
 class AlphaEventService(val alphaGateway: AlphaGateway, val alphaPriceAdapter: AlphaPriceAdapter) {
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")

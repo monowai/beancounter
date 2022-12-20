@@ -44,7 +44,7 @@ internal object JwtUtil {
         return getConfiguration(issuer, oidc(uri), oidcRfc8414(uri), oauth(uri))
     }
 
-    fun getSignatureAlgorithms(jwkSource: JWKSource<SecurityContext?>): Set<SignatureAlgorithm?> {
+    fun getSignatureAlgorithms(jwkSource: JWKSource<SecurityContext>): Set<SignatureAlgorithm> {
         val jwkMatcher = JWKMatcher.Builder().publicOnly(true).keyUses(KeyUse.SIGNATURE, null)
             .keyTypes(KeyType.RSA, KeyType.EC).build()
         val jwsAlgorithms: MutableSet<JWSAlgorithm> = HashSet()
@@ -65,7 +65,7 @@ internal object JwtUtil {
         } catch (ex: KeySourceException) {
             throw IllegalStateException(ex)
         }
-        val signatureAlgorithms: MutableSet<SignatureAlgorithm?> = HashSet()
+        val signatureAlgorithms: MutableSet<SignatureAlgorithm> = HashSet()
         for (jwsAlgorithm in jwsAlgorithms) {
             val signatureAlgorithm = SignatureAlgorithm.from(jwsAlgorithm.name)
             if (signatureAlgorithm != null) {

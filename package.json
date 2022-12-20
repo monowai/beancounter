@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "lint": "remark jar-auth/. jar-client/. jar-shell/. svc-data/. svc-position/."
+    "lint": "remark jar-common jar-auth/. jar-client/. jar-shell/. svc-data/. svc-position/."
   },
   "dependencies": {
     "remark-cli": "latest",

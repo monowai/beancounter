@@ -9,15 +9,17 @@ management:
     port: 9521
   endpoint:
     health.show-details: always
-  endpoints:
-    web:
-      exposure.include: '*'
-      base-path: ""
   health:
     livenessstate:
       enabled: true
     readinessState:
       enabled: true
+  info:
+    git:
+      mode: SIMPLE
+  endpoints:
+    web:
+      exposure.include: '*'
 
 feign:
   client:

@@ -19,6 +19,9 @@ management:
       enabled: true
     readinessState:
       enabled: true
+  info:
+    git:
+      mode: SIMPLE
 
 # Requires bearer auth in default config
 # http://localhost:9501/actuator/circuitbreakerevents

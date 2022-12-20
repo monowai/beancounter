@@ -16,6 +16,7 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'org.jmailen.kotlinter'
+    id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
     id 'org.springframework.boot' version "${springVersion}"
     id "maven-publish"
 }
@@ -106,4 +107,12 @@ tasks.register('pubStubs') {
 
 tasks.lintKotlinContractTest {
     dependsOn generateContractTests
+}
+
+springBoot {
+    buildInfo()
+}
+
+gitProperties {
+    failOnNoGitDirectory = false
 }

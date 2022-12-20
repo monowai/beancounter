@@ -17,6 +17,8 @@ plugins {
     id 'jacoco'
     id 'org.jmailen.kotlinter'
     id "maven-publish"
+    id 'org.springframework.boot' version "${springVersion}"
+    id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
 }
 
 apply plugin: 'spring-cloud-contract'
@@ -101,4 +103,12 @@ tasks.register('pubStubs') {
 
 tasks.lintKotlinContractTest {
     dependsOn generateContractTests
+}
+
+springBoot {
+    buildInfo()
+}
+
+gitProperties {
+    failOnNoGitDirectory = false
 }

@@ -7,16 +7,16 @@ server:
 management:
   server:
     port: 9511
-    base-path: "" # i.e. /
+  endpoint:
+    health.show-details: always
   health:
     livenessstate:
       enabled: true
     readinessState:
       enabled: true
-
-  endpoint:
-    health:
-      show-details: always
+  info:
+    git:
+      mode: SIMPLE
   endpoints:
     web:
       exposure:

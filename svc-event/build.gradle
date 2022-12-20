@@ -7,6 +7,8 @@ plugins {
     id 'jacoco'
     id 'org.jmailen.kotlinter'
     id 'kotlin-jpa'
+    id 'org.springframework.boot' version "${springVersion}"
+    id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
 }
 apply from: '../kotlin-spring.gradle'
 
@@ -73,4 +75,12 @@ tasks.formatKotlinMain {
 
 tasks.lintKotlinMain {
     exclude { it.file.path.contains("contractTest/")}
+}
+
+springBoot {
+    buildInfo()
+}
+
+gitProperties {
+    failOnNoGitDirectory = false
 }

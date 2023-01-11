@@ -1,5 +1,5 @@
 ext{
-  springVersion='2.7.7'
+  springVersion='3.0.1'
   springCloudVersion='2021.0.5'
   verifierVersion='3.1.5'
   kotlinVersion='1.8.0'

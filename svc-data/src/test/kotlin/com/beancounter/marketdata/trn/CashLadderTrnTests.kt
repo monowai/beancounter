@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
-import com.beancounter.client.sharesight.ShareSightTradeAdapter.Companion.price
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse

@@ -202,7 +202,7 @@ docker-compose start postgres keycloak
 
 ### Further reading and  references
 
-There's a ton of information on the internet and I recommend reading the following links it you want to dive deeper. All
+There's a ton of information on the internet and I recommend reading the following links if you want to dive deeper. All
 of these links have provided useful information which I believe I've consolidated into this module
 
 <https://docs.spring.io/spring-security/site/docs/current/reference/html5/>

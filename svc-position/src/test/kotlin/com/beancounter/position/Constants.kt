@@ -48,7 +48,7 @@ class Constants {
             category = "CASH"
         )
 
-        private val id = "blah@blah.com"
+        private const val id = "blah@blah.com"
         val owner = SystemUser(
             id = id,
             email = id,

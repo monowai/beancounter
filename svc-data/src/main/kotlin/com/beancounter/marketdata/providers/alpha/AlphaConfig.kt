@@ -55,7 +55,7 @@ class AlphaConfig : DataProviderConfig {
             return asset.priceSymbol!!
         }
         val marketCode = translateMarketCode(asset.market)
-        return if (marketCode != null && marketCode.isNotEmpty()) {
+        return if (!marketCode.isNullOrEmpty()) {
             asset.code + "." + marketCode
         } else {
             asset.code

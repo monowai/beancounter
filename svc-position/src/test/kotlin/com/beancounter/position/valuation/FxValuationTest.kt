@@ -43,7 +43,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
 import java.util.Optional
 
-private const val stockCode = "EBAY"
+private const val EBAY = "EBAY"
 
 /**
  * Integration tests using mocked data from bc-data.
@@ -152,11 +152,11 @@ internal class FxValuationTest {
     private val ebay: Asset
         get() {
             val assetInputMap: MutableMap<String, AssetInput> = HashMap()
-            assetInputMap["$stockCode:${NASDAQ.code}"] = AssetInput(NASDAQ.code, stockCode)
+            assetInputMap["$EBAY:${NASDAQ.code}"] = AssetInput(NASDAQ.code, EBAY)
             val assetRequest = AssetRequest(assetInputMap)
             val assetResponse = assetService.handle(assetRequest)
             assertThat(assetResponse!!.data).hasSize(1)
-            return assetResponse.data["$stockCode:${NASDAQ.code}"] ?: error("$stockCode Not Found. This should never happen")
+            return assetResponse.data["$EBAY:${NASDAQ.code}"] ?: error("$EBAY Not Found. This should never happen")
         }
 
     @Test

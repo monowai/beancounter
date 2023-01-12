@@ -25,8 +25,8 @@ There are some sepecialised variations of the `BusinessExecption`, notably
 
 Ideally, do not throw a `404` error. Instead, consider throwing a `BusinessException` This will help clients understand
 the difference between "The end point does not exist" vs. “The resource does not exist”. If the response is no results,
-e.g. then an empty `Collection` is returned with a `2XX` status code. The call worked, no records met the crietria and
-the client should be instructed to loop until they get "no results”.
+e.g. then an empty `Collection` is returned with a `2XX` status code. The call worked, no records met the criteria and
+the client should be instructed to loop until they get an empty array indicating no results.
 
 ## Spring Backends
 

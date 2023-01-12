@@ -15,11 +15,6 @@ enum class TrnType {
         val debitsCash = arrayOf(BUY, WITHDRAWAL, FX_BUY)
 
         @JvmStatic
-        fun isCorporateAction(trnType: TrnType): Boolean {
-            return (DIVI == trnType || SPLIT == trnType)
-        }
-
-        @JvmStatic
         fun isCashImpacted(trnType: TrnType): Boolean {
             return (trnType != SPLIT)
         }

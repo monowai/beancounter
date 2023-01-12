@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.math.BigDecimal
 
-private const val propCostValue = "costValue"
+private const val PROP_COST_VALUE = "costValue"
 
 /**
  * Verify cash impact on purchase and sale. The contract data for this test
@@ -106,17 +106,17 @@ internal class CashLadderTest {
         val cashResult = "2500.00"
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue("marketValue", BigDecimal(cashResult))
-            .hasFieldOrPropertyWithValue(propCostValue, BigDecimal(cashResult))
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal(cashResult))
 
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue("total", BigDecimal("3507.46"))
 
         // Cash does not track purchases and sales totals.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue(propCostValue, BigDecimal("3507.46")) // Purchases - Sales
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("3507.46")) // Purchases - Sales
 
         // ToDo: Figure out cash fx rates to apply at cost.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue(propCostValue, BigDecimal("4945.52"))
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("4945.52"))
     }
 }

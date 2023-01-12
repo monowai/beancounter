@@ -49,7 +49,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ActiveProfiles("kafka")
 class TrnCsvKafka {
     private val log = LoggerFactory.getLogger(TrnCsvKafka::class.java)
-    val abc = "ABC"
+    private final val abc = "ABC"
     private val row: List<String> = listOf(abc, abc, abc)
 
     @Autowired

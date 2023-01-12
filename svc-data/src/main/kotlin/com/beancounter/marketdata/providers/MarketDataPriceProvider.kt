@@ -19,7 +19,7 @@ interface MarketDataPriceProvider {
     /**
      * Convenience function to return the ID.
      *
-     * @return Unique Id of the MarketDataProvider
+     * @return Unique id of the MarketDataProvider
      */
     fun getId(): String
     fun isMarketSupported(market: Market): Boolean

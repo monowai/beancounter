@@ -10,7 +10,7 @@ interface TrnWriter {
     fun write(trnRequest: TrustedTrnImportRequest)
 
     /**
-     * if you're writer supports batching, this tells you when we're done processing.
+     * if writer supports batching, this tells you when we're ready to push.
      */
     fun flush()
     fun id(): String

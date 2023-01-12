@@ -57,7 +57,7 @@ class TestIngestCommand {
     @Test
     fun is_IngestionCommandRunning() {
         ingestionFactory.add(mock.uppercase(), mockIngester)
-        // Make sure we are not case sensitive when finding the ingestion approach to use.
+        // Make sure we are not case-sensitive when finding the ingestion approach to use.
         Assertions.assertThat(
             ingestionCommand.ingest(
                 mock,

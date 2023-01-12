@@ -14,6 +14,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.common.utils.TradeCalculator
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -106,7 +107,7 @@ class TestAdapters {
             dateUtils,
             tradeCalculator
         )
-        org.assertj.core.api.Assertions.assertThat(shareSightTradeAdapter.isValid(row)).isTrue
+        assertThat(shareSightTradeAdapter.isValid(row)).isTrue
     }
 
     @Test
@@ -135,7 +136,7 @@ class TestAdapters {
         val result = shareSightTradeAdapter.from(
             TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT)
         )
-        org.assertj.core.api.Assertions.assertThat(result)
+        assertThat(result)
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("105.00"))
     }
 
@@ -153,6 +154,6 @@ class TestAdapters {
         row.add(ShareSightDividendAdapter.gross, "gross")
         row.add(ShareSightDividendAdapter.comments, "comments")
         val dividendAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService)
-        org.assertj.core.api.Assertions.assertThat(dividendAdapter.isValid(row)).isTrue
+        assertThat(dividendAdapter.isValid(row)).isTrue
     }
 }

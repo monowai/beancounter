@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 
 internal class TestMarkets {
-    var jsonMapper = BcJson().objectMapper
-    var yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule.Builder().build())
+    private var jsonMapper = BcJson().objectMapper
+    private var yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule.Builder().build())
 
     @Test
     @Throws(Exception::class)

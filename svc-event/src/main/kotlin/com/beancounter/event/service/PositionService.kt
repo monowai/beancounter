@@ -88,7 +88,7 @@ class PositionService(
     }
 
     fun getPositions(portfolio: Portfolio, asAt: String): PositionResponse {
-        return positionGateway.get(tokenService.bearerToken, portfolio.id, asAt)
+        return positionGateway[tokenService.bearerToken, portfolio.id, asAt]
     }
 
     companion object {

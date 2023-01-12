@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.JwtDecoder
 
-private const val email = "blah@blah.com"
+private const val EMAIL = "blah@blah.com"
 
 /**
  * User commands related to AUTH activities.
@@ -79,8 +79,8 @@ class TestUserCommands {
         Mockito.`when`(lineReader.readLine("Password: ", '*'))
             .thenReturn(password)
         val loginRequest = LoginService.LoginRequest(client_id = client, username = userId, password = password)
-        val systemUser = SystemUser(userId, email)
-        mockAuthConfig.mockLogin(email)
+        val systemUser = SystemUser(userId, EMAIL)
+        mockAuthConfig.mockLogin(EMAIL)
         val jwt = tokenUtils.getUserToken(systemUser)
         val authResponse =
             OAuth2Response(userId, scope = "beancounter", expiry = 0L, refreshToken = "", type = "password")

@@ -13,7 +13,7 @@ internal class DateSplitterTest {
 
     @Test
     fun splitsFromToEveryOneDay() {
-        // Calculate all the dates - FromDate, every 1 days up until 20th
+        // Calculate all dates - FromDate, every 1 day up until 20th
         val results = dateSplitter.split(1, "2022-01-01", "2022-01-20")
         assertThat(results)
             .size().isEqualTo(20)
@@ -21,7 +21,7 @@ internal class DateSplitterTest {
 
     @Test
     fun splitsFromToEveryTwoDays() {
-        // Calculate all the dates - FromDate, every 1 days up until 20th
+        // Calculate all the dates - FromDate, every 1 day up until 20th
         val results = dateSplitter.split(2, "2022-01-01", "2022-01-21")
         assertThat(results)
             .size().isEqualTo(11) // Always has the last date
@@ -29,7 +29,7 @@ internal class DateSplitterTest {
 
     @Test
     fun splitsTodayOnly() {
-        // Calculate all the dates - FromDate, every 1 days up until 20th
+        // Calculate all the dates - FromDate, every 1 day up until 20th
         val results = dateSplitter.split(20, dateUtils.today(), dateUtils.today())
         assertThat(results)
             .size().isEqualTo(1)

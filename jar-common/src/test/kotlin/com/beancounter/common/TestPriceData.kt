@@ -19,7 +19,7 @@ import java.math.BigDecimal
  * Pojo Price tests
  */
 class TestPriceData {
-    val asset = Asset(code = "ABC", market = NYSE)
+    private val asset = Asset(code = "ABC", market = NYSE)
 
     @Test
     fun is_PriceDataWithRates() {

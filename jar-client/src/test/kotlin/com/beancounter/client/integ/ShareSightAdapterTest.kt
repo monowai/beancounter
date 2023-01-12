@@ -72,7 +72,7 @@ internal class ShareSightAdapterTest {
     fun is_AssetsSetIntoTransaction() {
         var row: MutableList<String> = mutableListOf()
         row.add(ShareSightTradeAdapter.id, "1")
-        row.add(ShareSightTradeAdapter.market, "${ASX.code}")
+        row.add(ShareSightTradeAdapter.market, ASX.code)
         row.add(ShareSightTradeAdapter.code, "BHP")
         row.add(ShareSightTradeAdapter.name, "Test Asset")
         row.add(ShareSightTradeAdapter.type, "buy")

@@ -20,9 +20,9 @@ data class CallerRef(
     companion object {
         @JvmStatic
         fun from(callerRef: CallerRef, portfolio: Portfolio): CallerRef {
-            val provider = if (callerRef.provider.isBlank()) "BC" else callerRef.provider
+            val provider = callerRef.provider.ifBlank { "BC" }
             val batch = callerRef.batch.ifBlank { portfolio.code }
-            val callerId = if (callerRef.callerId.isBlank()) KeyGenUtils().id else callerRef.callerId
+            val callerId = callerRef.callerId.ifBlank { KeyGenUtils().id }
             return CallerRef(provider, batch, callerId)
         }
     }

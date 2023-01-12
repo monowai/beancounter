@@ -26,7 +26,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
-private const val londonExchange = "LON"
+private const val LON = "LON"
 
 /**
  * Trade tests with FX rates obtained from bc-data.
@@ -57,7 +57,7 @@ internal class StubbedTradesWithFx {
     fun is_FxRatesSetFromCurrencies() {
         val row: List<String> = arrayListOf(
             "999",
-            londonExchange,
+            LON,
             "BHP",
             "Test Asset",
             "buy",
@@ -93,7 +93,7 @@ internal class StubbedTradesWithFx {
         assertThat(shareSightConfig.isCalculateRates).isTrue
         val row: List<String> = arrayListOf(
             "999",
-            londonExchange,
+            LON,
             "BHP",
             "Test Asset",
             "buy",

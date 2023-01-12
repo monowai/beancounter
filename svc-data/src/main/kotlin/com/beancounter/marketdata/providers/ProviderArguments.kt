@@ -82,7 +82,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
          *
          * @param priceRequest       Args
          * @param dataProviderConfig Who our provider is
-         * @return This class with various keys cross indexed for convenience
+         * @return This class with various keys cross-indexed for convenience
          */
         fun getInstance(
             priceRequest: PriceRequest,

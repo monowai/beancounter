@@ -60,7 +60,7 @@ class StaticService internal constructor(
                 tokenService.bearerToken,
                 marketCode.uppercase(Locale.getDefault())
             )
-            if (data == null || data.isEmpty()) {
+            if (data.isNullOrEmpty()) {
                 throw BusinessException("Unable to resolve market code $marketCode")
             }
             data.iterator().next()

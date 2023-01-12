@@ -22,8 +22,8 @@ class WtdConfig @Autowired constructor(val marketService: MarketService) : DataP
     @Value("\${beancounter.market.providers.WTD.batchSize:2}")
     var assetsPerRequest = 2
 
-    // For testing purposes - allows us to setup a static base date for which Market Prices Dates
-    // can reliably computed from.
+    // For testing purposes - allows us to set up a static base date for which Market Prices Dates
+    // can be reliably computed from.
     @Value("\${beancounter.market.providers.WTD.date:#{null}}")
     var date: String? = null
         get() = if (field == null) dateUtils.today() else field

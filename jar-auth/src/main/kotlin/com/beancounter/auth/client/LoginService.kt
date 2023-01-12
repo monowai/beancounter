@@ -1,6 +1,7 @@
 package com.beancounter.auth.client
 
 import com.beancounter.auth.model.OAuth2Response
+import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -52,9 +53,9 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
      *
      * @return token
      */
-    fun login(): String? {
+    fun login(): String {
         if ("not-set" == secret) {
-            return null
+            throw UnauthorizedException("Client Secret is not set")
         }
         val login = MachineRequest(
             client_secret = secret,

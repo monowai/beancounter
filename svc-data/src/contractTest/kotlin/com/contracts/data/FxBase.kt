@@ -16,9 +16,8 @@ class FxBase : ContractVerifierBase() {
     @MockBean
     private lateinit var fxGateway: FxGateway
 
-    @Throws(Exception::class)
     @BeforeEach
-    private fun mockFxRates() {
+    fun mockFxRates() {
         val eur = "0.8973438622"
         val sgd = "1.3652189519"
         val gbp = "0.7756191673"
@@ -31,15 +30,15 @@ class FxBase : ContractVerifierBase() {
             nzd,
             aud
         )
-        mockEcbRates(rates, EcbMockUtils.get("2019-10-20", rates))
+        mockEcbRates(rates, EcbMockUtils["2019-10-20", rates])
         rates = EcbMockUtils.getRateMap(eur, sgd, gbp, "10.0", aud)
-        mockEcbRates(rates, EcbMockUtils.get("2019-01-01", rates))
+        mockEcbRates(rates, EcbMockUtils["2019-01-01", rates])
 
         rates = EcbMockUtils.getRateMap(eur, sgd, gbp, nzd, aud)
-        mockEcbRates(rates, EcbMockUtils.get(rateDate, rates))
+        mockEcbRates(rates, EcbMockUtils[rateDate, rates])
 
         // Current
-        mockEcbRates(rates, EcbMockUtils.get(dateUtils.today(), rates))
+        mockEcbRates(rates, EcbMockUtils[dateUtils.today(), rates])
         rates = EcbMockUtils.getRateMap(
             "0.897827258",
             "1.3684683067",
@@ -47,9 +46,9 @@ class FxBase : ContractVerifierBase() {
             "1.5053869635",
             "1.4438857964"
         )
-        mockEcbRates(rates, EcbMockUtils.get("2019-07-26", rates))
-        // Saturday results are the same as Fridays
-        mockEcbRates(rates, EcbMockUtils.get("2019-07-26", rates), "2019-07-27")
+        mockEcbRates(rates, EcbMockUtils["2019-07-26", rates])
+        // Saturday's results are the same as Fridays
+        mockEcbRates(rates, EcbMockUtils["2019-07-26", rates], "2019-07-27")
 
         rates = EcbMockUtils.getRateMap(
             "0.9028530155",
@@ -59,7 +58,7 @@ class FxBase : ContractVerifierBase() {
             "1.4734561213"
         )
 
-        mockEcbRates(rates, EcbMockUtils.get("2019-08-16", rates))
+        mockEcbRates(rates, EcbMockUtils["2019-08-16", rates])
         rates = EcbMockUtils.getRateMap(
             "0.9078529278",
             "1.36123468",
@@ -68,7 +67,7 @@ class FxBase : ContractVerifierBase() {
             "1.460463005"
         )
 
-        mockEcbRates(rates, EcbMockUtils.get("2019-11-12", rates))
+        mockEcbRates(rates, EcbMockUtils["2019-11-12", rates])
         rates = EcbMockUtils.getRateMap(
             "0.8482483671",
             "1.6586648571",
@@ -76,7 +75,7 @@ class FxBase : ContractVerifierBase() {
             "1.8855712953",
             "1.6201543812"
         )
-        mockEcbRates(rates, EcbMockUtils.get("1999-01-04", rates))
+        mockEcbRates(rates, EcbMockUtils["1999-01-04", rates])
 
         rates = EcbMockUtils.getRateMap(
             "0.8482483671",

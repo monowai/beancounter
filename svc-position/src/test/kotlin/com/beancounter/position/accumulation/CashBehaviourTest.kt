@@ -16,13 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
-private const val propPurchases = "purchases"
-private const val propCostBasis = "costBasis"
+private const val PROP_PURCHASES = "purchases"
+private const val PROP_COST_BASIS = "costBasis"
 
-private const val propCostValue = "costValue"
-private const val propSold = "sold"
+private const val PROP_COST_VALUE = "costValue"
+private const val PROP_SOLD = "sold"
 
-private const val propTotal = "total"
+private const val PROP_TOTAL = "total"
 
 /**
  * Verifies the expected behaviour of a Cash position for supported transaction types.
@@ -45,9 +45,9 @@ internal class CashBehaviourTest {
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
         assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(propCostValue, trn.quantity)
-            .hasFieldOrPropertyWithValue(propCostBasis, trn.quantity)
-            .hasFieldOrPropertyWithValue(propPurchases, trn.quantity)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.quantity)
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.quantity)
+            .hasFieldOrPropertyWithValue(PROP_PURCHASES, trn.quantity)
 
         assertThat(position.quantityValues).hasFieldOrPropertyWithValue("precision", 2)
     }
@@ -73,9 +73,9 @@ internal class CashBehaviourTest {
         assertThat(cashPosition.quantityValues)
             .hasFieldOrPropertyWithValue("purchased", cashAmount.abs())
         assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(propCostBasis, trn.cashAmount)
-            .hasFieldOrPropertyWithValue(propCostValue, trn.cashAmount)
-            .hasFieldOrPropertyWithValue(propPurchases, trn.cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_PURCHASES, trn.cashAmount)
     }
 
     @Test
@@ -89,11 +89,11 @@ internal class CashBehaviourTest {
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(propSold, cashAmount)
-            .hasFieldOrPropertyWithValue(propTotal, cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_SOLD, cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_TOTAL, cashAmount)
         assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(propCostBasis, trn.quantity)
-            .hasFieldOrPropertyWithValue(propCostValue, trn.quantity)
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.quantity)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.quantity)
             .hasFieldOrPropertyWithValue("sales", trn.quantity)
     }
 
@@ -115,10 +115,10 @@ internal class CashBehaviourTest {
         assertThat(positions.positions).hasSize(2)
         val cashPosition = positions[usdCashBalance]
         assertThat(cashPosition.quantityValues)
-            .hasFieldOrPropertyWithValue(propSold, cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_SOLD, cashAmount)
         assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
-            .hasFieldOrPropertyWithValue(propPurchases, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(propCostBasis, cashAmount)
-            .hasFieldOrPropertyWithValue(propCostValue, cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_PURCHASES, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(PROP_COST_BASIS, cashAmount)
+            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, cashAmount)
     }
 }

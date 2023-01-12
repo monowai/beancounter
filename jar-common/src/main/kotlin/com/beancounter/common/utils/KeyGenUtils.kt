@@ -7,7 +7,7 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 /**
- * Builds shorter web-safe keys from a a UUID byte array (of exactly 16 bytes), base64 encodes it,
+ * Builds shorter web-safe keys from a UUID byte array (of exactly 16 bytes), base64 encodes it,
  * using a URL-safe encoding scheme.  The resulting string will be 22 characters in length with no extra
  * padding on the end (e.g. no "==" on the end).
  *
@@ -50,7 +50,7 @@ class KeyGenUtils {
      * @throws BusinessException     if the uuidString is null.
      */
     fun parse(uuidString: String?): UUID {
-        if (uuidString == null || uuidString.isEmpty()) {
+        if (uuidString.isNullOrEmpty()) {
             throw BusinessException("Invalid UUID string")
         }
         if (uuidString.length > 24) {

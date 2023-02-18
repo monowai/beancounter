@@ -54,6 +54,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
      * @return token
      */
     fun login(): String {
+        log.debug("Performing m2m login")
         if ("not-set" == secret) {
             throw UnauthorizedException("Client Secret is not set")
         }

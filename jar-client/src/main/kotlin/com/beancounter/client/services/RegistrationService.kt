@@ -35,7 +35,7 @@ class RegistrationService(
     }
 
     val token: String?
-        get() = tokenService.token
+        get() = tokenService.m2mToken
 
     val jwtToken: JwtAuthenticationToken
         get() = tokenService.jwt

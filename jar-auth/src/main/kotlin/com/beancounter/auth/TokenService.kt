@@ -24,13 +24,13 @@ class TokenService(val authConfig: AuthConfig) {
         }
 
     // M2M token
-    val token: String
+    val m2mToken: String
         get() {
             val jwt = jwt
             return jwt.token.tokenValue
         }
     val bearerToken: String
-        get() = getBearerToken(token)
+        get() = getBearerToken(m2mToken)
 
     fun getBearerToken(token: String): String {
         return "$BEARER $token"

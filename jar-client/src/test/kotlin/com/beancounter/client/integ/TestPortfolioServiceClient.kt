@@ -39,7 +39,7 @@ class TestPortfolioServiceClient {
     @Test
     fun is_PortfolioFinders() {
         val portfolioByCode = portfolioService.getPortfolioByCode("TEST")
-        val portfolioById = portfolioService.getPortfolioById("TEST")
+        val portfolioById = portfolioService.getPortfolioById("TEST", "nothing")
         assertThat(portfolioByCode).usingRecursiveComparison().isEqualTo(portfolioById)
     }
 

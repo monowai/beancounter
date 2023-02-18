@@ -1,5 +1,6 @@
 package com.beancounter.event.service
 
+import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.event.CorporateEvent
@@ -7,7 +8,6 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -19,9 +19,16 @@ class EventLoader(
     private val portfolioService: PortfolioServiceClient,
     private val positionService: PositionService,
     private val priceService: PriceService,
-    private val eventService: EventService
+    private val eventService: EventService,
+    private val loginService: LoginService
 ) {
+    fun loadEvents(portfolioId: String, date: LocalDate) {
+        val portfolio = portfolioService.getPortfolioById(portfolioId)
+        loadEvents(portfolio, date)
+    }
+
     fun loadEvents(date: LocalDate) {
+        loginService.login() // m2m login
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
             loadEvents(portfolio, date)
@@ -60,12 +67,6 @@ class EventLoader(
                 )
             }
         }
-    }
-
-    @Async("applicationTaskExecutor")
-    fun loadEvents(portfolioId: String, date: LocalDate) {
-        val portfolio = portfolioService.getPortfolioById(portfolioId)
-        loadEvents(portfolio, date)
     }
 
     companion object {

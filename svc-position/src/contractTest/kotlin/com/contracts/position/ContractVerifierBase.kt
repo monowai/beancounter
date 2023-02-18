@@ -1,6 +1,7 @@
 package com.contracts.position
 
 import com.beancounter.auth.AutoConfigureNoAuth
+import com.beancounter.auth.TokenService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
@@ -14,7 +15,7 @@ import com.beancounter.position.valuation.Valuation
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -22,6 +23,8 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+
+private const val BEARER_TOKEN = "no-token"
 
 /**
  * Verifies that the data mocked in this service matches the contract definitions.
@@ -38,6 +41,9 @@ class ContractVerifierBase {
 
     @MockBean
     private lateinit var valuationService: Valuation
+
+    @Autowired
+    private lateinit var tokenService: TokenService
 
     @MockBean
     private lateinit var portfolioServiceClient: PortfolioServiceClient
@@ -62,13 +68,16 @@ class ContractVerifierBase {
             null
         )
 
-        Mockito.`when`(portfolioServiceClient.getPortfolioByCode(portfolioId))
+        `when`(portfolioServiceClient.getPortfolioByCode(portfolioId))
             .thenReturn(testPortfolio)
 
-        Mockito.`when`(portfolioServiceClient.getPortfolioById(portfolioId))
+        `when`(portfolioServiceClient.getPortfolioById(portfolioId))
             .thenReturn(testPortfolio)
 
-        Mockito.`when`(
+        `when`(portfolioServiceClient.getPortfolioById(portfolioId, BEARER_TOKEN))
+            .thenReturn(testPortfolio)
+
+        `when`(
             valuationService.build(
                 TrustedTrnQuery(
                     testPortfolio,
@@ -83,7 +92,7 @@ class ContractVerifierBase {
             )
         )
 
-        Mockito.`when`(
+        `when`(
             valuationService.build(
                 TrustedTrnQuery(
                     testPortfolio,
@@ -98,7 +107,7 @@ class ContractVerifierBase {
             )
         )
 
-        Mockito.`when`(
+        `when`(
             valuationService.getPositions(testPortfolio, valuationDate, true)
         ).thenReturn(
             objectMapper.readValue(

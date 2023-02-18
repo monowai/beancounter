@@ -1,5 +1,7 @@
 package com.beancounter.event.service
 
+import com.beancounter.auth.TokenService
+import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.common.DateSplitter
@@ -14,7 +16,9 @@ import org.springframework.stereotype.Service
 class BackfillService(
     private val portfolioService: PortfolioServiceClient,
     private val positionService: PositionService,
-    private val eventService: EventService
+    private val eventService: EventService,
+    private val tokenService: TokenService,
+    private val loginService: LoginService
 ) {
     private val dateUtils = DateUtils()
     private val dateSplitter = DateSplitter(dateUtils)
@@ -27,7 +31,9 @@ class BackfillService(
         } else {
             dateUtils.getDate(date).toString()
         }
-        val portfolio = portfolioService.getPortfolioById(portfolioId)
+        loginService.login() // m2m
+        val portfolio =
+            portfolioService.getPortfolioById(portfolioId, tokenService.bearerToken)
         val dates = dateSplitter.split(from = asAt, until = toDate, days = 1)
         log.debug("Started backfill code: ${portfolio.code}, id: ${portfolio.id}, days: ${dates.size}")
         var eventCount = 0
@@ -46,6 +52,6 @@ class BackfillService(
                 eventCount += events.size
             }
         }
-        log.info("Processed $eventCount events over $dayCount days")
+        log.info("Portfolio ${portfolio.code}, $eventCount events over $dayCount days")
     }
 }

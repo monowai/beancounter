@@ -60,7 +60,7 @@ class TrnService internal constructor(
             Sort.by("tradeDate")
                 .and(Sort.by("asset.code"))
         )
-        log.debug("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
+        // log.debug("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
     }
 

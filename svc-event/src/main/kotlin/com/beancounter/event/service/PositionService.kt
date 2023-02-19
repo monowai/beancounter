@@ -72,11 +72,12 @@ class PositionService(
             TrustedTrnQuery(portfolio, event.recordDate, event.assetId)
         )
         if (positionResponse != null && positionResponse.data.hasPositions()) {
-            val position = positionResponse.data.positions.values.iterator().next()
-            // Cash positions do not have Events and Interest is not currently calculated.
-            if (includePosition(position)) {
-                return behaviourFactory.getAdapter(event)
-                    .calculate(positionResponse.data.portfolio, position, event)
+            for (position in positionResponse.data.positions.values) {
+                // Cash positions do not have Events and Interest is not currently calculated.
+                if (includePosition(position)) {
+                    return behaviourFactory.getAdapter(event)
+                        .calculate(positionResponse.data.portfolio, position, event)
+                }
             }
         }
         return TrustedTrnEvent(portfolio) // Ignore

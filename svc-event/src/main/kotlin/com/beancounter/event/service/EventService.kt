@@ -39,7 +39,7 @@ class EventService(
     }
 
     fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
-        val results: MutableCollection<TrustedTrnEvent> = ArrayList()
+        val results: MutableCollection<TrustedTrnEvent> = mutableListOf()
         val response = positionService.findWhereHeld(
             event.assetId,
             event.recordDate

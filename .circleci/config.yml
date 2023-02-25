@@ -121,7 +121,7 @@ jobs:
       - run:
           name: Package BC-DATA
           command: |
-            docker build --platform linux/arm64 ~/project/svc-data/. -t monowai/$IMAGE_NAME:latest
+            docker build ~/project/svc-data/. -t monowai/$IMAGE_NAME:latest
             docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
             docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
       - persist_to_workspace:
@@ -151,7 +151,7 @@ jobs:
       - run:
           name: Package BC-POSITION
           command: |
-            docker build --platform linux/arm64 ~/project/svc-position/. -t monowai/$IMAGE_NAME:latest
+            docker build ~/project/svc-position/. -t monowai/$IMAGE_NAME:latest
             docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
             docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
       - persist_to_workspace:
@@ -181,7 +181,7 @@ jobs:
       - run:
           name: Package BC-event
           command: |
-            docker build --platform linux/arm64 ~/project/svc-event/. -t monowai/$IMAGE_NAME:latest
+            docker build ~/project/svc-event/. -t monowai/$IMAGE_NAME:latest
             docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
             docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
       - persist_to_workspace:

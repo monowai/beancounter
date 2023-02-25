@@ -116,3 +116,7 @@ springBoot {
 gitProperties {
     failOnNoGitDirectory = false
 }
+
+bootBuildImage {
+    imageName = "monowai/bc-data"
+}

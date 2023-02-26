@@ -192,7 +192,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-event:latest" \
-                                       ~/project/.
+                                       ~/project/svc-event/.
       - store_test_results:
           path: ~/project/svc-event/build/test-results/test
       - store_artifacts:

@@ -46,7 +46,7 @@ class DateUtils(
     fun getDate(inDate: String = today, zoneId: ZoneId = getZoneId()): LocalDate {
         return when (inDate) {
             today -> {
-                return LocalDate.now(UTC)
+                return LocalDate.now(zoneId)
             }
 
             else -> getDate(inDate, format, zoneId)

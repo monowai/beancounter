@@ -178,17 +178,21 @@ jobs:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run: './gradlew svc-event:build'
       - setup_remote_docker
-      - run:
-          name: Package BC-event
-          command: |
-            docker build ~/project/svc-event/. -t monowai/$IMAGE_NAME:latest
-            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./bc-event.tar
-            - ./svc-event/build/reports/jacoco/test/*.xml
+      - when:
+          condition:
+            equal: [ multi-arch-build, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Package BC-EVENT
+                command: |
+                  docker buildx create --use
+                  docker buildx inspect
+                  docker run --rm --privileged tonistiigi/binfmt --install arm64
+                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  docker buildx build --push \
+                                      --platform linux/arm64/v8,linux/amd64 \
+                                      -t "monowai/bc-event:latest" \
+                                       ~/project/.
       - store_test_results:
           path: ~/project/svc-event/build/test-results/test
       - store_artifacts:
@@ -245,14 +249,6 @@ jobs:
             test -f /tmp/workspace/bc-data.tar &&
                 docker load -i /tmp/workspace/bc-data.tar &&
                 docker push $BC_DATA
-
-      - run:
-          name: Publish EVENT
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            test -f /tmp/workspace/bc-event.tar &&
-                docker load -i /tmp/workspace/bc-event.tar &&
-                docker push $BC_EVENT
 
       - run:
           name: Publish SHELL

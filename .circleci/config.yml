@@ -117,23 +117,26 @@ jobs:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run: './gradlew svc-data:build'
-      - setup_remote_docker
-      - run:
-          name: Package BC-DATA
-          command: |
-            docker build ~/project/svc-data/. -t monowai/$IMAGE_NAME:latest
-            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./bc-data.tar
-            - ./svc-data/build/reports/jacoco/test/*.xml
       - store_test_results:
           path: ./svc-data/build/test-results/test
       - store_artifacts:
           path: ~/project/svc-data/build/libs
-
+      - setup_remote_docker
+      - when:
+          condition:
+            equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Package BC-EVENT
+                command: |
+                  docker buildx create --use
+                  docker buildx inspect
+                  docker run --rm --privileged tonistiigi/binfmt --install arm64
+                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  docker buildx build --push \
+                                      --platform linux/arm64/v8,linux/amd64 \
+                                      -t "monowai/bc-data:latest" \
+                                       ~/project/svc-data/.
   build-position:
     executor: java-build
     environment:
@@ -147,23 +150,26 @@ jobs:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run: './gradlew svc-position:build'
-      - setup_remote_docker
-      - run:
-          name: Package BC-POSITION
-          command: |
-            docker build ~/project/svc-position/. -t monowai/$IMAGE_NAME:latest
-            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./bc-position.tar
-            - ./svc-position/build/reports/jacoco/test/*.xml
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
       - store_artifacts:
           path: ~/project/svc-position/build/libs
-
+      - setup_remote_docker
+      - when:
+          condition:
+            equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Package BC-EVENT
+                command: |
+                  docker buildx create --use
+                  docker buildx inspect
+                  docker run --rm --privileged tonistiigi/binfmt --install arm64
+                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  docker buildx build --push \
+                                      --platform linux/arm64/v8,linux/amd64 \
+                                      -t "monowai/bc-position:latest" \
+                                       ~/project/svc-position/.
   build-event:
     executor: java-build
     environment:
@@ -177,22 +183,26 @@ jobs:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run: './gradlew svc-event:build'
-      - setup_remote_docker
-      - run:
-          name: Package BC-event
-          command: |
-            docker build ~/project/svc-event/. -t monowai/$IMAGE_NAME:latest
-            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./bc-event.tar
-            - ./svc-event/build/reports/jacoco/test/*.xml
       - store_test_results:
           path: ~/project/svc-event/build/test-results/test
       - store_artifacts:
           path: ~/project/svc-event/build/libs
+      - setup_remote_docker
+      - when:
+          condition:
+            equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Package BC-EVENT
+                command: |
+                  docker buildx create --use
+                  docker buildx inspect
+                  docker run --rm --privileged tonistiigi/binfmt --install arm64
+                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  docker buildx build --push \
+                                      --platform linux/arm64/v8,linux/amd64 \
+                                      -t "monowai/bc-event:latest" \
+                                       ~/project/svc-event/.
 
   publish-coverage:
     docker:
@@ -214,53 +224,6 @@ jobs:
             cd ~/workspace
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find **/jacoco*.xml -printf '-r %p ')
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
-
-
-  publish-docker:
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    environment:
-      BC_POSITION: monowai/bc-position
-      BC_DATA: monowai/bc-data
-      BC_EVENT: monowai/bc-event
-      BC_SHELL: monowai/bc-shell
-
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker
-      - run:
-          name: Publish POSITION
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            ls /tmp/workspace
-            test -f /tmp/workspace/bc-position.tar &&
-                docker load -i /tmp/workspace/bc-position.tar &&
-                docker push $BC_POSITION
-
-      - run:
-          name: Publish DATA
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            test -f /tmp/workspace/bc-data.tar &&
-                docker load -i /tmp/workspace/bc-data.tar &&
-                docker push $BC_DATA
-
-      - run:
-          name: Publish EVENT
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            test -f /tmp/workspace/bc-event.tar &&
-                docker load -i /tmp/workspace/bc-event.tar &&
-                docker push $BC_EVENT
-
-      - run:
-          name: Publish SHELL
-          command: |
-            echo "$DOCKER_PASS" | docker login --username $DOCKER_USER --password-stdin
-            test -f /tmp/workspace/bc-shell.tar &&
-                docker load -i /tmp/workspace/bc-shell.tar &&
-                docker push $BC_SHELL
 
 
 
@@ -293,13 +256,3 @@ workflows:
             - build-position
             - build-data
             - build-event
-      - publish-docker:
-          filters:
-            branches:
-              only: master
-          requires:
-            - publish-coverage
-#            - build-shell
-#            - build-position
-#            - build-data
-#            - build-event

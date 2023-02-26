@@ -17,7 +17,5 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY ${JAR_FILE} app.jar
-#RUN addgroup -S beancounter && adduser -S beancounter -G beancounter
-#USER beancounter
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

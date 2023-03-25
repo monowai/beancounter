@@ -31,7 +31,7 @@ import java.math.BigDecimal
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 internal class ShareSightTradeTest {
@@ -57,11 +57,11 @@ internal class ShareSightTradeTest {
             quantity,
             price,
             brokerage,
-            "AUD"
+            "AUD",
         )
         val trnAdapter = shareSightFactory.adapter(row)
         Assertions.assertThat(trnAdapter).isInstanceOf(
-            ShareSightTradeAdapter::class.java
+            ShareSightTradeAdapter::class.java,
         )
     }
 
@@ -72,7 +72,7 @@ internal class ShareSightTradeTest {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio = getPortfolio("Test", NZD),
             row = row,
-            importFormat = ImportFormat.SHARESIGHT
+            importFormat = ImportFormat.SHARESIGHT,
         )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
         Assertions.assertThat(trn)
@@ -93,8 +93,8 @@ internal class ShareSightTradeTest {
             TrustedTrnImportRequest(
                 portfolio,
                 row,
-                ImportFormat.SHARESIGHT
-            )
+                ImportFormat.SHARESIGHT,
+            ),
         )
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("callerRef.callerId", "1")
@@ -113,14 +113,14 @@ internal class ShareSightTradeTest {
         val row = getRow("buy", "0.8988", "2097.85").toMutableList()
         row.add(ShareSightTradeAdapter.date, "$tradeDate'")
         assertThrows(
-            BusinessException::class.java
+            BusinessException::class.java,
         ) {
             shareSightRowProcessor.transform(
                 TrustedTrnImportRequest(
                     getPortfolio("Test", NZD),
                     row,
-                    ImportFormat.SHARESIGHT
-                )
+                    ImportFormat.SHARESIGHT,
+                ),
             )
         }
     }
@@ -143,7 +143,7 @@ internal class ShareSightTradeTest {
             market: String,
             tranType: String,
             fxRate: String,
-            tradeAmount: String
+            tradeAmount: String,
         ): List<String> {
             val row: MutableList<String> = mutableListOf()
             row.add(ShareSightTradeAdapter.id, "1")

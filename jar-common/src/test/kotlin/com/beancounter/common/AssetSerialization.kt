@@ -54,14 +54,14 @@ class AssetSerialization {
             "Some Name",
             "Non Default",
             "Some Region",
-            USD.code
+            USD.code,
         )
         val withDefaults = AssetSearchResult(
             "Symbol",
             "Name",
             "Equity",
             "Some Region",
-            USD.code
+            USD.code,
         )
 
         val results: MutableCollection<AssetSearchResult> = ArrayList()

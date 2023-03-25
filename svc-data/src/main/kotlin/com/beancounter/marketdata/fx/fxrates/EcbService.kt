@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service
 class EcbService @Autowired internal constructor(
     private val fxGateway: FxGateway,
     private val currencyService: CurrencyService,
-    dateUtils: DateUtils
+    dateUtils: DateUtils,
 ) {
     private val ecbDate = EcbDate(dateUtils)
     fun getRates(asAt: String): Collection<FxRate> {
         val ecbRates = fxGateway.getRatesForSymbols(
             ecbDate.getValidDate(asAt),
             currencyService.baseCurrency.code,
-            currencyService.currenciesAs
+            currencyService.currenciesAs,
         )
         val results: MutableCollection<FxRate> = ArrayList()
         if (ecbRates?.rates != null) {
@@ -30,8 +30,8 @@ class EcbService @Autowired internal constructor(
                         currencyService.baseCurrency,
                         currencyService.getCode(code),
                         ecbRates.rates[code] ?: error("No rate"),
-                        ecbRates.date.toString()
-                    )
+                        ecbRates.date.toString(),
+                    ),
                 )
             }
         }

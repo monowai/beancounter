@@ -30,14 +30,14 @@ import org.springframework.web.client.RestOperations
 @ExtendWith(SpringExtension::class)
 @WebMvcTest(
     AuthTest.SimpleController::class,
-    properties = ["auth.enabled=true"]
+    properties = ["auth.enabled=true"],
 )
 @ContextConfiguration(
     classes = [
         AuthTest.SimpleController::class,
         WebResourceServerConfig::class,
-        DefaultJWTProcessor::class
-    ]
+        DefaultJWTProcessor::class,
+    ],
 )
 class AuthTest {
 
@@ -63,13 +63,13 @@ class AuthTest {
     fun has_NoTokenAndIsUnauthorized() {
         var result = mockMvc.perform(
             MockMvcRequestBuilders.get(hello)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
         result = mockMvc.perform(
             MockMvcRequestBuilders.get(what)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
@@ -101,13 +101,13 @@ class AuthTest {
     fun has_tokenButNoRoleToSayAnything() {
         mockMvc.perform(
             MockMvcRequestBuilders.get(hello)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
 
         val result = mockMvc.perform(
             MockMvcRequestBuilders.get(what)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())

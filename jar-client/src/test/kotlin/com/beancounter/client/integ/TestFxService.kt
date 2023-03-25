@@ -35,7 +35,7 @@ import java.math.BigDecimal
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
@@ -105,7 +105,7 @@ class TestFxService {
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
             tradeDate = DateUtils().getDate("2019-07-26"),
-            price = BigDecimal.TEN
+            price = BigDecimal.TEN,
         )
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)
@@ -128,7 +128,7 @@ class TestFxService {
             quantity = BigDecimal.TEN,
             tradeDate = DateUtils().getDate("2019-07-26"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ZERO
+            tradePortfolioRate = BigDecimal.ZERO,
         )
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)

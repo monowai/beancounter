@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
 @Service
 @Import(
     DateUtils::class,
-    TrnBehaviourFactory::class
+    TrnBehaviourFactory::class,
 )
 class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     /**
@@ -78,8 +78,8 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
             throw BusinessException(
                 String.format(
                     "Date sequence problem %s",
-                    trn.toString()
-                )
+                    trn.toString(),
+                ),
             )
         }
     }

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 class HttpWriter(
     private val trnService: TrnService,
     private val rowAdapter: RowAdapter,
-    private val fxTransactions: FxTransactions
+    private val fxTransactions: FxTransactions,
 ) : TrnWriter {
     private val log = LoggerFactory.getLogger(HttpWriter::class.java)
     var trnInputs: MutableCollection<TrnInput> = ArrayList()
@@ -45,12 +45,12 @@ class HttpWriter(
             log.info(
                 "Writing {} transactions to portfolio {}",
                 rows,
-                portfolio!!.code
+                portfolio!!.code,
             )
             if (portfolio != null) {
                 val trnRequest = TrnRequest(
                     portfolio!!.id,
-                    trnInputs.toTypedArray()
+                    trnInputs.toTypedArray(),
                 )
                 val (data) = trnService.write(trnRequest)
                 log.info("Wrote {}", data.size)

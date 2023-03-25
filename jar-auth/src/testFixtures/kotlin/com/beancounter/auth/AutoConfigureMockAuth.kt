@@ -11,13 +11,13 @@ import org.springframework.test.context.TestPropertySource
         "auth.enabled=true",
         "auth.audience=test-audience",
         "auth.email=some-email@somewhere",
-        "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri"
-    ]
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri",
+    ],
 )
 @Import(
     MockAuthConfig::class,
     AuthConfig::class,
-    ClientPasswordConfig::class
+    ClientPasswordConfig::class,
 )
 /**
  * Configures mock OAuth behaviour for unit testing.

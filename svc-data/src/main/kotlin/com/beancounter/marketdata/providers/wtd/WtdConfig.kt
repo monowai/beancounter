@@ -42,7 +42,7 @@ class WtdConfig @Autowired constructor(val marketService: MarketService) : DataP
         return marketUtils.getPriceDate(
             dateUtils.offsetNow(date),
             market,
-            currentMode
+            currentMode,
         )
     }
 

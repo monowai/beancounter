@@ -25,7 +25,7 @@ class WithdrawalBehaviour : AccumulationStrategy {
             portfolio,
             cashPosition,
             Position.In.TRADE,
-            BigDecimal.ONE
+            BigDecimal.ONE,
         ) // Cash trade currency
         cashCost.value(trn.cashCurrency!!, quantity, portfolio, cashPosition, Position.In.BASE, trn.tradeBaseRate)
         cashCost.value(
@@ -34,7 +34,7 @@ class WithdrawalBehaviour : AccumulationStrategy {
             portfolio,
             cashPosition,
             Position.In.PORTFOLIO,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
         )
         return position
     }

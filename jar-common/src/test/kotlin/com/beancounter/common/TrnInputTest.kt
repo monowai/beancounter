@@ -51,7 +51,7 @@ internal class TrnInputTest {
             cashAmount = BigDecimal("100.99"),
             tradeBaseRate = BigDecimal.ONE,
             tradePortfolioRate = price,
-            comments = "Comment"
+            comments = "Comment",
         )
 
         val trnRequest = TrnRequest(abc.lowercase(Locale.getDefault()), arrayOf(trnInput))
@@ -83,7 +83,7 @@ internal class TrnInputTest {
             trnType = trnType,
             asset = asset,
             tradeDate = LocalDate.now(),
-            price = BigDecimal("100.01")
+            price = BigDecimal("100.01"),
         )
         trn.settleDate = LocalDate.now()
         trn.price = BigDecimal("22.11")
@@ -131,7 +131,7 @@ internal class TrnInputTest {
 
     private val simpleTrnInput = TrnInput(
         assetId = "aid",
-        price = BigDecimal.TEN
+        price = BigDecimal.TEN,
     )
 
     @Test
@@ -140,7 +140,7 @@ internal class TrnInputTest {
         val ttr = TrustedTrnEvent(
             portfolio = getPortfolio(),
             message = "the message",
-            trnInput = simpleTrnInput
+            trnInput = simpleTrnInput,
         )
 
         assertThat(ttr)
@@ -161,7 +161,7 @@ internal class TrnInputTest {
     fun is_TrustedEventRequestValid() {
         val ttr = TrustedTrnEvent(
             portfolio = getPortfolio(),
-            trnInput = simpleTrnInput
+            trnInput = simpleTrnInput,
         )
 
         assertThat(ttr)

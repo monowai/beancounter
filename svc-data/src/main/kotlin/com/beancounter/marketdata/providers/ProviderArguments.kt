@@ -86,7 +86,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
          */
         fun getInstance(
             priceRequest: PriceRequest,
-            dataProviderConfig: DataProviderConfig
+            dataProviderConfig: DataProviderConfig,
         ): ProviderArguments {
             val providerArguments = ProviderArguments(dataProviderConfig)
             providerArguments.date = priceRequest.date
@@ -97,7 +97,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
                     if (asset.resolvedAsset != null) {
                         providerArguments.addAsset(
                             asset.resolvedAsset!!,
-                            priceRequest.date
+                            priceRequest.date,
                         )
                     }
                 }

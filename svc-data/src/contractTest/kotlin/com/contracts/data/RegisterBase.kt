@@ -35,7 +35,7 @@ class RegisterBase : ContractVerifierBase() {
         ContractHelper.defaultUser(
             jwtDecoder = authConfig.jwtDecoder,
             tokenService = authConfig.tokenService,
-            systemUserRepository = systemUserRepository
+            systemUserRepository = systemUserRepository,
         )
     }
 }

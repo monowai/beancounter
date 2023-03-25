@@ -28,7 +28,7 @@ data class Asset constructor(
     @JsonIgnore var category: String = "Equity",
     @Transient var assetCategory: AssetCategory = AssetCategory(category, category),
     val status: Status = Status.Active,
-    var version: String = "1"
+    var version: String = "1",
 ) {
     init {
         code = code.uppercase(Locale.getDefault())
@@ -42,7 +42,7 @@ data class Asset constructor(
         market = market,
         marketCode = market.code,
         priceSymbol = input.code,
-        status = status
+        status = status,
     )
 
     constructor(code: String, market: Market, marketCode: String? = null) : this(
@@ -50,7 +50,7 @@ data class Asset constructor(
         code = code,
         name = code,
         market = market,
-        marketCode = marketCode
+        marketCode = marketCode,
     )
 
     // Is this asset stored locally?

@@ -71,7 +71,7 @@ internal class EventControllerTest {
     fun is_IllegalEventBad() {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -89,7 +89,7 @@ internal class EventControllerTest {
             recordDate = dateUtils.getDate("2020-10-10"),
             source = "SOURCE",
             assetId = "ABC123",
-            rate = BigDecimal("0.1234")
+            rate = BigDecimal("0.1234"),
         )
         event = eventService.save(event)
         assertThat(event).hasFieldOrProperty("id")
@@ -97,24 +97,24 @@ internal class EventControllerTest {
         // Find By PK
         var mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/{eventId}", event.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
         val (data) = objectMapper.readValue(
             mvcResult.response.contentAsString,
-            CorporateEventResponse::class.java
+            CorporateEventResponse::class.java,
         )
         assertThat(data).usingRecursiveComparison().isEqualTo(event)
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
         val events = objectMapper.readValue(
             mvcResult.response.contentAsString,
-            CorporateEventResponses::class.java
+            CorporateEventResponses::class.java,
         )
         assertThat(events).isNotNull
         assertThat(events.data).hasSize(1)
@@ -128,7 +128,7 @@ internal class EventControllerTest {
             payDate = Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
             source = alpha,
             assetId = "assetId",
-            rate = BigDecimal("2.3400")
+            rate = BigDecimal("2.3400"),
         )
         val saved = eventService.save(event)
         assertThat(saved.id).isNotNull
@@ -142,7 +142,7 @@ internal class EventControllerTest {
         val events = eventService
             .findInRange(
                 event.recordDate.minusDays(2),
-                event.recordDate
+                event.recordDate,
             )
         assertThat(events).hasSize(1)
         assertThat(events.iterator().next())

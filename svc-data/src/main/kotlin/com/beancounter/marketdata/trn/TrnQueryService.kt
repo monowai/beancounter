@@ -27,19 +27,19 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
     fun findAssetTrades(
         portfolio: Portfolio,
         assetId: String,
-        tradeDate: LocalDate
+        tradeDate: LocalDate,
     ): TrnResponse {
         val results = trnRepository
             .findByPortfolioIdAndAssetIdUpTo(
                 portfolio.id,
                 assetId,
-                tradeDate
+                tradeDate,
             )
         log.debug(
             "Found {} for portfolio {} and asset {}",
             results.size,
             portfolio.code,
-            assetId
+            assetId,
         )
         return trnService.postProcess(results, false)
     }
@@ -70,13 +70,13 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
                 assetId,
                 typeFilter,
                 Sort.by("tradeDate").descending()
-                    .and(Sort.by("asset.code"))
+                    .and(Sort.by("asset.code")),
             )
         log.debug(
             "Found {} for portfolio {} and asset {}",
             results.size,
             portfolio.code,
-            assetId
+            assetId,
         )
         return trnService.postProcess(results, true)
     }

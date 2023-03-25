@@ -48,7 +48,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
             defaultEnricher.enrich(
                 id,
                 market,
-                assetInput
+                assetInput,
             )
         } else {
             Asset(
@@ -58,7 +58,7 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
                 category = assetResult.type,
                 market = market,
                 marketCode = market.code,
-                priceSymbol = assetResult.symbol
+                priceSymbol = assetResult.symbol,
             )
         }
     }

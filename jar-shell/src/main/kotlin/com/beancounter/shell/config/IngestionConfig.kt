@@ -22,6 +22,6 @@ import org.springframework.context.annotation.Import
     ClientConfig::class,
     ShareSightConfig::class,
     GoogleConfig::class,
-    CsvIngester::class
+    CsvIngester::class,
 )
 class IngestionConfig

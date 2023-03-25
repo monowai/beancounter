@@ -38,7 +38,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
             figiCode,
             figiMarket!!,
             EQUITY,
-            true
+            true,
         )
         val response = resolve(figiSearch)
         if (response?.error != null) {
@@ -58,7 +58,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
                         market,
                         bcAssetCode,
                         figiMarket,
-                        figiCode
+                        figiCode,
                     )
                     return figiAdapter.transform(market, bcAssetCode, datum, id)
                 }

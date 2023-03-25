@@ -26,7 +26,7 @@ class GlobalExceptionHandler {
         SpringExceptionMessage(
             error = "Access Denied.",
             message = e.message,
-            path = request.requestURI
+            path = request.requestURI,
         )
 
     @ExceptionHandler(ConnectException::class, ResourceAccessException::class, FeignException::class)
@@ -36,7 +36,7 @@ class GlobalExceptionHandler {
         SpringExceptionMessage(
             error = "Unable to contact dependent system.",
             message = e.message,
-            path = request.requestURI
+            path = request.requestURI,
         ).also { log.error(e.message) }
 
     private val errorMessage = "We are unable to process your request."
@@ -47,7 +47,7 @@ class GlobalExceptionHandler {
     fun handleBusinessException(request: HttpServletRequest, e: BusinessException) = SpringExceptionMessage(
         error = errorMessage,
         message = e.message,
-        path = request.requestURI
+        path = request.requestURI,
     )
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
@@ -56,7 +56,7 @@ class GlobalExceptionHandler {
     fun handleBadRequest(request: HttpServletRequest) = SpringExceptionMessage(
         error = errorMessage,
         message = "Message not readable",
-        path = request.requestURI
+        path = request.requestURI,
     )
 
     @ExceptionHandler(DataIntegrityViolationException::class)
@@ -65,7 +65,7 @@ class GlobalExceptionHandler {
     fun handleIntegrity(request: HttpServletRequest, e: Throwable) = SpringExceptionMessage(
         error = "Not processed",
         message = "Data integrity violation",
-        path = request.requestURI
+        path = request.requestURI,
     )
 
     companion object {

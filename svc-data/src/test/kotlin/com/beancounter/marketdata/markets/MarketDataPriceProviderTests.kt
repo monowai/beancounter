@@ -28,7 +28,7 @@ import org.springframework.test.context.ActiveProfiles
 @AutoConfigureMockAuth
 class MarketDataPriceProviderTests @Autowired constructor(
     private val mdFactory: MdFactory,
-    private val marketService: MarketService
+    private val marketService: MarketService,
 ) {
     @Test
     fun is_DefaultMarketProvidersSet() {
@@ -36,7 +36,7 @@ class MarketDataPriceProviderTests @Autowired constructor(
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
         AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
         val mdp = mdFactory.getMarketDataProvider(
-            Market("NonExistent", "ABC")
+            Market("NonExistent", "ABC"),
         )
         assertThat(mdp)
             .isNotNull

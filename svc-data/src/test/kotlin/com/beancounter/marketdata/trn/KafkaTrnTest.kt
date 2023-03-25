@@ -76,10 +76,10 @@ import java.math.BigDecimal.ZERO
 @EmbeddedKafka(
     partitions = 1,
     topics = [
-        KafkaTrnTest.TOPIC_CSV_IO
+        KafkaTrnTest.TOPIC_CSV_IO,
     ],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka-trn", "auto.create.topics.enable=true"]
+    brokerProperties = ["log.dir=./build/kafka-trn", "auto.create.topics.enable=true"],
 )
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("kafka")
@@ -159,8 +159,8 @@ class KafkaTrnTest {
             PortfolioInput(
                 code = "CSV-FLOW",
                 name = "SomeName",
-                base = USD.code
-            )
+                base = USD.code,
+            ),
         )
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
@@ -168,9 +168,9 @@ class KafkaTrnTest {
         `when`(fxService.getRates(any())).thenReturn(
             FxResponse(
                 FxPairResults(
-                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01")))
-                )
-            )
+                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01"))),
+                ),
+            ),
         )
 //        `when`(enrichmentFactory.getEnricher(any()))
 //            .thenReturn(Mockito.mock(AssetEnricher::class.java))
@@ -182,13 +182,13 @@ class KafkaTrnTest {
             portfolio.id,
             arrayOf(
                 getTrnInput(qcom, CallerRef(provider, batch, "1")),
-                getTrnInput(trex, CallerRef(provider, batch, "2"))
-            )
+                getTrnInput(trex, CallerRef(provider, batch, "2")),
+            ),
         )
         `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
         val trnResponse = trnService.save(
             portfolio,
-            trnRequest = trnRequest
+            trnRequest = trnRequest,
         )
 
         assertThat(trnResponse.data).isNotNull.hasSize(trnRequest.data.size)
@@ -199,7 +199,7 @@ class KafkaTrnTest {
         val consumer = kafkaTestUtils.getConsumer(
             "is_ExportFileImported",
             TOPIC_CSV_IO,
-            embeddedKafkaBroker
+            embeddedKafkaBroker,
         )
         importRows(fileName, portfolio, trnRequest.data.size + 1) // Include a header row.
         assertThat(processQueue(consumer))
@@ -243,7 +243,7 @@ class KafkaTrnTest {
 
         RegistrationUtils.registerUser(
             mockMvc,
-            token
+            token,
         )
 
         assertThat(currencyService.currencies).isNotEmpty
@@ -252,7 +252,7 @@ class KafkaTrnTest {
 
         stubFx(
             "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
-            rateResponse
+            rateResponse,
         )
     }
 
@@ -265,7 +265,7 @@ class KafkaTrnTest {
             fees = ONE,
             tradeDate = tradeDate,
             cashCurrency = asset.market.currency.code,
-            price = BigDecimal(5.99)
+            price = BigDecimal(5.99),
         )
     }
 
@@ -273,9 +273,9 @@ class KafkaTrnTest {
         val results = mockMvc.perform(
             MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
                 .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
                 )
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .with(SecurityMockMvcRequestPostProcessors.csrf()),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN_VALUE))
@@ -329,12 +329,12 @@ class KafkaTrnTest {
                                 BcJson().objectMapper.writeValueAsString(
                                     BcJson().objectMapper.readValue(
                                         rateResponse,
-                                        HashMap::class.java
-                                    )
-                                )
+                                        HashMap::class.java,
+                                    ),
+                                ),
                             )
-                            .withStatus(200)
-                    )
+                            .withStatus(200),
+                    ),
             )
         }
     }

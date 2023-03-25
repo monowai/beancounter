@@ -45,7 +45,7 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         return portfolioGw.getWhereHeld(
             tokenService.bearerToken,
             assetId,
-            tradeDate.toString()
+            tradeDate.toString(),
         )
     }
 
@@ -63,32 +63,32 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
     interface PortfolioGw {
         @GetMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolios(
-            @RequestHeader("Authorization") bearerToken: String
+            @RequestHeader("Authorization") bearerToken: String,
         ): PortfoliosResponse
 
         @GetMapping(value = ["/portfolios/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioById(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("id") id: String
+            @PathVariable("id") id: String,
         ): PortfolioResponse?
 
         @GetMapping(value = ["/portfolios/code/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioByCode(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("code") code: String
+            @PathVariable("code") code: String,
         ): PortfolioResponse?
 
         @GetMapping(value = ["/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getWhereHeld(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("assetId") assetId: String,
-            @PathVariable("tradeDate") tradeDate: String?
+            @PathVariable("tradeDate") tradeDate: String?,
         ): PortfoliosResponse
 
         @PostMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun addPortfolios(
             @RequestHeader("Authorization") bearerToken: String?,
-            portfoliosRequest: PortfoliosRequest?
+            portfoliosRequest: PortfoliosRequest?,
         ): PortfoliosResponse
     }
 }

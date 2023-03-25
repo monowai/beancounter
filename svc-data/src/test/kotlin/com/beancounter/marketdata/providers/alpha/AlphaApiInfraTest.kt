@@ -51,7 +51,7 @@ class AlphaApiInfraTest {
         val asset = Asset(api, Market("KEY", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(
-            PriceRequest.Companion.of(asset)
+            PriceRequest.Companion.of(asset),
         )
         assertThat(results)
             .isNotNull
@@ -68,13 +68,13 @@ class AlphaApiInfraTest {
         val asset = Asset("ABC", nasdaq)
         AlphaMockUtils.mockGlobalResponse(
             asset.id,
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file,
         )
         assertThat(asset).isNotNull
 
         val results = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(
-                PriceRequest.of(asset)
+                PriceRequest.of(asset),
             )
         assertThat(results)
             .isNotNull

@@ -30,15 +30,15 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         return nullSafe(
             multiplyAbs(
                 gross,
-                taxService.getRate(currentPosition!!.asset.market.currency.code)
-            )
+                taxService.getRate(currentPosition!!.asset.market.currency.code),
+            ),
         )
     }
 
     override fun calculate(
         portfolio: Portfolio,
         currentPosition: Position,
-        corporateEvent: CorporateEvent
+        corporateEvent: CorporateEvent,
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
             val trnInput = toDividend(currentPosition, corporateEvent)
@@ -52,7 +52,7 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
 
     private fun toSplit(
         currentPosition: Position,
-        corporateEvent: CorporateEvent
+        corporateEvent: CorporateEvent,
     ): TrnInput {
         val callerRef = CallerRef(corporateEvent.source, corporateEvent.id!!)
         return TrnInput(
@@ -63,14 +63,14 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             tradeDate = corporateEvent.recordDate,
             price = corporateEvent.split,
             status = TrnStatus.CONFIRMED,
-            cashCurrency = currentPosition.asset.market.currency.code
+            cashCurrency = currentPosition.asset.market.currency.code,
 
         )
     }
 
     private fun toDividend(
         currentPosition: Position,
-        corporateEvent: CorporateEvent
+        corporateEvent: CorporateEvent,
     ): TrnInput? {
         val payDate = corporateEvent.recordDate.plusDays(18)
         if (payDate != null) {
@@ -91,7 +91,7 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             price = corporateEvent.rate,
             status = TrnStatus.PROPOSED,
             cashCurrency = currentPosition.asset.market.currency.code,
-            tax = tax
+            tax = tax,
 
         )
     }

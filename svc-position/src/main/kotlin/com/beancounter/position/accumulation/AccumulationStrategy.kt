@@ -14,12 +14,12 @@ interface AccumulationStrategy {
         trn: Trn,
         positions: Positions,
         position: Position = positions[trn.asset, trn.tradeDate], // Some strategies mutate multiple positions (FX)
-        portfolio: Portfolio = positions.portfolio
+        portfolio: Portfolio = positions.portfolio,
     ): Position
 
     fun getCashPosition(
         trn: Trn,
         position: Position,
-        positions: Positions
+        positions: Positions,
     ) = if (TrnType.isCash(trn.trnType)) position else positions[trn.cashAsset!!]
 }

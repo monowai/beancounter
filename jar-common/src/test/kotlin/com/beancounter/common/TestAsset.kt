@@ -23,7 +23,7 @@ internal class TestAsset {
     fun assetDefaults() {
         val asset = getAsset(
             Market("Any"),
-            "Thing"
+            "Thing",
         )
         assertThat(asset)
             .hasFieldOrPropertyWithValue("status", Status.Active)
@@ -34,7 +34,7 @@ internal class TestAsset {
     fun assetKeyParses() {
         val asset = getAsset(
             Market("MCODE"),
-            "ACODE"
+            "ACODE",
         )
         val keyIn = toKey(asset)
         assertThat(toKey(AssetInput("MCODE", "ACODE")))
@@ -54,7 +54,7 @@ internal class TestAsset {
     fun assetKeyExceptionsBeingThrown() {
         assertThrows(BusinessException::class.java) { fromKey("CodeWithNoMarket") }
         assertThrows(
-            NullPointerException::class.java
+            NullPointerException::class.java,
         ) { getAsset((null as Market?)!!, "Twee") }
     }
 

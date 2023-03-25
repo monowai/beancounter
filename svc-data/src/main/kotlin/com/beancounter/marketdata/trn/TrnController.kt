@@ -34,7 +34,7 @@ class TrnController(
     var trnQueryService: TrnQueryService,
     var portfolioService: PortfolioService,
     var dateUtils: DateUtils,
-    var trnIoDefinition: TrnIoDefinition
+    var trnIoDefinition: TrnIoDefinition,
 ) {
 
     @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -44,7 +44,7 @@ class TrnController(
     @GetMapping(value = ["/{portfolioId}/{trnId}"])
     fun find(
         @PathVariable("portfolioId") portfolioId: String,
-        @PathVariable("trnId") trnId: String
+        @PathVariable("trnId") trnId: String,
     ): TrnResponse =
         trnService.getPortfolioTrn(portfolioService.find(portfolioId), trnId)
 
@@ -55,12 +55,12 @@ class TrnController(
     @PatchMapping(
         value = ["/{portfolioId}/{trnId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = [MediaType.APPLICATION_JSON_VALUE]
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun patch(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("trnId") trnId: String,
-        @RequestBody trnInput: TrnInput
+        @RequestBody trnInput: TrnInput,
     ): TrnResponse {
         val portfolio = portfolioService.find(portfolioId)
         // ToDo: Support moving a transaction between portfolios
@@ -78,27 +78,27 @@ class TrnController(
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAssetEvents(
         @PathVariable("portfolioId") portfolioId: String,
-        @PathVariable("assetId") assetId: String
+        @PathVariable("assetId") assetId: String,
     ): TrnResponse =
         trnQueryService.findEvents(portfolioService.find(portfolioId), assetId)
 
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/trades"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAssetTrades(
         @PathVariable("portfolioId") portfolioId: String,
-        @PathVariable("assetId") assetId: String
+        @PathVariable("assetId") assetId: String,
     ): TrnResponse =
         trnQueryService.findAssetTrades(portfolioService.find(portfolioId), assetId)
 
     @PostMapping(
-        value = ["/query"]
+        value = ["/query"],
     )
     fun findByAsset(
-        @RequestBody query: TrustedTrnQuery
+        @RequestBody query: TrustedTrnQuery,
     ): TrnResponse =
         trnQueryService.findAssetTrades(
             query.portfolio,
             query.assetId,
-            query.tradeDate
+            query.tradeDate,
         )
 
     @GetMapping(value = ["/portfolio/{portfolioId}/export"])
@@ -107,7 +107,7 @@ class TrnController(
         response.contentType = MediaType.TEXT_PLAIN_VALUE
         response.setHeader(
             HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"${portfolio.code}.csv\""
+            "attachment; filename=\"${portfolio.code}.csv\"",
         )
         val trnResponse = trnService.findForPortfolio(portfolio, dateUtils.date)
         val csvWriter = CSVWriterBuilder(response.writer)

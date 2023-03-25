@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @WebAppConfiguration
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
 @Tag("slow")
@@ -65,7 +65,7 @@ internal class TrnValuationTest {
         name = "${NZD.code} Portfolio",
         currency = NZD,
         base = USD,
-        owner = owner
+        owner = owner,
     )
 
     @Autowired
@@ -79,13 +79,13 @@ internal class TrnValuationTest {
         val query = TrustedTrnQuery(
             portfolio,
             dateUtils.getDate("2020-05-01"),
-            KMI
+            KMI,
         )
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/query")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(query))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andReturn().response.contentAsString
@@ -107,10 +107,10 @@ internal class TrnValuationTest {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
             ).andReturn()
             .response
             .contentAsString
@@ -131,9 +131,9 @@ internal class TrnValuationTest {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/${DateUtils.today}", empty)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE),
         ).andExpect(
-            MockMvcResultMatchers.status().isOk
+            MockMvcResultMatchers.status().isOk,
         )
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andReturn().response.contentAsString

@@ -2,7 +2,7 @@ buildscript {
     apply from: 'dependencies.gradle'
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
-        classpath("org.jmailen.gradle:kotlinter-gradle:3.12.0")
+        classpath("org.jmailen.gradle:kotlinter-gradle:3.14.0")
     }
 }
 plugins {
@@ -18,4 +18,3 @@ repositories {
 
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
-

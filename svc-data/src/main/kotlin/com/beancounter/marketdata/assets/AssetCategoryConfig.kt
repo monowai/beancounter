@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties(prefix = "beancounter.asset.categories")
 @Component
 data class AssetCategoryConfig @Autowired constructor(
-    val values: Collection<AssetCategory>
+    val values: Collection<AssetCategory>,
 ) {
     private var categories = mutableMapOf<String, AssetCategory>()
     private val default: String = "Equity"

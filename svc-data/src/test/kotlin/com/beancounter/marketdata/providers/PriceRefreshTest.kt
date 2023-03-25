@@ -50,8 +50,8 @@ internal class PriceRefreshTest {
             Asset(
                 code = keyGenUtils.id,
                 market = NASDAQ,
-                marketCode = NASDAQ.code
-            )
+                marketCode = NASDAQ.code,
+            ),
         )
         val hydratedAsset = assetHydrationService.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")

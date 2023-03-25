@@ -31,7 +31,7 @@ class KafkaUtils {
                 "{}. {}. {}",
                 e.mostSpecificCause.message,
                 findBcCause(e),
-                m.payload
+                m.payload,
             )
         }
     }

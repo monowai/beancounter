@@ -27,7 +27,7 @@ import javax.annotation.PostConstruct
 class WtdService @Autowired internal constructor(
     private val wtdProxy: WtdProxy,
     private val wtdConfig: WtdConfig,
-    private val wtdAdapter: WtdAdapter
+    private val wtdAdapter: WtdAdapter,
 ) : MarketDataPriceProvider {
     @Value("\${beancounter.market.providers.WTD.key:demo}")
     private val apiKey: String? = null
@@ -36,7 +36,7 @@ class WtdService @Autowired internal constructor(
     fun logStatus() {
         log.info(
             "BEANCOUNTER_MARKET_PROVIDERS_WTD_KEY: {}",
-            if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **"
+            if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **",
         )
     }
 
@@ -47,7 +47,7 @@ class WtdService @Autowired internal constructor(
             batchedRequests[batch] = wtdProxy.getPrices(
                 providerArguments.batch[batch],
                 providerArguments.getBatchConfigs()[batch]?.date,
-                apiKey
+                apiKey,
             )
         }
         log.trace("Assets price processing complete.")
@@ -56,7 +56,7 @@ class WtdService @Autowired internal constructor(
 
     private fun getMarketData(
         providerArguments: ProviderArguments,
-        requests: MutableMap<Int, Future<WtdResponse>>
+        requests: MutableMap<Int, Future<WtdResponse>>,
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         var empty = requests.isEmpty()
@@ -74,7 +74,7 @@ class WtdService @Autowired internal constructor(
         requests: MutableMap<Int, Future<WtdResponse>>,
         key: Int,
         providerArguments: ProviderArguments,
-        results: MutableCollection<MarketData>
+        results: MutableCollection<MarketData>,
     ) {
         val request = requests[key]
         if (request!!.isDone) {

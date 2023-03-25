@@ -35,15 +35,15 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         val loginRequest = LoginRequest(
             client_id = clientId,
             username = user,
-            password = password
+            password = password,
         )
         val response = authGateway.login(loginRequest)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
             jwtDecoder.decode(
-                response.token
-            )
+                response.token,
+            ),
         )
-        log.info("Logged in as {}", user)
+        log.info("Logged in $user")
     }
 
     /**
@@ -61,15 +61,15 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         val login = MachineRequest(
             client_secret = secret,
             client_id = clientId,
-            audience = audience
+            audience = audience,
         )
         val response = authGateway.login(login)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
             jwtDecoder.decode(
-                response.token
-            )
+                response.token,
+            ),
         )
-        log.debug("Service logged into {}", clientId)
+        log.debug("Service logged @ $clientId")
         return response.token
     }
 
@@ -86,7 +86,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         var client_id: String,
         var username: String,
         var password: String,
-        var grant_type: String = AuthorizationGrantType.PASSWORD.value
+        var grant_type: String = AuthorizationGrantType.PASSWORD.value,
     ) : AuthRequest
 
     /**
@@ -97,7 +97,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         var client_secret: String = "not-set",
         var audience: String,
         var scope: String = "beancounter beancounter:system",
-        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value
+        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
     ) : AuthRequest
 
     /**
@@ -108,7 +108,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
         @PostMapping(
             value = ["oauth/token"],
             consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
+            produces = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun login(authRequest: AuthRequest): OAuth2Response
     }

@@ -14,8 +14,8 @@ import org.springframework.boot.runApplication
         "com.beancounter.position",
         "com.beancounter.auth",
         "com.beancounter.common.utils",
-        "com.beancounter.common.exception"
-    ]
+        "com.beancounter.common.exception",
+    ],
 )
 class PositionBoot
 

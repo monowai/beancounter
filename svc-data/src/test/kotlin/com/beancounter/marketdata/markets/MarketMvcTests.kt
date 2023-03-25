@@ -53,7 +53,7 @@ internal class MarketMvcTests {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets/")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -69,7 +69,7 @@ internal class MarketMvcTests {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets/nzx")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -87,7 +87,7 @@ internal class MarketMvcTests {
         val result = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets/non-existent")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         Assertions.assertThat(result.andReturn().resolvedException)
             .isNotNull

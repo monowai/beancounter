@@ -61,7 +61,7 @@ class TestUserCommands {
             LoginService(authGateway, jwtDecoder),
             RegistrationService(registrationGateway, tokenService),
             EnvConfig(client = client, apiPath = "/", marketDataUrl = "/"),
-            lineReader
+            lineReader,
         )
     }
 
@@ -101,8 +101,8 @@ class TestUserCommands {
         Mockito.`when`(
             registrationGateway.register(
                 tokenService.bearerToken,
-                RegistrationRequest(systemUser.email)
-            )
+                RegistrationRequest(systemUser.email),
+            ),
         )
             .thenReturn(RegistrationResponse(systemUser))
         val registrationResponse = userCommands.register(authConfig.claimEmail)

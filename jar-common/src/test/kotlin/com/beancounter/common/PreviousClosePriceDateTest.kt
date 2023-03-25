@@ -31,7 +31,7 @@ internal class PreviousClosePriceDateTest {
         val nasdaqClose = dateUtils.getDate("2020-07-17", dateUtils.getZoneId())
         val localDate = OffsetDateTime.ofInstant(
             LocalDateTime.of(2020, 7, 20, 8, 0).toInstant(ZoneOffset.UTC),
-            ZoneOffset.UTC
+            ZoneOffset.UTC,
         )
 
         log.info(message, nasdaqClose, localDate)
@@ -45,7 +45,7 @@ internal class PreviousClosePriceDateTest {
         // val utcDateUtils = DateUtils("UTC")
         val requestedDate = OffsetDateTime.ofInstant(
             LocalDateTime.of(2021, 9, 24, 12, 5).toInstant(ZoneOffset.UTC),
-            ZoneOffset.UTC
+            ZoneOffset.UTC,
         )
         assertThat(previousClose.getPriceDate(requestedDate, nasdaq, true))
             .isEqualTo(dateUtils.getDate("2021-09-23")) // Nasdaq last close
@@ -55,7 +55,7 @@ internal class PreviousClosePriceDateTest {
     fun is_MorningDateResolvedForCurrent() {
         val onTheMorningOf = OffsetDateTime.ofInstant(
             LocalDateTime.of(2021, 9, 29, 6, 15).toInstant(ZoneOffset.UTC),
-            dateUtils.getZoneId()
+            dateUtils.getZoneId(),
         )
         // Should resolve to previous days close
         assertThat(previousClose.getPriceDate(onTheMorningOf, nasdaq, true))
@@ -66,7 +66,7 @@ internal class PreviousClosePriceDateTest {
     fun is_PreviousDayUTCAfterMarketClose() {
         val utcEve = OffsetDateTime.ofInstant(
             LocalDateTime.of(2021, 10, 12, 22, 15).toInstant(ZoneOffset.UTC),
-            ZoneOffset.UTC
+            ZoneOffset.UTC,
         )
         // Should resolve to previous days close on the same day.
         assertThat(previousClose.getPriceDate(utcEve, nasdaq, true))
@@ -81,7 +81,7 @@ internal class PreviousClosePriceDateTest {
     fun is_AfternoonDateResolvedForHistoric() {
         val asAtDate = OffsetDateTime.ofInstant(
             LocalDateTime.of(2021, 9, 24, 15, 0).toInstant(ZoneOffset.UTC),
-            ZoneOffset.UTC
+            ZoneOffset.UTC,
         )
 
         assertThat(previousClose.getPriceDate(asAtDate, nasdaq, false))
@@ -92,7 +92,7 @@ internal class PreviousClosePriceDateTest {
     fun is_MarketDateCalculatedWhenToday() {
         val pricesUnavailable = OffsetDateTime.ofInstant(
             LocalDateTime.of(2020, 7, 17, 14, 0).toInstant(ZoneOffset.UTC),
-            ZoneOffset.UTC
+            ZoneOffset.UTC,
         )
 
         // Requesting today, but prices are not yet available.
@@ -101,7 +101,7 @@ internal class PreviousClosePriceDateTest {
 
         val pricesAvailable = OffsetDateTime.ofInstant(
             LocalDateTime.of(2020, 7, 18, 6, 0).toInstant(ZoneOffset.UTC), // Avail next day
-            dateUtils.getZoneId()
+            dateUtils.getZoneId(),
         )
 
         val todayHasPrices = previousClose.getPriceDate(pricesAvailable, nasdaq, true)

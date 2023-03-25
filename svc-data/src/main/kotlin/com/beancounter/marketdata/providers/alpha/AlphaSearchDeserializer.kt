@@ -23,7 +23,7 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
                 .constructCollectionType(ArrayList::class.java, HashMap::class.java)
             val rows = mapper.readValue<Collection<Map<String, String>>>(
                 source[BEST_MATCHES].toString(),
-                collectionType
+                collectionType,
             )
             for (row in rows) {
                 val searchResult = AssetSearchResult(
@@ -31,7 +31,7 @@ class AlphaSearchDeserializer : JsonDeserializer<AssetSearchResponse>() {
                     row["2. name"]!!,
                     row["3. type"]!!,
                     null,
-                    row["8. currency"]
+                    row["8. currency"],
                 )
                 results.add(searchResult)
             }

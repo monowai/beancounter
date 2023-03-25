@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class AssetIngestService internal constructor(
     private val assetService: AssetService,
-    private val marketService: MarketService
+    private val marketService: MarketService,
 ) {
 
     /**

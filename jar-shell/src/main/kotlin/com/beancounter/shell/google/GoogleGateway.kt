@@ -32,7 +32,7 @@ class GoogleGateway internal constructor(private val googleAuthConfig: GoogleAut
         return Sheets.Builder(
             httpTransport,
             GsonFactory.getDefaultInstance(),
-            googleAuthConfig.getCredentials(httpTransport)
+            googleAuthConfig.getCredentials(httpTransport),
         )
             .setApplicationName("BeanCounter")
             .build()

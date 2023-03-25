@@ -19,9 +19,9 @@ import org.springframework.boot.runApplication
         ClientPasswordConfig::class,
         ShareSightConfig::class,
         UtilConfig::class,
-        ClientConfig::class
+        ClientConfig::class,
     ],
-    scanBasePackages = ["com.beancounter.shell"]
+    scanBasePackages = ["com.beancounter.shell"],
 )
 @EnableConfigurationProperties
 class ShellRunner

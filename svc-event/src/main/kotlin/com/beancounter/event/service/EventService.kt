@@ -21,7 +21,7 @@ import java.time.LocalDate
 class EventService(
     private val positionService: PositionService,
     private val eventRepository: EventRepository,
-    private val keyGenUtils: KeyGenUtils
+    private val keyGenUtils: KeyGenUtils,
 ) {
     private lateinit var eventPublisher: EventPublisher
 
@@ -34,7 +34,7 @@ class EventService(
 
     fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {
         return processEvent(
-            save(eventRequest.data)
+            save(eventRequest.data),
         )
     }
 
@@ -42,7 +42,7 @@ class EventService(
         val results: MutableCollection<TrustedTrnEvent> = mutableListOf()
         val response = positionService.findWhereHeld(
             event.assetId,
-            event.recordDate
+            event.recordDate,
         )
         for (portfolio in response.data) {
             val trnEvent = positionService.process(portfolio, event)
@@ -55,7 +55,7 @@ class EventService(
                     event.assetId,
                     trnEvent.portfolio.code,
                     trnEvent
-                        .trnInput.tradeDate
+                        .trnInput.tradeDate,
                 )
                 eventPublisher.send(trnEvent)
                 results.add(trnEvent)
@@ -67,7 +67,7 @@ class EventService(
     fun save(event: CorporateEvent): CorporateEvent {
         val existing = eventRepository.findByAssetIdAndRecordDate(
             event.assetId,
-            event.recordDate
+            event.recordDate,
         )
         if (existing.isPresent) {
             return existing.get()
@@ -80,7 +80,7 @@ class EventService(
             event.recordDate,
             event.rate,
             event.split,
-            event.payDate
+            event.payDate,
         )
 
         val corporateEvent = eventRepository.save(save)
@@ -89,7 +89,7 @@ class EventService(
             corporateEvent.trnType,
             corporateEvent.id,
             corporateEvent.assetId,
-            corporateEvent.payDate
+            corporateEvent.payDate,
         )
         return corporateEvent
     }

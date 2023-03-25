@@ -56,7 +56,7 @@ class TestPortfolio {
             "id",
             "email",
             false,
-            LocalDate.now().minusDays(5)
+            LocalDate.now().minusDays(5),
         )
         portfolios.add(portfolio)
         val portfoliosResponse = PortfoliosResponse(portfolios)

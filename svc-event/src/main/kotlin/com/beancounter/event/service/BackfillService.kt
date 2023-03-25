@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 
 /**
- * Re-Process all events recorded in this service
+ * Find events that exist locally and resubmit the transactions.
  */
 @Service
 class BackfillService(
@@ -18,7 +18,7 @@ class BackfillService(
     private val positionService: PositionService,
     private val eventService: EventService,
     private val tokenService: TokenService,
-    private val loginService: LoginService
+    private val loginService: LoginService,
 ) {
     private val dateUtils = DateUtils()
     private val dateSplitter = DateSplitter(dateUtils)
@@ -26,15 +26,10 @@ class BackfillService(
 
     @Async("applicationTaskExecutor")
     fun backFillEvents(portfolioId: String, date: String = "today", toDate: String = date) {
-        val asAt: String = if (date.equals(DateUtils.today, ignoreCase = true)) {
-            dateUtils.today()
-        } else {
-            dateUtils.getDate(date).toString()
-        }
+        val dates = dateSplitter.dateRange(date, toDate)
         loginService.login() // m2m
         val portfolio =
             portfolioService.getPortfolioById(portfolioId, tokenService.bearerToken)
-        val dates = dateSplitter.split(from = asAt, until = toDate, days = 1)
         log.debug("Started backfill code: ${portfolio.code}, id: ${portfolio.id}, days: ${dates.size}")
         var eventCount = 0
         var dayCount = 0
@@ -43,7 +38,9 @@ class BackfillService(
             val positionResponse = positionService.getPositions(portfolio, asAtDate.toString())
             val assets: MutableCollection<String> = mutableListOf()
             for (position in positionResponse.data.positions.values) {
-                if (positionService.includePosition(position)) assets.add(position.asset.id)
+                if (positionService.includePosition(position)) {
+                    assets.add(position.asset.id)
+                }
             }
             val events = eventService.find(assets, asAtDate)
             for (event in events) {

@@ -51,7 +51,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
             MockMvcRequestBuilders.post("/assets/")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(assetRequest))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -64,7 +64,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
     fun getTrnById(portfolioId: String, trnId: String): MvcResult = mockMvc.perform(
         MockMvcRequestBuilders.get("$trnsRoot/$portfolioId/$trnId")
             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON),
     ).andExpect(MockMvcResultMatchers.status().isOk)
         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
         .andReturn()
@@ -73,7 +73,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         MockMvcRequestBuilders.post(trnsRoot)
             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             .content(objectMapper.writeValueAsBytes(trnRequest))
-            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON),
     ).andExpect(MockMvcResultMatchers.status().isOk)
         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
         .andReturn()
@@ -82,7 +82,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         MockMvcRequestBuilders.patch("$trnsRoot/$portfolioId/$trnId")
             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
             .content(objectMapper.writeValueAsBytes(trnInput))
-            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON),
     ).andExpect(MockMvcResultMatchers.status().isOk)
         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
         .andReturn()
@@ -94,7 +94,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
             MockMvcRequestBuilders.post("/portfolios", portfolio.code)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(ObjectMapper().writeValueAsBytes(createRequest))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -107,14 +107,14 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         mockMvc.perform(
             MockMvcRequestBuilders.post("/register")
                 .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
                     RegistrationUtils.objectMapper
-                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email))
+                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email)),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))

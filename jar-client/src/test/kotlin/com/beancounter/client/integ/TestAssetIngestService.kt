@@ -19,10 +19,10 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ImportAutoConfiguration(
-    ClientConfig::class
+    ClientConfig::class,
 )
 @SpringBootTest(classes = [ClientConfig::class])
 class TestAssetIngestService {
@@ -40,7 +40,7 @@ class TestAssetIngestService {
     fun is_HydratedAssetFound() {
         val asset = assetIngestService.resolveAsset(
             nasdaq,
-            msft
+            msft,
         )
         assertThat(asset).isNotNull
             .hasFieldOrProperty("id")

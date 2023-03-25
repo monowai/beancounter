@@ -32,7 +32,7 @@ class PricesBase : ContractVerifierBase() {
             BigDecimal("100.00"),
             BigDecimal("38.74"),
             BigDecimal("39.35"),
-            Integer.decode("6274307")
+            Integer.decode("6274307"),
         )
 
         mockPriceResponse("EBAY", marketData)
@@ -48,7 +48,7 @@ class PricesBase : ContractVerifierBase() {
         val priceResponse = WtdResponse(date, result)
         Mockito.`when`(
             wtdGateway
-                .getPrices(code, date, "demo")
+                .getPrices(code, date, "demo"),
         ).thenReturn(priceResponse)
     }
 }

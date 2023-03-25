@@ -34,5 +34,5 @@ data class Market @ConstructorBinding constructor(
     val daysToSubtract: Int = 1,
     val enricher: String? = null,
     val multiplier: BigDecimal = BigDecimal("1.0"),
-    val type: String = "Public"
+    val type: String = "Public",
 )

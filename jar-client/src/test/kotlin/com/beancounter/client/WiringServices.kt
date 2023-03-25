@@ -23,7 +23,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 @SpringBootTest(classes = [ClientConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 class WiringServices {
     @Autowired

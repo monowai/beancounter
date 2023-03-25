@@ -75,24 +75,24 @@ internal class DataProviderArgumentsTest {
             PriceAsset(
                 marketA,
                 code,
-                getAsset(Market(marketA), code)
-            )
+                getAsset(Market(marketA), code),
+            ),
         )
         val marketB = "BBB"
         assets.add(
             PriceAsset(
                 marketB,
                 code,
-                getAsset(Market(marketB), code)
-            )
+                getAsset(Market(marketB), code),
+            ),
         )
         val marketC = "CCC"
         assets.add(
             PriceAsset(
                 marketC,
                 code,
-                getAsset(Market(marketC), code)
-            )
+                getAsset(Market(marketC), code),
+            ),
         )
         val priceRequest = PriceRequest(assets = assets)
         val testConfig = TestConfig(10)
@@ -121,7 +121,7 @@ internal class DataProviderArgumentsTest {
             PriceAsset(
                 NYSE.code,
                 "Not Active",
-                Asset(AssetInput(NYSE.code, "Not Active"), NYSE, Status.Inactive)
+                Asset(AssetInput(NYSE.code, "Not Active"), NYSE, Status.Inactive),
             )
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =

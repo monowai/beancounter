@@ -49,7 +49,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
     private val mockMvc: MockMvc,
     private val mockAuthConfig: MockAuthConfig,
     private val bcJson: BcJson,
-    private val mdFactory: MdFactory
+    private val mdFactory: MdFactory,
 ) {
     @MockBean
     private lateinit var marketDataRepo: MarketDataRepo
@@ -66,7 +66,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
         val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)!!
         priceDate = marketDataProvider.getDate(
             asset.market,
-            PriceRequest.of(AssetInput(market = asset.market.code, code = asset.code))
+            PriceRequest.of(AssetInput(market = asset.market.code, code = asset.code)),
         )
         Mockito.`when`(marketDataRepo.findByAssetIdAndPriceDate(asset.id, priceDate))
             .thenReturn(
@@ -75,16 +75,16 @@ internal class MarketDataControllerTests @Autowired private constructor(
                         asset,
                         close = mockPrice,
                         open = mockPrice,
-                        priceDate = priceDate
-                    )
-                )
+                        priceDate = priceDate,
+                    ),
+                ),
             )
         assertThat(asset.id).isNotNull
         Mockito.`when`(
-            assetService.find(asset.id)
+            assetService.find(asset.id),
         ).thenReturn(asset)
         Mockito.`when`(
-            assetService.findLocally(asset.market.code, asset.code)
+            assetService.findLocally(asset.market.code, asset.code),
         )
             .thenReturn(asset)
     }
@@ -100,12 +100,12 @@ internal class MarketDataControllerTests @Autowired private constructor(
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/markets")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE),
         )
             .andExpect(
-                MockMvcResultMatchers.status().isOk
+                MockMvcResultMatchers.status().isOk,
             ).andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
             ).andReturn()
             .response.contentAsString
         val (data) = bcJson.objectMapper.readValue(json, MarketResponse::class.java)
@@ -120,15 +120,15 @@ internal class MarketDataControllerTests @Autowired private constructor(
             MockMvcRequestBuilders.get(
                 "/prices/{marketId}/{assetId}",
                 asset.market.code,
-                asset.code
+                asset.code,
             )
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE),
         )
             .andExpect(
-                MockMvcResultMatchers.status().isOk
+                MockMvcResultMatchers.status().isOk,
             ).andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
             ).andReturn().response.contentAsString
         val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
         assertThat(data).isNotNull.hasSize(1)
@@ -149,7 +149,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
             .thenReturn(getAsset(CASH, assetCode))
         val assetInputs: MutableCollection<PriceAsset> = ArrayList()
         assetInputs.add(
-            PriceAsset(CASH.code, assetCode)
+            PriceAsset(CASH.code, assetCode),
         )
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/prices")
@@ -157,14 +157,14 @@ internal class MarketDataControllerTests @Autowired private constructor(
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .content(
                     bcJson.objectMapper.writeValueAsString(
-                        PriceRequest(assets = assetInputs)
-                    )
-                )
+                        PriceRequest(assets = assetInputs),
+                    ),
+                ),
         )
             .andExpect(
-                MockMvcResultMatchers.status().isOk
+                MockMvcResultMatchers.status().isOk,
             ).andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
             ).andReturn()
             .response
             .contentAsString
@@ -182,14 +182,14 @@ internal class MarketDataControllerTests @Autowired private constructor(
             MockMvcRequestBuilders.get(
                 "/prices/{marketId}/{assetId}",
                 asset.market.code,
-                asset.code
+                asset.code,
             )
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE),
         ).andExpect(
-            MockMvcResultMatchers.status().isOk
+            MockMvcResultMatchers.status().isOk,
         ).andExpect(
-            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
         ).andReturn()
             .response
             .contentAsString

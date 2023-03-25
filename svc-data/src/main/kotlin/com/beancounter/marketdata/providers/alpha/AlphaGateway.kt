@@ -16,50 +16,50 @@ interface AlphaGateway {
     @RequestMapping(
         method = [RequestMethod.GET],
         headers = ["Content-Type: text/plain"],
-        value = ["/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"]
+        value = ["/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"],
     )
     fun getCurrent(
         @PathVariable("assetId") assetId: String?,
-        @PathVariable("apiKey") apiKey: String?
+        @PathVariable("apiKey") apiKey: String?,
     ): String?
 
     @RequestMapping(
         method = [RequestMethod.GET],
         headers = ["Content-Type: text/plain"],
-        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}"]
+        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}"],
     )
     fun getHistoric(
         @PathVariable("assetId") assetId: String?,
-        @PathVariable("apiKey") apiKey: String?
+        @PathVariable("apiKey") apiKey: String?,
     ): String?
 
     @RequestMapping(
         method = [RequestMethod.GET],
         headers = ["Content-Type: text/plain"],
-        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full"]
+        value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full"],
     )
     fun getFullOutput(
         @PathVariable("assetId") assetId: String,
-        @PathVariable("apiKey") apiKey: String
+        @PathVariable("apiKey") apiKey: String,
     ): String?
 
     @RequestMapping(
         method = [RequestMethod.GET],
         headers = ["Content-Type: text/plain"],
-        value = ["/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}&outputsize=full"]
+        value = ["/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}&outputsize=full"],
     )
     fun getAdjusted(
         @PathVariable("assetId") assetId: String?,
-        @PathVariable("apiKey") apiKey: String?
+        @PathVariable("apiKey") apiKey: String?,
     ): String
 
     @RequestMapping(
         method = [RequestMethod.GET],
         headers = ["Content-Type: text/plain"],
-        value = ["/query?function=SYMBOL_SEARCH&keywords={symbol}&apikey={apiKey}"]
+        value = ["/query?function=SYMBOL_SEARCH&keywords={symbol}&apikey={apiKey}"],
     )
     fun search(
         @PathVariable("symbol") symbol: String?,
-        @PathVariable("apiKey") apiKey: String?
+        @PathVariable("apiKey") apiKey: String?,
     ): String
 }

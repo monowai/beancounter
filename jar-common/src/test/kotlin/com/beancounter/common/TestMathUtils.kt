@@ -23,36 +23,36 @@ internal class TestMathUtils {
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                BigDecimal.ZERO
-            )
+                BigDecimal.ZERO,
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                BigDecimal("0.00")
-            )
+                BigDecimal("0.00"),
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                null
-            )
+                null,
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             multiplyAbs(
                 BigDecimal(oneThousandDec),
-                BigDecimal(ten)
-            )
+                BigDecimal(ten),
+            ),
         )
             .isEqualTo(tenThousand)
         assertThat(
             multiplyAbs(
                 null,
-                BigDecimal(ten)
-            )
+                BigDecimal(ten),
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
     }
@@ -62,36 +62,36 @@ internal class TestMathUtils {
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                BigDecimal(zeroDec)
-            )
+                BigDecimal(zeroDec),
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                BigDecimal(zeroDec)
-            )
+                BigDecimal(zeroDec),
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                null
-            )
+                null,
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 null,
-                BigDecimal(ten)
-            )
+                BigDecimal(ten),
+            ),
         )
             .isEqualTo(BigDecimal.ZERO)
         assertThat(
             divide(
                 BigDecimal(oneThousandDec),
-                BigDecimal(ten)
-            )
+                BigDecimal(ten),
+            ),
         )
             .isEqualTo("100.00")
     }

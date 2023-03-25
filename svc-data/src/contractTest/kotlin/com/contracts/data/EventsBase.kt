@@ -37,9 +37,9 @@ class EventsBase : ContractVerifierBase() {
             .thenReturn(
                 BcJson().objectMapper.writeValueAsString(
                     BcJson().objectMapper.readTree(
-                        ClassPathResource("alpha/ndaq-events-full.json").file
-                    )
-                )
+                        ClassPathResource("alpha/ndaq-events-full.json").file,
+                    ),
+                ),
             )
     }
 

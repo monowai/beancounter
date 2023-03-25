@@ -110,14 +110,14 @@ internal class MarketValueTest {
         val simpleRate = BigDecimal("0.20")
         val pair = toPair(
             portfolio.currency,
-            asset.market.currency
+            asset.market.currency,
         )
         if (pair != null) {
             fxRateMap[pair] = FxRate(
                 Currency("X"),
                 Currency("X"),
                 simpleRate,
-                null
+                null,
             )
         }
         val buyTrn = Trn(
@@ -125,7 +125,7 @@ internal class MarketValueTest {
             asset = asset,
             quantity = hundred,
             tradeAmount = twoThousand,
-            tradePortfolioRate = simpleRate
+            tradePortfolioRate = simpleRate,
         )
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         val positions = Positions(portfolio)
@@ -136,7 +136,7 @@ internal class MarketValueTest {
                 asset = asset,
                 quantity = hundred,
                 tradeAmount = BigDecimal("3000.00"),
-                tradePortfolioRate = simpleRate
+                tradePortfolioRate = simpleRate,
             )
         val sellBehaviour: AccumulationStrategy = SellBehaviour()
         sellBehaviour.accumulate(sellTrn, positions)
@@ -199,19 +199,19 @@ internal class MarketValueTest {
     private fun getRates(
         portfolio: Portfolio,
         asset: Asset,
-        simpleRate: BigDecimal
+        simpleRate: BigDecimal,
     ): Map<IsoCurrencyPair, FxRate> {
         val fxRateMap: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val pair = toPair(
             portfolio.currency,
-            asset.market.currency
+            asset.market.currency,
         )
         if (pair != null) {
             fxRateMap[pair] = FxRate(
                 Currency("test"),
                 Currency("TEST"),
                 simpleRate,
-                null
+                null,
             )
         }
         return fxRateMap

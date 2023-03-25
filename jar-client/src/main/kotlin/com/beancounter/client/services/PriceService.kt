@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 class PriceService @Autowired internal constructor(
     private val priceGateway: PriceGateway,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
 ) {
     fun getPrices(priceRequest: PriceRequest): PriceResponse {
         return priceGateway.getPrices(tokenService.bearerToken, priceRequest)
@@ -35,13 +35,13 @@ class PriceService @Autowired internal constructor(
         @PostMapping(value = ["/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPrices(
             @RequestHeader("Authorization") bearerToken: String,
-            priceRequest: PriceRequest
+            priceRequest: PriceRequest,
         ): PriceResponse
 
         @GetMapping(value = ["/prices/{assetId}/events"])
         fun getEvents(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable assetId: String
+            @PathVariable assetId: String,
         ): PriceResponse
     }
 }

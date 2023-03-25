@@ -20,7 +20,7 @@ class PriceRefresh internal constructor(
     private val assetService: AssetService,
     private val assetHydrationService: AssetHydrationService,
     private val marketDataService: MarketDataService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
 ) {
 
     @Transactional(readOnly = true)
@@ -38,7 +38,7 @@ class PriceRefresh internal constructor(
             "Price update completed for {} assets @ {} - {}",
             assetCount.get(),
             LocalDateTime.now(dateUtils.getZoneId()),
-            dateUtils.getZoneId().id
+            dateUtils.getZoneId().id,
         )
         return CompletableFuture.completedFuture(assetCount.get())
     }

@@ -23,7 +23,7 @@ import java.time.LocalDate
 class BcRowAdapter(
     val assetIngestService: AssetIngestService,
     val cashServices: CashServices,
-    val dateUtils: DateUtils = DateUtils()
+    val dateUtils: DateUtils = DateUtils(),
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[colDef()[Columns.Date]!!].trim())
@@ -38,7 +38,7 @@ class BcRowAdapter(
         val asset = assetIngestService.resolveAsset(
             marketCode,
             assetCode = assetCode,
-            name = trustedTrnImportRequest.row[colDef()[Columns.Name]!!].trim()
+            name = trustedTrnImportRequest.row[colDef()[Columns.Name]!!].trim(),
         )
         val cashCurrency = trustedTrnImportRequest.row[colDef()[Columns.CashCurrency]!!].trim()
         val cashAccount = trustedTrnImportRequest.row[colDef()[Columns.CashAccount]!!].trim()
@@ -56,7 +56,7 @@ class BcRowAdapter(
             callerRef = CallerRef(
                 trustedTrnImportRequest.row[0],
                 trustedTrnImportRequest.row[1],
-                trustedTrnImportRequest.row[2]
+                trustedTrnImportRequest.row[2],
             ),
             assetId = asset.id,
             trnType = trnType,
@@ -71,7 +71,7 @@ class BcRowAdapter(
             cashAssetId = cashAssetId,
             fees = fees,
             price = price,
-            comments = trustedTrnImportRequest.row[colDef()[Columns.Comments]!!]
+            comments = trustedTrnImportRequest.row[colDef()[Columns.Comments]!!],
         )
     }
 
@@ -79,7 +79,7 @@ class BcRowAdapter(
         trnType: TrnType,
         asset: Asset,
         cashAccount: String,
-        cashCurrency: String
+        cashCurrency: String,
     ): String? {
         val cashAsset: Asset? = if (TrnType.isCash(trnType)) {
             asset

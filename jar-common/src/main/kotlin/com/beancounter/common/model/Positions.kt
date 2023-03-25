@@ -29,7 +29,7 @@ class Positions(
     val portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     var asAt: String = "today",
     val positions: MutableMap<String, Position> = TreeMap(),
-    val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java)
+    val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java),
 ) {
 
     var isMixedCurrencies = false

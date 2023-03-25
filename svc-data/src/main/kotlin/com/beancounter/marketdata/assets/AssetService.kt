@@ -24,7 +24,7 @@ import javax.transaction.Transactional
 @Service
 @Import(
     DefaultEnricher::class,
-    MarketDataService::class
+    MarketDataService::class,
 )
 @Transactional
 class AssetService internal constructor(
@@ -32,7 +32,7 @@ class AssetService internal constructor(
     private val marketDataService: MarketDataService,
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
-    private val assetHydrationService: AssetHydrationService
+    private val assetHydrationService: AssetHydrationService,
 ) : com.beancounter.client.AssetService {
     private val keyGenUtils = KeyGenUtils()
 
@@ -42,7 +42,7 @@ class AssetService internal constructor(
             val enriched = enricher.enrich(
                 asset.id,
                 asset.market,
-                AssetInput(asset.market.code, asset.code, category = asset.category.uppercase())
+                AssetInput(asset.market.code, asset.code, category = asset.category.uppercase()),
             )
             assetRepository.save(enriched) // Hmm, not sure the Repo should be here
             return enriched
@@ -53,7 +53,7 @@ class AssetService internal constructor(
     private fun create(assetInput: AssetInput): Asset {
         val foundAsset = findLocally(
             assetInput.market.uppercase(Locale.getDefault()),
-            assetInput.code.uppercase(Locale.getDefault())
+            assetInput.code.uppercase(Locale.getDefault()),
         )
         return if (foundAsset == null) {
             // Is the market supported?
@@ -63,7 +63,7 @@ class AssetService internal constructor(
                 .enrich(
                     id = keyGenUtils.id,
                     market = market,
-                    assetInput = assetInput
+                    assetInput = assetInput,
                 )
             assetHydrationService.hydrateAsset(assetRepository.save(asset))
         } else {
@@ -92,7 +92,7 @@ class AssetService internal constructor(
             asset = enrichmentFactory.getEnricher(market).enrich(
                 id = keyGenUtils.format(UUID.randomUUID()),
                 market = market,
-                assetInput = AssetInput(market = marketCode, code = code)
+                assetInput = AssetInput(market = marketCode, code = code),
             )
             if (marketService.canPersist(market)) {
                 asset = assetRepository.save(asset)
@@ -115,7 +115,7 @@ class AssetService internal constructor(
         log.trace("Search for {}/{}", marketCode, code)
         val optionalAsset = assetRepository.findByMarketCodeAndCode(
             marketCode.uppercase(Locale.getDefault()),
-            code.uppercase(Locale.getDefault())
+            code.uppercase(Locale.getDefault()),
         )
         return optionalAsset.map { asset: Asset ->
             assetHydrationService.hydrateAsset(asset)

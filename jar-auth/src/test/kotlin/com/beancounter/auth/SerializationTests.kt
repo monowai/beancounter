@@ -25,7 +25,7 @@ class SerializationTests {
             "*secret*",
             "client_secret",
             grantType,
-            "client_credentials"
+            "client_credentials",
         )
         val translateResult = PojoUtil.toMap(machineRequest)
         assertThat(translateResult).containsKeys(clientId, "client_secret", grantType)
@@ -42,7 +42,7 @@ class SerializationTests {
             "username",
             "password",
             "*secretx*",
-            grantType
+            grantType,
         )
         val translateResult = PojoUtil.toMap(loginRequest)
         assertThat(translateResult).containsKeys("password", "username", grantType)

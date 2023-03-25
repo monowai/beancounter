@@ -44,7 +44,7 @@ class TrnIoDefinition {
             trn.tradePortfolioRate.toString(),
             trn.tradeAmount.toString(),
             trn.cashAmount.toString(),
-            trn.comments
+            trn.comments,
         )
     }
 
@@ -70,7 +70,7 @@ class TrnIoDefinition {
             Pair(Columns.PortfolioRate, 16),
             Pair(Columns.TradeAmount, 17),
             Pair(Columns.CashAmount, 18),
-            Pair(Columns.Comments, 19)
+            Pair(Columns.Comments, 19),
         )
     }
 }

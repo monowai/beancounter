@@ -15,7 +15,7 @@ import java.util.Locale
 @Service
 class PortfolioInputAdapter internal constructor(
     private val currencyService: CurrencyService,
-    private val keyGenUtils: KeyGenUtils
+    private val keyGenUtils: KeyGenUtils,
 ) {
     fun prepare(owner: SystemUser, portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val results: MutableCollection<Portfolio> = mutableListOf()
@@ -33,7 +33,7 @@ class PortfolioInputAdapter internal constructor(
             portfolioInput.name,
             currencyService.getCode(portfolioInput.currency),
             currencyService.getCode(portfolioInput.base),
-            owner
+            owner,
         )
     }
 
@@ -44,7 +44,7 @@ class PortfolioInputAdapter internal constructor(
             data.name,
             currencyService.getCode(data.currency),
             currencyService.getCode(data.base),
-            existing.owner
+            existing.owner,
         )
     }
 

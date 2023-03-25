@@ -21,7 +21,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
  */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
@@ -44,7 +44,7 @@ class TestTrnService {
         val query = TrustedTrnQuery(
             portfolio,
             DateUtils().getDate("2020-05-01"),
-            "KMI"
+            "KMI",
         )
         val queryResults = trnService.query(query)
         assertThat(queryResults).isNotNull.hasFieldOrProperty(Payload.DATA)

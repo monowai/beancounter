@@ -29,7 +29,7 @@ internal class TestExceptionMessages {
         val springExceptionMessage = SpringExceptionMessage(
             error = "I'm a teapot",
             message = "Message",
-            path = testUri
+            path = testUri,
         )
         val mapper = BcJson().objectMapper
         val json = mapper.writeValueAsString(springExceptionMessage)

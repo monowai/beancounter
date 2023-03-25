@@ -14,7 +14,7 @@ data class WtdResponse constructor(
     val data: Map<String, WtdMarketData> = HashMap(),
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("Message")
-    val message: String?
+    val message: String?,
 ) {
     constructor(date: String, prices: Map<String, WtdMarketData> = HashMap()) : this(date, prices, null)
 }

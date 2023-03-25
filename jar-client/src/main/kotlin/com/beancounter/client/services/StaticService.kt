@@ -29,7 +29,7 @@ import java.util.Locale
 @ConfigurationProperties(prefix = "beancounter.exchanges")
 class StaticService internal constructor(
     val staticGateway: StaticGateway,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
 ) : MarketService {
     @NonNull
     @Retry(name = "data")
@@ -58,7 +58,7 @@ class StaticService internal constructor(
         return try {
             val (data) = staticGateway.getMarketByCode(
                 tokenService.bearerToken,
-                marketCode.uppercase(Locale.getDefault())
+                marketCode.uppercase(Locale.getDefault()),
             )
             if (data.isNullOrEmpty()) {
                 throw BusinessException("Unable to resolve market code $marketCode")
@@ -76,18 +76,18 @@ class StaticService internal constructor(
     interface StaticGateway {
         @GetMapping(value = ["/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarkets(
-            @RequestHeader("Authorization") bearerToken: String?
+            @RequestHeader("Authorization") bearerToken: String?,
         ): MarketResponse
 
         @GetMapping(value = ["/markets/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarketByCode(
             @RequestHeader("Authorization") bearerToken: String?,
-            @PathVariable code: String?
+            @PathVariable code: String?,
         ): MarketResponse
 
         @GetMapping(value = ["/currencies"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getCurrencies(
-            @RequestHeader("Authorization") bearerToken: String?
+            @RequestHeader("Authorization") bearerToken: String?,
         ): CurrencyResponse
     }
 }

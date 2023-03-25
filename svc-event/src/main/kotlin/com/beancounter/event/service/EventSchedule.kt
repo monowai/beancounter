@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class EventSchedule(
     private val eventService: EventService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
 ) {
 
     private var loginService: LoginService? = null

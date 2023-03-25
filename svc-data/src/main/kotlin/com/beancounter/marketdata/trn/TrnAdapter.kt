@@ -27,7 +27,7 @@ class TrnAdapter internal constructor(
     var tradeCalculator: TradeCalculator,
     val cashServices: CashServices,
     val fxService: FxService,
-    val fxTransactions: FxTransactions
+    val fxTransactions: FxTransactions,
 ) {
     private val keyGenUtils: KeyGenUtils =
         KeyGenUtils()
@@ -76,7 +76,7 @@ class TrnAdapter internal constructor(
             tradeCashRate = trnInput.tradeCashRate!!,
             tradeBaseRate = trnInput.tradeBaseRate!!,
             tradePortfolioRate = trnInput.tradePortfolioRate!!,
-            comments = existing?.comments ?: trnInput.comments
+            comments = existing?.comments ?: trnInput.comments,
         )
     }
 

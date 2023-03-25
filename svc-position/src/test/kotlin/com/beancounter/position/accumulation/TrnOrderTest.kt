@@ -42,7 +42,7 @@ internal class TrnOrderTest {
             quantity = hundred,
             tradeDate = yesterday.atStartOfDay(DateUtils().getZoneId())
                 .toLocalDate(),
-            tradeAmount = twoK
+            tradeAmount = twoK,
         )
         accumulator.accumulate(buyYesterday, positions)
         val buyToday = Trn(
@@ -51,7 +51,7 @@ internal class TrnOrderTest {
             quantity = hundred,
             tradeDate = today.atStartOfDay(DateUtils().getZoneId())
                 .toLocalDate(),
-            tradeAmount = twoK
+            tradeAmount = twoK,
         )
 
         assertThrows(BusinessException::class.java) {

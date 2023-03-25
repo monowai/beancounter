@@ -10,5 +10,5 @@ data class WtdMarketData(
     val close: BigDecimal,
     val low: BigDecimal,
     val high: BigDecimal,
-    val volume: Int
+    val volume: Int,
 )

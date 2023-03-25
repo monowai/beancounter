@@ -27,7 +27,7 @@ class ValuationService @Autowired internal constructor(
     private val positionValuationService: PositionValuationService,
     private val trnService: TrnService,
     private val positionService: PositionService,
-    private val dateUtils: DateUtils = DateUtils()
+    private val dateUtils: DateUtils = DateUtils(),
 ) : Valuation {
 
     override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
@@ -35,7 +35,7 @@ class ValuationService @Autowired internal constructor(
         return buildPositions(
             trnQuery.portfolio,
             trnQuery.tradeDate.toString(),
-            trnResponse
+            trnResponse,
         )
     }
 
@@ -47,7 +47,7 @@ class ValuationService @Autowired internal constructor(
     private fun buildPositions(
         portfolio: Portfolio,
         valuationDate: String,
-        trnResponse: TrnResponse
+        trnResponse: TrnResponse,
     ): PositionResponse {
         val positionRequest = PositionRequest(portfolio.id, trnResponse.data)
         val positionResponse = positionService.build(portfolio, positionRequest)

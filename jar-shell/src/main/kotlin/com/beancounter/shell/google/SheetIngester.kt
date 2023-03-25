@@ -42,7 +42,7 @@ class SheetIngester : AbstractIngester() {
             val sheetResults = googleGateway.getValues(
                 service!!,
                 ingestionRequest!!.file,
-                range
+                range,
             )
             for (sheetResult in sheetResults) {
                 results.add(toStrings(sheetResult))

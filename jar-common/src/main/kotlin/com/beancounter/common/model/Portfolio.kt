@@ -20,7 +20,7 @@ data class Portfolio(
     val name: String = code,
     @ManyToOne val currency: Currency,
     @ManyToOne val base: Currency,
-    @ManyToOne var owner: SystemUser? = null
+    @ManyToOne var owner: SystemUser? = null,
 
 ) {
 
@@ -34,6 +34,6 @@ data class Portfolio(
         code,
         currency,
         base,
-        systemUser
+        systemUser,
     )
 }

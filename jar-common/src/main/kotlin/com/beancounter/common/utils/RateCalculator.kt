@@ -26,7 +26,7 @@ class RateCalculator private constructor() {
         fun compute(
             asAt: String?,
             currencyPairs: Collection<IsoCurrencyPair>,
-            rateMap: Map<String, FxRate>
+            rateMap: Map<String, FxRate>,
         ): FxPairResults {
             val rates: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
 
@@ -41,7 +41,7 @@ class RateCalculator private constructor() {
                         (rateMap[pair.from] ?: error("")).to,
                         (rateMap[pair.from] ?: error("")).to,
                         BigDecimal.ONE,
-                        asAt
+                        asAt,
                     )
                 }
             }

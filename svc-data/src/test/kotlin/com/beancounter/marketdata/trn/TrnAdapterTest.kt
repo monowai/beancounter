@@ -40,8 +40,8 @@ import java.util.Locale
         TradeCalculator::class,
         CashServices::class,
         MarketConfig::class,
-        KeyGenUtils::class
-    ]
+        KeyGenUtils::class,
+    ],
 )
 internal class TrnAdapterTest {
 
@@ -99,7 +99,7 @@ internal class TrnAdapterTest {
             tradeCashRate = BigDecimal("1.99"),
             tradePortfolioRate = price,
             tradeBaseRate = BigDecimal.ONE,
-            comments = "Comment"
+            comments = "Comment",
         )
         // TradeAmount should be computed for a buy
         trnInput.settleDate = theDate
@@ -150,7 +150,7 @@ internal class TrnAdapterTest {
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.ZERO,
             tradePortfolioRate = BigDecimal.ONE,
-            tradeAmount = tradeAmount
+            tradeAmount = tradeAmount,
         )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
@@ -186,7 +186,7 @@ internal class TrnAdapterTest {
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.ZERO,
             tradePortfolioRate = BigDecimal.ONE,
-            tradeAmount = tradeAmount
+            tradeAmount = tradeAmount,
         )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))

@@ -30,7 +30,7 @@ class MarketDataController @Autowired internal constructor(
     private val marketDataService: MarketDataService,
     private val assetService: AssetService,
     private val priceRefresh: PriceRefresh,
-    private val eventService: AlphaEventService
+    private val eventService: AlphaEventService,
 ) {
 
     /**
@@ -43,7 +43,7 @@ class MarketDataController @Autowired internal constructor(
     @GetMapping(value = ["/{marketCode}/{assetCode}"])
     fun getPrice(
         @PathVariable("marketCode") marketCode: String,
-        @PathVariable("assetCode") assetCode: String
+        @PathVariable("assetCode") assetCode: String,
     ): PriceResponse {
         val asset = assetService.findLocally(marketCode, assetCode)
             ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
@@ -51,9 +51,9 @@ class MarketDataController @Autowired internal constructor(
             PriceRequest.of(
                 AssetInput(
                     market = asset.market.code,
-                    code = asset.code
-                )
-            )
+                    code = asset.code,
+                ),
+            ),
         )
     }
 
@@ -65,7 +65,7 @@ class MarketDataController @Autowired internal constructor(
      */
     @GetMapping(value = ["/{assetId}/events"])
     fun getEvents(
-        @PathVariable("assetId") assetId: String
+        @PathVariable("assetId") assetId: String,
     ): PriceResponse {
         return eventService.getEvents(assetService.find(assetId))
     }

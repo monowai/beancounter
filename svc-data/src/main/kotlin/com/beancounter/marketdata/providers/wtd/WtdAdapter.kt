@@ -22,7 +22,7 @@ class WtdAdapter : MarketDataAdapter {
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int?,
-        response: Future<WtdResponse>?
+        response: Future<WtdResponse>?,
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         return try {
@@ -66,7 +66,7 @@ class WtdAdapter : MarketDataAdapter {
             "{}/{} - unable to locate a price on {}",
             dpAsset,
             asset!!.name,
-            datedBatch!!.date
+            datedBatch!!.date,
         )
         val result = MarketData(asset)
         result.close = BigDecimal.ZERO

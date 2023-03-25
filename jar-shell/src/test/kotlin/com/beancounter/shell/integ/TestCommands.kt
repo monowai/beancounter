@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class, ShareSightConfig::class])
 @AutoConfigureMockAuth

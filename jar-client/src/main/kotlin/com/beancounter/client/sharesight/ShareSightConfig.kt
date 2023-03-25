@@ -24,7 +24,7 @@ import java.util.Locale
     TradeCalculator::class,
     AssetIngestService::class,
     Filter::class,
-    ShareSightRowAdapter::class
+    ShareSightRowAdapter::class,
 )
 class ShareSightConfig {
     val numberFormat: NumberFormat = NumberFormat.getInstance(Locale.US)
@@ -49,7 +49,7 @@ class ShareSightConfig {
                 "{} - {} Parsing row {}",
                 message,
                 type,
-                row
+                row,
             )
             return BusinessException(message)
         }

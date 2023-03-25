@@ -57,7 +57,7 @@ class TrnImport {
             log.info(
                 "Portfolio {} {}",
                 trustedRequest.portfolio.code,
-                trustedRequest.message
+                trustedRequest.message,
             )
         }
         if (trustedRequest.row.isNotEmpty()) {
@@ -81,7 +81,7 @@ class TrnImport {
             run {
                 log.debug(
                     "Ignoring transaction on {} that already exists",
-                    trustedTrnEvent.trnInput.tradeDate
+                    trustedTrnEvent.trnInput.tradeDate,
                 )
             }
         }

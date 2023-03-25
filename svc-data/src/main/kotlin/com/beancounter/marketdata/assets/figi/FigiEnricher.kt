@@ -25,7 +25,7 @@ class FigiEnricher(val defaultEnricher: DefaultEnricher) : AssetEnricher {
         return figiProxy.find(market, assetInput.code, id = id) ?: defaultEnricher.enrich(
             id,
             market,
-            assetInput
+            assetInput,
         )
     }
 

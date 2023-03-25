@@ -144,7 +144,7 @@ internal class AlphaVantageApiTest {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, ASX.code, amp)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -165,9 +165,9 @@ internal class AlphaVantageApiTest {
             MockMvcRequestBuilders.get(marketCodeUrl, NYSE.code, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
+                        .jwt(token),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -271,11 +271,11 @@ internal class AlphaVantageApiTest {
         val code = "BWLD"
         mockSearchResponse(
             code,
-            ClassPathResource("$mockAlpha/bwld-search.json").file
+            ClassPathResource("$mockAlpha/bwld-search.json").file,
         )
         AlphaMockUtils.mockGlobalResponse(
             code,
-            ClassPathResource("$mockAlpha/price-not-found.json").file
+            ClassPathResource("$mockAlpha/price-not-found.json").file,
         )
         val (data) = assetService
             .handle(AssetRequest(mapOf(Pair(keyProp, AssetInput(NYSE.code, code)))))
@@ -283,7 +283,7 @@ internal class AlphaVantageApiTest {
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
             asset,
-            dateUtils.date
+            dateUtils.date,
         )
         if (priceResult.isPresent) {
             val priceResponse = marketDataService.getPriceResponse(of(asset))
@@ -302,14 +302,14 @@ internal class AlphaVantageApiTest {
         mockAdjustedResponse(assetCode, file)
         val asset =
             assetService.handle(
-                AssetRequest(mapOf(Pair(keyProp, AssetInput(NASDAQ.code, assetCode))))
+                AssetRequest(mapOf(Pair(keyProp, AssetInput(NASDAQ.code, assetCode)))),
             ).data[keyProp]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")
         marketDataService.backFill(asset!!)
         Thread.sleep(300)
         Mockito.verify(
             mockEventWriter,
-            Mockito.times(1) // Found the Dividend request; ignored the prices
+            Mockito.times(1), // Found the Dividend request; ignored the prices
         ).write(any())
     }
 }

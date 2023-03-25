@@ -29,61 +29,61 @@ class AssetsBase : ContractVerifierBase() {
             .thenReturn(
                 BcJson().objectMapper.readValue(
                     ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
-                    AssetResponse::class.java
-                ).data
+                    AssetResponse::class.java,
+                ).data,
             )
         Mockito.`when`(assetService.find("NASDAQ", "NDAQ"))
             .thenReturn(
                 BcJson().objectMapper.readValue(
                     ClassPathResource("contracts/assets/ndaq-asset.json").file,
-                    AssetResponse::class.java
-                ).data
+                    AssetResponse::class.java,
+                ).data,
             )
 
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/nzd-cash-request.json").file,
             ClassPathResource("contracts/assets/nzd-cash-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/usd-cash-request.json").file,
             ClassPathResource("contracts/assets/usd-cash-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/create-request.json").file,
             ClassPathResource("contracts/assets/create-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/ebay-request.json").file,
             ClassPathResource("contracts/assets/ebay-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/msft-request.json").file,
             ClassPathResource("contracts/assets/msft-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/bhp-asx-request.json").file,
             ClassPathResource("contracts/assets/bhp-asx-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/bhp-lse-request.json").file,
             ClassPathResource("contracts/assets/bhp-lse-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/abbv-request.json").file,
             ClassPathResource("contracts/assets/abbv-response.json").file,
-            assetService
+            assetService,
         )
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/amp-request.json").file,
             ClassPathResource("contracts/assets/amp-response.json").file,
-            assetService
+            assetService,
         )
     }
 
@@ -101,8 +101,8 @@ class AssetsBase : ContractVerifierBase() {
             Mockito.`when`(
                 assetService.findLocally(
                     theAsset.market.code.uppercase(Locale.getDefault()),
-                    theAsset.code.uppercase(Locale.getDefault())
-                )
+                    theAsset.code.uppercase(Locale.getDefault()),
+                ),
             )
                 .thenReturn(theAsset)
         }

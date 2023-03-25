@@ -48,7 +48,7 @@ internal class QuantityAccumulationTest {
             trnType = TrnType.BUY,
             asset = getAsset(Market("marketCode"), "CODE"),
             quantity = hundred,
-            tradeAmount = BigDecimal(2000)
+            tradeAmount = BigDecimal(2000),
         )
         assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
             .hasFieldOrPropertyWithValue(totalProp, hundred)

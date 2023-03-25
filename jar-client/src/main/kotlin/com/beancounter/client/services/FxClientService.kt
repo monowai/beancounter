@@ -35,11 +35,11 @@ class FxClientService internal constructor(private val fxGateway: FxGateway, pri
         @PostMapping(
             value = ["/fx"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
+            consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun getRates(
             @RequestHeader("Authorization") bearerToken: String?,
-            fxRequest: FxRequest
+            fxRequest: FxRequest,
         ): FxResponse
     }
 }

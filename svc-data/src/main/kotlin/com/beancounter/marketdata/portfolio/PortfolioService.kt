@@ -24,14 +24,14 @@ class PortfolioService internal constructor(
     private val portfolioRepository: PortfolioRepository,
     private val trnRepository: TrnRepository,
     private val systemUserService: SystemUserService,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
 ) {
 
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow
         val results: MutableCollection<Portfolio> = ArrayList()
         portfolioRepository.saveAll(
-            portfolioInputAdapter.prepare(owner, portfolios)
+            portfolioInputAdapter.prepare(owner, portfolios),
         ).forEach(Consumer { e: Portfolio -> results.add(e) })
         return results
     }
@@ -83,8 +83,8 @@ class PortfolioService internal constructor(
                 String.format(
                     "Could not find a portfolio with code %s owned by %s",
                     code,
-                    systemUser.id
-                )
+                    systemUser.id,
+                ),
             )
         }
         if (canView(portfolio)) {

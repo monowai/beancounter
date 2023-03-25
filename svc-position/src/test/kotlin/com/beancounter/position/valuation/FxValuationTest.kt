@@ -51,7 +51,7 @@ private const val EBAY = "EBAY"
 @WebAppConfiguration
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
 @Tag("slow")
@@ -124,7 +124,7 @@ internal class FxValuationTest {
             MockMvcRequestBuilders.post("/value")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(positionResponse))
+                .content(objectMapper.writeValueAsString(positionResponse)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andReturn().response.contentAsString
@@ -166,7 +166,7 @@ internal class FxValuationTest {
             MockMvcRequestBuilders.post("/value")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString("{asdf}"))
+                .content(objectMapper.writeValueAsString("{asdf}")),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError).andReturn()
         val someException = Optional.ofNullable(result.resolvedException as HttpMessageNotReadableException)
         assertThat(someException.isPresent).isTrue

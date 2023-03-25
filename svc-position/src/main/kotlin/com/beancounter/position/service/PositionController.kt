@@ -41,7 +41,7 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     fun byId(
         @PathVariable id: String,
         @PathVariable(required = false) valuationDate: String = DateUtils().offsetDateString(),
-        @RequestParam(value = "value", defaultValue = "true") value: Boolean
+        @RequestParam(value = "value", defaultValue = "true") value: Boolean,
     ): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioById(id)
         return valuationService.getPositions(portfolio, valuationDate, value)
@@ -51,7 +51,7 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     fun get(
         @PathVariable code: String,
         @PathVariable(required = false) valuationDate: String = DateUtils.today,
-        @RequestParam(value = "value", defaultValue = "true") value: Boolean
+        @RequestParam(value = "value", defaultValue = "true") value: Boolean,
     ): PositionResponse {
         log.debug("valuationDate: $valuationDate")
         val portfolio = portfolioServiceClient.getPortfolioByCode(code)
@@ -61,7 +61,7 @@ class PositionController constructor(private val portfolioServiceClient: Portfol
     @PostMapping(
         value = ["/query"],
         consumes = [MediaType.APPLICATION_JSON_VALUE],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
+        produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun query(@RequestBody trnQuery: TrustedTrnQuery): PositionResponse {
         return valuationService.build(trnQuery)

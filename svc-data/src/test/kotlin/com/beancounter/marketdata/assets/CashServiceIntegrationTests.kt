@@ -46,7 +46,7 @@ class CashServiceIntegrationTests {
     fun is_UsdCashBalanceFound() {
         val found = assetService.find(
             cash,
-            USD.code
+            USD.code,
         )
         assertThat(found).isNotNull
             .hasFieldOrPropertyWithValue("assetCategory.id", cash)

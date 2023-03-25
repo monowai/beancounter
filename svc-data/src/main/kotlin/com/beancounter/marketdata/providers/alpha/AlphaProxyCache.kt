@@ -19,7 +19,7 @@ class AlphaProxyCache(private val alphaProxy: AlphaProxy) {
     fun getCurrent(
         code: String,
         date: String,
-        apiKey: String
+        apiKey: String,
     ): Future<String?> {
         return AsyncResult(alphaProxy.getCurrent(code, apiKey))
     }

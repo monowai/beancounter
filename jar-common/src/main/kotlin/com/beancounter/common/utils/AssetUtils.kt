@@ -28,7 +28,7 @@ class AssetUtils {
         fun getAsset(market: Market, assetCode: String) =
             Asset(
                 code = assetCode,
-                market = market
+                market = market,
             )
 
         @JvmStatic
@@ -73,7 +73,7 @@ class AssetUtils {
                 code = currency,
                 name = "$currency Balance",
                 currency = currency,
-                category = "cash"
+                category = "cash",
             )
     }
 }

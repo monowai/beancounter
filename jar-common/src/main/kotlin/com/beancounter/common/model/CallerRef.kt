@@ -14,7 +14,7 @@ import javax.persistence.Embeddable
 data class CallerRef(
     var provider: String = "",
     var batch: String = "",
-    var callerId: String = ""
+    var callerId: String = "",
 ) : Serializable {
 
     companion object {

@@ -17,10 +17,10 @@ interface PortfolioRepository : CrudRepository<Portfolio, String> {
     @Query(
         "select distinct t.portfolio from Trn t " +
             "where (t.asset.id = ?1 and (t.cashAsset.id is null or t.cashAsset.id <> ?1)) " +
-            "and t.tradeDate <= ?2  "
+            "and t.tradeDate <= ?2  ",
     )
     fun findDistinctPortfolioByAssetIdAndTradeDate(
         assetId: String,
-        tradeDate: LocalDate
+        tradeDate: LocalDate,
     ): Collection<Portfolio>
 }

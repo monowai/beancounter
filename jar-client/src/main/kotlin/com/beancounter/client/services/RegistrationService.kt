@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 class RegistrationService(
     private val registrationGateway: RegistrationGateway,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
 ) {
     fun register(registrationRequest: RegistrationRequest): SystemUser {
         val (data) = registrationGateway
@@ -48,16 +48,16 @@ class RegistrationService(
         @PostMapping(
             value = ["/register"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
+            consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun register(
             @RequestHeader("Authorization") bearerToken: String?,
-            registrationRequest: RegistrationRequest?
+            registrationRequest: RegistrationRequest?,
         ): RegistrationResponse?
 
         @GetMapping(
             value = ["/me"],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
+            produces = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun me(@RequestHeader("Authorization") bearerToken: String?): RegistrationResponse?
     }

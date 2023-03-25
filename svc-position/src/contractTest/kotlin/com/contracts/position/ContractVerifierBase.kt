@@ -31,7 +31,7 @@ private const val BEARER_TOKEN = "no-token"
  */
 @SpringBootTest(
     classes = [PositionBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
 )
 @AutoConfigureNoAuth
 @WebAppConfiguration
@@ -65,7 +65,7 @@ class ContractVerifierBase {
             "${Constants.NZD.code} Portfolio",
             Currency(Constants.NZD.code),
             Currency(Constants.USD.code),
-            null
+            null,
         )
 
         `when`(portfolioServiceClient.getPortfolioByCode(portfolioId))
@@ -82,14 +82,14 @@ class ContractVerifierBase {
                 TrustedTrnQuery(
                     testPortfolio,
                     dateUtils.getDate(valuationDate),
-                    "KMI"
-                )
-            )
+                    "KMI",
+                ),
+            ),
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/kmi-response.json").file,
-                PositionResponse::class.java
-            )
+                PositionResponse::class.java,
+            ),
         )
 
         `when`(
@@ -97,23 +97,23 @@ class ContractVerifierBase {
                 TrustedTrnQuery(
                     testPortfolio,
                     dateUtils.getDate(valuationDate),
-                    "MSFT"
-                )
-            )
+                    "MSFT",
+                ),
+            ),
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/msft-response.json").file,
-                PositionResponse::class.java
-            )
+                PositionResponse::class.java,
+            ),
         )
 
         `when`(
-            valuationService.getPositions(testPortfolio, valuationDate, true)
+            valuationService.getPositions(testPortfolio, valuationDate, true),
         ).thenReturn(
             objectMapper.readValue(
                 ClassPathResource("contracts/test-response.json").file,
-                PositionResponse::class.java
-            )
+                PositionResponse::class.java,
+            ),
         )
     }
 }

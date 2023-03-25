@@ -19,7 +19,7 @@ class FigiAdapterTest {
             Market("TEST", USD.code),
             "BRK.B",
             figiAsset,
-            "ABC"
+            "ABC",
         )
         Assertions.assertThat(asset)
             .hasFieldOrPropertyWithValue("name", "BRK")

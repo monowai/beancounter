@@ -34,7 +34,7 @@ internal class CashServicesTest {
             trnType = TrnType.BUY,
             cashCurrency = NZD.code,
             tradeAmount = BigDecimal(5000),
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
 
         Mockito.`when`(assetService.find("CASH", NZD.code))
@@ -53,7 +53,7 @@ internal class CashServicesTest {
             trnType = TrnType.BUY,
             cashCurrency = NZD.code,
             tradeAmount = BigDecimal(5000),
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
 
         Mockito.`when`(assetService.find("CASH", NZD.code))
@@ -71,7 +71,7 @@ internal class CashServicesTest {
             trnType = TrnType.BUY,
             tradeAmount = BigDecimal(5000),
             cashAmount = BigDecimal("-2222.333"), // Caller knows best
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
 
         assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(BigDecimal("-2222.333")) // Fx of 1.00
@@ -85,7 +85,7 @@ internal class CashServicesTest {
             cashAssetId = nzCashAssetId,
             trnType = TrnType.BUY,
             tradeAmount = BigDecimal(5000),
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
     }
@@ -98,7 +98,7 @@ internal class CashServicesTest {
             cashAssetId = nzCashAssetId,
             trnType = TrnType.SELL,
             tradeAmount = BigDecimal(5000),
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(creditInput)).isEqualTo(BigDecimal("5000.00")) // Fx of 1.00
     }
@@ -111,7 +111,7 @@ internal class CashServicesTest {
             cashAssetId = nzCashAssetId,
             trnType = TrnType.SPLIT,
             tradeAmount = BigDecimal(5000),
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
     }
@@ -124,7 +124,7 @@ internal class CashServicesTest {
             cashAssetId = usCashAssetId,
             trnType = TrnType.FX_BUY,
             tradeAmount = BigDecimal(5000),
-            price = BigDecimal.ONE
+            price = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
     }

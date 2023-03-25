@@ -17,17 +17,17 @@ class InboundSerializationTest {
     fun is_InboundPayloadConverted() {
         val payload = objectMapper.readValue(
             ClassPathResource("/kafka/bc-view-send.json").file,
-            TrustedTrnImportRequest::class.java
+            TrustedTrnImportRequest::class.java,
         )
         assertThat(payload).isNotNull
         val message: HashMap<String, Any> = objectMapper.readValue(
             ClassPathResource("/kafka/csv-import-message.json").file,
-            object : TypeReference<HashMap<String, Any>>() {}
+            object : TypeReference<HashMap<String, Any>>() {},
         )
         assertThat(message).hasFieldOrProperty("payload")
         val (portfolio, _, callerRef, _, row) = objectMapper.readValue(
             message["payload"].toString(),
-            TrustedTrnImportRequest::class.java
+            TrustedTrnImportRequest::class.java,
         )
         assertThat(portfolio).usingRecursiveComparison().isEqualTo(payload.portfolio)
         for (column in row) {
@@ -41,7 +41,7 @@ class InboundSerializationTest {
     fun is_InboundMessagePayloadConverted() {
         val payload = objectMapper.readValue(
             ClassPathResource("/kafka/bc-view-message.json").file,
-            TrustedTrnImportRequest::class.java
+            TrustedTrnImportRequest::class.java,
         )
         assertThat(payload).isNotNull
     }
@@ -51,7 +51,7 @@ class InboundSerializationTest {
     fun is_IncomingTrustedEvent() {
         val inbound = objectMapper.readValue(
             ClassPathResource("/kafka/event-incoming.json").file,
-            TrustedTrnEvent::class.java
+            TrustedTrnEvent::class.java,
         )
         assertThat(inbound).isNotNull
     }

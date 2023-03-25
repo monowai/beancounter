@@ -67,7 +67,7 @@ internal class PortfolioControllerTests {
     fun registerUser() {
         token = registerUser(
             mockMvc,
-            mockAuthConfig.getUserToken(SystemUser(TEST_USER, TEST_USER))
+            mockAuthConfig.getUserToken(SystemUser(TEST_USER, TEST_USER)),
         )
     }
 
@@ -76,22 +76,22 @@ internal class PortfolioControllerTests {
         val userA = "UserA"
         val tokenA = registerUser(
             mockMvc,
-            mockAuthConfig.getUserToken(SystemUser(userA, userA))
+            mockAuthConfig.getUserToken(SystemUser(userA, userA)),
         )
         val portfolioInput = PortfolioInput(
             UUID.randomUUID().toString().uppercase(Locale.getDefault()),
             "is_OwnerHonoured",
             USD.code,
-            NZD.code
+            NZD.code,
         )
         var mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post(portfolioRoot)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA))
                 .content(
                     objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(setOf(portfolioInput)))
+                        .writeValueAsBytes(PortfoliosRequest(setOf(portfolioInput))),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -108,33 +108,33 @@ internal class PortfolioControllerTests {
         // User A can see the portfolio they created
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioById, portfolio.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
         assertThat(
             objectMapper
                 .readValue(mvcResult.response.contentAsString, PortfolioResponse::class.java)
-                .data
+                .data,
         ).hasNoNullFieldsOrProperties()
 
         // By code, also can
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioByCode, portfolioInput.code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
         assertThat(
             objectMapper
                 .readValue(mvcResult.response.contentAsString, PortfolioResponse::class.java)
-                .data
+                .data,
         ).hasNoNullFieldsOrProperties()
 
         // All users portfolios
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioRoot)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenA)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -142,8 +142,8 @@ internal class PortfolioControllerTests {
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    PortfoliosResponse::class.java
-                ).data
+                    PortfoliosResponse::class.java,
+                ).data,
         ).hasSize(1)
 
         // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
@@ -151,27 +151,27 @@ internal class PortfolioControllerTests {
         val tokenB = registerUser(mockMvc, mockAuthConfig.getUserToken(SystemUser(userB, userB)))
         mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioById, portfolio.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB)),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andReturn()
         mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioByCode, portfolio.code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB)),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andReturn()
 
         // All portfolios
         mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/portfolios/")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         assertThat(
             objectMapper
                 .readValue(
                     mvcResult.response.contentAsString,
-                    PortfoliosResponse::class.java
-                ).data
+                    PortfoliosResponse::class.java,
+                ).data,
         ).hasSize(0)
     }
 
@@ -181,7 +181,7 @@ internal class PortfolioControllerTests {
         mockMvc.perform(
             MockMvcRequestBuilders.get(portfolioByCode, "does not exist")
                 .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
     }
@@ -192,7 +192,7 @@ internal class PortfolioControllerTests {
             MockMvcRequestBuilders.get(portfolioById, "invalidId")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
     }
@@ -203,7 +203,7 @@ internal class PortfolioControllerTests {
             UUID.randomUUID().toString().uppercase(Locale.getDefault()),
             "is_findingByIdCode",
             USD.code,
-            NZD.code
+            NZD.code,
         )
 
         val portfolioResult = mockMvc.perform(
@@ -212,8 +212,8 @@ internal class PortfolioControllerTests {
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(
                     objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(setOf(portfolio)))
-                ).contentType(MediaType.APPLICATION_JSON)
+                        .writeValueAsBytes(PortfoliosRequest(setOf(portfolio))),
+                ).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -233,13 +233,13 @@ internal class PortfolioControllerTests {
             MockMvcRequestBuilders.get(portfolioByCode, portfolio.code)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(
             MockMvcResultMatchers.status()
-                .isOk
+                .isOk,
         ).andExpect(
             MockMvcResultMatchers.content()
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andReturn()
             .response.contentAsString
 
@@ -254,7 +254,7 @@ internal class PortfolioControllerTests {
             MockMvcRequestBuilders.get(portfolioById, portfolioResponseByCode.data.id)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn().response.contentAsString
@@ -266,7 +266,7 @@ internal class PortfolioControllerTests {
             MockMvcRequestBuilders.get(portfolioRoot)
                 .with(csrf())
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -284,8 +284,8 @@ internal class PortfolioControllerTests {
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
                 "is_persistAndFindPortfoliosWorking",
                 USD.code,
-                NZD.code
-            )
+                NZD.code,
+            ),
         )
         val createRequest = PortfoliosRequest(portfolios)
         val portfolioResult = mockMvc.perform(
@@ -293,7 +293,7 @@ internal class PortfolioControllerTests {
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(csrf())
                 .content(objectMapper.writeValueAsBytes(createRequest))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -312,12 +312,12 @@ internal class PortfolioControllerTests {
                         .hasFieldOrPropertyWithValue("code", portfolios.iterator().next().code)
                         .hasFieldOrPropertyWithValue(
                             "name",
-                            portfolios.iterator().next().name
+                            portfolios.iterator().next().name,
                         )
                         .hasFieldOrPropertyWithValue("currency.code", portfolios.iterator().next().currency)
                         .hasFieldOrProperty("owner")
                         .hasFieldOrProperty("base")
-                }
+                },
             )
     }
 
@@ -327,7 +327,7 @@ internal class PortfolioControllerTests {
             UUID.randomUUID().toString().uppercase(Locale.getDefault()),
             "Delete Portfolio",
             USD.code,
-            NZD.code
+            NZD.code,
         )
         // Add a token and repeat the call
         var mvcResult = mockMvc.perform(
@@ -336,9 +336,9 @@ internal class PortfolioControllerTests {
                 .with(csrf())
                 .content(
                     objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(setOf(portfolioInput)))
+                        .writeValueAsBytes(PortfoliosRequest(setOf(portfolioInput))),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -353,7 +353,7 @@ internal class PortfolioControllerTests {
             MockMvcRequestBuilders.delete(portfolioById, id)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         assertThat(mvcResult.response.contentAsString).isEqualTo("ok")
@@ -365,7 +365,7 @@ internal class PortfolioControllerTests {
             UUID.randomUUID().toString().uppercase(Locale.getDefault()),
             "is_UniqueConstraintInPlace",
             USD.code,
-            NZD.code
+            NZD.code,
         )
         // Code and Owner are the same so, reject
         // Can't create two portfolios with the same code
@@ -373,12 +373,12 @@ internal class PortfolioControllerTests {
             MockMvcRequestBuilders.post(portfolioRoot)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(
-                    csrf()
+                    csrf(),
                 ).content(
                     objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput)))
+                        .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput))),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isConflict)
             .andReturn()
         assertThat(result.resolvedException)
@@ -393,7 +393,7 @@ internal class PortfolioControllerTests {
             UUID.randomUUID().toString().uppercase(Locale.getDefault()),
             "is_UnregisteredUserRejected",
             USD.code,
-            NZD.code
+            NZD.code,
         )
         // Authenticated, but unregistered user can't create portfolios
         mockMvc.perform(
@@ -401,9 +401,9 @@ internal class PortfolioControllerTests {
                 .with(csrf())
                 .content(
                     objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput)))
+                        .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput))),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
     }
@@ -417,16 +417,16 @@ internal class PortfolioControllerTests {
                     UUID.randomUUID().toString().uppercase(Locale.getDefault()),
                     "is_UpdatePortfolioWorking",
                     USD.code,
-                    NZD.code
-                )
-            )
+                    NZD.code,
+                ),
+            ),
         )
         val portfolioResult = mockMvc.perform(
             MockMvcRequestBuilders.post(portfolioRoot)
                 .with(csrf())
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(createRequest))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -437,14 +437,14 @@ internal class PortfolioControllerTests {
             "123",
             "Mikey",
             USD.code,
-            SGD.code
+            SGD.code,
         )
         val patchResult = mockMvc.perform(
             MockMvcRequestBuilders.patch(portfolioById, id)
                 .with(csrf())
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(updateTo))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()

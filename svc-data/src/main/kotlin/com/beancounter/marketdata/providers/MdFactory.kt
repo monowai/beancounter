@@ -21,7 +21,7 @@ class MdFactory internal constructor(
     cashProviderService: CashProviderService,
     alphaPriceService: AlphaPriceService,
     customProviderService: CustomProviderService,
-    wtdService: WtdService
+    wtdService: WtdService,
 ) {
     private val providers: MutableMap<String, MarketDataPriceProvider> = HashMap()
 

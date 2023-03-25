@@ -91,13 +91,13 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
                 .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
             val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
                 source["Time Series (Daily)"].toString(),
-                mapType
+                mapType,
             )
             for (key in allValues.keys) {
                 val rawData: Map<String, Any>? = allValues[key.toString()]
                 val localDateTime = dateUtils.getLocalDate(
                     key.toString(),
-                    "yyyy-M-dd"
+                    "yyyy-M-dd",
                 )
                 val priceData = getPrice(asset, localDateTime, rawData)
                 if (priceData != null) {

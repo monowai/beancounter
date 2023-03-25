@@ -35,7 +35,7 @@ import java.util.Optional
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
 )
 @WebAppConfiguration
 @ActiveProfiles("contracts")
@@ -81,7 +81,7 @@ class TrnBase {
         systemUser = ContractHelper.defaultUser(
             systemUserRepository = systemUserRepository,
             jwtDecoder = authConfig.jwtDecoder,
-            tokenService = authConfig.tokenService
+            tokenService = authConfig.tokenService,
 
         )
 
@@ -103,7 +103,7 @@ class TrnBase {
             name = "cashLadderFlow",
             currency = Constants.USD,
             base = Constants.NZD,
-            owner = ContractHelper.getSystemUser()
+            owner = ContractHelper.getSystemUser(),
         )
         Mockito.`when`(portfolioRepository.findById(cashPortfolio.id))
             .thenReturn(Optional.of(cashPortfolio))
@@ -111,20 +111,20 @@ class TrnBase {
             .thenReturn(Optional.of(cashPortfolio))
         mockTrnGetResponse(
             cashPortfolio,
-            "contracts/trn/cash-ladder-response.json"
+            "contracts/trn/cash-ladder-response.json",
         )
         Mockito.`when`(
             trnQueryService.findAssetTrades(
                 PortfolioBase.testPortfolio,
                 "KMI",
-                dateUtils.getDate("2020-05-01", dateUtils.getZoneId())
-            )
+                dateUtils.getDate("2020-05-01", dateUtils.getZoneId()),
+            ),
         )
             .thenReturn(
                 RegistrationUtils.objectMapper.readValue(
                     ClassPathResource("contracts/trn/trn-for-asset-response.json").file,
-                    TrnResponse::class.java
-                )
+                    TrnResponse::class.java,
+                ),
             )
     }
 
@@ -134,8 +134,8 @@ class TrnBase {
         Mockito.`when`(
             trnService.findForPortfolio(
                 portfolio,
-                dateUtils.date
-            )
+                dateUtils.date,
+            ),
         ).thenReturn(trnResponse)
     }
 
@@ -145,14 +145,14 @@ class TrnBase {
                 portfolio,
                 RegistrationUtils.objectMapper.readValue(
                     ClassPathResource("contracts/trn/client-csv-request.json").file,
-                    TrnRequest::class.java
-                )
-            )
+                    TrnRequest::class.java,
+                ),
+            ),
         ).thenReturn(
             RegistrationUtils.objectMapper.readValue(
                 ClassPathResource("contracts/trn/client-csv-response.json").file,
-                TrnResponse::class.java
-            )
+                TrnResponse::class.java,
+            ),
         )
     }
 }

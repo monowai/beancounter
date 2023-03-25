@@ -97,12 +97,12 @@ class AlphaVantageEnrichmentTest {
         val symbol = "0P0000XMSV.$lon"
         AlphaMockUtils.mockGlobalResponse(
             symbol,
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/pence-price-response.json").file,
         )
 
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, lon, code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)).contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
@@ -115,7 +115,7 @@ class AlphaVantageEnrichmentTest {
         assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
         assertThat(
-            priceResponse.data.iterator().next()
+            priceResponse.data.iterator().next(),
         ).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.priceDateProp, dateUtils.getDate("2020-05-12"))
             .hasFieldOrPropertyWithValue(AlphaConstants.closeProp, price)
             .hasFieldOrPropertyWithValue(AlphaConstants.prevCloseProp, price)
@@ -130,8 +130,8 @@ class AlphaVantageEnrichmentTest {
         val amp = "AMP"
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, Constants.ASX.code, amp).with(
-                SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
-            ).contentType(MediaType.APPLICATION_JSON)
+                SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
+            ).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
@@ -154,8 +154,8 @@ class AlphaVantageEnrichmentTest {
         assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, Constants.NYSE.code, code).with(
-                SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
-            ).contentType(MediaType.APPLICATION_JSON)
+                SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
+            ).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
         val (data1) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)

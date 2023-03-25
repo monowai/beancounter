@@ -25,7 +25,7 @@ import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 @AutoConfigureStubRunner(
     failOnNoStubs = true,
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
@@ -47,8 +47,8 @@ class TestPortfolioServiceClient {
     fun is_PortfolioAddRequest() {
         val request = PortfoliosRequest(
             setOf(
-                PortfolioInput(SGD.code, "${SGD.code} Balanced", USD.code, SGD.code)
-            )
+                PortfolioInput(SGD.code, "${SGD.code} Balanced", USD.code, SGD.code),
+            ),
         )
         val response = portfolioService.add(request)
         assertThat(response).isNotNull.hasNoNullFieldsOrProperties()
@@ -65,7 +65,7 @@ class TestPortfolioServiceClient {
     fun is_WhereHeld() {
         val (data) = portfolioService.getWhereHeld(
             "KMI",
-            DateUtils().getDate("2020-05-01")
+            DateUtils().getDate("2020-05-01"),
         )
         assertThat(data).isNotNull.isNotEmpty
     }

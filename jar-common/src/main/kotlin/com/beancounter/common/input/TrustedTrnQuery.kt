@@ -20,7 +20,7 @@ data class TrustedTrnQuery(
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val tradeDate: LocalDate = DateUtils().date,
-    val assetId: String
+    val assetId: String,
 ) {
 
     override fun toString(): String {

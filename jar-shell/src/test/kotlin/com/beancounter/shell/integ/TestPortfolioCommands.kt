@@ -37,7 +37,7 @@ import java.util.UUID
 @SpringBootTest(classes = [ShellConfig::class, ClientPasswordConfig::class, MockAuthConfig::class])
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
@@ -75,15 +75,15 @@ class TestPortfolioCommands {
         Mockito.`when`(
             portfolioGw.getPortfolioByCode(
                 Mockito.anyString(),
-                Mockito.anyString()
-            )
+                Mockito.anyString(),
+            ),
         ).thenReturn(PortfolioResponse(getPortfolio(pfCode)))
 
         Mockito.`when`(
             portfolioGw.addPortfolios(
                 Mockito.eq(mockAuthConfig.tokenService.bearerToken),
-                Mockito.isA(PortfoliosRequest::class.java)
-            )
+                Mockito.isA(PortfoliosRequest::class.java),
+            ),
         ).thenReturn(response)
 
         val result = portfolioCommands

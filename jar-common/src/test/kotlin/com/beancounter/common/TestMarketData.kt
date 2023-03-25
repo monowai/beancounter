@@ -33,13 +33,13 @@ internal class TestMarketData {
             BigDecimal("9.56"), // Previous CLOSE
             BigDecimal("1.56"), // Change
             BigDecimal("0.04"), // change %
-            10
+            10,
         )
         marketDataCollection.add(marketData)
         val priceResponse = PriceResponse(marketDataCollection)
         val (data) = bcJson.objectMapper.readValue(
             bcJson.objectMapper.writeValueAsString(priceResponse),
-            PriceResponse::class.java
+            PriceResponse::class.java,
         )
         assertThat(data).isNotNull
         val mdResponse = data.iterator().next()
@@ -69,7 +69,7 @@ internal class TestMarketData {
         val (_, assets) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
         assertThat(assets.iterator().next())
             .usingRecursiveComparison().isEqualTo(
-                priceRequest.assets.iterator().next()
+                priceRequest.assets.iterator().next(),
             )
     }
 

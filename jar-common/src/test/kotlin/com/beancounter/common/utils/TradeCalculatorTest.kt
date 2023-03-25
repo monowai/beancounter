@@ -30,7 +30,7 @@ internal class TradeCalculatorTest {
             tradeAmount = amount,
             assetId = "any",
             quantity = BigDecimal("99"),
-            price = price
+            price = price,
         )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }
@@ -48,7 +48,7 @@ internal class TradeCalculatorTest {
             tradeAmount = amount,
             quantity = quantity,
             assetId = "any",
-            price = price
+            price = price,
         )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }

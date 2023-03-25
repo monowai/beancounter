@@ -38,5 +38,5 @@ data class CorporateEvent constructor(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    val payDate: LocalDate = recordDate
+    val payDate: LocalDate = recordDate,
 )

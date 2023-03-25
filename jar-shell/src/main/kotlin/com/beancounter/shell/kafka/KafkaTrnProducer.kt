@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 @Service
 class KafkaTrnProducer(
     private val shareSightFactory: ShareSightFactory,
-    private val kafkaCsvTrnProducer: KafkaTemplate<String, TrustedTrnImportRequest>
+    private val kafkaCsvTrnProducer: KafkaTemplate<String, TrustedTrnImportRequest>,
 ) : TrnWriter {
     private val log = LoggerFactory.getLogger(KafkaTrnProducer::class.java)
 

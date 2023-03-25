@@ -18,10 +18,10 @@ interface FigiGateway {
     @RequestMapping(
         method = [RequestMethod.POST],
         value = ["/v2/mapping"],
-        consumes = [MediaType.APPLICATION_JSON_VALUE]
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun search(
         searchBody: Collection<FigiSearch>,
-        @RequestHeader("X-OPENFIGI-APIKEY") apiKey: String
+        @RequestHeader("X-OPENFIGI-APIKEY") apiKey: String,
     ): Collection<FigiResponse>
 }

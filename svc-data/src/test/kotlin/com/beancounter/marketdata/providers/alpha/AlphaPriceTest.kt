@@ -33,8 +33,8 @@ internal class AlphaPriceTest {
         assertThat(
             priceMapper.readValue(
                 ClassPathResource("$alphaContracts/alphavantage-empty-response.json").file,
-                PriceResponse::class.java
-            )
+                PriceResponse::class.java,
+            ),
         ).isNull()
     }
 
@@ -43,7 +43,7 @@ internal class AlphaPriceTest {
     fun is_GlobalResponse() {
         val marketData = priceMapper.readValue(
             ClassPathResource("$alphaContracts/global-response.json").file,
-            PriceResponse::class.java
+            PriceResponse::class.java,
         )
         assertThat(marketData)
             .isNotNull
@@ -57,7 +57,7 @@ internal class AlphaPriceTest {
     fun is_CollectionFromResponseReturnedWithDividend() {
         val result = priceMapper.readValue(
             ClassPathResource("$alphaContracts/kmi-backfill-response.json").file,
-            PriceResponse::class.java
+            PriceResponse::class.java,
         )
         assertThat(result.data).isNotNull.hasSize(4)
         for (marketData in result.data) {
@@ -80,7 +80,7 @@ internal class AlphaPriceTest {
     fun is_MutualFundGlobalResponse() {
         val marketData = priceMapper.readValue(
             ClassPathResource("$alphaContracts/pence-price-response.json").file,
-            PriceResponse::class.java
+            PriceResponse::class.java,
         )
         assertThat(marketData)
             .isNotNull
@@ -91,7 +91,7 @@ internal class AlphaPriceTest {
     @Throws(Exception::class)
     fun is_ResponseWithoutMarketCodeSetToUs() {
         val (asset) = validateResponse(
-            ClassPathResource("$alphaContracts/alphavantage-nasdaq.json").file
+            ClassPathResource("$alphaContracts/alphavantage-nasdaq.json").file,
         )
         assertThat(asset)
             .hasFieldOrPropertyWithValue("code", "NDAQ")

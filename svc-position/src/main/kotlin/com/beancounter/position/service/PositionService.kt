@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class PositionService internal constructor(
-    private val accumulator: Accumulator
+    private val accumulator: Accumulator,
 ) : Position {
 
     override fun build(portfolio: Portfolio, positionRequest: PositionRequest): PositionResponse {

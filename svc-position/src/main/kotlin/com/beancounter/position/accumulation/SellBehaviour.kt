@@ -34,7 +34,7 @@ class SellBehaviour : AccumulationStrategy {
             portfolio,
             position,
             Position.In.PORTFOLIO,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
         )
         return position
     }
@@ -44,14 +44,14 @@ class SellBehaviour : AccumulationStrategy {
         portfolio: Portfolio,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal?
+        rate: BigDecimal?,
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency)
+            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
         )
         moneyValues.sales = moneyValues.sales.add(
-            divide(trn.tradeAmount, rate)
+            divide(trn.tradeAmount, rate),
         )
         if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
             val unitCost = divide(trn.tradeAmount, rate)

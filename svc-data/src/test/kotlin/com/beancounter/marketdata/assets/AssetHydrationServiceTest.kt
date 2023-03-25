@@ -19,8 +19,8 @@ import org.springframework.boot.test.mock.mockito.MockBean
 @SpringBootTest(
     classes = [
         AssetHydrationService::class,
-        AssetCategoryConfig::class
-    ]
+        AssetCategoryConfig::class,
+    ],
 )
 internal class AssetHydrationServiceTest {
     @Autowired

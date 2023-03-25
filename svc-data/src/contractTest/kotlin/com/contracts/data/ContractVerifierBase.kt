@@ -22,7 +22,7 @@ import org.springframework.web.context.WebApplicationContext
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
 )
 @WebAppConfiguration
 @ActiveProfiles("contracts")

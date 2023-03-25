@@ -59,17 +59,17 @@ private const val EMAIL = "blah@blah.com"
     partitions = 1,
     topics = [
         StubbedEvents.TRN_EVENT,
-        StubbedEvents.CA_EVENT
+        StubbedEvents.CA_EVENT,
     ],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"]
+    brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"],
 )
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = [
         "org.beancounter:svc-data:+:stubs:11999",
-        "org.beancounter:svc-position:+:stubs:12999"
-    ]
+        "org.beancounter:svc-position:+:stubs:12999",
+    ],
 )
 @Tag("slow")
 @SpringBootTest
@@ -104,7 +104,7 @@ class StubbedEvents {
         id = EMAIL,
         email = EMAIL,
         true,
-        DateUtils().getDate("2020-03-08")
+        DateUtils().getDate("2020-03-08"),
     )
 
     @BeforeEach
@@ -118,7 +118,7 @@ class StubbedEvents {
         name = "NZD Portfolio",
         currency = NZD,
         base = USD,
-        owner = systemUser
+        owner = systemUser,
     )
     val caDate = "2020-05-01"
 
@@ -130,7 +130,7 @@ class StubbedEvents {
             recordDate = DateUtils().getDate(caDate),
             source = alpha,
             assetId = "MSFT",
-            rate = BigDecimal("0.2625")
+            rate = BigDecimal("0.2625"),
         )
         val trnEvent = positionService.process(portfolio, corporateEvent)
         assertThat(trnEvent.trnInput.trnType).isEqualTo(TrnType.IGNORE)
@@ -149,7 +149,7 @@ class StubbedEvents {
             recordDate = DateUtils().getDate(caDate),
             source = alpha,
             assetId = kmi,
-            rate = BigDecimal("0.2625")
+            rate = BigDecimal("0.2625"),
         )
         val eventInput = TrustedEventInput(corporateEvent)
         val trnEvents = eventService.process(eventInput)
@@ -164,30 +164,30 @@ class StubbedEvents {
         // Reprocess the corporate event
         val mvcResult = mockMvc.perform(
             post("/$id")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(
-            status().isAccepted
+            status().isAccepted,
         ).andReturn()
 
         val eventsResponse = om.readValue(
             mvcResult.response.contentAsString,
-            CorporateEventResponse::class.java
+            CorporateEventResponse::class.java,
         )
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
 
         mockMvc.perform(
             post("/backfill/${portfolio.id}/$caDate/$caDate")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(
-            status().isAccepted
+            status().isAccepted,
         ).andReturn()
 
         Thread.sleep(400)
 
         Mockito.verify(
             backfillService,
-            Mockito.times(1)
+            Mockito.times(1),
         ).backFillEvents(portfolio.id, caDate, caDate)
 
         // Verify that the backfill request is dispatched, but not for cash
@@ -200,7 +200,7 @@ class StubbedEvents {
     private fun verify(
         portfolio: Portfolio,
         trnEvents: Collection<TrustedTrnEvent>,
-        consumerRecord: ConsumerRecord<String, String>
+        consumerRecord: ConsumerRecord<String, String>,
     ) {
         assertThat(consumerRecord.value()).isNotNull
         val received = om.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)

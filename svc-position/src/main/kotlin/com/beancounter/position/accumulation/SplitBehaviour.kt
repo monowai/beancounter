@@ -25,22 +25,22 @@ class SplitBehaviour : AccumulationStrategy {
             position,
             position.getMoneyValues(
                 Position.In.TRADE,
-                currencyResolver.resolve(Position.In.TRADE, portfolio, trn.tradeCurrency)
-            )
+                currencyResolver.resolve(Position.In.TRADE, portfolio, trn.tradeCurrency),
+            ),
         )
         value(
             position,
             position.getMoneyValues(
                 Position.In.BASE,
-                currencyResolver.resolve(Position.In.BASE, portfolio, trn.tradeCurrency)
-            )
+                currencyResolver.resolve(Position.In.BASE, portfolio, trn.tradeCurrency),
+            ),
         )
         value(
             position,
             position.getMoneyValues(
                 Position.In.PORTFOLIO,
-                currencyResolver.resolve(Position.In.PORTFOLIO, portfolio, trn.tradeCurrency)
-            )
+                currencyResolver.resolve(Position.In.PORTFOLIO, portfolio, trn.tradeCurrency),
+            ),
         )
         return position
     }

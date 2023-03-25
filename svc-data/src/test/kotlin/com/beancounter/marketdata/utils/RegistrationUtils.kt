@@ -21,14 +21,14 @@ object RegistrationUtils {
         mockMvc.perform(
             MockMvcRequestBuilders.post("/register")
                 .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token)
+                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
                     objectMapper
-                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email))
+                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email)),
                 )
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))

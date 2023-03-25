@@ -16,8 +16,8 @@ import org.springframework.boot.runApplication
         "com.beancounter.marketdata",
         "com.beancounter.auth",
         "com.beancounter.common.utils",
-        "com.beancounter.common.exception"
-    ]
+        "com.beancounter.common.exception",
+    ],
 )
 @EntityScan("com.beancounter.common.model")
 class MarketDataBoot

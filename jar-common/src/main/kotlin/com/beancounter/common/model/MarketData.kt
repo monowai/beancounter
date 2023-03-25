@@ -33,7 +33,7 @@ data class MarketData constructor(
     @Column(precision = 15, scale = 6)
     var close: BigDecimal = BigDecimal.ZERO,
     @Column(precision = 15, scale = 6)
-    var open: BigDecimal? = null
+    var open: BigDecimal? = null,
 ) {
     constructor(
         id: String?,
@@ -49,7 +49,7 @@ data class MarketData constructor(
         changePercent: BigDecimal?,
         volume: Int?,
         dividend: BigDecimal = BigDecimal.ZERO,
-        split: BigDecimal = BigDecimal.ONE
+        split: BigDecimal = BigDecimal.ONE,
     ) : this(asset, priceDate, close, open) {
         this.id = id
         this.source = source

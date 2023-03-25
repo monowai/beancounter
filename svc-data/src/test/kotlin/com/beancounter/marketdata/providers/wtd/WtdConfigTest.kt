@@ -31,13 +31,13 @@ class WtdConfigTest {
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
         val compareTo = ZonedDateTime.of(
             LocalDate.parse("2019-03-08").atStartOfDay(),
-            ZoneId.of("UTC")
+            ZoneId.of("UTC"),
         )
         assertThat(response)
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 "date",
-                compareTo.toLocalDate().toString()
+                compareTo.toLocalDate().toString(),
             )
             .hasFieldOrProperty(Payload.DATA)
     }

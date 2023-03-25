@@ -61,14 +61,14 @@ class TestAdapters {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio = getPortfolio(),
             row = row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
 
         val tradeAdapter = ShareSightTradeAdapter(
             shareSightConfig,
             assetIngestService,
             dateUtils,
-            tradeCalculator
+            tradeCalculator,
         )
         Assertions.assertThrows(BusinessException::class.java) { tradeAdapter.from(trustedTrnImportRequest) }
     }
@@ -79,13 +79,13 @@ class TestAdapters {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             getPortfolio(),
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val tradeAdapter = ShareSightTradeAdapter(
             shareSightConfig,
             assetIngestService,
             dateUtils,
-            tradeCalculator
+            tradeCalculator,
         )
         Assertions.assertThrows(BusinessException::class.java) { tradeAdapter.from(trustedTrnImportRequest) }
     }
@@ -105,7 +105,7 @@ class TestAdapters {
             shareSightConfig,
             assetIngestService,
             dateUtils,
-            tradeCalculator
+            tradeCalculator,
         )
         assertThat(shareSightTradeAdapter.isValid(row)).isTrue
     }
@@ -129,12 +129,12 @@ class TestAdapters {
             shareSightConfig,
             assetIngestService,
             dateUtils,
-            tradeCalculator
+            tradeCalculator,
         )
         Mockito.`when`(assetIngestService.resolveAsset(NYSE.code, "ABC"))
             .thenReturn(getAsset(NYSE, "ABC"))
         val result = shareSightTradeAdapter.from(
-            TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT)
+            TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT),
         )
         assertThat(result)
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("105.00"))

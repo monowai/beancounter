@@ -90,7 +90,7 @@ class CashLadderTrnTests {
     fun setupObjects() {
         bcMvcHelper = BcMvcHelper(
             mockMvc,
-            mockAuthConfig.getUserToken(Constants.systemUser)
+            mockAuthConfig.getUserToken(Constants.systemUser),
         )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
@@ -109,8 +109,8 @@ class CashLadderTrnTests {
         val cashInput = AssetUtils.getCash(NZD.code)
         val nzCashAsset = assetService.handle(
             AssetRequest(
-                mapOf(Pair(NZD.code, cashInput))
-            )
+                mapOf(Pair(NZD.code, cashInput)),
+            ),
         ).data[NZD.code]
         assertThat(nzCashAsset).isNotNull
         val usPortfolio = bcMvcHelper.portfolio(PortfolioInput(code = "depositCash"))
@@ -121,7 +121,7 @@ class CashLadderTrnTests {
             trnType = TrnType.DEPOSIT,
             tradeCashRate = BigDecimal("1.00"),
             tradeAmount = fiveK,
-            price = ONE
+            price = ONE,
         )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(cashDeposit)))
         assertThat(trns.data).isNotNull.hasSize(1)
@@ -147,7 +147,7 @@ class CashLadderTrnTests {
             cashAssetId = nzCashAsset!!.id,
             tradeCashRate = BigDecimal("0.50"),
             tradeAmount = fiveK,
-            price = ONE
+            price = ONE,
         )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(buy)))
         assertThat(trns.data).isNotNull.hasSize(1)
@@ -185,10 +185,10 @@ class CashLadderTrnTests {
                         tradePortfolioRate = ONE,
                         tradeCashRate = ONE,
                         tradeBaseRate = ONE,
-                        price = ONE
-                    )
-                )
-            )
+                        price = ONE,
+                    ),
+                ),
+            ),
         )
         assertThat(nzTrn.data.iterator().next())
             .hasFieldOrPropertyWithValue("quantity", BigDecimal("10000.00"))
@@ -208,10 +208,10 @@ class CashLadderTrnTests {
                         tradePortfolioRate = usNzRate, // US/NZ
                         tradeCashRate = usNzRate, // US/NZ
                         tradeBaseRate = usNzRate,
-                        price = ONE
-                    )
-                )
-            )
+                        price = ONE,
+                    ),
+                ),
+            ),
         )
         assertThat(fxTrn.data.iterator().next())
             .hasFieldOrPropertyWithValue("quantity", BigDecimal("2500.00"))
@@ -229,10 +229,10 @@ class CashLadderTrnTests {
                         tradeCashRate = nzUsRate,
                         tradeBaseRate = nzUsRate,
                         quantity = BigDecimal("1000.00"),
-                        price = ONE
-                    )
-                )
-            )
+                        price = ONE,
+                    ),
+                ),
+            ),
         )
         assertThat(buyTrn.data.iterator().next())
             .hasFieldOrPropertyWithValue(propTradeAmount, BigDecimal("1000.00"))
@@ -244,8 +244,8 @@ class CashLadderTrnTests {
             arrayListOf(
                 nzTrn.data.iterator().next(),
                 fxTrn.data.iterator().next(),
-                buyTrn.data.iterator().next()
-            )
+                buyTrn.data.iterator().next(),
+            ),
         )
 
         // Output of this is used in cash-ladder-response.json contract

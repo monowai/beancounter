@@ -66,13 +66,13 @@ class GoogleAuthConfig {
                 netHttpTransport,
                 GsonFactory.getDefaultInstance(),
                 clientSecrets,
-                SCOPES
+                SCOPES,
             )
                 .setAccessType("offline")
                 .setDataStoreFactory(
                     FileDataStoreFactory(
-                        File("$apiPath/tokens")
-                    )
+                        File("$apiPath/tokens"),
+                    ),
                 )
                 .setAccessType("offline")
                 .build()

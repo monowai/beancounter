@@ -19,11 +19,11 @@ import org.springframework.test.context.ContextConfiguration
         "auth.enabled=true",
         "auth.audience=test-audience",
         "auth.email=some-email",
-        "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri"
-    ]
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri",
+    ],
 )
 @ContextConfiguration(
-    classes = [MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class]
+    classes = [MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class],
 )
 @ActiveProfiles("auth")
 class AuthEnabledTest {

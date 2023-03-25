@@ -40,7 +40,7 @@ private const val PROP_COST_VALUE = "costValue"
 @WebAppConfiguration
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
 @Tag("slow")
@@ -65,7 +65,7 @@ internal class CashLadderTest {
         name = "${NZD.code} Portfolio",
         currency = NZD,
         base = USD,
-        owner = owner
+        owner = owner,
     )
 
     @Test
@@ -78,10 +78,10 @@ internal class CashLadderTest {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE)
+                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
             ).andReturn()
             .response
             .contentAsString

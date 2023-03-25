@@ -39,7 +39,7 @@ class ShareSightTradeAdapter(
     private val shareSightConfig: ShareSightConfig,
     private val assetIngestService: AssetIngestService,
     private val dateUtils: DateUtils,
-    private val tradeCalculator: TradeCalculator
+    private val tradeCalculator: TradeCalculator,
 ) : TrnAdapter {
     private val numberUtils = NumberUtils()
     private var filter = Filter(null)
@@ -79,19 +79,19 @@ class ShareSightTradeAdapter(
                 trnType = trnType,
                 quantity = parse(
                     row[quantity],
-                    shareSightConfig.numberFormat
+                    shareSightConfig.numberFormat,
                 )!!,
                 tradeCurrency = row[currency],
                 cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
                 tradeDate = dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,
-                    dateUtils.getZoneId()
+                    dateUtils.getZoneId(),
                 ),
                 fees = fees,
                 price = MathUtils.nullSafe(parse(row[price], shareSightConfig.numberFormat)),
                 tradeAmount = tradeAmount,
-                comments = comment
+                comments = comment,
             )
             // Zero and null are treated as "unknown"
             trnInput.tradeCashRate = getTradeCashRate(tradeRate)

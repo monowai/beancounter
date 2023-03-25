@@ -31,7 +31,7 @@ class ContractHelper {
             systemUser: SystemUser = getSystemUser(),
             jwtDecoder: JwtDecoder,
             tokenService: TokenService,
-            systemUserRepository: SystemUserRepository
+            systemUserRepository: SystemUserRepository,
         ): SystemUser {
             val authConfig = AuthConfig()
             authConfig.claimEmail = "email"
@@ -40,14 +40,14 @@ class ContractHelper {
 
             Mockito.`when`(
                 systemUserRepository
-                    .findById(systemUser.email)
+                    .findById(systemUser.email),
             ).thenReturn(Optional.of(systemUser))
 
             SecurityContextHolder.getContext().authentication =
                 JwtAuthenticationToken(
                     jwtDecoder.decode(
-                        systemUser.email
-                    )
+                        systemUser.email,
+                    ),
                 )
 
             Mockito.`when`(tokenService.subject)

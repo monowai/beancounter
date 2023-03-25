@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
 class AssetController @Autowired internal constructor(
     private val assetService: AssetService,
-    private val marketDataService: MarketDataService
+    private val marketDataService: MarketDataService,
 ) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse =

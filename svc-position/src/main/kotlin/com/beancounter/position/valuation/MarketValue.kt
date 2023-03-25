@@ -23,7 +23,7 @@ class MarketValue(private val gains: Gains) {
     fun value(
         positions: Positions,
         marketData: MarketData,
-        rates: Map<IsoCurrencyPair, FxRate>
+        rates: Map<IsoCurrencyPair, FxRate>,
     ): Position {
         val asset = marketData.asset
         val trade = asset.market.currency
@@ -42,23 +42,23 @@ class MarketValue(private val gains: Gains) {
                 marketData.asset.market.currency,
                 marketData.asset.market.currency,
                 BigDecimal.ONE,
-                positions.asAt
+                positions.asAt,
             ),
-            isCash
+            isCash,
         )
         value(
             total,
             position.getMoneyValues(Position.In.BASE, portfolio.base),
             marketData,
             rate(portfolio.base, trade, rates),
-            isCash
+            isCash,
         )
         value(
             total,
             position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
             marketData,
             rate(portfolio.currency, trade, rates),
-            isCash
+            isCash,
         )
         return position
     }
@@ -72,7 +72,7 @@ class MarketValue(private val gains: Gains) {
             if (moneyValues.priceData!!.close != null) {
                 close = moneyValues.priceData!!.close!!
                 moneyValues.marketValue = Objects.requireNonNull(
-                    multiply(close, total)
+                    multiply(close, total),
                 )!!
 
                 if (moneyValues.priceData!!.previousClose != null) {
@@ -99,8 +99,8 @@ class MarketValue(private val gains: Gains) {
                     String.format(
                         "No rate for %s:%s",
                         report.code,
-                        trade.code
-                    )
+                        trade.code,
+                    ),
                 )
         }
     }

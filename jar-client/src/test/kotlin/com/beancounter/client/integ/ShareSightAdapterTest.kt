@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 internal class ShareSightAdapterTest {
@@ -107,11 +107,11 @@ internal class ShareSightAdapterTest {
                 ImportFormat.SHARESIGHT,
                 CallerRef(),
                 "",
-                columnValues
+                columnValues,
             )
             trnInputs.add(
                 shareSightRowProcessor
-                    .transform(trustedTrnImportRequest)
+                    .transform(trustedTrnImportRequest),
             )
         }
         Assertions.assertThat(trnInputs).hasSize(2)

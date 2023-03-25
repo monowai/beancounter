@@ -21,13 +21,13 @@ class TrnTest {
         val trnDefault = Trn(
             id = "any",
             trnType = TrnType.BUY,
-            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
+            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
         )
         val trn = Trn(
             id = "any",
             trnType = TrnType.BUY,
             version = "0",
-            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
+            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
         )
         assertThat(trnDefault)
             .hasFieldOrProperty("version")
@@ -83,7 +83,7 @@ class TrnTest {
         val trn = Trn(
             id = "any",
             trnType = TrnType.BUY,
-            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef)
+            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
         )
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)

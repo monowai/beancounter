@@ -18,14 +18,14 @@ class FxUtils {
             fxRequest.add(
                 toPair(
                     base,
-                    asset.market.currency
-                )
+                    asset.market.currency,
+                ),
             )
             fxRequest.add(
                 toPair(
                     portfolio,
-                    asset.market.currency
-                )
+                    asset.market.currency,
+                ),
             )
         }
         return fxRequest

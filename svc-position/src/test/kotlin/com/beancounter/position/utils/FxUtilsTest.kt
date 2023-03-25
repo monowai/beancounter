@@ -36,7 +36,7 @@ internal class FxUtilsTest {
         val usdMarket = Market(USD.code)
         val usdPosition = Position(getAsset(usdMarket, "$USD.code Asset"))
         val otherUsdPosition = Position(
-            getAsset(usdMarket, "$USD.code Asset Other")
+            getAsset(usdMarket, "$USD.code Asset Other"),
         )
         val portfolio = Portfolio("ABC", SGD)
         val positions = Positions(portfolio)
@@ -48,7 +48,7 @@ internal class FxUtilsTest {
             .containsOnly(
                 IsoCurrencyPair(SGD.code, USD.code), // PF:TRADE
                 IsoCurrencyPair(SGD.code, GBP.code), // PF:TRADE
-                IsoCurrencyPair(USD.code, GBP.code)
+                IsoCurrencyPair(USD.code, GBP.code),
             ) // BASE:TRADE
     }
 }

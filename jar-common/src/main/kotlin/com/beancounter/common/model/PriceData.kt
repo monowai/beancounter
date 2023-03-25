@@ -28,7 +28,7 @@ data class PriceData(
     var previousClose: BigDecimal?,
     var change: BigDecimal?,
     var changePercent: BigDecimal?,
-    var volume: Int?
+    var volume: Int?,
 ) {
     companion object {
         fun of(marketData: MarketData): PriceData {
@@ -45,7 +45,7 @@ data class PriceData(
                 multiplyAbs(mktData.previousClose, rate),
                 multiplyAbs(mktData.change, rate),
                 mktData.changePercent,
-                mktData.volume
+                mktData.volume,
             )
 
             if (MathUtils.hasValidRate(rate) &&

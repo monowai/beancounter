@@ -109,7 +109,7 @@ class FigiAssetApiTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 propName,
-                "FINANCIAL SELECT SECTOR SPDR"
+                "FINANCIAL SELECT SECTOR SPDR",
             ) // Unknown to BC, but is known to FIGI
             .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol")
             .isNotNull
@@ -133,7 +133,7 @@ class FigiAssetApiTest {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/assets/{market}/{code}", NYSE.code, "BRK.B")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -173,31 +173,31 @@ class FigiAssetApiTest {
             mock(
                 ClassPathResource("$prefix/common-stock-response.json").file,
                 MSFT.code,
-                "Common Stock"
+                "Common Stock",
             )
 
             mock(
                 ClassPathResource("$prefix/adr-response.json").file,
                 "BAIDU",
-                "Depositary Receipt"
+                "Depositary Receipt",
             )
 
             mock(
                 ClassPathResource("$prefix/reit-response.json").file,
                 "OHI",
-                "REIT"
+                "REIT",
             )
 
             mock(
                 ClassPathResource("$prefix/mf-response.json").file,
                 "XLF",
-                "REIT"
+                "REIT",
             )
 
             mock(
                 ClassPathResource("$prefix/brkb-response.json").file,
                 "BRK/B",
-                "Common Stock"
+                "Common Stock",
             )
             stubFor(
                 WireMock.any(WireMock.anyUrl())
@@ -209,36 +209,36 @@ class FigiAssetApiTest {
                             .withBody(
                                 "[{\"error\": \"No identifier found.\"\n" +
                                     "    }\n" +
-                                    "]"
-                            )
-                    )
+                                    "]",
+                            ),
+                    ),
             )
         }
 
         private fun mock(
             jsonFile: File,
             code: String,
-            securityType: String
+            securityType: String,
         ) {
             val search = FigiSearch(code, "US", securityType, true)
             val searchCollection: MutableCollection<FigiSearch> = ArrayList()
             searchCollection.add(search)
             val response: Collection<FigiResponse> = objectMapper.readValue(
                 jsonFile,
-                object : TypeReference<Collection<FigiResponse>>() {}
+                object : TypeReference<Collection<FigiResponse>>() {},
             )
             stubFor(
                 WireMock.post(WireMock.urlEqualTo("/v2/mapping"))
                     .withRequestBody(
-                        WireMock.equalToJson(objectMapper.writeValueAsString(searchCollection))
+                        WireMock.equalToJson(objectMapper.writeValueAsString(searchCollection)),
                     )
                     .withHeader("X-OPENFIGI-APIKEY", WireMock.matching("demoxx"))
                     .willReturn(
                         WireMock.aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(objectMapper.writeValueAsString(response))
-                            .withStatus(200)
-                    )
+                            .withStatus(200),
+                    ),
             )
         }
     }

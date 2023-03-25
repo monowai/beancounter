@@ -21,7 +21,7 @@ class DefaultEnricher : AssetEnricher {
             name = if (assetInput.name != null) assetInput.name!!.replace("\"", "") else null,
             category = assetInput.category,
             marketCode = market.code,
-            priceSymbol = assetInput.currency
+            priceSymbol = assetInput.currency,
         )
     }
 

@@ -26,35 +26,35 @@ object AlphaMockUtils {
     fun getAlphaApi() {
         mockSearchResponse(
             MSFT.code,
-            ClassPathResource("$alphaContracts/msft-response.json").file
+            ClassPathResource("$alphaContracts/msft-response.json").file,
         )
         mockSearchResponse(
             "BRK-B",
-            ClassPathResource("$alphaContracts/brkb-response.json").file
+            ClassPathResource("$alphaContracts/brkb-response.json").file,
         )
         mockSearchResponse(
             "AAPL",
-            ClassPathResource("$alphaContracts/aapl-response.json").file
+            ClassPathResource("$alphaContracts/aapl-response.json").file,
         )
         mockSearchResponse(
             "AMP.AX",
-            ClassPathResource("$alphaContracts/amp-search.json").file
+            ClassPathResource("$alphaContracts/amp-search.json").file,
         )
         mockSearchResponse(
             "DTV",
-            ClassPathResource("$alphaContracts/dtv-search.json").file
+            ClassPathResource("$alphaContracts/dtv-search.json").file,
         )
         mockGlobalResponse(
             "AMP.AX",
-            ClassPathResource("$alphaContracts/amp-global.json").file
+            ClassPathResource("$alphaContracts/amp-global.json").file,
         )
         mockGlobalResponse(
             "AMP.AUS",
-            ClassPathResource("$alphaContracts/amp-global.json").file
+            ClassPathResource("$alphaContracts/amp-global.json").file,
         )
         mockGlobalResponse(
             MSFT.code,
-            ClassPathResource("$alphaContracts/msft-global.json").file
+            ClassPathResource("$alphaContracts/msft-global.json").file,
         )
     }
 
@@ -68,7 +68,7 @@ object AlphaMockUtils {
     fun mockAdjustedResponse(symbol: String, jsonFile: File?) {
         mockGetResponse(
             "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo&outputsize=full",
-            jsonFile
+            jsonFile,
         )
     }
 
@@ -76,7 +76,7 @@ object AlphaMockUtils {
     fun mockGlobalResponse(symbol: String, jsonFile: File?) {
         mockGetResponse(
             "/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=demo",
-            jsonFile
+            jsonFile,
         )
     }
 
@@ -98,12 +98,12 @@ object AlphaMockUtils {
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
                                     jsonFile,
-                                    HashMap::class.java
-                                )
-                            )
+                                    HashMap::class.java,
+                                ),
+                            ),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
     }
 
@@ -118,12 +118,12 @@ object AlphaMockUtils {
                             objectMapper.writeValueAsString(
                                 objectMapper.readValue(
                                     file,
-                                    HashMap::class.java
-                                )
-                            )
+                                    HashMap::class.java,
+                                ),
+                            ),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
     }
 }

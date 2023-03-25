@@ -35,7 +35,7 @@ private const val LON = "LON"
 @Tag("slow")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
@@ -67,7 +67,7 @@ internal class StubbedTradesWithFx {
             "12.99",
             "GBP",
             BigDecimal.ZERO.toString(),
-            "2097.85"
+            "2097.85",
         )
 
         val trades = shareSightFactory.adapter(row)
@@ -77,7 +77,7 @@ internal class StubbedTradesWithFx {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -103,7 +103,7 @@ internal class StubbedTradesWithFx {
             "12.99",
             GBP.code,
             "99.99",
-            "2097.85"
+            "2097.85",
         )
         // With switch true, ignore the supplied rate and pull from service
         val trades = shareSightFactory.adapter(row)
@@ -113,7 +113,7 @@ internal class StubbedTradesWithFx {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -144,7 +144,7 @@ internal class StubbedTradesWithFx {
             BigDecimal.ZERO.toString(),
             USD.code,
             BigDecimal.ZERO.toString(),
-            "1001.00"
+            "1001.00",
         )
         val trades = shareSightFactory.adapter(row)
 
@@ -153,12 +153,12 @@ internal class StubbedTradesWithFx {
             id = "Test",
             code = "Test",
             currency = NZD,
-            base = GBP
+            base = GBP,
         )
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -187,7 +187,7 @@ internal class StubbedTradesWithFx {
             BigDecimal.ZERO.toString(),
             "USD",
             BigDecimal.ONE.toString(),
-            "1000.00"
+            "1000.00",
         )
         val trades = shareSightFactory.adapter(row)
 
@@ -196,7 +196,7 @@ internal class StubbedTradesWithFx {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull

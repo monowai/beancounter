@@ -21,7 +21,7 @@ internal class AlphaApiAssetTest {
     fun is_NullAsset() {
         val jsonFile = ClassPathResource(
             AlphaMockUtils.alphaContracts +
-                "/alphavantage-empty-response.json"
+                "/alphavantage-empty-response.json",
         ).file
         Assertions.assertThat(assetMapper.readValue(jsonFile, PriceResponse::class.java)).isNull()
     }
@@ -31,7 +31,7 @@ internal class AlphaApiAssetTest {
     fun is_SearchResult() {
         val jsonFile = ClassPathResource(
             AlphaMockUtils.alphaContracts +
-                "/mf-search.json"
+                "/mf-search.json",
         ).file
         val searchResponse = assetMapper.readValue(jsonFile, AssetSearchResponse::class.java)
         Assertions.assertThat(searchResponse)

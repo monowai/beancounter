@@ -17,7 +17,7 @@ class FigiAdapter {
             category = "Equity",
             market = market,
             marketCode = market.code,
-            priceSymbol = assetCode
+            priceSymbol = assetCode,
         )
     }
 

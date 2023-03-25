@@ -34,7 +34,7 @@ import java.util.TimeZone
 @Tag("slow")
 @EntityScan("com.beancounter.common.model")
 class MarketServiceTest @Autowired constructor(
-    private val marketService: MarketService
+    private val marketService: MarketService,
 ) {
     @MockBean
     lateinit var currencyService: CurrencyService
@@ -80,7 +80,7 @@ class MarketServiceTest @Autowired constructor(
         assertThrows(BusinessException::class.java) {
             marketService.getMarket(
                 "US",
-                false
+                false,
             )
         }
     }

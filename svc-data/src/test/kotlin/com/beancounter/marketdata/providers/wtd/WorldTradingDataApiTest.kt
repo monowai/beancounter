@@ -52,7 +52,7 @@ internal class WorldTradingDataApiTest {
     @Throws(Exception::class)
     fun is_AsxMarketConvertedToAx() {
         val response = getResponseMap(
-            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file
+            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
         )
         val assets: MutableCollection<PriceAsset> = ArrayList()
         assets.add(PriceAsset(AMP))
@@ -60,18 +60,18 @@ internal class WorldTradingDataApiTest {
         stubFor(
             WireMock.get(
                 WireMock.urlEqualTo(
-                    "/api/v1/history_multi_single_day?symbol=${AMP.code}.AX&date=$priceDate&api_token=demo"
-                )
+                    "/api/v1/history_multi_single_day?symbol=${AMP.code}.AX&date=$priceDate&api_token=demo",
+                ),
             )
                 .willReturn(
                     WireMock.aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody(objectMapper.writeValueAsString(response))
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
         val mdResult = wtdService.getMarketData(
-            PriceRequest(priceDate, assets)
+            PriceRequest(priceDate, assets),
         )
         assertThat(mdResult).isNotNull
             .hasSize(1)
@@ -98,7 +98,7 @@ internal class WorldTradingDataApiTest {
             inputs,
             priceDate,
             false, // Prices are at T-1. configured date set in -test.yaml
-            ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
+            ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file,
         )
         val mdResult = wtdService.getMarketData(PriceRequest(priceDate, inputs))
         assertThat(mdResult)
@@ -126,7 +126,7 @@ internal class WorldTradingDataApiTest {
     fun is_WtdInvalidAssetPriceDefaulting() {
         val inputs: Collection<PriceAsset> = arrayListOf(
             PriceAsset(AAPL),
-            PriceAsset(getAsset(NASDAQ, "${MSFT.code}x"))
+            PriceAsset(getAsset(NASDAQ, "${MSFT.code}x")),
         )
 
         val utcToday = dateUtils.offsetDateString()
@@ -135,7 +135,7 @@ internal class WorldTradingDataApiTest {
             inputs,
             utcToday,
             false,
-            ClassPathResource("$CONTRACTS/${AAPL.code}.json").file
+            ClassPathResource("$CONTRACTS/${AAPL.code}.json").file,
         )
         val mdResult = wtdService
             .getMarketData(PriceRequest(assets = inputs))
@@ -165,11 +165,11 @@ internal class WorldTradingDataApiTest {
         inputs.add(PriceAsset(MSFT))
         mockWtdResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/NoData.json").file)
         val prices = wtdService.getMarketData(
-            PriceRequest(priceDate, inputs)
+            PriceRequest(priceDate, inputs),
         )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
-            prices.iterator().next()
+            prices.iterator().next(),
         ).hasFieldOrPropertyWithValue(closeField, BigDecimal.ZERO)
     }
 
@@ -196,7 +196,7 @@ internal class WorldTradingDataApiTest {
             assets: Collection<PriceAsset>,
             asAt: String?,
             overrideAsAt: Boolean,
-            jsonFile: File?
+            jsonFile: File?,
         ) {
             var assetArg: StringBuilder? = null
             for ((_, _, asset) in assets) {
@@ -223,15 +223,15 @@ internal class WorldTradingDataApiTest {
                     WireMock.urlEqualTo(
                         "/api/v1/history_multi_single_day?symbol=" + assetArg +
                             "&date=" + asAt +
-                            "&api_token=demo"
-                    )
+                            "&api_token=demo",
+                    ),
                 )
                     .willReturn(
                         WireMock.aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(objectMapper.writeValueAsString(response))
-                            .withStatus(200)
-                    )
+                            .withStatus(200),
+                    ),
             )
         }
 

@@ -22,7 +22,7 @@ class FxBuyBehaviour : AccumulationStrategy {
             portfolio,
             position,
             Position.In.TRADE,
-            BigDecimal.ONE
+            BigDecimal.ONE,
         )
         cashCost.value(
             trn.tradeCurrency,
@@ -30,7 +30,7 @@ class FxBuyBehaviour : AccumulationStrategy {
             portfolio,
             position,
             Position.In.BASE,
-            trn.tradeBaseRate
+            trn.tradeBaseRate,
         )
         cashCost.value(
             trn.tradeCurrency,
@@ -38,7 +38,7 @@ class FxBuyBehaviour : AccumulationStrategy {
             portfolio,
             position,
             Position.In.PORTFOLIO,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
         )
 
         if (trn.cashAsset != null) {
@@ -51,7 +51,7 @@ class FxBuyBehaviour : AccumulationStrategy {
     private fun handleCash(
         counterPosition: Position,
         trn: Trn,
-        portfolio: Portfolio
+        portfolio: Portfolio,
     ) {
         counterPosition.quantityValues.sold = counterPosition.quantityValues.sold.add(trn.cashAmount)
         cashCost.value(
@@ -60,7 +60,7 @@ class FxBuyBehaviour : AccumulationStrategy {
             portfolio,
             counterPosition,
             Position.In.TRADE,
-            BigDecimal.ONE
+            BigDecimal.ONE,
         )
         // ToDo: Fix rates
 
@@ -70,7 +70,7 @@ class FxBuyBehaviour : AccumulationStrategy {
             portfolio,
             counterPosition,
             Position.In.BASE,
-            trn.tradeBaseRate
+            trn.tradeBaseRate,
         )
         cashCost.value(
             trn.cashCurrency!!,
@@ -78,7 +78,7 @@ class FxBuyBehaviour : AccumulationStrategy {
             portfolio,
             counterPosition,
             Position.In.PORTFOLIO,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
         )
     }
 }

@@ -22,7 +22,7 @@ import javax.transaction.Transactional
 @Transactional
 class PriceService internal constructor(
     private val marketDataRepo: MarketDataRepo,
-    private val keyGenUtils: KeyGenUtils
+    private val keyGenUtils: KeyGenUtils,
 ) {
     private lateinit var eventWriter: EventWriter
     private val cashUtils = CashUtils()

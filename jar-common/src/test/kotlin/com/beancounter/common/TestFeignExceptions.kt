@@ -43,13 +43,13 @@ class TestFeignExceptions {
                     testUri,
                     java.util.HashMap(),
                     empty(),
-                    requestTemplate
-                )
+                    requestTemplate,
+                ),
             )
             .build()
         assertThrows(BusinessException::class.java) {
             validBusinessException(
-                springFeignDecoder.decode(Constants.test, response)
+                springFeignDecoder.decode(Constants.test, response),
             )
         }
     }
@@ -66,13 +66,13 @@ class TestFeignExceptions {
                     testUri,
                     java.util.HashMap(),
                     empty(),
-                    requestTemplate
-                )
+                    requestTemplate,
+                ),
             )
             .build()
         assertThrows(SystemException::class.java) {
             validSystemException(
-                springFeignDecoder.decode(Constants.test, response)
+                springFeignDecoder.decode(Constants.test, response),
             )
         }
     }
@@ -89,8 +89,8 @@ class TestFeignExceptions {
                     testUri,
                     java.util.HashMap(),
                     empty(),
-                    requestTemplate
-                )
+                    requestTemplate,
+                ),
             )
             .build()
         assertThrows(FeignException::class.java) {
@@ -113,8 +113,8 @@ class TestFeignExceptions {
                     testUri,
                     HashMap(),
                     empty(),
-                    requestTemplate
-                )
+                    requestTemplate,
+                ),
             )
             .build()
         assertThrows(UnauthorizedException::class.java) {
@@ -131,7 +131,7 @@ class TestFeignExceptions {
         val springExceptionMessage = SpringExceptionMessage(
             error = "",
             message = integrationErrorMsg,
-            path = ""
+            path = "",
         )
         val response = Response.builder()
             .reason("Integration Reason")
@@ -142,17 +142,17 @@ class TestFeignExceptions {
                     testUri,
                     HashMap(),
                     empty(),
-                    RequestTemplate()
-                )
+                    RequestTemplate(),
+                ),
             )
             .body(
                 BcJson().objectMapper.writeValueAsString(springExceptionMessage),
-                Charset.defaultCharset()
+                Charset.defaultCharset(),
             )
             .build()
         assertThrows(SystemException::class.java) {
             validIntegrationException(
-                springFeignDecoder.decode(Constants.test, response)
+                springFeignDecoder.decode(Constants.test, response),
             )
         }
     }
@@ -170,8 +170,8 @@ class TestFeignExceptions {
                     testUri,
                     java.util.HashMap(),
                     empty(),
-                    requestTemplate
-                )
+                    requestTemplate,
+                ),
             )
             .build()
         assertThrows(ForbiddenException::class.java) {

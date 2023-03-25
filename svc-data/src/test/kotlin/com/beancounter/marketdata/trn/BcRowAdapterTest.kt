@@ -40,8 +40,8 @@ class BcRowAdapterTest {
             .thenReturn(
                 Asset(
                     code = cdna,
-                    market = NASDAQ
-                )
+                    market = NASDAQ,
+                ),
             )
         Mockito.`when`(ais.resolveAsset(CASH.code, NZD.code, ""))
             .thenReturn(nzdCashBalance)
@@ -141,6 +141,6 @@ class BcRowAdapterTest {
     private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             Portfolio("CSV"),
-            values.split(",")
+            values.split(","),
         )
 }

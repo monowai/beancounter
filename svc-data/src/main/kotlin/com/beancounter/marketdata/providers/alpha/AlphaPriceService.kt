@@ -46,7 +46,7 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceP
     fun logStatus() =
         log.info(
             "BEANCOUNTER_MARKET_PROVIDERS_ALPHA_KEY: {}",
-            if (apiKey.substring(0, 4).equals("demo", ignoreCase = true)) "demo" else "** Redacted **"
+            if (apiKey.substring(0, 4).equals("demo", ignoreCase = true)) "demo" else "** Redacted **",
         )
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
@@ -58,7 +58,7 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceP
                 requests[batchId] = alphaProxyCache.getCurrent(
                     providerArguments.batch[batchId]!!,
                     "today",
-                    apiKey
+                    apiKey,
                 )
             } else {
                 requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId]!!, date, apiKey)
@@ -71,7 +71,7 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceP
 
     private fun getMarketData(
         providerArguments: ProviderArguments,
-        requests: MutableMap<Int, Future<String?>?>
+        requests: MutableMap<Int, Future<String?>?>,
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         while (requests.isNotEmpty()) {
@@ -88,13 +88,13 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceP
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
         batchId: Int,
-        requests: MutableMap<Int, Future<String?>?>
+        requests: MutableMap<Int, Future<String?>?>,
     ) {
         try {
             if (requests[batchId]!!.isDone) {
                 val batchRequest = requests[batchId]!!.get()
                 results.addAll(
-                    alphaPriceAdapter[providerArguments, batchId, batchRequest]
+                    alphaPriceAdapter[providerArguments, batchId, batchRequest],
                 )
                 requests.remove(batchId)
             }

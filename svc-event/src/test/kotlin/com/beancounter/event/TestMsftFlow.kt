@@ -50,21 +50,21 @@ class TestMsftFlow {
     fun is_DividendRequestIgnoreDueToZeroHolding() {
         val trustedEvent = objectMapper.readValue(
             ClassPathResource("/msft-flow/1-event.json").file,
-            TrustedEventInput::class.java
+            TrustedEventInput::class.java,
         )
         val whereHeld = objectMapper.readValue(
             ClassPathResource("/msft-flow/2-where-held.json").file,
-            PortfoliosResponse::class.java
+            PortfoliosResponse::class.java,
         )
         val positionResponse = objectMapper.readValue(
             ClassPathResource("/msft-flow/3-position.json").file,
-            PositionResponse::class.java
+            PositionResponse::class.java,
         )
         val positionGateway = Mockito.mock(PositionGateway::class.java)
         val (_, _, _, assetId, recordDate) = trustedEvent.data
 
         Mockito.`when`(
-            positionGateway["demo", assetId, recordDate.toString()]
+            positionGateway["demo", assetId, recordDate.toString()],
         ).thenReturn(positionResponse)
 
         val portfolio = whereHeld.data.iterator().next()
@@ -72,8 +72,8 @@ class TestMsftFlow {
             positionGateway
                 .query(
                     "demo",
-                    TrustedTrnQuery(portfolio, recordDate, assetId)
-                )
+                    TrustedTrnQuery(portfolio, recordDate, assetId),
+                ),
         ).thenReturn(positionResponse)
 
         val portfolioGw = Mockito.mock(PortfolioGw::class.java)
@@ -81,8 +81,8 @@ class TestMsftFlow {
             portfolioGw.getWhereHeld(
                 "demo",
                 assetId,
-                recordDate.toString()
-            )
+                recordDate.toString(),
+            ),
         )
             .thenReturn(whereHeld)
         val tokenService = Mockito.mock(TokenService::class.java)

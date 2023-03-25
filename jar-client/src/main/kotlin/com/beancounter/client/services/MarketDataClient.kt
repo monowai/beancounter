@@ -24,7 +24,7 @@ import javax.annotation.PostConstruct
 @Service
 class MarketDataClient internal constructor(
     private val assetGateway: AssetGateway,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
 ) : AssetService {
 
     @Value("\${marketdata.url:http://localhost:9510/api}")
@@ -58,33 +58,33 @@ class MarketDataClient internal constructor(
         @PostMapping(
             value = ["/assets"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
+            consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun process(
             @RequestHeader("Authorization") bearerToken: String?,
-            assetRequest: AssetRequest?
+            assetRequest: AssetRequest?,
         ): AssetUpdateResponse?
 
         @PostMapping(
             value = ["/assets/{id}/events"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
+            consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun backFill(
             @RequestHeader("Authorization") bearerToken: String?,
-            @PathVariable("id") assetId: String?
+            @PathVariable("id") assetId: String?,
         )
 
         @GetMapping(value = ["/assets/{id}"])
         fun find(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("id") assetId: String
+            @PathVariable("id") assetId: String,
         ): AssetResponse
 
         @GetMapping(value = ["/assets/{id}/events"])
         fun getEvents(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("id") assetId: String
+            @PathVariable("id") assetId: String,
         ): AssetResponse
     }
 

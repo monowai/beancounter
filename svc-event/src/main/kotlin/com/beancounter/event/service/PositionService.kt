@@ -25,7 +25,7 @@ import javax.annotation.PostConstruct
  */
 @Service
 class PositionService(
-    private val behaviourFactory: EventBehaviourFactory
+    private val behaviourFactory: EventBehaviourFactory,
 
 ) {
     private lateinit var assetService: AssetService
@@ -69,7 +69,7 @@ class PositionService(
     fun process(portfolio: Portfolio, event: CorporateEvent): TrustedTrnEvent {
         val positionResponse = positionGateway.query(
             tokenService.bearerToken,
-            TrustedTrnQuery(portfolio, event.recordDate, event.assetId)
+            TrustedTrnQuery(portfolio, event.recordDate, event.assetId),
         )
         if (positionResponse != null && positionResponse.data.hasPositions()) {
             for (position in positionResponse.data.positions.values) {

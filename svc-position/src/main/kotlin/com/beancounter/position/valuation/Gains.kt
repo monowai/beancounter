@@ -20,7 +20,7 @@ class Gains {
         moneyValues.totalGain = moneyValues.unrealisedGain
             .add(
                 moneyValues.dividends
-                    .add(moneyValues.realisedGain)
+                    .add(moneyValues.realisedGain),
             )
     }
 }

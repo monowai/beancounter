@@ -21,7 +21,7 @@ import java.time.LocalDate
 @Service
 class MarketDataService @Autowired internal constructor(
     private val providerUtils: ProviderUtils,
-    private val priceService: PriceService
+    private val priceService: PriceService,
 ) {
     @Transactional
     fun backFill(asset: Asset) {
@@ -55,7 +55,7 @@ class MarketDataService @Autowired internal constructor(
                     marketDataProvider,
                     asset,
                     priceRequest,
-                    marketData
+                    marketData,
                 )
 
                 val md = priceService.getMarketData(asset, marketDate)
@@ -84,7 +84,7 @@ class MarketDataService @Autowired internal constructor(
     private fun getExternally(
         apiAssets: MutableCollection<Asset>?,
         date: String,
-        marketDataPriceProvider: MarketDataPriceProvider
+        marketDataPriceProvider: MarketDataPriceProvider,
     ): Collection<MarketData> {
         if (!apiAssets!!.isEmpty()) {
             val assetInputs = providerUtils.getInputs(apiAssets)
@@ -99,7 +99,7 @@ class MarketDataService @Autowired internal constructor(
         marketDataPriceProvider: MarketDataPriceProvider,
         asset: Asset,
         priceRequest: PriceRequest,
-        marketData: MutableMap<String, LocalDate>
+        marketData: MutableMap<String, LocalDate>,
     ): LocalDate {
         var marketDate = forTimezone
         if (marketDate == null) {

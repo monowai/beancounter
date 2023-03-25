@@ -26,7 +26,7 @@ class CsvImportTest {
         val csvIngester = CsvIngester()
         csvIngester.prepare(
             IngestionRequest(file = "/trades.csv"),
-            HttpWriter(trnService, rowAdapter, fxTransactions)
+            HttpWriter(trnService, rowAdapter, fxTransactions),
         )
         val results = csvIngester.values
         assertThat(results).isNotEmpty.hasSize(5)

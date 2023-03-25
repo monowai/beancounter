@@ -21,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles
 @Tag("slow")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @ActiveProfiles("test")
 @SpringBootTest(classes = [IngestionCommand::class, ShareSightConfig::class, ClientConfig::class, IngestionConfig::class])

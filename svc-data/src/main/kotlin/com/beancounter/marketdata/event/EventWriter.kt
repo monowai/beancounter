@@ -46,7 +46,7 @@ class EventWriter {
             source = marketData.source,
             recordDate = marketData.priceDate!!,
             assetId = marketData.asset.id,
-            rate = marketData.dividend
+            rate = marketData.dividend,
         )
         log.trace("Dispatch {} ... {}", topicEvent, marketData)
         kafkaCaProducer.send(topicEvent, TrustedEventInput(corporateEvent))

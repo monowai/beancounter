@@ -87,9 +87,9 @@ internal object JwtUtil {
                 return configuration
             } catch (ex: RuntimeException) {
                 if (!(
-                    ex is HttpClientErrorException &&
-                        ex.statusCode.is4xxClientError
-                    )
+                        ex is HttpClientErrorException &&
+                            ex.statusCode.is4xxClientError
+                        )
                 ) {
                     throw IllegalArgumentException(errorMessage, ex)
                 }

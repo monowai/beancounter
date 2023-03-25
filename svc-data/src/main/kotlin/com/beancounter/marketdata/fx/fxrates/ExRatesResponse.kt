@@ -17,6 +17,6 @@ data class ExRatesResponse constructor(
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate,
-    val rates: Map<String, BigDecimal>
+    val rates: Map<String, BigDecimal>,
 
 )

@@ -49,10 +49,10 @@ import java.math.BigDecimal
     partitions = 1,
     topics = [
         "topicPrice",
-        TOPIC_EVENT
+        TOPIC_EVENT,
     ],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka-md", "auto.create.topics.enable=true"]
+    brokerProperties = ["log.dir=./build/kafka-md", "auto.create.topics.enable=true"],
 )
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("kafka")
@@ -111,7 +111,7 @@ class KafkaMarketDataTest {
         val priceDate = "2020-04-29"
         val marketData = MarketData(
             asset!!,
-            dateUtils.getDate(priceDate, dateUtils.getZoneId())
+            dateUtils.getDate(priceDate, dateUtils.getZoneId()),
         )
         marketData.volume = 10
         marketData.open = BigDecimal.TEN
@@ -121,7 +121,7 @@ class KafkaMarketDataTest {
         var priceResponse = PriceResponse(mdCollection)
         val assets: MutableCollection<PriceAsset> = ArrayList()
         val results = priceWriter.processMessage(
-            objectMapper.writeValueAsString(priceResponse)
+            objectMapper.writeValueAsString(priceResponse),
         )
         assertThat(results).isNotNull.isNotEmpty
         for (result in results!!) {
@@ -135,8 +135,8 @@ class KafkaMarketDataTest {
             PriceAsset(
                 NASDAQ.code,
                 Constants.AAPL.code,
-                AssetUtils.getAsset(NASDAQ, Constants.AAPL.code)
-            )
+                AssetUtils.getAsset(NASDAQ, Constants.AAPL.code),
+            ),
         )
         val priceRequest = PriceRequest(priceDate, assets, currentMode = false)
 
@@ -171,7 +171,7 @@ class KafkaMarketDataTest {
         assertThat(asset.market).isNotNull
         val marketData = MarketData(
             asset,
-            dateUtils.getDate("2019-12-10", dateUtils.getZoneId())
+            dateUtils.getDate("2019-12-10", dateUtils.getZoneId()),
         )
         marketData.source = "ALPHA"
         marketData.dividend = BigDecimal("2.34")
@@ -179,7 +179,7 @@ class KafkaMarketDataTest {
         val consumer = kafkaTestUtils.getConsumer(
             "is_CorporateEventDispatched",
             TOPIC_EVENT,
-            embeddedKafkaBroker
+            embeddedKafkaBroker,
         )
 
         // Compare with a serialised event
@@ -188,7 +188,7 @@ class KafkaMarketDataTest {
         assertThat(consumerRecord.value()).isNotNull
         val (data1) = objectMapper.readValue(
             consumerRecord.value(),
-            TrustedEventInput::class.java
+            TrustedEventInput::class.java,
         )
         assertThat(data1)
             .hasFieldOrPropertyWithValue("rate", marketData.dividend)

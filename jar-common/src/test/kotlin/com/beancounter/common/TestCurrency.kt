@@ -53,8 +53,8 @@ internal class TestCurrency {
         assertThat(
             toPair(
                 Currency(report),
-                Currency(report)
-            )
+                Currency(report),
+            ),
         )
             .isNull()
     }

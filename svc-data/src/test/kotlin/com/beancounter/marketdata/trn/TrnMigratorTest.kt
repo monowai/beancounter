@@ -45,8 +45,8 @@ internal class TrnMigratorTest {
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
         Mockito.`when`(fxRateService.getRates(FxRequest(tradeDateStr, arrayListOf(pair)))).thenReturn(
             FxResponse(
-                FxPairResults(mapOf(Pair(pair, FxRate(USD, NZD, BigDecimal("3.00"), tradeDateStr))))
-            )
+                FxPairResults(mapOf(Pair(pair, FxRate(USD, NZD, BigDecimal("3.00"), tradeDateStr)))),
+            ),
         )
     }
 
@@ -62,7 +62,7 @@ internal class TrnMigratorTest {
             cashCurrency = NZD,
             quantity = BigDecimal("1.0"),
             price = BigDecimal("1.0"),
-            tradeAmount = BigDecimal("1000.00")
+            tradeAmount = BigDecimal("1000.00"),
         )
         trnV1.callerRef = CallerRef("ABC", "DEF", "GHI")
         val trnV2 = trnMigrator.upgrade(trnV1)

@@ -45,7 +45,7 @@ class Constants {
             priceSymbol = NZD.code,
             assetCategory = AssetCategory("CASH", "Cash"),
             market = Market("CASH", NZD.code),
-            category = "CASH"
+            category = "CASH",
         )
         val usdCashBalance = Asset(
             id = USD.code,
@@ -54,7 +54,7 @@ class Constants {
             priceSymbol = USD.code,
             assetCategory = AssetCategory("CASH", "Cash"),
             market = Market("CASH", USD.code),
-            category = "CASH"
+            category = "CASH",
         )
     }
 }

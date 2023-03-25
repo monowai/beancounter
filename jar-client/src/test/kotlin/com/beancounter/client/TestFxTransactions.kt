@@ -39,7 +39,7 @@ class TestFxTransactions {
         fxRequest.addTradeCash(tradeCash)
         val trnInput = TrnInput(CallerRef(), "ABC", price = BigDecimal.TEN)
         val fxTransactions = FxTransactions(
-            Mockito.mock(FxService::class.java)
+            Mockito.mock(FxService::class.java),
         )
         fxTransactions.setRates(pairResults, fxRequest, trnInput)
         assertThat(trnInput)
@@ -56,24 +56,24 @@ class TestFxTransactions {
             fxTransactions.pair(
                 Currency("NZD"),
                 TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
-                BigDecimal.TEN
-            )
+                BigDecimal.TEN,
+            ),
         )
             .isNull() // We have a rate, so don't request one
         assertThat(
             fxTransactions.pair(
                 Currency("USD"),
                 TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
-                null
-            )
+                null,
+            ),
         )
             .isNull()
         assertThat(
             fxTransactions.pair(
                 Currency("USD"),
                 TrnInput(assetId = "ABC", tradeCurrency = "NZD", price = BigDecimal.TEN),
-                null
-            )
+                null,
+            ),
         )
             .isNotNull
             .hasFieldOrPropertyWithValue("from", "NZD")

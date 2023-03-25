@@ -25,7 +25,7 @@ import java.util.TimeZone
 @Service
 class DateUtils(
     @Value("\${beancounter.zone:#{null}}")
-    val defaultZone: String = TimeZone.getDefault().id
+    val defaultZone: String = TimeZone.getDefault().id,
 ) {
 
     fun today() = LocalDate.now(UTC).toString()
@@ -94,7 +94,7 @@ class DateUtils(
         }
         return OffsetDateTime.ofInstant(
             getDate(date).atTime(OffsetDateTime.now().toLocalTime()).toInstant(UTC),
-            ZoneId.of(UTC.id)
+            ZoneId.of(UTC.id),
         )
     }
 

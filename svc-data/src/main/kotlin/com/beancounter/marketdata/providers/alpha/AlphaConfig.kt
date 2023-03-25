@@ -46,7 +46,7 @@ class AlphaConfig : DataProviderConfig {
         return marketUtils.getPriceDate(
             dateUtils.offsetNow(date),
             market,
-            currentMode
+            currentMode,
         )
     }
 

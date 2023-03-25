@@ -40,10 +40,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
     partitions = 1,
     topics = [topic],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka", "listeners=PLAINTEXT://localhost:\${kafka.broker.port}", "auto.create.topics.enable=true"]
+    brokerProperties = ["log.dir=./build/kafka", "listeners=PLAINTEXT://localhost:\${kafka.broker.port}", "auto.create.topics.enable=true"],
 )
 @ExtendWith(
-    SpringExtension::class
+    SpringExtension::class,
 )
 @SpringBootTest(classes = [KafkaTrnProducer::class, ShareSightConfig::class, ClientConfig::class, KafkaAutoConfiguration::class])
 @ActiveProfiles("kafka")
@@ -70,7 +70,7 @@ class TrnCsvKafka {
     fun mockBeans() {
         log.debug("!!! {}", embeddedKafkaBroker.brokersAsString)
         val trnAdapter = Mockito.mock(
-            TrnAdapter::class.java
+            TrnAdapter::class.java,
         )
         Mockito.`when`(trnAdapter.resolveAsset(row))
             .thenReturn(getAsset(MOCK, abc))
@@ -80,7 +80,7 @@ class TrnCsvKafka {
         val consumerProps: MutableMap<String, Any> = KafkaTestUtils.consumerProps(
             "shell-test",
             "false",
-            embeddedKafkaBroker
+            embeddedKafkaBroker,
         )
         consumerProps["session.timeout.ms"] = 6000
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
@@ -95,7 +95,7 @@ class TrnCsvKafka {
         val trnRequest = TrustedTrnImportRequest(
             getPortfolio(),
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         kafkaTrnProducer!!.write(trnRequest)
         log.info("Waiting for Result")
@@ -105,8 +105,8 @@ class TrnCsvKafka {
             Assertions.assertThat(
                 objectMapper.readValue(
                     received.value(),
-                    TrustedTrnImportRequest::class.java
-                )
+                    TrustedTrnImportRequest::class.java,
+                ),
             )
                 .usingRecursiveComparison().isEqualTo(trnRequest)
         } finally {

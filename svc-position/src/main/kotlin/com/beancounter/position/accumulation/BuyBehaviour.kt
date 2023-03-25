@@ -30,17 +30,17 @@ class BuyBehaviour : AccumulationStrategy {
         portfolio: Portfolio,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal
+        rate: BigDecimal,
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency)
+            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
         )
         moneyValues.purchases = moneyValues.purchases.add(
-            divide(trn.tradeAmount, rate)
+            divide(trn.tradeAmount, rate),
         )
         moneyValues.costBasis = moneyValues.costBasis.add(
-            divide(trn.tradeAmount, rate)
+            divide(trn.tradeAmount, rate),
         )
         if (moneyValues.costBasis != BigDecimal.ZERO) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())

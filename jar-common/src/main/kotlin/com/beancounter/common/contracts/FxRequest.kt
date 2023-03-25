@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
  */
 data class FxRequest constructor(
     val rateDate: String = DateUtils.today,
-    val pairs: ArrayList<IsoCurrencyPair> = arrayListOf()
+    val pairs: ArrayList<IsoCurrencyPair> = arrayListOf(),
 ) {
     @JsonIgnore
     var tradePf: IsoCurrencyPair? = null

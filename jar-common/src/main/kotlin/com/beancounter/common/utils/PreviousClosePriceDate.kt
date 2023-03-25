@@ -18,25 +18,25 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
     fun getPriceDate(
         localOffsetDateTime: OffsetDateTime, // Callers requested date in UTC
         market: Market,
-        isCurrent: Boolean = dateUtils.isToday(localOffsetDateTime.toLocalDate().toString())
+        isCurrent: Boolean = dateUtils.isToday(localOffsetDateTime.toLocalDate().toString()),
     ): LocalDate {
         return if (isCurrent) {
             val zonedLocal = ZonedDateTime.ofLocal(
                 localOffsetDateTime.toLocalDateTime(),
                 ZoneOffset.UTC,
-                null
+                null,
             )
 
             val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
             val marketOffset = OffsetDateTime.of(
                 marketLocal.toLocalDate(),
                 market.priceTime,
-                marketLocal.offset
+                marketLocal.offset,
             )
 
             getPriceDate(
                 marketLocal.toLocalDateTime(),
-                getDaysToSubtract(market, zonedLocal, marketOffset)
+                getDaysToSubtract(market, zonedLocal, marketOffset),
             )
         } else {
             // Just account for work days
@@ -47,7 +47,7 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
     private fun getDaysToSubtract(
         market: Market,
         requestedDate: ZonedDateTime,
-        pricesAvailable: OffsetDateTime
+        pricesAvailable: OffsetDateTime,
     ): Int {
         // Is requested datetime on or after when prices are available?
         if (requestedDate.toLocalDateTime() >= pricesAvailable.toLocalDateTime()) {

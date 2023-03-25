@@ -48,14 +48,14 @@ abstract class AbstractIngester : Ingester {
             val callerRef = CallerRef(
                 ingestionRequest.provider ?: portfolio.id,
                 i.toString(),
-                i.toString()
+                i.toString(),
             )
             val trnRequest = TrustedTrnImportRequest(
                 portfolio,
                 ImportFormat.SHARESIGHT,
                 callerRef,
                 "",
-                row
+                row,
             )
             writer.write(trnRequest)
         }

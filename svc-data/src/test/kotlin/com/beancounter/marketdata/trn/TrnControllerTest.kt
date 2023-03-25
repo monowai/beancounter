@@ -116,15 +116,15 @@ class TrnControllerTest {
             PortfolioInput(
                 "BLAH",
                 "is_EmptyResponseValid",
-                currency = NZD.code
-            )
+                currency = NZD.code,
+            ),
         )
         val mvcResult = mockMvc.perform(
             get(uriTrnForPortfolio, portfolio.id)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
-                )
+                        .jwt(token),
+                ),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
             .andReturn()
@@ -138,10 +138,10 @@ class TrnControllerTest {
     @Throws(Exception::class)
     fun is_ExistingDividendFound() {
         val msft = bcMvcHelper.asset(
-            AssetRequest(msftInput)
+            AssetRequest(msftInput),
         )
         val portfolioA = bcMvcHelper.portfolio(
-            PortfolioInput("DIV-TEST", "is_ExistingDividendFound", currency = NZD.code)
+            PortfolioInput("DIV-TEST", "is_ExistingDividendFound", currency = NZD.code),
         )
         assertThat(msft.id).isNotNull
         // Creating in random order and assert retrieved in Sort Order.
@@ -155,7 +155,7 @@ class TrnControllerTest {
             tradeCashRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate("2020-03-10"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE
+            tradePortfolioRate = BigDecimal.ONE,
         )
         val existingTrns = arrayOf(trnInput)
         val trnRequest = TrnRequest(portfolioA.id, existingTrns)
@@ -175,17 +175,17 @@ class TrnControllerTest {
             get(
                 "$trnsRoot/{portfolioId}/asset/{assetId}/events",
                 portfolioA.id,
-                msft.id
+                msft.id,
             )
                 .contentType(APPLICATION_JSON)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
-                )
+                        .jwt(token),
+                ),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(
                 MockMvcResultMatchers.content()
-                    .contentType(APPLICATION_JSON)
+                    .contentType(APPLICATION_JSON),
             )
             .andReturn()
         val trnResponse = objectMapper
@@ -199,16 +199,16 @@ class TrnControllerTest {
             PortfolioInput(
                 "ILLEGAL",
                 "is_findThrowingForIllegalTrnId",
-                currency = NZD.code
-            )
+                currency = NZD.code,
+            ),
         )
 
         mockMvc.perform(
             get("$trnsRoot/{portfolioId}/{trnId}", portfolio.id, "x123x")
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
-                )
+                        .jwt(token),
+                ),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
             .andReturn()
@@ -233,7 +233,7 @@ class TrnControllerTest {
             tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate(tradeDate),
-            price = BigDecimal.TEN
+            price = BigDecimal.TEN,
         )
 
         var trnInputB = TrnInput(
@@ -246,7 +246,7 @@ class TrnControllerTest {
             tradeCashRate = BigDecimal.ONE,
             tradeDate = dateUtils.getDate("2016-01-01"),
             price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ONE
+            tradePortfolioRate = BigDecimal.ONE,
         )
 
         var trnInputs = arrayOf(trnInput, trnInputB)
@@ -263,7 +263,7 @@ class TrnControllerTest {
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.ONE,
             tradePortfolioRate = BigDecimal.ONE,
-            tradeDate = dateUtils.getDate("2018-10-01")
+            tradeDate = dateUtils.getDate("2018-10-01"),
         )
         trnInputB = TrnInput(
             CallerRef(batch = "0", callerId = "34"),
@@ -274,7 +274,7 @@ class TrnControllerTest {
             price = BigDecimal.TEN,
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.ONE,
-            tradePortfolioRate = BigDecimal.ONE
+            tradePortfolioRate = BigDecimal.ONE,
         )
 
         trnInputs = arrayOf(trnInput, trnInputB)
@@ -282,8 +282,8 @@ class TrnControllerTest {
             PortfolioInput(
                 "PFB",
                 "is_TrnForPortfolioInRangeFound",
-                currency = NZD.code
-            )
+                currency = NZD.code,
+            ),
         )
         trnRequest = TrnRequest(portfolioId, trnInputs)
         bcMvcHelper.postTrn(trnRequest)
@@ -293,10 +293,10 @@ class TrnControllerTest {
             get(
                 "/portfolios/asset/{assetId}/{tradeDate}",
                 msft.id,
-                tradeDate
+                tradeDate,
             )
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(APPLICATION_JSON)
+                .contentType(APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
             .andReturn()
@@ -305,7 +305,7 @@ class TrnControllerTest {
         assertThat(portfolios.data).hasSize(2)
         portfolios = portfolioService.findWhereHeld(
             msft.id,
-            dateUtils.getDate("2016-01-01")
+            dateUtils.getDate("2016-01-01"),
         )
         assertThat(portfolios.data).hasSize(1)
         portfolios = portfolioService.findWhereHeld(msft.id, null)
@@ -318,8 +318,8 @@ class TrnControllerTest {
             delete("$trnsRoot/{trnId}", "illegalTrnId")
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token)
-                )
+                        .jwt(token),
+                ),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
             .andReturn()
@@ -328,10 +328,10 @@ class TrnControllerTest {
     @Test
     fun is_TrnPatched() {
         val aapl = bcMvcHelper.asset(
-            AssetRequest(aaplInput)
+            AssetRequest(aaplInput),
         )
         val portfolio = bcMvcHelper.portfolio(
-            PortfolioInput("PATCH", "is_TrnPatched", currency = NZD.code)
+            PortfolioInput("PATCH", "is_TrnPatched", currency = NZD.code),
         )
         val trnResponse = objectMapper.readValue(
             bcMvcHelper.postTrn(
@@ -348,12 +348,12 @@ class TrnControllerTest {
                             tradeDate = dateUtils.getDate("2020-03-10"),
                             price = BigDecimal.ONE,
                             tradePortfolioRate = BigDecimal.TEN,
-                            comments = "The Comments Will Not Change"
-                        )
-                    )
-                )
+                            comments = "The Comments Will Not Change",
+                        ),
+                    ),
+                ),
             ).response.contentAsString,
-            TrnResponse::class.java
+            TrnResponse::class.java,
         )
         assertThat(trnResponse.data).hasSize(1)
         val trn = trnResponse.data.iterator().next()
@@ -372,15 +372,15 @@ class TrnControllerTest {
                     tradeCashRate = BigDecimal.ONE,
                     tradeDate = dateUtils.getDate("2021-03-10"),
                     price = BigDecimal.TEN,
-                    tradePortfolioRate = BigDecimal.ONE
-                )
+                    tradePortfolioRate = BigDecimal.ONE,
+                ),
             ).response.contentAsString,
-            TrnResponse::class.java
+            TrnResponse::class.java,
         )
         assertThat(updatedResponse.data.size).isEqualTo(1)
         val updatedTrn = objectMapper.readValue(
             bcMvcHelper.getTrnById(portfolio.id, trn.id).response.contentAsString,
-            TrnResponse::class.java
+            TrnResponse::class.java,
         ).data.iterator().next()
 
         assertThat(updatedTrn)

@@ -24,7 +24,7 @@ class Constants {
             id = "blah@blah.com",
             email = "blah@blah.com",
             true,
-            DateUtils().getDate("2020-06-03")
+            DateUtils().getDate("2020-06-03"),
         )
         var portfolio: Portfolio = Portfolio(
             id = "TEST",
@@ -32,7 +32,7 @@ class Constants {
             name = "NZD Portfolio",
             currency = NZD,
             base = USD,
-            owner = owner
+            owner = owner,
         )
     }
 }

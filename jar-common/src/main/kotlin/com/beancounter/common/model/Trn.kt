@@ -65,7 +65,7 @@ data class Trn constructor(
     var tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
     var comments: String? = null,
     var version: String = latestVersion,
-    var status: TrnStatus = TrnStatus.CONFIRMED
+    var status: TrnStatus = TrnStatus.CONFIRMED,
 
 ) {
 

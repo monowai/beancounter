@@ -33,7 +33,7 @@ import java.math.BigDecimal
 @ActiveProfiles("infile")
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"]
+    ids = ["org.beancounter:svc-data:+:stubs:10999"],
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 class ShareSightRatesInTrn {
@@ -84,7 +84,7 @@ class ShareSightRatesInTrn {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val trn = dividends.from(trustedTrnImportRequest)
         val fxRate = BigDecimal(rate)
@@ -94,11 +94,11 @@ class ShareSightRatesInTrn {
             .hasFieldOrPropertyWithValue("tradeCashRate", fxRate)
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiplyAbs(BigDecimal(net), fxRate)
+                multiplyAbs(BigDecimal(net), fxRate),
             )
             .hasFieldOrPropertyWithValue(
                 "cashAmount",
-                multiplyAbs(BigDecimal(net), fxRate)
+                multiplyAbs(BigDecimal(net), fxRate),
             )
             .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("comments", row[ShareSightDividendAdapter.comments])
@@ -118,7 +118,7 @@ class ShareSightRatesInTrn {
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
             row,
-            ImportFormat.SHARESIGHT
+            ImportFormat.SHARESIGHT,
         )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 
@@ -130,7 +130,7 @@ class ShareSightRatesInTrn {
             .hasFieldOrPropertyWithValue("fees", BigDecimal("14.45"))
             .hasFieldOrPropertyWithValue(
                 "tradeAmount",
-                multiplyAbs(BigDecimal(tradeAmount), BigDecimal(fxRate))
+                multiplyAbs(BigDecimal(tradeAmount), BigDecimal(fxRate)),
             )
             .hasFieldOrPropertyWithValue("comments", testComment)
             .hasFieldOrProperty("tradeCurrency")

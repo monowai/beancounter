@@ -35,7 +35,7 @@ import java.util.Locale
 @Service
 class ShareSightDividendAdapter(
     private val shareSightConfig: ShareSightConfig,
-    private val assetIngestService: AssetIngestService
+    private val assetIngestService: AssetIngestService,
 ) : TrnAdapter {
     private val dateUtils = DateUtils()
     private var filter = Filter(null)
@@ -62,23 +62,23 @@ class ShareSightDividendAdapter(
                 tradeDate = dateUtils.getDate(
                     row[date],
                     shareSightConfig.dateFormat,
-                    dateUtils.getZoneId()
+                    dateUtils.getZoneId(),
                 ),
                 fees = BigDecimal.ZERO,
                 price = BigDecimal.ZERO,
                 tradeAmount = multiplyAbs(
                     parse(
                         row[net],
-                        shareSightConfig.numberFormat
+                        shareSightConfig.numberFormat,
                     ),
-                    tradeRate
+                    tradeRate,
                 ),
                 tax = multiplyAbs(BigDecimal(row[tax]), tradeRate),
                 cashAmount = multiplyAbs(
                     parse(row[net], shareSightConfig.numberFormat),
-                    tradeRate
+                    tradeRate,
                 ),
-                comments = row[comments]
+                comments = row[comments],
             )
             trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
                 null
@@ -104,7 +104,7 @@ class ShareSightDividendAdapter(
         val values = parseAsset(row[code])
         return assetIngestService.resolveAsset(
             values[1].uppercase(Locale.getDefault()),
-            values[0]
+            values[0],
         )
     }
 

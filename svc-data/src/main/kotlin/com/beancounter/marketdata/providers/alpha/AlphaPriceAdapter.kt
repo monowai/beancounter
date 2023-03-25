@@ -29,7 +29,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int?,
-        response: String?
+        response: String?,
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()
         try {
@@ -48,7 +48,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
         asset: Asset?,
         response: String?,
         results: MutableCollection<MarketData>,
-        providerArguments: ProviderArguments
+        providerArguments: ProviderArguments,
     ) {
         if (isMdResponse(asset, response)) {
             setPriceResponse(response, asset, results, providerArguments)
@@ -61,7 +61,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
         response: String?,
         asset: Asset?,
         results: MutableCollection<MarketData>,
-        providerArguments: ProviderArguments
+        providerArguments: ProviderArguments,
     ) {
         val priceResponse = alphaMapper.readValue(response, PriceResponse::class.java)
         if (priceResponse != null && priceResponse.data.isNotEmpty()) {
@@ -132,7 +132,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
     init {
         val module = SimpleModule(
             "AlphaMarketDataDeserializer",
-            Version(1, 0, 0, null, null, null)
+            Version(1, 0, 0, null, null, null),
         )
         module.addDeserializer(PriceResponse::class.java, AlphaPriceDeserializer())
         module.addDeserializer(AssetSearchResponse::class.java, AlphaSearchDeserializer())

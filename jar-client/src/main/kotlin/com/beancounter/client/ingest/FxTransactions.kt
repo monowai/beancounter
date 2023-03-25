@@ -17,7 +17,7 @@ import java.math.BigDecimal
  */
 @Service
 class FxTransactions(
-    private val fxClientService: FxService
+    private val fxClientService: FxService,
 ) {
     private val numberUtils = NumberUtils()
 
@@ -26,14 +26,14 @@ class FxTransactions(
         val tradeDate = trn.tradeDate.toString()
         val fxRequest = getFxRequest(fxRequestMap, tradeDate)
         fxRequest.addTradePf(
-            pair(portfolio.currency, trn, trn.tradePortfolioRate)
+            pair(portfolio.currency, trn, trn.tradePortfolioRate),
         )
         fxRequest.addTradeBase(
-            pair(portfolio.base, trn, trn.tradeBaseRate)
+            pair(portfolio.base, trn, trn.tradeBaseRate),
         )
         if (trn.cashCurrency != null && trn.cashCurrency != "") {
             fxRequest.addTradeCash(
-                pair(Currency(trn.cashCurrency!!), trn, trn.tradeCashRate)
+                pair(Currency(trn.cashCurrency!!), trn, trn.tradeCashRate),
             )
         }
         return fxRequest
@@ -42,7 +42,7 @@ class FxTransactions(
     fun setRates(
         rates: FxPairResults,
         fxRequest: FxRequest,
-        trnInput: TrnInput
+        trnInput: TrnInput,
     ) {
         if (fxRequest.tradePf != null && numberUtils.isUnset(trnInput.tradePortfolioRate)) {
             trnInput.tradePortfolioRate = rates.rates[fxRequest.tradePf!!]!!.rate

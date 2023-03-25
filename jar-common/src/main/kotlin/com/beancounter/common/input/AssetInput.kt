@@ -12,5 +12,5 @@ data class AssetInput(
     val name: String? = null, // Enricher should fill this in if it is not supplied
     @JsonIgnore var resolvedAsset: Asset? = null,
     val currency: String? = null,
-    val category: String = "Equity" // Case in-sensitive assetCategory ID
+    val category: String = "Equity", // Case in-sensitive assetCategory ID
 )

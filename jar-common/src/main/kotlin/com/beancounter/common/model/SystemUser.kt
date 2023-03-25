@@ -20,7 +20,7 @@ data class SystemUser(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var since: LocalDate = LocalDate.now()
+    var since: LocalDate = LocalDate.now(),
 ) {
 
     constructor(id: String, email: String) :

@@ -36,7 +36,7 @@ class AlphaEnricherTest {
         val key = "ABC"
         AlphaMockUtils.mockSearchResponse(
             key,
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
+            ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file,
         )
 
         val assetRequest = AssetRequest(AssetInput(Constants.NASDAQ.code, key, "My Default Name"))

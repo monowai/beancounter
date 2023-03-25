@@ -64,14 +64,14 @@ internal class FxMvcTests {
     fun fxResponseObjectReturned() {
         val date = "2019-08-27"
         `when`(
-            fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs))
+            fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)),
         )
             .thenReturn(
                 ExRatesResponse(
                     USD.code,
                     LocalDate.now(),
-                    getFxRates()
-                )
+                    getFxRates(),
+                ),
             )
         val fxRequest = FxRequest(
             rateDate = date,
@@ -79,8 +79,8 @@ internal class FxMvcTests {
                 nzdUsd,
                 usdNzd,
                 IsoCurrencyPair(usd, usd),
-                IsoCurrencyPair(nzd, nzd)
-            )
+                IsoCurrencyPair(nzd, nzd),
+            ),
         )
 
         val mvcResult = fxPost(fxRequest)
@@ -106,8 +106,8 @@ internal class FxMvcTests {
                 ExRatesResponse(
                     usd,
                     LocalDate.now(),
-                    getFxRates()
-                )
+                    getFxRates(),
+                ),
             )
         val mvcResult = fxPost(fxRequest)
         val (results) = BcJson().objectMapper
@@ -136,13 +136,13 @@ internal class FxMvcTests {
             MockMvcRequestBuilders.post(fxRoot)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(mockAuthConfig.getUserToken(Constants.systemUser))
+                        .jwt(mockAuthConfig.getUserToken(Constants.systemUser)),
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    BcJson().objectMapper.writeValueAsString(fxRequest)
-                )
+                    BcJson().objectMapper.writeValueAsString(fxRequest),
+                ),
         ).andExpect(expectedResult)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -165,7 +165,7 @@ internal class FxMvcTests {
 
         val mvcResult = fxPost(fxRequest, status().is4xxClientError)
         val someException = java.util.Optional.ofNullable(
-            mvcResult.resolvedException as BusinessException
+            mvcResult.resolvedException as BusinessException,
         )
         assertThat(someException.isPresent).isTrue
         assertThat(someException.get()).hasMessageContaining(from)

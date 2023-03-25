@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 class TrnService internal constructor(
     private val trnGateway: TrnGateway,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
 ) {
     fun write(trnRequest: TrnRequest): TrnResponse {
         return trnGateway.write(tokenService.bearerToken, trnRequest)
@@ -43,30 +43,30 @@ class TrnService internal constructor(
         @PostMapping(
             value = ["/trns"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
+            consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun write(
             @RequestHeader("Authorization") bearerToken: String,
-            trnRequest: TrnRequest
+            trnRequest: TrnRequest,
         ): TrnResponse
 
         @GetMapping(
             value = ["/trns/portfolio/{portfolioId}"],
-            produces = [MediaType.APPLICATION_JSON_VALUE]
+            produces = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun read(
             @RequestHeader("Authorization") bearerToken: String,
-            @PathVariable("portfolioId") portfolioId: String
+            @PathVariable("portfolioId") portfolioId: String,
         ): TrnResponse
 
         @PostMapping(
             value = ["/trns/query"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE]
+            consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun read(
             @RequestHeader("Authorization") bearerToken: String,
-            trnQuery: TrustedTrnQuery
+            trnQuery: TrustedTrnQuery,
         ): TrnResponse
     }
 }

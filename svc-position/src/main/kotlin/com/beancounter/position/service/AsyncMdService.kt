@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture
 @Service
 class AsyncMdService @Autowired internal constructor(
     private val priceService: PriceService,
-    private val fxRateService: FxService
+    private val fxRateService: FxService,
 ) {
     @Async
     @Retry(name = "bcData")

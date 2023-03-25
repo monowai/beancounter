@@ -58,7 +58,7 @@ class OAuthConfig(val cacheManager: CacheManager) {
         val jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
             .jwsAlgorithms { algos: MutableSet<SignatureAlgorithm?> ->
                 algos.addAll(
-                    JwtUtil.getSignatureAlgorithms(jwkSource)
+                    JwtUtil.getSignatureAlgorithms(jwkSource),
                 )
             }
             .restOperations(jwtRestOperations)

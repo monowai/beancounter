@@ -37,7 +37,7 @@ class Constants {
             name = "${NZD.code} Balance",
             priceSymbol = NZD.code,
             market = Market("CASH", NZD.code),
-            category = "CASH"
+            category = "CASH",
         )
         val usdCashBalance = Asset(
             id = "${USD.code} BALANCE",
@@ -45,7 +45,7 @@ class Constants {
             name = "${NZD.code} Balance",
             priceSymbol = USD.code,
             market = Market("CASH"),
-            category = "CASH"
+            category = "CASH",
         )
 
         private const val id = "blah@blah.com"
@@ -53,7 +53,7 @@ class Constants {
             id = id,
             email = id,
             true,
-            DateUtils().getDate("2020-06-03")
+            DateUtils().getDate("2020-06-03"),
         )
     }
 }

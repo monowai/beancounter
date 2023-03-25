@@ -45,7 +45,7 @@ class TestAlphaEventAdapter {
             trnType = TrnType.DIVI,
             recordDate = onDate,
             assetId = asset.id,
-            rate = BigDecimal("0.2625")
+            rate = BigDecimal("0.2625"),
         )
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
@@ -71,14 +71,14 @@ class TestAlphaEventAdapter {
             trnType = TrnType.DIVI,
             recordDate = today,
             assetId = asset.id,
-            rate = BigDecimal("0.2625")
+            rate = BigDecimal("0.2625"),
         )
         val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
         assertThat(
             behaviourFactory.getAdapter(event)
                 .calculate(portfolio, Position(asset), event)
-                .trnInput.trnType
+                .trnInput.trnType,
         ).isEqualTo(TrnType.IGNORE)
     }
 
@@ -99,7 +99,7 @@ class TestAlphaEventAdapter {
             trnType = TrnType.SPLIT,
             recordDate = onDate,
             assetId = asset.id,
-            split = BigDecimal("10")
+            split = BigDecimal("10"),
         )
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)

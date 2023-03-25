@@ -34,7 +34,7 @@ import org.springframework.test.context.ActiveProfiles
 @ImportAutoConfiguration(
     ClientPasswordConfig::class,
     HttpMessageConvertersAutoConfiguration::class,
-    FeignAutoConfiguration::class
+    FeignAutoConfiguration::class,
 )
 @ActiveProfiles("auth")
 @AutoConfigureWireMock(port = 0)
@@ -74,12 +74,12 @@ class LoginServiceTest {
                                 objectMapper.readValue(
                                     ClassPathResource("token-response.json")
                                         .file,
-                                    HashMap::class.java
-                                )
-                            )
+                                    HashMap::class.java,
+                                ),
+                            ),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
 
         stubFor(
@@ -92,12 +92,12 @@ class LoginServiceTest {
                                 objectMapper.readValue(
                                     ClassPathResource("./openid-config.json")
                                         .file,
-                                    HashMap::class.java
-                                )
-                            )
+                                    HashMap::class.java,
+                                ),
+                            ),
                         )
-                        .withStatus(200)
-                )
+                        .withStatus(200),
+                ),
         )
     }
 
@@ -108,9 +108,9 @@ class LoginServiceTest {
                 LoginService.LoginRequest(
                     client_id = client,
                     username = "demo",
-                    password = "test"
-                )
-            )
+                    password = "test",
+                ),
+            ),
         )
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept("refreshToken")

@@ -55,7 +55,7 @@ internal class MoneyValueTest {
                 tradeAmount = twoK,
                 tradeCashRate = ten,
                 tradeBaseRate = BigDecimal("1.00"),
-                tradePortfolioRate = tradePortfolioRate
+                tradePortfolioRate = tradePortfolioRate,
             )
         val buyBehaviour = BuyBehaviour()
         val positions = Positions()
@@ -83,7 +83,7 @@ internal class MoneyValueTest {
             cashAmount = BigDecimal.TEN,
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.TEN,
-            tradePortfolioRate = tradePortfolioRate
+            tradePortfolioRate = tradePortfolioRate,
         )
         val dividendBehaviour = DividendBehaviour()
         dividendBehaviour.accumulate(diviTrn, positions)
@@ -100,8 +100,8 @@ internal class MoneyValueTest {
         assertThat(position.dateValues.lastDividend).isNotNull
         assertThat(
             dateUtils.isToday(
-                position.dateValues.lastDividend!!.toString()
-            )
+                position.dateValues.lastDividend!!.toString(),
+            ),
         )
         val splitTrn = Trn(
             trnType = TrnType.SPLIT,
@@ -110,7 +110,7 @@ internal class MoneyValueTest {
             cashAmount = BigDecimal.TEN,
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.TEN,
-            tradePortfolioRate = tradePortfolioRate
+            tradePortfolioRate = tradePortfolioRate,
         )
         SplitBehaviour().accumulate(splitTrn, positions)
         var moneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
@@ -132,7 +132,7 @@ internal class MoneyValueTest {
             tradeAmount = fourK,
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.TEN,
-            tradePortfolioRate = tradePortfolioRate
+            tradePortfolioRate = tradePortfolioRate,
         )
         val sellBehaviour = SellBehaviour()
         sellBehaviour.accumulate(sellTrn, positions)
@@ -190,20 +190,20 @@ internal class MoneyValueTest {
                 trnType = TrnType.BUY,
                 asset = bidu,
                 quantity = BigDecimal(8),
-                tradeAmount = BigDecimal("1695.02")
+                tradeAmount = BigDecimal("1695.02"),
             )
         val position = accumulator.accumulate(buy, positions)
         buy = Trn(
             trnType = TrnType.BUY,
             asset = bidu,
             quantity = BigDecimal(2),
-            tradeAmount = BigDecimal("405.21")
+            tradeAmount = BigDecimal("405.21"),
         )
         accumulator.accumulate(buy, positions)
         val tradeMoney = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
         assertThat(
             position.quantityValues.getTotal().multiply(tradeMoney.averageCost)
-                .setScale(2, RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP),
         )
             .isEqualTo(tradeMoney.costBasis)
         var sell =
@@ -211,12 +211,12 @@ internal class MoneyValueTest {
                 trnType = TrnType.SELL,
                 asset = bidu,
                 quantity = BigDecimal(-3),
-                tradeAmount = BigDecimal("841.63")
+                tradeAmount = BigDecimal("841.63"),
             )
         accumulator.accumulate(sell, positions)
         assertThat(
             position.quantityValues.getTotal()
-                .multiply(tradeMoney.averageCost).setScale(2, RoundingMode.HALF_UP)
+                .multiply(tradeMoney.averageCost).setScale(2, RoundingMode.HALF_UP),
         )
             .isEqualTo(tradeMoney.costValue)
         assertThat(tradeMoney)
@@ -227,7 +227,7 @@ internal class MoneyValueTest {
             trnType = TrnType.SELL,
             asset = bidu,
             quantity = BigDecimal(-7),
-            tradeAmount = BigDecimal("1871.01")
+            tradeAmount = BigDecimal("1871.01"),
         )
         accumulator.accumulate(sell, positions)
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))

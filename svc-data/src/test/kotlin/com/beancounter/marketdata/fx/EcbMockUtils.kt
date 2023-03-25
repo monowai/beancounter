@@ -28,7 +28,7 @@ object EcbMockUtils {
         sgd: String,
         gbp: String,
         nzd: String,
-        aud: String
+        aud: String,
     ): Map<String, BigDecimal> {
         val ratesTest: MutableMap<String, BigDecimal> = TreeMap()
         ratesTest[AUD.code] = BigDecimal(aud)

@@ -25,7 +25,7 @@ class DividendBehaviour : AccumulationStrategy {
             portfolio,
             position,
             Position.In.PORTFOLIO,
-            trn.tradePortfolioRate
+            trn.tradePortfolioRate,
         )
         return position
     }
@@ -35,15 +35,15 @@ class DividendBehaviour : AccumulationStrategy {
         portfolio: Portfolio,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal?
+        rate: BigDecimal?,
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency)
+            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
         )
         moneyValues.dividends = add(
             moneyValues.dividends,
-            divide(trn.tradeAmount, rate)
+            divide(trn.tradeAmount, rate),
         )
     }
 }

@@ -15,7 +15,7 @@ version = "0.1.1"
 dependencyManagement {
     dependencies {
         "org.eclipse.jetty:jetty-server:8+"
-        "org.eclipse.jetty:jetty-http:8+"
+        "org.eclipse.jetty:jetty-http:11+"
         "org.eclipse.jetty:jetty-util:11+"
         "org.eclipse.jetty:jetty-io:8+"
     }

@@ -102,7 +102,7 @@ class EventService(
     }
 
     fun getAssetEvents(assetId: String): CorporateEventResponses {
-        val events = eventRepository.findByAssetId(assetId)
+        val events = forAsset(assetId)
         if (events.isEmpty()) {
             return CorporateEventResponses()
         }
@@ -110,7 +110,7 @@ class EventService(
     }
 
     fun forAsset(assetId: String): Collection<CorporateEvent> {
-        return eventRepository.findByAssetId(assetId)
+        return eventRepository.findByAssetIdOrderByPayDateDesc(assetId)
     }
 
     fun findInRange(start: LocalDate, end: LocalDate): Collection<CorporateEvent> {

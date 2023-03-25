@@ -39,7 +39,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
     companion object {
         // Test Constants
         const val trnsRoot = "/trns"
-        const val uriTrnForPortfolio = "$trnsRoot/portfolio/{portfolioId}"
+        const val uriTrnForPortfolio = "$trnsRoot/portfolio/{portfolioId}/{asAt}"
         const val tradeDate = "2018-01-01"
     }
 

@@ -31,6 +31,7 @@ class AlphaProxy {
         return alphaGateway.search(symbol, apiKey)
     }
 
+    @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
     fun adjusted(code: String, apiKey: String): String? {
         return alphaGateway.getAdjusted(code, apiKey)
     }

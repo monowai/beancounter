@@ -14,7 +14,7 @@ class DateSplitter(val dateUtils: DateUtils) {
     fun split(
         days: Int = 25,
         from: String = dateUtils.date.minusDays(days.toLong()).toString(),
-        until: String = dateUtils.today()
+        until: String = dateUtils.today(),
     ): List<LocalDate> {
         if (from.contentEquals(until)) {
             return listOf(dateUtils.getOrThrow(from))
@@ -33,5 +33,15 @@ class DateSplitter(val dateUtils: DateUtils) {
         }
 
         return results
+    }
+
+    fun dateRange(date: String, toDate: String): List<LocalDate> {
+        val asAt: String = if (date.equals(DateUtils.today, ignoreCase = true)) {
+            dateUtils.today()
+        } else {
+            dateUtils.getDate(date).toString()
+        }
+        val dates = split(from = asAt, until = toDate, days = 1)
+        return dates
     }
 }

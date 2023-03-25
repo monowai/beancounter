@@ -30,14 +30,14 @@ class EventController(
     private val eventService: EventService,
     private val backfillService: BackfillService,
     private val eventLoader: EventLoader,
-    private val portfolioService: PortfolioServiceClient
+    private val portfolioService: PortfolioServiceClient,
 ) {
     @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
     operator fun get(
         @PathVariable portfolioId: String,
         @PathVariable(required = false) fromDate: String = DateUtils.today,
-        @PathVariable(required = false) toDate: String = DateUtils.today
+        @PathVariable(required = false) toDate: String = DateUtils.today,
     ) =
         backfillService.backFillEvents(portfolioId, fromDate, toDate)
 
@@ -45,7 +45,7 @@ class EventController(
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun backfillPortfolios(
         @PathVariable(required = false) fromDate: String = DateUtils.today,
-        @PathVariable(required = false) toDate: String = DateUtils.today
+        @PathVariable(required = false) toDate: String = DateUtils.today,
     ) {
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
@@ -53,20 +53,20 @@ class EventController(
         }
     }
 
-    @PostMapping(value = ["/load/{asAtDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(value = ["/load/{startDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun loadEvents(
-        @PathVariable(required = false) asAtDate: String = DateUtils.today
+        @PathVariable(required = false) startDate: String = DateUtils.today,
     ) =
-        eventLoader.loadEvents(DateUtils().getDate(asAtDate))
+        eventLoader.loadEvents(startDate)
 
     @PostMapping(value = ["/load/{portfolioId}/{asAtDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun loadPortfolioEvents(
         @PathVariable(required = false) asAtDate: String = DateUtils.today,
-        @PathVariable portfolioId: String
+        @PathVariable portfolioId: String,
     ) =
-        eventLoader.loadEvents(portfolioId, DateUtils().getDate(asAtDate))
+        eventLoader.loadEvents(portfolioId, asAtDate)
 
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getEvent(@PathVariable id: String): CorporateEventResponse =

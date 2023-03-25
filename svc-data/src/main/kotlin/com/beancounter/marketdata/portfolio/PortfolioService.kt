@@ -45,7 +45,11 @@ class PortfolioService internal constructor(
         get() {
             val systemUser = systemUserService.getOrThrow
             val results: MutableCollection<Portfolio> = ArrayList()
-            val portfolios = portfolioRepository.findByOwner(systemUser)
+            val portfolios = if (systemUser.id == "beancounter:system") {
+                portfolioRepository.findAll()
+            } else {
+                portfolioRepository.findByOwner(systemUser)
+            }
             for (portfolio in portfolios) {
                 results.add(portfolio)
             }

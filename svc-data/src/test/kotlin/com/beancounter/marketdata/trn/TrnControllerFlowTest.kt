@@ -91,7 +91,6 @@ class TrnControllerFlowTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_PersistRetrieveAndPurge() {
         val msft = asset(
             AssetRequest(msftInput, MSFT.code),
@@ -191,7 +190,7 @@ class TrnControllerFlowTest {
 
         // Find by Portfolio, sorted by assetId and then Date
         var mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(uriTrnForPortfolio, portfolioId)
+            MockMvcRequestBuilders.get(uriTrnForPortfolio, portfolioId, dateUtils.today())
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(trnRequest))
                 .contentType(MediaType.APPLICATION_JSON),
@@ -272,7 +271,7 @@ class TrnControllerFlowTest {
 
         // Delete all remaining transactions for the Portfolio
         mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.delete(uriTrnForPortfolio, portfolioId)
+            MockMvcRequestBuilders.delete("$trnsRoot/portfolio/{portfolioId}", portfolioId)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -280,7 +279,6 @@ class TrnControllerFlowTest {
         assertThat(mvcResult.response.contentAsString).isNotNull.isEqualTo("3")
     }
 
-    @Throws(Exception::class)
     private fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/assets/")

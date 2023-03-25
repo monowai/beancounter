@@ -96,6 +96,7 @@ class TrnBase {
     fun mockPortfolioTrns() {
         mockTrnPostResponse(PortfolioBase.testPortfolio)
         mockTrnGetResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json")
+        mockTrnGetResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json", "2019-10-18")
         mockTrnGetResponse(PortfolioBase.emptyPortfolio, "contracts/trn/trns-empty-response.json")
         val cashPortfolio = Portfolio(
             id = "CASHLADDER",
@@ -112,6 +113,7 @@ class TrnBase {
         mockTrnGetResponse(
             cashPortfolio,
             "contracts/trn/cash-ladder-response.json",
+            "2021-10-18",
         )
         Mockito.`when`(
             trnQueryService.findAssetTrades(
@@ -128,13 +130,13 @@ class TrnBase {
             )
     }
 
-    fun mockTrnGetResponse(portfolio: Portfolio, trnFile: String) {
+    fun mockTrnGetResponse(portfolio: Portfolio, trnFile: String, date: String = dateUtils.today()) {
         val jsonFile = ClassPathResource(trnFile).file
         val trnResponse = RegistrationUtils.objectMapper.readValue(jsonFile, TrnResponse::class.java)
         Mockito.`when`(
             trnService.findForPortfolio(
                 portfolio,
-                dateUtils.date,
+                dateUtils.getDate(date),
             ),
         ).thenReturn(trnResponse)
     }

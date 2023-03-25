@@ -3,11 +3,14 @@ package com.beancounter.event.service
 import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
+import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
+import com.beancounter.event.common.DateSplitter
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -20,53 +23,61 @@ class EventLoader(
     private val positionService: PositionService,
     private val priceService: PriceService,
     private val eventService: EventService,
-    private val loginService: LoginService
+    private val loginService: LoginService,
 ) {
-    fun loadEvents(portfolioId: String, date: LocalDate) {
-        val portfolio = portfolioService.getPortfolioById(portfolioId)
-        loadEvents(portfolio, date)
-    }
+    private val dateSplitter = DateSplitter(dateUtils)
 
-    fun loadEvents(date: LocalDate) {
+    @Async("applicationTaskExecutor")
+    fun loadEvents(date: String) {
         loginService.login() // m2m login
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
-            loadEvents(portfolio, date)
+            loadEvents(portfolio.id, date)
+        }
+    }
+
+    fun loadEvents(portfolioId: String, date: String) {
+        val portfolio = portfolioService.getPortfolioById(portfolioId)
+        val dates = dateSplitter.dateRange(date, "today")
+        for (processDate in dates) {
+            loadEvents(portfolio, processDate)
         }
     }
 
     fun loadEvents(portfolio: Portfolio, date: LocalDate) {
         val positionResponse = positionService.getPositions(portfolio, date.toString())
-        log.debug("Processing portfolio: $portfolio, positions: ${positionResponse.data.positions.size}")
+        log.debug("Analyzing portfolio: ${portfolio.code}, positions: ${positionResponse.data.positions.size}, asAt: $date")
+        var totalEvents = 0
         for (position in positionResponse.data.positions.values) {
-            if (eventService.getAssetEvents(position.asset.id).data.isEmpty()) {
-                // Not well thought through, should also consider date.
-                load(position)
-            }
+            totalEvents += load(position, date)
         }
-        log.debug("Completed... code: ${portfolio.code}, id: ${portfolio.id}")
+        log.debug("Completed... code: ${portfolio.code}, id: ${portfolio.id}. Wrote $totalEvents missing events")
     }
 
-    private fun load(position: Position) {
+    private fun load(position: Position, date: LocalDate): Int {
+        var eventCount = 0
         if (positionService.includePosition(position)) {
-            log.debug("Processing events for ${position.asset.name}, ${position.asset.id}")
+//            log.trace("Load events for ${position.asset.name}, ${position.asset.id}")
             val events = priceService.getEvents(position.asset.id)
-            if (!events.data.isEmpty()) {
-                log.info("Found ${events.data.size} events")
-            }
             for (priceResponse in events.data) {
-                val trnType = if (priceResponse.isSplit()) TrnType.SPLIT else TrnType.DIVI
-                eventService.save(
-                    CorporateEvent(
-                        trnType = trnType,
-                        recordDate = priceResponse.priceDate!!,
-                        assetId = position.asset.id,
-                        rate = priceResponse.dividend,
-                        split = priceResponse.split
+                if (date.compareTo(priceResponse.priceDate!!) == 0) {
+                    eventCount++
+                    eventService.save(
+                        CorporateEvent(
+                            trnType = if (priceResponse.isSplit()) TrnType.SPLIT else TrnType.DIVI,
+                            recordDate = priceResponse.priceDate!!,
+                            assetId = position.asset.id,
+                            rate = priceResponse.dividend,
+                            split = priceResponse.split,
+                        ),
                     )
-                )
+                }
+            }
+            if (eventCount != 0) {
+                log.debug("Loaded $eventCount events for asset ${position.asset.id}, ${position.asset.name}")
             }
         }
+        return eventCount
     }
 
     companion object {

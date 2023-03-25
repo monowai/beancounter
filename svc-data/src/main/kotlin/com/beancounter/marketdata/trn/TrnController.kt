@@ -37,9 +37,12 @@ class TrnController(
     var trnIoDefinition: TrnIoDefinition,
 ) {
 
-    @GetMapping(value = ["/portfolio/{portfolioId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun find(@PathVariable("portfolioId") portfolioId: String): TrnResponse =
-        trnService.findForPortfolio(portfolioService.find(portfolioId), dateUtils.date)
+    @GetMapping(value = ["/portfolio/{portfolioId}/{asAt}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun findAsAt(
+        @PathVariable("portfolioId") portfolioId: String,
+        @PathVariable asAt: String = dateUtils.today(),
+    ): TrnResponse =
+        trnService.findForPortfolio(portfolioService.find(portfolioId), dateUtils.getDate(asAt))
 
     @GetMapping(value = ["/{portfolioId}/{trnId}"])
     fun find(

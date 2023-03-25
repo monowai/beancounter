@@ -31,8 +31,8 @@ class TrnService internal constructor(
         return trnGateway.read(tokenService.bearerToken, trustedTrnQuery)
     }
 
-    fun query(portfolio: Portfolio): TrnResponse {
-        return trnGateway.read(tokenService.bearerToken, portfolio.id)
+    fun query(portfolio: Portfolio, asAt: String = "today"): TrnResponse {
+        return trnGateway.read(tokenService.bearerToken, portfolio.id, asAt)
     }
 
     /**
@@ -51,12 +51,13 @@ class TrnService internal constructor(
         ): TrnResponse
 
         @GetMapping(
-            value = ["/trns/portfolio/{portfolioId}"],
+            value = ["/trns/portfolio/{portfolioId}/{asAt}"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun read(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("portfolioId") portfolioId: String,
+            @PathVariable("asAt") asAt: String,
         ): TrnResponse
 
         @PostMapping(

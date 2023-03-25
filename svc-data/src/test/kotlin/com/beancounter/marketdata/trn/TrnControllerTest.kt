@@ -120,7 +120,7 @@ class TrnControllerTest {
             ),
         )
         val mvcResult = mockMvc.perform(
-            get(uriTrnForPortfolio, portfolio.id)
+            get(uriTrnForPortfolio, portfolio.id, dateUtils.today())
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token),

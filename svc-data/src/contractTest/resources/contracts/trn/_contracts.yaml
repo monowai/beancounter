@@ -28,11 +28,22 @@ response:
   headers:
     Content-Type: application/json
 ---
-name: transactionsForPortfolio
+name: transactionsForToday
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/TEST
+  url: /trns/portfolio/TEST/today
+response:
+  status: 200
+  bodyFromFile: "./trns-test-response.json"
+  headers:
+    Content-Type: application/json
+---
+name: transactionsFor2019
+priority: 1
+request:
+  method: GET
+  url: /trns/portfolio/TEST/2019-10-18
 response:
   status: 200
   bodyFromFile: "./trns-test-response.json"
@@ -43,18 +54,18 @@ name: noTransactionsForPortfolio
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/EMPTY
+  url: /trns/portfolio/EMPTY/today
 response:
   status: 200
   bodyFromFile: "./trns-empty-response.json"
   headers:
     Content-Type: application/json
 ---
-name: cashLadder
+name: cashLadder2021
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/CASHLADDER
+  url: /trns/portfolio/CASHLADDER/2021-10-18
 response:
   status: 200
   bodyFromFile: "./cash-ladder-response.json"

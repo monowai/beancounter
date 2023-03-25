@@ -40,7 +40,7 @@ class ValuationService @Autowired internal constructor(
     }
 
     override fun build(portfolio: Portfolio, valuationDate: String): PositionResponse {
-        val trnResponse = trnService.query(portfolio)
+        val trnResponse = trnService.query(portfolio, valuationDate)
         return buildPositions(portfolio, valuationDate, trnResponse)
     }
 

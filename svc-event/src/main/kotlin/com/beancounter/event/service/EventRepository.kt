@@ -19,7 +19,7 @@ interface EventRepository : CrudRepository<CorporateEvent, String> {
     )
     fun findByAssetsAndRecordDate(assetIds: Collection<String>, recordDate: LocalDate): Collection<CorporateEvent>
 
-    fun findByAssetId(assetId: String): Collection<CorporateEvent>
+    fun findByAssetIdOrderByPayDateDesc(assetId: String): Collection<CorporateEvent>
 
     @Query(
         "select e from CorporateEvent e " +

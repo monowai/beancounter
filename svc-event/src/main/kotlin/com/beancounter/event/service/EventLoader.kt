@@ -20,6 +20,7 @@ import java.time.LocalDate
 @Service
 class EventLoader(
     private val portfolioService: PortfolioServiceClient,
+    private val backfillService: BackfillService,
     private val positionService: PositionService,
     private val priceService: PriceService,
     private val eventService: EventService,
@@ -40,18 +41,24 @@ class EventLoader(
         val portfolio = portfolioService.getPortfolioById(portfolioId)
         val dates = dateSplitter.dateRange(date, "today")
         for (processDate in dates) {
-            loadEvents(portfolio, processDate)
+            val events = loadEvents(portfolio, processDate)
+            log.info("Loaded $events new events")
         }
     }
 
-    fun loadEvents(portfolio: Portfolio, date: LocalDate) {
+    fun loadEvents(portfolio: Portfolio, date: LocalDate): Int {
         val positionResponse = positionService.getPositions(portfolio, date.toString())
         log.debug("Analyzing portfolio: ${portfolio.code}, positions: ${positionResponse.data.positions.size}, asAt: $date")
         var totalEvents = 0
         for (position in positionResponse.data.positions.values) {
-            totalEvents += load(position, date)
+            val events = load(position, date)
+            if (events != 0) {
+                backfillService.backFillEvents(portfolio.id, date.toString())
+            }
+            totalEvents += events
         }
         log.debug("Completed... code: ${portfolio.code}, id: ${portfolio.id}. Wrote $totalEvents missing events")
+        return totalEvents
     }
 
     private fun load(position: Position, date: LocalDate): Int {

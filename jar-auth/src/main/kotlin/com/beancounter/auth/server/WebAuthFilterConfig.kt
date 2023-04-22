@@ -25,14 +25,14 @@ import org.springframework.web.cors.CorsConfiguration
 @EnableWebSecurity
 @EnableCaching
 @Service
-class WebResourceServerConfig {
+class WebAuthFilterConfig {
     @Value("\${auth.pattern:/**}")
     private lateinit var apiPattern: String // All these EPs are by default secured
 
-    @Value("\${management.server.base-path:/management}")
-    private lateinit var actuatorPattern: String
+    @Value("\${management.endpoints.web.base-path:/actuator}")
+    private lateinit var actuatorPath: String
 
-    @Value("\${cors.origins:http://localhost:3000,http://localhost:4000}")
+    @Value("\${cors.origins:http://localhost:3000,http://localhost:4000,http://localhost:5000}")
     private lateinit var origins: List<String>
 
     @Value("\${cors.origins:Authorization,Cache-Control,Content-Type}")
@@ -51,11 +51,9 @@ class WebResourceServerConfig {
         corsConfiguration.allowCredentials = true
         http.authorizeRequests() // Scope permits access to the API - basically, "caller is authorised"
             .mvcMatchers(
-                "$actuatorPattern/actuator/health/ping",
-                "$actuatorPattern/actuator/health/livenessState",
-                "$actuatorPattern/actuator/health/readinessState",
+                "$actuatorPath/health/**",
             ).permitAll()
-            .mvcMatchers("$actuatorPattern/actuator/**")
+            .mvcMatchers("$actuatorPath/**")
             .hasAuthority(AuthConstants.SCOPE_ADMIN)
             .mvcMatchers(apiPattern)
             .hasAuthority(AuthConstants.SCOPE_BC)

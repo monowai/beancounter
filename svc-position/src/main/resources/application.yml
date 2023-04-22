@@ -6,7 +6,6 @@ server:
 management:
   server:
     port: 9501
-    base-path: ""
   endpoint:
     health:
       show-details: always

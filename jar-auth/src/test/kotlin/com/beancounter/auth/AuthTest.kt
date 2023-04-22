@@ -1,7 +1,7 @@
 package com.beancounter.auth
 
 import com.beancounter.auth.model.AuthConstants
-import com.beancounter.auth.server.WebResourceServerConfig
+import com.beancounter.auth.server.WebAuthFilterConfig
 import com.nimbusds.jwt.proc.DefaultJWTProcessor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -35,7 +35,7 @@ import org.springframework.web.client.RestOperations
 @ContextConfiguration(
     classes = [
         AuthTest.SimpleController::class,
-        WebResourceServerConfig::class,
+        WebAuthFilterConfig::class,
         DefaultJWTProcessor::class,
     ],
 )

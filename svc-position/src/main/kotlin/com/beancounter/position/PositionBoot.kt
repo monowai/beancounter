@@ -1,6 +1,6 @@
 package com.beancounter.position
 
-import com.beancounter.auth.server.WebResourceServerConfig
+import com.beancounter.auth.server.WebAuthFilterConfig
 import com.beancounter.client.config.ClientConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -9,7 +9,7 @@ import org.springframework.boot.runApplication
  * Boot all the things.
  */
 @SpringBootApplication(
-    scanBasePackageClasses = [WebResourceServerConfig::class, ClientConfig::class],
+    scanBasePackageClasses = [WebAuthFilterConfig::class, ClientConfig::class],
     scanBasePackages = [
         "com.beancounter.position",
         "com.beancounter.auth",

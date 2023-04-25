@@ -40,6 +40,13 @@ class KafkaConfig {
         .build()
 
     @Bean
+    fun topicPrice(kafaConfig: KafkaConfig): NewTopic = TopicBuilder.name(topicPriceName)
+        .partitions(1)
+        .replicas(1)
+        .compact()
+        .build()
+
+    @Bean
     fun trnCsvTopic(): String {
         log.info("BEANCOUNTER_TOPICS_TRN_CSV: {}", topicTrnCsvName)
         return topicTrnCsvName
@@ -50,13 +57,6 @@ class KafkaConfig {
         log.info("BEANCOUNTER_TOPICS_TRN_EVENT: {}", topicTrnEventName)
         return topicTrnEventName
     }
-
-    @Bean
-    fun topicPrice(kafaConfig: KafkaConfig): NewTopic = TopicBuilder.name(topicPriceName)
-        .partitions(1)
-        .replicas(1)
-        .compact()
-        .build()
 
     @Bean
     fun priceTopic(): String {

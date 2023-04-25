@@ -1,3 +1,4 @@
+#FROM amazoncorretto:17-alpine3.17-jdk
 FROM amazoncorretto:17
 #docker build . --build-arg JAR_FILE=build/libs/svc-data -t monowai/bc-data
 ARG JAR_FILE=build/libs/svc-data-0.1.1.jar

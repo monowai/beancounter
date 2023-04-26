@@ -43,12 +43,16 @@ internal class AssetServiceCustomTest {
 
     @Test
     fun is_RealEstateAsset() {
-        val customAsset = AssetInput(market = "Custom", code = "House", category = "RE")
-        val updateResponse = assetService.handle(AssetRequest(customAsset))
-        assertThat(updateResponse.data[customAsset.code])
+        val house = AssetInput(
+            market = "Private",
+            code = "House",
+            category = AssetInput.realEstate
+        )
+        val updateResponse = assetService.handle(AssetRequest(house))
+        assertThat(updateResponse.data[house.code])
             .isNotNull
-            .hasFieldOrPropertyWithValue("assetCategory.id", "RE")
+            .hasFieldOrPropertyWithValue("assetCategory.id", AssetInput.realEstate)
             .hasFieldOrPropertyWithValue("assetCategory.name", "Real Estate")
-            .hasFieldOrPropertyWithValue("market.code", "CUSTOM")
+            .hasFieldOrPropertyWithValue("market.code", "PRIVATE")
     }
 }

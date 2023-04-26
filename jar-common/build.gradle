@@ -17,6 +17,7 @@ ext {
 }
 
 dependencies() {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     compileOnly(
             "javax.servlet:javax.servlet-api:4.0.1",
             "com.fasterxml.jackson.core:jackson-databind",

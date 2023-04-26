@@ -18,7 +18,7 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "marketCode"])])
-data class Asset constructor(
+data class Asset(
     @Id val id: String,
     var code: String,
     @JsonInclude(JsonInclude.Include.NON_NULL) var name: String?,

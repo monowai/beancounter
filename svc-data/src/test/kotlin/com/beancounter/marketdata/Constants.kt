@@ -1,5 +1,6 @@
 package com.beancounter.marketdata
 
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
@@ -20,6 +21,7 @@ class Constants {
         val NASDAQ = Market("NASDAQ")
         val CUSTOM = Market("CUSTOM") // Echo enricher to support mocking scenarios
         val CASH = Market("CASH", type = "Internal")
+        val RE = Market("PRIVATE", type = "Internal")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
 
@@ -38,6 +40,11 @@ class Constants {
 
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
+        val apartment = Asset(
+            input = AssetInput.toRealEstate(NZD, "NZ Apartment"),
+            market = Market("PRIVATE")
+        )
+
         val nzdCashBalance = Asset(
             id = NZD.code,
             code = NZD.code,

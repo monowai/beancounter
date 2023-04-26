@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -22,8 +23,7 @@ internal class CashServicesTest {
     private val usCashAssetId = "${USD.code} Cash"
 
     private val assetService = Mockito.mock(AssetService::class.java)
-    private val currencyService = Mockito.mock(CurrencyService::class.java)
-    private val cashServices = CashServices(assetService, currencyService)
+    private val cashServices = CashServices(assetService, Mockito.mock(CurrencyService::class.java))
 
     @Test
     fun resolveCashBalanceFromTradeCurrency() {
@@ -37,7 +37,7 @@ internal class CashServicesTest {
             price = BigDecimal.ONE,
         )
 
-        Mockito.`when`(assetService.find("CASH", NZD.code))
+        Mockito.`when`(assetService.find(CASH.code, NZD.code))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)

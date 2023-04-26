@@ -1,12 +1,14 @@
 package com.beancounter.marketdata.markets
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.RE
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.currency.CurrencyService
@@ -120,5 +122,15 @@ class MarketServiceTest @Autowired constructor(
         assertThat(market)
             .isNotNull
             .hasFieldOrPropertyWithValue("type", "Internal")
+    }
+
+    @Test
+    fun is_RealEstateConfigured() {
+        // Pseudo market for cash Assets.
+        val market = marketService.getMarket(AssetInput.realEstate)
+        assertThat(market)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("type", "Private")
+            .hasFieldOrPropertyWithValue("currencyId", USD.code)
     }
 }

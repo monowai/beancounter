@@ -139,10 +139,20 @@ beancounter:
         enricher: DEFAULT
         type: Internal
 
+      - code: RE
+        timezoneId: UTC
+        enricher: DEFAULT
+        type: Private
+
       - code: CUSTOM
         timezoneId: UTC
         enricher: DEFAULT
-        type: Community
+        type: Private
+
+      - code: PRIVATE
+        timezoneId: UTC
+        enricher: DEFAULT
+        type: Private
 
       - code: NASDAQ
         timezoneId: US/Eastern

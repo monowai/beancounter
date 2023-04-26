@@ -56,7 +56,7 @@ class TrnAdapter internal constructor(
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
-            callerRef = existing?.callerRef ?: from(trnInput.callerRef, portfolio),
+            callerRef = existing?.callerRef ?: from(trnInput.callerRef),
             trnType = trnInput.trnType,
             portfolio = portfolio,
             asset = existing?.asset ?: assetService.find(trnInput.assetId!!),

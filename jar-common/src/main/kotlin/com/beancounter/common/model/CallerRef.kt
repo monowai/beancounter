@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import java.io.Serializable
 import javax.persistence.Embeddable
@@ -19,9 +20,11 @@ data class CallerRef(
 
     companion object {
         @JvmStatic
-        fun from(callerRef: CallerRef, portfolio: Portfolio): CallerRef {
+        fun from(callerRef: CallerRef): CallerRef {
             val provider = callerRef.provider.ifBlank { "BC" }
-            val batch = callerRef.batch.ifBlank { portfolio.code }
+            val batch = callerRef.batch.ifBlank {
+                dateUtils.getDate().toString().replace("-", "")
+            }
             val callerId = callerRef.callerId.ifBlank { KeyGenUtils().id }
             return CallerRef(provider, batch, callerId)
         }

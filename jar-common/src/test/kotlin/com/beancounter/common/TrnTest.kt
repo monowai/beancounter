@@ -1,11 +1,10 @@
 package com.beancounter.common
 
+import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.model.CallerRef
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Test
 class TrnTest {
 
     private val simpleRef = "simpleRef"
+    private val batch = dateUtils.getDate().toString().replace("-", "")
 
     @Test
     fun is_trnVersion() {
@@ -37,19 +37,19 @@ class TrnTest {
 
     @Test
     fun is_TrnIdDefaulting() {
-        val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef(), portfolio = Portfolio("ABC"))
+        val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef())
         assertThat(fromNull).hasNoNullFieldsOrProperties()
         val id = CallerRef("provider", "batch", "456")
-        assertThat(CallerRef.from(id, Portfolio("ABC"))).usingRecursiveComparison().isEqualTo(id)
+        assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
     }
 
     @Test
     fun callerRefDefaults() {
-        val fromNull: CallerRef = CallerRef.from(CallerRef(), Portfolio("ABC"))
+        val fromNull: CallerRef = CallerRef.from(CallerRef())
         assertThat(fromNull)
             .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue("provider", "BC")
-            .hasFieldOrPropertyWithValue("batch", "ABC") // Default to Code
+            .hasFieldOrPropertyWithValue("batch", batch) // Defaults to today
     }
 
     @Test
@@ -60,19 +60,18 @@ class TrnTest {
         val providerProp = "provider"
         val callerIdProp = "callerId"
 
-        val code = "BLAH"
-        assertThat(CallerRef.from(callerRef, PortfolioUtils.getPortfolio(code)))
+        assertThat(CallerRef.from(callerRef))
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue(batchProp, code)
+            .hasFieldOrPropertyWithValue(batchProp, batch)
         callerRef = CallerRef(simpleRef, simpleRef, simpleRef)
-        assertThat(CallerRef.from(callerRef, PortfolioUtils.getPortfolio(code)))
+        assertThat(CallerRef.from(callerRef))
             .hasFieldOrPropertyWithValue(batchProp, simpleRef)
             .hasFieldOrPropertyWithValue(providerProp, simpleRef)
             .hasFieldOrPropertyWithValue(callerIdProp, simpleRef)
 
         // Called ID not specified
         callerRef = CallerRef(simpleRef, simpleRef)
-        assertThat(CallerRef.from(callerRef, PortfolioUtils.getPortfolio(code)))
+        assertThat(CallerRef.from(callerRef))
             .hasFieldOrPropertyWithValue(batchProp, simpleRef)
             .hasFieldOrPropertyWithValue(providerProp, simpleRef)
             .hasFieldOrProperty(callerIdProp)

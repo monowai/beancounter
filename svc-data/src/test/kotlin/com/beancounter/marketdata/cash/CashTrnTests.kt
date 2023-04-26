@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.trn
+package com.beancounter.marketdata.cash
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
@@ -30,6 +30,7 @@ import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -56,7 +57,7 @@ import java.math.BigDecimal.ONE
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
-class CashLadderTrnTests {
+class CashTrnTests {
 
     @Autowired
     lateinit var assetService: AssetService
@@ -97,7 +98,6 @@ class CashLadderTrnTests {
         enrichmentFactory.register(DefaultEnricher())
         Mockito.`when`(fxClientService.getRates(any()))
             .thenReturn(FxResponse(FxPairResults()))
-//        Mockito.`when`(fxTransactions.)
     }
 
     private val fiveK = BigDecimal("5000.00")

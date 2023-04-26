@@ -8,7 +8,6 @@ import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
-import com.beancounter.marketdata.Constants.Companion.RE
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.currency.CurrencyService

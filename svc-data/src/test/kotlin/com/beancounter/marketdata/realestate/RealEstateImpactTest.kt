@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.assets
+package com.beancounter.marketdata.realestate
 
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
@@ -6,6 +6,7 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.apartment
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.trn.realestate.RealEstateServices
 import org.assertj.core.api.Assertions.assertThat
@@ -16,6 +17,7 @@ import java.math.BigDecimal
 internal class RealEstateImpactTest {
     private val assetService = Mockito.mock(AssetService::class.java)
     private val realEstateServices = RealEstateServices(assetService, Mockito.mock(CurrencyService::class.java))
+
     @Test
     fun is_ImpactCalculatedForBuy() {
         val trnInput = TrnInput(
@@ -31,6 +33,7 @@ internal class RealEstateImpactTest {
 
         assertThat(realEstateServices.getImpact(trnInput)).isEqualTo(BigDecimal("-10000.00"))
     }
+
     @Test
     fun is_ImpactCalculatedForSell() {
         val trnInput = TrnInput(

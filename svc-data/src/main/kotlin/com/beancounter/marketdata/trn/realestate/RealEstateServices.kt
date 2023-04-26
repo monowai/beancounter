@@ -7,7 +7,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import java.math.BigDecimal
 
-class RealEstateServices (val assetService: AssetService, val currencyService: CurrencyService) {
+class RealEstateServices(val assetService: AssetService, val currencyService: CurrencyService) {
     fun getImpact(trnInput: TrnInput, tradeAmount: BigDecimal = trnInput.tradeAmount): BigDecimal {
         if (TrnType.isCashImpacted(trnInput.trnType)) {
             if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {

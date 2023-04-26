@@ -26,9 +26,8 @@ data class AssetInput(
                 code = currency.code + ".$realEstate",
                 name = name,
                 currency = currency.code,
-                category = realEstate
+                category = realEstate,
             )
         }
     }
-
 }

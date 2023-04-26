@@ -1,9 +1,11 @@
-package com.beancounter.marketdata.assets
+package com.beancounter.marketdata.realestate
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.assets.AssetCategoryConfig
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MdFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

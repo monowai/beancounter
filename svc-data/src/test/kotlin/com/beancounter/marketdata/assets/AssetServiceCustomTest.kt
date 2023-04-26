@@ -46,7 +46,7 @@ internal class AssetServiceCustomTest {
         val house = AssetInput(
             market = "Private",
             code = "House",
-            category = AssetInput.realEstate
+            category = AssetInput.realEstate,
         )
         val updateResponse = assetService.handle(AssetRequest(house))
         assertThat(updateResponse.data[house.code])

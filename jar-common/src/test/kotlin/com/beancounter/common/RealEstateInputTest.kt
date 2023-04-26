@@ -22,6 +22,5 @@ class RealEstateInputTest {
             .hasFieldOrPropertyWithValue("category", "RE")
             .hasFieldOrPropertyWithValue("name", "House")
             .hasFieldOrPropertyWithValue("code", "${USD.code}.RE")
-
     }
 }

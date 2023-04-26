@@ -42,7 +42,7 @@ class Constants {
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
         val apartment = Asset(
             input = AssetInput.toRealEstate(NZD, "NZ Apartment"),
-            market = Market("PRIVATE")
+            market = Market("PRIVATE"),
         )
 
         val nzdCashBalance = Asset(

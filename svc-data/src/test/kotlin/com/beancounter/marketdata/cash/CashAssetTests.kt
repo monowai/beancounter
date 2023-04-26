@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.assets
+package com.beancounter.marketdata.cash
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
@@ -6,6 +6,8 @@ import com.beancounter.common.utils.AssetUtils
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.assets.AssetCategoryConfig
+import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.trn.CashServices.Companion.cash
 import org.assertj.core.api.Assertions.assertThat
@@ -18,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest
  */
 @SpringBootTest
 @AutoConfigureMockAuth
-class CashServiceIntegrationTests {
+class CashAssetTests {
     @Autowired
     private lateinit var assetService: AssetService
 

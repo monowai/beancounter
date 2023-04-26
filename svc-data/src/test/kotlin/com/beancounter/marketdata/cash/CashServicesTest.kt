@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.trn
+package com.beancounter.marketdata.cash
 
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
@@ -10,13 +10,14 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.trn.CashServices
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.math.BigDecimal
 
 /**
- * Cash can be a trick beast. Abstract out specific cash handling routines to allow for new uses cases.
+ * Cash can be a tricky beast. Abstract out specific cash handling routines to allow for new uses cases.
  */
 internal class CashServicesTest {
     private val nzCashAssetId = "${NZD.code} Cash"
@@ -26,7 +27,7 @@ internal class CashServicesTest {
     private val cashServices = CashServices(assetService, Mockito.mock(CurrencyService::class.java))
 
     @Test
-    fun resolveCashBalanceFromTradeCurrency() {
+    fun is_CashBalanceFromTradeCurrency() {
         // Trade Currency, but no defined Cash Asset, resolves to a generic Balance asset.
         val trnInput = TrnInput(
             callerRef = CallerRef(),
@@ -44,7 +45,7 @@ internal class CashServicesTest {
     }
 
     @Test
-    fun resolveCashBalanceFromTradeCurrencyWithBlankAsset() {
+    fun is_CashBalanceFromTradeCurrencyWithBlankAsset() {
         // Trade Currency, but no defined Cash Asset, resolves to a generic Balance asset.
         val trnInput = TrnInput(
             callerRef = CallerRef(),
@@ -63,7 +64,7 @@ internal class CashServicesTest {
     }
 
     @Test
-    fun isSuppliedCashOverridingCalculatedCash() {
+    fun is_SuppliedCashOverridingCalculatedCash() {
         val debitInput = TrnInput(
             callerRef = CallerRef(),
             assetId = MSFT.code,

@@ -1,6 +1,5 @@
 package com.contracts.data
 
-import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.currency.CurrencyService
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
@@ -15,8 +14,6 @@ import java.util.Optional
 class RegisterBase : ContractVerifierBase() {
     private val notAuthenticated = "not@authenticated.com"
 
-    var notFoundUser = SystemUser(notAuthenticated, notAuthenticated)
-
     @Autowired
     private lateinit var currencyService: CurrencyService
 
@@ -26,16 +23,12 @@ class RegisterBase : ContractVerifierBase() {
             .build()
         RestAssuredMockMvc.mockMvc(mockMvc)
 
-//        Mockito.`when`(jwtDecoder.decode(notFoundUser.email))
-//            .thenReturn(null)
-
         Mockito.`when`(systemUserRepository.findById(notAuthenticated))
             .thenReturn(Optional.ofNullable(null))
 
         ContractHelper.defaultUser(
-            jwtDecoder = authConfig.jwtDecoder,
-            tokenService = authConfig.tokenService,
             systemUserRepository = systemUserRepository,
+            noAuthConfig = authConfig,
         )
     }
 }

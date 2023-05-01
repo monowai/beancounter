@@ -1,7 +1,7 @@
 package com.contracts.data
 
 import com.beancounter.auth.AuthConfig
-import com.beancounter.auth.TokenService
+import com.beancounter.auth.NoAuthConfig
 import com.beancounter.auth.TokenUtils
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.SystemUser
@@ -10,7 +10,6 @@ import com.beancounter.marketdata.registration.SystemUserRepository
 import org.mockito.Mockito
 import org.springframework.core.io.ClassPathResource
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import java.util.Optional
 
@@ -29,11 +28,10 @@ class ContractHelper {
         @JvmStatic
         fun defaultUser(
             systemUser: SystemUser = getSystemUser(),
-            jwtDecoder: JwtDecoder,
-            tokenService: TokenService,
+            noAuthConfig: NoAuthConfig,
             systemUserRepository: SystemUserRepository,
         ): SystemUser {
-            authUser(systemUser, jwtDecoder, tokenService)
+            authUser(systemUser, noAuthConfig)
 
             Mockito.`when`(
                 systemUserRepository
@@ -44,22 +42,22 @@ class ContractHelper {
 
         fun authUser(
             systemUser: SystemUser,
-            jwtDecoder: JwtDecoder,
-            tokenService: TokenService,
+            noAuthConfig: NoAuthConfig,
+
         ) {
             val authConfig = AuthConfig()
             authConfig.claimEmail = "email"
-            Mockito.`when`(jwtDecoder.decode(systemUser.email))
+            Mockito.`when`(noAuthConfig.jwtDecoder.decode(systemUser.email))
                 .thenReturn(TokenUtils(authConfig).getUserToken(systemUser))
 
             SecurityContextHolder.getContext().authentication =
                 JwtAuthenticationToken(
-                    jwtDecoder.decode(
+                    noAuthConfig.jwtDecoder.decode(
                         systemUser.email,
                     ),
                 )
 
-            Mockito.`when`(tokenService.subject)
+            Mockito.`when`(noAuthConfig.tokenService.subject)
                 .thenReturn(systemUser.email)
         }
     }

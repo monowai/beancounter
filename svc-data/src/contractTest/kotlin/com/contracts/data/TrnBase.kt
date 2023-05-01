@@ -82,8 +82,7 @@ class TrnBase {
         RestAssuredMockMvc.mockMvc(mockMvc)
         systemUser = ContractHelper.defaultUser(
             systemUserRepository = systemUserRepository,
-            jwtDecoder = authConfig.jwtDecoder,
-            tokenService = authConfig.tokenService,
+            noAuthConfig = authConfig,
         )
 
         // This test depends on assets and portfolios being available

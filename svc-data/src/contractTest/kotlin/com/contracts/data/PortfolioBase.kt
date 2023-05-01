@@ -135,8 +135,7 @@ class PortfolioBase : ContractVerifierBase() {
     @BeforeEach
     fun mockPortfolio() {
         val systemUser = ContractHelper.defaultUser(
-            jwtDecoder = authConfig.jwtDecoder,
-            tokenService = authConfig.tokenService,
+            noAuthConfig = authConfig,
             systemUserRepository = systemUserRepository,
         )
 

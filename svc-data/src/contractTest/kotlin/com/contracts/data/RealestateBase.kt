@@ -10,7 +10,6 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
@@ -68,8 +67,6 @@ class RealestateBase {
     @Autowired
     private lateinit var portfolioService: PortfolioService
 
-    private lateinit var systemUser: SystemUser
-
     @Autowired
     internal lateinit var context: WebApplicationContext
 
@@ -89,8 +86,10 @@ class RealestateBase {
         val mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .build()
         RestAssuredMockMvc.mockMvc(mockMvc)
-        systemUser = systemUserService.save(ContractHelper.getSystemUser())
-        ContractHelper.authUser(systemUser, authConfig.jwtDecoder, authConfig.tokenService)
+        ContractHelper.authUser(
+            systemUserService.save(ContractHelper.getSystemUser()),
+            authConfig,
+        )
 
         Mockito.`when`(keyGenUtils.id).thenReturn("RE-TEST")
         val portfolio = portfolioService.save(listOf(PortfolioInput("RE-TEST"))).iterator().next()

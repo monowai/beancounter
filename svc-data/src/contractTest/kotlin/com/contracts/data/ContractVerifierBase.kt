@@ -6,7 +6,8 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserRepository
-import com.beancounter.marketdata.trn.CashServices
+import com.beancounter.marketdata.trn.cash.CashBalancesBean
+import com.beancounter.marketdata.trn.cash.CashServices
 import io.restassured.module.mockmvc.RestAssuredMockMvc
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +39,9 @@ class ContractVerifierBase {
 
     @MockBean
     internal lateinit var keyGenUtils: KeyGenUtils
+
+    @MockBean
+    internal lateinit var cashBalancesBean: CashBalancesBean
 
     @MockBean
     internal lateinit var systemUserRepository: SystemUserRepository

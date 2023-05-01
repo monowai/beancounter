@@ -42,7 +42,7 @@ import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedResponse
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
 import com.beancounter.marketdata.providers.wtd.WtdService
-import com.beancounter.marketdata.trn.CashServices
+import com.beancounter.marketdata.trn.cash.CashServices
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat

@@ -12,6 +12,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
 import com.beancounter.marketdata.trn.TrnIoDefinition.Companion.colDef
+import com.beancounter.marketdata.trn.cash.CashServices
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate

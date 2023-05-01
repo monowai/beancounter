@@ -1,19 +1,13 @@
-package com.beancounter.marketdata.trn
+package com.beancounter.marketdata.trn.cash
 
-import com.beancounter.common.contracts.AssetRequest
-import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.model.TrnType.Companion.creditsCash
 import com.beancounter.common.model.TrnType.Companion.debitsCash
-import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.markets.MarketConfig
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -54,17 +48,6 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
 
     fun getCashAsset(trnInput: TrnInput): Asset? {
         return getCashAsset(trnInput.trnType, trnInput.cashAssetId, trnInput.cashCurrency)
-    }
-
-    @Autowired
-    fun createCashBalanceAssets(marketConfig: MarketConfig): AssetUpdateResponse {
-        val assets = mutableMapOf<String, AssetInput>()
-        for (currency in currencyService.currencies) {
-            assets[currency.code] = AssetUtils.getCash(currency.code)
-        }
-
-        val assetRequest = AssetRequest(assets)
-        return assetService.handle(assetRequest)
     }
 
     companion object {

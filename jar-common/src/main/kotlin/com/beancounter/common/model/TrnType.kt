@@ -7,7 +7,17 @@ package com.beancounter.common.model
  * @since 2019-02-07
  */
 enum class TrnType {
-    SELL, BUY, SPLIT, DEPOSIT, WITHDRAWAL, DIVI, FX_BUY, IGNORE;
+    SELL, // -ve Trade, +ve Cash
+    BUY, // +ve Trade, -ve Cash
+    SPLIT,
+    DEPOSIT, // +ve Cash Impact
+    WITHDRAWAL, // -ve Cash Impact
+    DIVI,
+    FX_BUY, // FX between Trade and Cash
+    IGNORE,
+    INCREASE, // +ve impact on MV. No cash impact.
+    REDUCE, // -ve impact on MV. No cash impact.
+    ;
 
     companion object {
 

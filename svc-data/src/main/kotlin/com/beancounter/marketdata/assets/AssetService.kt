@@ -33,8 +33,8 @@ class AssetService internal constructor(
     private val assetRepository: AssetRepository,
     private val marketService: MarketService,
     private val assetHydrationService: AssetHydrationService,
+    private val keyGenUtils: KeyGenUtils,
 ) : com.beancounter.client.AssetService {
-    private val keyGenUtils = KeyGenUtils()
 
     fun enrich(asset: Asset): Asset {
         val enricher = enrichmentFactory.getEnricher(asset.market)

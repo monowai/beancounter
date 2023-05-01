@@ -36,6 +36,7 @@ import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.cash.CashServices
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper

@@ -6,6 +6,7 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.trn.cash.CashServices
 import org.springframework.stereotype.Service
 
 /**

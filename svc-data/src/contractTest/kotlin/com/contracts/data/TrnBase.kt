@@ -30,6 +30,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.util.Optional
 
+const val asAtDate = "2021-10-18"
+
 /**
  * Base class for Trn Contract tests. This is called by the spring cloud contract verifier
  */
@@ -82,39 +84,22 @@ class TrnBase {
             systemUserRepository = systemUserRepository,
             jwtDecoder = authConfig.jwtDecoder,
             tokenService = authConfig.tokenService,
-
         )
 
         // This test depends on assets and portfolios being available
         AssetsBase().mockAssets(assetService)
         PortfolioBase.portfolios(systemUser, keyGenUtils, portfolioRepository)
 
-        // We are testing this
-        mockPortfolioTrns()
-    }
-
-    fun mockPortfolioTrns() {
         mockTrnPostResponse(PortfolioBase.testPortfolio)
         mockTrnGetResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json")
         mockTrnGetResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json", "2019-10-18")
         mockTrnGetResponse(PortfolioBase.emptyPortfolio, "contracts/trn/trns-empty-response.json")
-        val cashPortfolio = Portfolio(
-            id = "CASHLADDER",
-            code = "CASHLADDER",
-            name = "cashLadderFlow",
-            currency = Constants.USD,
-            base = Constants.NZD,
-            owner = ContractHelper.getSystemUser(),
-        )
-        Mockito.`when`(portfolioRepository.findById(cashPortfolio.id))
-            .thenReturn(Optional.of(cashPortfolio))
-        Mockito.`when`(portfolioRepository.findByCodeAndOwner(cashPortfolio.code, systemUser))
-            .thenReturn(Optional.of(cashPortfolio))
         mockTrnGetResponse(
-            cashPortfolio,
-            "contracts/trn/cash-ladder-response.json",
-            "2021-10-18",
+            cashPortfolio(),
+            "contracts/trn/cash/ladder-response.json",
+            asAtDate,
         )
+
         Mockito.`when`(
             trnQueryService.findAssetTrades(
                 PortfolioBase.testPortfolio,
@@ -128,6 +113,26 @@ class TrnBase {
                     TrnResponse::class.java,
                 ),
             )
+    }
+
+    private fun cashPortfolio(): Portfolio {
+        val portfolio = Portfolio(
+            id = "CASHLADDER",
+            code = "CASHLADDER",
+            name = "cashLadderFlow",
+            currency = Constants.USD,
+            base = Constants.NZD,
+            owner = ContractHelper.getSystemUser(),
+        )
+        mockPortfolio(portfolio)
+        return portfolio
+    }
+
+    private fun mockPortfolio(portfolio: Portfolio) {
+        Mockito.`when`(portfolioRepository.findById(portfolio.id))
+            .thenReturn(Optional.of(portfolio))
+        Mockito.`when`(portfolioRepository.findByCodeAndOwner(portfolio.code, systemUser))
+            .thenReturn(Optional.of(portfolio))
     }
 
     fun mockTrnGetResponse(portfolio: Portfolio, trnFile: String, date: String = dateUtils.today()) {

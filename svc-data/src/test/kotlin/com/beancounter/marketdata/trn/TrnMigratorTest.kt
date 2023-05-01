@@ -16,6 +16,7 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.trn.cash.CashServices
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

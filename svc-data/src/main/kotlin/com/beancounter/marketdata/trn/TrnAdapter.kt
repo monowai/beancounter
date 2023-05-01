@@ -14,6 +14,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.trn.cash.CashServices
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
@@ -28,9 +29,8 @@ class TrnAdapter internal constructor(
     val cashServices: CashServices,
     val fxService: FxService,
     val fxTransactions: FxTransactions,
+    val keyGenUtils: KeyGenUtils,
 ) {
-    private val keyGenUtils: KeyGenUtils =
-        KeyGenUtils()
 
     fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
         val trns = ArrayList<Trn>()

@@ -1,0 +1,241 @@
+{
+  "data": [
+    {
+      "id": "1",
+      "trnType": "BUY",
+      "asset": {
+        "id": "USD.RE",
+        "code": "USD.RE",
+        "name": "NY Apartment",
+        "market": {
+          "code": "PRIVATE",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "DEFAULT",
+          "multiplier": 1.0,
+          "type": "Private"
+        },
+        "priceSymbol": "USD",
+        "assetCategory": {
+          "id": "RE",
+          "name": "Real Estate"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "quantity": 10000.00,
+      "callerRef": {
+        "provider": "BC",
+        "batch": "20230501",
+        "callerId": "1"
+      },
+      "price": 0,
+      "tradeAmount": 10000.00,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashAsset": null,
+      "cashCurrency": null,
+      "tradeCashRate": 1,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 1,
+      "cashAmount": -10000.00,
+      "tradeDate": "2023-05-01",
+      "portfolio": {
+        "id": "RE-TEST",
+        "code": "RE-TEST",
+        "name": "RE-TEST",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "blah@blah.com",
+          "email": "blah@blah.com",
+          "active": true,
+          "since": "2020-03-08"
+        }
+      },
+      "settleDate": null,
+      "fees": 0,
+      "tax": 0,
+      "comments": null,
+      "version": "2",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "2",
+      "trnType": "REDUCE",
+      "asset": {
+        "id": "USD.RE",
+        "code": "USD.RE",
+        "name": "NY Apartment",
+        "market": {
+          "code": "PRIVATE",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "DEFAULT",
+          "multiplier": 1.0,
+          "type": "Private"
+        },
+        "priceSymbol": "USD",
+        "assetCategory": {
+          "id": "RE",
+          "name": "Real Estate"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "quantity": -1000,
+      "callerRef": {
+        "provider": "BC",
+        "batch": "20230501",
+        "callerId": "2"
+      },
+      "price": 0,
+      "tradeAmount": -1000,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashAsset": null,
+      "cashCurrency": null,
+      "tradeCashRate": 1,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 1,
+      "cashAmount": 0,
+      "tradeDate": "2023-05-01",
+      "portfolio": {
+        "id": "RE-TEST",
+        "code": "RE-TEST",
+        "name": "RE-TEST",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "blah@blah.com",
+          "email": "blah@blah.com",
+          "active": true,
+          "since": "2020-03-08"
+        }
+      },
+      "settleDate": null,
+      "fees": 0,
+      "tax": 0,
+      "comments": null,
+      "version": "2",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "3",
+      "trnType": "INCREASE",
+      "asset": {
+        "id": "USD.RE",
+        "code": "USD.RE",
+        "name": "NY Apartment",
+        "market": {
+          "code": "PRIVATE",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "DEFAULT",
+          "multiplier": 1.0,
+          "type": "Private"
+        },
+        "priceSymbol": "USD",
+        "assetCategory": {
+          "id": "RE",
+          "name": "Real Estate"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "quantity": 1000,
+      "callerRef": {
+        "provider": "BC",
+        "batch": "20230501",
+        "callerId": "3"
+      },
+      "price": 0,
+      "tradeAmount": 1000,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashAsset": null,
+      "cashCurrency": null,
+      "tradeCashRate": 1,
+      "tradeBaseRate": 1,
+      "tradePortfolioRate": 1,
+      "cashAmount": 0,
+      "tradeDate": "2023-05-01",
+      "portfolio": {
+        "id": "RE-TEST",
+        "code": "RE-TEST",
+        "name": "RE-TEST",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "blah@blah.com",
+          "email": "blah@blah.com",
+          "active": true,
+          "since": "2020-03-08"
+        }
+      },
+      "settleDate": null,
+      "fees": 0,
+      "tax": 0,
+      "comments": null,
+      "version": "2",
+      "status": "CONFIRMED"
+    }
+  ]
+}

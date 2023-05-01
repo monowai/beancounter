@@ -25,7 +25,7 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "batch", "callerId"])])
-data class Trn constructor(
+data class Trn(
     @Id
     var id: String = UUID.randomUUID().toString(),
     val trnType: TrnType,

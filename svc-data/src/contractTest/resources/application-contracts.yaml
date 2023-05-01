@@ -13,3 +13,4 @@ beancounter:
         url: https://www.worldtradingdata.com
         batchSize: 2
         markets: NASDAQ,AMEX,NYSE,NZX,ASX
+

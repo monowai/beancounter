@@ -68,6 +68,6 @@ request:
   url: /trns/portfolio/CASHLADDER/2021-10-18
 response:
   status: 200
-  bodyFromFile: "./cash-ladder-response.json"
+  bodyFromFile: "./cash/ladder-response.json"
   headers:
     Content-Type: application/json

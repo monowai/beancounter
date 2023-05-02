@@ -10,6 +10,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.utils.RegistrationUtils
+import org.bouncycastle.asn1.x500.style.RFC4519Style.owner
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -96,7 +97,7 @@ class PortfolioBase : ContractVerifierBase() {
                     Portfolio(
                         id = portfolioCode,
                         code = portfolioCode,
-                        name = Constants.NZD.code + " Portfolio",
+                        name = "${Constants.NZD.code} Portfolio",
                         currency = Constants.NZD,
                         base = Constants.USD,
                         owner = systemUser,
@@ -110,7 +111,7 @@ class PortfolioBase : ContractVerifierBase() {
                         Portfolio(
                             id = portfolioCode,
                             code = Constants.SGD.code,
-                            name = Constants.SGD.code + " Balanced",
+                            name = "${Constants.SGD.code} Balanced",
                             currency = Constants.SGD,
                             base = Constants.USD,
                             owner = systemUser,
@@ -122,7 +123,7 @@ class PortfolioBase : ContractVerifierBase() {
                     Portfolio(
                         id = portfolioCode,
                         code = Constants.SGD.code,
-                        name = Constants.SGD.code + " Balanced",
+                        name = "${Constants.SGD.code} Balanced",
                         currency = Constants.SGD,
                         base = Constants.USD,
                         owner = systemUser,
@@ -135,7 +136,7 @@ class PortfolioBase : ContractVerifierBase() {
     @BeforeEach
     fun mockPortfolio() {
         val systemUser = ContractHelper.defaultUser(
-            noAuthConfig = authConfig,
+            noAuthConfig = noAuthConfig,
             systemUserRepository = systemUserRepository,
         )
 

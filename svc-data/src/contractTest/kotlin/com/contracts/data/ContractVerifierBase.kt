@@ -50,7 +50,7 @@ class ContractVerifierBase {
     internal lateinit var cashServices: CashServices
 
     @Autowired
-    lateinit var authConfig: NoAuthConfig
+    lateinit var noAuthConfig: NoAuthConfig
 
     @BeforeEach
     fun mock() {

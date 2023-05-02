@@ -10,6 +10,9 @@ import com.beancounter.marketdata.markets.MarketConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 
+/**
+ * Persists the currency objects for each supported market.
+ */
 @Configuration
 class CashBalancesBean(val currencyService: CurrencyService, val assetService: AssetService) {
     @Autowired

@@ -6,6 +6,9 @@ import com.beancounter.common.input.AssetInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+/**
+ * Verify we can create RealEstate assets.
+ */
 class RealEstateInputTest {
     @Test
     fun is_RealEstateDefaulting() {

@@ -21,10 +21,6 @@ class AssetsBase : ContractVerifierBase() {
 
     @BeforeEach
     fun mockAssets() {
-        mockAssets(assetService)
-    }
-
-    fun mockAssets(assetService: AssetService) {
         Mockito.`when`(assetService.find("KMI"))
             .thenReturn(
                 BcJson().objectMapper.readValue(
@@ -39,6 +35,10 @@ class AssetsBase : ContractVerifierBase() {
                     AssetResponse::class.java,
                 ).data,
             )
+        mockAssets(assetService)
+    }
+
+    fun mockAssets(assetService: AssetService) {
 
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/nzd-cash-request.json").file,

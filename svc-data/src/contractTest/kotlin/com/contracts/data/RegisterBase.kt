@@ -28,7 +28,7 @@ class RegisterBase : ContractVerifierBase() {
 
         ContractHelper.defaultUser(
             systemUserRepository = systemUserRepository,
-            noAuthConfig = authConfig,
+            noAuthConfig = noAuthConfig,
         )
     }
 }

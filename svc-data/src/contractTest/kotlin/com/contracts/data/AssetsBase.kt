@@ -39,7 +39,6 @@ class AssetsBase : ContractVerifierBase() {
     }
 
     fun mockAssets(assetService: AssetService) {
-
         mockAssetCreateResponses(
             ClassPathResource("contracts/assets/nzd-cash-request.json").file,
             ClassPathResource("contracts/assets/nzd-cash-response.json").file,

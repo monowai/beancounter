@@ -43,6 +43,8 @@ private const val pCashAmount = "cashAmount"
 
 private const val pQuantity = "quantity"
 
+private const val batch = "20230501"
+
 /**
  * Verifies assumptions around Real Estate oriented transactions.
  */
@@ -115,7 +117,7 @@ class RealestateBase {
         val buy = save(
             portfolio,
             TrnInput(
-                callerRef = CallerRef(batch = "20230501", callerId = keyGenUtils.id),
+                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 tradeDate = DateUtils().getLocalDate(tradeDate),
                 assetId = houseAsset!!.id,
                 trnType = TrnType.BUY,
@@ -135,7 +137,7 @@ class RealestateBase {
         val r = save(
             portfolio,
             TrnInput(
-                callerRef = CallerRef(batch = "20230501", callerId = keyGenUtils.id),
+                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 tradeDate = DateUtils().getLocalDate(tradeDate),
                 assetId = houseAsset.id,
                 trnType = TrnType.REDUCE,
@@ -152,7 +154,7 @@ class RealestateBase {
         val i = save(
             portfolio,
             TrnInput(
-                callerRef = CallerRef(batch = "20230501", callerId = keyGenUtils.id),
+                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 assetId = houseAsset.id,
                 tradeDate = DateUtils().getLocalDate(tradeDate),
                 trnType = TrnType.INCREASE,

@@ -127,7 +127,7 @@ jobs:
             equal: [ master, << pipeline.git.branch >> ]
           steps:
             - run:
-                name: Package BC-EVENT
+                name: Package BC-DATA
                 command: |
                   docker buildx create --use
                   docker buildx inspect
@@ -136,6 +136,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-data:latest" \
+                                      -t "monowai/bc-data:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-data/.
   build-position:
     executor: java-build
@@ -169,6 +170,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-position:latest" \
+                                      -t "monowai/bc-position:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-position/.
   build-event:
     executor: java-build
@@ -202,6 +204,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-event:latest" \
+                                      -t "monowai/bc-event:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-event/.
 
   publish-coverage:

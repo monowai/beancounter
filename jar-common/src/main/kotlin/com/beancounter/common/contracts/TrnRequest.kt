@@ -16,9 +16,7 @@ data class TrnRequest(
         other as TrnRequest
 
         if (portfolioId != other.portfolioId) return false
-        if (!data.contentEquals(other.data)) return false
-
-        return true
+        return data.contentEquals(other.data)
     }
 
     override fun hashCode(): Int {

@@ -13,10 +13,5 @@ class EventBehaviourFactory {
     private final val alphaEventAdapter = AlphaEventAdapter(TaxService())
     fun getAdapter(event: CorporateEvent): Event {
         return alphaEventAdapter // We only have one adapter
-        // return adapters["ALPHA"]
     }
-
-//    init {
-//        adapters["ALPHA"] = AlphaEventAdapter(TaxService())
-//    }
 }

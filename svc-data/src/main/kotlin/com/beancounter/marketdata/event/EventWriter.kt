@@ -37,7 +37,7 @@ class EventWriter {
     }
 
     fun write(marketData: MarketData) {
-        if (!kafkaEnabled || !isValidDividend(marketData)) {
+        if (!kafkaEnabled || !isValidEvent(marketData)) {
             return
         }
         val corporateEvent = CorporateEvent(
@@ -47,16 +47,17 @@ class EventWriter {
             recordDate = marketData.priceDate!!,
             assetId = marketData.asset.id,
             rate = marketData.dividend,
+            split = marketData.split,
         )
         log.trace("Dispatch {} ... {}", topicEvent, marketData)
         kafkaCaProducer.send(topicEvent, TrustedEventInput(corporateEvent))
     }
 
-    private fun isValidDividend(marketData: MarketData?): Boolean {
+    private fun isValidEvent(marketData: MarketData?): Boolean {
         return if (marketData == null) {
             false
         } else {
-            !numberUtils.isUnset(marketData.dividend)
+            marketData.isSplit() || numberUtils.isSet(marketData.dividend)
         }
     }
 

@@ -52,7 +52,7 @@ class ShareSightDividendAdapter(
         val row = trustedTrnImportRequest!!.row
         return try {
             val asset = resolveAsset(row)
-            val tradeRate = parse(row[fxRate], shareSightConfig.numberFormat)!!
+            val tradeRate = parse(row[fxRate], shareSightConfig.numberFormat)
             val trnInput = TrnInput(
                 CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[id]),
                 asset.id,
@@ -81,7 +81,7 @@ class ShareSightDividendAdapter(
                 comments = row[comments],
             )
             trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
-                null
+                BigDecimal.ZERO
             } else {
                 tradeRate
             }

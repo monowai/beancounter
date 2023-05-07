@@ -53,9 +53,9 @@ class MathUtils private constructor() {
 
         @Throws(ParseException::class)
         @JvmStatic
-        fun parse(value: String?, numberFormat: NumberFormat): BigDecimal? {
+        fun parse(value: String?, numberFormat: NumberFormat): BigDecimal {
             if (value == null || value == "null") {
-                return null
+                return BigDecimal.ZERO
             }
             return if (value.isBlank()) {
                 BigDecimal.ZERO
@@ -89,7 +89,7 @@ class MathUtils private constructor() {
             return value
         }
 
-        fun parse(value: String): BigDecimal? {
+        fun parse(value: String): BigDecimal {
             return parse(value, NumberFormat.getNumberInstance())
         }
     }

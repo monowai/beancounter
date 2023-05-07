@@ -135,7 +135,7 @@ internal class TestMathUtils {
 
     @Test
     fun is_NullInValue() {
-        assertThat(parse("null")).isNull()
+        assertThat(parse("null")).isZero()
     }
 
     @Test

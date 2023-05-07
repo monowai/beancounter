@@ -73,6 +73,7 @@ internal class CashServicesTest {
             tradeAmount = BigDecimal(5000),
             cashAmount = BigDecimal("-2222.333"), // Caller knows best
             price = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
         )
 
         assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(BigDecimal("-2222.333")) // Fx of 1.00
@@ -87,6 +88,7 @@ internal class CashServicesTest {
             trnType = TrnType.BUY,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(debitInput)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
     }
@@ -100,6 +102,7 @@ internal class CashServicesTest {
             trnType = TrnType.SELL,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(creditInput)).isEqualTo(BigDecimal("5000.00")) // Fx of 1.00
     }
@@ -113,6 +116,7 @@ internal class CashServicesTest {
             trnType = TrnType.SPLIT,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(splitInput)).isEqualTo(BigDecimal.ZERO) // Fx of 1.00
     }
@@ -126,20 +130,8 @@ internal class CashServicesTest {
             trnType = TrnType.FX_BUY,
             tradeAmount = BigDecimal(5000),
             price = BigDecimal.ONE,
+            tradeCashRate = BigDecimal.ONE,
         )
         assertThat(cashServices.getCashImpact(fxBuy)).isEqualTo(BigDecimal("-5000.00")) // Fx of 1.00
     }
-
-//    @Test
-//    fun isCashCreditedForFxSell() {
-//        val fxSell = TrnInput(
-//            callerRef = CallerRef(),
-//            assetId = nzCashAssetId,
-//            cashAssetId = usCashAssetId,
-//            trnType = TrnType.FX_SELL,
-//            tradeAmount = BigDecimal(-5000),
-//            price = BigDecimal.ONE
-//        )
-//        assertThat(cashServices.getCashImpact(fxSell)).isEqualTo(BigDecimal("5000.00")) // Fx of 1.00
-//    }
 }

@@ -59,7 +59,7 @@ class ShareSightTradeAdapter(
         }
         val trnType = TrnType.valueOf(ttype.uppercase(Locale.getDefault()))
         val comment = if (row.size == 13) nullSafe(row[comments]) else null
-        var tradeRate: BigDecimal? = null
+        var tradeRate: BigDecimal = BigDecimal.ZERO
         var fees = BigDecimal.ZERO
         var tradeAmount = BigDecimal.ZERO
         return try {
@@ -80,7 +80,7 @@ class ShareSightTradeAdapter(
                 quantity = parse(
                     row[quantity],
                     shareSightConfig.numberFormat,
-                )!!,
+                ),
                 tradeCurrency = row[currency],
                 cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
                 tradeDate = dateUtils.getDate(
@@ -105,21 +105,25 @@ class ShareSightTradeAdapter(
     @Throws(ParseException::class)
     private fun calcFees(row: List<String>, tradeRate: BigDecimal?): BigDecimal {
         val result = parse(row[brokerage], shareSightConfig.numberFormat)
-        return if (shareSightConfig.isCalculateAmount || result == null) {
-            result ?: BigDecimal.ZERO
+        return if (shareSightConfig.isCalculateAmount) {
+            result
         } else {
             return divide(result, tradeRate)
         }
     }
 
-    private fun getTradeCashRate(tradeRate: BigDecimal?): BigDecimal? {
-        return if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) null else tradeRate
+    private fun getTradeCashRate(tradeRate: BigDecimal): BigDecimal {
+        return if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
+            BigDecimal.ZERO
+        } else {
+            tradeRate
+        }
     }
 
     @Throws(ParseException::class)
     private fun calcTradeAmount(row: List<String>, tradeRate: BigDecimal?): BigDecimal {
         var result = parse(row[value], shareSightConfig.numberFormat)
-        result = if (shareSightConfig.isCalculateAmount || result == null) {
+        result = if (shareSightConfig.isCalculateAmount) {
             val q = BigDecimal(row[quantity])
             val p = BigDecimal(row[price])
             val f =

@@ -13,7 +13,7 @@ class RealEstateServices(val assetService: AssetService, val currencyService: Cu
             if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
                 return trnInput.cashAmount // Cash amount has been set by the caller
             }
-            val rate = trnInput.tradeCashRate ?: BigDecimal("1.00")
+            val rate = trnInput.tradeCashRate
             if (TrnType.creditsCash.contains(trnInput.trnType)) {
                 return MathUtils.divide(tradeAmount.abs(), rate)
             } else if (TrnType.debitsCash.contains(trnInput.trnType)) {

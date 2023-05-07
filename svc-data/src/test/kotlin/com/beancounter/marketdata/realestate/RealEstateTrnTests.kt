@@ -98,6 +98,7 @@ class RealEstateTrnTests {
             assetId = houseAsset!!.id,
             trnType = TrnType.BUY,
             tradeAmount = tenK,
+            tradeCashRate = BigDecimal.ONE,
         )
 
         val oneK = BigDecimal("1000")
@@ -107,6 +108,7 @@ class RealEstateTrnTests {
             assetId = houseAsset.id,
             trnType = TrnType.REDUCE,
             tradeAmount = oneK,
+            tradeCashRate = BigDecimal.ONE,
         )
 
         val increase = TrnInput(
@@ -114,6 +116,7 @@ class RealEstateTrnTests {
             assetId = houseAsset.id,
             trnType = TrnType.INCREASE,
             tradeAmount = oneK,
+            tradeCashRate = BigDecimal.ONE,
         )
 
         val trns = trnService.save(

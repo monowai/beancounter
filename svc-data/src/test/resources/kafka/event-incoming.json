@@ -2,7 +2,7 @@
   "portfolio": {
     "id": "2-yXnKQNQQqpt48DdOt1Hw",
     "code": "USV",
-    "name": "US Valuentum",
+    "name": "USV Name",
     "currency": {
       "code": "USD",
       "name": "Dollar",
@@ -15,7 +15,7 @@
     },
     "owner": {
       "id": "4b914769-4eba-4268-8766-d5d6386fea53",
-      "email": "mike@monowai.com",
+      "email": "test@test.com",
       "active": true,
       "since": "2020-06-03"
     }
@@ -39,9 +39,9 @@
     "tax": 1.69,
     "tradeAmount": 3.94,
     "cashAmount": 0,
-    "tradeCashRate": null,
-    "tradeBaseRate": null,
-    "tradePortfolioRate": null,
+    "tradeCashRate": 0,
+    "tradeBaseRate": 0,
+    "tradePortfolioRate": 0,
     "comments": null
   }
 }

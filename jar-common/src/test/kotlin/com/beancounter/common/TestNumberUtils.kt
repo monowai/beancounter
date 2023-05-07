@@ -19,7 +19,7 @@ class TestNumberUtils {
         Assertions.assertThat(numberUtils.isUnset(null)).isTrue
         Assertions.assertThat(numberUtils.isUnset(BigDecimal("0"))).isTrue
         Assertions.assertThat(numberUtils.isUnset(BigDecimal("0.00"))).isTrue
-        Assertions.assertThat(MathUtils.parse(null, NumberFormat.getInstance())).isNull()
+        Assertions.assertThat(MathUtils.parse(null, NumberFormat.getInstance())).isZero()
         Assertions.assertThat(MathUtils.parse("", NumberFormat.getInstance())).isEqualTo(BigDecimal.ZERO)
         Assertions.assertThat(MathUtils.nullSafe(null)).isEqualTo(BigDecimal.ZERO)
     }

@@ -73,9 +73,9 @@ class TrnAdapter internal constructor(
             cashAmount = cashServices.getCashImpact(trnInput, tradeAmount),
             // Sign this value
             quantity = quantity,
-            tradeCashRate = trnInput.tradeCashRate!!,
-            tradeBaseRate = trnInput.tradeBaseRate!!,
-            tradePortfolioRate = trnInput.tradePortfolioRate!!,
+            tradeCashRate = trnInput.tradeCashRate,
+            tradeBaseRate = trnInput.tradeBaseRate,
+            tradePortfolioRate = trnInput.tradePortfolioRate,
             comments = existing?.comments ?: trnInput.comments,
         )
     }

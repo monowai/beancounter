@@ -27,6 +27,7 @@ internal class RealEstateImpactTest {
             cashCurrency = Constants.NZD.code,
             tradeAmount = BigDecimal("10000"),
             price = BigDecimal("10000"),
+            tradeCashRate = BigDecimal.ONE,
         )
         Mockito.`when`(assetService.find(AssetInput.realEstate, Constants.NZD.code))
             .thenReturn(apartment)
@@ -43,6 +44,7 @@ internal class RealEstateImpactTest {
             cashCurrency = Constants.NZD.code,
             tradeAmount = BigDecimal("20000"),
             price = BigDecimal("20000"),
+            tradeCashRate = BigDecimal.ONE,
         )
         Mockito.`when`(assetService.find(AssetInput.realEstate, Constants.NZD.code))
             .thenReturn(apartment)

@@ -23,9 +23,9 @@ data class TrnInput(
     val quantity: BigDecimal = BigDecimal.ZERO,
     val tradeCurrency: String = "USD",
     val cashCurrency: String? = null, // Generic cash balance
-    var tradeBaseRate: BigDecimal? = null, // Trade to Portfolio Base Rate. Calculated if null
-    var tradeCashRate: BigDecimal? = null, // Trade to Cash Settlement Rate. Calculated if null
-    var tradePortfolioRate: BigDecimal? = null, // Trade CCY to portfolio Currency. Calculated if null
+    var tradeBaseRate: BigDecimal = BigDecimal.ZERO, // Trade to Portfolio Base Rate. Calculated if zero
+    var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade to Cash Settlement Rate. Calculated if zero
+    var tradePortfolioRate: BigDecimal = BigDecimal.ZERO, // Trade CCY to portfolio Currency. Calculated if zero
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

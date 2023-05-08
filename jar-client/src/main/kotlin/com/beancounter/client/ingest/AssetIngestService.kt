@@ -27,11 +27,18 @@ class AssetIngestService internal constructor(
      */
     fun resolveAsset(marketCode: String, assetCode: String, name: String? = null): Asset {
         val market = marketService.getMarket(marketCode)
-        val callerKey = toKey(assetCode, market.code)
+        val assetCategory = if (market.code.lowercase() == "cash") {
+            "Cash"
+        } else if (market.code.lowercase() == "re") "RE" else "Equity"
 
-        val assets = HashMap<String, AssetInput>()
-        assets[callerKey] = AssetInput(market.code, code = assetCode, name = name)
-        val assetRequest = AssetRequest(assets)
+        val assetRequest = AssetRequest(
+            mapOf(
+                Pair(
+                    toKey(assetCode, market.code),
+                    AssetInput(market.code, code = assetCode, name = name, category = assetCategory),
+                ),
+            ),
+        )
         val response = assetService.handle(assetRequest)
             ?: throw BusinessException(String.format("No response returned for %s:%s", assetCode, marketCode))
         return response.data.values.iterator().next()

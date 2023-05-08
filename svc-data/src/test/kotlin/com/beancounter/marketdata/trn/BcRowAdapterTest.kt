@@ -28,7 +28,7 @@ import java.time.LocalDate
  * BC Row Adapter tests for handling various assertions around transformations.
  */
 class BcRowAdapterTest {
-    private val cdna = "CDNA"
+    private val assetCode = "CDNA"
     private val ais: AssetIngestService = Mockito.mock(AssetIngestService::class.java)
     val assetService: AssetService = Mockito.mock(AssetService::class.java)
     val currencyService: CurrencyService = Mockito.mock(CurrencyService::class.java)
@@ -37,10 +37,10 @@ class BcRowAdapterTest {
 
     @BeforeEach
     fun setupMocks() {
-        Mockito.`when`(ais.resolveAsset("NASDAQ", cdna, "Caredx"))
+        Mockito.`when`(ais.resolveAsset("NASDAQ", assetCode, "Caredx"))
             .thenReturn(
                 Asset(
-                    code = cdna,
+                    code = assetCode,
                     market = NASDAQ,
                 ),
             )
@@ -62,7 +62,7 @@ class BcRowAdapterTest {
 
     @Test
     fun trimmedCsvInputValues() {
-        val values = "BC  ,USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$cdna,Caredx," +
+        val values = "BC  ,USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
             "USD ,USD ,2021-08-11 ,200.000000  ,NZD  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
 
 // BC will receive data in the same manner
@@ -76,7 +76,7 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue("comments", "")
             .hasFieldOrPropertyWithValue("tradeDate", DateUtils().getOrThrow("2021-08-11"))
             .hasFieldOrPropertyWithValue(propQuantity, BigDecimal(200))
-            .hasFieldOrPropertyWithValue(propAssetId, cdna)
+            .hasFieldOrPropertyWithValue(propAssetId, assetCode)
             .hasFieldOrPropertyWithValue(cashAssetId, usdCashBalance.code)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-2000")) // Nothing sent, so nothing computed
             .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("2000"))
@@ -139,9 +139,32 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-10000"))
     }
 
-    private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =
+    @Test
+    fun balanceTrade() {
+        // Buy USD, Sell NZD
+        val values =
+            "BC,20230501,,BALANCE,CASH,KB31,,,NZD,2023-05-01,-300000.00,,,NZD,1,,,-300000.00,,"
+
+        Mockito.`when`(ais.resolveAsset(CASH.code, "KB31", ""))
+            .thenReturn(nzdCashBalance)
+
+        val trustedTrnImportRequest = trustedTrnImportRequest(values)
+        val trn = rowAdapter.transform(trustedTrnImportRequest)
+        val amount = BigDecimal("-300000")
+        assertThat(trn)
+            .hasFieldOrPropertyWithValue(propAssetId, nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue(cashAssetId, null)
+            .hasFieldOrPropertyWithValue(propQuantity, amount)
+            .hasFieldOrPropertyWithValue(tradeAmount, amount)
+            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal.ZERO)
+    }
+
+    private fun trustedTrnImportRequest(
+        values: String,
+        portfolio: Portfolio = Portfolio("CSV"),
+    ): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
-            Portfolio("CSV"),
+            portfolio,
             values.split(","),
         )
 }

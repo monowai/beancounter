@@ -4,7 +4,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
-import com.beancounter.common.utils.MathUtils.Companion.divide
+import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.AverageCost
 import org.springframework.stereotype.Service
@@ -37,10 +37,10 @@ class BuyBehaviour : AccumulationStrategy {
             currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
         )
         moneyValues.purchases = moneyValues.purchases.add(
-            divide(trn.tradeAmount, rate),
+            multiply(trn.tradeAmount, rate),
         )
         moneyValues.costBasis = moneyValues.costBasis.add(
-            divide(trn.tradeAmount, rate),
+            multiply(trn.tradeAmount, rate),
         )
         if (moneyValues.costBasis != BigDecimal.ZERO) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())

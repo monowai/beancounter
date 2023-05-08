@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest
  * Are known Trn behaviours wiring correctly and accessible from the factory?
  */
 @SpringBootTest(classes = [Accumulator::class])
-class AccumulatorTest {
+class TrnBehaviourFactoryTest {
     @Autowired
     private lateinit var accumulator: Accumulator
 
@@ -27,5 +27,6 @@ class AccumulatorTest {
         assertThat(trnBehaviourFactory[TrnType.SPLIT]).isNotNull
         assertThat(trnBehaviourFactory[TrnType.DEPOSIT]).isNotNull
         assertThat(trnBehaviourFactory[TrnType.FX_BUY]).isNotNull
+        assertThat(trnBehaviourFactory[TrnType.BALANCE]).isNotNull
     }
 }

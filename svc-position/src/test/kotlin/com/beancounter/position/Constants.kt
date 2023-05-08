@@ -48,6 +48,15 @@ class Constants {
             category = "CASH",
         )
 
+        val PROP_PURCHASES = "purchases"
+        val PROP_COST_BASIS = "costBasis"
+        val PROP_SALES = "sales"
+
+        val PROP_COST_VALUE = "costValue"
+        val PROP_SOLD = "sold"
+
+        val PROP_TOTAL = "total"
+
         private const val id = "blah@blah.com"
         val owner = SystemUser(
             id = id,

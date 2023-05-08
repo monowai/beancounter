@@ -8,6 +8,11 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
+import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
+import com.beancounter.position.Constants.Companion.PROP_COST_VALUE
+import com.beancounter.position.Constants.Companion.PROP_PURCHASES
+import com.beancounter.position.Constants.Companion.PROP_SOLD
+import com.beancounter.position.Constants.Companion.PROP_TOTAL
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.usdCashBalance
 import org.assertj.core.api.Assertions.assertThat
@@ -15,14 +20,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
-
-private const val PROP_PURCHASES = "purchases"
-private const val PROP_COST_BASIS = "costBasis"
-
-private const val PROP_COST_VALUE = "costValue"
-private const val PROP_SOLD = "sold"
-
-private const val PROP_TOTAL = "total"
 
 /**
  * Verifies the expected behaviour of a Cash position for supported transaction types.

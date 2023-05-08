@@ -4,7 +4,5 @@ server:
 kafka:
   enabled: "false"
 
-#auth:
-#  enabled: "false"
 marketdata:
   url: http://localhost:10999

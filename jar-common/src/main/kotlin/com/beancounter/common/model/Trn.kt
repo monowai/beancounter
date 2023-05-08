@@ -70,6 +70,6 @@ data class Trn(
 ) {
 
     companion object {
-        const val latestVersion: String = "2"
+        const val latestVersion: String = "3"
     }
 }

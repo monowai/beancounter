@@ -28,6 +28,8 @@ data class Portfolio(
 
     constructor(code: String, currency: Currency) : this(code, code, code, currency, currency)
 
+    constructor(code: String, currency: Currency, baseCurrency: Currency) : this(code, code, code, currency, baseCurrency)
+
     constructor(code: String, currency: Currency, base: Currency, systemUser: SystemUser?) : this(
         code,
         code,

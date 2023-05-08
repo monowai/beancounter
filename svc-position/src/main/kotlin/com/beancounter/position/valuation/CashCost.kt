@@ -20,19 +20,19 @@ class CashCost {
         portfolio: Portfolio,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal?,
+        rate: BigDecimal,
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
             currencyResolver.resolve(`in`, portfolio, currency),
         )
         if (quantity > BigDecimal.ZERO) {
-            moneyValues.purchases = moneyValues.purchases.add(MathUtils.divide(quantity, rate))
+            moneyValues.purchases = moneyValues.purchases.add(MathUtils.multiply(quantity, rate))
         } else {
-            moneyValues.sales = moneyValues.sales.add(MathUtils.divide(quantity, rate))
+            moneyValues.sales = moneyValues.sales.add(MathUtils.multiply(quantity, rate))
         }
         moneyValues.costBasis = moneyValues.costBasis.add(
-            MathUtils.divide(quantity, rate),
+            MathUtils.multiply(quantity, rate),
         )
         if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())

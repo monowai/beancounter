@@ -16,9 +16,11 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.BcRowAdapter
@@ -85,11 +87,16 @@ class RealestateBase {
     internal lateinit var bcRowAdapter: BcRowAdapter
 
     @MockBean
+    internal lateinit var ecbService: EcbService
+
+    @MockBean
     internal lateinit var cashBalancesBean: CashBalancesBean
+
+    lateinit var portfolio: Portfolio
 
     val tenK = BigDecimal("10000.00")
     private final val oneK = BigDecimal("1000")
-    val nOneK = BigDecimal.ZERO - oneK
+    val nOneK: BigDecimal = oneK.negate()
     private val tradeDate = "2023-05-01"
 
     @BeforeEach
@@ -101,12 +108,49 @@ class RealestateBase {
             systemUserService.save(ContractHelper.getSystemUser()),
             authConfig,
         )
+        portfolio = portfolio()
+        mortgage()
         reTrnFlow()
     }
 
-    fun reTrnFlow() {
-        val portfolio = portfolio()
+    fun mortgage() {
+        val m1 = "Mortgage 1"
+        val m1Balance = trnCashResponse(m1)
+        val m2 = "Mortgage 2"
+        val m2Balance = trnCashResponse(m2)
 
+        assertThat(m1Balance.data).isNotNull.hasSize(1)
+        assertThat(m2Balance.data).isNotNull.hasSize(1)
+        assertThat(m1Balance.data.iterator().next())
+            .extracting("id", pTradeAmount, pCashAmount)
+            .containsExactly(m1, tenK.negate(), BigDecimal.ZERO)
+    }
+
+    private fun trnCashResponse(trnId: String): TrnResponse {
+        val assetInput = AssetInput.toCash(NZD, trnId)
+        Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
+        val asset = assetService.handle(
+            AssetRequest(
+                mapOf(Pair(assetInput.code, assetInput)),
+            ),
+        ).data[assetInput.code]
+        Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
+        return save(
+            portfolio,
+            TrnInput(
+                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
+                tradeDate = DateUtils().getLocalDate(tradeDate),
+                assetId = asset!!.id,
+                trnType = TrnType.BALANCE,
+                tradeAmount = tenK.negate(),
+                tradeBaseRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal.ONE,
+            ),
+        )
+    }
+
+    fun reTrnFlow() {
         val houseAsset = asset(name = "NY Apartment")
         assertThat(houseAsset)
             .isNotNull
@@ -120,7 +164,7 @@ class RealestateBase {
                 callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 tradeDate = DateUtils().getLocalDate(tradeDate),
                 assetId = houseAsset!!.id,
-                trnType = TrnType.BUY,
+                trnType = TrnType.BALANCE,
                 tradeAmount = tenK,
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
@@ -131,7 +175,7 @@ class RealestateBase {
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
         assertThat(buy.data.iterator().next())
             .extracting("id", pTradeAmount, pCashAmount)
-            .containsExactly("1", tenK, BigDecimal.ZERO.minus(tenK))
+            .containsExactly("1", tenK, BigDecimal.ZERO)
 
         Mockito.`when`(keyGenUtils.id).thenReturn("2")
         val r = save(
@@ -140,8 +184,8 @@ class RealestateBase {
                 callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 tradeDate = DateUtils().getLocalDate(tradeDate),
                 assetId = houseAsset.id,
-                trnType = TrnType.REDUCE,
-                tradeAmount = oneK,
+                trnType = TrnType.BALANCE,
+                tradeAmount = nOneK,
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal.ONE,
@@ -157,7 +201,7 @@ class RealestateBase {
                 callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 assetId = houseAsset.id,
                 tradeDate = DateUtils().getLocalDate(tradeDate),
-                trnType = TrnType.INCREASE,
+                trnType = TrnType.BALANCE,
                 tradeAmount = oneK,
                 tradeBaseRate = BigDecimal.ONE,
                 tradeCashRate = BigDecimal.ONE,
@@ -175,13 +219,13 @@ class RealestateBase {
     }
 
     private fun asset(currency: Currency = Constants.USD, name: String): Asset? {
-        val house = AssetInput.toRealEstate(currency, name)
+        val asset = AssetInput.toRealEstate(currency, name)
         Mockito.`when`(keyGenUtils.id).thenReturn(assetCode)
         return assetService.handle(
             AssetRequest(
-                mapOf(Pair(house.code, house)),
+                mapOf(Pair(asset.code, asset)),
             ),
-        ).data[house.code]
+        ).data[asset.code]
     }
 
     private fun portfolio(code: String = "RE-TEST"): Portfolio {

@@ -11,7 +11,7 @@ import java.time.LocalDate
 /**
  * exchangeratesapi.io fx rate response contract.
  */
-data class ExRatesResponse constructor(
+data class ExRatesResponse(
     val base: String,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)

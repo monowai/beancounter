@@ -115,7 +115,6 @@ internal class CashLadderTest {
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("3507.46")) // Purchases - Sales
 
-        // ToDo: Figure out cash fx rates to apply at cost.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.PORTFOLIO])
             .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("4945.52"))
     }

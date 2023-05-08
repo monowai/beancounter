@@ -24,7 +24,7 @@ import javax.persistence.UniqueConstraint
  */
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["source", "asset_id", "priceDate"])])
-data class MarketData constructor(
+data class MarketData(
     @ManyToOne var asset: Asset,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
     @JsonSerialize(using = LocalDateSerializer::class)

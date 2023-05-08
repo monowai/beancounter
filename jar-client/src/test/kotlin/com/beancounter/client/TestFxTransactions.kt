@@ -27,7 +27,7 @@ class TestFxTransactions {
         val tradeCash = IsoCurrencyPair(USD.code, NZD.code)
         val mapRates: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
         val temp = Currency("TEMP")
-        val one = FxRate(temp, temp, BigDecimal.ONE, null)
+        val one = FxRate(temp, temp, BigDecimal.ONE)
         mapRates[tradeBase] = one
         mapRates[tradePf] = one
         mapRates[tradeCash] = one
@@ -55,7 +55,7 @@ class TestFxTransactions {
         assertThat(
             fxTransactions.pair(
                 Currency("NZD"),
-                TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
+                Currency("USD"),
                 BigDecimal.TEN,
             ),
         )
@@ -63,16 +63,16 @@ class TestFxTransactions {
         assertThat(
             fxTransactions.pair(
                 Currency("USD"),
-                TrnInput(assetId = "ABC", tradeCurrency = "USD", price = BigDecimal.TEN),
+                Currency("USD"),
                 null,
             ),
         )
-            .isNull()
+            .isNull() // Same currencies, so no pairing
         assertThat(
             fxTransactions.pair(
+                Currency("NZD"),
                 Currency("USD"),
-                TrnInput(assetId = "ABC", tradeCurrency = "NZD", price = BigDecimal.TEN),
-                null,
+                null, // No rate, so service should obtain one.
             ),
         )
             .isNotNull

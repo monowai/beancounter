@@ -1,4 +1,4 @@
-package com.beancounter.position.valuation
+package com.beancounter.position.integ
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig

@@ -15,8 +15,8 @@ enum class TrnType {
     DIVI,
     FX_BUY, // FX between Trade and Cash
     IGNORE,
-    INCREASE, // +ve impact on MV. No cash impact.
-    REDUCE, // -ve impact on MV. No cash impact.
+    BALANCE, // absolute impact on MV. No cash impact.
+    ADD, // Same as buy but does not impact cash.
     ;
 
     companion object {
@@ -26,7 +26,7 @@ enum class TrnType {
 
         @JvmStatic
         fun isCashImpacted(trnType: TrnType): Boolean {
-            return (trnType != SPLIT)
+            return (trnType != SPLIT && trnType != ADD && trnType != BALANCE)
         }
 
         @JvmStatic

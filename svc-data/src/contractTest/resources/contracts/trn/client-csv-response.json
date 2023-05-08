@@ -67,9 +67,9 @@
       "tax": 0,
       "tradeAmount": 2,
       "cashAmount": 0,
-      "tradeCashRate": 0.66428103,
+      "tradeCashRate": 1.5053869635,
       "tradeBaseRate": 1,
-      "tradePortfolioRate": 0.66428103,
+      "tradePortfolioRate": 1.5053869635,
       "comments": "646.08"
     },
     {
@@ -137,7 +137,7 @@
       "cashAmount": 15.85,
       "tradeCashRate": 1,
       "tradeBaseRate": 1,
-      "tradePortfolioRate": 0.66428103,
+      "tradePortfolioRate": 1.5053869635,
       "comments": "Dividend"
     }
   ]

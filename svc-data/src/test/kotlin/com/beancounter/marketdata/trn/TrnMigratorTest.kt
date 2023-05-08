@@ -1,11 +1,10 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.common.contracts.FxPairResults
-import com.beancounter.common.contracts.FxRequest
-import com.beancounter.common.contracts.FxResponse
+import com.beancounter.client.sharesight.ShareSightTradeAdapter.Companion.price
+import com.beancounter.client.sharesight.ShareSightTradeAdapter.Companion.quantity
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.FxRate
-import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -16,7 +15,7 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateService
-import com.beancounter.marketdata.trn.cash.CashServices
+import com.beancounter.marketdata.fx.fxrates.EcbService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,15 +25,12 @@ import java.math.BigDecimal
 internal class TrnMigratorTest {
     private var assetService = Mockito.mock(AssetService::class.java)
 
-    private var fxRateService = Mockito.mock(FxRateService::class.java)
+    private var ecbService = Mockito.mock(EcbService::class.java)
 
     private var currencyService = Mockito.mock(CurrencyService::class.java)
 
-    private var cashServices = CashServices(assetService, currencyService)
-
-    private var trnMigrator = TrnMigrator(cashServices, fxRateService)
-
-    private val pair = IsoCurrencyPair(USD.code, NZD.code)
+    private var fxRateService = FxRateService(ecbService, currencyService)
+    private var trnMigrator = TrnMigrator(fxRateService)
     private val tradeDateStr = "2021-11-11"
     val tradeDate = DateUtils().getDate(tradeDateStr)
 
@@ -44,9 +40,10 @@ internal class TrnMigratorTest {
             .thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
-        Mockito.`when`(fxRateService.getRates(FxRequest(tradeDateStr, arrayListOf(pair)))).thenReturn(
-            FxResponse(
-                FxPairResults(mapOf(Pair(pair, FxRate(USD, NZD, BigDecimal("3.00"), tradeDateStr)))),
+        Mockito.`when`(ecbService.getRates(tradeDateStr)).thenReturn(
+            listOf(
+                FxRate(USD, NZD, BigDecimal("2.00"), tradeDateStr),
+                FxRate(USD, USD, BigDecimal("1.00"), tradeDateStr),
             ),
         )
     }
@@ -56,11 +53,13 @@ internal class TrnMigratorTest {
         val trnV1 = Trn(
             id = "TrnV1",
             trnType = TrnType.BUY,
-            version = "1",
+            version = "2",
             asset = MSFT,
+            portfolio = Portfolio("test", NZD, USD),
             tradeDate = tradeDate,
             tradeCurrency = USD,
             cashCurrency = NZD,
+            cashAsset = Constants.nzdCashBalance,
             quantity = BigDecimal("1.0"),
             price = BigDecimal("1.0"),
             tradeAmount = BigDecimal("1000.00"),
@@ -68,9 +67,10 @@ internal class TrnMigratorTest {
         trnV1.callerRef = CallerRef("ABC", "DEF", "GHI")
         val trnV2 = trnMigrator.upgrade(trnV1)
         assertThat(trnV2)
-            .hasFieldOrPropertyWithValue("version", "2")
-            .hasFieldOrPropertyWithValue("cashAmount", BigDecimal("-333.33"))
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("3.00"))
+            .hasFieldOrPropertyWithValue("version", "3")
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("2.00"))
             .hasFieldOrPropertyWithValue("cashAsset", Constants.nzdCashBalance)
             .hasFieldOrPropertyWithValue("cashCurrency", NZD)
     }

@@ -4,18 +4,17 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.RateCalculator
+import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.fx.FxMvcTests.Companion.fxMock
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 import java.math.BigDecimal
-import java.math.RoundingMode
 
 /**
  * Unit test FX assumptions.
@@ -28,44 +27,35 @@ internal class FxRateTests {
     fun is_FxRateResponseSerializing() {
         val jsonFile = ClassPathResource("$fxMock/ecbEarly.json").file
         val ecbRates = objectMapper.readValue(jsonFile, ExRatesResponse::class.java)
-        Assertions.assertThat(ecbRates)
+        assertThat(ecbRates)
             .isNotNull
             .hasNoNullFieldsOrProperties()
-        Assertions.assertThat(ecbRates.rates).hasSize(6)
+        assertThat(ecbRates.rates).hasSize(6)
     }
 
     @Test
     fun is_RateCalculatorComputing() {
-        val pairs = getCurrencyPairs(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD)
-        val rates = rateTable
-        val asAt = "2019-11-21"
-        val (rates1) = RateCalculator.compute(asAt, pairs, rates)
-        val audUsd = rates1[AUD_USD]
-        val usdAud = rates1[USD_AUD]
-        // Verify that the inverse rate is equal
-        val calc = BigDecimal.ONE.divide(audUsd!!.rate, 8, RoundingMode.HALF_UP)
-        Assertions.assertThat(usdAud!!.rate).isEqualTo(calc)
-    }
-
-    private fun getCurrencyPairs(vararg pairs: IsoCurrencyPair): Collection<IsoCurrencyPair> {
-        val results = ArrayList<IsoCurrencyPair>()
-        for (pair in pairs) {
-            results.add(pair)
-        }
-        return results
+        val pairs = arrayListOf(USD_USD, AUD_NZD, NZD_AUD, AUD_USD, USD_AUD)
+        val (rates) = FxRateCalculator.compute(currencyPairs = pairs, rateMap = rateTable)
+        val audUsd = rates[AUD_USD] // < 1
+        val usdAud = rates[USD_AUD] // > 1
+        assertThat(audUsd).isNotNull
+            .hasFieldOrPropertyWithValue("rate", BigDecimal("0.74148222"))
+        assertThat(usdAud)
+            .isNotNull.hasFieldOrPropertyWithValue("rate", usdAud!!.rate)
     }
 
     private val rateTable: Map<String, FxRate>
         get() {
             val rates: MutableMap<String, FxRate> = HashMap()
             rates[NZD.code] = getRate(NZD.code, "1.5536294691")
-            rates[AUD.code] = getRate(AUD.code, "1.48261")
+            rates[AUD.code] = getRate(AUD.code, "1.34865")
             rates[USD.code] = getRate(USD.code, "1")
             return rates
         }
 
     private fun getRate(to: String, rate: String): FxRate {
-        return FxRate(USD, Currency(to), BigDecimal(rate), null)
+        return FxRate(USD, Currency(to), BigDecimal(rate))
     }
 
     companion object {

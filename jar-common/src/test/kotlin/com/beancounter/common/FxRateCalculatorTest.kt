@@ -7,7 +7,7 @@ import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.RateCalculator
+import com.beancounter.common.utils.FxRateCalculator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -15,7 +15,7 @@ import java.math.BigDecimal
 /**
  * FX Request response tests.
  */
-internal class TestFx {
+internal class FxRateCalculatorTest {
     private val objectMapper = BcJson().objectMapper
 
     @Test
@@ -66,25 +66,40 @@ internal class TestFx {
     @Throws(Exception::class)
     fun is_FxResultSerializing() {
         val nzdUsd = IsoCurrencyPair(NZD.code, USD.code)
+        val usdNzd = IsoCurrencyPair(USD.code, NZD.code)
         val usdUsd = IsoCurrencyPair(USD.code, USD.code)
-        val pairs: MutableCollection<IsoCurrencyPair> = ArrayList()
-        pairs.add(nzdUsd)
-        pairs.add(usdUsd)
-        val rateMap: MutableMap<String, FxRate> = HashMap()
-        val nzd = NZD
-        val usd = USD
-        val nzdRate = FxRate(usd, nzd, BigDecimal.TEN, null)
-        rateMap[NZD.code] = nzdRate
-        val usdRate = FxRate(usd, usd, BigDecimal.ONE, null)
+        val pairs = arrayListOf(nzdUsd, usdNzd, usdUsd)
 
-        rateMap[USD.code] = usdRate
-        val fxPairResults = RateCalculator.compute("2019/08/27", pairs, rateMap)
+        val rawRate = "1.41030000"
+        val crossRate = ".70906899"
+        val fxPairResults = FxRateCalculator.compute(
+            currencyPairs = pairs,
+            rateMap = mapOf(
+                Pair(NZD.code, FxRate(USD, NZD, BigDecimal(rawRate))),
+                Pair(USD.code, FxRate(USD, USD, BigDecimal.ONE)),
 
-        val fxResponse = FxResponse(fxPairResults)
-        val json = objectMapper.writeValueAsString(fxResponse)
-        val fromJson = objectMapper.readValue(json, FxResponse::class.java)
+            ),
+        )
+
+        val fromJson =
+            objectMapper.readValue(
+                objectMapper.writeValueAsString(FxResponse(fxPairResults)),
+                FxResponse::class.java,
+            )
 
         assertThat(fromJson.data).isNotNull
-        assertThat(fromJson.data.rates).hasSize(2).containsKeys(nzdUsd, usdUsd)
+        assertThat(fromJson.data.rates).hasSize(3).containsKeys(nzdUsd, usdUsd, usdNzd)
+        assertThat(fromJson.data.rates[usdUsd])
+            .hasFieldOrPropertyWithValue("from.code", "USD")
+            .hasFieldOrPropertyWithValue("to.code", "USD")
+            .hasFieldOrPropertyWithValue("rate", BigDecimal.ONE)
+        assertThat(fromJson.data.rates[nzdUsd])
+            .hasFieldOrPropertyWithValue("from.code", "NZD")
+            .hasFieldOrPropertyWithValue("to.code", "USD")
+            .hasFieldOrPropertyWithValue("rate", BigDecimal(crossRate)) // Inverts the rate as USD is involved
+        assertThat(fromJson.data.rates[usdNzd])
+            .hasFieldOrPropertyWithValue("from.code", "USD")
+            .hasFieldOrPropertyWithValue("to.code", "NZD")
+            .hasFieldOrPropertyWithValue("rate", BigDecimal(rawRate)) // Raw rate
     }
 }

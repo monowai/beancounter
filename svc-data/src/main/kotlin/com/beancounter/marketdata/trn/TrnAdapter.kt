@@ -50,7 +50,11 @@ class TrnAdapter internal constructor(
         val cashAsset = cashServices.getCashAsset(trnInput)
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
-            cashCurrency = currencyService.getCode(cashAsset.priceSymbol!!)
+            cashCurrency = if (cashAsset.priceSymbol == null) {
+                currencyService.getCode(trnInput.cashCurrency!!)
+            } else {
+                currencyService.getCode(cashAsset.priceSymbol!!)
+            }
         }
         val tradeAmount = tradeCalculator.amount(trnInput)
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity

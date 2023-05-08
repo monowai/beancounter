@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import com.beancounter.common.exception.BusinessException
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.util.EnumMap
 
@@ -37,5 +38,13 @@ data class Position(val asset: Asset) {
             moneyValues[reportCurrency] = result
         }
         return result
+    }
+
+    @JsonIgnore
+    fun getMoneyValues(reportCurrency: In): MoneyValues {
+        if (moneyValues.containsKey(reportCurrency)) {
+            return moneyValues[reportCurrency]!!
+        }
+        throw BusinessException("$reportCurrency Position does not exist for ${asset.name}")
     }
 }

@@ -5,6 +5,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.model.TrnType.BALANCE
 import com.beancounter.common.model.TrnType.DEPOSIT
 import com.beancounter.common.model.TrnType.DIVI
 import com.beancounter.common.model.TrnType.FX_BUY
@@ -49,10 +50,8 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
 
     private fun isCashAccumulated(trn: Trn): Boolean {
         if (trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType)) {
-            if (trn.trnType == FX_BUY || trn.trnType == DEPOSIT || trn.trnType == WITHDRAWAL) {
-                return false // Don't accumulate cash twice
-            }
-            return true
+            // Don't accumulate cash twice
+            return !(trn.trnType == BALANCE || trn.trnType == FX_BUY || trn.trnType == DEPOSIT || trn.trnType == WITHDRAWAL)
         }
         return false
     }

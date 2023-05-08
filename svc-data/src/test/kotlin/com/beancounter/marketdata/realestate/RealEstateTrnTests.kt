@@ -102,11 +102,10 @@ class RealEstateTrnTests {
         )
 
         val oneK = BigDecimal("1000")
-        val nOneK = BigDecimal.ZERO - oneK
         val reduce = TrnInput(
             callerRef = CallerRef(),
             assetId = houseAsset.id,
-            trnType = TrnType.REDUCE,
+            trnType = TrnType.BALANCE,
             tradeAmount = oneK,
             tradeCashRate = BigDecimal.ONE,
         )
@@ -114,7 +113,7 @@ class RealEstateTrnTests {
         val increase = TrnInput(
             callerRef = CallerRef(),
             assetId = houseAsset.id,
-            trnType = TrnType.INCREASE,
+            trnType = TrnType.BALANCE,
             tradeAmount = oneK,
             tradeCashRate = BigDecimal.ONE,
         )
@@ -137,7 +136,7 @@ class RealEstateTrnTests {
         val r = iterator.next()
         assertThat(r)
             .extracting("tradeAmount", "quantity", "cashAmount")
-            .containsExactly(nOneK, nOneK, BigDecimal.ZERO)
+            .containsExactly(oneK, oneK, BigDecimal.ZERO)
 
         val i = iterator.next()
         assertThat(i)

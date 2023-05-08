@@ -19,6 +19,7 @@ import java.util.EnumMap
     DividendBehaviour::class,
     SplitBehaviour::class,
     FxBuyBehaviour::class,
+    BalanceBehaviour::class,
 )
 @Service
 class TrnBehaviourFactory {
@@ -57,6 +58,16 @@ class TrnBehaviourFactory {
     @Autowired(required = false)
     fun setDividendBehaviour(behaviour: DividendBehaviour) {
         trnBehaviours[TrnType.DIVI] = behaviour
+    }
+
+    @Autowired(required = false)
+    fun setBalanceBehaviour(behaviour: BalanceBehaviour) {
+        trnBehaviours[TrnType.BALANCE] = behaviour
+    }
+
+    @Autowired(required = false)
+    fun setAddBehaviour(behaviour: BuyBehaviour) {
+        trnBehaviours[TrnType.ADD] = behaviour
     }
 
     operator fun get(trnType: TrnType): AccumulationStrategy {

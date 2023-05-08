@@ -2,6 +2,7 @@ package com.beancounter.marketdata.fx
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.BusinessException
@@ -63,16 +64,7 @@ internal class FxMvcTests {
     @Test
     fun fxResponseObjectReturned() {
         val date = "2019-08-27"
-        `when`(
-            fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)),
-        )
-            .thenReturn(
-                ExRatesResponse(
-                    USD.code,
-                    LocalDate.now(),
-                    getFxRates(),
-                ),
-            )
+        mockProviderRates(date)
         val fxRequest = FxRequest(
             rateDate = date,
             pairs = arrayListOf(
@@ -83,19 +75,36 @@ internal class FxMvcTests {
             ),
         )
 
-        val mvcResult = fxPost(fxRequest)
-        val (results) = BcJson().objectMapper
-            .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
-        assertThat(results.rates)
-            .isNotNull
-            .hasSize(fxRequest.pairs.size)
-
+        val results = getResults(fxRequest)
         val theRates = results.rates
         assertThat(theRates)
             .containsKeys(nzdUsd, usdNzd)
         for (isoCurrencyPair in theRates.keys) {
             assertThat((results.rates[isoCurrencyPair] ?: error("Date Not Set")).date).isNotNull
         }
+    }
+
+    private fun getResults(fxRequest: FxRequest): FxPairResults {
+        val mvcResult = fxPost(fxRequest)
+        val (results) = BcJson().objectMapper
+            .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+        assertThat(results.rates)
+            .isNotNull
+            .hasSize(fxRequest.pairs.size)
+        return results
+    }
+
+    private fun mockProviderRates(date: String) {
+        `when`(
+            fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)),
+        )
+            .thenReturn(
+                ExRatesResponse(
+                    USD.code,
+                    LocalDate.now(),
+                    getFxRates(),
+                ),
+            )
     }
 
     @Test

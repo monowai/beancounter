@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 /**
  * FX Rates found for requested currency pairs.
  */
-data class FxPairResults constructor(
+data class FxPairResults(
     @JsonDeserialize(keyUsing = CurrencyKeyDeserializer::class)
     var rates: Map<IsoCurrencyPair, FxRate> = mapOf(),
 )

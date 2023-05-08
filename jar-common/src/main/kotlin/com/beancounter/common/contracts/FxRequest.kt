@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 /**
  * Request to locate FX Rates
  */
-data class FxRequest constructor(
+data class FxRequest(
     val rateDate: String = DateUtils.today,
     val pairs: ArrayList<IsoCurrencyPair> = arrayListOf(),
 ) {

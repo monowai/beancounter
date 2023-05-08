@@ -88,19 +88,6 @@ internal class TestPositions {
     }
 
     @Test
-    fun is_MoneyValuesFromPosition() {
-        val asset = getAsset(NYSE, "is_MoneyValuesFromPosition")
-        val position = Position(asset)
-
-        // Retrieve with a currency will create if missing
-        assertThat(position.getMoneyValues(Position.In.TRADE, SGD))
-            .isNotNull
-            .hasFieldOrPropertyWithValue("currency", SGD)
-        assertThat(position.getMoneyValues(Position.In.TRADE, SGD))
-            .isNotNull
-    }
-
-    @Test
     @Throws(Exception::class)
     fun is_PositionRequestSerializing() {
         val trns: MutableCollection<Trn> = ArrayList()

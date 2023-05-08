@@ -7,6 +7,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
+import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.AverageCost
 import org.springframework.stereotype.Service
@@ -51,13 +52,13 @@ class SellBehaviour : AccumulationStrategy {
             currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
         )
         moneyValues.sales = moneyValues.sales.add(
-            divide(trn.tradeAmount, rate),
+            multiply(trn.tradeAmount, rate),
         )
         if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
-            val unitCost = divide(trn.tradeAmount, rate)
-                .divide(trn.quantity.abs(), getMathContext())
-            val unitProfit = unitCost.subtract(moneyValues.averageCost)
-            val realisedGain = unitProfit.multiply(trn.quantity.abs())
+            val unitCost = multiply(trn.tradeAmount, rate)
+                ?.divide(trn.quantity.abs(), getMathContext())
+            val unitProfit = unitCost?.subtract(moneyValues.averageCost)
+            val realisedGain = unitProfit!!.multiply(trn.quantity.abs())
             moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)
         }
         if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) == 0) {

@@ -22,18 +22,17 @@ class FxTransactions(
     private val numberUtils = NumberUtils()
 
     fun getFxRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
-        val fxRequestMap: MutableMap<String?, FxRequest> = HashMap()
         val tradeDate = trn.tradeDate.toString()
-        val fxRequest = getFxRequest(fxRequestMap, tradeDate)
+        val fxRequest = getFxRequest(HashMap(), tradeDate)
         fxRequest.addTradePf(
-            pair(portfolio.currency, trn, trn.tradePortfolioRate),
+            pair(Currency(trn.tradeCurrency), portfolio.currency, trn.tradePortfolioRate),
         )
         fxRequest.addTradeBase(
-            pair(portfolio.base, trn, trn.tradeBaseRate),
+            pair(Currency(trn.tradeCurrency), portfolio.base, trn.tradeBaseRate),
         )
         if (trn.cashCurrency != null && trn.cashCurrency != "") {
             fxRequest.addTradeCash(
-                pair(Currency(trn.cashCurrency!!), trn, trn.tradeCashRate),
+                pair(Currency(trn.tradeCurrency), Currency(trn.cashCurrency!!), trn.tradeCashRate),
             )
         }
         return fxRequest
@@ -67,20 +66,16 @@ class FxTransactions(
         }
     }
 
-    fun pair(currency: Currency, trn: TrnInput, rate: BigDecimal?): IsoCurrencyPair? {
-        val from = Currency(trn.tradeCurrency)
-        if (numberUtils.isUnset(rate) && !trn.tradeCurrency.equals(currency.code, ignoreCase = true)) {
-            return IsoCurrencyPair(from = from.code, to = currency.code)
+    fun pair(from: Currency, to: Currency, rate: BigDecimal?): IsoCurrencyPair? {
+        if (numberUtils.isUnset(rate) && from.code != to.code) {
+            return IsoCurrencyPair(from = from.code, to = to.code)
         }
         return null
     }
 
     private fun getFxRequest(fxRequests: MutableMap<String?, FxRequest>, tradeDate: String): FxRequest {
-        var fxRequest = fxRequests[tradeDate]
-        if (fxRequest == null) {
-            fxRequest = FxRequest(tradeDate, ArrayList())
-            fxRequests[tradeDate] = fxRequest
-        }
+        val fxRequest = FxRequest(tradeDate, ArrayList())
+        fxRequests[tradeDate] = fxRequest
         return fxRequest
     }
 

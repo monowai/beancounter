@@ -1,19 +1,26 @@
 package com.beancounter.position.utils
 
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.GBP
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
+import com.beancounter.position.accumulation.AccumulationStrategy
+import com.beancounter.position.accumulation.BuyBehaviour
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 /**
  * FX Currency Pair tests.
@@ -31,24 +38,39 @@ internal class FxUtilsTest {
 
     @Test
     fun is_FxRequestCorrect() {
-        val gbpMarket = Market(GBP.code, GBP.code)
-        val gbpPosition = Position(getAsset(gbpMarket, "$GBP.code Asset"))
-        val usdMarket = Market(USD.code)
-        val usdPosition = Position(getAsset(usdMarket, "$USD.code Asset"))
-        val otherUsdPosition = Position(
-            getAsset(usdMarket, "$USD.code Asset Other"),
-        )
         val portfolio = Portfolio("ABC", SGD)
         val positions = Positions(portfolio)
-        positions.add(gbpPosition)
-        positions.add(usdPosition)
-        positions.add(otherUsdPosition)
+        val gbpMarket = Market(GBP.code, GBP.code)
+        val usdMarket = Market(USD.code)
+
+        positions.add(
+            getPosition(getAsset(gbpMarket, "$GBP.code Asset"), positions),
+        )
+        positions.add(
+            getPosition(getAsset(usdMarket, "$USD.code Asset"), positions),
+        )
+        positions.add(
+            getPosition(getAsset(usdMarket, "$USD.code Asset Other"), positions),
+        )
         val (_, pairs) = fxUtils.buildRequest(USD, positions)
         assertThat(pairs).hasSize(3)
             .containsOnly(
-                IsoCurrencyPair(SGD.code, USD.code), // PF:TRADE
-                IsoCurrencyPair(SGD.code, GBP.code), // PF:TRADE
-                IsoCurrencyPair(USD.code, GBP.code),
-            ) // BASE:TRADE
+                IsoCurrencyPair(USD.code, SGD.code), // TRADE:PF
+                IsoCurrencyPair(GBP.code, SGD.code), // PF:TRADE
+                IsoCurrencyPair(GBP.code, USD.code), // BASE:TRADE
+            )
+    }
+
+    private fun getPosition(asset: Asset, positions: Positions): Position {
+        val buyBehaviour: AccumulationStrategy = BuyBehaviour()
+        return buyBehaviour.accumulate(
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = Constants.hundred,
+                tradeAmount = BigDecimal("2000.00"),
+            ),
+            positions,
+        )
     }
 }

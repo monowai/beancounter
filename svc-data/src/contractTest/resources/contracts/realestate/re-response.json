@@ -1,8 +1,166 @@
 {
   "data": [
     {
+      "id": "Mortgage 1",
+      "trnType": "BALANCE",
+      "asset": {
+        "id": "Mortgage 1",
+        "code": "MORTGAGE 1",
+        "name": "Mortgage 1",
+        "market": {
+          "code": "CASH",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "DEFAULT",
+          "multiplier": 1.0,
+          "type": "Internal"
+        },
+        "priceSymbol": "NZD",
+        "assetCategory": {
+          "id": "CASH",
+          "name": "Cash"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "quantity": -10000.000000,
+      "callerRef": {
+        "provider": "BC",
+        "batch": "20230501",
+        "callerId": "Mortgage 1"
+      },
+      "price": 0.000000,
+      "tradeAmount": -10000.00,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashAsset": null,
+      "cashCurrency": null,
+      "tradeCashRate": 1.000000,
+      "tradeBaseRate": 1.000000,
+      "tradePortfolioRate": 1.000000,
+      "cashAmount": 0.00,
+      "tradeDate": "2023-05-01",
+      "portfolio": {
+        "id": "RE-TEST",
+        "code": "RE-TEST",
+        "name": "RE-TEST",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "blah@blah.com",
+          "email": "blah@blah.com",
+          "active": true,
+          "since": "2020-03-08"
+        }
+      },
+      "settleDate": null,
+      "fees": 0.00,
+      "tax": 0.00,
+      "comments": null,
+      "version": "3",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "Mortgage 2",
+      "trnType": "BALANCE",
+      "asset": {
+        "id": "Mortgage 2",
+        "code": "MORTGAGE 2",
+        "name": "Mortgage 2",
+        "market": {
+          "code": "CASH",
+          "currencyId": "USD",
+          "timezoneId": "UTC",
+          "timezone": "UTC",
+          "currency": {
+            "code": "USD",
+            "name": "Dollar",
+            "symbol": "$"
+          },
+          "priceTime": "19:00",
+          "daysToSubtract": 1,
+          "enricher": "DEFAULT",
+          "multiplier": 1.0,
+          "type": "Internal"
+        },
+        "priceSymbol": "NZD",
+        "assetCategory": {
+          "id": "CASH",
+          "name": "Cash"
+        },
+        "status": "Active",
+        "version": "1"
+      },
+      "quantity": -10000.000000,
+      "callerRef": {
+        "provider": "BC",
+        "batch": "20230501",
+        "callerId": "Mortgage 2"
+      },
+      "price": 0.000000,
+      "tradeAmount": -10000.00,
+      "tradeCurrency": {
+        "code": "USD",
+        "name": "Dollar",
+        "symbol": "$"
+      },
+      "cashAsset": null,
+      "cashCurrency": null,
+      "tradeCashRate": 1.000000,
+      "tradeBaseRate": 1.000000,
+      "tradePortfolioRate": 1.000000,
+      "cashAmount": 0.00,
+      "tradeDate": "2023-05-01",
+      "portfolio": {
+        "id": "RE-TEST",
+        "code": "RE-TEST",
+        "name": "RE-TEST",
+        "currency": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "base": {
+          "code": "USD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "owner": {
+          "id": "blah@blah.com",
+          "email": "blah@blah.com",
+          "active": true,
+          "since": "2020-03-08"
+        }
+      },
+      "settleDate": null,
+      "fees": 0.00,
+      "tax": 0.00,
+      "comments": null,
+      "version": "3",
+      "status": "CONFIRMED"
+    },
+    {
       "id": "1",
-      "trnType": "BUY",
+      "trnType": "BALANCE",
       "asset": {
         "id": "USD.RE",
         "code": "USD.RE",
@@ -31,13 +189,13 @@
         "status": "Active",
         "version": "1"
       },
-      "quantity": 10000.00,
+      "quantity": 10000.000000,
       "callerRef": {
         "provider": "BC",
         "batch": "20230501",
         "callerId": "1"
       },
-      "price": 0,
+      "price": 0.000000,
       "tradeAmount": 10000.00,
       "tradeCurrency": {
         "code": "USD",
@@ -46,10 +204,10 @@
       },
       "cashAsset": null,
       "cashCurrency": null,
-      "tradeCashRate": 1,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1,
-      "cashAmount": -10000.00,
+      "tradeCashRate": 1.000000,
+      "tradeBaseRate": 1.000000,
+      "tradePortfolioRate": 1.000000,
+      "cashAmount": 0.0,
       "tradeDate": "2023-05-01",
       "portfolio": {
         "id": "RE-TEST",
@@ -73,15 +231,15 @@
         }
       },
       "settleDate": null,
-      "fees": 0,
-      "tax": 0,
+      "fees": 0.00,
+      "tax": 0.00,
       "comments": null,
-      "version": "2",
+      "version": "3",
       "status": "CONFIRMED"
     },
     {
       "id": "2",
-      "trnType": "REDUCE",
+      "trnType": "BALANCE",
       "asset": {
         "id": "USD.RE",
         "code": "USD.RE",
@@ -110,14 +268,14 @@
         "status": "Active",
         "version": "1"
       },
-      "quantity": -1000,
+      "quantity": -1000.000000,
       "callerRef": {
         "provider": "BC",
         "batch": "20230501",
         "callerId": "2"
       },
-      "price": 0,
-      "tradeAmount": -1000,
+      "price": 0.000000,
+      "tradeAmount": -1000.00,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -125,10 +283,10 @@
       },
       "cashAsset": null,
       "cashCurrency": null,
-      "tradeCashRate": 1,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1,
-      "cashAmount": 0,
+      "tradeCashRate": 1.000000,
+      "tradeBaseRate": 1.000000,
+      "tradePortfolioRate": 1.000000,
+      "cashAmount": 0.00,
       "tradeDate": "2023-05-01",
       "portfolio": {
         "id": "RE-TEST",
@@ -152,15 +310,15 @@
         }
       },
       "settleDate": null,
-      "fees": 0,
-      "tax": 0,
+      "fees": 0.00,
+      "tax": 0.00,
       "comments": null,
-      "version": "2",
+      "version": "3",
       "status": "CONFIRMED"
     },
     {
       "id": "3",
-      "trnType": "INCREASE",
+      "trnType": "BALANCE",
       "asset": {
         "id": "USD.RE",
         "code": "USD.RE",
@@ -189,14 +347,14 @@
         "status": "Active",
         "version": "1"
       },
-      "quantity": 1000,
+      "quantity": 1000.000000,
       "callerRef": {
         "provider": "BC",
         "batch": "20230501",
         "callerId": "3"
       },
-      "price": 0,
-      "tradeAmount": 1000,
+      "price": 0.000000,
+      "tradeAmount": 1000.00,
       "tradeCurrency": {
         "code": "USD",
         "name": "Dollar",
@@ -204,10 +362,10 @@
       },
       "cashAsset": null,
       "cashCurrency": null,
-      "tradeCashRate": 1,
-      "tradeBaseRate": 1,
-      "tradePortfolioRate": 1,
-      "cashAmount": 0,
+      "tradeCashRate": 1.000000,
+      "tradeBaseRate": 1.000000,
+      "tradePortfolioRate": 1.000000,
+      "cashAmount": 0.00,
       "tradeDate": "2023-05-01",
       "portfolio": {
         "id": "RE-TEST",
@@ -231,10 +389,10 @@
         }
       },
       "settleDate": null,
-      "fees": 0,
-      "tax": 0,
+      "fees": 0.00,
+      "tax": 0.00,
       "comments": null,
-      "version": "2",
+      "version": "3",
       "status": "CONFIRMED"
     }
   ]

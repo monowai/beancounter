@@ -1,18 +1,18 @@
 {
   "data": {
     "rates": {
-      "NZD:USD": {
+      "USD:NZD": {
         "from": {
-          "code": "NZD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "to": {
           "code": "USD",
           "name": "Dollar",
           "symbol": "$"
         },
-        "rate": 1.41030000,
+        "to": {
+          "code": "NZD",
+          "name": "Dollar",
+          "symbol": "$"
+        },
+        "rate": 1.4103,
         "date": "2021-10-18"
       }
     }

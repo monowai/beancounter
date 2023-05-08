@@ -20,6 +20,20 @@ data class AssetInput(
         val realEstate = "RE"
 
         @JvmStatic
+        val cashAsset = "CASH"
+
+        @JvmStatic
+        fun toCash(currency: Currency, name: String): AssetInput {
+            return AssetInput(
+                "CASH",
+                name = name,
+                currency = currency.code,
+                code = name,
+                category = cashAsset,
+            )
+        }
+
+        @JvmStatic
         fun toRealEstate(currency: Currency, name: String): AssetInput {
             return AssetInput(
                 "PRIVATE",

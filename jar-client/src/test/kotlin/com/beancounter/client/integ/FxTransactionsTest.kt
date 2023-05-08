@@ -15,7 +15,10 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
+import com.beancounter.common.model.Market
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
@@ -39,7 +42,7 @@ import java.math.BigDecimal
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
-class TestFxService {
+class FxTransactionsTest {
     @Autowired
     lateinit var fxRateService: FxService
 
@@ -48,6 +51,28 @@ class TestFxService {
 
     @MockBean
     private lateinit var tokenService: TokenService
+
+    @Test
+    fun balanceTransaction() {
+        val trnInput = TrnInput(
+            CallerRef(),
+            AssetUtils.Companion.getAsset(Market("RE"), "xxx").id,
+            cashCurrency = NZD.code,
+            cashAmount = BigDecimal("1000.00"),
+            tradeCurrency = NZD.code,
+            trnType = TrnType.BALANCE,
+            quantity = BigDecimal("-1000.00"),
+            tradeDate = DateUtils().getDate("2019-10-18"),
+            price = BigDecimal.ONE,
+        )
+        val portfolio = Portfolio("tst", Currency("NZD"), Currency("NZD"))
+        fxTransactions.setTrnRates(portfolio, trnInput)
+        assertThat(trnInput)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE)
+    }
 
     @Test
     fun is_FxContractHonoured() {
@@ -115,7 +140,7 @@ class TestFxService {
             .isNotNull
             .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
             .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("0.66428103"))
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.5053869635"))
     }
 
     @Test
@@ -138,7 +163,7 @@ class TestFxService {
             .isNotNull
             .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
             .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("0.66428103"))
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.5053869635"))
     }
 
     @Test

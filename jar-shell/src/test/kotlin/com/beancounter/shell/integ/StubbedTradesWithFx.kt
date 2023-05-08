@@ -54,7 +54,7 @@ internal class StubbedTradesWithFx {
     private lateinit var tokenService: TokenService
 
     @Test
-    fun is_FxRatesSetFromCurrencies() {
+    fun fxRatesSetFromCurrencies() {
         val row: List<String> = arrayListOf(
             "999",
             LON,
@@ -86,7 +86,7 @@ internal class StubbedTradesWithFx {
     }
 
     @Test
-    fun is_FxRateOverridenFromSourceData() {
+    fun fxRateOverridesSourceData() {
         // NZD Portfolio
         // USD System Base
         // GBP Trade
@@ -130,7 +130,7 @@ internal class StubbedTradesWithFx {
     private val msft = "MSFT"
 
     @Test
-    fun is_FxRatesSetAndTradeAmountCalculated() {
+    fun fxRatesSetAndTradeAmountCalculated() {
         // Trade CCY USD
         val row: List<String> = arrayListOf(
             "333",
@@ -163,17 +163,17 @@ internal class StubbedTradesWithFx {
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setTrnRates(portfolio, trn)
-        val fxRate = "0.63723696"
+        val fxRate = "1.5692749462"
         assertThat(trn)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code) // Was tradeAmount calculated?
             .hasFieldOrPropertyWithValue(tradeAmountProp, BigDecimal("1000.00"))
-            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("1.28929253"))
+            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("0.7756191673"))
             .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal(fxRate))
             .hasFieldOrPropertyWithValue(tradePortfolioRateProp, BigDecimal(fxRate))
     }
 
     @Test
-    fun is_RateOfOneSetForUndefinedCurrencies() {
+    fun rateOfOneSetForUndefinedCurrencies() {
         // Trade CCY USD
         val row: List<String> = arrayListOf(
             "222",
@@ -215,9 +215,9 @@ internal class StubbedTradesWithFx {
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, GBP.code)
             .hasFieldOrPropertyWithValue("cashCurrency", portfolio.currency.code)
-            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("0.80474951"))
-            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("0.53457983"))
-            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("0.53457983"))
+            .hasFieldOrPropertyWithValue(tradeBaseRateProp, BigDecimal("1.24262269"))
+            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("1.87062801"))
+            .hasFieldOrPropertyWithValue(tradeCashRateProp, BigDecimal("1.87062801"))
             .hasFieldOrProperty("tradeDate")
     }
 }

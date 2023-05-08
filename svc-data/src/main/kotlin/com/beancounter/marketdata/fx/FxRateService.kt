@@ -4,21 +4,21 @@ import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.model.FxRate
-import com.beancounter.common.utils.RateCalculator
+import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 
 /**
- * Server side implementation to obtain FXRates from a source.
+ * Server side implementation to obtain FXRates from a source that can be
+ * used to multiply by an amount to obtain the value in another currency.
  */
 @Service
 class FxRateService
-@Autowired internal constructor(private val ecbService: EcbService, private val currencyService: CurrencyService) :
+(private val ecbService: EcbService, private val currencyService: CurrencyService) :
     FxService {
 
     @Cacheable("fx.rates")
@@ -37,6 +37,6 @@ class FxRateService
         for (rate in rates) {
             mappedRates[rate.to.code] = rate
         }
-        return FxResponse(RateCalculator.compute(rateDate, fxRequest.pairs, mappedRates))
+        return FxResponse(FxRateCalculator.compute(rateDate, fxRequest.pairs, mappedRates))
     }
 }

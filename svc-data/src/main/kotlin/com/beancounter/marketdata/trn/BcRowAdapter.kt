@@ -14,7 +14,6 @@ import com.beancounter.marketdata.trn.TrnIoDefinition.Columns
 import com.beancounter.marketdata.trn.TrnIoDefinition.Companion.colDef
 import com.beancounter.marketdata.trn.cash.CashServices
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -66,8 +65,7 @@ class BcRowAdapter(
             tradeBaseRate = tradeBaseRate,
             tradeDate = tradeDate,
             tradeAmount = tradeAmount,
-            cashAmount = MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.CashAmount]!!])
-                ?: BigDecimal.ZERO,
+            cashAmount = MathUtils.parse(trustedTrnImportRequest.row[colDef()[Columns.CashAmount]!!]),
             cashCurrency = cashCurrency,
             cashAssetId = cashAssetId,
             fees = fees,

@@ -26,7 +26,7 @@ class MarketValue(private val gains: Gains) {
         rates: Map<IsoCurrencyPair, FxRate>,
     ): Position {
         val asset = marketData.asset
-        val trade = asset.market.currency
+        // Wrong
         if (!positions.contains(asset)) {
             throw BusinessException("Unable to find $asset in the supplied positions")
         }
@@ -34,13 +34,14 @@ class MarketValue(private val gains: Gains) {
         val portfolio = positions.portfolio
         val isCash = asset.market.code == "CASH"
         val total = position.quantityValues.getTotal()
+        val trade = position.getMoneyValues(Position.In.TRADE).currency
         value(
             total,
-            position.getMoneyValues(Position.In.TRADE, asset.market.currency),
+            position.getMoneyValues(Position.In.TRADE),
             marketData,
             FxRate(
-                marketData.asset.market.currency,
-                marketData.asset.market.currency,
+                trade,
+                trade,
                 BigDecimal.ONE,
                 positions.asAt,
             ),
@@ -48,16 +49,16 @@ class MarketValue(private val gains: Gains) {
         )
         value(
             total,
-            position.getMoneyValues(Position.In.BASE, portfolio.base),
+            position.getMoneyValues(Position.In.BASE),
             marketData,
-            rate(portfolio.base, trade, rates),
+            rate(trade, portfolio.base, rates),
             isCash,
         )
         value(
             total,
-            position.getMoneyValues(Position.In.PORTFOLIO, portfolio.currency),
+            position.getMoneyValues(Position.In.PORTFOLIO),
             marketData,
-            rate(portfolio.currency, trade, rates),
+            rate(trade, portfolio.currency, rates),
             isCash,
         )
         return position
@@ -75,7 +76,7 @@ class MarketValue(private val gains: Gains) {
                     multiply(close, total),
                 )!!
 
-                if (moneyValues.priceData!!.previousClose != null) {
+                if (moneyValues.priceData!!.previousClose != null && !isCash) {
                     moneyValues.gainOnDay = (close.subtract(moneyValues.priceData!!.previousClose)).multiply(total)
                 }
             }
@@ -90,16 +91,14 @@ class MarketValue(private val gains: Gains) {
         }
     }
 
-    private fun rate(report: Currency, trade: Currency, rates: Map<IsoCurrencyPair, FxRate>): FxRate {
-        return if (report.code == trade.code) {
-            FxRate(trade, report, BigDecimal.ONE, null)
+    private fun rate(from: Currency, to: Currency, rates: Map<IsoCurrencyPair, FxRate>): FxRate {
+        return if (from.code == to.code) {
+            FxRate(to, from, BigDecimal.ONE)
         } else {
-            rates[toPair(report, trade)]
+            rates[toPair(from, to)]
                 ?: throw BusinessException(
                     String.format(
-                        "No rate for %s:%s",
-                        report.code,
-                        trade.code,
+                        "No rate for ${from.code}:${to.code}",
                     ),
                 )
         }

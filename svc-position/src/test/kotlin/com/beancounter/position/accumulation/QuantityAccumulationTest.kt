@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
-@SpringBootTest(classes = [Accumulator::class])
 /**
  * Quantity Accumulation tests
  */
+@SpringBootTest(classes = [Accumulator::class])
 internal class QuantityAccumulationTest {
     private val hundred: BigDecimal = BigDecimal("100")
     private val zero: BigDecimal = BigDecimal(0)

@@ -16,9 +16,7 @@ data class IsoCurrencyPair(val from: String, val to: String) {
         other as IsoCurrencyPair
 
         if (from != other.from) return false
-        if (to != other.to) return false
-
-        return true
+        return to == other.to
     }
 
     override fun hashCode(): Int {

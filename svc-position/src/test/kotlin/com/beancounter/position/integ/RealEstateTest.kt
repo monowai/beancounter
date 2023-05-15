@@ -22,6 +22,11 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
+private const val pCostBasis = "costBasis"
+
+/**
+ * Verify assumptions around how Real estate transactions behave.
+ */
 @AutoConfigureStubRunner(
     stubsMode = StubRunnerProperties.StubsMode.LOCAL,
     ids = [
@@ -73,15 +78,15 @@ class RealEstateTest {
             when (position.key) {
                 "MORTGAGE 1:CASH" -> {
                     assertThat(position.value.moneyValues[Position.In.TRADE])
-                        .hasFieldOrPropertyWithValue("costBasis", BigDecimal("-10000.00"))
+                        .hasFieldOrPropertyWithValue(pCostBasis, BigDecimal("-10000.00"))
                 }
                 "MORTGAGE 2:CASH" -> {
                     assertThat(position.value.moneyValues[Position.In.TRADE])
-                        .hasFieldOrPropertyWithValue("costBasis", BigDecimal("-10000.00"))
+                        .hasFieldOrPropertyWithValue(pCostBasis, BigDecimal("-10000.00"))
                 }
                 "USD.RE:PRIVATE" -> {
                     assertThat(position.value.moneyValues[Position.In.TRADE])
-                        .hasFieldOrPropertyWithValue("costBasis", BigDecimal("10000.00"))
+                        .hasFieldOrPropertyWithValue(pCostBasis, BigDecimal("10000.00"))
                 }
             }
         }

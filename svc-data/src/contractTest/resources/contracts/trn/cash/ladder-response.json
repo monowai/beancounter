@@ -77,7 +77,7 @@
       "cashAmount": 10000.00,
       "tradeDate": "2021-11-24",
       "comments": null,
-      "version": "2",
+      "version": "3",
       "id": "GONgffVcRzWLtqBiZWDC_w",
       "callerRef": {
         "provider": "BC",
@@ -187,7 +187,7 @@
       "cashAmount": -5000.00,
       "tradeDate": "2021-11-24",
       "comments": null,
-      "version": "2",
+      "version": "3",
       "id": "Ucsd-Zk8RwOTkwONdG4G_g",
       "callerRef": {
         "provider": "BC",
@@ -299,7 +299,7 @@
       "cashAmount": -1492.54,
       "tradeDate": "2021-11-24",
       "comments": null,
-      "version": "2",
+      "version": "3",
       "id": "rMP3wWx1T86-kG5D89eIHg",
       "callerRef": {
         "provider": "BC",

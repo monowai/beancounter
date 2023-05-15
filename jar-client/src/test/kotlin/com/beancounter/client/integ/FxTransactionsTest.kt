@@ -7,6 +7,9 @@ import com.beancounter.client.Constants.Companion.NASDAQ
 import com.beancounter.client.Constants.Companion.NZD
 import com.beancounter.client.Constants.Companion.SGD
 import com.beancounter.client.Constants.Companion.USD
+import com.beancounter.client.Constants.Companion.pTradeBaseRate
+import com.beancounter.client.Constants.Companion.pTradeCashRate
+import com.beancounter.client.Constants.Companion.pTradePortfolioRate
 import com.beancounter.client.FxService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.FxTransactions
@@ -15,7 +18,6 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
@@ -65,13 +67,13 @@ class FxTransactionsTest {
             tradeDate = DateUtils().getDate("2019-10-18"),
             price = BigDecimal.ONE,
         )
-        val portfolio = Portfolio("tst", Currency("NZD"), Currency("NZD"))
+        val portfolio = Portfolio("tst", NZD, NZD)
         fxTransactions.setTrnRates(portfolio, trnInput)
         assertThat(trnInput)
             .isNotNull
-            .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradeBaseRate", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(pTradeCashRate, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(pTradeBaseRate, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(pTradePortfolioRate, BigDecimal.ONE)
     }
 
     @Test

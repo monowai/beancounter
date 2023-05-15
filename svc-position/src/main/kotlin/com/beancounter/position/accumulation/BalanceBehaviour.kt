@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 /**
- * Logic to accumulate a buy transaction into a position.
+ * Logic to Add a balance transaction into a position.
+ * These are psuedo cash transactions that do not support cashAssetId.
  */
 @Service
 class BalanceBehaviour : AccumulationStrategy {

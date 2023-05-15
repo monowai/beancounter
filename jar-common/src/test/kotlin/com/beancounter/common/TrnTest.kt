@@ -8,6 +8,10 @@ import com.beancounter.common.utils.AssetUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+private const val vProvider = "provider"
+
+private const val vBatch = "batch"
+
 /**
  * Trn related defaults
  */
@@ -18,13 +22,14 @@ class TrnTest {
 
     @Test
     fun is_trnVersion() {
+        val id = "any"
         val trnDefault = Trn(
-            id = "any",
+            id = id,
             trnType = TrnType.BUY,
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
         )
         val trn = Trn(
-            id = "any",
+            id = id,
             trnType = TrnType.BUY,
             version = "0",
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
@@ -39,7 +44,7 @@ class TrnTest {
     fun is_TrnIdDefaulting() {
         val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef())
         assertThat(fromNull).hasNoNullFieldsOrProperties()
-        val id = CallerRef("provider", "batch", "456")
+        val id = CallerRef(vProvider, vBatch, "456")
         assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
     }
 
@@ -48,16 +53,16 @@ class TrnTest {
         val fromNull: CallerRef = CallerRef.from(CallerRef())
         assertThat(fromNull)
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue("provider", "BC")
-            .hasFieldOrPropertyWithValue("batch", batch) // Defaults to today
+            .hasFieldOrPropertyWithValue(vProvider, "BC")
+            .hasFieldOrPropertyWithValue(vBatch, batch) // Defaults to today
     }
 
     @Test
     fun is_TrnIdDefaults() {
         var callerRef = CallerRef()
         assertThat(callerRef).hasNoNullFieldsOrProperties()
-        val batchProp = "batch"
-        val providerProp = "provider"
+        val batchProp = vBatch
+        val providerProp = vProvider
         val callerIdProp = "callerId"
 
         assertThat(CallerRef.from(callerRef))

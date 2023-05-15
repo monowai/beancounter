@@ -48,7 +48,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-02-12",
-      "version": "2",
+      "version": "3",
       "id": "7BgiM5NRSAiLGikinXWoPQ",
       "callerRef": {
         "provider": "BC",
@@ -156,7 +156,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-02-15",
-      "version": "2",
+      "version": "3",
       "id": "_nbjjW1cQr2pDyFRKqIUUw",
       "callerRef": {
         "provider": "BC",
@@ -264,7 +264,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-05-16",
-      "version": "2",
+      "version": "3",
       "id": "DSULz_8CSwmMEtGWSfY3Ow",
       "callerRef": {
         "provider": "BC",
@@ -372,7 +372,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-08-15",
-      "version": "2",
+      "version": "3",
       "id": "UG12NnqUQ2-QIhaIWMZl3w",
       "callerRef": {
         "provider": "BC",
@@ -480,7 +480,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2013-11-14",
-      "version": "2",
+      "version": "3",
       "id": "H1eZT3ggTjWP0eA3lSCfQw",
       "callerRef": {
         "provider": "BC",
@@ -588,7 +588,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-02-13",
-      "version": "2",
+      "version": "3",
       "id": "mnM0UQsMQmmHRDzufgxl-w",
       "callerRef": {
         "provider": "BC",
@@ -696,7 +696,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-05-15",
-      "version": "2",
+      "version": "3",
       "id": "A2hEjRdtS1O7fGV0YrolOA",
       "callerRef": {
         "provider": "BC",
@@ -800,7 +800,7 @@
       "cashCurrency": null,
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-06-19",
-      "version": "2",
+      "version": "3",
       "id": "INuDnQ30RFKJYeG31lteyw",
       "callerRef": {
         "provider": "BC",
@@ -880,7 +880,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-08-14",
-      "version": "2",
+      "version": "3",
       "id": "-qyDHWOuTHudImzPeAs25Q",
       "callerRef": {
         "provider": "BC",
@@ -988,7 +988,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2014-11-13",
-      "version": "2",
+      "version": "3",
       "id": "E2522JKCQauJyZfoY4GxpQ",
       "callerRef": {
         "provider": "BC",
@@ -1096,7 +1096,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-02-12",
-      "version": "2",
+      "version": "3",
       "id": "iq444HfDTiGQlE30TBGSug",
       "callerRef": {
         "provider": "BC",
@@ -1204,7 +1204,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-05-14",
-      "version": "2",
+      "version": "3",
       "id": "7S7v8RgYR5Ofm8o3kgHUqA",
       "callerRef": {
         "provider": "BC",
@@ -1312,7 +1312,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-08-13",
-      "version": "2",
+      "version": "3",
       "id": "MzosXplbRCqJqRXFD6IKRQ",
       "callerRef": {
         "provider": "BC",
@@ -1420,7 +1420,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2015-11-12",
-      "version": "2",
+      "version": "3",
       "id": "OVjL79svSrWK2VEL7gPLzw",
       "callerRef": {
         "provider": "BC",
@@ -1528,7 +1528,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2016-01-07",
-      "version": "2",
+      "version": "3",
       "id": "3dhFOqw7SeG9h5wjyJZtyA",
       "callerRef": {
         "provider": "BC",
@@ -1636,7 +1636,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2016-01-19",
-      "version": "2",
+      "version": "3",
       "id": "vJvLv0avQc2xGRa-fEQ9vQ",
       "callerRef": {
         "provider": "BC",
@@ -1744,7 +1744,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-04-23",
-      "version": "2",
+      "version": "3",
       "id": "HHm_fUVmQrugd7JAW8euTA",
       "callerRef": {
         "provider": "BC",
@@ -1852,7 +1852,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-05-17",
-      "version": "2",
+      "version": "3",
       "id": "6fBkBXIZTwS_vtg9kqCd_Q",
       "callerRef": {
         "provider": "BC",
@@ -1960,7 +1960,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-08-16",
-      "version": "2",
+      "version": "3",
       "id": "9Tw7UanCSV-P2N18whs_zA",
       "callerRef": {
         "provider": "BC",
@@ -2068,7 +2068,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2018-11-15",
-      "version": "2",
+      "version": "3",
       "id": "aZz_2DxLRWue9CnZSbhd_w",
       "callerRef": {
         "provider": "BC",
@@ -2176,7 +2176,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-02-14",
-      "version": "2",
+      "version": "3",
       "id": "cZ-c4PANRYSeXrDB_ArJyQ",
       "callerRef": {
         "provider": "BC",
@@ -2284,7 +2284,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-05-16",
-      "version": "2",
+      "version": "3",
       "id": "E0nuFegZQ86PTqQ6mIxxgA",
       "callerRef": {
         "provider": "BC",
@@ -2392,7 +2392,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-08-15",
-      "version": "2",
+      "version": "3",
       "id": "RTO7DmYjQbKR4TzaiBx3zg",
       "callerRef": {
         "provider": "BC",
@@ -2500,7 +2500,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2019-11-14",
-      "version": "2",
+      "version": "3",
       "id": "UYu3hXFuSRmQXiDOuzzimA",
       "callerRef": {
         "provider": "BC",
@@ -2608,7 +2608,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-01-14",
-      "version": "2",
+      "version": "3",
       "id": "q-xefcCiRaSWM6yuvMQATg",
       "callerRef": {
         "provider": "BC",
@@ -2716,7 +2716,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-06-15",
-      "version": "2",
+      "version": "3",
       "id": "9q1FwXOkTUWayamFikFSOg",
       "callerRef": {
         "provider": "BC",
@@ -2824,7 +2824,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-08-25",
-      "version": "2",
+      "version": "3",
       "id": "k9yJqn3MQY2HgphKWRBMVw",
       "callerRef": {
         "provider": "BC",
@@ -2928,7 +2928,7 @@
       "cashCurrency": null,
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-08-31",
-      "version": "2",
+      "version": "3",
       "id": "lMlB-K0FTbiJ_fbhy2LEow",
       "callerRef": {
         "provider": "BC",
@@ -3008,7 +3008,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2020-11-24",
-      "version": "2",
+      "version": "3",
       "id": "9ql2P0dcQUiJrpEAUe-y8Q",
       "callerRef": {
         "provider": "BC",
@@ -3116,7 +3116,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2021-02-23",
-      "version": "2",
+      "version": "3",
       "id": "Glg5pSvbT0yiEgjIN4Tuiw",
       "callerRef": {
         "provider": "BC",
@@ -3224,7 +3224,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2021-05-25",
-      "version": "2",
+      "version": "3",
       "id": "T5UvwNehS3yAxwSuP3RmVg",
       "callerRef": {
         "provider": "ALPHA",
@@ -3332,7 +3332,7 @@
       },
       "tradeCashRate": 1.000000,
       "tradeDate": "2021-08-24",
-      "version": "2",
+      "version": "3",
       "id": "Mis2ljnQT2C6huoZo2FjFg",
       "callerRef": {
         "provider": "ALPHA",

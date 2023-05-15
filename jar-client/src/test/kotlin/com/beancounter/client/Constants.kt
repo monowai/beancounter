@@ -34,5 +34,8 @@ class Constants {
             base = USD,
             owner = owner,
         )
+        const val pTradeCashRate = "tradeCashRate"
+        const val pTradePortfolioRate = "tradePortfolioRate"
+        const val pTradeBaseRate = "tradeBaseRate"
     }
 }

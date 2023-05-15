@@ -12,6 +12,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
+private const val pFromCode = "from.code"
+
+private const val pToCode = "to.code"
+
+private const val pRate = "rate"
+
 /**
  * FX Request response tests.
  */
@@ -90,16 +96,16 @@ internal class FxRateCalculatorTest {
         assertThat(fromJson.data).isNotNull
         assertThat(fromJson.data.rates).hasSize(3).containsKeys(nzdUsd, usdUsd, usdNzd)
         assertThat(fromJson.data.rates[usdUsd])
-            .hasFieldOrPropertyWithValue("from.code", "USD")
-            .hasFieldOrPropertyWithValue("to.code", "USD")
-            .hasFieldOrPropertyWithValue("rate", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(pFromCode, USD.code)
+            .hasFieldOrPropertyWithValue(pToCode, USD.code)
+            .hasFieldOrPropertyWithValue(pRate, BigDecimal.ONE)
         assertThat(fromJson.data.rates[nzdUsd])
-            .hasFieldOrPropertyWithValue("from.code", "NZD")
-            .hasFieldOrPropertyWithValue("to.code", "USD")
-            .hasFieldOrPropertyWithValue("rate", BigDecimal(crossRate)) // Inverts the rate as USD is involved
+            .hasFieldOrPropertyWithValue(pFromCode, NZD.code)
+            .hasFieldOrPropertyWithValue(pToCode, USD.code)
+            .hasFieldOrPropertyWithValue(pRate, BigDecimal(crossRate)) // Inverts the rate as USD is involved
         assertThat(fromJson.data.rates[usdNzd])
-            .hasFieldOrPropertyWithValue("from.code", "USD")
-            .hasFieldOrPropertyWithValue("to.code", "NZD")
-            .hasFieldOrPropertyWithValue("rate", BigDecimal(rawRate)) // Raw rate
+            .hasFieldOrPropertyWithValue(pFromCode, USD.code)
+            .hasFieldOrPropertyWithValue(pToCode, NZD.code)
+            .hasFieldOrPropertyWithValue(pRate, BigDecimal(rawRate)) // Raw rate
     }
 }

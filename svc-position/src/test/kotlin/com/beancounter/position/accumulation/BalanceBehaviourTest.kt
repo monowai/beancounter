@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
+/**
+ * Verify behaviour around balance behaviour assumptions.
+ */
 @SpringBootTest(classes = [Accumulator::class])
 class BalanceBehaviourTest {
     @Autowired

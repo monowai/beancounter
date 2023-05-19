@@ -37,6 +37,11 @@ class ContractHelper {
                 systemUserRepository
                     .findById(systemUser.email),
             ).thenReturn(Optional.of(systemUser))
+            Mockito.`when`(
+                systemUserRepository
+                    .findByAuth0(systemUser.email),
+            ).thenReturn(Optional.of(systemUser))
+
             return systemUser
         }
 

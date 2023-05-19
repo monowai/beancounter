@@ -29,7 +29,7 @@ class SystemUserService internal constructor(
 
     fun find(id: String?): SystemUser? {
         if (id == null) return null
-        return systemUserRepository.findById(id).orElse(null)
+        return systemUserRepository.findByAuth0(id).orElse(null)
     }
 
     fun register(jwt: Jwt): RegistrationResponse {

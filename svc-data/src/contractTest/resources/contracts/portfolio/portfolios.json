@@ -18,6 +18,7 @@
         "id": "blah@blah.com",
         "email": "blah@blah.com",
         "active": true,
+        "auth0": "blah@blah.com",
         "since": "2020-03-08"
       }
     },
@@ -39,6 +40,7 @@
         "id": "blah@blah.com",
         "email": "blah@blah.com",
         "active": true,
+        "auth0": "blah@blah.com",
         "since": "2020-03-08"
       }
     }

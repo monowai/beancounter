@@ -62,7 +62,7 @@ class Constants {
             id = id,
             email = id,
             true,
-            since = DateUtils().getDate("2020-06-03"),
+            since = DateUtils().getDate("2020-03-08"),
         )
     }
 }

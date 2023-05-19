@@ -8,18 +8,20 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import java.time.LocalDate
 import javax.persistence.Entity
 import javax.persistence.Id
+import javax.persistence.Table
 
 /**
  * User of this service that is Authenticated.  SystemUsers can own portfolios.
  */
 @Entity
+@Table
 data class SystemUser(
     @Id var id: String,
     val email: String = "testUser",
     var active: Boolean = true,
-    var auth0: String = "",
+    val auth0: String = id,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var since: LocalDate = LocalDate.now(),
+    val since: LocalDate = LocalDate.now(),
 )

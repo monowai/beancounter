@@ -17,6 +17,7 @@
       "owner": {
         "id": "blah@blah.com",
         "email": "blah@blah.com",
+        "auth0": "blah@blah.com",
         "active": true,
         "since": "2020-03-08"
       }

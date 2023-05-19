@@ -26,6 +26,7 @@
         "owner": {
           "id": "fc542db9-0bf5-4b37-a5e8-d2f2c1372f23",
           "email": "mike@nowhere.com",
+          "auth0": "blah@blah.com",
           "active": true,
           "since": "2020-03-24"
         }
@@ -98,6 +99,7 @@
         "owner": {
           "id": "fc542db9-0bf5-4b37-a5e8-d2f2c1372f23",
           "email": "mike@nowhere.com",
+          "auth0": "blah@blah.com",
           "active": true,
           "since": "2020-03-24"
         }

@@ -102,6 +102,7 @@
         "owner": {
           "id": "user",
           "email": "user@testing.com",
+          "auth0": "blah@blah.com",
           "active": true,
           "since": "2021-11-24"
         }
@@ -212,6 +213,7 @@
         "owner": {
           "id": "user",
           "email": "user@testing.com",
+          "auth0": "blah@blah.com",
           "active": true,
           "since": "2021-11-24"
         }
@@ -324,6 +326,7 @@
         "owner": {
           "id": "user",
           "email": "user@testing.com",
+          "auth0": "blah@blah.com",
           "active": true,
           "since": "2021-11-24"
         }

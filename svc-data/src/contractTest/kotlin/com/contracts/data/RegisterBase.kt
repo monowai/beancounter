@@ -26,6 +26,9 @@ class RegisterBase : ContractVerifierBase() {
         Mockito.`when`(systemUserRepository.findById(notAuthenticated))
             .thenReturn(Optional.ofNullable(null))
 
+        Mockito.`when`(systemUserRepository.findByAuth0(notAuthenticated))
+            .thenReturn(Optional.ofNullable(null))
+
         ContractHelper.defaultUser(
             systemUserRepository = systemUserRepository,
             noAuthConfig = noAuthConfig,

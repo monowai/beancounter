@@ -48,21 +48,21 @@ class Constants {
             category = "CASH",
         )
 
-        val PROP_PURCHASES = "purchases"
-        val PROP_COST_BASIS = "costBasis"
-        val PROP_SALES = "sales"
+        const val PROP_PURCHASES = "purchases"
+        const val PROP_COST_BASIS = "costBasis"
+        const val PROP_SALES = "sales"
 
-        val PROP_COST_VALUE = "costValue"
-        val PROP_SOLD = "sold"
+        const val PROP_COST_VALUE = "costValue"
+        const val PROP_SOLD = "sold"
 
-        val PROP_TOTAL = "total"
+        const val PROP_TOTAL = "total"
 
         private const val id = "blah@blah.com"
         val owner = SystemUser(
             id = id,
             email = id,
             true,
-            DateUtils().getDate("2020-06-03"),
+            since = DateUtils().getDate("2020-06-03"),
         )
     }
 }

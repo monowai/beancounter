@@ -104,7 +104,7 @@ class StubbedEvents {
         id = EMAIL,
         email = EMAIL,
         true,
-        DateUtils().getDate("2020-03-08"),
+        since = DateUtils().getDate("2020-03-08"),
     )
 
     @BeforeEach

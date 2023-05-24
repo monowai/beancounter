@@ -2,16 +2,12 @@
 
 Services are secured using OAuth2 and the exchange of JWT tokens.
 
-The purpose of this module is to make it easy to include a jar, wire up a bit of configuration and then get on with
-building your service
-
 This guide is focused on how to make the security mechanism work and how to test it.
 
 I wanted to be able to:
 
 *   Use `MockMvc` to test my Auth mechanism
 *   Have a simple configuration mechanism that enabled security to "just work"
-*   Provide support for both SCOPE and ROLE as returned by KeyCloak
 
 ## Key Classes
 
@@ -72,7 +68,7 @@ This is an example of how roles and scopes are returned in a JWT token
 "scope": "beancounter profile email roles"
 ```
 
-In BC, the entire API is secured using a scope as you can see in `ResourceServerConfig`
+In BC, the entire MVC API is secured using a scope as you can see in `ResourceServerConfig`
 
 ```java
     http.cors().and()
@@ -121,84 +117,33 @@ A controller can be simply secured with the `@PreAuthorize` annotation, or `@Sec
 }
 ```
 
-To unit test the above controller, you're going to do something like this:
+To unit test with Security
 
-```java
-```java
-@ExtendWith(SpringExtension.class)
-// This configuration is required as the jar-auth is not a SpringBoot application
-@ContextConfiguration(classes = {
-    MockServletContext.class,
-    TokenService.class,
-    NimbusJwtDecoder.class,
-    DefaultJWTProcessor.class,
-    ResourceServerConfig.class})
-@ImportAutoConfiguration({
-    WebMvcAutoConfiguration.class})
-@WebAppConfiguration
-public class AuthTest {
+```kotlin
+@SpringBootTest
+@AutoConfigureMockAuth
+class SomeServiceTest {
 
-  @Autowired
-  private WebApplicationContext context;
+    @Autowired
+    private lateinit var mockAuthConfig: MockAuthConfig
 
-  @Autowired
-  private TokenService tokenService;
-
-  private MockMvc mockMvc;
-
-  // Needed because mock testing will not call the configured JwtRoleConverter
-  private final AuthorityRoleConverter roleConverter = new AuthorityRoleConverter();
-
-  @BeforeEach
-  void setup() {
-    mockMvc = MockMvcBuilders
-        .webAppContextSetup(context)
-        // Enable the magic
-        .apply(springSecurity())
-        .build();
-  }
-
-  @Test
-  public void has_AuthorityToSayHelloButNotToSayWhat() throws Exception {
+    @Test
+    fun do_SomethingSecured() {
     // Simple class that contains a userId 
-    SystemUser user = SystemUser.builder()
-        .build();
-
-    Jwt token = TokenHelper.getUserToken(user);
-
-    mockMvc.perform(
-        get("/hello")
-            .with(jwt(token).authorities(roleConverter))
-            .contentType(MediaType.APPLICATION_JSON)
-    ).andExpect(status().isOk())
-        .andReturn();
-    mockMvc.perform(
-        get("/what")
-            .with(jwt(token).authorities(roleConverter))
-            .contentType(MediaType.APPLICATION_JSON)
-    ).andExpect(status().isForbidden())
-        .andReturn();
+    val systemUser = SystemUser(id = "test-user")
+    val token = mockAuthConfig.login(systemUser)
+    assertThat(token)
+        .isNotNull
+        .hasFieldOrPropertyWithValue("subject", systemUser.id)
+    // Create the entry in the BC test DB
+    systemUserService.register(token)
+    // someService.doSomeSecuredCall()
+    // ...
+    //    systemUserService.getActiveUser()    
 
   }
 }
 ```  
-
-All of the above code can be seen in the `AuthTest` class
-
-## KcConfig
-
-To test tokens in a service, you need to have KeyCloak running.
-
-Start by getting KeyCloak started and configured. KC config work is discussed in [bc-demo](../bc-demo/README.md) and is
-beyond the scope of this guide. Thanks to the magic of Docker and the way KC is packaged, most of the config work has
-been done for you, allowing you to focus on the internals of securing your app.
-
-You can start KC, in a configured to work with development defaults from the `bc-demo` folder with the following command
-
-```shell script
-cd ../bc-demo
-docker-compose start postgres keycloak
-```
 
 ### Further reading and  references
 

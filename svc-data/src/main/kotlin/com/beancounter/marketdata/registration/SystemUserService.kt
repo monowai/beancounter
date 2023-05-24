@@ -2,6 +2,7 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.auth.server.Registration
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
@@ -15,10 +16,10 @@ import javax.transaction.Transactional
  */
 @Service
 @Transactional
-class SystemUserService internal constructor(
+class SystemUserService(
     private val systemUserRepository: SystemUserRepository,
     private val tokenService: TokenService,
-) {
+) : Registration {
     fun save(systemUser: SystemUser): SystemUser {
         return systemUserRepository.save(systemUser)
     }
@@ -32,7 +33,7 @@ class SystemUserService internal constructor(
         return systemUserRepository.findByAuth0(id).orElse(null)
     }
 
-    fun register(jwt: Jwt): RegistrationResponse {
+    override fun register(jwt: Jwt): RegistrationResponse {
         // ToDo: Find by email
         var result = find(jwt.subject)
         if (result == null) {

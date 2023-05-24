@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import com.beancounter.common.utils.KeyGenUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -16,7 +17,7 @@ import javax.persistence.Table
 @Entity
 @Table
 data class SystemUser(
-    @Id var id: String,
+    @Id var id: String = KeyGenUtils().id,
     val email: String = "testUser",
     var active: Boolean = true,
     val auth0: String = id,

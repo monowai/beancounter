@@ -1,7 +1,9 @@
 package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
+import com.beancounter.auth.server.Registration
 import com.beancounter.common.model.SystemUser
+import org.assertj.core.api.Assertions
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -53,11 +55,25 @@ class MockAuthConfig {
         return tokenUtils.getUserToken(systemUser)
     }
 
-    fun mockLogin(email: String = "test@nowhere.com") {
-        val jwt = getUserToken(SystemUser(email, email))
-        Mockito.`when`(jwtDecoder.decode(email)).thenReturn(jwt)
+    fun login(email: String = "test@nowhere.com"): Jwt {
+        return login(SystemUser(email, email), null)
+    }
+
+    /**
+     * Log the user in, optionally registering them if an ISystemUser is supplied
+     */
+    fun login(systemUser: SystemUser, systemUserService: Registration?): Jwt {
+        val jwt = getUserToken(systemUser)
+        Mockito.`when`(jwtDecoder.decode(systemUser.email)).thenReturn(jwt)
         SecurityContextHolder.getContext().authentication =
-            JwtAuthenticationToken(jwtDecoder.decode(email))
+            JwtAuthenticationToken(jwtDecoder.decode(systemUser.email))
+
+        val token = getUserToken(systemUser)
+        Assertions.assertThat(token)
+            .isNotNull
+            .hasFieldOrPropertyWithValue("subject", systemUser.id)
+        systemUserService?.register(token)
+        return token
     }
 
     fun resetAuth() {

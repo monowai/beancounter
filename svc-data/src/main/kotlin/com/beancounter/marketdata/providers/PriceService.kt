@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
-import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.event.EventWriter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
@@ -22,7 +22,6 @@ import javax.transaction.Transactional
 @Transactional
 class PriceService internal constructor(
     private val marketDataRepo: MarketDataRepo,
-    private val keyGenUtils: KeyGenUtils,
 ) {
     private lateinit var eventWriter: EventWriter
     private val cashUtils = CashUtils()
@@ -32,8 +31,29 @@ class PriceService internal constructor(
         this.eventWriter = eventWriter
     }
 
-    fun getMarketData(asset: Asset, date: LocalDate?): Optional<MarketData> {
-        return marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)
+    fun getMarketData(asset: Asset, date: LocalDate, priceRequest: PriceRequest? = null): Optional<MarketData> {
+        val response = marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)
+        if (response.isPresent) return response
+        return handleOffMarketPrice(asset, priceRequest, date, response)
+    }
+
+    private fun handleOffMarketPrice(
+        asset: Asset,
+        priceRequest: PriceRequest?,
+        date: LocalDate,
+        response: Optional<MarketData>,
+    ): Optional<MarketData> {
+        if (asset.market.code == "OFFM" && priceRequest != null) {
+            val price = marketDataRepo.save(
+                MarketData(
+                    asset = asset,
+                    close = priceRequest.closePrice,
+                    priceDate = date,
+                ),
+            )
+            return Optional.of(price)
+        }
+        return response
     }
 
     @Async("priceExecutor")
@@ -48,13 +68,12 @@ class PriceService internal constructor(
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
             if (!cashUtils.isCash(marketData.asset)) {
-                val existing = getMarketData(marketData.asset, marketData.priceDate)
+                val existing = getMarketData(marketData.asset, marketData.priceDate!!, null)
                 if (existing.isEmpty) {
                     // Create
-                    marketData.id = keyGenUtils.id
                     createSet.add(marketData)
                 }
-                if (writeEvent(marketData)) {
+                if (isCorporateEvent(marketData)) {
                     eventWriter.write(marketData)
                 }
             }
@@ -66,7 +85,7 @@ class PriceService internal constructor(
         }
     }
 
-    private fun writeEvent(marketData: MarketData): Boolean {
+    private fun isCorporateEvent(marketData: MarketData): Boolean {
         return marketData.asset.isKnown && (marketData.isDividend() || marketData.isSplit())
     }
 

@@ -24,7 +24,7 @@ class AddBehaviourTest {
     fun isRealEstateAdded() {
         val trn = Trn(
             trnType = TrnType.ADD,
-            asset = Asset(AssetInput.toRealEstate(Constants.NZD, "My House"), Market("RE")),
+            asset = Asset(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House"), Market("RE")),
             cashCurrency = Constants.NZD,
             price = BigDecimal("1000000.00"),
             quantity = BigDecimal.ONE,

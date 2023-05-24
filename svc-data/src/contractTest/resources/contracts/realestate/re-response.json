@@ -20,8 +20,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "DEFAULT",
-          "multiplier": 1.0,
-          "type": "Internal"
+          "multiplier": 1.0
         },
         "priceSymbol": "NZD",
         "assetCategory": {
@@ -100,8 +99,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "DEFAULT",
-          "multiplier": 1.0,
-          "type": "Internal"
+          "multiplier": 1.0
         },
         "priceSymbol": "NZD",
         "assetCategory": {
@@ -165,10 +163,10 @@
       "trnType": "BALANCE",
       "asset": {
         "id": "USD.RE",
-        "code": "USD.RE",
+        "code": "blah@blah.com.USD.RE",
         "name": "NY Apartment",
         "market": {
-          "code": "PRIVATE",
+          "code": "OFFM",
           "currencyId": "USD",
           "timezoneId": "UTC",
           "timezone": "UTC",
@@ -180,8 +178,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "DEFAULT",
-          "multiplier": 1.0,
-          "type": "Private"
+          "multiplier": 1.0
         },
         "priceSymbol": "USD",
         "assetCategory": {
@@ -245,10 +242,10 @@
       "trnType": "BALANCE",
       "asset": {
         "id": "USD.RE",
-        "code": "USD.RE",
+        "code": "blah@blah.com.USD.RE",
         "name": "NY Apartment",
         "market": {
-          "code": "PRIVATE",
+          "code": "OFFM",
           "currencyId": "USD",
           "timezoneId": "UTC",
           "timezone": "UTC",
@@ -260,8 +257,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "DEFAULT",
-          "multiplier": 1.0,
-          "type": "Private"
+          "multiplier": 1.0
         },
         "priceSymbol": "USD",
         "assetCategory": {
@@ -325,10 +321,10 @@
       "trnType": "BALANCE",
       "asset": {
         "id": "USD.RE",
-        "code": "USD.RE",
+        "code": "blah@blah.com.USD.RE",
         "name": "NY Apartment",
         "market": {
-          "code": "PRIVATE",
+          "code": "OFFM",
           "currencyId": "USD",
           "timezoneId": "UTC",
           "timezone": "UTC",
@@ -340,8 +336,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "DEFAULT",
-          "multiplier": 1.0,
-          "type": "Private"
+          "multiplier": 1.0
         },
         "priceSymbol": "USD",
         "assetCategory": {

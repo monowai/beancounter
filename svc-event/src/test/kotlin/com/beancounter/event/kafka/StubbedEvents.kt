@@ -109,7 +109,7 @@ class StubbedEvents {
 
     @BeforeEach
     fun mockLogin() {
-        mockAuthConfig.mockLogin()
+        mockAuthConfig.login()
     }
 
     var portfolio: Portfolio = Portfolio(

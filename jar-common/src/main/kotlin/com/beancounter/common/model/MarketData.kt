@@ -1,6 +1,7 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.KeyGenUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -36,7 +37,6 @@ data class MarketData(
     var open: BigDecimal? = null,
 ) {
     constructor(
-        id: String?,
         asset: Asset,
         source: String,
         priceDate: LocalDate?,
@@ -51,7 +51,6 @@ data class MarketData(
         dividend: BigDecimal = BigDecimal.ZERO,
         split: BigDecimal = BigDecimal.ONE,
     ) : this(asset, priceDate, close, open) {
-        this.id = id
         this.source = source
         this.priceDate = priceDate
         this.low = low
@@ -70,7 +69,7 @@ data class MarketData(
 
     @Id
     @JsonIgnore
-    var id: String? = null
+    val id: String = KeyGenUtils().id
 
     var source: String = "ALPHA"
 

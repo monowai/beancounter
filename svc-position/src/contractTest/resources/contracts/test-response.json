@@ -35,8 +35,7 @@
               "code": "USD",
               "name": "Dollar",
               "symbol": "$"
-            },
-            "type": "Internal"
+            }
           },
           "priceSymbol": "USD",
           "assetCategory": {

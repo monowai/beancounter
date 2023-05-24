@@ -20,8 +20,7 @@ class Constants {
         val USD = Currency("USD")
         val NASDAQ = Market("NASDAQ")
         val CUSTOM = Market("CUSTOM") // Echo enricher to support mocking scenarios
-        val CASH = Market("CASH", type = "Internal")
-        val RE = Market("PRIVATE", type = "Internal")
+        val CASH = Market("CASH")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
 
@@ -41,7 +40,7 @@ class Constants {
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
         val apartment = Asset(
-            input = AssetInput.toRealEstate(NZD, "NZ Apartment"),
+            input = AssetInput.toRealEstate(NZD, "NZA", "NZ Apartment"),
             market = Market("PRIVATE"),
         )
 

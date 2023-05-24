@@ -38,7 +38,7 @@ internal class CashServicesTest {
             price = BigDecimal.ONE,
         )
 
-        Mockito.`when`(assetService.find(CASH.code, NZD.code))
+        Mockito.`when`(assetService.findOrCreate(CASH.code, NZD.code))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
@@ -57,7 +57,7 @@ internal class CashServicesTest {
             price = BigDecimal.ONE,
         )
 
-        Mockito.`when`(assetService.find("CASH", NZD.code))
+        Mockito.`when`(assetService.findOrCreate("CASH", NZD.code))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)

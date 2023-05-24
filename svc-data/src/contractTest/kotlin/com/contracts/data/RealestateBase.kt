@@ -19,6 +19,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.OffMarketEnricher
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -151,11 +152,14 @@ class RealestateBase {
     }
 
     fun reTrnFlow() {
-        val houseAsset = asset(name = "NY Apartment")
+        val houseAsset = asset(code = assetCode, name = "NY Apartment")
         assertThat(houseAsset)
             .isNotNull
             .extracting("id", "code")
-            .containsExactly(assetCode, assetCode)
+            .containsExactly(
+                assetCode,
+                OffMarketEnricher.parseCode(ContractHelper.getSystemUser(), assetCode),
+            )
 
         Mockito.`when`(keyGenUtils.id).thenReturn("1")
         val buy = save(
@@ -218,14 +222,14 @@ class RealestateBase {
             .containsExactly(tradeAmount, quantity, BigDecimal.ZERO)
     }
 
-    private fun asset(currency: Currency = Constants.USD, name: String): Asset? {
-        val asset = AssetInput.toRealEstate(currency, name)
+    private fun asset(currency: Currency = Constants.USD, code: String, name: String): Asset? {
+        val assetInput = AssetInput.toRealEstate(currency, code, name)
         Mockito.`when`(keyGenUtils.id).thenReturn(assetCode)
         return assetService.handle(
             AssetRequest(
-                mapOf(Pair(asset.code, asset)),
+                mapOf(Pair(assetInput.code, assetInput)),
             ),
-        ).data[asset.code]
+        ).data[assetInput.code]
     }
 
     private fun portfolio(code: String = "RE-TEST"): Portfolio {

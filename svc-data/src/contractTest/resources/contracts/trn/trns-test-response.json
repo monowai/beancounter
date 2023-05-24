@@ -21,7 +21,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -88,7 +88,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -129,7 +129,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -196,7 +196,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -237,7 +237,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -304,7 +304,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -345,7 +345,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -412,7 +412,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -453,7 +453,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -520,7 +520,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -561,7 +561,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -628,7 +628,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -669,7 +669,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -736,7 +736,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -777,7 +777,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -853,7 +853,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -920,7 +920,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -961,7 +961,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1028,7 +1028,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1069,7 +1069,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1136,7 +1136,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1177,7 +1177,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1244,7 +1244,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1285,7 +1285,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1352,7 +1352,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1393,7 +1393,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1460,7 +1460,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1501,7 +1501,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1568,7 +1568,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1609,7 +1609,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1676,7 +1676,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1717,7 +1717,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1784,7 +1784,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1825,7 +1825,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -1892,7 +1892,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -1933,7 +1933,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2000,7 +2000,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2041,7 +2041,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2108,7 +2108,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2149,7 +2149,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2216,7 +2216,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2257,7 +2257,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2324,7 +2324,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2365,7 +2365,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2432,7 +2432,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2473,7 +2473,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2540,7 +2540,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2581,7 +2581,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2648,7 +2648,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2689,7 +2689,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2756,7 +2756,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2797,7 +2797,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2864,7 +2864,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -2905,7 +2905,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -2981,7 +2981,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -3048,7 +3048,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -3089,7 +3089,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -3156,7 +3156,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -3197,7 +3197,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -3264,7 +3264,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",
@@ -3305,7 +3305,7 @@
             "FIGI": "US"
           },
           "multiplier": 1.0,
-          "type": "Public",
+
           "timezone": "US/Eastern",
           "currency": {
             "code": "USD",
@@ -3372,7 +3372,7 @@
           "aliases": {},
           "enricher": "ECHO",
           "multiplier": 1.0,
-          "type": "Internal",
+
           "timezone": "UTC",
           "currency": {
             "code": "USD",

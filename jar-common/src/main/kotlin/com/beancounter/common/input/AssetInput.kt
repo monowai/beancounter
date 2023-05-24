@@ -1,6 +1,7 @@
 package com.beancounter.common.input
 
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
 import com.fasterxml.jackson.annotation.JsonIgnore
 
@@ -17,7 +18,7 @@ data class AssetInput(
 ) {
     companion object {
         @JvmStatic
-        val realEstate = "RE"
+        val offMarket = "OFFM"
 
         @JvmStatic
         val cashAsset = "CASH"
@@ -34,13 +35,13 @@ data class AssetInput(
         }
 
         @JvmStatic
-        fun toRealEstate(currency: Currency, name: String): AssetInput {
+        fun toRealEstate(currency: Currency, code: String, name: String): AssetInput {
             return AssetInput(
-                "PRIVATE",
-                code = currency.code + ".$realEstate",
+                "OFFM",
+                code = code.uppercase(),
                 name = name,
                 currency = currency.code,
-                category = realEstate,
+                category = AssetCategory.RE,
             )
         }
     }

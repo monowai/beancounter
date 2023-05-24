@@ -38,7 +38,7 @@ class TokenServiceTest {
 
     @Test
     fun validSecurityContextIsAuthorized() {
-        mockAuthConfig.mockLogin("anything here will do")
+        mockAuthConfig.login("anything here will do")
         assertThat(tokenService.bearerToken).isNotNull
     }
 }

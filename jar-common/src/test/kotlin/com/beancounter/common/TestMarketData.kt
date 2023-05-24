@@ -22,17 +22,16 @@ internal class TestMarketData {
     fun is_MarketDataSerializing() {
         val marketDataCollection: MutableCollection<MarketData> = ArrayList()
         val marketData = MarketData(
-            null,
-            getJsonAsset("Market", "Asset"),
-            "TEST",
-            dateUtils.getDate("2012-10-01"),
-            BigDecimal.ONE, // Open
-            BigDecimal.TEN, // Close
-            BigDecimal.ONE, // Low
-            BigDecimal.TEN, // High
-            BigDecimal("9.56"), // Previous CLOSE
-            BigDecimal("1.56"), // Change
-            BigDecimal("0.04"), // change %
+            asset = getJsonAsset("Market", "Asset"),
+            source = "TEST",
+            priceDate = dateUtils.getDate("2012-10-01"),
+            open = BigDecimal.ONE,
+            close = BigDecimal.TEN,
+            low = BigDecimal.ONE,
+            high = BigDecimal.TEN,
+            previousClose = BigDecimal("9.56"),
+            change = BigDecimal("1.56"), // Change
+            changePercent = BigDecimal("0.04"), // change %
             10,
         )
         marketDataCollection.add(marketData)

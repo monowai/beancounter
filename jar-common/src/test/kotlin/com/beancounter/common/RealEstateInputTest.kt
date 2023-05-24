@@ -3,10 +3,11 @@ package com.beancounter.common
 import com.beancounter.common.TestMarkets.Companion.NZD
 import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.AssetCategory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-private const val PRIVATE = "PRIVATE"
+private const val OFF_MARKET = "OFFM"
 
 /**
  * Verify we can create RealEstate assets.
@@ -14,18 +15,18 @@ private const val PRIVATE = "PRIVATE"
 class RealEstateInputTest {
     @Test
     fun is_RealEstateDefaulting() {
-        val apartment = AssetInput.toRealEstate(NZD, "Apartment")
-        val house = AssetInput.toRealEstate(USD, "House")
+        val apartment = AssetInput.toRealEstate(NZD, "APT", "Apartment")
+        val house = AssetInput.toRealEstate(USD, "HOUSE", "House")
         assertThat(apartment)
-            .hasFieldOrPropertyWithValue("market", PRIVATE)
-            .hasFieldOrPropertyWithValue("category", AssetInput.realEstate)
+            .hasFieldOrPropertyWithValue("market", OFF_MARKET)
+            .hasFieldOrPropertyWithValue("category", AssetCategory.RE)
             .hasFieldOrPropertyWithValue("name", "Apartment")
-            .hasFieldOrPropertyWithValue("code", "${NZD.code}.${AssetInput.realEstate}")
+            .hasFieldOrPropertyWithValue("code", apartment.code)
 
         assertThat(house)
-            .hasFieldOrPropertyWithValue("market", PRIVATE)
-            .hasFieldOrPropertyWithValue("category", AssetInput.realEstate)
+            .hasFieldOrPropertyWithValue("market", OFF_MARKET)
+            .hasFieldOrPropertyWithValue("category", AssetCategory.RE)
             .hasFieldOrPropertyWithValue("name", "House")
-            .hasFieldOrPropertyWithValue("code", "${USD.code}.${AssetInput.realEstate}")
+            .hasFieldOrPropertyWithValue("code", house.code)
     }
 }

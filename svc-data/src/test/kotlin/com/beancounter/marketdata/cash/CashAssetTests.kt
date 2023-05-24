@@ -46,7 +46,7 @@ class CashAssetTests {
 
     @Test
     fun is_UsdCashBalanceFound() {
-        val found = assetService.find(
+        val found = assetService.findOrCreate(
             cash,
             USD.code,
         )

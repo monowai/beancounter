@@ -6,11 +6,17 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.today
 import com.fasterxml.jackson.annotation.JsonIgnore
+import java.math.BigDecimal
 
 /**
  * Arguments by which prices on a date are located.
  */
-data class PriceRequest(val date: String = today, val assets: Collection<PriceAsset>, val currentMode: Boolean = true) {
+data class PriceRequest(
+    val date: String = today,
+    val assets: Collection<PriceAsset>,
+    val currentMode: Boolean = true,
+    val closePrice: BigDecimal = BigDecimal.ZERO,
+) {
     @JsonIgnore
     var resolvedAsset: Asset? = null
 

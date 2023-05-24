@@ -2,6 +2,7 @@ package com.beancounter.marketdata.realestate
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.server.Registration
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
@@ -11,6 +12,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -67,6 +69,9 @@ class RealEstateTrnTests {
     private lateinit var mockMvc: MockMvc
 
     @Autowired
+    private lateinit var systemUserService: Registration
+
+    @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
     val tenK = BigDecimal("10000.00")
 
@@ -85,7 +90,8 @@ class RealEstateTrnTests {
 
     @Test
     fun is_BuyHouse() {
-        val house = AssetInput.toRealEstate(USD, "NY Apartment")
+        mockAuthConfig.login(SystemUser(), systemUserService)
+        val house = AssetInput.toRealEstate(USD, "USAPT", "NY Apartment")
         val houseAsset = assetService.handle(
             AssetRequest(
                 mapOf(Pair(house.code, house)),

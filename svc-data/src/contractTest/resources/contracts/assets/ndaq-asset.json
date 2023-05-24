@@ -19,8 +19,7 @@
       },
       "priceTime": "19:00",
       "daysToSubtract": 1,
-      "multiplier": 1.0,
-      "type": "Public"
+      "multiplier": 1.0
     },
     "priceSymbol": "NDAQ",
     "assetCategory": {

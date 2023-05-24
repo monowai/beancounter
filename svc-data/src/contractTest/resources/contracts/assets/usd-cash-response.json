@@ -16,7 +16,6 @@
         "daysToSubtract": 1,
         "enricher": "ECHO",
         "multiplier": 1.0,
-        "type": "Internal",
         "timezone": "UTC",
         "currency": {
           "code": "USD",

@@ -66,7 +66,7 @@ class RealEstateTest {
 
     @BeforeEach
     fun mockLogin() {
-        mockAuthConfig.mockLogin()
+        mockAuthConfig.login()
     }
 
     @Test

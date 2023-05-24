@@ -41,7 +41,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.find(cash, cashCurrency)
+            return assetService.findOrCreate(cash, cashCurrency)
         }
         return assetService.find(cashAssetId)
     }

@@ -65,7 +65,7 @@ class TestPortfolioCommands {
 
     @BeforeEach
     fun autoLogin() {
-        mockAuthConfig.mockLogin()
+        mockAuthConfig.login()
     }
 
     @Test

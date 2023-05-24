@@ -80,7 +80,7 @@ class TestUserCommands {
             .thenReturn(password)
         val loginRequest = LoginService.LoginRequest(client_id = client, username = userId, password = password)
         val systemUser = SystemUser(userId, EMAIL)
-        mockAuthConfig.mockLogin(EMAIL)
+        mockAuthConfig.login(EMAIL)
         val jwt = tokenUtils.getUserToken(systemUser)
         val authResponse =
             OAuth2Response(userId, scope = "beancounter", expiry = 0L, refreshToken = "", type = "password")

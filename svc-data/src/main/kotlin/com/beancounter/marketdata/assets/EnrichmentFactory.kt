@@ -20,10 +20,15 @@ class EnrichmentFactory(val defaultEnricher: DefaultEnricher) {
     lateinit var defEnricher: String
 
     @Autowired
-    fun setEnrichers(figiEnricher: AssetEnricher, alphaEnricher: AssetEnricher) {
+    fun setEnrichers(
+        figiEnricher: AssetEnricher,
+        alphaEnricher: AssetEnricher,
+        offMarketEnricher: OffMarketEnricher,
+    ) {
         register(defaultEnricher)
         register(alphaEnricher)
         register(figiEnricher)
+        register(offMarketEnricher)
         log.info("Registered ${enrichers.keys.size} Asset Enrichers.  Default: $defEnricher")
     }
 

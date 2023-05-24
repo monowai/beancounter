@@ -18,8 +18,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "ECHO",
-          "multiplier": 1.0,
-          "type": "Internal"
+          "multiplier": 1.0
         },
         "priceSymbol": "USD",
         "assetCategory": {
@@ -60,8 +59,7 @@
           "priceTime": "19:00",
           "daysToSubtract": 1,
           "enricher": "ECHO",
-          "multiplier": 1.0,
-          "type": "Internal"
+          "multiplier": 1.0
         },
         "priceSymbol": "NZD",
         "assetCategory": {
@@ -104,8 +102,7 @@
           },
           "priceTime": "19:00",
           "daysToSubtract": 1,
-          "multiplier": 1.0,
-          "type": "Public"
+          "multiplier": 1.0
         },
         "status": "Active",
         "version": "1"

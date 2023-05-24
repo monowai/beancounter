@@ -48,8 +48,8 @@ class BcRowAdapterTest {
             .thenReturn(nzdCashBalance)
         Mockito.`when`(ais.resolveAsset(CASH.code, USD.code, ""))
             .thenReturn(usdCashBalance)
-        Mockito.`when`(assetService.find(CASH.code, NZD.code)).thenReturn(nzdCashBalance)
-        Mockito.`when`(assetService.find(CASH.code, USD.code)).thenReturn(usdCashBalance)
+        Mockito.`when`(assetService.findOrCreate(CASH.code, NZD.code)).thenReturn(nzdCashBalance)
+        Mockito.`when`(assetService.findOrCreate(CASH.code, USD.code)).thenReturn(usdCashBalance)
         Mockito.`when`(assetService.find(USD.code)).thenReturn(usdCashBalance)
         Mockito.`when`(assetService.find(NZD.code)).thenReturn(nzdCashBalance)
     }

@@ -111,7 +111,7 @@ class FigiAssetApiTest {
                 propName,
                 "FINANCIAL SELECT SECTOR SPDR",
             ) // Unknown to BC, but is known to FIGI
-            .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol")
+            .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol", "systemUser")
             .isNotNull
     }
 

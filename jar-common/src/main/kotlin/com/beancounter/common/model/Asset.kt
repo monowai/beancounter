@@ -3,9 +3,9 @@ package com.beancounter.common.model
 import com.beancounter.common.input.AssetInput
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import java.util.Locale
 import javax.persistence.Entity
 import javax.persistence.Id
+import javax.persistence.ManyToOne
 import javax.persistence.Table
 import javax.persistence.Transient
 import javax.persistence.UniqueConstraint
@@ -27,12 +27,10 @@ data class Asset(
     val priceSymbol: String? = null,
     @JsonIgnore var category: String = "Equity",
     @Transient var assetCategory: AssetCategory = AssetCategory(category, category),
+    @ManyToOne val systemUser: SystemUser? = null,
     val status: Status = Status.Active,
     var version: String = "1",
 ) {
-    init {
-        code = code.uppercase(Locale.getDefault())
-    }
 
     constructor(input: AssetInput, market: Market, status: Status = Status.Active) : this(
         id = input.code,

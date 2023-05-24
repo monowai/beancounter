@@ -34,7 +34,7 @@ class AssetController @Autowired internal constructor(
 ) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse =
-        AssetResponse(assetService.find(market, code))
+        AssetResponse(assetService.findOrCreate(market, code))
 
     @GetMapping(value = ["/{assetId}"])
     fun getAsset(@PathVariable assetId: String): AssetResponse =

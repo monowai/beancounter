@@ -10,8 +10,7 @@ import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.AssertionsForClassTypes
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,9 +31,9 @@ class MarketDataPriceProviderTests @Autowired constructor(
 ) {
     @Test
     fun is_DefaultMarketProvidersSet() {
-        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(WtdService.ID)).isNotNull
-        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
-        AssertionsForClassTypes.assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
+        assertThat(mdFactory.getMarketDataProvider(WtdService.ID)).isNotNull
+        assertThat(mdFactory.getMarketDataProvider(AlphaPriceService.ID)).isNotNull
+        assertThat(mdFactory.getMarketDataProvider(CashProviderService.ID)).isNotNull
         val mdp = mdFactory.getMarketDataProvider(
             Market("NonExistent", "ABC"),
         )
@@ -50,13 +49,13 @@ class MarketDataPriceProviderTests @Autowired constructor(
         assertThat(asxMarket!!.getId()).isEqualTo(AlphaPriceService.ID)
         val gne = getAsset(marketService.getMarket(NZX.code), "GNE")
         val nzxMarket = mdFactory.getMarketDataProvider(gne.market)
-        AssertionsForClassTypes.assertThat(nzxMarket!!.getId()).isEqualTo(WtdService.ID)
-        AssertionsForClassTypes.assertThat(nzxMarket.isMarketSupported(gne.market)).isTrue
-        AssertionsForClassTypes.assertThat(nzxMarket.isMarketSupported(amp.market)).isFalse
+        assertThat(nzxMarket!!.getId()).isEqualTo(WtdService.ID)
+        assertThat(nzxMarket.isMarketSupported(gne.market)).isTrue
+        assertThat(nzxMarket.isMarketSupported(amp.market)).isFalse
     }
 
     @Test
     fun is_InvalidMarketException() {
-        Assertions.assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
+        assertThrows(BusinessException::class.java) { marketService.getMarket("illegal") }
     }
 }

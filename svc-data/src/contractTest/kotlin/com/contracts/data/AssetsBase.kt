@@ -28,7 +28,7 @@ class AssetsBase : ContractVerifierBase() {
                     AssetResponse::class.java,
                 ).data,
             )
-        Mockito.`when`(assetService.find("NASDAQ", "NDAQ"))
+        Mockito.`when`(assetService.findOrCreate("NASDAQ", "NDAQ"))
             .thenReturn(
                 BcJson().objectMapper.readValue(
                     ClassPathResource("contracts/assets/ndaq-asset.json").file,

@@ -8,6 +8,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.registration.SystemUserService
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.Async
@@ -34,6 +35,7 @@ class AssetService internal constructor(
     private val marketService: MarketService,
     private val assetHydrationService: AssetHydrationService,
     private val keyGenUtils: KeyGenUtils,
+    private val systemUserService: SystemUserService,
 ) : com.beancounter.client.AssetService {
 
     fun enrich(asset: Asset): Asset {
@@ -85,7 +87,7 @@ class AssetService internal constructor(
         marketDataService.backFill(find(assetId))
     }
 
-    fun find(marketCode: String, code: String): Asset {
+    fun findOrCreate(marketCode: String, code: String): Asset {
         var asset: Asset? = findLocally(marketCode, code)
         if (asset == null) {
             val market = marketService.getMarket(marketCode)
@@ -113,9 +115,16 @@ class AssetService internal constructor(
     fun findLocally(marketCode: String, code: String): Asset? {
         // Search Local
         log.trace("Search for {}/{}", marketCode, code)
+        val market = marketService.getMarket(marketCode.uppercase())
+        val findCode = if (market.code == OffMarketEnricher.id) {
+            OffMarketEnricher.parseCode(systemUserService.getActiveUser()!!, code)
+        } else {
+            code.uppercase(Locale.getDefault())
+        }
+
         val optionalAsset = assetRepository.findByMarketCodeAndCode(
             marketCode.uppercase(Locale.getDefault()),
-            code.uppercase(Locale.getDefault()),
+            findCode,
         )
         return optionalAsset.map { asset: Asset ->
             assetHydrationService.hydrateAsset(asset)

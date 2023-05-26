@@ -54,6 +54,7 @@ class RealEstateAssetTest {
         currency = NZD,
         code = "HAKL",
         name = "My House In Auckland",
+        owner = "test-user",
     )
 
     private val dateUtils = DateUtils()
@@ -82,11 +83,11 @@ class RealEstateAssetTest {
             .hasFieldOrPropertyWithValue("systemUser", sysUser)
 
         // Make sure we don't create the same asset for the same user twice
-        assertThat(assetService.findOrCreate(reInput.market, reInput.code))
+        assertThat(assetService.findOrCreate(reInput))
             .isEqualTo(reAsset)
 
         // Simple find
-        assertThat(assetService.findLocally(reInput.market, reInput.code))
+        assertThat(assetService.findLocally(reInput))
             .isEqualTo(reAsset)
 
         // Price Flow

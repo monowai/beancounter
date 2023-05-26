@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn.cash
 
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.TrnType
@@ -41,7 +42,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.findOrCreate(cash, cashCurrency)
+            return assetService.findOrCreate(AssetInput(cash, cashCurrency))
         }
         return assetService.find(cashAssetId)
     }

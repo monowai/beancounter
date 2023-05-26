@@ -13,7 +13,7 @@ import javax.persistence.Embeddable
  */
 @Embeddable
 data class CallerRef(
-    var provider: String = "",
+    var provider: String = "", // The Owner of the transaction
     var batch: String = "",
     var callerId: String = "",
 ) : Serializable {

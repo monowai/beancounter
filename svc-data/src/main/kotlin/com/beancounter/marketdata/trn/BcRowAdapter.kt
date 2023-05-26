@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.RowAdapter
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
@@ -28,7 +29,7 @@ class BcRowAdapter(
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
         val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[colDef()[Columns.Date]!!].trim())
         if (tradeDate.isAfter(LocalDate.now())) {
-            throw BusinessException("Cannot accept forward dated trade dates $tradeDate")
+            throw BusinessException("Rejecting the forward dated trade date of $tradeDate")
         }
 
         val trnType = TrnType.valueOf(trustedTrnImportRequest.row[colDef()[Columns.Type]!!].trim())
@@ -36,9 +37,12 @@ class BcRowAdapter(
         val assetCode = trustedTrnImportRequest.row[colDef()[Columns.Code]!!].trim()
 
         val asset = assetIngestService.resolveAsset(
-            marketCode,
-            assetCode = assetCode,
-            name = trustedTrnImportRequest.row[colDef()[Columns.Name]!!].trim(),
+            AssetInput(
+                market = marketCode,
+                code = assetCode,
+                name = trustedTrnImportRequest.row[colDef()[Columns.Name]!!].trim(),
+                owner = trustedTrnImportRequest.row[0].trim(),
+            ),
         )
         val cashCurrency = trustedTrnImportRequest.row[colDef()[Columns.CashCurrency]!!].trim()
         val cashAccount = trustedTrnImportRequest.row[colDef()[Columns.CashAccount]!!].trim()
@@ -54,9 +58,9 @@ class BcRowAdapter(
 
         return TrnInput(
             callerRef = CallerRef(
-                trustedTrnImportRequest.row[0],
-                trustedTrnImportRequest.row[1],
-                trustedTrnImportRequest.row[2],
+                trustedTrnImportRequest.row[0].trim(), // SystemUserId
+                trustedTrnImportRequest.row[1].trim(),
+                trustedTrnImportRequest.row[2].trim(),
             ),
             assetId = asset.id,
             trnType = trnType,

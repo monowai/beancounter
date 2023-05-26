@@ -1,14 +1,16 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
+import com.beancounter.marketdata.registration.SystemUserService
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -26,11 +28,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/prices")
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
-class MarketDataController @Autowired internal constructor(
+class PriceController(
     private val marketDataService: MarketDataService,
     private val assetService: AssetService,
     private val priceRefresh: PriceRefresh,
     private val eventService: AlphaEventService,
+    private val systemUserService: SystemUserService,
+    private val priceService: PriceService,
 ) {
 
     /**
@@ -45,7 +49,7 @@ class MarketDataController @Autowired internal constructor(
         @PathVariable("marketCode") marketCode: String,
         @PathVariable("assetCode") assetCode: String,
     ): PriceResponse {
-        val asset = assetService.findLocally(marketCode, assetCode)
+        val asset = assetService.findLocally(AssetInput(marketCode, assetCode))
             ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
         return marketDataService.getPriceResponse(
             PriceRequest.of(
@@ -54,6 +58,16 @@ class MarketDataController @Autowired internal constructor(
                     code = asset.code,
                 ),
             ),
+        )
+    }
+
+    @GetMapping(value = ["/{assetId}"])
+    fun getPrice(
+        @PathVariable("assetId") id: String,
+    ): PriceResponse {
+        val asset = assetService.find(id)
+        return marketDataService.getPriceResponse(
+            PriceRequest.of(asset),
         )
     }
 
@@ -70,13 +84,38 @@ class MarketDataController @Autowired internal constructor(
         return eventService.getEvents(assetService.find(assetId))
     }
 
+    @PostMapping("/write")
+    fun writeOffMarketPrice(@RequestBody offMarketPriceRequest: OffMarketPriceRequest): PriceResponse {
+        val asset = assetService.find(offMarketPriceRequest.assetId)
+        return PriceResponse(
+            listOf(
+                priceService.getMarketData(
+                    asset = asset,
+                    date = DateUtils().getDate(offMarketPriceRequest.date),
+                    closePrice = offMarketPriceRequest.closePrice,
+                ).get(),
+            ),
+        )
+    }
+
     @PostMapping
-    fun postPrices(@RequestBody priceRequest: PriceRequest): PriceResponse {
+    fun getPrices(@RequestBody priceRequest: PriceRequest): PriceResponse {
         log.debug("priceRequestDate: ${priceRequest.date}")
-        for (requestedAsset in priceRequest.assets) {
-            val asset = assetService.findLocally(requestedAsset.market, requestedAsset.code)
+        val systemUser = systemUserService.getActiveUser()
+        for (priceAsset in priceRequest.assets) {
+            val asset = if (priceAsset.assetId.isNotEmpty()) {
+                assetService.find(priceAsset.assetId)
+            } else {
+                assetService.findLocally(
+                    AssetInput(
+                        market = priceAsset.market,
+                        code = priceAsset.code,
+                        owner = systemUser?.id ?: "",
+                    ),
+                )
+            }
             if (asset != null) {
-                requestedAsset.resolvedAsset = asset
+                priceAsset.resolvedAsset = asset
             }
         }
         return marketDataService.getPriceResponse(priceRequest)

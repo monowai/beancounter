@@ -126,7 +126,7 @@ class KafkaMarketDataTest {
         assertThat(results).isNotNull.isNotEmpty
         for (result in results!!) {
             assertThat(result).hasFieldOrProperty(idProp)
-            val priceAsset = PriceAsset(asset.market.code, asset.code, asset)
+            val priceAsset = PriceAsset(asset.market.code, asset.code, resolvedAsset = asset, "")
             assets.add(priceAsset)
         }
 
@@ -135,7 +135,8 @@ class KafkaMarketDataTest {
             PriceAsset(
                 NASDAQ.code,
                 Constants.AAPL.code,
-                AssetUtils.getAsset(NASDAQ, Constants.AAPL.code),
+                resolvedAsset = AssetUtils.getAsset(NASDAQ, Constants.AAPL.code),
+                asset.id,
             ),
         )
         val priceRequest = PriceRequest(priceDate, assets, currentMode = false)

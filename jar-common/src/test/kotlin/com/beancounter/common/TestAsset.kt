@@ -63,14 +63,14 @@ internal class TestAsset {
         val assets: MutableCollection<PriceAsset> = ArrayList()
         val marketCodeA = "AAA"
         val assetCodeB = "ABC"
-        assets.add(PriceAsset(marketCodeA, assetCodeB))
+        assets.add(PriceAsset(marketCodeA, assetCodeB, assetId = assetCodeB))
         val assetCodeOne = "123"
-        assets.add(PriceAsset(marketCodeA, assetCodeOne))
+        assets.add(PriceAsset(marketCodeA, assetCodeOne, assetId = assetCodeOne))
         val marketCodeB = "BBB"
-        assets.add(PriceAsset(marketCodeB, assetCodeB))
-        assets.add(PriceAsset(marketCodeB, assetCodeOne))
+        assets.add(PriceAsset(marketCodeB, assetCodeB, assetId = assetCodeB))
+        assets.add(PriceAsset(marketCodeB, assetCodeOne, assetId = assetCodeOne))
         val marketCodeC = "CCC"
-        assets.add(PriceAsset(marketCodeC, assetCodeOne))
+        assets.add(PriceAsset(marketCodeC, assetCodeOne, assetId = assetCodeOne))
         val results = split(assets)
         assertThat(results.size).isEqualTo(3)
         assertThat(results[marketCodeA]).hasSize(2)

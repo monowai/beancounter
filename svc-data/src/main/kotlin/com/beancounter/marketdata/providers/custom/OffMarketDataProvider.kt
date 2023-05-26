@@ -19,7 +19,7 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class CustomProviderService : MarketDataPriceProvider {
+class OffMarketDataProvider : MarketDataPriceProvider {
     private val dateUtils = DateUtils()
     private fun getMarketData(asset: Asset): MarketData {
         val result = MarketData(asset, priceDate!!)

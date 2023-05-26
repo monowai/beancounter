@@ -4,7 +4,7 @@
       "trnType": "BUY",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -72,8 +72,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -112,7 +112,7 @@
       "trnType": "BUY",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -180,8 +180,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -220,7 +220,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -288,8 +288,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -328,7 +328,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -396,8 +396,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -436,7 +436,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -504,8 +504,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -544,7 +544,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -612,8 +612,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -652,7 +652,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -720,8 +720,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -760,7 +760,7 @@
       "trnType": "SPLIT",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -836,7 +836,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -904,8 +904,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -944,7 +944,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1012,8 +1012,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1052,7 +1052,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1120,8 +1120,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1160,7 +1160,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1228,8 +1228,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1268,7 +1268,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1336,8 +1336,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1376,7 +1376,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1444,8 +1444,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1484,7 +1484,7 @@
       "trnType": "SELL",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1552,8 +1552,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1592,7 +1592,7 @@
       "trnType": "SELL",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1660,8 +1660,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1700,7 +1700,7 @@
       "trnType": "BUY",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1768,8 +1768,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1808,7 +1808,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1876,8 +1876,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -1916,7 +1916,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -1984,8 +1984,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2024,7 +2024,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2092,8 +2092,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2132,7 +2132,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2200,8 +2200,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2240,7 +2240,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2308,8 +2308,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2348,7 +2348,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2416,8 +2416,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2456,7 +2456,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2524,8 +2524,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2564,7 +2564,7 @@
       "trnType": "SELL",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2632,8 +2632,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2672,7 +2672,7 @@
       "trnType": "BUY",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2740,8 +2740,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2780,7 +2780,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2848,8 +2848,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -2888,7 +2888,7 @@
       "trnType": "SPLIT",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -2964,7 +2964,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -3032,8 +3032,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -3072,7 +3072,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -3140,8 +3140,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -3180,7 +3180,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -3248,8 +3248,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -3288,7 +3288,7 @@
       "trnType": "DIVI",
       "asset": {
         "code": "AAPL",
-        "id": "6XsU26lgQpqaUYO0EBvJrQ",
+        "id": "AAPL",
         "name": "Apple Inc",
         "assetCategory": {
           "id": "EQUITY",
@@ -3356,8 +3356,8 @@
         }
       },
       "cashAsset": {
-        "code": "USD BALANCE",
-        "id": "USD BALANCE",
+        "code": "USD",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",

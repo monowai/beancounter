@@ -4,14 +4,17 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
+import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetService
@@ -45,7 +48,7 @@ import java.util.Optional
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
-internal class MarketDataControllerTests @Autowired private constructor(
+internal class PriceControllerTests @Autowired private constructor(
     private val mockMvc: MockMvc,
     private val mockAuthConfig: MockAuthConfig,
     private val bcJson: BcJson,
@@ -84,7 +87,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
             assetService.find(asset.id),
         ).thenReturn(asset)
         Mockito.`when`(
-            assetService.findLocally(asset.market.code, asset.code),
+            assetService.findLocally(AssetInput(asset.market.code, asset.code)),
         )
             .thenReturn(asset)
     }
@@ -115,7 +118,7 @@ internal class MarketDataControllerTests @Autowired private constructor(
     @Test
     @Tag("slow")
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
-    fun is_PriceFormMarketAssetFound() {
+    fun is_PriceFromMarketAssetFound() {
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get(
                 "/prices/{marketId}/{assetId}",
@@ -145,11 +148,11 @@ internal class MarketDataControllerTests @Autowired private constructor(
     @Tag("slow")
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
     fun is_MdCollectionReturnedForAssets() {
-        Mockito.`when`(assetService.findLocally(CASH.code, assetCode))
+        Mockito.`when`(assetService.findLocally(AssetInput(CASH.code, assetCode)))
             .thenReturn(getAsset(CASH, assetCode))
         val assetInputs: MutableCollection<PriceAsset> = ArrayList()
         assetInputs.add(
-            PriceAsset(CASH.code, assetCode),
+            PriceAsset(getAsset(CASH, assetCode)),
         )
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/prices")
@@ -172,6 +175,54 @@ internal class MarketDataControllerTests @Autowired private constructor(
         assertThat(data)
             .isNotNull
             .hasSize(assetInputs.size)
+    }
+
+    @Test
+    @Tag("slow")
+    @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
+    fun is_OffMarketPriceWritten() {
+        val offMarketAsset = getAsset(Market("OFFM"), assetCode)
+        val offMarketPrice = OffMarketPriceRequest(
+            offMarketAsset.id,
+            closePrice = BigDecimal("999.0"),
+        )
+
+        Mockito.`when`(assetService.find(assetCode))
+            .thenReturn(offMarketAsset)
+
+        Mockito.`when`(
+            marketDataRepo.save(
+                MarketData(
+                    asset = offMarketAsset,
+                    priceDate = DateUtils().getDate(offMarketPrice.date),
+                    close = offMarketPrice.closePrice,
+                ),
+            ),
+        ).thenReturn(
+            MarketData(asset = offMarketAsset, close = offMarketPrice.closePrice),
+        )
+        val json = mockMvc.perform(
+            MockMvcRequestBuilders.post("/prices/write")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                .content(
+                    bcJson.objectMapper.writeValueAsString(
+                        offMarketPrice,
+                    ),
+                ),
+        ).andExpect(
+            MockMvcResultMatchers.status().isOk,
+        ).andExpect(
+            MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+        ).andReturn()
+            .response
+            .contentAsString
+        val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
+        assertThat(data)
+            .isNotNull
+            .hasSize(1)
+        assertThat(data.iterator().next())
+            .hasFieldOrPropertyWithValue("close", offMarketPrice.closePrice)
     }
 
     @Test

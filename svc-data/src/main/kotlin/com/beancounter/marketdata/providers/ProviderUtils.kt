@@ -42,7 +42,11 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
     fun getInputs(apiAssets: MutableCollection<Asset>?): Collection<PriceAsset> {
         val results: MutableCollection<PriceAsset> = ArrayList()
         for (apiAsset in apiAssets!!) {
-            results.add(PriceAsset(apiAsset.market.code, apiAsset.code, apiAsset))
+            results.add(
+                PriceAsset(
+                    apiAsset,
+                ),
+            )
         }
         return results
     }

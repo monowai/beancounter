@@ -58,6 +58,7 @@ class RealEstateMarketDataTest {
         currency = NZD,
         code = "PNZ",
         name = "My Place In NZD",
+        owner = "test-user",
     )
 
     @Test

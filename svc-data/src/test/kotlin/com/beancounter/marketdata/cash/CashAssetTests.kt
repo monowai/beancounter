@@ -2,6 +2,7 @@ package com.beancounter.marketdata.cash
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NZD
@@ -47,8 +48,10 @@ class CashAssetTests {
     @Test
     fun is_UsdCashBalanceFound() {
         val found = assetService.findOrCreate(
-            cash,
-            USD.code,
+            AssetInput(
+                cash,
+                USD.code,
+            ),
         )
         assertThat(found).isNotNull
             .hasFieldOrPropertyWithValue("assetCategory.id", cash)

@@ -3,7 +3,8 @@
   "assets": [
     {
       "market": "NASDAQ",
-      "code": "AAPL"
+      "code": "AAPL",
+      "assetId": "AAPL"
     }
   ]
 }

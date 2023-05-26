@@ -40,7 +40,7 @@ class Constants {
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
         val apartment = Asset(
-            input = AssetInput.toRealEstate(NZD, "NZA", "NZ Apartment"),
+            input = AssetInput.toRealEstate(NZD, "NZA", "NZ Apartment", "test-user"),
             market = Market("PRIVATE"),
         )
 

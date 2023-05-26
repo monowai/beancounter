@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.providers.MarketDataService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -34,7 +35,7 @@ class AssetController @Autowired internal constructor(
 ) {
     @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse =
-        AssetResponse(assetService.findOrCreate(market, code))
+        AssetResponse(assetService.findOrCreate(AssetInput(market, code)))
 
     @GetMapping(value = ["/{assetId}"])
     fun getAsset(@PathVariable assetId: String): AssetResponse =

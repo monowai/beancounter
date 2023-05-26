@@ -21,26 +21,40 @@ class AssetIngestService internal constructor(
     /**
      * Create assets, if necessary, and return the hydrated assets.
      *
-     * @param marketCode exchange code
-     * @param assetCode  Code on the exchange
      * @return hydrated asset with a primary key.
      */
-    fun resolveAsset(marketCode: String, assetCode: String, name: String? = null): Asset {
-        val market = marketService.getMarket(marketCode)
+    fun resolveAsset(assetInput: AssetInput): Asset {
+        val market = marketService.getMarket(assetInput.market)
         val assetCategory = if (market.code.lowercase() == "cash") {
             "Cash"
-        } else if (market.code.lowercase() == "re") "RE" else "Equity"
+        } else if (market.code.lowercase() == "re") {
+            "RE"
+        } else {
+            "Equity"
+        }
 
         val assetRequest = AssetRequest(
             mapOf(
                 Pair(
-                    toKey(assetCode, market.code),
-                    AssetInput(market.code, code = assetCode, name = name, category = assetCategory),
+                    toKey(assetInput.code, market.code),
+                    AssetInput(
+                        market.code,
+                        code = assetInput.code,
+                        name = assetInput.name,
+                        category = assetCategory,
+                        owner = assetInput.owner,
+                    ),
                 ),
             ),
         )
         val response = assetService.handle(assetRequest)
-            ?: throw BusinessException(String.format("No response returned for %s:%s", assetCode, marketCode))
+            ?: throw BusinessException(
+                String.format(
+                    "No response returned for %s:%s",
+                    assetInput.code,
+                    assetInput.market,
+                ),
+            )
         return response.data.values.iterator().next()
     }
 }

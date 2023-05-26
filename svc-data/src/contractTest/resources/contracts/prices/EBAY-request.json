@@ -3,7 +3,8 @@
   "assets": [
     {
       "market": "NASDAQ",
-      "code": "EBAY"
+      "code": "EBAY",
+      "assetId": "EBAY"
     }
   ]
 }

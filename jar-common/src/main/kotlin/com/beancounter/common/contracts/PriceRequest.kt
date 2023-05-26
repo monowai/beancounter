@@ -41,7 +41,7 @@ data class PriceRequest(
         }
 
         private fun parse(asset: Asset): PriceAsset {
-            return PriceAsset(asset.market.code, asset.code)
+            return PriceAsset(asset.market.code, asset.code, assetId = asset.id)
         }
 
         @JvmStatic

@@ -8,24 +8,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore
  *
  * Resolved asset is returned to the caller by the service in response to the input args.
  */
-data class PriceAsset(val market: String, val code: String, @JsonIgnore var resolvedAsset: Asset? = null) {
-    constructor(asset: Asset) : this(asset.market.code, asset.code, asset)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as PriceAsset
-
-        if (market != other.market) return false
-        if (code != other.code) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = market.hashCode()
-        result = 31 * result + code.hashCode()
-        return result
-    }
+data class PriceAsset(
+    val market: String = "",
+    val code: String = "",
+    @JsonIgnore var resolvedAsset: Asset? = null,
+    val assetId: String = resolvedAsset?.id ?: "",
+) {
+    constructor(asset: Asset) : this(asset.market.code, asset.code, asset, asset.id)
 }

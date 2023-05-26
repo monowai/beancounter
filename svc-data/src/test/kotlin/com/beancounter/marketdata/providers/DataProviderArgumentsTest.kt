@@ -28,6 +28,7 @@ internal class DataProviderArgumentsTest {
     private val aapl = getAsset(NASDAQ, AAPL.code)
     private val msft = getAsset(NASDAQ, MSFT.code)
     private val intc = getAsset(NASDAQ, "INTC")
+    private val twee = "TWEE"
 
     @Test
     fun is_BatchOfOne() {
@@ -105,7 +106,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun activeAssetsByProvider() {
         val providerUtils = getProviderUtils(NYSE)
-        val assetInputs: MutableCollection<PriceAsset> = arrayListOf(PriceAsset(NYSE.code, "TWEE"))
+        val assetInputs: MutableCollection<PriceAsset> = arrayListOf(
+            PriceAsset(NYSE.code, twee, assetId = twee),
+        )
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)
         assertThat(splitResults).hasSize(1)
@@ -117,11 +120,13 @@ internal class DataProviderArgumentsTest {
     @Test
     fun inactiveAssetsExcluded() {
         val providerUtils = getProviderUtils(NYSE)
+        val notActive = "Not Active"
         val priceAsset =
             PriceAsset(
                 NYSE.code,
-                "Not Active",
-                Asset(AssetInput(NYSE.code, "Not Active"), NYSE, Status.Inactive),
+                notActive,
+                Asset(AssetInput(NYSE.code, notActive), NYSE, Status.Inactive),
+                notActive,
             )
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =

@@ -3,7 +3,8 @@
   "assets": [
     {
       "market": "NYSE",
-      "code": "MSFT"
+      "code": "MSFT",
+      "assetId": "MSFT"
     }
   ],
   "currentMode": true

@@ -223,7 +223,7 @@ class RealestateBase {
     }
 
     private fun asset(currency: Currency = Constants.USD, code: String, name: String): Asset? {
-        val assetInput = AssetInput.toRealEstate(currency, code, name)
+        val assetInput = AssetInput.toRealEstate(currency, code, name, "test-user")
         Mockito.`when`(keyGenUtils.id).thenReturn(assetCode)
         return assetService.handle(
             AssetRequest(

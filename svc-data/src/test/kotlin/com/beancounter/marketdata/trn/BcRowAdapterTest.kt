@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
@@ -37,21 +38,25 @@ class BcRowAdapterTest {
 
     @BeforeEach
     fun setupMocks() {
-        Mockito.`when`(ais.resolveAsset("NASDAQ", assetCode, "Caredx"))
+        Mockito.`when`(ais.resolveAsset(AssetInput("NASDAQ", assetCode, "Caredx")))
             .thenReturn(
                 Asset(
                     code = assetCode,
                     market = NASDAQ,
                 ),
             )
-        Mockito.`when`(ais.resolveAsset(CASH.code, NZD.code, ""))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, NZD.code, name = "")))
             .thenReturn(nzdCashBalance)
-        Mockito.`when`(ais.resolveAsset(CASH.code, USD.code, ""))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, USD.code, "")))
             .thenReturn(usdCashBalance)
-        Mockito.`when`(assetService.findOrCreate(CASH.code, NZD.code)).thenReturn(nzdCashBalance)
-        Mockito.`when`(assetService.findOrCreate(CASH.code, USD.code)).thenReturn(usdCashBalance)
-        Mockito.`when`(assetService.find(USD.code)).thenReturn(usdCashBalance)
-        Mockito.`when`(assetService.find(NZD.code)).thenReturn(nzdCashBalance)
+        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH.code, NZD.code)))
+            .thenReturn(nzdCashBalance)
+        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH.code, USD.code)))
+            .thenReturn(usdCashBalance)
+        Mockito.`when`(assetService.find(USD.code))
+            .thenReturn(usdCashBalance)
+        Mockito.`when`(assetService.find(NZD.code))
+            .thenReturn(nzdCashBalance)
     }
 
     private val propAssetId = "assetId"
@@ -62,7 +67,7 @@ class BcRowAdapterTest {
 
     @Test
     fun trimmedCsvInputValues() {
-        val values = "BC  ,USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
+        val values = "  ,USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
             "USD ,USD ,2021-08-11 ,200.000000  ,NZD  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
 
 // BC will receive data in the same manner
@@ -99,7 +104,7 @@ class BcRowAdapterTest {
     @Test
     fun cashDeposit() {
         val values =
-            "BC,abc,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
+            ",abc,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
@@ -112,12 +117,12 @@ class BcRowAdapterTest {
     @Test
     fun callerRef() {
         val values =
-            "TEST,CALLER_REF,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
+            ",CALLER_REF,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
         assertThat(trn.callerRef)
-            .hasFieldOrPropertyWithValue("provider", "TEST")
+            .hasFieldOrPropertyWithValue("provider", "")
             .hasFieldOrPropertyWithValue("batch", "CALLER_REF")
             .hasFieldOrProperty("callerId")
     }
@@ -126,7 +131,7 @@ class BcRowAdapterTest {
     fun fxBuyTrade() {
         // Buy USD, Sell NZD
         val values =
-            "BC,abc,,FX_BUY,CASH,USD,,,NZD,2021-11-16,8359.43,NZD,,USD,1.000000,0 ,1.000000,8359.43,-10000.00,"
+            ",abc,,FX_BUY,CASH,USD,,,NZD,2021-11-16,8359.43,NZD,,USD,1.000000,0 ,1.000000,8359.43,-10000.00,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
@@ -143,9 +148,9 @@ class BcRowAdapterTest {
     fun balanceTrade() {
         // Buy USD, Sell NZD
         val values =
-            "BC,20230501,,BALANCE,CASH,KB31,,,NZD,2023-05-01,-300000.00,,,NZD,1,,,-300000.00,,"
+            ",20230501,,BALANCE,CASH,KB31,,,NZD,2023-05-01,-300000.00,,,NZD,1,,,-300000.00,,"
 
-        Mockito.`when`(ais.resolveAsset(CASH.code, "KB31", ""))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, "KB31", "")))
             .thenReturn(nzdCashBalance)
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)

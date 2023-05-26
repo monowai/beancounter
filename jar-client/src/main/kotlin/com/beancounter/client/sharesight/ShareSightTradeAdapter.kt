@@ -5,6 +5,7 @@ import com.beancounter.client.ingest.Filter
 import com.beancounter.client.ingest.TrnAdapter
 import com.beancounter.client.sharesight.ShareSightConfig.Companion.logFirst
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
@@ -152,7 +153,7 @@ class ShareSightTradeAdapter(
     override fun resolveAsset(row: List<String>): Asset? {
         val assetCode = row[code]
         val marketCode = row[market]
-        val asset = assetIngestService.resolveAsset(marketCode, assetCode)
+        val asset = assetIngestService.resolveAsset(AssetInput(marketCode, assetCode))
         return if (!filter.inFilter(asset)) {
             null
         } else {

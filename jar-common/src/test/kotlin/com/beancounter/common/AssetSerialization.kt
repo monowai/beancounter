@@ -108,6 +108,6 @@ class AssetSerialization {
 
         val json = objectMapper.writeValueAsString(assetInput)
         assertThat(objectMapper.readValue(json, AssetInput::class.java))
-            .hasNoNullFieldsOrPropertiesExcept("resolvedAsset", "name", "currency")
+            .hasNoNullFieldsOrPropertiesExcept("resolvedAsset", "name", "currency", "owner")
     }
 }

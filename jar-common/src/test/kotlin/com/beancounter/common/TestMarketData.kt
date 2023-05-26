@@ -63,7 +63,12 @@ internal class TestMarketData {
     @Test
     @Throws(Exception::class)
     fun is_PriceRequestSerializing() {
-        val priceRequest = PriceRequest("2019-11-11", arrayListOf(PriceAsset("XYZ", "ABC")))
+        val priceRequest = PriceRequest(
+            "2019-11-11",
+            arrayListOf(
+                PriceAsset("XYZ", "ABC", assetId = "ABC"),
+            ),
+        )
         val json = bcJson.objectMapper.writeValueAsString(priceRequest)
         val (_, assets) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
         assertThat(assets.iterator().next())

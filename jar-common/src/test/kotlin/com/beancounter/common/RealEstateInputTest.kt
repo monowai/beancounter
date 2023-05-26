@@ -15,8 +15,8 @@ private const val OFF_MARKET = "OFFM"
 class RealEstateInputTest {
     @Test
     fun is_RealEstateDefaulting() {
-        val apartment = AssetInput.toRealEstate(NZD, "APT", "Apartment")
-        val house = AssetInput.toRealEstate(USD, "HOUSE", "House")
+        val apartment = AssetInput.toRealEstate(NZD, "APT", "Apartment", "test-user")
+        val house = AssetInput.toRealEstate(USD, "HOUSE", "House", "test-user")
         assertThat(apartment)
             .hasFieldOrPropertyWithValue("market", OFF_MARKET)
             .hasFieldOrPropertyWithValue("category", AssetCategory.RE)

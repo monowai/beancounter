@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.cash
 
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnType
@@ -38,7 +39,7 @@ internal class CashServicesTest {
             price = BigDecimal.ONE,
         )
 
-        Mockito.`when`(assetService.findOrCreate(CASH.code, NZD.code))
+        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH.code, NZD.code)))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)
@@ -57,7 +58,7 @@ internal class CashServicesTest {
             price = BigDecimal.ONE,
         )
 
-        Mockito.`when`(assetService.findOrCreate("CASH", NZD.code))
+        Mockito.`when`(assetService.findOrCreate(AssetInput("CASH", NZD.code)))
             .thenReturn(nzdCashBalance)
         assertThat(cashServices.getCashAsset(trnInput))
             .isEqualTo(nzdCashBalance)

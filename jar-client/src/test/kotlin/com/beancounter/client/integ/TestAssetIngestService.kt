@@ -4,6 +4,7 @@ import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.input.AssetInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -39,8 +40,7 @@ class TestAssetIngestService {
     @Test
     fun is_HydratedAssetFound() {
         val asset = assetIngestService.resolveAsset(
-            nasdaq,
-            msft,
+            AssetInput(nasdaq, msft),
         )
         assertThat(asset).isNotNull
             .hasFieldOrProperty("id")
@@ -51,7 +51,7 @@ class TestAssetIngestService {
     @Test
     fun is_NotFound() {
         assertThrows(BusinessException::class.java) {
-            assetIngestService.resolveAsset(nasdaq, "ABC")
+            assetIngestService.resolveAsset(AssetInput(nasdaq, "ABC"))
         }
     }
 }

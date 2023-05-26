@@ -44,7 +44,7 @@ data class Asset(
     )
 
     constructor(code: String, market: Market, marketCode: String? = null) : this(
-        id = code.uppercase(),
+        id = code,
         code = code,
         name = code,
         market = market,

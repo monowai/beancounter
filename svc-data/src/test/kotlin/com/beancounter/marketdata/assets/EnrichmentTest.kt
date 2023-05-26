@@ -58,7 +58,7 @@ class EnrichmentTest {
         ).thenReturn(keyGenId)
         val asset = Asset(id = id, code = code, market = offMarket, name = null)
         assertThat(enricher.canEnrich(asset)).isTrue
-        val enriched = enricher.enrich(asset.id, offMarket, AssetInput.toRealEstate(USD, code, "Anything"))
+        val enriched = enricher.enrich(asset.id, offMarket, AssetInput.toRealEstate(USD, code, "Anything", "test-user"))
         assertThat(enriched)
             .hasFieldOrPropertyWithValue("systemUser.id", sysUserId)
             .hasFieldOrPropertyWithValue("code", "$sysUserId.${code.uppercase()}")

@@ -91,7 +91,7 @@ class RealEstateTrnTests {
     @Test
     fun is_BuyHouse() {
         mockAuthConfig.login(SystemUser(), systemUserService)
-        val house = AssetInput.toRealEstate(USD, "USAPT", "NY Apartment")
+        val house = AssetInput.toRealEstate(USD, "USAPT", "NY Apartment", "test-user")
         val houseAsset = assetService.handle(
             AssetRequest(
                 mapOf(Pair(house.code, house)),

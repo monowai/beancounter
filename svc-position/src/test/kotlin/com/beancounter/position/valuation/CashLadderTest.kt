@@ -71,7 +71,7 @@ internal class CashLadderTest {
     @Test
     fun positionRequestFromTransactions() {
         val date = "2021-10-18"
-        val msft = Asset(code = "AAPL", market = NASDAQ)
+        val apple = Asset(code = "AAPL", market = NASDAQ)
 
         val usdCash = Asset(USD.code, CASH)
         val nzdCash = Asset(NZD.code, CASH)
@@ -95,10 +95,10 @@ internal class CashLadderTest {
 
         assertThat(positionResponse.data.positions)
             .hasSize(3)
-            .containsKeys(toKey(msft), toKey(usdCash), toKey(nzdCash))
+            .containsKeys(toKey(apple), toKey(usdCash), toKey(nzdCash))
 
         // Working back.  The stock purchase should debit cash
-        assertThat(positionResponse.data.positions[toKey(msft)]!!.moneyValues)
+        assertThat(positionResponse.data.positions[toKey(apple)]!!.moneyValues)
             .isNotNull
         assertThat(positionResponse.data.positions[toKey(usdCash)]!!.quantityValues)
             .hasFieldOrPropertyWithValue("total", BigDecimal("2500.0"))

@@ -5,10 +5,10 @@ import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.registration.SystemUserService
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.Async
@@ -35,7 +35,6 @@ class AssetService internal constructor(
     private val marketService: MarketService,
     private val assetHydrationService: AssetHydrationService,
     private val keyGenUtils: KeyGenUtils,
-    private val systemUserService: SystemUserService,
 ) : com.beancounter.client.AssetService {
 
     fun enrich(asset: Asset): Asset {
@@ -53,10 +52,7 @@ class AssetService internal constructor(
     }
 
     private fun create(assetInput: AssetInput): Asset {
-        val foundAsset = findLocally(
-            assetInput.market.uppercase(Locale.getDefault()),
-            assetInput.code.uppercase(Locale.getDefault()),
-        )
+        val foundAsset = findLocally(assetInput)
         return if (foundAsset == null) {
             // Is the market supported?
             val market = marketService.getMarket(assetInput.market, false)
@@ -87,14 +83,14 @@ class AssetService internal constructor(
         marketDataService.backFill(find(assetId))
     }
 
-    fun findOrCreate(marketCode: String, code: String): Asset {
-        var asset: Asset? = findLocally(marketCode, code)
+    fun findOrCreate(assetInput: AssetInput): Asset {
+        var asset: Asset? = findLocally(assetInput)
         if (asset == null) {
-            val market = marketService.getMarket(marketCode)
+            val market = marketService.getMarket(assetInput.market)
             asset = enrichmentFactory.getEnricher(market).enrich(
                 id = keyGenUtils.format(UUID.randomUUID()),
                 market = market,
-                assetInput = AssetInput(market = marketCode, code = code),
+                assetInput = assetInput,
             )
             if (marketService.canPersist(market)) {
                 asset = assetRepository.save(asset)
@@ -112,15 +108,18 @@ class AssetService internal constructor(
         throw BusinessException("Asset $assetId not found")
     }
 
-    fun findLocally(marketCode: String, code: String): Asset? {
+    fun findLocally(assetInput: AssetInput): Asset? {
+        val marketCode = assetInput.market.uppercase(Locale.getDefault())
+        val code = assetInput.code
+
         // Search Local
-        log.trace("Search for {}/{}", marketCode, code)
         val market = marketService.getMarket(marketCode.uppercase())
         val findCode = if (market.code == OffMarketEnricher.id) {
-            OffMarketEnricher.parseCode(systemUserService.getActiveUser()!!, code)
+            OffMarketEnricher.parseCode(SystemUser(assetInput.owner), code)
         } else {
             code.uppercase(Locale.getDefault())
         }
+        log.trace("Search for {}/{}", marketCode, code)
 
         val optionalAsset = assetRepository.findByMarketCodeAndCode(
             marketCode.uppercase(Locale.getDefault()),

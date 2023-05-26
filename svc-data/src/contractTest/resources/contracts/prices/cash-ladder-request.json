@@ -1,17 +1,22 @@
 {
   "date": "2021-10-18",
+  "currentMode": true,
+  "closePrice": 0,
   "assets": [
     {
       "market": "NASDAQ",
-      "code": "AAPL"
+      "code": "AAPL",
+      "assetId": "AAPL"
     },
     {
       "market": "CASH",
-      "code": "USD"
+      "code": "USD",
+      "assetId": "USD"
     },
     {
       "market": "CASH",
-      "code": "NZD"
+      "code": "NZD",
+      "assetId": "NZD"
     }
   ]
 }

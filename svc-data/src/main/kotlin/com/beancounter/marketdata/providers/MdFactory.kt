@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
-import com.beancounter.marketdata.providers.custom.CustomProviderService
+import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
@@ -20,7 +20,7 @@ import java.util.Locale
 class MdFactory internal constructor(
     cashProviderService: CashProviderService,
     alphaPriceService: AlphaPriceService,
-    customProviderService: CustomProviderService,
+    offMarketDataProvider: OffMarketDataProvider,
     wtdService: WtdService,
 ) {
     private val providers: MutableMap<String, MarketDataPriceProvider> = HashMap()
@@ -59,6 +59,6 @@ class MdFactory internal constructor(
         providers[cashProviderService.getId().uppercase(Locale.getDefault())] = cashProviderService
         providers[wtdService.getId().uppercase(Locale.getDefault())] = wtdService
         providers[alphaPriceService.getId().uppercase(Locale.getDefault())] = alphaPriceService
-        providers[customProviderService.getId().uppercase(Locale.getDefault())] = customProviderService
+        providers[offMarketDataProvider.getId().uppercase(Locale.getDefault())] = offMarketDataProvider
     }
 }

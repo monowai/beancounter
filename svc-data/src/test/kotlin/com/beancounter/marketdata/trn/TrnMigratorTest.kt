@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.Portfolio
@@ -34,7 +35,7 @@ internal class TrnMigratorTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(assetService.findOrCreate("CASH", NZD.code))
+        Mockito.`when`(assetService.findOrCreate(AssetInput("CASH", NZD.code)))
             .thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)

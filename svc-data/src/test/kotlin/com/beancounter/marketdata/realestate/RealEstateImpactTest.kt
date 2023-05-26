@@ -29,7 +29,7 @@ internal class RealEstateImpactTest {
             price = BigDecimal("10000"),
             tradeCashRate = BigDecimal.ONE,
         )
-        Mockito.`when`(assetService.findOrCreate(AssetInput.offMarket, Constants.NZD.code))
+        Mockito.`when`(assetService.findOrCreate(AssetInput(AssetInput.offMarket, Constants.NZD.code)))
             .thenReturn(apartment)
 
         assertThat(realEstateServices.getImpact(trnInput)).isEqualTo(BigDecimal("-10000.00"))
@@ -46,7 +46,7 @@ internal class RealEstateImpactTest {
             price = BigDecimal("20000"),
             tradeCashRate = BigDecimal.ONE,
         )
-        Mockito.`when`(assetService.findOrCreate(AssetInput.offMarket, Constants.NZD.code))
+        Mockito.`when`(assetService.findOrCreate(AssetInput(AssetInput.offMarket, Constants.NZD.code)))
             .thenReturn(apartment)
 
         assertThat(realEstateServices.getImpact(trnInput)).isEqualTo(BigDecimal("20000.00"))

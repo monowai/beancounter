@@ -20,8 +20,7 @@ data class TrustedTrnImportRequest(
         this(
             portfolio,
             importFormat,
-            callerRef =
-            CallerRef(row[0], row[1], row[2]),
+            callerRef = CallerRef(row[0], row[1], row[2]),
             message = "",
             row = row,
         )

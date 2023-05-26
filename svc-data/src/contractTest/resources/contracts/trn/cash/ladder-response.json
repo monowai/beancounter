@@ -4,7 +4,7 @@
       "trnType": "DEPOSIT",
       "asset": {
         "code": "NZD",
-        "id": "bifngC1PRTyH5PlBskp6Ew",
+        "id": "NZD",
         "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -40,7 +40,7 @@
       },
       "cashAsset": {
         "code": "NZD",
-        "id": "bifngC1PRTyH5PlBskp6Ew",
+        "id": "NZD",
         "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -115,7 +115,7 @@
       "trnType": "FX_BUY",
       "asset": {
         "code": "USD",
-        "id": "iuCTdR5URoKQjQgkEZc-wA",
+        "id": "USD",
         "name": "USD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -151,7 +151,7 @@
       },
       "cashAsset": {
         "code": "NZD",
-        "id": "bifngC1PRTyH5PlBskp6Ew",
+        "id": "NZD",
         "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",
@@ -226,7 +226,7 @@
       "trnType": "BUY",
       "asset": {
         "code": "AAPL",
-        "id": "DGJU_pgCQ_-AkgTykqjDfQ",
+        "id": "AAPL",
         "assetCategory": {
           "id": "EQUITY",
           "name": "Equity"
@@ -263,7 +263,7 @@
       },
       "cashAsset": {
         "code": "NZD",
-        "id": "bifngC1PRTyH5PlBskp6Ew",
+        "id": "NZD",
         "name": "NZD Balance",
         "assetCategory": {
           "id": "CASH",

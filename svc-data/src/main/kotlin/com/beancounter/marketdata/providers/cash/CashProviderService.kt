@@ -28,7 +28,7 @@ class CashProviderService : MarketDataPriceProvider {
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList(priceRequest.assets.size)
-        for ((_, _, resolvedAsset) in priceRequest.assets) {
+        for ((_, _, resolvedAsset, _) in priceRequest.assets) {
             if (resolvedAsset != null) {
                 results.add(getMarketData(resolvedAsset))
             }

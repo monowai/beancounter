@@ -42,6 +42,10 @@ class OffMarketEnricher(
 
         @JvmStatic
         fun parseCode(systemUser: SystemUser, code: String) =
-            "${systemUser.id}.$code"
+            if (code.startsWith(systemUser.id)) {
+                code
+            } else {
+                "${systemUser.id}.${code.uppercase()}"
+            }
     }
 }

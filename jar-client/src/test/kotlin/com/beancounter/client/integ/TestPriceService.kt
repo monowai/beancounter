@@ -38,7 +38,7 @@ class TestPriceService {
 
     @Test
     fun is_MarketDataFoundOnDate() {
-        val priceRequest = PriceRequest("2019-10-18", arrayListOf(PriceAsset("NASDAQ", "EBAY")))
+        val priceRequest = PriceRequest("2019-10-18", arrayListOf(PriceAsset("NASDAQ", "EBAY", assetId = "EBAY")))
         val response = priceService.getPrices(priceRequest)
 
         assertThat(response).isNotNull

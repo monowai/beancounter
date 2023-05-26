@@ -3,6 +3,7 @@ package com.contracts.data
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.assets.AssetService
 import org.junit.jupiter.api.BeforeEach
@@ -28,7 +29,7 @@ class AssetsBase : ContractVerifierBase() {
                     AssetResponse::class.java,
                 ).data,
             )
-        Mockito.`when`(assetService.findOrCreate("NASDAQ", "NDAQ"))
+        Mockito.`when`(assetService.findOrCreate(AssetInput("NASDAQ", "NDAQ")))
             .thenReturn(
                 BcJson().objectMapper.readValue(
                     ClassPathResource("contracts/assets/ndaq-asset.json").file,
@@ -99,8 +100,10 @@ class AssetsBase : ContractVerifierBase() {
             Mockito.`when`(assetService.find(theAsset.id)).thenReturn(theAsset)
             Mockito.`when`(
                 assetService.findLocally(
-                    theAsset.market.code.uppercase(Locale.getDefault()),
-                    theAsset.code.uppercase(Locale.getDefault()),
+                    AssetInput(
+                        theAsset.market.code.uppercase(Locale.getDefault()),
+                        theAsset.code.uppercase(Locale.getDefault()),
+                    ),
                 ),
             )
                 .thenReturn(theAsset)

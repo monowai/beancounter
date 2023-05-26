@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.AsyncResult
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
 import java.util.concurrent.Future
@@ -31,23 +31,23 @@ class PriceService internal constructor(
         this.eventWriter = eventWriter
     }
 
-    fun getMarketData(asset: Asset, date: LocalDate, priceRequest: PriceRequest? = null): Optional<MarketData> {
+    fun getMarketData(asset: Asset, date: LocalDate, closePrice: BigDecimal = BigDecimal.ZERO): Optional<MarketData> {
         val response = marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)
         if (response.isPresent) return response
-        return handleOffMarketPrice(asset, priceRequest, date, response)
+        return handleOffMarketPrice(asset, closePrice, date, response)
     }
 
     private fun handleOffMarketPrice(
         asset: Asset,
-        priceRequest: PriceRequest?,
+        closePrice: BigDecimal,
         date: LocalDate,
         response: Optional<MarketData>,
     ): Optional<MarketData> {
-        if (asset.market.code == "OFFM" && priceRequest != null) {
+        if (asset.market.code == "OFFM" && closePrice != BigDecimal.ZERO) {
             val price = marketDataRepo.save(
                 MarketData(
                     asset = asset,
-                    close = priceRequest.closePrice,
+                    close = closePrice,
                     priceDate = date,
                 ),
             )
@@ -68,7 +68,7 @@ class PriceService internal constructor(
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
             if (!cashUtils.isCash(marketData.asset)) {
-                val existing = getMarketData(marketData.asset, marketData.priceDate!!, null)
+                val existing = getMarketData(marketData.asset, marketData.priceDate!!)
                 if (existing.isEmpty) {
                     // Create
                     createSet.add(marketData)

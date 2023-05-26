@@ -66,7 +66,7 @@ internal class PriceControllerTests @Autowired private constructor(
 
     @BeforeEach
     fun setUp() {
-        val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)!!
+        val marketDataProvider = mdFactory.getMarketDataProvider(asset.market)
         priceDate = marketDataProvider.getDate(
             asset.market,
             PriceRequest.of(AssetInput(market = asset.market.code, code = asset.code)),

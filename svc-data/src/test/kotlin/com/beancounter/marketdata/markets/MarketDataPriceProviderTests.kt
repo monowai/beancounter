@@ -46,10 +46,10 @@ class MarketDataPriceProviderTests @Autowired constructor(
     fun is_FoundByMarket() {
         val amp = getAsset(marketService.getMarket("ASX"), "AMP")
         val asxMarket = mdFactory.getMarketDataProvider(amp.market)
-        assertThat(asxMarket!!.getId()).isEqualTo(AlphaPriceService.ID)
+        assertThat(asxMarket.getId()).isEqualTo(AlphaPriceService.ID)
         val gne = getAsset(marketService.getMarket(NZX.code), "GNE")
         val nzxMarket = mdFactory.getMarketDataProvider(gne.market)
-        assertThat(nzxMarket!!.getId()).isEqualTo(WtdService.ID)
+        assertThat(nzxMarket.getId()).isEqualTo(WtdService.ID)
         assertThat(nzxMarket.isMarketSupported(gne.market)).isTrue
         assertThat(nzxMarket.isMarketSupported(amp.market)).isFalse
     }

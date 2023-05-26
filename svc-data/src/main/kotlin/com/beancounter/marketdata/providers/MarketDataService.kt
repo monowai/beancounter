@@ -40,7 +40,7 @@ class MarketDataService @Autowired internal constructor(
     @Transactional
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
-        val foundInDb: MutableCollection<MarketData> = ArrayList()
+        val foundInDb: MutableCollection<MarketData> = mutableListOf()
         val foundOverApi: MutableCollection<MarketData> = mutableListOf()
         var marketDate: LocalDate?
         val marketData: MutableMap<String, LocalDate> = mutableMapOf()

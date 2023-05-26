@@ -42,7 +42,7 @@ class OffMarketDataProvider : MarketDataPriceProvider {
     }
 
     override fun isMarketSupported(market: Market): Boolean {
-        return ID.equals(market.code, ignoreCase = true) || "RE".equals(market.code, ignoreCase = true)
+        return getId().equals(market.code, ignoreCase = true)
     }
 
     val priceDate: LocalDate?

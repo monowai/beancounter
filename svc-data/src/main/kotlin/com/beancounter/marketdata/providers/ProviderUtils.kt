@@ -5,16 +5,15 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.markets.MarketService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
  * General helper functions common across data providers.
  */
 @Service
-class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, private val marketService: MarketService) {
+class ProviderUtils(private val mdFactory: MdFactory, private val marketService: MarketService) {
     fun splitProviders(assets: Collection<PriceAsset>): Map<MarketDataPriceProvider, MutableCollection<Asset>> {
-        val mdpAssetResults: MutableMap<MarketDataPriceProvider, MutableCollection<Asset>> = HashMap()
+        val mdpAssetResults: MutableMap<MarketDataPriceProvider, MutableCollection<Asset>> = mutableMapOf()
         for (input in assets) {
             var market: Market
             if (input.resolvedAsset != null) {
@@ -25,15 +24,13 @@ class ProviderUtils @Autowired constructor(private val mdFactory: MdFactory, pri
                 input.resolvedAsset = resolvedAsset
             }
             val marketDataProvider = mdFactory.getMarketDataProvider(market)
-            if (marketDataProvider != null) {
-                var mdpAssets = mdpAssetResults[marketDataProvider]
-                if (mdpAssets == null) {
-                    mdpAssets = mutableListOf()
-                    mdpAssetResults[marketDataProvider] = mdpAssets
-                }
-                if (input.resolvedAsset!!.status == Status.Active) {
-                    mdpAssets.add(input.resolvedAsset!!)
-                }
+            var mdpAssets = mdpAssetResults[marketDataProvider]
+            if (mdpAssets == null) {
+                mdpAssets = mutableListOf()
+                mdpAssetResults[marketDataProvider] = mdpAssets
+            }
+            if (input.resolvedAsset!!.status == Status.Active) {
+                mdpAssets.add(input.resolvedAsset!!)
             }
         }
         return mdpAssetResults

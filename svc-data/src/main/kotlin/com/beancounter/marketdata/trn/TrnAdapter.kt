@@ -22,7 +22,7 @@ import java.math.BigDecimal
  * Map TrnInput objects to the Trn persistent model.
  */
 @Service
-class TrnAdapter internal constructor(
+class TrnAdapter(
     var assetService: AssetService,
     var currencyService: CurrencyService,
     var tradeCalculator: TradeCalculator,

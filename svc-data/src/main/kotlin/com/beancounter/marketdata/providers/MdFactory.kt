@@ -23,7 +23,13 @@ class MdFactory internal constructor(
     offMarketDataProvider: OffMarketDataProvider,
     wtdService: WtdService,
 ) {
-    private val providers: MutableMap<String, MarketDataPriceProvider> = HashMap()
+    private val providers: Map<String, MarketDataPriceProvider> =
+        mapOf(
+            Pair(cashProviderService.getId().uppercase(Locale.getDefault()), cashProviderService),
+            Pair(wtdService.getId().uppercase(Locale.getDefault()), wtdService),
+            Pair(alphaPriceService.getId().uppercase(Locale.getDefault()), alphaPriceService),
+            Pair(offMarketDataProvider.getId().uppercase(Locale.getDefault()), offMarketDataProvider),
+        )
 
     /**
      * Locate a price provider for the requested market.
@@ -32,33 +38,26 @@ class MdFactory internal constructor(
      * @return the provider that supports the asset
      */
     @Cacheable("providers")
-    fun getMarketDataProvider(market: Market): MarketDataPriceProvider? {
-        return resolveProvider(market) ?: return providers[CashProviderService.ID]
+    fun getMarketDataProvider(market: Market): MarketDataPriceProvider {
+        return resolveProvider(market)
     }
 
     fun getMarketDataProvider(provider: String): MarketDataPriceProvider {
         return providers[provider.uppercase(Locale.getDefault())]!!
     }
 
-    private fun resolveProvider(market: Market): MarketDataPriceProvider? {
+    private fun resolveProvider(market: Market): MarketDataPriceProvider {
         // ToDo: Map Market to Provider
         for (key in providers.keys) {
             if (providers[key]!!.isMarketSupported(market)) {
-                return providers[key]
+                return providers[key]!!
             }
         }
         log.error("Unable to identify a provider for {}", market)
-        return null
+        return providers[CashProviderService.ID]!!
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(MdFactory::class.java)
-    }
-
-    init {
-        providers[cashProviderService.getId().uppercase(Locale.getDefault())] = cashProviderService
-        providers[wtdService.getId().uppercase(Locale.getDefault())] = wtdService
-        providers[alphaPriceService.getId().uppercase(Locale.getDefault())] = alphaPriceService
-        providers[offMarketDataProvider.getId().uppercase(Locale.getDefault())] = offMarketDataProvider
     }
 }

@@ -28,9 +28,12 @@ import java.util.Optional
 
 private const val OFF_MARKET = "OFFM"
 
+/**
+ * Validate prices for off market assets.
+ */
 @SpringBootTest
 @ActiveProfiles("test")
-class RealEstateMarketDataTest {
+class OffMarketPriceDataTest {
 
     @Autowired
     lateinit var marketService: MarketService

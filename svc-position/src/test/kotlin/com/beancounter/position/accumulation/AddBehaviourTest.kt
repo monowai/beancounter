@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
+/**
+ * Adds don't impact cash but do affect cost.
+ */
 @SpringBootTest(classes = [Accumulator::class])
 class AddBehaviourTest {
     @Autowired

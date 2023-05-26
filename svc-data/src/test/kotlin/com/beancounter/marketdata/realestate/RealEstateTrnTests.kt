@@ -38,6 +38,9 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 
+/**
+ * Check the flow of a real estate purchase.
+ */
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("slow")
@@ -74,6 +77,9 @@ class RealEstateTrnTests {
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
     val tenK = BigDecimal("10000.00")
+    private val pTradeAmount = "tradeAmount"
+    private val pCashAmount = "cashAmount"
+    private val pQuantity = "quantity"
 
     @BeforeEach
     fun setupObjects() {
@@ -136,17 +142,17 @@ class RealEstateTrnTests {
         val iterator = trns.data.iterator()
         val b = iterator.next()
         assertThat(b)
-            .extracting("tradeAmount", "cashAmount")
+            .extracting(pTradeAmount, pCashAmount)
             .containsExactly(tenK, BigDecimal.ZERO.minus(tenK))
 
         val r = iterator.next()
         assertThat(r)
-            .extracting("tradeAmount", "quantity", "cashAmount")
+            .extracting(pTradeAmount, pQuantity, pCashAmount)
             .containsExactly(oneK, oneK, BigDecimal.ZERO)
 
         val i = iterator.next()
         assertThat(i)
-            .extracting("tradeAmount", "quantity", "cashAmount")
+            .extracting(pTradeAmount, pQuantity, pCashAmount)
             .containsExactly(oneK, oneK, BigDecimal.ZERO)
     }
 }

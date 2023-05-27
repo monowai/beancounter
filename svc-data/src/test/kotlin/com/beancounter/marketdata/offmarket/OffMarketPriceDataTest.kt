@@ -146,5 +146,6 @@ class OffMarketPriceDataTest {
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
             .hasFieldOrPropertyWithValue("close", BigDecimal("10.000000"))
+            .hasFieldOrPropertyWithValue("asset.market.code", OffMarketDataProvider.ID)
     }
 }

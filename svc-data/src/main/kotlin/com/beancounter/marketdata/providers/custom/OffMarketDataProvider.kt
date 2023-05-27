@@ -19,11 +19,18 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class OffMarketDataProvider(val marketDataRepo: MarketDataRepo, val dateUtils: DateUtils) : MarketDataPriceProvider {
+class OffMarketDataProvider(
+    val marketDataRepo: MarketDataRepo,
+    val dateUtils: DateUtils,
+) : MarketDataPriceProvider {
 
     private fun getMarketData(asset: Asset): MarketData {
         val closest = marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(asset, priceDate!!)
-        return if (closest.isPresent) closest.get() else MarketData(asset, priceDate!!)
+        return if (closest.isPresent) getMarketData(asset, closest.get()) else MarketData(asset, priceDate!!)
+    }
+
+    fun getMarketData(asset: Asset, from: MarketData): MarketData {
+        return MarketData(asset, close = from.close, priceDate = priceDate)
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {

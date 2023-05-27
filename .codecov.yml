@@ -6,4 +6,4 @@ ignore:
   - jar-shell/src/main/kotlin/com/beancounter/shell/google/GoogleAuthConfig.*
   - jar-shell/src/main/kotlin/com/beancounter/shell/google/SheetIngester.*
   - jar-shell/src/main/kotlin/com/beancounter/shell/google/GoogleTransport.*
-  - jar-auth/src/main/kotlin/com.beancounter/auth/JwtUtil.*
+  - jar-auth/src/main/kotlin/com/beancounter/auth/JwtUtil.*

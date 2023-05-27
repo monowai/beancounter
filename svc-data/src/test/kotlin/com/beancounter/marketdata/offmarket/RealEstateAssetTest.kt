@@ -23,6 +23,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
 
+/**
+ * Simulate the flow of an off market real estate purchase.
+ */
 @SpringBootTest
 @AutoConfigureMockAuth
 class RealEstateAssetTest {

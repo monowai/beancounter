@@ -57,9 +57,11 @@ class OffMarketPriceDataTest {
     @Autowired
     lateinit var priceService: PriceService
 
+    private val owner = "test-user"
+
     @BeforeEach
     fun init() {
-        mockAuthConfig.login(SystemUser(id = "test-user"), this.systemUserService)
+        mockAuthConfig.login(SystemUser(id = owner), this.systemUserService)
     }
 
     @Test
@@ -79,7 +81,7 @@ class OffMarketPriceDataTest {
                             currency = NZD,
                             code = "NO-PRICE",
                             name = "Worthless place",
-                            owner = "test-user",
+                            owner = owner,
                         ),
                     ),
                 ),
@@ -112,7 +114,7 @@ class OffMarketPriceDataTest {
                             currency = NZD,
                             code = "PNZ",
                             name = "My Place In NZD",
-                            owner = "test-user",
+                            owner = owner,
                         ),
                     ),
                 ),

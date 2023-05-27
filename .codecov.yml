@@ -1,8 +1,9 @@
 ignore:
-  - svc-position/src/main/java/com/beancounter/position/PositionBoot.*
-  - svc-data/src/main/java/com/beancounter/marketdata/MarketDataBoot.*
-  - svc-event/src/main/java/com/beancounter/event/EventBoot.*
-  - jar-shell/src/main/java/com/beancounter/shell/ShellRunner.*
-  - jar-shell/src/main/java/com/beancounter/shell/google/GoogleAuthConfig.*
-  - jar-shell/src/main/java/com/beancounter/shell/google/SheetIngester.*
-  - jar-shell/src/main/java/com/beancounter/shell/google/GoogleTransport.*
+  - svc-position/src/main/kotlin/com/beancounter/position/PositionBoot.*
+  - svc-data/src/main/kotlin/com/beancounter/marketdata/MarketDataBoot.*
+  - svc-event/src/main/kotlin/com/beancounter/event/EventBoot.*
+  - jar-shell/src/kotlin/kotlin/com/beancounter/shell/ShellRunner.*
+  - jar-shell/src/main/kotlin/com/beancounter/shell/google/GoogleAuthConfig.*
+  - jar-shell/src/main/kotlin/com/beancounter/shell/google/SheetIngester.*
+  - jar-shell/src/main/kotlin/com/beancounter/shell/google/GoogleTransport.*
+  - jar-auth/src/main/kotlin/com.beancounter/auth/JwtUtil.*

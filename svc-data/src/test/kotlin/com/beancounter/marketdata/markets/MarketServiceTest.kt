@@ -11,6 +11,7 @@ import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.cash.CashProviderService
+import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -62,7 +63,7 @@ class MarketServiceTest @Autowired constructor(
             .isEqualTo(asx)
         assertThat(marketService.getMarket("NAS"))
             .isEqualTo(nasdaq)
-        assertThat(marketService.getMarket("OFFM"))
+        assertThat(marketService.getMarket(OffMarketDataProvider.ID))
             .isNotNull
             .hasFieldOrPropertyWithValue("currencyId", USD.code)
     }

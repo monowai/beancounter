@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.realestate
+package com.beancounter.marketdata.offmarket
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig

@@ -4,6 +4,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.beancounter.marketdata.registration.SystemUserService
 import org.springframework.stereotype.Service
 
@@ -38,7 +39,7 @@ class OffMarketEnricher(
     }
 
     companion object {
-        const val id = "OFFM"
+        const val id = OffMarketDataProvider.ID
 
         @JvmStatic
         fun parseCode(systemUser: SystemUser, code: String) =

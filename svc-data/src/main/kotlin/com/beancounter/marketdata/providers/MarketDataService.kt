@@ -42,16 +42,14 @@ class MarketDataService @Autowired internal constructor(
         val byFactory = providerUtils.splitProviders(priceRequest.assets)
         val foundInDb: MutableCollection<MarketData> = mutableListOf()
         val foundOverApi: MutableCollection<MarketData> = mutableListOf()
-        var marketDate: LocalDate?
         val marketData: MutableMap<String, LocalDate> = mutableMapOf()
 
         for (marketDataProvider in byFactory.keys) {
-            // Pull from the DB
+            // Find existing price for date
             val assetIterable = (byFactory[marketDataProvider] ?: error("")).iterator()
             while (assetIterable.hasNext()) {
                 val asset = assetIterable.next()
-                marketDate = getMarketDate(
-                    marketData[asset.market.timezone.id],
+                val marketDate = getMarketDate(
                     marketDataProvider,
                     asset,
                     priceRequest,
@@ -68,7 +66,9 @@ class MarketDataService @Autowired internal constructor(
             }
 
             // Pull the balance over external API integration
-            foundOverApi.addAll(getExternally(byFactory[marketDataProvider], priceRequest.date, marketDataProvider))
+            foundOverApi.addAll(
+                getExternally(byFactory[marketDataProvider], priceRequest.date, marketDataProvider),
+            )
         }
         // Merge results into a response
         if (foundInDb.size + foundOverApi.size > 1) {
@@ -95,21 +95,21 @@ class MarketDataService @Autowired internal constructor(
     }
 
     private fun getMarketDate(
-        forTimezone: LocalDate?,
         marketDataPriceProvider: MarketDataPriceProvider,
         asset: Asset,
         priceRequest: PriceRequest,
         marketData: MutableMap<String, LocalDate>,
     ): LocalDate {
-        var marketDate = forTimezone
-        if (marketDate == null) {
-            marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
+        val forTimezone = marketData[asset.market.timezone.id]
+        if (forTimezone == null) {
+            val marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
             if (priceRequest.assets.size > 1) {
                 marketData[asset.market.timezone.id] = marketDate
                 log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate, asset: ${asset.name}, assetId: ${asset.id}")
             }
+            return marketDate
         }
-        return marketDate
+        return forTimezone
     }
 
     /**

@@ -18,6 +18,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -181,7 +182,7 @@ internal class PriceControllerTests @Autowired private constructor(
     @Tag("slow")
     @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
     fun is_OffMarketPriceWritten() {
-        val offMarketAsset = getAsset(Market("OFFM"), assetCode)
+        val offMarketAsset = getAsset(Market(OffMarketDataProvider.ID), assetCode)
         val offMarketPrice = OffMarketPriceRequest(
             offMarketAsset.id,
             closePrice = BigDecimal("999.0"),

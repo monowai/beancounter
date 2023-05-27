@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.AsyncResult
@@ -43,7 +44,7 @@ class PriceService internal constructor(
         date: LocalDate,
         response: Optional<MarketData>,
     ): Optional<MarketData> {
-        if (asset.market.code == "OFFM" && closePrice != BigDecimal.ZERO) {
+        if (asset.market.code == OffMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
             val price = marketDataRepo.save(
                 MarketData(
                     asset = asset,

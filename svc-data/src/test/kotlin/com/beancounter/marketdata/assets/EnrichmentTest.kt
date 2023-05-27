@@ -10,6 +10,7 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.figi.FigiEnricher
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaEnricher
+import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -44,7 +45,7 @@ class EnrichmentTest {
 
     @Test
     fun is_OffMarketEnrichment() {
-        val offMarket = Market("OFFM")
+        val offMarket = Market(OffMarketDataProvider.ID)
         val systemUserService = Mockito.mock(SystemUserService::class.java)
         val keyGenUtils = Mockito.mock(KeyGenUtils::class.java)
         val enricher: AssetEnricher = OffMarketEnricher(systemUserService)

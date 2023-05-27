@@ -211,6 +211,10 @@ beancounter:
         batchSize: 1
         markets: CUSTOM
 
+      OFFM:
+        batchSize: 1
+        markets: OFFM
+
 
 resilience4j:
   ratelimiter:

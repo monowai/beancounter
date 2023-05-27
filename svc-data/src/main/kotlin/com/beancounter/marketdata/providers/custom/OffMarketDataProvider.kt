@@ -7,8 +7,8 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.MarketDataRepo
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -19,12 +19,11 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class OffMarketDataProvider : MarketDataPriceProvider {
-    private val dateUtils = DateUtils()
+class OffMarketDataProvider(val marketDataRepo: MarketDataRepo, val dateUtils: DateUtils) : MarketDataPriceProvider {
+
     private fun getMarketData(asset: Asset): MarketData {
-        val result = MarketData(asset, priceDate!!)
-        result.close = BigDecimal.ONE
-        return result
+        val closest = marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(asset, priceDate!!)
+        return if (closest.isPresent) closest.get() else MarketData(asset, priceDate!!)
     }
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
@@ -49,7 +48,7 @@ class OffMarketDataProvider : MarketDataPriceProvider {
         get() = dateUtils.getLocalDate()
 
     override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {
-        return priceDate!!
+        return dateUtils.getDate(priceRequest.date)
     }
 
     override fun backFill(asset: Asset): PriceResponse {
@@ -57,6 +56,6 @@ class OffMarketDataProvider : MarketDataPriceProvider {
     }
 
     companion object {
-        const val ID = "CUSTOM"
+        const val ID = "OFFM"
     }
 }

@@ -1,6 +1,7 @@
 package com.beancounter.common.model
 
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.PortfolioUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -56,7 +57,7 @@ data class Trn(
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var tradeDate: LocalDate = DateUtils().date,
     @ManyToOne
-    var portfolio: Portfolio = Portfolio("UNDEFINED"),
+    var portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

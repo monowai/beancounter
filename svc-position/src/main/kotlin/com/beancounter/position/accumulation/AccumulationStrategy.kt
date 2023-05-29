@@ -1,6 +1,5 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -14,7 +13,6 @@ interface AccumulationStrategy {
         trn: Trn,
         positions: Positions,
         position: Position = positions[trn.asset, trn.tradeDate], // Some strategies mutate multiple positions (FX)
-        portfolio: Portfolio = positions.portfolio,
     ): Position
 
     fun getCashPosition(

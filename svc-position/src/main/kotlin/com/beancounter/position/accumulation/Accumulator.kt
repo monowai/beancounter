@@ -11,6 +11,7 @@ import com.beancounter.common.model.TrnType.DIVI
 import com.beancounter.common.model.TrnType.FX_BUY
 import com.beancounter.common.model.TrnType.WITHDRAWAL
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.utils.CurrencyResolver
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service
 @Import(
     DateUtils::class,
     TrnBehaviourFactory::class,
+    CurrencyResolver::class,
 )
 class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     /**

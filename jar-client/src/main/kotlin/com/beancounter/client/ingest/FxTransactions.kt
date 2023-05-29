@@ -92,4 +92,12 @@ class FxTransactions(
                 numberUtils.isUnset(trnInput.tradeCashRate)
             ) && trnInput.trnType != TrnType.SPLIT
     }
+
+    fun handleRates(portfolio: Portfolio, trnInput: TrnInput) {
+        if (needsRates(trnInput)) {
+            val fxRequest = getFxRequest(portfolio, trnInput)
+            val (data) = fxClientService.getRates(fxRequest)
+            setRates(data, fxRequest, trnInput)
+        }
+    }
 }

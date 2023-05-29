@@ -1,9 +1,9 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
+import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.CashCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -13,32 +13,26 @@ import java.math.BigDecimal
  * These are psuedo cash transactions that do not support cashAssetId.
  */
 @Service
-class BalanceBehaviour : AccumulationStrategy {
+class BalanceBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStrategy {
     private val cashCost = CashCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
+    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
         position.quantityValues.purchased = trn.tradeAmount
         cashCost.value(
-            trn.tradeCurrency,
-            trn.tradeAmount,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.BASE, trn.tradeCurrency, trn.portfolio, position),
             position,
-            Position.In.BASE,
+            trn.tradeAmount,
             trn.tradeBaseRate,
         )
         cashCost.value(
-            trn.tradeCurrency,
-            trn.tradeAmount,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.PORTFOLIO, trn.tradeCurrency, trn.portfolio, position),
             position,
-            Position.In.PORTFOLIO,
+            trn.tradeAmount,
             trn.tradePortfolioRate,
         )
         cashCost.value(
-            trn.tradeCurrency,
-            trn.tradeAmount,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.TRADE, trn.tradeCurrency, trn.portfolio, position),
             position,
-            Position.In.TRADE,
+            trn.tradeAmount,
             BigDecimal.ONE,
         ) // Trade to Cash Settlement ?
         return position

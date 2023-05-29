@@ -1,6 +1,5 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -16,10 +15,9 @@ import java.math.BigDecimal
  * Logic to accumulate a sell transaction into a position.
  */
 @Service
-class SellBehaviour : AccumulationStrategy {
-    private val currencyResolver = CurrencyResolver()
+class SellBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver()) : AccumulationStrategy {
     private val averageCost = AverageCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
+    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
         var soldQuantity = trn.quantity
         if (soldQuantity.toDouble() > 0) {
             // Sign the quantities
@@ -27,28 +25,26 @@ class SellBehaviour : AccumulationStrategy {
         }
         val quantityValues = position.quantityValues
         quantityValues.sold = quantityValues.sold.add(soldQuantity)
-        value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE)
-        value(trn, portfolio, position, Position.In.BASE, trn.tradeBaseRate)
+        value(Position.In.TRADE, position, BigDecimal.ONE, trn)
+        value(Position.In.BASE, position, trn.tradeBaseRate, trn)
         value(
-            trn,
-            portfolio,
-            position,
             Position.In.PORTFOLIO,
+            position,
             trn.tradePortfolioRate,
+            trn,
         )
         return position
     }
 
     private fun value(
-        trn: Trn,
-        portfolio: Portfolio,
-        position: Position,
         `in`: Position.In,
-        rate: BigDecimal?,
+        position: Position,
+        rate: BigDecimal,
+        trn: Trn,
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
+            currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
         )
         moneyValues.sales = moneyValues.sales.add(
             multiply(trn.tradeAmount, rate),

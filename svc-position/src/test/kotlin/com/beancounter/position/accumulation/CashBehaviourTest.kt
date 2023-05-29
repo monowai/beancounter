@@ -6,6 +6,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.PortfolioUtils
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
@@ -38,6 +39,7 @@ internal class CashBehaviourTest {
             asset = usdCashBalance,
             cashCurrency = USD,
             quantity = BigDecimal("10000.00"), // Buy
+            portfolio = PortfolioUtils.getPortfolio(),
         )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
@@ -60,6 +62,7 @@ internal class CashBehaviourTest {
             cashAsset = usdCashBalance,
             cashCurrency = USD,
             cashAmount = cashAmount.abs(), // Cash is signed
+            portfolio = PortfolioUtils.getPortfolio(),
         )
 
         val positions = Positions()
@@ -82,6 +85,7 @@ internal class CashBehaviourTest {
             asset = usdCashBalance,
             cashCurrency = USD,
             quantity = cashAmount, // Cash is signed
+            portfolio = PortfolioUtils.getPortfolio(),
         )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
@@ -105,6 +109,7 @@ internal class CashBehaviourTest {
             cashAsset = usdCashBalance,
             cashCurrency = USD,
             cashAmount = cashAmount,
+            portfolio = PortfolioUtils.getPortfolio(),
         )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)

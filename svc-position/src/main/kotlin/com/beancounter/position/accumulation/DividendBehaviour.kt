@@ -1,6 +1,5 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -16,13 +15,12 @@ import java.math.BigDecimal
 @Service
 class DividendBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
+    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
         position.dateValues.lastDividend = trn.tradeDate
-        value(trn, portfolio, position, Position.In.TRADE, BigDecimal.ONE)
-        value(trn, portfolio, position, Position.In.BASE, trn.tradeBaseRate)
+        value(trn, position, Position.In.TRADE, BigDecimal.ONE)
+        value(trn, position, Position.In.BASE, trn.tradeBaseRate)
         value(
             trn,
-            portfolio,
             position,
             Position.In.PORTFOLIO,
             trn.tradePortfolioRate,
@@ -32,14 +30,13 @@ class DividendBehaviour : AccumulationStrategy {
 
     private fun value(
         trn: Trn,
-        portfolio: Portfolio,
         position: Position,
         `in`: Position.In,
-        rate: BigDecimal?,
+        rate: BigDecimal,
     ) {
         val moneyValues = position.getMoneyValues(
             `in`,
-            currencyResolver.resolve(`in`, portfolio, trn.tradeCurrency),
+            currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
         )
         moneyValues.dividends = add(
             moneyValues.dividends,

@@ -1,9 +1,9 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
+import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.CashCost
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -12,37 +12,31 @@ import java.math.BigDecimal
  * FX affects two position records.
  */
 @Service
-class FxBuyBehaviour : AccumulationStrategy {
+class FxBuyBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStrategy {
     private val cashCost = CashCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position, portfolio: Portfolio): Position {
+    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
         cashCost.value(
-            trn.tradeCurrency,
-            trn.quantity,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.TRADE, trn.tradeCurrency, trn.portfolio, position),
             position,
-            Position.In.TRADE,
+            trn.quantity,
             BigDecimal.ONE,
         )
         cashCost.value(
-            trn.tradeCurrency,
-            trn.quantity,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.BASE, trn.tradeCurrency, trn.portfolio, position),
             position,
-            Position.In.BASE,
+            trn.quantity,
             trn.tradeBaseRate,
         )
         cashCost.value(
-            trn.tradeCurrency,
-            trn.quantity,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.PORTFOLIO, trn.tradeCurrency, trn.portfolio, position),
             position,
-            Position.In.PORTFOLIO,
+            trn.quantity,
             trn.tradePortfolioRate,
         )
 
         if (trn.cashAsset != null) {
-            handleCash(positions[trn.cashAsset!!, trn.tradeDate], trn, portfolio)
+            handleCash(positions[trn.cashAsset!!, trn.tradeDate], trn)
         }
 
         return position
@@ -51,33 +45,26 @@ class FxBuyBehaviour : AccumulationStrategy {
     private fun handleCash(
         counterPosition: Position,
         trn: Trn,
-        portfolio: Portfolio,
     ) {
         counterPosition.quantityValues.sold = counterPosition.quantityValues.sold.add(trn.cashAmount)
         cashCost.value(
-            trn.cashCurrency!!,
-            trn.cashAmount,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.TRADE, trn.cashCurrency!!, trn.portfolio, counterPosition),
             counterPosition,
-            Position.In.TRADE,
+            trn.cashAmount,
             BigDecimal.ONE,
         )
         // ToDo: Fix rates
 
         cashCost.value(
-            trn.cashCurrency!!,
-            trn.cashAmount,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.BASE, trn.cashCurrency!!, trn.portfolio, counterPosition),
             counterPosition,
-            Position.In.BASE,
+            trn.cashAmount,
             trn.tradeBaseRate,
         )
         cashCost.value(
-            trn.cashCurrency!!,
-            trn.cashAmount,
-            portfolio,
+            currencyResolver.getMoneyValues(Position.In.PORTFOLIO, trn.cashCurrency!!, trn.portfolio, counterPosition),
             counterPosition,
-            Position.In.PORTFOLIO,
+            trn.cashAmount,
             trn.tradePortfolioRate,
         )
     }

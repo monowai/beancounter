@@ -5,6 +5,7 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -27,12 +28,14 @@ class TrnTest {
             id = id,
             trnType = TrnType.BUY,
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
+            portfolio = PortfolioUtils.getPortfolio(),
         )
         val trn = Trn(
             id = id,
             trnType = TrnType.BUY,
             version = "0",
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
+            portfolio = PortfolioUtils.getPortfolio(),
         )
         assertThat(trnDefault)
             .hasFieldOrProperty("version")
@@ -88,6 +91,7 @@ class TrnTest {
             id = "any",
             trnType = TrnType.BUY,
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
+            portfolio = PortfolioUtils.getPortfolio(),
         )
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)

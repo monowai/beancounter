@@ -25,11 +25,13 @@ class AddBehaviourTest {
 
     @Test
     fun isRealEstateAdded() {
+        val portfolio = Portfolio("TEST", Constants.USD, Constants.NZD)
         val trn = Trn(
             trnType = TrnType.ADD,
             asset = Asset(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House", "test-user"), Market("RE")),
             cashCurrency = Constants.NZD,
             price = BigDecimal("1000000.00"),
+            portfolio = portfolio,
             quantity = BigDecimal.ONE,
             tradeCurrency = Constants.NZD,
             tradeAmount = BigDecimal("1000000.00"),
@@ -37,7 +39,7 @@ class AddBehaviourTest {
             tradeBaseRate = BigDecimal.ONE,
             tradeCashRate = BigDecimal.ONE,
         )
-        val positions = Positions(Portfolio("TEST", Constants.USD, Constants.NZD))
+        val positions = Positions(portfolio = portfolio)
         val position = accumulator.accumulate(trn, positions)
 
         val usCost = BigDecimal("665051.00")

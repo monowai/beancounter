@@ -91,8 +91,12 @@ internal class TestPositions {
     @Throws(Exception::class)
     fun is_PositionRequestSerializing() {
         val trns: MutableCollection<Trn> = ArrayList()
-        val trn = Trn(id = "any", trnType = TrnType.BUY, asset = getJsonAsset("Market", "Blah"))
-        trn.portfolio = PortfolioUtils.getPortfolio()
+        val trn = Trn(
+            id = "any",
+            trnType = TrnType.BUY,
+            asset = getJsonAsset("Market", "Blah"),
+            portfolio = PortfolioUtils.getPortfolio(),
+        )
         trns.add(trn)
         val positionRequest = PositionRequest("TWEE", trns)
 

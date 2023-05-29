@@ -1,31 +1,22 @@
 package com.beancounter.position.valuation
 
-import com.beancounter.common.model.Currency
-import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.utils.MathUtils
-import com.beancounter.position.utils.CurrencyResolver
 import java.math.BigDecimal
 
 /**
  * Calculate the cost of cash
  */
 class CashCost {
-    private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()
 
     fun value(
-        currency: Currency,
-        quantity: BigDecimal,
-        portfolio: Portfolio,
+        moneyValues: MoneyValues,
         position: Position,
-        `in`: Position.In,
+        quantity: BigDecimal,
         rate: BigDecimal,
     ) {
-        val moneyValues = position.getMoneyValues(
-            `in`,
-            currencyResolver.resolve(`in`, portfolio, currency),
-        )
         if (quantity > BigDecimal.ZERO) {
             moneyValues.purchases = moneyValues.purchases.add(MathUtils.multiply(quantity, rate))
         } else {

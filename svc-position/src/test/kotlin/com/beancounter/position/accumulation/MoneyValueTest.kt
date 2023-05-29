@@ -13,6 +13,7 @@ import com.beancounter.position.Constants.Companion.fourK
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.ten
 import com.beancounter.position.Constants.Companion.twoK
+import com.beancounter.position.utils.CurrencyResolver
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -133,7 +134,7 @@ internal class MoneyValueTest {
             tradeCashRate = BigDecimal.TEN,
             tradePortfolioRate = tradePortfolioRate,
         )
-        val sellBehaviour = SellBehaviour()
+        val sellBehaviour = SellBehaviour(CurrencyResolver())
         sellBehaviour.accumulate(sellTrn, positions)
         assertThat(position.getMoneyValues(Position.In.TRADE).sales)
             .isEqualTo(fourK)

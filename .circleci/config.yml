@@ -25,6 +25,11 @@ jobs:
             - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
       - run: 'pwd'
       - run: './gradlew jar-common:build jar-auth:build svc-data:publishToMavenLocal svc-position:publishToMavenLocal'
+      - codecov/upload:
+          file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
+
+      - codecov/upload:
+          file: ./jar-auth/build/reports/jacoco/test/jacocoTestReport.xml
 
       - save_cache:
           paths:
@@ -60,6 +65,8 @@ jobs:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: './gradlew jar-client:build'
+      - codecov/upload:
+          file: ./jar-client/build/reports/jacoco/test/jacocoTestReport.xml
 
       - persist_to_workspace:
           root: ~/project
@@ -86,6 +93,9 @@ jobs:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
 
       - run: './gradlew jar-shell:build'
+      - codecov/upload:
+          file: ./jar-shell/build/reports/jacoco/test/jacocoTestReport.xml
+
       - setup_remote_docker
       - run:
           name: Package BC-SHELL
@@ -120,6 +130,9 @@ jobs:
       - run: './gradlew svc-data:build'
       - store_test_results:
           path: ./svc-data/build/test-results/test
+      - codecov/upload:
+          file: ./svc-data/build/reports/jacoco/test/jacocoTestReport.xml
+
       - store_artifacts:
           path: ~/project/svc-data/build/libs
       - setup_remote_docker
@@ -139,11 +152,6 @@ jobs:
                                       -t "monowai/bc-data:latest" \
                                       -t "monowai/bc-data:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-data/.
-            - persist_to_workspace:
-                root: ~/project
-                paths:
-                  - ./svc-data/build/reports/jacoco/test/*.xml
-                  - ./codecov.yml
 
   build-position:
     executor: java-build
@@ -158,6 +166,8 @@ jobs:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run: './gradlew svc-position:build'
+      - codecov/upload:
+          file: ./svc-position/build/reports/jacoco/test/jacocoTestReport.xml
       - store_test_results:
           path: ~/project/svc-position/build/test-results/test
       - store_artifacts:
@@ -198,6 +208,9 @@ jobs:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run: './gradlew svc-event:build'
+      - codecov/upload:
+          file: ./svc-event/build/reports/jacoco/test/jacocoTestReport.xml
+
       - store_test_results:
           path: ~/project/svc-event/build/test-results/test
       - store_artifacts:
@@ -235,11 +248,11 @@ jobs:
             - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
       - attach_workspace:
           at: ~/workspace
-      - run:
-          name: CodeCov Coverage
-          command: |
-            cd ~/workspace
-            bash <(curl -Ls https://codecov.io/bash)
+#      - run:
+#          name: CodeCov Coverage
+#          command: |
+#            cd ~/workspace
+#            bash <(curl -Ls https://codecov.io/bash)
       - run:
           name: Codacy Coverage
           command: |

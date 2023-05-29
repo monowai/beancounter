@@ -31,7 +31,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
     @Value("\${auth.audience:beancounter:service}")
     private lateinit var audience: String
 
-    fun login(user: String, password: String, clientId: String = this.clientId) {
+    fun login(user: String, password: String, clientId: String = this.clientId): String {
         val loginRequest = LoginRequest(
             client_id = clientId,
             username = user,
@@ -44,6 +44,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
             ),
         )
         log.info("Logged in $user")
+        return response.token
     }
 
     /**
@@ -53,13 +54,13 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
      *
      * @return token
      */
-    fun login(): String {
+    fun login(secretIn: String = secret): String {
         log.debug("Performing m2m login")
-        if ("not-set" == secret) {
+        if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
         }
         val login = MachineRequest(
-            client_secret = secret,
+            client_secret = secretIn,
             client_id = clientId,
             audience = audience,
         )

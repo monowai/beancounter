@@ -25,10 +25,10 @@ class MdFactory internal constructor(
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
-            Pair(cashProviderService.getId().uppercase(Locale.getDefault()), cashProviderService),
-            Pair(wtdService.getId().uppercase(Locale.getDefault()), wtdService),
-            Pair(alphaPriceService.getId().uppercase(Locale.getDefault()), alphaPriceService),
-            Pair(offMarketDataProvider.getId().uppercase(Locale.getDefault()), offMarketDataProvider),
+            Pair(CashProviderService.ID, cashProviderService),
+            Pair(WtdService.ID, wtdService),
+            Pair(AlphaPriceService.ID, alphaPriceService),
+            Pair(OffMarketDataProvider.ID, offMarketDataProvider),
         )
 
     /**

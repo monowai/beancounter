@@ -1,5 +1,6 @@
 version: 2.1
-
+orbs:
+  codecov: codecov/codecov@3.2.5
 executors:
   java-build:
     environment:
@@ -138,6 +139,12 @@ jobs:
                                       -t "monowai/bc-data:latest" \
                                       -t "monowai/bc-data:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-data/.
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                  - ./svc-data/build/reports/jacoco/test/*.xml
+                  - ./codecov.yml
+
   build-position:
     executor: java-build
     environment:
@@ -172,6 +179,12 @@ jobs:
                                       -t "monowai/bc-position:latest" \
                                       -t "monowai/bc-position:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-position/.
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                  - ./svc-position/build/reports/jacoco/test/*.xml
+                  - ./codecov.yml
+
   build-event:
     executor: java-build
     environment:
@@ -206,6 +219,12 @@ jobs:
                                       -t "monowai/bc-event:latest" \
                                       -t "monowai/bc-event:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-event/.
+
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                  - ./svc-event/build/reports/jacoco/test/*.xml
+                  - ./codecov.yml
 
   publish-coverage:
     docker:

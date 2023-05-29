@@ -1,7 +1,6 @@
 package com.beancounter.position.service
 
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -39,16 +38,14 @@ class PositionValuationService internal constructor(
         // Set market data into the positions
         // There's an issue here that without a price, gains are not computed
         val (priceResponse, fxResponse) = getValuationData(positions)
-        if (priceResponse == null) {
+        if (priceResponse.data.isEmpty()) {
             log.info("No prices found on date {}", positions.asAt)
             return positions // Prevent NPE
         }
-        val (data) = fxResponse ?: throw BusinessException("Unable to obtain FX Rates ")
-        val rates = data.rates
         val baseTotals = Totals()
         val refTotals = Totals()
         for (marketData in priceResponse.data) {
-            val position = marketValue.value(positions, marketData, rates)
+            val position = marketValue.value(positions, marketData, fxResponse.data.rates)
             val baseAmount = position.getMoneyValues(
                 Position.In.BASE,
                 positions.portfolio.base,
@@ -61,6 +58,7 @@ class PositionValuationService internal constructor(
             refTotals.total = refTotals.total.add(refAmount)
         }
         positions.setTotal(Position.In.BASE, baseTotals)
+        positions.setTotal(Position.In.PORTFOLIO, refTotals)
         for (position in positions.positions.values) {
             var moneyValues = position.getMoneyValues(
                 Position.In.BASE,

@@ -18,8 +18,6 @@ class Constants {
 
         val ten = BigDecimal("10.00")
 
-        val twenty = BigDecimal("20.00")
-
         val hundred = BigDecimal(100)
 
         val USD = Currency("USD")

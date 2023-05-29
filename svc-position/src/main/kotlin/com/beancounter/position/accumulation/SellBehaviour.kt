@@ -5,7 +5,6 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.MathUtils.Companion.add
-import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.position.utils.CurrencyResolver

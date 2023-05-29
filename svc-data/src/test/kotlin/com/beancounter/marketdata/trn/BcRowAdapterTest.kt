@@ -163,10 +163,9 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(tradeAmount, amount)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal.ZERO)
     }
-
+    private val portfolio: Portfolio = Portfolio("CSV")
     private fun trustedTrnImportRequest(
         values: String,
-        portfolio: Portfolio = Portfolio("CSV"),
     ): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             portfolio,

@@ -7,6 +7,6 @@ import com.beancounter.common.contracts.PriceResponse
  * Rates and Prices necessary to values all positions.
  */
 data class ValuationData(
-    val priceResponse: PriceResponse? = null,
-    val fxResponse: FxResponse? = null,
+    val priceResponse: PriceResponse = PriceResponse(),
+    val fxResponse: FxResponse = FxResponse(),
 )

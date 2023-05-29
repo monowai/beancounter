@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 @CrossOrigin
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
-class PositionController constructor(private val portfolioServiceClient: PortfolioServiceClient) {
+class PositionController(private val portfolioServiceClient: PortfolioServiceClient) {
     private lateinit var valuationService: Valuation
 
     @Autowired

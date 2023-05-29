@@ -60,11 +60,11 @@ internal class FxMvcTests {
 
     @MockBean
     private lateinit var fxGateway: FxGateway
+    private val date = "2019-08-27"
 
     @Test
     fun fxResponseObjectReturned() {
-        val date = "2019-08-27"
-        mockProviderRates(date)
+        mockProviderRates()
         val fxRequest = FxRequest(
             rateDate = date,
             pairs = arrayListOf(
@@ -94,7 +94,7 @@ internal class FxMvcTests {
         return results
     }
 
-    private fun mockProviderRates(date: String) {
+    private fun mockProviderRates() {
         `when`(
             fxGateway.getRatesForSymbols(eq(date), eq(USD.code), eq(currencyService.currenciesAs)),
         )

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @author mikeh
  * @since 2019-03-12
  */
-data class WtdResponse constructor(
+data class WtdResponse(
     val date: String? = null,
     val data: Map<String, WtdMarketData> = HashMap(),
     @JsonInclude(JsonInclude.Include.NON_NULL)

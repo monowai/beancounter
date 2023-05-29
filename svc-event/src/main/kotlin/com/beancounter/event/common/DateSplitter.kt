@@ -41,7 +41,6 @@ class DateSplitter(val dateUtils: DateUtils) {
         } else {
             dateUtils.getDate(date).toString()
         }
-        val dates = split(from = asAt, until = toDate, days = 1)
-        return dates
+        return split(from = asAt, until = toDate, days = 1)
     }
 }

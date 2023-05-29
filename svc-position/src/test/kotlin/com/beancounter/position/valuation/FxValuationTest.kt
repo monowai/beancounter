@@ -133,7 +133,11 @@ internal class FxValuationTest {
         val jsonPositions = fromJson.data
         assertThat(jsonPositions).isNotNull
         assertThat(jsonPositions.positions).hasSize(positions.positions.size)
-        assertThat(jsonPositions.totals).hasSize(1)
+        assertThat(jsonPositions.totals.keys)
+            .contains(
+                Position.In.BASE,
+                Position.In.PORTFOLIO,
+            )
         var position: Position? = null
         for (key in jsonPositions.positions.keys) {
             position = jsonPositions.positions[key]

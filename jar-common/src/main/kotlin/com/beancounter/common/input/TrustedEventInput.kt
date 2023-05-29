@@ -6,4 +6,4 @@ import com.beancounter.common.event.CorporateEvent
 /**
  * Request to create an Event against a portfolioId.
  */
-data class TrustedEventInput constructor(override val data: CorporateEvent) : Payload<CorporateEvent>
+data class TrustedEventInput(override val data: CorporateEvent) : Payload<CorporateEvent>

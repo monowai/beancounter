@@ -20,7 +20,7 @@ import javax.persistence.UniqueConstraint
 /**
  * Representation of a Corporate Action or Event.
  */
-data class CorporateEvent constructor(
+data class CorporateEvent(
     @Id val id: String? = null,
     val trnType: TrnType = TrnType.DIVI,
     val source: String = "ALPHA",

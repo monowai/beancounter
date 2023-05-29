@@ -18,7 +18,6 @@ class TrnMigrator(private val fxRateService: FxRateService) {
         return trn
     }
 
-    @Suppress("DEPRECATION")
     private fun upgradeV3(trn: Trn): Trn {
         // Migrate from cashCurrency to cashAsset
         var tradeCash: IsoCurrencyPair? = null

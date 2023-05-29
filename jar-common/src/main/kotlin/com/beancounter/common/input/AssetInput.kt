@@ -18,8 +18,6 @@ data class AssetInput(
     val owner: String = "",
 ) {
     companion object {
-        @JvmStatic
-        val offMarket = "OFFM"
 
         @JvmStatic
         val cashAsset = "CASH"

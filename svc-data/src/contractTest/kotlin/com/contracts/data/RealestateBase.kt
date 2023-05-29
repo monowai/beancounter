@@ -10,7 +10,6 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
-import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -152,7 +151,7 @@ class RealestateBase {
     }
 
     fun reTrnFlow() {
-        val houseAsset = asset(code = assetCode, name = "NY Apartment")
+        val houseAsset = asset()
         assertThat(houseAsset)
             .isNotNull
             .extracting("id", "code")
@@ -222,8 +221,8 @@ class RealestateBase {
             .containsExactly(tradeAmount, quantity, BigDecimal.ZERO)
     }
 
-    private fun asset(currency: Currency = Constants.USD, code: String, name: String): Asset? {
-        val assetInput = AssetInput.toRealEstate(currency, code, name, "test-user")
+    private fun asset(): Asset? {
+        val assetInput = AssetInput.toRealEstate(Constants.USD, assetCode, "NY Apartment", "test-user")
         Mockito.`when`(keyGenUtils.id).thenReturn(assetCode)
         return assetService.handle(
             AssetRequest(

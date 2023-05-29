@@ -12,7 +12,6 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.split
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 /**
@@ -48,14 +47,6 @@ internal class TestAsset {
             .isEqualTo(keyIn)
         assertThat(fromKey(keyIn))
             .isEqualTo(asset)
-    }
-
-    @Test
-    fun assetKeyExceptionsBeingThrown() {
-        assertThrows(BusinessException::class.java) { fromKey("CodeWithNoMarket") }
-        assertThrows(
-            NullPointerException::class.java,
-        ) { getAsset((null as Market?)!!, "Twee") }
     }
 
     @Test

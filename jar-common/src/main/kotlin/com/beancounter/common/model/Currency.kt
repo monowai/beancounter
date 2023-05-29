@@ -16,9 +16,7 @@ data class Currency(@Id var code: String, var name: String? = "Dollar", var symb
 
         other as Currency
 
-        if (code != other.code) return false
-
-        return true
+        return code == other.code
     }
 
     override fun hashCode(): Int {

@@ -193,7 +193,6 @@ jobs:
                 root: ~/project
                 paths:
                   - ./svc-position/build/reports/jacoco/test/*.xml
-                  - ./codecov.yml
 
   build-event:
     executor: java-build
@@ -237,7 +236,6 @@ jobs:
                 root: ~/project
                 paths:
                   - ./svc-event/build/reports/jacoco/test/*.xml
-                  - ./codecov.yml
 
   publish-coverage:
     docker:
@@ -248,11 +246,6 @@ jobs:
             - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
       - attach_workspace:
           at: ~/workspace
-#      - run:
-#          name: CodeCov Coverage
-#          command: |
-#            cd ~/workspace
-#            bash <(curl -Ls https://codecov.io/bash)
       - run:
           name: Codacy Coverage
           command: |

@@ -40,7 +40,7 @@ class HttpWriter(
             log.info("Back filling FX rates...")
             rows = trnInputs.size
             for (trnInput in trnInputs) {
-                fxTransactions.setTrnRates(portfolio!!, trnInput)
+                fxTransactions.setRates(portfolio!!, trnInput)
             }
             log.info(
                 "Writing {} transactions to portfolio {}",

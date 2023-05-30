@@ -39,7 +39,7 @@ class TrnAdapter(
     }
 
     fun map(portfolio: Portfolio, trnInput: TrnInput, existing: Trn? = null): Trn {
-        fxTransactions.handleRates(portfolio, trnInput)
+        fxTransactions.setRates(portfolio, trnInput)
 
         val cashAsset = cashServices.getCashAsset(trnInput)
         var cashCurrency: Currency? = null

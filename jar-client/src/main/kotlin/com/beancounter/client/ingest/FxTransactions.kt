@@ -79,12 +79,6 @@ class FxTransactions(
         return fxRequest
     }
 
-    fun setTrnRates(portfolio: Portfolio, trnInput: TrnInput) {
-        val fxRequest = getFxRequest(portfolio, trnInput)
-        val (data) = fxClientService.getRates(fxRequest)
-        setRates(data, fxRequest, trnInput)
-    }
-
     fun needsRates(trnInput: TrnInput): Boolean {
         return (
             numberUtils.isUnset(trnInput.tradePortfolioRate) ||
@@ -93,7 +87,7 @@ class FxTransactions(
             ) && trnInput.trnType != TrnType.SPLIT
     }
 
-    fun handleRates(portfolio: Portfolio, trnInput: TrnInput) {
+    fun setRates(portfolio: Portfolio, trnInput: TrnInput) {
         if (needsRates(trnInput)) {
             val fxRequest = getFxRequest(portfolio, trnInput)
             val (data) = fxClientService.getRates(fxRequest)

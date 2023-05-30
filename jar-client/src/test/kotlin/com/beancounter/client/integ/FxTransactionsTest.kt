@@ -1,6 +1,6 @@
 package com.beancounter.client.integ
 
-import com.beancounter.auth.TokenService
+import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.client.Constants.Companion.EUR
 import com.beancounter.client.Constants.Companion.GBP
 import com.beancounter.client.Constants.Companion.NASDAQ
@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
 import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import java.math.BigDecimal
@@ -44,15 +43,13 @@ import java.math.BigDecimal
 )
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
+@AutoConfigureNoAuth
 class FxTransactionsTest {
     @Autowired
     lateinit var fxRateService: FxService
 
     @Autowired
     lateinit var fxTransactions: FxTransactions
-
-    @MockBean
-    private lateinit var tokenService: TokenService
 
     @Test
     fun balanceTransaction() {
@@ -68,7 +65,7 @@ class FxTransactionsTest {
             price = BigDecimal.ONE,
         )
         val portfolio = Portfolio("tst", NZD, NZD)
-        fxTransactions.setTrnRates(portfolio, trnInput)
+        fxTransactions.setRates(portfolio, trnInput)
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue(pTradeCashRate, BigDecimal.ONE)
@@ -137,7 +134,7 @@ class FxTransactionsTest {
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")
-        fxTransactions.setTrnRates(portfolio, trnInput)
+        fxTransactions.setRates(portfolio, trnInput)
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)
@@ -160,7 +157,7 @@ class FxTransactionsTest {
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")
-        fxTransactions.setTrnRates(portfolio, trnInput)
+        fxTransactions.setRates(portfolio, trnInput)
         assertThat(trnInput)
             .isNotNull
             .hasFieldOrPropertyWithValue("tradeCashRate", BigDecimal.ONE)

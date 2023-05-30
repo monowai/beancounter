@@ -81,7 +81,7 @@ internal class StubbedTradesWithFx {
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setTrnRates(portfolio, trn)
+        fxTransactions.setRates(portfolio, trn)
         assertTransaction(portfolio, trn)
     }
 
@@ -117,7 +117,7 @@ internal class StubbedTradesWithFx {
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setTrnRates(portfolio, trn)
+        fxTransactions.setRates(portfolio, trn)
         assertTransaction(portfolio, trn)
     }
 
@@ -162,7 +162,7 @@ internal class StubbedTradesWithFx {
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setTrnRates(portfolio, trn)
+        fxTransactions.setRates(portfolio, trn)
         val fxRate = "1.5692749462"
         assertThat(trn)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, USD.code) // Was tradeAmount calculated?
@@ -200,7 +200,7 @@ internal class StubbedTradesWithFx {
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
-        fxTransactions.setTrnRates(portfolio, trn)
+        fxTransactions.setRates(portfolio, trn)
 
         // No currencies are defined so rate defaults to 1
         assertThat(trn)

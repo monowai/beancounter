@@ -22,9 +22,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+            - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle"
+              }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum
+              "~/project/jar-shell/build.gradle" }}-{{ checksum
+              "~/project/svc-position/build.gradle" }}
       - run: 'pwd'
-      - run: './gradlew jar-common:build jar-auth:build svc-data:publishToMavenLocal svc-position:publishToMavenLocal'
+      - run: './gradlew jar-common:build jar-auth:build svc-data:publishToMavenLocal
+          svc-position:publishToMavenLocal'
       - codecov/upload:
           file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
 
@@ -34,7 +38,10 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+          key: v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{
+            checksum "~/project/svc-data/build.gradle" }}-{{ checksum
+            "~/project/jar-shell/build.gradle" }}-{{ checksum
+            "~/project/svc-position/build.gradle" }}
 
       - save_cache:
           paths:
@@ -152,6 +159,8 @@ jobs:
                                       -t "monowai/bc-data:latest" \
                                       -t "monowai/bc-data:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-data/.
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
 
   build-position:
     executor: java-build
@@ -252,8 +261,6 @@ jobs:
             cd ~/workspace
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find **/jacoco*.xml -printf '-r %p ')
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
-
-
 
 workflows:
   version: 2

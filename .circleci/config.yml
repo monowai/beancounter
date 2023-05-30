@@ -117,6 +117,7 @@ jobs:
 
   build-data:
     executor: java-build
+    resource_class: large
     environment:
       IMAGE_NAME: bc-data
     steps:

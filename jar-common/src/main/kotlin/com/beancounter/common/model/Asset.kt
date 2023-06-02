@@ -43,12 +43,13 @@ data class Asset(
         status = status,
     )
 
-    constructor(code: String, market: Market, marketCode: String? = null) : this(
+    constructor(code: String, market: Market, marketCode: String? = null, status: Status = Status.Active) : this(
         id = code,
         code = code,
         name = code,
         market = market,
         marketCode = marketCode,
+        status = status,
     )
 
     // Is this asset stored locally?

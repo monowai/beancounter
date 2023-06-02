@@ -36,14 +36,12 @@ class ProviderUtils(private val mdFactory: MdFactory, private val marketService:
         return mdpAssetResults
     }
 
-    fun getInputs(apiAssets: MutableCollection<Asset>?): Collection<PriceAsset> {
+    fun getInputs(apiAssets: Collection<Asset>): Collection<PriceAsset> {
         val results: MutableCollection<PriceAsset> = ArrayList()
-        for (apiAsset in apiAssets!!) {
-            results.add(
-                PriceAsset(
-                    apiAsset,
-                ),
-            )
+        apiAssets.forEach { asset ->
+            if (asset.status == Status.Active) {
+                results.add(PriceAsset(asset))
+            }
         }
         return results
     }

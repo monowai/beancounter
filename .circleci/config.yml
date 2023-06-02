@@ -153,6 +153,11 @@ jobs:
                                       -t "monowai/bc-data:latest" \
                                       -t "monowai/bc-data:${CIRCLE_BUILD_NUM}" \
                                        ~/project/svc-data/.
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                  - ./svc-data/build/reports/jacoco/test/*.xml
+
 
   build-position:
     executor: java-build
@@ -251,8 +256,7 @@ jobs:
           name: Codacy Coverage
           command: |
             cd ~/workspace
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find **/jacoco*.xml -printf '-r %p ')
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find -name 'jacoco*.xml' -printf '-r %p ')
 
 
 

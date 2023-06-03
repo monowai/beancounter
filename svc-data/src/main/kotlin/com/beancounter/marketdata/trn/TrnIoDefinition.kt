@@ -15,62 +15,35 @@ class TrnIoDefinition {
      * TRN columns that will be read when importing a delimited file.
      */
     enum class Columns {
-        Provider, Batch, CallerId, Type, Market, Code, Name, CashAccount, CashCurrency, Date,
-        Quantity, BaseCurrency, BaseRate, TradeCurrency, Price, Fees, PortfolioRate, TradeAmount, CashAmount, Comments
+        Batch, CallerId, Type, Market, Code, Name, CashAccount, CashCurrency, Date,
+        Quantity, BaseRate, TradeCurrency, Price, Fees, PortfolioRate, TradeAmount, CashAmount, Comments
     }
 
-    fun headers(): List<String> {
-        return Columns::class.java.enumConstants.map(Enum<*>::name)
+    fun headers(): Array<String> {
+        return Columns::class.java.enumConstants.map(Enum<*>::name).toTypedArray()
     }
 
-    fun toArray(trn: Trn): Array<String?> {
-        return arrayOf(
-            trn.callerRef?.provider,
-            trn.callerRef?.batch,
-            trn.callerRef?.callerId,
-            trn.trnType.name,
-            trn.asset.market.code,
-            trn.asset.code,
-            trn.asset.name,
-            trn.cashAsset?.id,
-            trn.cashAsset?.priceSymbol,
-            trn.tradeDate.toString(),
-            trn.quantity.toString(),
-            trn.portfolio.base.code,
-            trn.tradeBaseRate.toString(),
-            trn.tradeCurrency.code,
-            trn.price.toString(),
-            trn.fees.toString(),
-            trn.tradePortfolioRate.toString(),
-            trn.tradeAmount.toString(),
-            trn.cashAmount.toString(),
-            trn.comments,
+    fun export(trn: Trn): Array<String?> {
+        val map = mapOf(
+            Pair(Columns.Batch.ordinal, trn.callerRef?.batch),
+            Pair(Columns.CallerId.ordinal, trn.callerRef?.callerId),
+            Pair(Columns.Type.ordinal, trn.trnType.name),
+            Pair(Columns.Market.ordinal, trn.asset.market.code),
+            Pair(Columns.Code.ordinal, trn.asset.code),
+            Pair(Columns.Name.ordinal, trn.asset.name),
+            Pair(Columns.CashAccount.ordinal, trn.cashAsset?.id),
+            Pair(Columns.CashCurrency.ordinal, trn.cashAsset?.priceSymbol),
+            Pair(Columns.Date.ordinal, trn.tradeDate.toString()),
+            Pair(Columns.Quantity.ordinal, trn.quantity.toString()),
+            Pair(Columns.BaseRate.ordinal, trn.tradeBaseRate.toString()),
+            Pair(Columns.TradeCurrency.ordinal, trn.tradeCurrency.code),
+            Pair(Columns.Price.ordinal, trn.price.toString()),
+            Pair(Columns.Fees.ordinal, trn.fees.toString()),
+            Pair(Columns.PortfolioRate.ordinal, trn.tradePortfolioRate.toString()),
+            Pair(Columns.TradeAmount.ordinal, trn.tradeAmount.toString()),
+            Pair(Columns.CashAmount.ordinal, trn.cashAmount.toString()),
+            Pair(Columns.Comments.ordinal, trn.comments),
         )
-    }
-
-    companion object {
-        @JvmStatic
-        fun colDef() = mapOf(
-            Pair(Columns.Provider, 0),
-            Pair(Columns.Batch, 1),
-            Pair(Columns.CallerId, 2),
-            Pair(Columns.Type, 3),
-            Pair(Columns.Market, 4),
-            Pair(Columns.Code, 5),
-            Pair(Columns.Name, 6),
-            Pair(Columns.CashAccount, 7),
-            Pair(Columns.CashCurrency, 8),
-            Pair(Columns.Date, 9),
-            Pair(Columns.Quantity, 10),
-            Pair(Columns.BaseCurrency, 11),
-            Pair(Columns.BaseRate, 12),
-            Pair(Columns.TradeCurrency, 13),
-            Pair(Columns.Price, 14),
-            Pair(Columns.Fees, 15),
-            Pair(Columns.PortfolioRate, 16),
-            Pair(Columns.TradeAmount, 17),
-            Pair(Columns.CashAmount, 18),
-            Pair(Columns.Comments, 19),
-        )
+        return map.values.toTypedArray()
     }
 }

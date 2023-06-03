@@ -72,7 +72,7 @@ import java.math.BigDecimal.ONE
 import java.math.BigDecimal.ZERO
 
 /**
- * CSV file export and import via Kafka.
+ * Check we can import the CSV file we export, via Kafka.
  */
 @EmbeddedKafka(
     partitions = 1,
@@ -228,7 +228,7 @@ class KafkaTrnTest {
             } else {
                 // Trn
                 val splitRow = csvRow.split(",")
-                val bcRequest = TrustedTrnImportRequest(portfolio, splitRow)
+                val bcRequest = TrustedTrnImportRequest(portfolio, row = splitRow)
                 log.info("Sending {}, {}, {}", splitRow[0], splitRow[1], splitRow[2])
                 kafkaWriter.send(TOPIC_CSV_IO, bcRequest).get()
             }

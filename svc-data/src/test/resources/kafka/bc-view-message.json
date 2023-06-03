@@ -20,5 +20,8 @@
       "since": "2020-07-08"
     }
   },
-  "message": "Starting Import"
+  "message": "Starting Import",
+  "row": [
+    "value1", "value2", "value3", "value4", "value5"
+  ]
 }

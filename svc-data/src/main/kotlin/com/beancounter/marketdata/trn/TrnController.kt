@@ -116,9 +116,9 @@ class TrnController(
         val csvWriter = CSVWriterBuilder(response.writer)
             .withSeparator(',')
             .build()
-        csvWriter.writeNext(trnIoDefinition.headers().toTypedArray(), false)
+        csvWriter.writeNext(trnIoDefinition.headers(), false)
         for (datum in trnResponse.data) {
-            csvWriter.writeNext(trnIoDefinition.toArray(datum), false)
+            csvWriter.writeNext(trnIoDefinition.export(datum), false)
         }
         csvWriter.close()
     }

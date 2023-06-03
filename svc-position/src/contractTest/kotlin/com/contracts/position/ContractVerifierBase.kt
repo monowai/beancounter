@@ -65,7 +65,6 @@ class ContractVerifierBase {
             "${Constants.NZD.code} Portfolio",
             Currency(Constants.NZD.code),
             Currency(Constants.USD.code),
-            null,
         )
 
         `when`(portfolioServiceClient.getPortfolioByCode(portfolioId))

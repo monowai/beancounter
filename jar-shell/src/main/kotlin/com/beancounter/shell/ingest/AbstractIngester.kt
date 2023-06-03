@@ -53,9 +53,8 @@ abstract class AbstractIngester : Ingester {
             val trnRequest = TrustedTrnImportRequest(
                 portfolio,
                 ImportFormat.SHARESIGHT,
-                callerRef,
-                "",
-                row,
+                row = row,
+                callerRef = callerRef,
             )
             writer.write(trnRequest)
         }

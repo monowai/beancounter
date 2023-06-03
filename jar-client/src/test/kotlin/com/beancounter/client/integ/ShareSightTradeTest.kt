@@ -71,8 +71,8 @@ internal class ShareSightTradeTest {
         row[ShareSightTradeAdapter.comments] = "null"
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio = getPortfolio("Test", NZD),
-            row = row,
             importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
         Assertions.assertThat(trn)
@@ -88,12 +88,11 @@ internal class ShareSightTradeTest {
     @Test
     fun is_SplitTransactionTransformed() {
         val row = getRow("split", "0", "null")
-        val portfolio = getPortfolio("Test", NZD)
         val trn = shareSightRowProcessor.transform(
             TrustedTrnImportRequest(
-                portfolio,
-                row,
-                ImportFormat.SHARESIGHT,
+                portfolio = getPortfolio("Test", NZD),
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
             ),
         )
         Assertions.assertThat(trn)
@@ -118,8 +117,8 @@ internal class ShareSightTradeTest {
             shareSightRowProcessor.transform(
                 TrustedTrnImportRequest(
                     getPortfolio("Test", NZD),
-                    row,
-                    ImportFormat.SHARESIGHT,
+                    importFormat = ImportFormat.SHARESIGHT,
+                    row = row,
                 ),
             )
         }

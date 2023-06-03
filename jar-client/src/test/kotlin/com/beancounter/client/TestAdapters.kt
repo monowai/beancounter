@@ -41,6 +41,8 @@ class TestAdapters {
     @MockBean
     private lateinit var assetIngestService: AssetIngestService
 
+    private val userName = "some-user"
+
     @Test
     fun is_DividendIllegalNumber() {
         val row: MutableList<String> = arrayListOf()
@@ -50,7 +52,11 @@ class TestAdapters {
         row.add(ShareSightDividendAdapter.name, "name")
         row.add(ShareSightDividendAdapter.date, "date")
         row.add(ShareSightDividendAdapter.fxRate, "A.B")
-        val request = TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT)
+        val request = TrustedTrnImportRequest(
+            getPortfolio(),
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
+        )
         val dividendAdapter: TrnAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService)
         Assertions.assertThrows(BusinessException::class.java) { dividendAdapter.from(request) }
     }
@@ -61,8 +67,8 @@ class TestAdapters {
 
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio = getPortfolio(),
+            importFormat = ImportFormat.SHARESIGHT,
             row = row,
-            ImportFormat.SHARESIGHT,
         )
 
         val tradeAdapter = ShareSightTradeAdapter(
@@ -79,8 +85,8 @@ class TestAdapters {
         val row: List<String> = arrayListOf("", "", "", "", "")
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             getPortfolio(),
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val tradeAdapter = ShareSightTradeAdapter(
             shareSightConfig,
@@ -135,7 +141,11 @@ class TestAdapters {
         Mockito.`when`(assetIngestService.resolveAsset(AssetInput(NYSE.code, "ABC")))
             .thenReturn(getAsset(NYSE, "ABC"))
         val result = shareSightTradeAdapter.from(
-            TrustedTrnImportRequest(getPortfolio(), row, ImportFormat.SHARESIGHT),
+            TrustedTrnImportRequest(
+                getPortfolio(),
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            ),
         )
         assertThat(result)
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("105.00"))

@@ -94,8 +94,8 @@ class TrnCsvKafka {
     fun is_TrnRequestSendingCorrectly() {
         val trnRequest = TrustedTrnImportRequest(
             getPortfolio(),
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         kafkaTrnProducer!!.write(trnRequest)
         log.info("Waiting for Result")

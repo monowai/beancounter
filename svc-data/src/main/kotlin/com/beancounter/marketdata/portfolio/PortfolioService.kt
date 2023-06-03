@@ -38,7 +38,7 @@ class PortfolioService internal constructor(
 
     fun canView(found: Portfolio): Boolean {
         val systemUser = systemUserService.getOrThrow
-        return systemUser.id == AuthConstants.SYSTEM || found.owner!!.id == systemUser.id
+        return systemUser.id == AuthConstants.SYSTEM || found.owner.id == systemUser.id
     }
 
     val portfolios: Collection<Portfolio>

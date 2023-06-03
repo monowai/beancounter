@@ -35,19 +35,29 @@ class BcRowAdapterTest {
     val currencyService: CurrencyService = Mockito.mock(CurrencyService::class.java)
     private val cashServices = CashServices(assetService, currencyService)
     private val rowAdapter = BcRowAdapter(ais, cashServices = cashServices)
+    private val portfolio: Portfolio = Portfolio("CSV")
 
     @BeforeEach
     fun setupMocks() {
-        Mockito.`when`(ais.resolveAsset(AssetInput("NASDAQ", assetCode, "Caredx")))
+        Mockito.`when`(
+            ais.resolveAsset(
+                AssetInput(
+                    "NASDAQ",
+                    assetCode,
+                    "Caredx",
+                    owner = portfolio.owner.id,
+                ),
+            ),
+        )
             .thenReturn(
                 Asset(
                     code = assetCode,
                     market = NASDAQ,
                 ),
             )
-        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, NZD.code, name = "")))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, NZD.code, name = "", owner = portfolio.owner.id)))
             .thenReturn(nzdCashBalance)
-        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, USD.code, "")))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, USD.code, "", owner = portfolio.owner.id)))
             .thenReturn(usdCashBalance)
         Mockito.`when`(assetService.findOrCreate(AssetInput(CASH.code, NZD.code)))
             .thenReturn(nzdCashBalance)
@@ -67,8 +77,8 @@ class BcRowAdapterTest {
 
     @Test
     fun trimmedCsvInputValues() {
-        val values = "  ,USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
-            "USD ,USD ,2021-08-11 ,200.000000  ,NZD  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
+        val values = "USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
+            "USD ,USD ,2021-08-11 ,200.000000  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
 
 // BC will receive data in the same manner
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
@@ -85,13 +95,14 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(cashAssetId, usdCashBalance.code)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-2000")) // Nothing sent, so nothing computed
             .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("2000"))
+            .hasFieldOrPropertyWithValue("callerRef.batch", "USX")
     }
 
     @Test
     fun forwardTradeDateFails() {
         val tomorrow = LocalDate.now().atStartOfDay().plusDays(1)
-        val values = "BC,ee,ff-r5w,BUY ,NYSE,QQQ ,Invesco QQQ Trust Series 1,USD Balance,USD ," +
-            "$tomorrow,1.000000,SGD ,0.740494,USD,308.110000,0.00,1.000000 ,309.11 " +
+        val values = "ff-r5w,BUY ,NYSE,QQQ ,Invesco QQQ Trust Series 1,USD Balance,USD ," +
+            "$tomorrow,1.000000,SGD ,0.740494,308.110000,0.00,1.000000 ,309.11 " +
             ",-309.11 ,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
@@ -104,25 +115,27 @@ class BcRowAdapterTest {
     @Test
     fun cashDeposit() {
         val values =
-            ",abc,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
+            "abc,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,,NZD,1.000000,0,1.000000,10000,,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
         assertThat(trn)
             .hasFieldOrPropertyWithValue(propAssetId, nzdCashBalance.id)
             .hasFieldOrPropertyWithValue(cashAssetId, nzdCashBalance.id)
+            .hasFieldOrPropertyWithValue("callerRef.batch", "abc")
+            .hasFieldOrPropertyWithValue("callerRef.provider", portfolio.owner.id)
             .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("10000"))
     }
 
     @Test
     fun callerRef() {
         val values =
-            ",CALLER_REF,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,NZD,,NZD,1.000000,0,1.000000,10000,,"
+            "CALLER_REF,,DEPOSIT,CASH,NZD,,,NZD,2021-11-16,10000.00,,NZD,1.000000,0,1.000000,10000,,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
         assertThat(trn.callerRef)
-            .hasFieldOrPropertyWithValue("provider", "")
+            .hasFieldOrPropertyWithValue("provider", portfolio.owner.id)
             .hasFieldOrPropertyWithValue("batch", "CALLER_REF")
             .hasFieldOrProperty("callerId")
     }
@@ -131,7 +144,7 @@ class BcRowAdapterTest {
     fun fxBuyTrade() {
         // Buy USD, Sell NZD
         val values =
-            ",abc,,FX_BUY,CASH,USD,,,NZD,2021-11-16,8359.43,NZD,,USD,1.000000,0 ,1.000000,8359.43,-10000.00,"
+            "abc,,FX_BUY,CASH,USD,,,NZD,2021-11-16,8359.43,,USD,1.000000,0 ,1.000000,8359.43,-10000.00,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
@@ -148,10 +161,18 @@ class BcRowAdapterTest {
     fun balanceTrade() {
         // Buy USD, Sell NZD
         val values =
-            ",20230501,,BALANCE,CASH,KB31,,,NZD,2023-05-01,-300000.00,,,NZD,1,,,-300000.00,,"
+            "20230501,,BALANCE,CASH,KB31,,,NZD,2023-05-01,-300000.00,,NZD,1,,,-300000.00,,"
 
-        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, "KB31", "")))
-            .thenReturn(nzdCashBalance)
+        Mockito.`when`(
+            ais.resolveAsset(
+                AssetInput(
+                    CASH.code,
+                    "KB31",
+                    "",
+                    owner = portfolio.owner.id,
+                ),
+            ),
+        ).thenReturn(nzdCashBalance)
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
         val trn = rowAdapter.transform(trustedTrnImportRequest)
@@ -162,13 +183,15 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(propQuantity, amount)
             .hasFieldOrPropertyWithValue(tradeAmount, amount)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue("callerRef.provider", portfolio.owner.id)
+            .hasFieldOrPropertyWithValue("callerRef.batch", "20230501")
     }
-    private val portfolio: Portfolio = Portfolio("CSV")
+
     private fun trustedTrnImportRequest(
         values: String,
     ): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             portfolio,
-            values.split(","),
+            row = values.split(","),
         )
 }

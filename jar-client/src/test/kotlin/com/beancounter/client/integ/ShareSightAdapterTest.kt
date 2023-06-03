@@ -12,7 +12,6 @@ import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.CallerRef
 import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions
@@ -105,9 +104,7 @@ internal class ShareSightAdapterTest {
             val trustedTrnImportRequest = TrustedTrnImportRequest(
                 portfolio,
                 ImportFormat.SHARESIGHT,
-                CallerRef(),
-                "",
-                columnValues,
+                row = columnValues,
             )
             trnInputs.add(
                 shareSightRowProcessor

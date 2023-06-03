@@ -83,8 +83,8 @@ class ShareSightRatesInTrn {
         val dividends = shareSightFactory.adapter(row)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = dividends.from(trustedTrnImportRequest)
         val fxRate = BigDecimal(rate)
@@ -117,8 +117,8 @@ class ShareSightRatesInTrn {
         // System base currency
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 

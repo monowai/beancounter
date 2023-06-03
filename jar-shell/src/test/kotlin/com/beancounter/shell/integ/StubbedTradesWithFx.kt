@@ -76,8 +76,8 @@ internal class StubbedTradesWithFx {
         val portfolio = getPortfolio("NZDTest", Currency("NZD"))
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -112,8 +112,8 @@ internal class StubbedTradesWithFx {
         val portfolio = getPortfolio("Test", NZD)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -157,8 +157,8 @@ internal class StubbedTradesWithFx {
         )
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
@@ -195,8 +195,8 @@ internal class StubbedTradesWithFx {
         val portfolio = getPortfolio("TEST", USD)
         val trustedTrnImportRequest = TrustedTrnImportRequest(
             portfolio,
-            row,
-            ImportFormat.SHARESIGHT,
+            importFormat = ImportFormat.SHARESIGHT,
+            row = row,
         )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull

@@ -25,7 +25,7 @@ class InboundSerializationTest {
             object : TypeReference<HashMap<String, Any>>() {},
         )
         assertThat(message).hasFieldOrProperty("payload")
-        val (portfolio, _, callerRef, _, row) = objectMapper.readValue(
+        val (portfolio, _, _, row, callerRef) = objectMapper.readValue(
             message["payload"].toString(),
             TrustedTrnImportRequest::class.java,
         )
@@ -33,7 +33,10 @@ class InboundSerializationTest {
         for (column in row) {
             assertThat(payload.row).contains(column)
         }
-        assertThat(callerRef).isNotNull
+        assertThat(callerRef)
+            .isNotNull
+            .hasNoNullFieldsOrProperties()
+            .hasFieldOrPropertyWithValue("provider", portfolio.owner.id)
     }
 
     @Test

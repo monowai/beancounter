@@ -162,7 +162,7 @@ class TrnControllerTest {
         trnService.save(portfolioA, trnRequest)
         val divi = existingTrns.iterator().next()
 
-        val trustedTrnEvent = TrustedTrnEvent(portfolioA, divi)
+        val trustedTrnEvent = TrustedTrnEvent(portfolioA, trnInput = divi)
         assertThat(trnService.existing(trustedTrnEvent)).isNotNull.isNotEmpty
 
         // Record date is earlier than an existing trn trade date

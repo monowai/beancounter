@@ -15,10 +15,4 @@ data class TrustedTrnEvent(
     override val message: String = "",
     val trnInput: TrnInput = TrnInput(trnType = TrnType.IGNORE),
 ) :
-    TrnImport {
-    constructor(portfolio: Portfolio, trnInput: TrnInput) : this(
-        portfolio = portfolio,
-        importFormat = ImportFormat.BC,
-        trnInput = trnInput,
-    )
-}
+    TrnImport

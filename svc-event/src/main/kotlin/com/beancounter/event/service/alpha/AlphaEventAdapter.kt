@@ -42,10 +42,17 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
             val trnInput = toDividend(currentPosition, corporateEvent)
-                ?: return TrustedTrnEvent(portfolio, TrnInput(trnType = TrnType.IGNORE)) // We didn't create anything
-            return TrustedTrnEvent(portfolio, trnInput)
+                ?: return TrustedTrnEvent(
+                    portfolio,
+                    trnInput = TrnInput(trnType = TrnType.IGNORE),
+                ) // We didn't create anything
+            return TrustedTrnEvent(portfolio, trnInput = trnInput)
         } else if (corporateEvent.trnType == TrnType.SPLIT) {
-            return TrustedTrnEvent(portfolio, toSplit(currentPosition, corporateEvent))
+            return TrustedTrnEvent(
+                portfolio,
+                trnInput =
+                toSplit(currentPosition, corporateEvent),
+            )
         }
         throw SystemException(String.format("Unsupported event type %s", corporateEvent.trnType))
     }

@@ -1,5 +1,6 @@
 package com.beancounter.shell
 
+import com.beancounter.auth.OAuthConfig
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
@@ -20,8 +21,9 @@ import org.springframework.boot.runApplication
         ShareSightConfig::class,
         UtilConfig::class,
         ClientConfig::class,
+        OAuthConfig::class,
     ],
-    scanBasePackages = ["com.beancounter.shell"],
+    scanBasePackages = ["com.beancounter.shell", "com.beancounter.auth.client"],
 )
 @EnableConfigurationProperties
 class ShellRunner

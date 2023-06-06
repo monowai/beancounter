@@ -3,6 +3,8 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.model.MarketData.Companion.isDividend
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -33,7 +35,7 @@ class AlphaEventService(val alphaGateway: AlphaGateway, val alphaPriceAdapter: A
     }
 
     private fun inFilter(marketData: MarketData): Boolean {
-        return (marketData.isSplit() || marketData.isDividend())
+        return (isSplit(marketData) || isDividend(marketData))
     }
 
     companion object {

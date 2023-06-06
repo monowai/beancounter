@@ -18,7 +18,6 @@ class DepositBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStr
     override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
         val cashPosition = getCashPosition(trn, position, positions)
         val quantity = if (TrnType.isCash(trn.trnType)) trn.quantity else trn.cashAmount
-
         cashPosition.quantityValues.purchased = position.quantityValues.purchased.add(quantity)
         cashCost.value(
             currencyResolver.getMoneyValues(Position.In.TRADE, trn.cashCurrency!!, trn.portfolio, position),

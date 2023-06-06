@@ -1,13 +1,13 @@
 package com.beancounter.event.integration
 
 import com.beancounter.common.input.TrustedTrnEvent
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 /**
  * Publish notification of a corporate action transaction affecting a portfolio

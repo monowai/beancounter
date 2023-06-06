@@ -14,7 +14,7 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
-import com.beancounter.shell.cli.UserCommands
+import com.beancounter.shell.commands.UserCommands
 import com.beancounter.shell.config.EnvConfig
 import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.oauth2.jwt.JwtDecoder
 
 private const val EMAIL = "blah@blah.com"
@@ -45,7 +46,9 @@ class TestUserCommands {
 
     @Autowired
     private lateinit var tokenService: TokenService
-    private var lineReader: LineReader = Mockito.mock(LineReader::class.java)
+
+    @MockBean
+    private lateinit var lineReader: LineReader
     private var authGateway: AuthGateway = Mockito.mock(AuthGateway::class.java)
     private var registrationGateway: RegistrationGateway = Mockito.mock(RegistrationGateway::class.java)
     private var jwtDecoder: JwtDecoder = Mockito.mock(JwtDecoder::class.java)
@@ -61,8 +64,8 @@ class TestUserCommands {
             LoginService(authGateway, jwtDecoder),
             RegistrationService(registrationGateway, tokenService),
             EnvConfig(client = client, apiPath = "/", marketDataUrl = "/"),
-            lineReader,
         )
+        userCommands.lineReader = lineReader
     }
 
     @Test
@@ -78,7 +81,7 @@ class TestUserCommands {
         val password = "password"
         Mockito.`when`(lineReader.readLine("Password: ", '*'))
             .thenReturn(password)
-        val loginRequest = LoginService.LoginRequest(client_id = client, username = userId, password = password)
+        val loginRequest = LoginService.LoginRequest(clientId = client, username = userId, password = password)
         val systemUser = SystemUser(userId, EMAIL)
         mockAuthConfig.login(EMAIL)
         val jwt = tokenUtils.getUserToken(systemUser)

@@ -6,6 +6,8 @@ import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.model.MarketData.Companion.isDividend
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,7 +64,7 @@ class TestPriceService {
             .hasFieldOrProperty("data")
 
         for (datum in response.data) {
-            assertThat(datum.isSplit() || datum.isDividend())
+            assertThat(isSplit(datum) || isDividend(datum))
         }
     }
 }

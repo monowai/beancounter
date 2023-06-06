@@ -161,7 +161,7 @@ internal class AssetControllerTest(
         assetInputMap[toKey(asset)] = asset
         assetRequest = AssetRequest(assetInputMap)
         mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.post("/assets/")
+            MockMvcRequestBuilders.post("/assets")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .with(csrf())
                 .content(objectMapper.writeValueAsBytes(assetRequest))

@@ -66,15 +66,8 @@ dependencies {
     testImplementation("org.beancounter:svc-position:0.1.1:stubs") {
         transitive = false
     }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-}
-
-tasks.formatKotlinMain {
-    exclude { it.file.path.contains("contractTest/")}
-}
-
-tasks.lintKotlinMain {
-    exclude { it.file.path.contains("contractTest/")}
 }
 
 springBoot {
@@ -87,4 +80,10 @@ gitProperties {
 
 bootBuildImage {
     imageName = "monowai/bc-event"
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(17)
 }

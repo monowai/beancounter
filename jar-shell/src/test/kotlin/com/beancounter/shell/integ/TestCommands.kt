@@ -7,9 +7,9 @@ import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson
-import com.beancounter.shell.cli.DataCommands
-import com.beancounter.shell.cli.EnvCommands
-import com.beancounter.shell.cli.PortfolioCommands
+import com.beancounter.shell.commands.DataCommands
+import com.beancounter.shell.commands.EnvCommands
+import com.beancounter.shell.commands.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper

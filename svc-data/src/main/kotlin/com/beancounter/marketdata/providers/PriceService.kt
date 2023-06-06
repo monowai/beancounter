@@ -3,18 +3,20 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.model.MarketData.Companion.isDividend
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.AsyncResult
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
-import javax.transaction.Transactional
 
 /**
  * Persist prices obtained from providers and detect if Corporate Events need to be dispatched.
@@ -59,7 +61,7 @@ class PriceService internal constructor(
 
     @Async("priceExecutor")
     fun write(priceResponse: PriceResponse): Future<Iterable<MarketData>?> {
-        return AsyncResult(handle(priceResponse))
+        return CompletableFuture.completedFuture(handle(priceResponse))
     }
 
     /**
@@ -87,7 +89,7 @@ class PriceService internal constructor(
     }
 
     private fun isCorporateEvent(marketData: MarketData): Boolean {
-        return marketData.asset.isKnown && (marketData.isDividend() || marketData.isSplit())
+        return marketData.asset.isKnown && (isDividend(marketData) || isSplit(marketData))
     }
 
     fun purge() {

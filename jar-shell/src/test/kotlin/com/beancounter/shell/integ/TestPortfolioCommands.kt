@@ -16,7 +16,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.NZD
 import com.beancounter.shell.Constants.Companion.USD
-import com.beancounter.shell.cli.PortfolioCommands
+import com.beancounter.shell.commands.PortfolioCommands
 import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

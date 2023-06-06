@@ -2,6 +2,7 @@ package com.beancounter.auth.client
 
 import com.beancounter.auth.model.OAuth2Response
 import com.beancounter.common.exception.UnauthorizedException
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -33,7 +34,7 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
 
     fun login(user: String, password: String, clientId: String = this.clientId): String {
         val loginRequest = LoginRequest(
-            client_id = clientId,
+            clientId = clientId,
             username = user,
             password = password,
         )
@@ -60,8 +61,8 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
             throw UnauthorizedException("Client Secret is not set")
         }
         val login = MachineRequest(
-            client_secret = secretIn,
-            client_id = clientId,
+            clientSecret = secretIn,
+            clientId = clientId,
             audience = audience,
         )
         val response = authGateway.login(login)
@@ -84,21 +85,26 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
      * need the underscores in the variable names otherwise they're not mapped correctly
      */
     data class LoginRequest(
-        var client_id: String,
+        @JsonProperty("client_id")
+        var clientId: String,
         var username: String,
         var password: String,
-        var grant_type: String = AuthorizationGrantType.PASSWORD.value,
+        @JsonProperty("grant_type")
+        var grantType: String = AuthorizationGrantType.PASSWORD.value,
     ) : AuthRequest
 
     /**
      * M2M request configured from environment.
      */
     data class MachineRequest(
-        var client_id: String,
-        var client_secret: String = "not-set",
+        @JsonProperty("client_id")
+        var clientId: String,
+        @JsonProperty("client_secret")
+        var clientSecret: String = "not-set",
         var audience: String,
         var scope: String = "beancounter beancounter:system",
-        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
+        @JsonProperty("grant_type")
+        var grantType: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
     ) : AuthRequest
 
     /**

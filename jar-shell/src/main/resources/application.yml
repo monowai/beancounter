@@ -1,9 +1,9 @@
 auth:
-  uri: "not-set"
-  audience: "https://holdsworth.app"
+  uri: "http://your-auth0-endpoint/"
+  audience: "auth0-audience"
   enabled: true
-  client-id: not-set
-  client-secret: not-set
+  web: false
+  email: "${auth.audience}/claims/email"
 
 spring:
   main:
@@ -18,6 +18,13 @@ spring:
     bootstrap-servers: kafka:9092
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
+            loggerLevel: NONE
 
   jackson:
     serialization:
@@ -42,13 +49,6 @@ logging:
     io.github.resilience4j: fatal
   pattern:
     console: "%d - %m%n"
-
-feign:
-  client:
-    config:
-      default:
-        errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
-        loggerLevel: NONE
 
     # http://localhost:9500/actuator/circuitbreaker-events/marketdata
 

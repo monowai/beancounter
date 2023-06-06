@@ -9,6 +9,9 @@ management:
     port: 9521
   endpoint:
     health.show-details: always
+  endpoints:
+    web:
+      exposure.include: '*'
   health:
     livenessstate:
       enabled: true
@@ -17,17 +20,7 @@ management:
   info:
     git:
       mode: SIMPLE
-  endpoints:
-    web:
-      exposure.include: '*'
 
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 160000
-        loggerLevel: NONE
 
 logging:
   level:
@@ -114,6 +107,15 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.beancounter.common.input
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 160000
+            loggerLevel: NONE
 
 kafka:
   enabled: "true"

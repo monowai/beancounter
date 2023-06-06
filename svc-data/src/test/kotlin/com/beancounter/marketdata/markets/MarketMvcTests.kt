@@ -51,7 +51,7 @@ internal class MarketMvcTests {
     @Throws(Exception::class)
     fun is_AllMarketsFound() {
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/markets/")
+            MockMvcRequestBuilders.get("/markets")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)

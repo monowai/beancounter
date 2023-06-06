@@ -40,7 +40,7 @@ internal class CurrencyMvcTests {
     fun is_CurrencyDataReturning() {
         val token = TokenUtils(authConfig).getUserToken(SystemUser("currencies"))
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/currencies/")
+            MockMvcRequestBuilders.get("/currencies")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)

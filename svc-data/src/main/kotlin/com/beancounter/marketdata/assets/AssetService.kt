@@ -9,6 +9,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
+import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.Async
@@ -17,7 +18,6 @@ import java.util.Locale
 import java.util.Optional
 import java.util.UUID
 import java.util.stream.Stream
-import javax.transaction.Transactional
 
 /**
  * Asset CRUD functionality.
@@ -84,19 +84,22 @@ class AssetService internal constructor(
     }
 
     fun findOrCreate(assetInput: AssetInput): Asset {
-        var asset: Asset? = findLocally(assetInput)
-        if (asset == null) {
+        val localAsset = findLocally(assetInput)
+        if (findLocally(assetInput) == null) {
             val market = marketService.getMarket(assetInput.market)
-            asset = enrichmentFactory.getEnricher(market).enrich(
+            val eAsset = enrichmentFactory.getEnricher(market).enrich(
                 id = keyGenUtils.format(UUID.randomUUID()),
                 market = market,
                 assetInput = assetInput,
             )
             if (marketService.canPersist(market)) {
-                asset = assetRepository.save(asset)
+                return assetHydrationService.hydrateAsset(assetRepository.save(eAsset))
             }
         }
-        return assetHydrationService.hydrateAsset(asset!!)
+        if (localAsset == null) {
+            throw BusinessException("Unable to resolve asset ${assetInput.code}")
+        }
+        return assetHydrationService.hydrateAsset(localAsset)
     }
 
     override fun find(assetId: String): Asset {

@@ -4,6 +4,7 @@ import com.beancounter.auth.server.WebAuthFilterConfig
 import com.beancounter.client.config.ClientConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 
 /**
  * Boot all the things.
@@ -17,6 +18,7 @@ import org.springframework.boot.runApplication
         "com.beancounter.common.exception",
     ],
 )
+@EnableWebSecurity
 class PositionBoot
 
 fun main(args: Array<String>) {

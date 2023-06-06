@@ -70,6 +70,7 @@ import java.io.File
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.ZERO
+import java.time.Duration
 
 /**
  * Check we can import the CSV file we export, via Kafka.
@@ -297,7 +298,7 @@ class KafkaTrnTest {
     }
 
     private fun processQueue(consumer: Consumer<String, String>): TrnResponse {
-        val consumerRecords = KafkaTestUtils.getRecords(consumer, 100, 2)
+        val consumerRecords = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(10), 2)
         val created = ArrayList<Trn>()
         for (consumerRecord in consumerRecords) {
             assertThat(consumerRecord.value()).isNotNull

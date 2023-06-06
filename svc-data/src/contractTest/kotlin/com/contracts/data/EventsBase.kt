@@ -1,6 +1,8 @@
 package com.contracts.data
 
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData.Companion.isDividend
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetService
@@ -51,7 +53,7 @@ class EventsBase : ContractVerifierBase() {
             .hasSize(10)
 
         for (marketData in results.data) {
-            Assertions.assertThat(marketData.isDividend() || marketData.isSplit())
+            Assertions.assertThat(isDividend(marketData) || isSplit(marketData))
         }
     }
 }

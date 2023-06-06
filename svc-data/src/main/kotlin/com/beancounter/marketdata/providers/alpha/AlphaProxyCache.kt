@@ -2,8 +2,8 @@ package com.beancounter.marketdata.providers.alpha
 
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.AsyncResult
 import org.springframework.stereotype.Service
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 /**
@@ -21,12 +21,12 @@ class AlphaProxyCache(private val alphaProxy: AlphaProxy) {
         date: String,
         apiKey: String,
     ): Future<String?> {
-        return AsyncResult(alphaProxy.getCurrent(code, apiKey))
+        return CompletableFuture.completedFuture(alphaProxy.getCurrent(code, apiKey))
     }
 
     @Async("priceExecutor")
     fun getHistoric(code: String, date: String, apiKey: String): Future<String?> {
-        return AsyncResult(alphaProxy.getHistoric(code, apiKey))
+        return CompletableFuture.completedFuture(alphaProxy.getHistoric(code, apiKey))
     }
 
     @Cacheable("asset.search")
@@ -35,6 +35,6 @@ class AlphaProxyCache(private val alphaProxy: AlphaProxy) {
     }
 
     fun getAdjusted(code: String, apiKey: String): Future<String?> {
-        return AsyncResult(alphaProxy.adjusted(code, apiKey))
+        return CompletableFuture.completedFuture(alphaProxy.adjusted(code, apiKey))
     }
 }

@@ -55,7 +55,6 @@ class SpringFeignDecoder : ErrorDecoder {
         if (response.body() == null) {
             return response.reason()
         }
-        val readr = CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
-        return readr.toString()
+        return CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
     }
 }

@@ -7,9 +7,9 @@ import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.model.SystemUser
+import jakarta.transaction.Transactional
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import javax.transaction.Transactional
 
 /**
  * Registration of authenticated users.

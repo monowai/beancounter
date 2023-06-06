@@ -71,10 +71,11 @@ internal class MoneyValueTest {
             .isEqualTo(twoK)
         assertThat(position.getMoneyValues(Position.In.BASE).costBasis)
             .isEqualTo(twoK)
+        val amount = BigDecimal("3448.00")
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO).purchases)
-            .isEqualTo(BigDecimal("3448.00"))
+            .isEqualTo(amount)
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO).costBasis)
-            .isEqualTo(BigDecimal("3448.00"))
+            .isEqualTo(amount)
         val diviTrn = Trn(
             trnType = TrnType.DIVI,
             asset = microsoft,
@@ -147,7 +148,7 @@ internal class MoneyValueTest {
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO).sales)
             .isEqualTo(BigDecimal("6896.00"))
         assertThat(position.getMoneyValues(Position.In.PORTFOLIO).realisedGain)
-            .isEqualTo(BigDecimal("3448.00"))
+            .isEqualTo(amount)
     }
 
     private val totalField = "total"

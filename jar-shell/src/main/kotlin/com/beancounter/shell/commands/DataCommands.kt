@@ -1,4 +1,4 @@
-package com.beancounter.shell.cli
+package com.beancounter.shell.commands
 
 import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.MarketResponse

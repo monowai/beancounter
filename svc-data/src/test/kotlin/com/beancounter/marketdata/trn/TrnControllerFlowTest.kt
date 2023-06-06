@@ -281,7 +281,7 @@ class TrnControllerFlowTest {
 
     private fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.post("/assets/")
+            MockMvcRequestBuilders.post("/assets")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .content(objectMapper.writeValueAsBytes(assetRequest))
                 .contentType(MediaType.APPLICATION_JSON),

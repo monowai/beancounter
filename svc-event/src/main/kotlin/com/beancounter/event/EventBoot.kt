@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.scheduling.annotation.EnableAsync
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 
 /**
  * Corporate Action Service.
@@ -23,6 +24,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EntityScan("com.beancounter.common.event")
 @EnableAsync
 @EnableCaching
+@EnableWebSecurity
 class EventBoot
 
 fun main(args: Array<String>) {

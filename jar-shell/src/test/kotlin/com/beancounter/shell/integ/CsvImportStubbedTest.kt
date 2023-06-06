@@ -3,7 +3,7 @@ package com.beancounter.shell.integ
 import com.beancounter.auth.TokenService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.sharesight.ShareSightConfig
-import com.beancounter.shell.cli.IngestionCommand
+import com.beancounter.shell.commands.IngestionCommand
 import com.beancounter.shell.config.IngestionConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag

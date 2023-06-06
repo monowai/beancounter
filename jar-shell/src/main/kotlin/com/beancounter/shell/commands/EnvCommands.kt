@@ -1,4 +1,4 @@
-package com.beancounter.shell.cli
+package com.beancounter.shell.commands
 
 import com.beancounter.shell.config.EnvConfig
 import com.fasterxml.jackson.core.JsonProcessingException

@@ -23,8 +23,9 @@ jobs:
       - restore_cache:
           keys:
             - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
-      - run: 'pwd'
-      - run: './gradlew jar-common:build jar-auth:build svc-data:publishToMavenLocal svc-position:publishToMavenLocal'
+      - run: './gradlew jar-common:build jar-auth:build'
+      - run: './gradlew svc-data:publishToMavenLocal'
+      - run: './gradlew svc-position:publishToMavenLocal'
       - codecov/upload:
           file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
 

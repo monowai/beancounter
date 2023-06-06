@@ -3,7 +3,7 @@ package com.beancounter.shell
 import com.beancounter.auth.AuthConfig
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.beancounter.shell.cli.IngestionCommand
+import com.beancounter.shell.commands.IngestionCommand
 import com.beancounter.shell.config.IngestionConfig
 import com.beancounter.shell.ingest.AbstractIngester
 import com.beancounter.shell.ingest.IngestionFactory

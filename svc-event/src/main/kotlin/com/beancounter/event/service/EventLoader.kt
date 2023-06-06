@@ -5,6 +5,7 @@ import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.event.CorporateEvent
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.TrnType
@@ -71,7 +72,7 @@ class EventLoader(
                     eventCount++
                     eventService.save(
                         CorporateEvent(
-                            trnType = if (priceResponse.isSplit()) TrnType.SPLIT else TrnType.DIVI,
+                            trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
                             recordDate = priceResponse.priceDate!!,
                             assetId = position.asset.id,
                             rate = priceResponse.dividend,

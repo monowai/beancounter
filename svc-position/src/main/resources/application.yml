@@ -22,10 +22,6 @@ management:
     git:
       mode: SIMPLE
 
-# Requires bearer auth in default config
-# http://localhost:9501/actuator/circuitbreakerevents
-
-
 marketdata:
   url: "http://localhost:9510/api"
 
@@ -43,6 +39,14 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${auth.uri}
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 160000
+            loggerLevel: NONE
 
 endpoints:
   default.web.enabled: true
@@ -66,16 +70,6 @@ logging:
       hibernate: error
       apache: error
       postgres: error
-
-feign:
-  client:
-    config:
-      default:
-        # Loooong because of API limits with data providers
-        readTimeout: 150000
-        connectTimeout: 5000
-        errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
-        loggerLevel: NONE
 
 resilience4j.circuitbreaker:
   configs:

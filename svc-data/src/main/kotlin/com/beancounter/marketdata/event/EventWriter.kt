@@ -3,14 +3,15 @@ package com.beancounter.marketdata.event
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.model.MarketData.Companion.isDividend
+import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.NumberUtils
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 /**
  * Kafka Corporate Action/Event subscriber.
@@ -24,7 +25,6 @@ class EventWriter {
     @Value("\${beancounter.topics.ca.event:bc-ca-event-dev}")
     private lateinit var topicEvent: String
     private lateinit var kafkaCaProducer: KafkaTemplate<String, TrustedEventInput>
-    private val numberUtils = NumberUtils()
 
     @PostConstruct
     fun logConfig() {
@@ -57,7 +57,7 @@ class EventWriter {
         return if (marketData == null) {
             false
         } else {
-            marketData.isSplit() || numberUtils.isSet(marketData.dividend)
+            isSplit(marketData) || isDividend(marketData)
         }
     }
 

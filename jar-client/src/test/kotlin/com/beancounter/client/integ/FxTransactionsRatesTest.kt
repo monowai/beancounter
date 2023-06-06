@@ -21,6 +21,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.math.BigDecimal
 
+/**
+ * Verify how the fx rates are set into a transaction.
+ */
 @ImportAutoConfiguration(ClientConfig::class)
 @SpringBootTest(classes = [ClientConfig::class])
 @AutoConfigureNoAuth

@@ -12,6 +12,7 @@ apply from: '../kotlin-spring.gradle'
 group = 'com.beancounter'
 version = '0.0.1-SNAPSHOT'
 
+
 dependencies {
     implementation(
             platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
@@ -38,11 +39,14 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
+            // Needed for spring-cloud-contract-wiremock :\
+            "org.springframework.boot:spring-boot-starter-webflux",
             testFixtures(project(":jar-auth")),
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
 }
 
@@ -57,4 +61,10 @@ idea {
 
 jacoco {
     toolVersion = "$jacocoVersion"
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(17)
 }

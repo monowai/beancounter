@@ -1,4 +1,4 @@
-package com.beancounter.shell.cli
+package com.beancounter.shell.commands
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.RegistrationService
@@ -7,7 +7,8 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.shell.config.EnvConfig
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.jline.reader.LineReader
-import org.springframework.context.annotation.DependsOn
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
@@ -16,13 +17,16 @@ import org.springframework.shell.standard.ShellOption
  * Interactive access to BeanCounter from the commandline.
  */
 @ShellComponent
-@DependsOn("shell", "lineReader")
 class UserCommands(
     private val loginService: LoginService,
     private val registrationService: RegistrationService,
     private val envConfig: EnvConfig,
-    private val lineReader: LineReader,
+
 ) {
+    @Lazy
+    @Autowired(required = false)
+    lateinit var lineReader: LineReader
+
     private val bcJson = BcJson()
 
     @ShellMethod("Identify yourself")

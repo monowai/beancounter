@@ -9,9 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.web.server.ServerHttpSecurity.http
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.stereotype.Service
 import org.springframework.web.cors.CorsConfiguration
@@ -19,10 +19,9 @@ import org.springframework.web.cors.CorsConfiguration
 /**
  * Spring-security config to support OAuth2/JWT for MVC endpoints
  */
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(AuthConfig::class, OAuthConfig::class, TokenService::class)
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
-@EnableWebSecurity
+@ConditionalOnProperty(value = ["auth.web"], havingValue = "true", matchIfMissing = true)
 @EnableCaching
 @Service
 class WebAuthFilterConfig {
@@ -49,18 +48,15 @@ class WebAuthFilterConfig {
         corsConfiguration.allowedMethods =
             listOf("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE")
         corsConfiguration.allowCredentials = true
-        http.authorizeRequests() // Scope permits access to the API - basically, "caller is authorised"
-            .mvcMatchers(
-                "$actuatorPath/health/**",
-            ).permitAll()
-            .mvcMatchers("$actuatorPath/**")
-            .hasAuthority(AuthConstants.SCOPE_ADMIN)
-            .mvcMatchers(apiPattern)
-            .hasAuthority(AuthConstants.SCOPE_BC)
+
+        http.authorizeHttpRequests() // Scope permits access to the API - basically, "caller is authorised"
+            .requestMatchers("$actuatorPath/health/**").permitAll()
+            .requestMatchers(apiPattern).hasAuthority(AuthConstants.SCOPE_BC)
             .anyRequest().authenticated()
             .and().csrf().disable().cors().configurationSource { corsConfiguration }
             .and().oauth2ResourceServer()
             .jwt() // User roles are carried in the claims and used for fine-grained control
+
         corsConfiguration.exposedHeaders = exposedHeaders
         return http.build()
     }

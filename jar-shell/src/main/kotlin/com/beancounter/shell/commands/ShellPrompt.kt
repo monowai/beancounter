@@ -1,4 +1,4 @@
-package com.beancounter.shell.cli
+package com.beancounter.shell.commands
 
 import org.jline.utils.AttributedString
 import org.jline.utils.AttributedStringBuilder

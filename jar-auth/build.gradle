@@ -18,7 +18,7 @@ dependencies {
             platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),
             platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
-            "javax.servlet:javax.servlet-api:4.0.1",
+            "jakarta.servlet:jakarta.servlet-api:6.0.0",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
             "org.springframework:spring-webmvc",
@@ -52,5 +52,12 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-jose"
 
     )
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(17)
 }
 

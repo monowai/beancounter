@@ -6,6 +6,7 @@ import com.beancounter.client.sharesight.ShareSightConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.runApplication
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 
 /**
  * Data persistence service.
@@ -20,6 +21,7 @@ import org.springframework.boot.runApplication
     ],
 )
 @EntityScan("com.beancounter.common.model")
+@EnableWebSecurity
 class MarketDataBoot
 
 fun main(args: Array<String>) {

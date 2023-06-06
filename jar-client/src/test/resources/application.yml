@@ -16,11 +16,14 @@ server:
 marketdata:
   url: http://localhost:10999
 
-feign:
-  client:
-    config:
-      default:
-        # Loooong because of API limits with data providers
-        connectTimeout: 3000
-        errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
-        loggerLevel: NONE
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            # Loooong because of API limits with data providers
+            connectTimeout: 3000
+            errorDecoder: com.beancounter.common.exception.SpringFeignDecoder
+            loggerLevel: NONE
+

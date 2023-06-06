@@ -2,6 +2,7 @@ package com.beancounter.marketdata.currency
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -9,7 +10,6 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import java.util.Locale
 import java.util.Optional
-import javax.annotation.PostConstruct
 
 /**
  * Verification of Market related functions.

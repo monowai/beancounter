@@ -24,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -46,6 +47,7 @@ private const val TEST_USER = "testUser"
 @Tag("slow")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
+@EnableWebSecurity
 internal class PortfolioControllerTests {
     private val objectMapper = BcJson().objectMapper
 
@@ -162,7 +164,7 @@ internal class PortfolioControllerTests {
 
         // All portfolios
         mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/portfolios/")
+            MockMvcRequestBuilders.get(portfolioRoot)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(tokenB)),
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
@@ -458,7 +460,7 @@ internal class PortfolioControllerTests {
             .hasFieldOrPropertyWithValue("code", updateTo.code)
             .hasFieldOrPropertyWithValue("currency.code", updateTo.currency)
             .hasFieldOrPropertyWithValue("base.code", updateTo.base)
-            .hasFieldOrPropertyWithValue("owner.id", owner!!.id)
+            .hasFieldOrPropertyWithValue("owner.id", owner.id)
     }
 
     companion object {

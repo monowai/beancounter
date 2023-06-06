@@ -35,12 +35,12 @@ import java.util.Objects
 @Configuration
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
 @Import(AuthConfig::class)
-class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager) {
+class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager?) {
 
     private val tokenCache = "jwt.token"
 
     fun getTokenCache(): Cache {
-        return cacheManager.getCache(tokenCache) ?: return NoOpCache(tokenCache)
+        return cacheManager?.getCache(tokenCache) ?: return NoOpCache(tokenCache)
     }
 
     @Bean
@@ -55,6 +55,7 @@ class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager) {
         // call a couple of functions. The Spring class is inconveniently package protected.
         val configuration = JwtUtil.getConfigurationForIssuerLocation(authConfig.issuer)
         val jwkSetUri = configuration["jwks_uri"].toString()
+
         val jwkSource = RemoteJWKSet<SecurityContext>(URL(jwkSetUri), DefaultResourceRetriever())
         val jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
             .jwsAlgorithms { algos: MutableSet<SignatureAlgorithm?> ->

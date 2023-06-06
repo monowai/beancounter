@@ -13,6 +13,7 @@ import org.springframework.cache.CacheManager
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ContextConfiguration
@@ -29,6 +30,7 @@ import org.springframework.web.client.RestOperations
  * MVC Auth controller tests for OAuth.
  */
 @ExtendWith(SpringExtension::class)
+@EnableWebSecurity
 @WebMvcTest(
     AuthTest.SimpleController::class,
     properties = ["auth.enabled=true"],
@@ -79,7 +81,6 @@ class AuthTest {
     }
 
     @Test
-    @Throws(Exception::class)
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
     fun has_AuthorityToSayHello() {
         mockMvc.perform(MockMvcRequestBuilders.get(hello))
@@ -89,7 +90,6 @@ class AuthTest {
     }
 
     @Test
-    @Throws(Exception::class)
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_USER])
     fun has_NoAuthorityToSayWhat() {
         mockMvc.perform(MockMvcRequestBuilders.get(what))

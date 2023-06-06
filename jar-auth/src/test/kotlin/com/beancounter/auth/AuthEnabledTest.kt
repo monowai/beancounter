@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
@@ -26,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration
     classes = [MockAuthConfig::class, AuthConfig::class, ClientPasswordConfig::class],
 )
 @ActiveProfiles("auth")
+@AutoConfigureWireMock(port = 0)
 class AuthEnabledTest {
     @Autowired
     lateinit var springContext: ApplicationContext

@@ -14,6 +14,7 @@ import org.springframework.test.context.TestPropertySource
 @TestPropertySource(
     properties = [
         "auth.enabled=false",
+        "auth.web=false",
         "auth.audience=test-audience",
         "auth.email=some-email@somewhere",
         "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri",

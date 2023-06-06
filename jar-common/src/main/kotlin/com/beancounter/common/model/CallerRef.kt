@@ -2,8 +2,8 @@ package com.beancounter.common.model
 
 import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.utils.KeyGenUtils
+import jakarta.persistence.Embeddable
 import java.io.Serializable
-import javax.persistence.Embeddable
 
 /**
  * Uniquely identifies a transaction, within a batch from a data provider.

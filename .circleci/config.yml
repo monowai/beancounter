@@ -12,6 +12,7 @@ executors:
 jobs:
   build-common:
     executor: java-build
+    resource_class: large
     environment:
       IMAGE_NAME: bc-data
 

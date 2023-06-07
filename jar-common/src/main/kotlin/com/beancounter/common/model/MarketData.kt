@@ -35,6 +35,9 @@ data class MarketData(
     var close: BigDecimal = BigDecimal.ZERO,
     @Column(precision = 15, scale = 6)
     var open: BigDecimal? = null,
+    @Column(precision = 15, scale = 6)
+    var previousClose: BigDecimal? = null,
+
 ) {
     constructor(
         asset: Asset,
@@ -78,9 +81,6 @@ data class MarketData(
 
     @Column(precision = 15, scale = 6)
     var high: BigDecimal? = null
-
-    @Column(precision = 15, scale = 6)
-    var previousClose: BigDecimal? = null
 
     @Column(precision = 7, scale = 4)
     var change: BigDecimal? = null

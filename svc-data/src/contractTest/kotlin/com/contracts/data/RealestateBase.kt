@@ -39,14 +39,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
-private const val assetCode = "USD.RE"
-private const val pTradeAmount = "tradeAmount"
-private const val pCashAmount = "cashAmount"
-
-private const val pQuantity = "quantity"
-
-private const val batch = "20230501"
-
 /**
  * Verifies assumptions around Real Estate oriented transactions.
  */
@@ -98,6 +90,14 @@ class RealestateBase {
     private final val oneK = BigDecimal("1000")
     val nOneK: BigDecimal = oneK.negate()
     private val tradeDate = "2023-05-01"
+    private val assetCode = "USD.RE"
+    private val pTradeAmount = "tradeAmount"
+    private val pCashAmount = "cashAmount"
+
+    private val pQuantity = "quantity"
+
+    private val batch = "20230501"
+    private lateinit var houseAsset: Asset
 
     @BeforeEach
     fun mockTrn() {
@@ -118,6 +118,14 @@ class RealestateBase {
         val m1Balance = trnCashResponse(m1)
         val m2 = "Mortgage 2"
         val m2Balance = trnCashResponse(m2)
+        houseAsset = asset()
+        assertThat(houseAsset)
+            .isNotNull
+            .extracting("id", "code")
+            .containsExactly(
+                assetCode,
+                OffMarketEnricher.parseCode(ContractHelper.getSystemUser(), assetCode),
+            )
 
         assertThat(m1Balance.data).isNotNull.hasSize(1)
         assertThat(m2Balance.data).isNotNull.hasSize(1)
@@ -151,22 +159,13 @@ class RealestateBase {
     }
 
     fun reTrnFlow() {
-        val houseAsset = asset()
-        assertThat(houseAsset)
-            .isNotNull
-            .extracting("id", "code")
-            .containsExactly(
-                assetCode,
-                OffMarketEnricher.parseCode(ContractHelper.getSystemUser(), assetCode),
-            )
-
         Mockito.`when`(keyGenUtils.id).thenReturn("1")
         val buy = save(
             portfolio,
             TrnInput(
                 callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                 tradeDate = DateUtils().getLocalDate(tradeDate),
-                assetId = houseAsset!!.id,
+                assetId = houseAsset.id,
                 trnType = TrnType.BALANCE,
                 tradeAmount = tenK,
                 tradeBaseRate = BigDecimal.ONE,
@@ -221,14 +220,14 @@ class RealestateBase {
             .containsExactly(tradeAmount, quantity, BigDecimal.ZERO)
     }
 
-    private fun asset(): Asset? {
+    private fun asset(): Asset {
         val assetInput = AssetInput.toRealEstate(Constants.USD, assetCode, "NY Apartment", "test-user")
         Mockito.`when`(keyGenUtils.id).thenReturn(assetCode)
         return assetService.handle(
             AssetRequest(
                 mapOf(Pair(assetInput.code, assetInput)),
             ),
-        ).data[assetInput.code]
+        ).data[assetInput.code]!!
     }
 
     private fun portfolio(code: String = "RE-TEST"): Portfolio {

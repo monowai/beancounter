@@ -20,22 +20,23 @@ import java.util.Objects
  * @since 2019-02-20
  */
 internal class StockSplitTest {
+    private val buyBehaviour = BuyBehaviour()
+    private val splitBehaviour = SplitBehaviour()
+    private val sellBehaviour = SellBehaviour()
+
     @Test
     fun is_QuantityWorkingForSplit() {
         val apple = getAsset(NASDAQ, AAPL)
         val positions = Positions()
 
-        val buyTrn = Trn(trnType = TrnType.BUY, asset = apple, quantity = hundred)
         val tradeAmount = BigDecimal("2000")
+        val buyTrn = Trn(trnType = TrnType.BUY, asset = apple, quantity = hundred, tradeAmount = tradeAmount)
 
-        buyTrn.tradeAmount = tradeAmount
-        val buyBehaviour = BuyBehaviour()
         val position = buyBehaviour.accumulate(buyTrn, positions)
         val totalField = "total"
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, hundred)
         val stockSplit = Trn(trnType = TrnType.SPLIT, asset = apple, quantity = BigDecimal("7"))
-        val splitBehaviour = SplitBehaviour()
         splitBehaviour.accumulate(stockSplit, positions)
 
         // 7 for one split
@@ -50,14 +51,21 @@ internal class StockSplitTest {
         // Another buy at the adjusted price
         buyBehaviour.accumulate(buyTrn, positions)
 
+        val eightHundred = BigDecimal(800)
         // 7 for one split
         assertThat(position.quantityValues)
-            .hasFieldOrPropertyWithValue(totalField, BigDecimal(800))
-        val sell = Trn(trnType = TrnType.SELL, asset = apple, quantity = BigDecimal("800"))
-        sell.tradeAmount = tradeAmount
+            .hasFieldOrPropertyWithValue(totalField, eightHundred)
 
         // Sell the entire position
-        SellBehaviour().accumulate(sell, positions)
+        sellBehaviour.accumulate(
+            Trn(
+                trnType = TrnType.SELL,
+                asset = apple,
+                quantity = eightHundred,
+                tradeAmount = tradeAmount,
+            ),
+            positions,
+        )
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, BigDecimal.ZERO)
 

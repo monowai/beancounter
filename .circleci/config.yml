@@ -163,6 +163,7 @@ jobs:
 
   build-position:
     executor: java-build
+    resource_class: large
     environment:
       IMAGE_NAME: bc-position
     steps:
@@ -285,7 +286,9 @@ workflows:
       - publish-coverage:
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - /^codacy.*/
           requires:
             - build-shell
             - build-position

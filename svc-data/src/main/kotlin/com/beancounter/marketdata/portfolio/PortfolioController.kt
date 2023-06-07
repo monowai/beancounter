@@ -39,7 +39,7 @@ class PortfolioController internal constructor(
     @DeleteMapping("/{id}")
     fun deletePortfolio(@PathVariable id: String): String {
         portfolioService.delete(id)
-        return "ok"
+        return "deleted $id"
     }
 
     @GetMapping("/code/{code}")

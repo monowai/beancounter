@@ -10,15 +10,12 @@ In general, exceptions are broken down into two categories
 
 We realise these in BeanCounter in this manner
 
--   `SystemException` - Requires operational intervention, could be a system bug. Think of this as “Get out of bed” type
-  conditions. These are signaled over HTTP as a `5XX` HttpStatus
--   `BusinessException` - Something could not be resolved by the application. Testable conditions that result in an error,
-  typically business logic failure. These are signaled over HTTP as a `4XX` HttpStatus
+-   `SystemException` - Requires operational intervention, could be a system bug. Think of this as “Get out of bed” type condition. These are signaled over HTTP as a `5XX` HttpStatus
+-   `BusinessException` - Something could not be resolved by the application. Testable conditions that result in an error, typically business logic failure. These are signaled over HTTP as a `4XX` HttpStatus
 
-There are some sepecialised variations of the `BusinessExecption`, notably
+There are some specialised variations of the `BusinessExecption`, notably
 
--   `ForbiddenException` - User is recognized, but has insufficient priviges to invoke the endpoint. These are signaled
-  over HTTP as a `403` HttpStatus
+-   `ForbiddenException` - User is recognized, but has insufficient priviges to invoke the endpoint. These are signaled over HTTP as a `403` HttpStatus
 -   `UnauthorizedException` - Unable to Autheticate the user. These are signaled over HTTP as a `401` HttpStatus
 
 ## Not Found
@@ -64,4 +61,3 @@ class GlobalExceptionHandler {
 ## Clients
 
 Clients are expected to handle the exceptions thrown by the backend and result
-

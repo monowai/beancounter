@@ -37,8 +37,8 @@ internal class CashBehaviourTest {
         val trn = Trn(
             trnType = TrnType.DEPOSIT,
             asset = usdCashBalance,
-            cashCurrency = USD,
-            quantity = BigDecimal("10000.00"), // Buy
+            quantity = BigDecimal("10000.00"),
+            cashCurrency = USD, // Buy
             portfolio = PortfolioUtils.getPortfolio(),
         )
         val positions = Positions()
@@ -83,8 +83,8 @@ internal class CashBehaviourTest {
         val trn = Trn(
             trnType = TrnType.WITHDRAWAL,
             asset = usdCashBalance,
-            cashCurrency = USD,
-            quantity = cashAmount, // Cash is signed
+            quantity = cashAmount,
+            cashCurrency = USD, // Cash is signed
             portfolio = PortfolioUtils.getPortfolio(),
         )
         val positions = Positions()

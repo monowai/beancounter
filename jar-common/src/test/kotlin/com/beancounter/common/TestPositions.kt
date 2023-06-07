@@ -30,11 +30,12 @@ internal class TestPositions {
     @Test
     @Throws(Exception::class)
     fun is_PositionResponseChainSerializing() {
+        val asset = getJsonAsset("MARKET", "TEST")
         val positions = Positions(PortfolioUtils.getPortfolio("T", SGD))
-        val asset = getJsonAsset("TEST", "TEST")
-        val position = Position(asset)
-        positions.add(position)
-        position.getMoneyValues(Position.In.TRADE, asset.market.currency).currency = USD
+        val position = positions.add(Position(asset))
+
+        assertThat(position.getMoneyValues(Position.In.TRADE, asset.market.currency).currency)
+            .isEqualTo(USD)
         position.getMoneyValues(Position.In.TRADE, asset.market.currency).dividends = BigDecimal("100")
         position.quantityValues.purchased = BigDecimal(200)
 
@@ -82,7 +83,7 @@ internal class TestPositions {
     @Test
     fun is_GetPositionNonNull() {
         val positions = Positions(PortfolioUtils.getPortfolio())
-        val asset = getAsset(NYSE, "TEST")
+        val asset = getAsset(NYSE, "AnyCode")
         val position = positions[asset]
         assertThat(position).isNotNull.hasFieldOrPropertyWithValue("asset", asset)
     }
@@ -94,7 +95,7 @@ internal class TestPositions {
         val trn = Trn(
             id = "any",
             trnType = TrnType.BUY,
-            asset = getJsonAsset("Market", "Blah"),
+            asset = getJsonAsset("RandomMarket", "Blah"),
             portfolio = PortfolioUtils.getPortfolio(),
         )
         trns.add(trn)

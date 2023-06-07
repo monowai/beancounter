@@ -33,9 +33,9 @@ class TrnTest {
         val trn = Trn(
             id = id,
             trnType = TrnType.BUY,
-            version = "0",
             asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
             portfolio = PortfolioUtils.getPortfolio(),
+            version = "0",
         )
         assertThat(trnDefault)
             .hasFieldOrProperty("version")

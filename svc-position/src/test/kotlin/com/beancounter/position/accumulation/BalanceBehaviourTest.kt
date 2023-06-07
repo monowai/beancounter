@@ -31,12 +31,12 @@ class BalanceBehaviourTest {
         val trn = Trn(
             trnType = TrnType.BALANCE,
             asset = Constants.nzdCashBalance,
-            cashCurrency = NZD,
-            portfolio = portfolio,
             quantity = BigDecimal("-10000.00"),
-            tradePortfolioRate = BigDecimal("0.56"),
+            cashCurrency = NZD,
             tradeCashRate = BigDecimal.ONE,
             tradeBaseRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal("0.56"),
+            portfolio = portfolio,
         )
         val positions = Positions(portfolio)
         val position = accumulator.accumulate(trn, positions)

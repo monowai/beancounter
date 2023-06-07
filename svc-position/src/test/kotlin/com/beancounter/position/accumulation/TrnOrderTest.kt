@@ -38,19 +38,19 @@ internal class TrnOrderTest {
         val yesterday = today.minus(-1, ChronoUnit.DAYS)
         val buyYesterday = Trn(
             trnType = TrnType.BUY,
-            asset = apple,
-            quantity = hundred,
             tradeDate = yesterday.atStartOfDay(DateUtils().getZoneId())
                 .toLocalDate(),
+            asset = apple,
+            quantity = hundred,
             tradeAmount = twoK,
         )
         accumulator.accumulate(buyYesterday, positions)
         val buyToday = Trn(
             trnType = TrnType.BUY,
-            asset = apple,
-            quantity = hundred,
             tradeDate = today.atStartOfDay(DateUtils().getZoneId())
                 .toLocalDate(),
+            asset = apple,
+            quantity = hundred,
             tradeAmount = twoK,
         )
 

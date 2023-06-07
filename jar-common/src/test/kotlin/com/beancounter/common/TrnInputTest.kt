@@ -78,12 +78,12 @@ internal class TrnInputTest {
         portfolio.owner = SystemUser("123", "whee", true)
         val trn = Trn(
             id = "PK",
-            callerRef = CallerRef(oneString, oneString, "TEST"),
-            portfolio = portfolio,
             trnType = trnType,
-            asset = asset,
             tradeDate = LocalDate.now(),
+            asset = asset,
+            callerRef = CallerRef(oneString, oneString, "TEST"),
             price = BigDecimal("100.01"),
+            portfolio = portfolio,
         )
         trn.settleDate = LocalDate.now()
         trn.price = BigDecimal("22.11")

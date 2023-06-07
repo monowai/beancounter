@@ -7,7 +7,6 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
@@ -16,15 +15,10 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
-import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZD
-import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
@@ -84,8 +78,9 @@ class CashTrnTests {
 
     @Autowired
     private lateinit var enrichmentFactory: EnrichmentFactory
-    val usNzRate = BigDecimal("1.5")
-    val tenK = BigDecimal("10000.00")
+    private val fiveK = BigDecimal("5000.00")
+    private val propTradeAmount = "tradeAmount"
+    private val propCashAmount = "cashAmount"
 
     @BeforeEach
     fun setupObjects() {
@@ -99,10 +94,6 @@ class CashTrnTests {
         Mockito.`when`(fxClientService.getRates(any()))
             .thenReturn(FxResponse(FxPairResults()))
     }
-
-    private val fiveK = BigDecimal("5000.00")
-    private val propTradeAmount = "tradeAmount"
-    private val propCashAmount = "cashAmount"
 
     @Test
     fun depositCash() {
@@ -119,7 +110,7 @@ class CashTrnTests {
             assetId = nzCashAsset!!.id,
             cashAssetId = nzCashAsset.id,
             trnType = TrnType.DEPOSIT,
-            tradeCashRate = BigDecimal("1.00"),
+            tradeCashRate = ONE,
             tradeAmount = fiveK,
             price = ONE,
         )
@@ -144,7 +135,7 @@ class CashTrnTests {
         val buy = TrnInput(
             callerRef = CallerRef(),
             assetId = equity!!.id,
-            cashAssetId = nzCashAsset!!.id,
+            cashAssetId = nzCashAsset.id,
             tradeCashRate = BigDecimal("0.50"),
             tradeAmount = fiveK,
             price = ONE,
@@ -160,100 +151,8 @@ class CashTrnTests {
             .hasFieldOrPropertyWithValue("cashCurrency", NZD)
     }
 
-    @Test
-    fun cashLadderFlow() {
-        val nzCashAsset = getCashBalance(NZD)
-        val usCashAsset = getCashBalance(USD)
-        val portfolio = bcMvcHelper.portfolio(PortfolioInput(code = "CASHLADDER", base = "NZD", currency = "USD"))
-
-        val equity =
-            assetService.handle(AssetRequest(AssetInput(NASDAQ.code, AAPL.code), AAPL.code)).data[AAPL.code]
-
-        // Let's start with a base currency deposit
-        val nzTrn = trnService.save(
-            portfolio,
-            TrnRequest(
-                portfolio.id,
-                arrayOf(
-                    TrnInput(
-                        callerRef = CallerRef(),
-                        trnType = TrnType.DEPOSIT,
-                        assetId = nzCashAsset!!.id,
-                        tradeAmount = tenK,
-                        cashAssetId = nzCashAsset.id,
-                        cashAmount = tenK,
-                        tradePortfolioRate = ONE,
-                        tradeCashRate = ONE,
-                        tradeBaseRate = ONE,
-                        price = ONE,
-                    ),
-                ),
-            ),
-        )
-        assertThat(nzTrn.data.iterator().next())
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal("10000.00"))
-        // FX Buy USD
-        val fxTrn = trnService.save(
-            portfolio,
-            TrnRequest(
-                portfolio.id,
-                arrayOf(
-                    TrnInput(
-                        callerRef = CallerRef(),
-                        trnType = TrnType.FX_BUY,
-                        assetId = usCashAsset!!.id, // Buying
-                        tradeAmount = BigDecimal("2500.00"),
-                        cashAssetId = nzCashAsset.id, // Selling
-                        cashAmount = BigDecimal("-5000.00"),
-                        tradePortfolioRate = usNzRate, // US/NZ
-                        tradeCashRate = usNzRate, // US/NZ
-                        tradeBaseRate = usNzRate,
-                        price = ONE,
-                    ),
-                ),
-            ),
-        )
-        assertThat(fxTrn.data.iterator().next())
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal("2500.00"))
-        // Asset Purchase against US cash balance
-        val nzUsRate = MathUtils.divide(ONE, usNzRate)
-        val buyTrn = trnService.save(
-            portfolio,
-            TrnRequest(
-                portfolio.id,
-                arrayOf(
-                    TrnInput(
-                        callerRef = CallerRef(),
-                        assetId = equity!!.id,
-                        cashAssetId = nzCashAsset.id,
-                        tradeCashRate = nzUsRate,
-                        tradeBaseRate = nzUsRate,
-                        quantity = BigDecimal("1000.00"),
-                        price = ONE,
-                    ),
-                ),
-            ),
-        )
-        assertThat(buyTrn.data.iterator().next())
-            .hasFieldOrPropertyWithValue(propTradeAmount, BigDecimal("1000.00"))
-            .hasFieldOrPropertyWithValue("cashAsset.id", nzCashAsset.id)
-            .hasFieldOrPropertyWithValue("cashCurrency.code", NZD.code)
-            .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-1492.54"))
-
-        val trnResponse = TrnResponse(
-            arrayListOf(
-                nzTrn.data.iterator().next(),
-                fxTrn.data.iterator().next(),
-                buyTrn.data.iterator().next(),
-            ),
-        )
-
-        // Output of this is used in cash-ladder-response.json contract
-        assertThat(BcJson().objectMapper.writeValueAsString(trnResponse)).isNotNull
-    }
-
-    fun getCashBalance(currency: Currency): Asset? {
+    fun getCashBalance(currency: Currency): Asset {
         val cashInput = AssetUtils.getCash(currency.code)
-        return assetService.handle(AssetRequest(mapOf(Pair(currency.code, cashInput)))).data[currency.code]
+        return assetService.handle(AssetRequest(mapOf(Pair(currency.code, cashInput)))).data[currency.code]!!
     }
 }

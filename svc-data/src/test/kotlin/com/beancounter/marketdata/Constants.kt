@@ -13,8 +13,8 @@ import com.beancounter.common.utils.AssetUtils.Companion.getAsset
  */
 class Constants {
     companion object {
-        const val propName = "name"
-        const val propCode = "code"
+        const val pName = "name"
+        const val pCode = "code"
 
         val USD = Currency("USD")
         val NASDAQ = Market("NASDAQ")

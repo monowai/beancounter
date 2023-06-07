@@ -29,15 +29,15 @@ class AddBehaviourTest {
         val trn = Trn(
             trnType = TrnType.ADD,
             asset = Asset(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House", "test-user"), Market("RE")),
-            cashCurrency = Constants.NZD,
-            price = BigDecimal("1000000.00"),
-            portfolio = portfolio,
             quantity = BigDecimal.ONE,
-            tradeCurrency = Constants.NZD,
+            price = BigDecimal("1000000.00"),
             tradeAmount = BigDecimal("1000000.00"),
-            tradePortfolioRate = BigDecimal("0.665051"),
-            tradeBaseRate = BigDecimal.ONE,
+            tradeCurrency = Constants.NZD,
+            cashCurrency = Constants.NZD,
             tradeCashRate = BigDecimal.ONE,
+            tradeBaseRate = BigDecimal.ONE,
+            tradePortfolioRate = BigDecimal("0.665051"),
+            portfolio = portfolio,
         )
         val positions = Positions(portfolio = portfolio)
         val position = accumulator.accumulate(trn, positions)

@@ -58,31 +58,19 @@ spring:
 This is an example of how roles and scopes are returned in a JWT token
 
 ```json
-"realm_access": {
+{
+  "realm_access": {
     "roles": [
       "offline_access",
       "uma_authorization",
       "user"
     ]
   },
-"scope": "beancounter profile email roles"
+  "scope": "beancounter profile email roles"
+}
 ```
 
 In BC, the entire MVC API is secured using a scope as you can see in `ResourceServerConfig`
-
-```java
-    http.cors().and()
-        .authorizeRequests()
-        // Scope permits access to the API - basically, "caller is authorised"
-        .mvcMatchers(authPattern).hasAuthority("beancounter")
-        .anyRequest().permitAll()
-        .and()
-        .oauth2ResourceServer()
-        .jwt()
-        // User roles are carried in the claims realm_access and are used for fine grained control
-        //  this converter is not used when using Mock testing but is used when running with a full configuration
-        .jwtAuthenticationConverter(jwtRoleConverter);
-```
 
 A scope of `beancounter` basically means "authorized"; You have to be authorized to call the API.
 
@@ -102,7 +90,6 @@ A controller can be simply secured with the `@PreAuthorize` annotation, or `@Sec
 ```java
   @RestController
   static class SimpleController {
-    ...
     @GetMapping("/hello")
     @PreAuthorize("hasRole('user')")
     String sayHello() {

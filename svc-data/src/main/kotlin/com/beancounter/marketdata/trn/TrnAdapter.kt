@@ -54,27 +54,27 @@ class TrnAdapter(
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity
         return Trn(
             id = existing?.id ?: keyGenUtils.id,
-            callerRef = existing?.callerRef ?: from(trnInput.callerRef),
             trnType = trnInput.trnType,
-            portfolio = portfolio,
-            asset = existing?.asset ?: assetService.find(trnInput.assetId!!),
-            tradeCurrency = currencyService.getCode(trnInput.tradeCurrency),
-            cashCurrency = cashCurrency,
-            cashAsset = cashAsset,
             tradeDate = trnInput.tradeDate,
-            settleDate = trnInput.settleDate,
-            price = trnInput.price,
-            fees = trnInput.fees,
-            tax = trnInput.tax,
-            tradeAmount = tradeAmount,
-            status = trnInput.status,
-            cashAmount = cashServices.getCashImpact(trnInput, tradeAmount),
-            // Sign this value
+            asset = existing?.asset ?: assetService.find(trnInput.assetId!!),
             quantity = quantity,
+            callerRef = existing?.callerRef ?: from(trnInput.callerRef),
+            price = trnInput.price,
+            tradeAmount = tradeAmount,
+            tradeCurrency = currencyService.getCode(trnInput.tradeCurrency),
+            cashAsset = cashAsset,
+            cashCurrency = cashCurrency,
             tradeCashRate = trnInput.tradeCashRate,
             tradeBaseRate = trnInput.tradeBaseRate,
             tradePortfolioRate = trnInput.tradePortfolioRate,
+            cashAmount = cashServices.getCashImpact(trnInput, tradeAmount),
+            portfolio = portfolio,
+            // Sign this value
+            settleDate = trnInput.settleDate,
+            fees = trnInput.fees,
+            tax = trnInput.tax,
             comments = existing?.comments ?: trnInput.comments,
+            status = trnInput.status,
         )
     }
 

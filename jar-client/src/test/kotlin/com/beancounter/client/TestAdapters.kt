@@ -41,8 +41,6 @@ class TestAdapters {
     @MockBean
     private lateinit var assetIngestService: AssetIngestService
 
-    private val userName = "some-user"
-
     @Test
     fun is_DividendIllegalNumber() {
         val row: MutableList<String> = arrayListOf()

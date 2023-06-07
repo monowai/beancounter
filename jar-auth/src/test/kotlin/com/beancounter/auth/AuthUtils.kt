@@ -10,7 +10,7 @@ import org.springframework.http.MediaType
  * Mock out OpenID configuration via Wiremock.
  *
  * Given the random port of wiremock, we are unable to template the URL to lookup various
- * well known endpoints.  Instead we will rewrite the template with the address that
+ * well known endpoints.  Instead, we will rewrite the template with the address that
  * WireMock is listening on.
  *
  * You can't autowire JwtDecoder using this approach as beans are initialised before

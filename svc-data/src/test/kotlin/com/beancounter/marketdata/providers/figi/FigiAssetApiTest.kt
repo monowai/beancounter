@@ -10,14 +10,15 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
-import com.beancounter.marketdata.Constants.Companion.propCode
-import com.beancounter.marketdata.Constants.Companion.propName
+import com.beancounter.marketdata.Constants.Companion.pCode
+import com.beancounter.marketdata.Constants.Companion.pName
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.assetRoot
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -43,6 +44,8 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
+
+private const val berkshire = "BRK.B"
 
 /**
  * Bloomberg OpenFigi via mocks.
@@ -80,7 +83,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), MSFT.code)
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(propName, "MICROSOFT CORP")
+            .hasFieldOrPropertyWithValue(pName, "MICROSOFT CORP")
             .isNotNull
     }
 
@@ -89,7 +92,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), "BAIDU")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(propName, "BAIDU INC - SPON ADR")
+            .hasFieldOrPropertyWithValue(pName, "BAIDU INC - SPON ADR")
             .isNotNull
     }
 
@@ -98,7 +101,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NYSE.code), "OHI")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(propName, "OMEGA HEALTHCARE INVESTORS")
+            .hasFieldOrPropertyWithValue(pName, "OMEGA HEALTHCARE INVESTORS")
             .isNotNull
     }
 
@@ -108,7 +111,7 @@ class FigiAssetApiTest {
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
-                propName,
+                pName,
                 "FINANCIAL SELECT SECTOR SPDR",
             ) // Unknown to BC, but is known to FIGI
             .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol", "systemUser")
@@ -131,7 +134,7 @@ class FigiAssetApiTest {
         assertThat(enrichmentFactory.getEnricher(market)).isNotNull
 
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/assets/{market}/{code}", NYSE.code, "BRK.B")
+            MockMvcRequestBuilders.get("$assetRoot/{market}/{code}", NYSE.code, berkshire)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .contentType(MediaType.APPLICATION_JSON),
         )
@@ -142,8 +145,8 @@ class FigiAssetApiTest {
             .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue(propCode, "BRK.B")
-            .hasFieldOrPropertyWithValue(propName, "BERKSHIRE HATHAWAY INC-CL B")
+            .hasFieldOrPropertyWithValue(pCode, berkshire)
+            .hasFieldOrPropertyWithValue(pName, "BERKSHIRE HATHAWAY INC-CL B")
     }
 
     @Test
@@ -158,8 +161,8 @@ class FigiAssetApiTest {
 
         val createdAsset = assetResponse.data.iterator().next().value
         assertThat(createdAsset)
-            .hasFieldOrPropertyWithValue(propName, createdAsset.name)
-            .hasFieldOrPropertyWithValue(propCode, createdAsset.code)
+            .hasFieldOrPropertyWithValue(pName, createdAsset.name)
+            .hasFieldOrPropertyWithValue(pCode, createdAsset.code)
     }
 
     companion object {

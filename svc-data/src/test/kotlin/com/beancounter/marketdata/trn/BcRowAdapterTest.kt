@@ -35,14 +35,16 @@ class BcRowAdapterTest {
     val currencyService: CurrencyService = Mockito.mock(CurrencyService::class.java)
     private val cashServices = CashServices(assetService, currencyService)
     private val rowAdapter = BcRowAdapter(ais, cashServices = cashServices)
-    private val portfolio: Portfolio = Portfolio("CSV")
+    private val csv = "CSV"
+    private val portfolio: Portfolio = Portfolio(csv)
+    private val pBatch = "callerRef.batch"
 
     @BeforeEach
     fun setupMocks() {
         Mockito.`when`(
             ais.resolveAsset(
                 AssetInput(
-                    "NASDAQ",
+                    NASDAQ.code,
                     assetCode,
                     "Caredx",
                     owner = portfolio.owner.id,
@@ -95,7 +97,7 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(cashAssetId, usdCashBalance.code)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-2000")) // Nothing sent, so nothing computed
             .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("2000"))
-            .hasFieldOrPropertyWithValue("callerRef.batch", "USX")
+            .hasFieldOrPropertyWithValue(pBatch, "USX")
     }
 
     @Test
@@ -122,7 +124,7 @@ class BcRowAdapterTest {
         assertThat(trn)
             .hasFieldOrPropertyWithValue(propAssetId, nzdCashBalance.id)
             .hasFieldOrPropertyWithValue(cashAssetId, nzdCashBalance.id)
-            .hasFieldOrPropertyWithValue("callerRef.batch", "abc")
+            .hasFieldOrPropertyWithValue(pBatch, "abc")
             .hasFieldOrPropertyWithValue("callerRef.provider", portfolio.owner.id)
             .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("10000"))
     }
@@ -184,7 +186,7 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(tradeAmount, amount)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("callerRef.provider", portfolio.owner.id)
-            .hasFieldOrPropertyWithValue("callerRef.batch", "20230501")
+            .hasFieldOrPropertyWithValue(pBatch, "20230501")
     }
 
     private fun trustedTrnImportRequest(

@@ -31,8 +31,8 @@ class FxBuyBehaviourTest {
             quantity = BigDecimal("2500.00"), // Buy
             cashAsset = nzdCashBalance,
             cashCurrency = NZD,
-            cashAmount = BigDecimal("-5000.00"), // Sell
-            tradeCashRate = BigDecimal("1.5"),
+            tradeCashRate = BigDecimal("1.5"), // Sell
+            cashAmount = BigDecimal("-5000.00"),
         )
         val positions = Positions()
         val usdPosition = accumulator.accumulate(trn, positions)

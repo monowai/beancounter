@@ -30,32 +30,32 @@ data class Trn(
     @Id
     var id: String = UUID.randomUUID().toString(),
     val trnType: TrnType,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer::class)
+    @JsonDeserialize(using = LocalDateDeserializer::class)
+    var tradeDate: LocalDate = DateUtils().date,
     @ManyToOne
     var asset: Asset,
     @Column(precision = 15, scale = 6)
     val quantity: BigDecimal = BigDecimal.ZERO,
     @Embedded
-    var callerRef: CallerRef? = null,
+    var callerRef: CallerRef? = null, // In trade Currency - scale is to support Mutual Fund pricing.
     @Column(precision = 15, scale = 6)
-    var price: BigDecimal? = null, // In trade Currency - scale is to support Mutual Fund pricing.
-    var tradeAmount: BigDecimal = quantity, // In trade Currency
+    var price: BigDecimal? = null, // In trade Currency
+    var tradeAmount: BigDecimal = quantity,
     @ManyToOne
     val tradeCurrency: Currency = asset.market.currency,
     @ManyToOne
     var cashAsset: Asset? = null,
     @ManyToOne
-    var cashCurrency: Currency? = null,
+    var cashCurrency: Currency? = null, // Trade CCY to cash settlement currency
     @Column(precision = 10, scale = 6)
-    var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade CCY to cash settlement currency
+    var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade Currency to system Base Currency
     @Column(precision = 10, scale = 6)
-    var tradeBaseRate: BigDecimal = BigDecimal.ONE, // Trade Currency to system Base Currency
+    var tradeBaseRate: BigDecimal = BigDecimal.ONE, // Trade CCY to portfolio reference  currency
     @Column(precision = 10, scale = 6)
-    var tradePortfolioRate: BigDecimal = BigDecimal.ONE, // Trade CCY to portfolio reference  currency
-    var cashAmount: BigDecimal = BigDecimal.ZERO, // Signed Cash in settlement currency.
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonSerialize(using = LocalDateSerializer::class)
-    @JsonDeserialize(using = LocalDateDeserializer::class)
-    var tradeDate: LocalDate = DateUtils().date,
+    var tradePortfolioRate: BigDecimal = BigDecimal.ONE, // Signed Cash in settlement currency.
+    var cashAmount: BigDecimal = BigDecimal.ZERO,
     @ManyToOne
     var portfolio: Portfolio = PortfolioUtils.getPortfolio(),
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

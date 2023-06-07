@@ -52,16 +52,16 @@ internal class TrnMigratorTest {
         val trnV1 = Trn(
             id = "TrnV1",
             trnType = TrnType.BUY,
-            version = "2",
-            asset = MSFT,
-            portfolio = Portfolio("test", NZD, USD),
             tradeDate = tradeDate,
-            tradeCurrency = USD,
-            cashCurrency = NZD,
-            cashAsset = Constants.nzdCashBalance,
+            asset = MSFT,
             quantity = BigDecimal("1.0"),
             price = BigDecimal("1.0"),
             tradeAmount = BigDecimal("1000.00"),
+            tradeCurrency = USD,
+            cashAsset = Constants.nzdCashBalance,
+            cashCurrency = NZD,
+            portfolio = Portfolio("test", NZD, USD),
+            version = "2",
         )
         trnV1.callerRef = CallerRef("ABC", "DEF", "GHI")
         val trnV2 = trnMigrator.upgrade(trnV1)

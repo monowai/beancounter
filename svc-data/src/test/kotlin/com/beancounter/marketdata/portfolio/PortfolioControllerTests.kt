@@ -171,7 +171,7 @@ internal class PortfolioControllerTests {
     @Test
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
     fun updatePortfolio() {
-        val data = portfolioCreate(
+        val portfolioResponse = portfolioCreate(
             PortfolioInput(
                 UUID.randomUUID().toString().uppercase(Locale.getDefault()),
                 "is_UpdatePortfolioWorking",
@@ -182,7 +182,7 @@ internal class PortfolioControllerTests {
             token,
         ).data
 
-        val (id, _, _, _, _, owner) = data.iterator().next()
+        val (id, _, _, _, _, owner) = portfolioResponse.iterator().next()
         val updateTo = PortfolioInput(
             "123",
             "Mikey",
@@ -198,16 +198,17 @@ internal class PortfolioControllerTests {
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
-        val (data1) = objectMapper
+        val (data) = objectMapper
             .readValue(patchResult.response.contentAsString, PortfolioResponse::class.java)
         assertThat(owner).isNotNull
         // ID and SystemUser are immutable:
-        assertThat(data1)
+        assertThat(data)
             .hasFieldOrPropertyWithValue(pId, id)
             .hasFieldOrPropertyWithValue(pName, updateTo.name)
             .hasFieldOrPropertyWithValue(pCode, updateTo.code)
             .hasFieldOrPropertyWithValue(pCurrencyCode, updateTo.currency)
             .hasFieldOrPropertyWithValue("base.code", updateTo.base)
             .hasFieldOrPropertyWithValue("owner.id", owner.id)
+            .hasFieldOrPropertyWithValue("owner.id", token.claims["sub"])
     }
 }

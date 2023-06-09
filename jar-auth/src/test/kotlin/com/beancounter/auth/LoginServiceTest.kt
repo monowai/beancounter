@@ -63,18 +63,18 @@ class LoginServiceTest {
 
     @Test
     fun is_m2mLoginWorking() {
-        loginService.login().isNotEmpty()
+        loginService.loginM2m().token.isNotEmpty()
     }
 
     @Test
     fun is_userLoginWorking() {
-        loginService.login("user", "password").isNotEmpty()
+        loginService.login("user", "password").token.isNotEmpty()
     }
 
     @Test
     fun is_notSetFailing() {
         assertThrows(UnauthorizedException::class.java) {
-            loginService.login("not-set")
+            loginService.loginM2m("not-set")
         }
     }
 }

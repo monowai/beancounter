@@ -3,7 +3,6 @@ auth:
   audience: "auth0-audience"
   enabled: true
   web: false
-  email: "${auth.audience}/claims/email"
 
 spring:
   main:

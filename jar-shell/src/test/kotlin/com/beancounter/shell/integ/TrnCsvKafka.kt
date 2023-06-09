@@ -1,6 +1,7 @@
 package com.beancounter.shell.integ
 
 import com.beancounter.auth.AuthConfig
+import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.TrnAdapter
 import com.beancounter.client.sharesight.ShareSightConfig
@@ -47,6 +48,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 )
 @SpringBootTest(classes = [KafkaTrnProducer::class, ShareSightConfig::class, ClientConfig::class, KafkaAutoConfiguration::class])
 @ActiveProfiles("kafka")
+@AutoConfigureNoAuth
 class TrnCsvKafka {
     private val log = LoggerFactory.getLogger(TrnCsvKafka::class.java)
     private final val abc = "ABC"

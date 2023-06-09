@@ -27,7 +27,7 @@ class BackfillService(
     @Async("applicationTaskExecutor")
     fun backFillEvents(portfolioId: String, date: String = "today", toDate: String = date) {
         val dates = dateSplitter.dateRange(date, toDate)
-        loginService.login() // m2m
+        loginService.loginM2m() // m2m
         val portfolio =
             portfolioService.getPortfolioById(portfolioId, tokenService.bearerToken)
         log.debug("Started backfill code: ${portfolio.code}, id: ${portfolio.id}, days: ${dates.size}")

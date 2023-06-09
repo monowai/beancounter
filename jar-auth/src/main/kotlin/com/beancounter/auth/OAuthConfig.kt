@@ -21,7 +21,6 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
-import java.net.MalformedURLException
 import java.net.URL
 import java.time.Duration
 import java.util.Objects
@@ -33,7 +32,7 @@ import java.util.Objects
  * @see com.beancounter.auth.MockAuthConfig
  */
 @Configuration
-@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
 @Import(AuthConfig::class)
 class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager?) {
 
@@ -44,7 +43,6 @@ class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager?) 
     }
 
     @Bean
-    @Throws(MalformedURLException::class)
     fun jwtDecoder(authConfig: AuthConfig): JwtDecoder {
         val jwtRestOperations = RestTemplateBuilder()
             .setConnectTimeout(Duration.ofSeconds(60))

@@ -31,7 +31,7 @@ class EventLoader(
 
     @Async("applicationTaskExecutor")
     fun loadEvents(date: String) {
-        loginService.login() // m2m login
+        loginService.loginM2m() // m2m login
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
             loadEvents(portfolio.id, date)

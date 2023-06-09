@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * Standard OAuth 2 response to a login request
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-class OAuth2Response(
+class OpenIdResponse(
     @JsonProperty("access_token") var token: String,
     @JsonProperty("scope") var scope: String,
     @JsonProperty("expires_in") var expiry: Long,

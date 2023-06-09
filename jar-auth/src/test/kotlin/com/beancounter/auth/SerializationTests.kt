@@ -2,7 +2,7 @@ package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.utils.BcJson
-import feign.form.util.PojoUtil
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -13,16 +13,14 @@ class SerializationTests {
     private val oidClientId = "client_id"
     private val oidSecret = "client_secret"
     private val oidGrantType = "grant_type"
-    private val clientId = "clientId"
-    private val grantType = "grantType"
     private val secret = "*secretx*"
 
     @Test
     fun is_MachineToMachineJsonCorrect() {
-        val machineRequest =
-            LoginService.MachineRequest(clientId = "abc", clientSecret = secret, audience = "my-audience")
-        assertThat(machineRequest.grantType).isNotNull
-        val json = BcJson().objectMapper.writeValueAsString(machineRequest)
+        val clientCredentialsRequest =
+            LoginService.ClientCredentialsRequest(client_id = "abc", client_secret = secret, audience = "my-audience")
+        assertThat(clientCredentialsRequest.grant_type).isNotNull
+        val json = BcJson().objectMapper.writeValueAsString(clientCredentialsRequest)
         assertThat(json).contains(
             oidClientId,
             oidSecret,
@@ -31,26 +29,34 @@ class SerializationTests {
             secret,
             "client_credentials",
         )
-        val translateResult = PojoUtil.toMap(machineRequest)
-        assertThat(translateResult)
-            .containsKeys(clientId, "clientSecret", grantType)
+        val fromJson: Map<String, String> = BcJson().objectMapper.readValue(json)
+        assertThat(fromJson)
+            .containsKeys(oidClientId, oidSecret, oidGrantType)
     }
 
     @Test
     fun is_InteractiveJsonCorrect() {
-        val loginRequest = LoginService.LoginRequest(clientId = "cid", username = "mike", password = secret)
-        assertThat(loginRequest.grantType).isNotNull
-        val json = BcJson().objectMapper.writeValueAsString(loginRequest)
+        val passwordRequest = LoginService.PasswordRequest(
+            client_id = "cid",
+            username = "mike",
+            password = secret,
+            audience = "the-audience",
+            client_secret = "the-secret",
+        )
+        assertThat(passwordRequest.grant_type).isNotNull
+        val json = BcJson().objectMapper.writeValueAsString(passwordRequest)
         assertThat(json).contains(
             oidClientId,
             oidGrantType,
             "cid",
             "username",
             "password",
+            "the-secret",
+            "scope",
             secret,
         )
-        val translateResult = PojoUtil.toMap(loginRequest)
-        assertThat(translateResult)
-            .containsKeys(clientId, grantType)
+        val fromJson: Map<String, String> = BcJson().objectMapper.readValue(json)
+        assertThat(fromJson).isNotEmpty
+            .containsKeys(oidClientId, oidGrantType)
     }
 }

@@ -21,7 +21,7 @@ import java.time.LocalDate
 @Service
 class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val tokenService: TokenService) {
     fun getPortfolioByCode(portfolioCode: String): Portfolio {
-        val response: PortfolioResponse? = portfolioGw.getPortfolioByCode(tokenService.bearerToken, portfolioCode)
+        val response: PortfolioResponse = portfolioGw.getPortfolioByCode(tokenService.bearerToken, portfolioCode)
         return getOrThrow(portfolioCode, response)
     }
 
@@ -30,7 +30,7 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
     }
 
     fun getPortfolioById(portfolioId: String, bearerToken: String): Portfolio {
-        val response: PortfolioResponse? = portfolioGw.getPortfolioById(bearerToken, portfolioId)
+        val response: PortfolioResponse = portfolioGw.getPortfolioById(bearerToken, portfolioId)
         return getOrThrow(portfolioId, response)
     }
 
@@ -70,13 +70,13 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         fun getPortfolioById(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("id") id: String,
-        ): PortfolioResponse?
+        ): PortfolioResponse
 
         @GetMapping(value = ["/portfolios/code/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioByCode(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("code") code: String,
-        ): PortfolioResponse?
+        ): PortfolioResponse
 
         @GetMapping(value = ["/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getWhereHeld(

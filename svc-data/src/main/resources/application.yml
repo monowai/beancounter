@@ -21,23 +21,30 @@ management:
     web:
       exposure:
         include: "*"
+feign:
+  client:
+    config:
+      auth0:
+        loggerLevel: full
 
 logging:
   level:
-    root: debug
+    root: trace
     javax: error
+    java: error
     sun: error
     netflix: error
     jdk: error
     io:
       github:
         resilience4j: error
-    feign: error
+    feign: trace
     com:
       netfix: error
       beancounter: debug
       zaxxer: error
     org:
+      aspectj: error
       springframework: error
       springframework.scheduling: info
       #      springframework.security: trace
@@ -47,14 +54,21 @@ logging:
       postgresql: error
 
 auth:
-  uri: "http://your-auth0-endpoint/"
+  uri: "https://your-auth0-endpoint"
   audience: "auth0-audience"
   enabled: true
   email: "${auth.audience}/claims/email"
+  # To support interactive login via the /auth endpoint
+  client: "not-set"
+  client-secret: "not-set"
 
 spring:
   security:
     oauth2:
+      registration:
+        custom:
+          client-id: ${auth.client}
+          client-secret: ${auth.client-secret}
       resourceserver:
         jwt:
           issuer-uri: ${auth.uri}

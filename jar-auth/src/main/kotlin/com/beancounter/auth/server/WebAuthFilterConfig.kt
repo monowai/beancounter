@@ -24,8 +24,9 @@ import org.springframework.web.cors.CorsConfiguration
 @EnableCaching
 @Service
 class WebAuthFilterConfig {
-    @Value("\${auth.pattern:/**}")
-    private lateinit var apiPattern: String // All these EPs are by default secured
+
+    @Value("\${server.servlet.context-path:/api}")
+    private lateinit var apiPath: String
 
     @Value("\${management.endpoints.web.base-path:/actuator}")
     private lateinit var actuatorPath: String
@@ -48,10 +49,12 @@ class WebAuthFilterConfig {
             listOf("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE")
         corsConfiguration.allowCredentials = true
 
-        http.authorizeHttpRequests() // Scope permits access to the API - basically, "caller is authorised"
-            .requestMatchers("$actuatorPath/health/**").permitAll()
-            .requestMatchers(apiPattern).hasAuthority(AuthConstants.SCOPE_BC)
-            .anyRequest().authenticated()
+        http.authorizeHttpRequests()
+            .requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
+            .requestMatchers("$apiPath/auth").permitAll() // Get your token
+            .requestMatchers("$apiPath/**").hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
+            .requestMatchers("$actuatorPath/**").hasAuthority(AuthConstants.SCOPE_ADMIN) // Admin users
+            .anyRequest().permitAll() //
             .and().csrf().disable().cors().configurationSource { corsConfiguration }
             .and().oauth2ResourceServer()
             .jwt() // User roles are carried in the claims and used for fine-grained control

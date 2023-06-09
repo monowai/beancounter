@@ -1,10 +1,11 @@
+@file:Suppress("PropertyName")
+
 package com.beancounter.auth.client
 
-import com.beancounter.auth.model.OAuth2Response
+import com.beancounter.auth.AuthConfig
+import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
@@ -14,38 +15,27 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 
 /**
  * OAuth2 client-credential login service to service M2M authentication requests
  */
 @Service
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
-class LoginService(private val authGateway: AuthGateway, private val jwtDecoder: JwtDecoder) {
+class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDecoder, val authConfig: AuthConfig) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    @Value("\${spring.security.oauth2.registration.custom.client-id:bc-service}")
-    private lateinit var clientId: String
-
-    @Value("\${spring.security.oauth2.registration.custom.client-secret:not-set}")
-    private lateinit var secret: String
-
-    @Value("\${auth.audience:beancounter:service}")
-    private lateinit var audience: String
-
-    fun login(user: String, password: String, clientId: String = this.clientId): String {
-        val loginRequest = LoginRequest(
-            clientId = clientId,
+    fun login(user: String, password: String): OpenIdResponse {
+        val passwordRequest = PasswordRequest(
+            client_id = authConfig.clientId,
             username = user,
             password = password,
+            audience = authConfig.audience,
+            client_secret = authConfig.clientSecret,
         )
-        val response = authGateway.login(loginRequest)
-        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
-            jwtDecoder.decode(
-                response.token,
-            ),
-        )
+        val response = authGateway.login(passwordRequest)
         log.info("Logged in $user")
-        return response.token
+        return response
     }
 
     /**
@@ -55,15 +45,15 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
      *
      * @return token
      */
-    fun login(secretIn: String = secret): String {
+    fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         log.debug("Performing m2m login")
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
         }
-        val login = MachineRequest(
-            clientSecret = secretIn,
-            clientId = clientId,
-            audience = audience,
+        val login = ClientCredentialsRequest(
+            client_secret = secretIn,
+            client_id = authConfig.clientId,
+            audience = authConfig.audience,
         )
         val response = authGateway.login(login)
         SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
@@ -71,8 +61,8 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
                 response.token,
             ),
         )
-        log.debug("Service logged @ $clientId")
-        return response.token
+        log.debug("Service logged @ ${authConfig.clientId}")
+        return response
     }
 
     /**
@@ -84,39 +74,35 @@ class LoginService(private val authGateway: AuthGateway, private val jwtDecoder:
      * OAuth2 interactive login request. These properties are interpreted literally by Spring, so
      * need the underscores in the variable names otherwise they're not mapped correctly
      */
-    data class LoginRequest(
-        @JsonProperty("client_id")
-        var clientId: String,
+    data class PasswordRequest(
+        var client_id: String,
         var username: String,
         var password: String,
-        @JsonProperty("grant_type")
-        var grantType: String = AuthorizationGrantType.PASSWORD.value,
+        var grant_type: String = AuthorizationGrantType.PASSWORD.value,
+        var audience: String,
+        var client_secret: String,
+        var scope: String = "openid profile email beancounter beancounter:user beancounter:admin",
     ) : AuthRequest
 
     /**
      * M2M request configured from environment.
      */
-    data class MachineRequest(
-        @JsonProperty("client_id")
-        var clientId: String,
-        @JsonProperty("client_secret")
-        var clientSecret: String = "not-set",
+    data class ClientCredentialsRequest(
+        var client_id: String,
+        var client_secret: String = "not-set",
         var audience: String,
         var scope: String = "beancounter beancounter:system",
-        @JsonProperty("grant_type")
-        var grantType: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
+        var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
     ) : AuthRequest
 
-    /**
-     * Gateway call to the Auth server.
-     */
-    @FeignClient(name = "oauth", url = "\${auth.uri:http://keycloak:9620/auth/}")
+    @FeignClient(name = "auth0", url = "\${auth.uri:https://beancounter.eu.auth0.com}")
+    @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
     interface AuthGateway {
         @PostMapping(
             value = ["oauth/token"],
             consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
             produces = [MediaType.APPLICATION_JSON_VALUE],
         )
-        fun login(authRequest: AuthRequest): OAuth2Response
+        fun login(@RequestBody authRequest: AuthRequest): OpenIdResponse
     }
 }

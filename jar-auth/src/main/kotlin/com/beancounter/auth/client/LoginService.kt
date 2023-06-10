@@ -100,7 +100,10 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
         var grant_type: String = AuthorizationGrantType.CLIENT_CREDENTIALS.value,
     ) : AuthRequest
 
-    @FeignClient(name = "auth0", url = "\${auth.uri:https://beancounter.eu.auth0.com}")
+    /**
+     * Obtain a token from BC-DATA that can be used by the client app.
+     */
+    @FeignClient(name = "auth0", url = "\${auth.uri:https://beancounter.eu.auth0.com/}")
     @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
     interface AuthGateway {
         @PostMapping(

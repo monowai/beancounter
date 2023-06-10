@@ -12,5 +12,5 @@ class OpenIdResponse(
     @JsonProperty("scope") var scope: String,
     @JsonProperty("expires_in") var expiry: Long,
     @JsonProperty("token_type") var type: String,
-    @JsonProperty("refresh_token") var refreshToken: String?,
+    @JsonProperty("refresh_token") var refreshToken: String? = null,
 )

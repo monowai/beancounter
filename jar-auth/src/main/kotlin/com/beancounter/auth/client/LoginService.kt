@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 
 /**
- * OAuth2 client-credential login service to service M2M authentication requests
+ * OpenID client-credential login service to service M2M authentication requests
  */
 @Service
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
@@ -26,17 +26,22 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun login(user: String, password: String): OpenIdResponse {
-        val passwordRequest = PasswordRequest(
-            client_id = authConfig.clientId,
-            username = user,
-            password = password,
-            audience = authConfig.audience,
-            client_secret = authConfig.clientSecret,
-        )
+        val passwordRequest = passwordRequest(user, password)
         val response = authGateway.login(passwordRequest)
         log.info("Logged in $user")
         return response
     }
+
+    fun passwordRequest(
+        user: String,
+        password: String,
+    ) = PasswordRequest(
+        client_id = authConfig.clientId,
+        username = user,
+        password = password,
+        audience = authConfig.audience,
+        client_secret = authConfig.clientSecret,
+    )
 
     /**
      * m2m login using preconfigured secret.

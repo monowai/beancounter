@@ -54,8 +54,6 @@ class TestUserCommands {
 
     @Test
     fun is_UnauthorizedThrowing() {
-        val registrationService = RegistrationService(registrationGateway, jwtDecoder, tokenService)
-        registrationService.resetAuth()
         val userCommands = getUserCommands()
         assertThrows(UnauthorizedException::class.java) { userCommands.me() }
         assertThrows(UnauthorizedException::class.java) { userCommands.register(authConfig.claimEmail) }

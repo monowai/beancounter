@@ -52,9 +52,6 @@ class RegistrationService(
         return registrationGateway.me(token).data
     }
 
-    fun resetAuth() {
-    }
-
     val token: String
         get() = tokenService.bearerToken
 

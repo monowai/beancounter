@@ -99,12 +99,22 @@ jobs:
           file: ./jar-shell/build/reports/jacoco/test/jacocoTestReport.xml
 
       - setup_remote_docker
-      - run:
-          name: Package BC-SHELL
-          command: |
-            docker build ~/project/jar-shell/. -t monowai/$IMAGE_NAME:latest
-            docker tag monowai/$IMAGE_NAME:latest monowai/$IMAGE_NAME:${CIRCLE_BUILD_NUM}
-            docker save -o ~/project/$IMAGE_NAME.tar monowai/$IMAGE_NAME
+      - when:
+          condition:
+            equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: Package BC-SHELL
+                command: |
+                  docker buildx create --use
+                  docker buildx inspect
+                  docker run --rm --privileged tonistiigi/binfmt --install arm64
+                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                  docker buildx build --push \
+                                      --platform linux/arm64/v8,linux/amd64 \
+                                      -t "monowai/bc-shell:latest" \
+                                      -t "monowai/bc-shell:${CIRCLE_BUILD_NUM}" \
+                                       ~/project/jar-shell/.
       - persist_to_workspace:
           root: ~/project
           paths:

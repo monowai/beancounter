@@ -4,7 +4,6 @@ import com.beancounter.auth.model.LoginRequest
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.utils.BcJson
-import com.fasterxml.jackson.core.JsonProcessingException
 import org.jline.reader.LineReader
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -45,7 +44,6 @@ class UserCommands(
     }
 
     @ShellMethod("Register your Account")
-    @Throws(JsonProcessingException::class)
     fun register(emailClaim: String): String {
         return bcJson.writer.writeValueAsString(
             registrationService

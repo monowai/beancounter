@@ -26,12 +26,8 @@ class EnvCommands(private val envConfig: EnvConfig) {
 
     @ShellMethod("Shell configuration")
     @Throws(JsonProcessingException::class)
-    fun config(): String {
+    fun env(): String {
         val config: MutableMap<String, String?> = TreeMap()
-        config["AUTH_REALM"] = envConfig.realm
-        config["AUTH_CLIENT"] = envConfig.client
-        config["AUTH_URI"] = envConfig.uri
-        config["API_PATH"] = envConfig.apiPath
         config["MARKETDATA_URL"] = envConfig.marketDataUrl
         return ObjectMapper().writerWithDefaultPrettyPrinter()
             .writeValueAsString(config)

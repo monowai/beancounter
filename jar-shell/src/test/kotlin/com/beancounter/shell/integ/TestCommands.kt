@@ -96,7 +96,7 @@ class TestCommands {
 
     @Test
     fun is_ConfigReturned() {
-        val config = envCommands.config()
+        val config = envCommands.env()
         assertThat(config).isNotNull
         val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
         val configMap: HashMap<String, String> = ObjectMapper().readValue(config, typeRef)

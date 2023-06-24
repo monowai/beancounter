@@ -28,8 +28,8 @@ import kotlin.collections.set
  * @since 2019-03-03
  */
 @Service
-class AlphaPriceService(private val alphaConfig: AlphaConfig) : MarketDataPriceProvider {
-    private val dateUtils = DateUtils()
+class AlphaPriceService(private val alphaConfig: AlphaConfig, private val dateUtils: DateUtils = DateUtils()) :
+    MarketDataPriceProvider {
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
     private lateinit var apiKey: String

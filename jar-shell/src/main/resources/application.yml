@@ -40,7 +40,7 @@ logging:
     com.beancounter.shell.IngestBoot: error
     com.beancounter: debug
     org.springframework.web.servlet: info
-    feign: error
+    feign: debug
     sun: error
     jdk: error
     javax: error
@@ -71,3 +71,8 @@ resilience4j:
         waitDurationInOpenState: 5s
         registerHealthIndicator: true
         recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+feign:
+  client:
+    config:
+      auth0:
+        loggerLevel: full

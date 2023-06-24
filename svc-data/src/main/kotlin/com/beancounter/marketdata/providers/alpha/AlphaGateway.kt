@@ -15,17 +15,15 @@ import org.springframework.web.bind.annotation.RequestMethod
 interface AlphaGateway {
     @RequestMapping(
         method = [RequestMethod.GET],
-        headers = ["Content-Type: text/plain"],
         value = ["/query?function=GLOBAL_QUOTE&symbol={assetId}&apikey={apiKey}"],
     )
     fun getCurrent(
-        @PathVariable("assetId") assetId: String?,
-        @PathVariable("apiKey") apiKey: String?,
+        @PathVariable("assetId") assetId: String,
+        @PathVariable("apiKey") apiKey: String,
     ): String?
 
     @RequestMapping(
         method = [RequestMethod.GET],
-        headers = ["Content-Type: text/plain"],
         value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}"],
     )
     fun getHistoric(
@@ -35,7 +33,6 @@ interface AlphaGateway {
 
     @RequestMapping(
         method = [RequestMethod.GET],
-        headers = ["Content-Type: text/plain"],
         value = ["/query?function=TIME_SERIES_DAILY&symbol={assetId}&apikey={apiKey}&outputsize=full"],
     )
     fun getFullOutput(
@@ -45,7 +42,6 @@ interface AlphaGateway {
 
     @RequestMapping(
         method = [RequestMethod.GET],
-        headers = ["Content-Type: text/plain"],
         value = ["/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={assetId}&apikey={apiKey}&outputsize=full"],
     )
     fun getAdjusted(
@@ -55,7 +51,6 @@ interface AlphaGateway {
 
     @RequestMapping(
         method = [RequestMethod.GET],
-        headers = ["Content-Type: text/plain"],
         value = ["/query?function=SYMBOL_SEARCH&keywords={symbol}&apikey={apiKey}"],
     )
     fun search(

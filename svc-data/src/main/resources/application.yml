@@ -21,11 +21,6 @@ management:
     web:
       exposure:
         include: "*"
-feign:
-  client:
-    config:
-      auth0:
-        loggerLevel: full
 
 logging:
   level:
@@ -38,7 +33,7 @@ logging:
     io:
       github:
         resilience4j: error
-    feign: trace
+    feign: error
     com:
       netfix: error
       beancounter: debug
@@ -63,6 +58,14 @@ auth:
   client-secret: "not-set"
 
 spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          alphaVantage:
+            url: https://www.alphavantage.co
+            loggerLevel: NONE # BASIC, FULL, HEADERS
+
   security:
     oauth2:
       registration:

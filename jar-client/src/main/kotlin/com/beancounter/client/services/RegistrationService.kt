@@ -58,10 +58,10 @@ class RegistrationService(
     /**
      * HTTP gateway calls to svc-data
      */
-    @FeignClient(name = "registrationGw", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "registrationGw", url = "\${marketdata.url:http://localhost:9510}")
     interface RegistrationGateway {
         @PostMapping(
-            value = ["/register"],
+            value = ["/api/register"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
@@ -71,13 +71,13 @@ class RegistrationService(
         ): RegistrationResponse?
 
         @GetMapping(
-            value = ["/me"],
+            value = ["/api/me"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun me(@RequestHeader("Authorization") bearerToken: String): RegistrationResponse
 
         @PostMapping(
-            value = ["/auth"],
+            value = ["/api/auth"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )

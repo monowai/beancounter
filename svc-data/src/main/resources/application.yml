@@ -102,6 +102,39 @@ spring:
     consumer:
       group-id: bc-data
 
+resilience4j:
+  ratelimiter:
+    instances:
+      alphaVantage:
+        registerHealthIndicator: false
+        limitForPeriod: 70
+        limitRefreshPeriod: 60s
+        timeoutDuration: 70s
+        eventConsumerBufferSize: 200
+      fxRates:
+        registerHealthIndicator: false
+        limitForPeriod: 5
+        limitRefreshPeriod: PT2S
+        timeoutDuration: PT5S
+        eventConsumerBufferSize: 200
+
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 3
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: TIME_BASED
+        waitDurationInOpenState: 5s
+        registerHealthIndicator: true
+        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
+  retry:
+    instances:
+      backend:
+        maxRetryAttempts: 3
+        waitDuration: PT10S
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
 
 kafka:
   enabled: false
@@ -231,44 +264,3 @@ beancounter:
       OFFM:
         batchSize: 1
         markets: OFFM
-
-
-resilience4j:
-  ratelimiter:
-    instances:
-      figi:
-        registerHealthIndicator: false
-        limitForPeriod: 60
-        limitRefreshPeriod: 65s
-        timeoutDuration: 80s
-        eventConsumerBufferSize: 200
-      alphaVantage:
-        registerHealthIndicator: false
-        limitForPeriod: 30
-        limitRefreshPeriod: 60s
-        timeoutDuration: 70s
-        eventConsumerBufferSize: 200
-      fxRates:
-        registerHealthIndicator: false
-        limitForPeriod: 5
-        limitRefreshPeriod: PT2S
-        timeoutDuration: PT5S
-        eventConsumerBufferSize: 200
-
-  circuitbreaker:
-    configs:
-      default:
-        failureRateThreshold: 3
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 3
-        slidingWindowType: TIME_BASED
-        waitDurationInOpenState: 5s
-        registerHealthIndicator: true
-        recordFailurePredicate: com.beancounter.common.exception.RecordFailurePredicate
-  retry:
-    instances:
-      backend:
-        maxRetryAttempts: 3
-        waitDuration: PT10S
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2

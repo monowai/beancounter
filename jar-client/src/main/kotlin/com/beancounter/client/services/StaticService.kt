@@ -27,7 +27,7 @@ import java.util.Locale
 @Service
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.exchanges")
-class StaticService internal constructor(
+class StaticService(
     val staticGateway: StaticGateway,
     private val tokenService: TokenService,
 ) : MarketService {
@@ -72,20 +72,20 @@ class StaticService internal constructor(
     /**
      * API calls to the BC-DATA service to obtain the data.
      */
-    @FeignClient(name = "static", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "static", url = "\${marketdata.url:http://localhost:9510}")
     interface StaticGateway {
-        @GetMapping(value = ["/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/markets"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarkets(
             @RequestHeader("Authorization") bearerToken: String?,
         ): MarketResponse
 
-        @GetMapping(value = ["/markets/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/markets/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getMarketByCode(
             @RequestHeader("Authorization") bearerToken: String?,
             @PathVariable code: String?,
         ): MarketResponse
 
-        @GetMapping(value = ["/currencies"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/currencies"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getCurrencies(
             @RequestHeader("Authorization") bearerToken: String?,
         ): CurrencyResponse

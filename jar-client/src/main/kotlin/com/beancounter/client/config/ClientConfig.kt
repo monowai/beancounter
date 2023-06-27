@@ -3,6 +3,7 @@ package com.beancounter.client.config
 import com.beancounter.auth.TokenService
 import com.beancounter.client.ingest.AssetIngestService
 import com.beancounter.client.ingest.FxTransactions
+import com.beancounter.client.services.ActuatorService
 import com.beancounter.client.services.FxClientService
 import com.beancounter.client.services.MarketDataClient
 import com.beancounter.client.services.PortfolioServiceClient
@@ -25,6 +26,7 @@ import org.springframework.context.annotation.Import
     AssetIngestService::class,
     FxClientService::class,
     FxTransactions::class,
+    ActuatorService::class,
     DateUtils::class,
     StaticService::class,
     PriceService::class,

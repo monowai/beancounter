@@ -27,7 +27,7 @@ class MarketDataClient internal constructor(
     private val tokenService: TokenService,
 ) : AssetService {
 
-    @Value("\${marketdata.url:http://localhost:9510/api}")
+    @Value("\${marketdata.url:http://localhost:9510}")
     private lateinit var marketDataUrl: String
 
     @PostConstruct
@@ -53,10 +53,10 @@ class MarketDataClient internal constructor(
     /**
      * Rest API to the asset service.
      */
-    @FeignClient(name = "assets", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "assets", url = "\${marketdata.url:http://localhost:9510}")
     interface AssetGateway {
         @PostMapping(
-            value = ["/assets"],
+            value = ["/api/assets"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
@@ -66,7 +66,7 @@ class MarketDataClient internal constructor(
         ): AssetUpdateResponse?
 
         @PostMapping(
-            value = ["/assets/{id}/events"],
+            value = ["/api/assets/{id}/events"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
@@ -75,13 +75,13 @@ class MarketDataClient internal constructor(
             @PathVariable("id") assetId: String?,
         )
 
-        @GetMapping(value = ["/assets/{id}"])
+        @GetMapping(value = ["/api/assets/{id}"])
         fun find(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("id") assetId: String,
         ): AssetResponse
 
-        @GetMapping(value = ["/assets/{id}/events"])
+        @GetMapping(value = ["/api/assets/{id}/events"])
         fun getEvents(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("id") assetId: String,

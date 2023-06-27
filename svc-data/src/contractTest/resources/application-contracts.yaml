@@ -1,3 +1,6 @@
+auth:
+  enabled: false
+  web: true
 beancounter:
   market:
     providers:

@@ -30,15 +30,15 @@ class PriceService @Autowired internal constructor(
     /**
      * Gateway call to the MarketData service to obtain the prices.
      */
-    @FeignClient(name = "prices", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "prices", url = "\${marketdata.url:http://localhost:9510}")
     interface PriceGateway {
-        @PostMapping(value = ["/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @PostMapping(value = ["/api/prices"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPrices(
             @RequestHeader("Authorization") bearerToken: String,
             priceRequest: PriceRequest,
         ): PriceResponse
 
-        @GetMapping(value = ["/prices/{assetId}/events"])
+        @GetMapping(value = ["/api/prices/{assetId}/events"])
         fun getEvents(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable assetId: String,

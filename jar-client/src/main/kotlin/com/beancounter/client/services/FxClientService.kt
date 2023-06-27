@@ -30,10 +30,10 @@ class FxClientService internal constructor(private val fxGateway: FxGateway, pri
     /**
      * Gateway integration call to the backend.
      */
-    @FeignClient(name = "fxrates", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "fxrates", url = "\${marketdata.url:http://localhost:9510}")
     interface FxGateway {
         @PostMapping(
-            value = ["/fx"],
+            value = ["/api/fx"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )

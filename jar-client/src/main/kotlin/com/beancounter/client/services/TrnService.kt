@@ -38,10 +38,10 @@ class TrnService internal constructor(
     /**
      * GatewayProxy to talk to svc-data and obtain the transactions.
      */
-    @FeignClient(name = "trns", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "trns", url = "\${marketdata.url:http://localhost:9510}")
     interface TrnGateway {
         @PostMapping(
-            value = ["/trns"],
+            value = ["/api/trns"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
@@ -51,7 +51,7 @@ class TrnService internal constructor(
         ): TrnResponse
 
         @GetMapping(
-            value = ["/trns/portfolio/{portfolioId}/{asAt}"],
+            value = ["/api/trns/portfolio/{portfolioId}/{asAt}"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
         )
         fun read(
@@ -61,7 +61,7 @@ class TrnService internal constructor(
         ): TrnResponse
 
         @PostMapping(
-            value = ["/trns/query"],
+            value = ["/api/trns/query"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )

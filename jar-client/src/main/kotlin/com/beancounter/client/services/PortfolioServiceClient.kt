@@ -59,33 +59,33 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
     /**
      * BC-DATA api calls to obtain portfolio data.
      */
-    @FeignClient(name = "portfolios", url = "\${marketdata.url:http://localhost:9510/api}")
+    @FeignClient(name = "portfolios", url = "\${marketdata.url:http://localhost:9510}")
     interface PortfolioGw {
-        @GetMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolios(
             @RequestHeader("Authorization") bearerToken: String,
         ): PortfoliosResponse
 
-        @GetMapping(value = ["/portfolios/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/portfolios/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioById(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("id") id: String,
         ): PortfolioResponse
 
-        @GetMapping(value = ["/portfolios/code/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/portfolios/code/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getPortfolioByCode(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("code") code: String,
         ): PortfolioResponse
 
-        @GetMapping(value = ["/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @GetMapping(value = ["/api/portfolios/asset/{assetId}/{tradeDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun getWhereHeld(
             @RequestHeader("Authorization") bearerToken: String,
             @PathVariable("assetId") assetId: String,
             @PathVariable("tradeDate") tradeDate: String?,
         ): PortfoliosResponse
 
-        @PostMapping(value = ["/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @PostMapping(value = ["/api/portfolios"], produces = [MediaType.APPLICATION_JSON_VALUE])
         fun addPortfolios(
             @RequestHeader("Authorization") bearerToken: String?,
             portfoliosRequest: PortfoliosRequest?,

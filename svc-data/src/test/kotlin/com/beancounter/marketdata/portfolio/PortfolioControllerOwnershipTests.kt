@@ -65,7 +65,7 @@ internal class PortfolioControllerOwnershipTests {
         )
         // User A creates a Portfolio
         val portfolio = BcMvcHelper.portfolioCreate(portfolioInput, mockMvc, tokenA).data.iterator().next()
-        assertThat(portfolio.owner).hasFieldOrPropertyWithValue(pId, tokenA.subject)
+        assertThat(portfolio.owner).hasFieldOrPropertyWithValue("email", tokenA.subject)
         // User B, while a valid system user, cannot see UserA portfolios even if they know the ID
         verifyPortfolioCantBeFound(portfolio, tokenB)
 

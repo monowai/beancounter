@@ -33,12 +33,12 @@ class SystemUserService(
         return systemUserRepository.findByAuth0(id).orElse(null)
     }
 
-    override fun register(jwt: Jwt): RegistrationResponse {
+    fun register(jwt: Jwt): RegistrationResponse {
         // ToDo: Find by email
         var result = find(jwt.subject)
         if (result == null) {
             if (tokenService.hasEmail()) {
-                val systemUser = SystemUser(jwt.subject, tokenService.getEmail())
+                val systemUser = SystemUser(auth0 = jwt.subject, email = tokenService.getEmail())
                 result = save(systemUser)
             } else {
                 throw BusinessException("Unable to identify your email")
@@ -72,4 +72,8 @@ class SystemUserService(
             verifySystemUser(systemUser)
             return systemUser!!
         }
+
+    override fun register(systemUser: SystemUser): RegistrationResponse {
+        return RegistrationResponse(save(systemUser))
+    }
 }

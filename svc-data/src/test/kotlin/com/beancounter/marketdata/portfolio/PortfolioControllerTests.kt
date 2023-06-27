@@ -209,6 +209,6 @@ internal class PortfolioControllerTests {
             .hasFieldOrPropertyWithValue(pCurrencyCode, updateTo.currency)
             .hasFieldOrPropertyWithValue("base.code", updateTo.base)
             .hasFieldOrPropertyWithValue("owner.id", owner.id)
-            .hasFieldOrPropertyWithValue("owner.id", token.claims["sub"])
+            .hasFieldOrPropertyWithValue("owner.auth0", token.claims["sub"])
     }
 }

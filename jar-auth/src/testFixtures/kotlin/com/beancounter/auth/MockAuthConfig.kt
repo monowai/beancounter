@@ -3,7 +3,7 @@ package com.beancounter.auth
 import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.model.SystemUser
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -69,10 +69,10 @@ class MockAuthConfig {
             JwtAuthenticationToken(jwtDecoder.decode(systemUser.email))
 
         val token = getUserToken(systemUser)
-        Assertions.assertThat(token)
+        assertThat(token)
             .isNotNull
             .hasFieldOrPropertyWithValue("subject", systemUser.id)
-        systemUserService?.register(token)
+        systemUserService?.register(systemUser)
         return token
     }
 

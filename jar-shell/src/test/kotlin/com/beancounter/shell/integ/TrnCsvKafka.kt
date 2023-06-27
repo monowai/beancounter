@@ -46,7 +46,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(
     SpringExtension::class,
 )
-@SpringBootTest(classes = [KafkaTrnProducer::class, ShareSightConfig::class, ClientConfig::class, KafkaAutoConfiguration::class])
+@SpringBootTest(
+    classes = [KafkaTrnProducer::class, ShareSightConfig::class, ClientConfig::class, KafkaAutoConfiguration::class],
+)
 @ActiveProfiles("kafka")
 @AutoConfigureNoAuth
 class TrnCsvKafka {

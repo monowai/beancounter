@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import java.nio.file.FileSystems
-import java.util.TreeMap
 
 /**
  * Environmental related commands.
@@ -29,9 +28,12 @@ class EnvCommands(
 
     @ShellMethod("Shell configuration")
     fun env(): String {
-        val config: MutableMap<String, String?> = TreeMap()
-        config["MARKETDATA_URL"] = envConfig.marketDataUrl
         return ObjectMapper().writerWithDefaultPrettyPrinter()
-            .writeValueAsString(config)
+            .writeValueAsString(
+                mapOf(
+                    Pair("MARKETDATA_URL", envConfig.marketDataUrl),
+                    Pair("ACTUATOR_URL", envConfig.mdActuator),
+                ),
+            )
     }
 }

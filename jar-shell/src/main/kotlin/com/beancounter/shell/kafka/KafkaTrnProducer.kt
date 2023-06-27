@@ -6,6 +6,7 @@ import com.beancounter.shell.ingest.TrnWriter
 import org.apache.kafka.clients.admin.NewTopic
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service
  * ingest CSV KAFKA jar-shell/src/test/resources/trades.csv TEST
  */
 @Service
+@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = false)
 class KafkaTrnProducer(
     private val shareSightFactory: ShareSightFactory,
     private val kafkaCsvTrnProducer: KafkaTemplate<String, TrustedTrnImportRequest>,

@@ -17,6 +17,7 @@ spring:
         jwt:
           issuer-uri: ${auth.uri}
   kafka:
+    enabled: false
     bootstrap-servers: kafka:9092
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -43,7 +44,7 @@ logging:
     com.beancounter.shell.IngestBoot: error
     com.beancounter: debug
     org.springframework.web.servlet: info
-    feign: debug
+    feign: error
     sun: error
     jdk: error
     javax: error

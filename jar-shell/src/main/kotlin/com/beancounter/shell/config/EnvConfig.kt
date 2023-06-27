@@ -14,6 +14,9 @@ data class EnvConfig(
     val uri: String? = null,
     @Value("\${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:notset}")
     var apiPath: String,
-    @Value("\${marketdata.url:http://localhost:9510/api}")
+    @Value("\${marketdata.url:http://localhost:9510}")
     var marketDataUrl: String,
+    @Value("\${marketdata.actuator:http://localhost:9510}")
+    var mdActuator: String,
+
 )

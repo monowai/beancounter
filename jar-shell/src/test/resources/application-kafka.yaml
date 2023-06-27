@@ -1,4 +1,5 @@
 kafka:
+  enabled: true
   broker.port: 0
 
 spring:

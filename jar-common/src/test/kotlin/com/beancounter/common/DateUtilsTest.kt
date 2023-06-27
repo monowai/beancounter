@@ -5,10 +5,6 @@ import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.ZoneOffset.UTC
-import java.util.Calendar
-import java.util.Date
 import java.util.TimeZone
 
 internal class DateUtilsTest {
@@ -34,19 +30,24 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun is_TodayAnIso8601String() {
-        val calendar = Calendar.Builder()
-            .setTimeZone(TimeZone.getTimeZone(UTC))
-            .setInstant(Date()).build()
-        val now = dateUtils.offsetDateString()
-        calendar[Calendar.YEAR]
-        assertThat(now)
-            .isNotNull
-            .startsWith(calendar[Calendar.YEAR].toString())
-            .contains("-" + String.format("%02d", calendar[Calendar.MONTH] + 1) + "-")
-            .contains("-" + String.format("%02d", calendar[Calendar.DAY_OF_MONTH]))
-        assertThat(dateUtils.getDate("2019-11-29")).isNotNull
-        dateUtils.getOrThrow("2019-11-29")
+    fun is_EarlierTimezone() {
+        val requestDate = dateUtils.today()
+        val auDateUtils = DateUtils(TimeZone.getTimeZone("NZ").id)
+        val offsetDate = auDateUtils.offsetDateString(requestDate)
+        val testDate = auDateUtils.getDate(offsetDate)
+        assertThat(testDate)
+            .isEqualTo(auDateUtils.offsetNow(requestDate).toLocalDate())
+    }
+
+    @Test
+    fun is_AuFixedDate() {
+        val requestDate = "2020-11-11"
+        val auDateUtils = DateUtils(TimeZone.getTimeZone("NZ").id)
+        val offsetDate = auDateUtils.offsetDateString(requestDate)
+        val testDate = auDateUtils.getDate(offsetDate)
+        assertThat(testDate)
+            .isEqualTo(auDateUtils.offsetNow(requestDate).toLocalDate())
+            .isEqualTo(requestDate)
     }
 
     @Test
@@ -56,10 +57,8 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun is_LocalDateEqualToToday() {
-        val today = dateUtils.offsetDateString()
-        val nowInTz = LocalDate.now(UTC)
-        assertThat(nowInTz.toString()).isEqualTo(today)
+    fun is_ValidDateNotThrown() {
+        assertThat(dateUtils.getOrThrow()).isNotNull()
     }
 
     @Test

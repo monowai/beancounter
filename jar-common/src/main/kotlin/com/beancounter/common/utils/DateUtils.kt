@@ -81,7 +81,7 @@ class DateUtils(
             try {
                 val today = defaultFormatter.parse(today())
                 val compareWith = defaultFormatter.parse(inDate)
-                today.compareTo(compareWith) == 0
+                compareWith >= today
             } catch (e: ParseException) {
                 throw BusinessException(String.format("Unable to parse the date %s", inDate))
             }

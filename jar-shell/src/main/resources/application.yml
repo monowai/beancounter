@@ -3,6 +3,9 @@ auth:
   audience: "auth0-audience"
   enabled: true
   web: false
+marketdata:
+  url: "http://localhost:9510"
+  actuator: "http://localhost:9511"
 
 spring:
   main:

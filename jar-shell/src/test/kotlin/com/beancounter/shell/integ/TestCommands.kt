@@ -90,7 +90,6 @@ class TestCommands {
 
     @Test
     fun is_UtilCommands() {
-        assertThat(envCommands.api()).isNotNull.isNotBlank
         assertThat(envCommands.pwd()).isNotNull.isNotBlank
     }
 

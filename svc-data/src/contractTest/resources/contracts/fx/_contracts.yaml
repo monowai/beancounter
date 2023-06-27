@@ -2,7 +2,7 @@
 name: cashLadderRates
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./cash-ladder-request.json"
   headers:
     Content-Type: application/json
@@ -15,7 +15,7 @@ response:
 name: nzdUsd
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20190101Request.json"
   headers:
     Content-Type: application/json
@@ -29,7 +29,7 @@ name: gbpnzd-gbpusd
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20190727Request.json"
   headers:
     Content-Type: application/json
@@ -43,7 +43,7 @@ name: usdnzd
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20190726-USDNZD-Request.json"
   headers:
     Content-Type: application/json
@@ -58,7 +58,7 @@ name: usdEur-usdGbp-usdNzd
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20191112Request.json"
   headers:
     Content-Type: application/json
@@ -72,7 +72,7 @@ name: usdNzd-gbpNzd-20190726
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20190726Request.json"
   headers:
     Content-Type: application/json
@@ -86,7 +86,7 @@ name: usdNzd-usdGbp-20191018
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20191018Request.json"
   headers:
     Content-Type: application/json
@@ -100,7 +100,7 @@ name: nzdUsd-20191018
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./20191018Request2.json"
   headers:
     Content-Type: application/json
@@ -114,7 +114,7 @@ name: early-fx
 priority: 1
 request:
   method: POST
-  url: /fx
+  url: /api/fx
   bodyFromFile: "./early-request.json"
   headers:
     Content-Type: application/json

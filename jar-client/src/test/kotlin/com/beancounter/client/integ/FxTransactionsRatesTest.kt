@@ -1,6 +1,7 @@
 package com.beancounter.client.integ
 
 import com.beancounter.auth.AutoConfigureNoAuth
+import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.NZD
 import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.FxService
@@ -33,6 +34,9 @@ class FxTransactionsRatesTest {
 
     @MockBean
     private lateinit var fxClientService: FxService
+
+    @MockBean
+    lateinit var tokenService: TokenService
 
     @Test
     fun ratesAreNeededForTrnInput() {

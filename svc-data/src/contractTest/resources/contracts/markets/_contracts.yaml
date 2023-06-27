@@ -3,7 +3,7 @@ name: markets
 priority: 1
 request:
   method: GET
-  url: /markets
+  url: /api/markets
 response:
   status: 200
   bodyFromFile: "./markets.json"
@@ -13,7 +13,7 @@ response:
 priority: 1
 request:
   method: GET
-  url: /markets/ERR
+  url: /api/markets/ERR
 response:
   status: 400
 ---
@@ -21,7 +21,7 @@ name: casahMarket
 priority: 1
 request:
   method: GET
-  url: /markets/CASH
+  url: /api/markets/CASH
 response:
   status: 200
   bodyFromFile: "./cash.json"
@@ -32,7 +32,7 @@ name: asxMarket
 priority: 1
 request:
   method: GET
-  url: /markets/ASX
+  url: /api/markets/ASX
 response:
   status: 200
   bodyFromFile: "./asx.json"
@@ -43,7 +43,7 @@ name: axMarket
 priority: 1
 request:
   method: GET
-  url: /markets/AX
+  url: /api/markets/AX
 response:
   status: 200
   bodyFromFile: "./asx.json"
@@ -54,7 +54,7 @@ name: lseMarket
 priority: 1
 request:
   method: GET
-  url: /markets/LON
+  url: /api/markets/LON
 response:
   status: 200
   bodyFromFile: "./lse.json"
@@ -65,7 +65,7 @@ name: nasdaqMarket
 priority: 1
 request:
   method: GET
-  url: /markets/NASDAQ
+  url: /api/markets/NASDAQ
 response:
   status: 200
   bodyFromFile: "./nasdaq.json"
@@ -76,7 +76,7 @@ name: nasdaqMarketAlias
 priority: 1
 request:
   method: GET
-  url: /markets/NAS
+  url: /api/markets/NAS
 response:
   status: 200
   bodyFromFile: "./nasdaq.json"
@@ -87,7 +87,7 @@ name: nyseMarket
 priority: 1
 request:
   method: GET
-  url: /markets/NYSE
+  url: /api/markets/NYSE
 response:
   status: 200
   bodyFromFile: "./nyse.json"
@@ -98,7 +98,7 @@ name: nyseMarketAlias
 priority: 1
 request:
   method: GET
-  url: /markets/NYS
+  url: /api/markets/NYS
 response:
   status: 200
   bodyFromFile: "./nyse.json"

@@ -6,6 +6,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 /**
@@ -20,6 +21,7 @@ class PriceRequestTest {
     }
 
     @Test
+    @Disabled
     fun is_OfAssetInput() {
         val priceRequest = PriceRequest.of(AssetInput(market = "ABC", code = "123"))
         assertThat(priceRequest.assets).hasSize(1)

@@ -1,15 +1,17 @@
 package com.beancounter.auth
 
 import org.springframework.context.annotation.Import
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.test.context.TestPropertySource
 
 /**
- * Supports simple annotation to disable Auth in your tests.
+ * Supports simple annotation to disable Auth integration in your tests.
+ * Assumes that WebAuth is still required, even though it is permitAll.
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 @Import(
-    NoAuthConfig::class,
+    NoWebAuth::class,
 )
 @TestPropertySource(
     properties = [
@@ -17,7 +19,8 @@ import org.springframework.test.context.TestPropertySource
         "auth.web=false",
         "auth.audience=test-audience",
         "auth.email=some-email@somewhere",
-        "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-uri",
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost",
     ],
 )
+@EnableWebSecurity // Hmm, assumption is that all AUTH classes expect web-security. Is this correct?
 annotation class AutoConfigureNoAuth

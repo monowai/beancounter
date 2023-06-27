@@ -14,3 +14,9 @@ beancounter:
         batchSize: 2
         markets: NASDAQ,AMEX,NYSE,NZX,ASX
 
+logging:
+  level:
+    root: trace
+    org.springframework.security: error
+
+

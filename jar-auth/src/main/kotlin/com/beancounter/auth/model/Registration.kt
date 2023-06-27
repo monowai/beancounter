@@ -1,4 +1,4 @@
-package com.beancounter.auth.server
+package com.beancounter.auth.model
 
 import com.beancounter.common.contracts.RegistrationResponse
 import org.springframework.security.oauth2.jwt.Jwt

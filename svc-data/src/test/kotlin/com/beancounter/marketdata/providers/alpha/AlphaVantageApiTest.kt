@@ -37,9 +37,9 @@ import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.openP
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.prevCloseProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceDateProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceSymbolProp
-import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.getAlphaApi
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedResponse
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAlphaAssets
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
 import com.beancounter.marketdata.providers.wtd.WtdService
 import com.beancounter.marketdata.trn.cash.CashServices
@@ -80,7 +80,9 @@ import java.math.BigDecimal
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 internal class AlphaVantageApiTest {
-    private val dateUtils = DateUtils()
+    @Autowired
+    private lateinit var dateUtils: DateUtils
+
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
@@ -122,9 +124,8 @@ internal class AlphaVantageApiTest {
     private lateinit var token: Jwt
 
     @Autowired
-    @Throws(Exception::class)
     fun mockServices() {
-        getAlphaApi()
+        mockAlphaAssets()
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
@@ -137,7 +138,6 @@ internal class AlphaVantageApiTest {
     private val amp = "AMP"
 
     @Test
-    @Throws(Exception::class)
     fun is_PriceUpdated() {
         marketDataService.purge()
         assetService.purge()

@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
+import com.beancounter.auth.UserUtils
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
@@ -148,6 +149,9 @@ class KafkaTrnTest {
     @MockBean
     private lateinit var cashServices: CashServices
 
+    @Autowired
+    private lateinit var userUtils: UserUtils
+
     private val kafkaTestUtils = KafkaConsumerUtils()
 
     private val tradeDateString = "2020-01-01"
@@ -237,11 +241,11 @@ class KafkaTrnTest {
     }
 
     private fun mockEnv() {
-        val (id) = systemUserService.save(SystemUser("mike"))
+        val systemUser = systemUserService.save(SystemUser("mike"))
+        userUtils.authUser(systemUser)
+        token = mockAuthConfig.getUserToken(SystemUser(systemUser.id, Constants.systemUser.email))
 
-        token = mockAuthConfig.getUserToken(SystemUser(id, Constants.systemUser.email))
-
-        `when`(tokenService.subject).thenReturn(id)
+        `when`(tokenService.subject).thenReturn(systemUser.id)
 
         RegistrationUtils.registerUser(
             mockMvc,

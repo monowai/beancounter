@@ -1,0 +1,24 @@
+package com.beancounter.auth
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.test.context.ContextConfiguration
+
+@SpringBootTest(properties = ["auth.enabled=false"])
+@EnableWebSecurity
+@ContextConfiguration(classes = [TokenService::class, NoWebAuth::class, AuthConfig::class])
+class NoAuthWebTest {
+
+    @Autowired
+    lateinit var springContext: ApplicationContext
+
+    @Test
+    fun isNoWebAuthEnabled() {
+        assertThat(springContext).isNotNull
+        assertThat(springContext.getBean(NoWebAuth::class.java)).isNotNull
+    }
+}

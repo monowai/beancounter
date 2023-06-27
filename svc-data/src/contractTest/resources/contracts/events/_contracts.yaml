@@ -2,7 +2,7 @@ name: ndaq-events
 priority: 1
 request:
   method: GET
-  url: /prices/NDAQ/events
+  url: /api/prices/NDAQ/events
 response:
   status: 200
   bodyFromFile: "./ndaq-response.json"

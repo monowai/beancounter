@@ -6,7 +6,7 @@ request:
   bodyFromFile: "./add-request.json"
   headers:
     Content-Type: application/json
-  url: /portfolios
+  url: /api/portfolios
 response:
   status: 200
   bodyFromFile: "./add-response.json"
@@ -17,7 +17,7 @@ name: portfolios
 priority: 1
 request:
   method: GET
-  url: /portfolios
+  url: /api/portfolios
 response:
   status: 200
   bodyFromFile: "./portfolios.json"
@@ -28,7 +28,7 @@ name: portfolioTest
 priority: 1
 request:
   method: GET
-  url: /portfolios/TEST
+  url: /api/portfolios/TEST
 response:
   status: 200
   bodyFromFile: "./test.json"
@@ -39,7 +39,7 @@ name: portfolioByCode
 priority: 1
 request:
   method: GET
-  url: /portfolios/code/TEST
+  url: /api/portfolios/code/TEST
 response:
   status: 200
   bodyFromFile: "./test.json"
@@ -50,7 +50,7 @@ name: portfolioCashLadder
 priority: 1
 request:
   method: GET
-  url: /portfolios/CASHLADDER
+  url: /api/portfolios/CASHLADDER
 response:
   status: 200
   bodyFromFile: "./cash-ladder.json"
@@ -61,7 +61,7 @@ name: portfolioCashLadderCode
 priority: 1
 request:
   method: GET
-  url: /portfolios/code/CASHLADDER
+  url: /api/portfolios/code/CASHLADDER
 response:
   status: 200
   bodyFromFile: "./cash-ladder.json"
@@ -73,7 +73,7 @@ name: portfolioNotFoundByCode
 priority: 1
 request:
   method: GET
-  url: /portfolios/code/NOT-FOUND
+  url: /api/portfolios/code/NOT-FOUND
 response:
   status: 400
   bodyFromFile: "./not-found-by-code.json"
@@ -84,7 +84,7 @@ name: portfolioNotFoundById
 priority: 1
 request:
   method: GET
-  url: /portfolios/NOT-FOUND
+  url: /api/portfolios/NOT-FOUND
 response:
   status: 400
   bodyFromFile: "./not-found-by-id.json"
@@ -95,7 +95,7 @@ name: emptyPortfolioId
 priority: 1
 request:
   method: GET
-  url: /portfolios/EMPTY
+  url: /api/portfolios/EMPTY
 response:
   status: 200
   bodyFromFile: "./empty.json"
@@ -106,7 +106,7 @@ name: emptyPortfolioCode
 priority: 1
 request:
   method: GET
-  url: /portfolios/code/EMPTY
+  url: /api/portfolios/code/EMPTY
 response:
   status: 200
   bodyFromFile: "./empty.json"
@@ -117,7 +117,7 @@ name: whereHeld
 priority: 1
 request:
   method: GET
-  url: /portfolios/asset/KMI/2020-05-01
+  url: /api/portfolios/asset/KMI/2020-05-01
 
 response:
   status: 200

@@ -3,7 +3,7 @@ name: nzdCash
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./nzd-cash-request.json"
   headers:
     Content-Type: application/json
@@ -17,7 +17,7 @@ name: usdCash
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./usd-cash-request.json"
   headers:
     Content-Type: application/json
@@ -31,7 +31,7 @@ name: createAssets
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./create-request.json"
   headers:
     Content-Type: application/json
@@ -45,7 +45,7 @@ name: createAbbv
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./abbv-request.json"
   headers:
     Content-Type: application/json
@@ -59,7 +59,7 @@ name: createAmp
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./amp-request.json"
   headers:
     Content-Type: application/json
@@ -73,7 +73,7 @@ name: createBhpAsx
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./bhp-asx-request.json"
   headers:
     Content-Type: application/json
@@ -87,7 +87,7 @@ name: createBhpLse
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./bhp-lse-request.json"
   headers:
     Content-Type: application/json
@@ -101,7 +101,7 @@ name: createEbay
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./ebay-request.json"
   headers:
     Content-Type: application/json
@@ -115,7 +115,7 @@ name: kmiAssetById
 priority: 1
 request:
   method: GET
-  url: /assets/KMI
+  url: /api/assets/KMI
 
 response:
   status: 200
@@ -127,7 +127,7 @@ name: createMsft
 priority: 1
 request:
   method: POST
-  url: /assets
+  url: /api/assets
   bodyFromFile: "./msft-request.json"
   headers:
     Content-Type: application/json
@@ -141,7 +141,7 @@ name: ndaq-asset
 priority: 1
 request:
   method: GET
-  url: /assets/NASDAQ/NDAQ
+  url: /api/assets/NASDAQ/NDAQ
 response:
   status: 200
   bodyFromFile: "./ndaq-asset.json"

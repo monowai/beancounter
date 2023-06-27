@@ -1,7 +1,7 @@
 package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
-import com.beancounter.auth.server.Registration
+import com.beancounter.auth.model.Registration
 import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions
 import org.mockito.Mockito

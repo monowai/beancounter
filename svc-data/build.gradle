@@ -75,6 +75,7 @@ dependencies {
 }
 
 contracts {
+    testMode = 'EXPLICIT'
     failOnInProgress = false
     testFramework = "JUNIT5"
     packageWithBaseClasses = "com.contracts.data"

@@ -4,6 +4,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.fx.EcbMockUtils
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
 import com.beancounter.marketdata.fx.fxrates.FxGateway
+import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -20,6 +21,9 @@ class FxBase : ContractVerifierBase() {
     private val gbp = "0.7756191673"
     private val nzd = "1.5692749462"
     private val aud = "1.4606963388"
+
+    @MockBean
+    internal lateinit var cashBalancesBean: CashBalancesBean
 
     @BeforeEach
     fun setupRates() {

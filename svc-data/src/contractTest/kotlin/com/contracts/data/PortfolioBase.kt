@@ -1,5 +1,6 @@
 package com.contracts.data
 
+import com.beancounter.auth.UserUtils
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
@@ -9,6 +10,7 @@ import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
+import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import com.beancounter.marketdata.utils.RegistrationUtils
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -28,6 +30,12 @@ class PortfolioBase : ContractVerifierBase() {
 
     @MockBean
     private lateinit var portfolioRepository: PortfolioRepository
+
+    @MockBean
+    internal lateinit var cashBalancesBean: CashBalancesBean
+
+    @Autowired
+    internal lateinit var userUtils: UserUtils
 
     companion object {
         @Throws(IOException::class)
@@ -134,11 +142,10 @@ class PortfolioBase : ContractVerifierBase() {
 
     @BeforeEach
     fun mockPortfolio() {
-        val systemUser = ContractHelper.defaultUser(
-            noAuthConfig = noAuthConfig,
+        val systemUser = ContractHelper(userUtils).defaultUser(
             systemUserRepository = systemUserRepository,
         )
-
+        Mockito.`when`(mockSystemUserService.getOrThrow).thenReturn(systemUser)
         portfolios(systemUser, keyGenUtils, portfolioRepository)
     }
 }

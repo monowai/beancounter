@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.stereotype.Service
 import org.springframework.web.cors.CorsConfiguration
@@ -18,11 +19,12 @@ import org.springframework.web.cors.CorsConfiguration
 /**
  * Spring-security config to support OAuth2/JWT for MVC endpoints
  */
+@ConditionalOnProperty(value = ["auth.web"], havingValue = "true", matchIfMissing = true)
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(AuthConfig::class, OAuthConfig::class, TokenService::class)
-@ConditionalOnProperty(value = ["auth.web"], havingValue = "true", matchIfMissing = true)
 @EnableCaching
 @Service
+@EnableWebSecurity
 class WebAuthFilterConfig {
 
     @Value("\${server.servlet.context-path:/api}")

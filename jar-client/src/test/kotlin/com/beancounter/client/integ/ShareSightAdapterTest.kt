@@ -43,7 +43,7 @@ internal class ShareSightAdapterTest {
     private lateinit var shareSightRowProcessor: ShareSightRowAdapter
 
     @MockBean
-    private lateinit var tokenService: TokenService
+    lateinit var tokenService: TokenService
 
     @Test
     fun is_ExchangeAliasReturnedInAssetCode() {

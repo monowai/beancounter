@@ -46,6 +46,7 @@ dependencies {
             platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"),
             project(":jar-common"),
             "org.springframework.boot:spring-boot-starter-test",
+            "org.springframework.security:spring-security-config",
             "org.springframework.security:spring-security-test",
             "org.springframework.security:spring-security-oauth2-client",
             "org.springframework.security:spring-security-oauth2-resource-server",

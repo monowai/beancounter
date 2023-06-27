@@ -2,7 +2,7 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.model.AuthConstants
-import com.beancounter.auth.server.Registration
+import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException

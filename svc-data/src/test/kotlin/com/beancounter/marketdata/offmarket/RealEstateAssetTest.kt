@@ -2,7 +2,7 @@ package com.beancounter.marketdata.offmarket
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.auth.server.Registration
+import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest

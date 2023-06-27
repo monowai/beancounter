@@ -2,7 +2,7 @@ name: getMe
 priority: 1
 request:
   method: GET
-  url: /me
+  url: /api/me
 
 response:
   status: 200
@@ -16,7 +16,7 @@ inProgress: "true"
 priority: 1
 request:
   method: POST
-  url: /register
+  url: /api/register
   bodyFromFile: "./no-auth-request.json"
   headers:
     Content-Type: application/json
@@ -30,7 +30,7 @@ name: registerUser
 priority: 1
 request:
   method: POST
-  url: /register
+  url: /api/register
   bodyFromFile: "./register-request.json"
   headers:
     Content-Type: application/json

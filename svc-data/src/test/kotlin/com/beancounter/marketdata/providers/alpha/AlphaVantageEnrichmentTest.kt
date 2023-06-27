@@ -81,7 +81,7 @@ class AlphaVantageEnrichmentTest {
     @Autowired
     @Throws(Exception::class)
     fun mockServices() {
-        AlphaMockUtils.getAlphaApi()
+        AlphaMockUtils.mockAlphaAssets()
         // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         RegistrationUtils.registerUser(mockMvc, token)

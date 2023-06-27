@@ -6,7 +6,7 @@ request:
   headers:
     Content-Type: application/json
   bodyFromFile: "./client-csv-request.json"
-  url: /trns
+  url: /api/trns
 response:
   status: 200
   bodyFromFile: "./client-csv-response.json"
@@ -17,7 +17,7 @@ name: kmiTrnForAsset
 priority: 1
 request:
   method: POST
-  url: /trns/query
+  url: /api/trns/query
   bodyFromFile: "./trn-for-asset-request.json"
   headers:
     Content-Type: application/json
@@ -32,7 +32,7 @@ name: transactionsForToday
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/TEST/today
+  url: /api/trns/portfolio/TEST/today
 response:
   status: 200
   bodyFromFile: "./trns-test-response.json"
@@ -43,7 +43,7 @@ name: transactionsFor2019
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/TEST/2019-10-18
+  url: /api/trns/portfolio/TEST/2019-10-18
 response:
   status: 200
   bodyFromFile: "./trns-test-response.json"
@@ -54,7 +54,7 @@ name: noTransactionsForPortfolio
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/EMPTY/today
+  url: /api/trns/portfolio/EMPTY/today
 response:
   status: 200
   bodyFromFile: "./trns-empty-response.json"
@@ -65,7 +65,7 @@ name: cashLadder2021
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/CASHLADDER/2021-10-18
+  url: /api/trns/portfolio/CASHLADDER/2021-10-18
 response:
   status: 200
   bodyFromFile: "./cash/ladder-response.json"

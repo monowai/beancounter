@@ -3,7 +3,7 @@ name: reResponse
 priority: 1
 request:
   method: GET
-  url: /trns/portfolio/RE-TEST/2023-05-01
+  url: /api/trns/portfolio/RE-TEST/2023-05-01
 response:
   status: 200
   bodyFromFile: "./re-response.json"

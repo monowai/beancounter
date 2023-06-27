@@ -1,12 +1,13 @@
 package com.contracts.data
 
 import com.beancounter.auth.AutoConfigureNoAuth
-import com.beancounter.auth.NoAuthConfig
+import com.beancounter.auth.TokenService
+import com.beancounter.auth.UserUtils
+import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
@@ -14,20 +15,20 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.registration.SystemUserRepository
+import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnQueryService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.RegistrationUtils
-import io.restassured.module.mockmvc.RestAssuredMockMvc
+import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.core.io.ClassPathResource
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.web.WebAppConfiguration
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.util.Optional
 
 const val asAtDate = "2021-10-18"
@@ -37,15 +38,19 @@ const val asAtDate = "2021-10-18"
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
-@WebAppConfiguration
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
 class TrnBase {
+    @LocalServerPort
+    lateinit var port: String
 
-    @Autowired
-    lateinit var authConfig: NoAuthConfig
+    @MockBean
+    internal lateinit var jwtDecoder: JwtDecoder
+
+    @MockBean
+    internal lateinit var tokenService: TokenService
 
     @Autowired
     private lateinit var currencyService: CurrencyService
@@ -59,13 +64,13 @@ class TrnBase {
     @MockBean
     private lateinit var portfolioRepository: PortfolioRepository
 
-    private lateinit var systemUser: SystemUser
-
     @Autowired
-    internal lateinit var context: WebApplicationContext
+    private lateinit var systemUserService: SystemUserService
 
     @MockBean
-    internal lateinit var systemUserRepository: SystemUserRepository
+    private lateinit var systemUserRepo: SystemUserRepository
+
+    private lateinit var systemUser: SystemUser
 
     @MockBean
     internal lateinit var trnQueryService: TrnQueryService
@@ -73,16 +78,15 @@ class TrnBase {
     @MockBean
     internal lateinit var keyGenUtils: KeyGenUtils
 
-    internal var dateUtils = DateUtils()
+    @Autowired
+    lateinit var userUtils: UserUtils
 
     @BeforeEach
     fun mockTrn() {
-        val mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .build()
-        RestAssuredMockMvc.mockMvc(mockMvc)
-        systemUser = ContractHelper.defaultUser(
-            systemUserRepository = systemUserRepository,
-            noAuthConfig = authConfig,
+        RestAssured.port = Integer.valueOf(port)
+
+        systemUser = ContractHelper(userUtils).defaultUser(
+            systemUserRepository = systemUserRepo,
         )
 
         // This test depends on assets and portfolios being available
@@ -134,7 +138,7 @@ class TrnBase {
             .thenReturn(Optional.of(portfolio))
     }
 
-    fun mockTrnGetResponse(portfolio: Portfolio, trnFile: String, date: String = dateUtils.today()) {
+    fun mockTrnGetResponse(portfolio: Portfolio, trnFile: String, date: String = "today") {
         val jsonFile = ClassPathResource(trnFile).file
         val trnResponse = RegistrationUtils.objectMapper.readValue(jsonFile, TrnResponse::class.java)
         Mockito.`when`(

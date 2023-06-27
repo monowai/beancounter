@@ -23,7 +23,7 @@ object AlphaMockUtils {
     const val marketCodeUrl = "/assets/{market}/{code}"
 
     @JvmStatic
-    fun getAlphaApi() {
+    fun mockAlphaAssets() {
         mockSearchResponse(
             MSFT.code,
             ClassPathResource("$alphaContracts/msft-response.json").file,

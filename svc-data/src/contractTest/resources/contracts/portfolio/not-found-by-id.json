@@ -1,5 +1,5 @@
 {
   "error": "We are unable to process your request.",
   "message": "Could not find a portfolio with ID NOT-FOUND",
-  "path": "/portfolios/NOT-FOUND"
+  "path": "/api/portfolios/NOT-FOUND"
 }

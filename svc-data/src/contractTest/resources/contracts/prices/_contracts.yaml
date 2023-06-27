@@ -3,7 +3,7 @@ name: cash-ladder
 priority: 1
 request:
   method: POST
-  url: /prices
+  url: /api/prices
   bodyFromFile: "./cash-ladder-request.json"
   headers:
     Content-Type: application/json
@@ -17,7 +17,7 @@ name: EBAY-price
 priority: 1
 request:
   method: POST
-  url: /prices
+  url: /api/prices
   bodyFromFile: "./EBAY-request.json"
   headers:
     Content-Type: application/json
@@ -31,7 +31,7 @@ name: AAPL-price
 priority: 1
 request:
   method: POST
-  url: /prices
+  url: /api/prices
   bodyFromFile: "./AAPL-request.json"
   headers:
     Content-Type: application/json
@@ -45,7 +45,7 @@ name: MSFT-price
 priority: 1
 request:
   method: POST
-  url: /prices
+  url: /api/prices
   bodyFromFile: "./MSFT-request.json"
   headers:
     Content-Type: application/json

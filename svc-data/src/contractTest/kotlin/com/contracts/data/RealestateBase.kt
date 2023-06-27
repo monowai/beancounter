@@ -1,7 +1,9 @@
 package com.contracts.data
 
 import com.beancounter.auth.AutoConfigureNoAuth
-import com.beancounter.auth.NoAuthConfig
+import com.beancounter.auth.NoWebAuth
+import com.beancounter.auth.TokenService
+import com.beancounter.auth.UserUtils
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -26,17 +28,16 @@ import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.BcRowAdapter
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
-import io.restassured.module.mockmvc.RestAssuredMockMvc
+import io.restassured.RestAssured
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.web.WebAppConfiguration
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 /**
@@ -44,15 +45,38 @@ import java.math.BigDecimal
  */
 @SpringBootTest(
     classes = [MarketDataBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
-@WebAppConfiguration
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
 class RealestateBase {
 
+    @LocalServerPort
+    lateinit var port: String
+
+    @MockBean
+    internal lateinit var keyGenUtils: KeyGenUtils
+
+    @MockBean
+    internal lateinit var jwtDecoder: JwtDecoder
+
+    @MockBean
+    internal lateinit var tokenService: TokenService
+
+    @MockBean
+    internal lateinit var cashBalancesBean: CashBalancesBean
+
+    @MockBean
+    internal lateinit var bcRowAdapter: BcRowAdapter
+
+    @MockBean
+    internal lateinit var ecbService: EcbService
+
     @Autowired
-    lateinit var authConfig: NoAuthConfig
+    lateinit var authConfig: NoWebAuth
+
+    @Autowired
+    lateinit var userUtils: UserUtils
 
     @Autowired
     private lateinit var currencyService: CurrencyService
@@ -63,26 +87,11 @@ class RealestateBase {
     @Autowired
     private lateinit var assetService: AssetService
 
-    @MockBean
-    private lateinit var keyGenUtils: KeyGenUtils
+    @Autowired
+    private lateinit var systemUserService: SystemUserService
 
     @Autowired
     private lateinit var portfolioService: PortfolioService
-
-    @Autowired
-    internal lateinit var context: WebApplicationContext
-
-    @Autowired
-    internal lateinit var systemUserService: SystemUserService
-
-    @MockBean
-    internal lateinit var bcRowAdapter: BcRowAdapter
-
-    @MockBean
-    internal lateinit var ecbService: EcbService
-
-    @MockBean
-    internal lateinit var cashBalancesBean: CashBalancesBean
 
     lateinit var portfolio: Portfolio
 
@@ -101,12 +110,10 @@ class RealestateBase {
 
     @BeforeEach
     fun mockTrn() {
-        val mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .build()
-        RestAssuredMockMvc.mockMvc(mockMvc)
-        ContractHelper.authUser(
+        RestAssured.port = Integer.valueOf(port)
+        userUtils.authUser(
             systemUserService.save(ContractHelper.getSystemUser()),
-            authConfig,
+
         )
         portfolio = portfolio()
         mortgage()

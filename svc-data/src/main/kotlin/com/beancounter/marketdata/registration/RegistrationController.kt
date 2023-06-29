@@ -30,5 +30,5 @@ class RegistrationController internal constructor(
     @PostMapping(value = ["/register"])
     fun register(
         @RequestBody(required = false) registrationRequest: RegistrationRequest,
-    ): RegistrationResponse = systemUserService.register(tokenService.jwt.token)
+    ): RegistrationResponse = systemUserService.register()
 }

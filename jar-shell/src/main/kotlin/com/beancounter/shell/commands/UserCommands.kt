@@ -44,10 +44,10 @@ class UserCommands(
     }
 
     @ShellMethod("Register your Account")
-    fun register(emailClaim: String): String {
+    fun register(): String {
         return bcJson.writer.writeValueAsString(
             registrationService
-                .register(RegistrationRequest(emailClaim)),
+                .register(RegistrationRequest()),
         )
     }
 }

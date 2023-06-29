@@ -17,7 +17,7 @@ class TestRegistration {
     @Test
     @Throws(Exception::class)
     fun registrationSerializes() {
-        val registrationRequest = RegistrationRequest("someone@somewhere.com")
+        val registrationRequest = RegistrationRequest(false)
         val json = objectMapper.writeValueAsString(registrationRequest)
         assertThat(objectMapper.readValue(json, RegistrationRequest::class.java))
             .usingRecursiveComparison().isEqualTo(registrationRequest)

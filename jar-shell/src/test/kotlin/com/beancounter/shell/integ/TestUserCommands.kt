@@ -56,7 +56,7 @@ class TestUserCommands {
     fun is_UnauthorizedThrowing() {
         val userCommands = getUserCommands()
         assertThrows(UnauthorizedException::class.java) { userCommands.me() }
-        assertThrows(UnauthorizedException::class.java) { userCommands.register(authConfig.claimEmail) }
+        assertThrows(UnauthorizedException::class.java) { userCommands.register() }
     }
 
     private fun getUserCommands(): UserCommands {
@@ -89,9 +89,9 @@ class TestUserCommands {
         // Can I login?
         userCommands.login(userId)
         Mockito.`when`(
-            registrationGateway.register(tokenService.bearerToken, RegistrationRequest(EMAIL)),
+            registrationGateway.register(tokenService.bearerToken, RegistrationRequest()),
         ).thenReturn(RegistrationResponse(systemUser))
-        userCommands.register(EMAIL)
+        userCommands.register()
 
         // Is my token in the SecurityContext and am I Me?
         Mockito.`when`(registrationGateway.me(tokenService.bearerToken))
@@ -102,11 +102,11 @@ class TestUserCommands {
         Mockito.`when`(
             registrationGateway.register(
                 tokenService.bearerToken,
-                RegistrationRequest(systemUser.email),
+                RegistrationRequest(),
             ),
         ).thenReturn(RegistrationResponse(systemUser))
 
-        val registrationResponse = userCommands.register(EMAIL)
+        val registrationResponse = userCommands.register()
         val registered = bcJson.objectMapper
             .readValue(registrationResponse, SystemUser::class.java)
         assertThat(registered)

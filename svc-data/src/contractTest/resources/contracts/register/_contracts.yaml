@@ -17,7 +17,7 @@ priority: 1
 request:
   method: POST
   url: /api/register
-  bodyFromFile: "./no-auth-request.json"
+  bodyFromFile: "./register-request.json"
   headers:
     Content-Type: application/json
 response:

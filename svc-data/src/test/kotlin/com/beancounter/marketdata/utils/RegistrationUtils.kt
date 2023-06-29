@@ -2,7 +2,6 @@ package com.beancounter.marketdata.utils
 
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.utils.BcJson
-import com.beancounter.marketdata.Constants
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -26,7 +25,7 @@ object RegistrationUtils {
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
                     objectMapper
-                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email)),
+                        .writeValueAsBytes(RegistrationRequest()),
                 )
                 .contentType(MediaType.APPLICATION_JSON),
         )

@@ -8,7 +8,6 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 
 /**
@@ -33,7 +32,8 @@ class SystemUserService(
         return systemUserRepository.findByAuth0(id).orElse(null)
     }
 
-    fun register(jwt: Jwt): RegistrationResponse {
+    fun register(): RegistrationResponse {
+        val jwt = tokenService.jwt.token
         // ToDo: Find by email
         var result = find(jwt.subject)
         if (result == null) {

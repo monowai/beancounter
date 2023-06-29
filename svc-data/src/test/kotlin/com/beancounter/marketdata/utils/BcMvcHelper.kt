@@ -12,7 +12,6 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson
-import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
@@ -181,7 +180,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
                     RegistrationUtils.objectMapper
-                        .writeValueAsBytes(RegistrationRequest(Constants.systemUser.email)),
+                        .writeValueAsBytes(RegistrationRequest()),
                 )
                 .contentType(MediaType.APPLICATION_JSON),
         )

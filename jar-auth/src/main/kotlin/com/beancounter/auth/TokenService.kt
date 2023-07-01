@@ -23,6 +23,14 @@ class TokenService(val authConfig: AuthConfig) {
             }
         }
 
+    fun isGoogle(): Boolean {
+        return (subject.startsWith("goog"))
+    }
+
+    fun isAuth0(): Boolean {
+        return (subject.startsWith("auth0"))
+    }
+
     // M2M token
     val m2mToken: String
         get() {

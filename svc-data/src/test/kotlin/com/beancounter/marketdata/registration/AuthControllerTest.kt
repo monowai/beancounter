@@ -2,6 +2,7 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.LoginRequest
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.utils.BcJson
@@ -36,6 +37,9 @@ class AuthControllerTest {
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
+    @Autowired
+    private lateinit var loginService: LoginService
+
     @Test
     fun unauthenticatedUserCanRequestTokenByPassword() {
         val loginRequest = LoginRequest("user", "password")
@@ -43,7 +47,7 @@ class AuthControllerTest {
         Mockito.`when`(
             mockAuthConfig.authGateway
                 .login(
-                    mockAuthConfig.loginService
+                    loginService
                         .passwordRequest(loginRequest.user, loginRequest.password),
                 ),
         )

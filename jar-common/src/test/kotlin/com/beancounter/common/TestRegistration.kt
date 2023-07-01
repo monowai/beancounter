@@ -15,7 +15,6 @@ class TestRegistration {
     private val objectMapper = BcJson().objectMapper
 
     @Test
-    @Throws(Exception::class)
     fun registrationSerializes() {
         val registrationRequest = RegistrationRequest(false)
         val json = objectMapper.writeValueAsString(registrationRequest)
@@ -24,7 +23,6 @@ class TestRegistration {
     }
 
     @Test
-    @Throws(Exception::class)
     fun systemUserSerializes() {
         val systemUser = SystemUser(UUID.randomUUID().toString(), "no-one@nowhere.com")
         var json = objectMapper.writeValueAsString(systemUser)

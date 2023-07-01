@@ -82,7 +82,7 @@ class TestUserCommands {
             .thenReturn(authResponse)
 
         val userCommands = getUserCommands()
-        val jwt = tokenUtils.getUserToken(systemUser)
+        val jwt = tokenUtils.getSystemUserToken(systemUser)
         Mockito.`when`(jwtDecoder.decode(authResponse.token))
             .thenReturn(jwt)
 

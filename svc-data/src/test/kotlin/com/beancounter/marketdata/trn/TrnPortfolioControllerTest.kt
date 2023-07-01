@@ -66,7 +66,7 @@ class TrnPortfolioControllerTest {
 
     @BeforeEach
     fun setupObjects() {
-        token = mockAuthConfig.getUserToken(SystemUser())
+        token = mockAuthConfig.getUserToken(SystemUser(auth0 = "auth0"))
         bcMvcHelper = BcMvcHelper(mockMvc, token)
         RegistrationUtils.registerUser(mockMvc, token)
         msft = bcMvcHelper.asset(

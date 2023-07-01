@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
-@Import(AuthConfig::class, LoginService::class, TokenService::class, TokenUtils::class)
+@Import(AuthConfig::class, LoginService::class, TokenService::class, TokenUtils::class, UserUtils::class)
 class MockAuthConfig {
 
     @MockBean
@@ -35,12 +35,6 @@ class MockAuthConfig {
     @Autowired
     lateinit var authConfig: AuthConfig
 
-    @Autowired
-    lateinit var loginService: LoginService
-
-    @Autowired
-    lateinit var tokenService: TokenService
-
     @MockBean
     lateinit var authGateway: LoginService.AuthGateway
 
@@ -51,18 +45,18 @@ class MockAuthConfig {
         this.tokenUtils = TokenUtils(authConfig)
     }
 
-    fun getUserToken(systemUser: SystemUser = SystemUser("user", "user@testing.com")): Jwt {
-        return tokenUtils.getUserToken(systemUser)
+    fun getUserToken(systemUser: SystemUser = SystemUser(email = "user@testing.com")): Jwt {
+        return tokenUtils.getSystemUserToken(systemUser)
     }
 
     fun login(email: String = "test@nowhere.com"): Jwt {
-        return login(SystemUser(email, email), null)
+        return login(SystemUser(email, email, auth0 = "auth0"), null)
     }
 
     /**
      * Log the user in, optionally registering them if an ISystemUser is supplied
      */
-    fun login(systemUser: SystemUser, systemUserService: Registration?): Jwt {
+    fun login(systemUser: SystemUser, registrationService: Registration?): Jwt {
         val jwt = getUserToken(systemUser)
         Mockito.`when`(jwtDecoder.decode(systemUser.email)).thenReturn(jwt)
         SecurityContextHolder.getContext().authentication =
@@ -72,7 +66,7 @@ class MockAuthConfig {
         assertThat(token)
             .isNotNull
             .hasFieldOrPropertyWithValue("subject", systemUser.id)
-        systemUserService?.register(systemUser)
+        registrationService?.register(systemUser)
         return token
     }
 

@@ -116,7 +116,6 @@ class TrnControllerTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_EmptyResponseValid() {
         val portfolio = bcMvcHelper.portfolio(
             PortfolioInput(
@@ -141,7 +140,6 @@ class TrnControllerTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_ExistingDividendFound() {
         val portfolioA = bcMvcHelper.portfolio(
             PortfolioInput("DIV-TEST", "is_ExistingDividendFound", currency = NZD.code),

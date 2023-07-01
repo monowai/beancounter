@@ -13,17 +13,20 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.systemUser
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.OffMarketEnricher
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.fxrates.EcbService
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.BcRowAdapter
 import com.beancounter.marketdata.trn.TrnService
@@ -32,11 +35,13 @@ import io.restassured.RestAssured
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
@@ -51,6 +56,8 @@ import java.math.BigDecimal
 @AutoConfigureNoAuth
 class RealestateBase {
 
+    private lateinit var jwt: JwtAuthenticationToken
+
     @LocalServerPort
     lateinit var port: String
 
@@ -60,8 +67,11 @@ class RealestateBase {
     @MockBean
     internal lateinit var jwtDecoder: JwtDecoder
 
-    @MockBean
+    @Autowired
     internal lateinit var tokenService: TokenService
+
+    @Autowired
+    lateinit var noWebAuth: NoWebAuth
 
     @MockBean
     internal lateinit var cashBalancesBean: CashBalancesBean
@@ -73,12 +83,6 @@ class RealestateBase {
     internal lateinit var ecbService: EcbService
 
     @Autowired
-    lateinit var authConfig: NoWebAuth
-
-    @Autowired
-    lateinit var userUtils: UserUtils
-
-    @Autowired
     private lateinit var currencyService: CurrencyService
 
     @Autowired
@@ -87,11 +91,17 @@ class RealestateBase {
     @Autowired
     private lateinit var assetService: AssetService
 
-    @Autowired
+    @MockBean
     private lateinit var systemUserService: SystemUserService
 
     @Autowired
+    private lateinit var systemUserRepository: SystemUserRepository
+
+    @Autowired
     private lateinit var portfolioService: PortfolioService
+
+    @Autowired
+    internal lateinit var userUtils: UserUtils
 
     lateinit var portfolio: Portfolio
 
@@ -107,14 +117,20 @@ class RealestateBase {
 
     private val batch = "20230501"
     private lateinit var houseAsset: Asset
+    private val systemUser: SystemUser = ContractHelper.getSystemUser()
 
     @BeforeEach
     fun mockTrn() {
         RestAssured.port = Integer.valueOf(port)
-        userUtils.authUser(
-            systemUserService.save(ContractHelper.getSystemUser()),
-
+        jwt = userUtils.authenticate(
+            systemUser,
         )
+        // Hardcode the id of the system user so we can find it in the off-market asset code
+        Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
+        Mockito.`when`(systemUserService.getActiveUser()).thenReturn(systemUser)
+        Mockito.`when`(systemUserService.find(any())).thenReturn(systemUser)
+        // this needs to be in the DB as we persist portfolios
+        systemUserRepository.save(systemUser)
         portfolio = portfolio()
         mortgage()
         reTrnFlow()
@@ -131,7 +147,7 @@ class RealestateBase {
             .extracting("id", "code")
             .containsExactly(
                 assetCode,
-                OffMarketEnricher.parseCode(ContractHelper.getSystemUser(), assetCode),
+                OffMarketEnricher.parseCode(systemUser = systemUser, assetCode),
             )
 
         assertThat(m1Balance.data).isNotNull.hasSize(1)

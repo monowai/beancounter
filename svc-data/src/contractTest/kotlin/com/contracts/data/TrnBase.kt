@@ -1,6 +1,7 @@
 package com.contracts.data
 
 import com.beancounter.auth.AutoConfigureNoAuth
+import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
 import com.beancounter.auth.UserUtils
 import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
@@ -52,6 +53,15 @@ class TrnBase {
     @MockBean
     internal lateinit var tokenService: TokenService
 
+    @MockBean
+    internal lateinit var systemUserRepository: SystemUserRepository
+
+    @MockBean
+    private lateinit var systemUserService: SystemUserService
+
+    @Autowired
+    lateinit var noWebAuth: NoWebAuth
+
     @Autowired
     private lateinit var currencyService: CurrencyService
 
@@ -64,13 +74,7 @@ class TrnBase {
     @MockBean
     private lateinit var portfolioRepository: PortfolioRepository
 
-    @Autowired
-    private lateinit var systemUserService: SystemUserService
-
-    @MockBean
-    private lateinit var systemUserRepo: SystemUserRepository
-
-    private lateinit var systemUser: SystemUser
+    private var systemUser: SystemUser = ContractHelper.getSystemUser()
 
     @MockBean
     internal lateinit var trnQueryService: TrnQueryService
@@ -85,9 +89,11 @@ class TrnBase {
     fun mockTrn() {
         RestAssured.port = Integer.valueOf(port)
 
-        systemUser = ContractHelper(userUtils).defaultUser(
-            systemUserRepository = systemUserRepo,
+        userUtils.authenticate(
+            ContractHelper.getSystemUser(),
         )
+        Mockito.`when`(systemUserService.getOrThrow)
+            .thenReturn(ContractHelper.getSystemUser())
 
         // This test depends on assets and portfolios being available
         AssetsBase().mockAssets(assetService)

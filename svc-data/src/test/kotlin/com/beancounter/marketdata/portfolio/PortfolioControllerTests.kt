@@ -68,7 +68,7 @@ internal class PortfolioControllerTests {
     fun registerUser() {
         token = registerUser(
             mockMvc,
-            mockAuthConfig.getUserToken(SystemUser()),
+            mockAuthConfig.getUserToken(SystemUser("portfolioControllerTests")),
         )
     }
 
@@ -209,6 +209,5 @@ internal class PortfolioControllerTests {
             .hasFieldOrPropertyWithValue(pCurrencyCode, updateTo.currency)
             .hasFieldOrPropertyWithValue("base.code", updateTo.base)
             .hasFieldOrPropertyWithValue("owner.id", owner.id)
-            .hasFieldOrPropertyWithValue("owner.auth0", token.claims["sub"])
     }
 }

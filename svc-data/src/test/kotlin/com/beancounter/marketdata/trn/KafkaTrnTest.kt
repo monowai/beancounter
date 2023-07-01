@@ -2,7 +2,6 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.auth.TokenService
 import com.beancounter.auth.UserUtils
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
@@ -25,7 +24,6 @@ import com.beancounter.common.model.TrnType.BUY
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.CUSTOM
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
@@ -39,11 +37,11 @@ import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.cash.CashServices
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
-import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -100,8 +98,6 @@ class KafkaTrnTest {
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
-    private lateinit var token: Jwt
-
     // Setup so that the wiring is tested
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -124,9 +120,6 @@ class KafkaTrnTest {
 
     @Autowired
     lateinit var systemUserService: SystemUserService
-
-    @MockBean
-    lateinit var tokenService: TokenService
 
     @Autowired
     lateinit var trnImport: TrnImport
@@ -157,10 +150,21 @@ class KafkaTrnTest {
     private val tradeDateString = "2020-01-01"
     private val tradeDate = dateUtils.getDate(tradeDateString)
 
+    @BeforeEach
+    fun mockEnv() {
+        `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
+        assertThat(currencyService.currencies).isNotEmpty
+        assertThat(eventWriter.kafkaEnabled).isTrue
+        val rateResponse = ClassPathResource("mock/fx/fx-current-rates.json").file
+
+        stubFx(
+            "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
+            rateResponse,
+        )
+    }
+
     @Test
     fun exportFileImported() {
-        mockEnv()
-
         val portfolios: Collection<PortfolioInput> = arrayListOf(
             PortfolioInput(
                 code = "CSV-FLOW",
@@ -168,6 +172,10 @@ class KafkaTrnTest {
                 base = USD.code,
             ),
         )
+        val systemUser = SystemUser("mike")
+        val token = userUtils.authenticate(systemUser, UserUtils.AuthProvider.AUTH0).token
+        systemUserService.register(systemUser)
+
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
         val portfolio = pfResponse.iterator().next()
@@ -178,8 +186,6 @@ class KafkaTrnTest {
                 ),
             ),
         )
-//        `when`(enrichmentFactory.getEnricher(any()))
-//            .thenReturn(Mockito.mock(AssetEnricher::class.java))
         val provider = "BC"
         val batch = "batch"
         val qcom = getAsset("QCOM", CUSTOM)
@@ -191,38 +197,36 @@ class KafkaTrnTest {
                 getTrnInput(trex, CallerRef(provider, batch, "2")),
             ),
         )
-        `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
+
         val trnResponse = trnService.save(
             portfolio,
             trnRequest = trnRequest,
         )
 
-        assertThat(trnResponse.data).isNotNull.hasSize(trnRequest.data.size)
+        assertThat(trnResponse.data)
+            .isNotNull
+            .hasSize(trnRequest.data.size)
 
-        val fileName = exportDelimitedFile(portfolio)
+        importRows(exportDelimitedFile(portfolio, token), portfolio, trnRequest.data.size + 1) // Include a header row.
 
-        purge(portfolio)
         val consumer = kafkaTestUtils.getConsumer(
             "is_ExportFileImported",
             TOPIC_CSV_IO,
             embeddedKafkaBroker,
         )
-        importRows(fileName, portfolio, trnRequest.data.size + 1) // Include a header row.
+
         assertThat(processQueue(consumer))
             .isNotNull
             .hasNoNullFieldsOrProperties()
         consumer.close()
-
+        userUtils.authenticate(systemUser, UserUtils.AuthProvider.AUTH0)
         val imported = trnService.findForPortfolio(portfolio, dateUtils.date).data
         assertThat(imported).hasSize(trnRequest.data.size)
     }
 
-    private fun purge(portfolio: Portfolio) {
+    private fun importRows(fileName: String, portfolio: Portfolio, expectedTrns: Int) {
         trnService.purge(portfolio)
         assertThat(trnService.findForPortfolio(portfolio, dateUtils.date).data).isEmpty()
-    }
-
-    private fun importRows(fileName: String, portfolio: Portfolio, expectedTrns: Int) {
         val csvRows = File(fileName).useLines { it.toList() }
         assertThat(csvRows).hasSize(expectedTrns)
         var currentLine = 1
@@ -240,28 +244,6 @@ class KafkaTrnTest {
         }
     }
 
-    private fun mockEnv() {
-        val systemUser = systemUserService.save(SystemUser("mike"))
-        userUtils.authUser(systemUser)
-        token = mockAuthConfig.getUserToken(SystemUser(systemUser.id, Constants.systemUser.email))
-
-        `when`(tokenService.subject).thenReturn(systemUser.id)
-
-        RegistrationUtils.registerUser(
-            mockMvc,
-            token,
-        )
-
-        assertThat(currencyService.currencies).isNotEmpty
-        assertThat(eventWriter.kafkaEnabled).isTrue
-        val rateResponse = ClassPathResource("mock/fx/fx-current-rates.json").file
-
-        stubFx(
-            "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
-            rateResponse,
-        )
-    }
-
     private fun getTrnInput(asset: Asset, callerRef: CallerRef): TrnInput {
         return TrnInput(
             callerRef,
@@ -275,7 +257,7 @@ class KafkaTrnTest {
         )
     }
 
-    private fun exportDelimitedFile(forPortfolio: Portfolio): String {
+    private fun exportDelimitedFile(forPortfolio: Portfolio, token: Jwt): String {
         val results = mockMvc.perform(
             MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
                 .with(

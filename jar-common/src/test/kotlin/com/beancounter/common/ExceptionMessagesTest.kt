@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 /**
  * Coverage of basic BC Exception and Message functionality.
  */
-internal class TestExceptionMessages {
+internal class ExceptionMessagesTest {
 
     private val testMessage = "Test Message"
 

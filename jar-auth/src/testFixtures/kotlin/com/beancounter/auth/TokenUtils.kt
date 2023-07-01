@@ -11,10 +11,22 @@ import java.util.Date
  */
 @Service
 class TokenUtils(val authConfig: AuthConfig) {
-    fun getUserToken(systemUser: SystemUser): Jwt {
+    fun getSystemUserToken(systemUser: SystemUser): Jwt {
+        return getUserToken(systemUser, systemUser.id)
+    }
+
+    fun getAuth0Token(systemUser: SystemUser): Jwt {
+        return getUserToken(systemUser, systemUser.auth0)
+    }
+
+    fun getGoogleToken(systemUser: SystemUser): Jwt {
+        return getUserToken(systemUser, systemUser.googleId)
+    }
+
+    fun getUserToken(systemUser: SystemUser, subject: String): Jwt {
         return Jwt.withTokenValue(systemUser.id)
             .header("alg", "none")
-            .subject(systemUser.id)
+            .subject(subject)
             .claim(authConfig.claimEmail, systemUser.email)
             .claim("permissions", arrayOf(AuthConstants.APP_NAME, AuthConstants.USER))
             .claim("scope", AuthConstants.SCOPE)

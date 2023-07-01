@@ -2,6 +2,7 @@ package com.beancounter.shell.integ
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.auth.TokenService
 import com.beancounter.auth.client.ClientPasswordConfig
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PortfolioServiceClient.PortfolioGw
@@ -47,6 +48,10 @@ class TestPortfolioCommands {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var tokenService: TokenService
+
     private val bcJson = BcJson()
 
     @MockBean
@@ -58,7 +63,7 @@ class TestPortfolioCommands {
 
     @Autowired
     fun initAuth() {
-        portfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, mockAuthConfig.tokenService))
+        portfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, tokenService))
     }
 
     private val pfCode = "ABC"
@@ -81,7 +86,7 @@ class TestPortfolioCommands {
 
         Mockito.`when`(
             portfolioGw.addPortfolios(
-                Mockito.eq(mockAuthConfig.tokenService.bearerToken),
+                Mockito.eq(tokenService.bearerToken),
                 Mockito.isA(PortfoliosRequest::class.java),
             ),
         ).thenReturn(response)
@@ -102,7 +107,7 @@ class TestPortfolioCommands {
         val code = "ZZZ"
         val existing = getPortfolio(code, owner)
         val portfolioResponse = PortfolioResponse(existing)
-        Mockito.`when`(portfolioGw.getPortfolioByCode(mockAuthConfig.tokenService.bearerToken, existing.code))
+        Mockito.`when`(portfolioGw.getPortfolioByCode(tokenService.bearerToken, existing.code))
             .thenReturn(portfolioResponse) // Portfolio exists
         val result = portfolioCommands
             .add(code, pfCode, NZD.code, USD.code)

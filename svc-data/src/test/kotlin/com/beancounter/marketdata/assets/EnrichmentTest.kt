@@ -46,12 +46,12 @@ class EnrichmentTest {
     @Test
     fun is_OffMarketEnrichment() {
         val offMarket = Market(OffMarketDataProvider.ID)
-        val systemUserService = Mockito.mock(SystemUserService::class.java)
         val keyGenUtils = Mockito.mock(KeyGenUtils::class.java)
+        val systemUserService = Mockito.mock(SystemUserService::class.java)
         val enricher: AssetEnricher = OffMarketEnricher(systemUserService)
         val sysUserId = "sysUserId"
         Mockito.`when`(
-            systemUserService.getActiveUser(),
+            systemUserService.getOrThrow,
         ).thenReturn(SystemUser(sysUserId))
 
         Mockito.`when`(

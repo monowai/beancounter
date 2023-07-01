@@ -18,9 +18,10 @@ import java.time.LocalDate
 @Table
 data class SystemUser(
     @Id var id: String = KeyGenUtils().id,
-    val email: String = "testUser",
+    val email: String = id,
     var active: Boolean = true,
     val auth0: String = id,
+    val googleId: String = id,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

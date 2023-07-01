@@ -6,7 +6,6 @@ import com.beancounter.auth.TokenService
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
-import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.cash.CashServices
 import io.restassured.RestAssured
@@ -48,16 +47,13 @@ class ContractVerifierBase {
     internal lateinit var tokenService: TokenService
 
     @MockBean
-    internal lateinit var systemUserRepository: SystemUserRepository
-
-    @MockBean
-    internal lateinit var mockCashServices: CashServices
-
-    @MockBean
-    internal lateinit var mockSystemUserService: SystemUserService
+    internal lateinit var systemUserService: SystemUserService
 
     @Autowired
     lateinit var noWebAuth: NoWebAuth
+
+    @MockBean
+    internal lateinit var mockCashServices: CashServices
 
     @BeforeEach
     fun mock() {

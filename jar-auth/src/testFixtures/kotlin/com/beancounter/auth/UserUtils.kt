@@ -12,11 +12,29 @@ import org.springframework.stereotype.Service
  */
 @Service
 class UserUtils(val authConfig: AuthConfig, val jwtDecoder: JwtDecoder, val tokenService: TokenService) {
-    fun authUser(
+    private val tokenUtils = TokenUtils(authConfig)
+
+    enum class AuthProvider {
+        ID, GOOGLE, AUTH0
+    }
+
+    fun authenticate(
         systemUser: SystemUser,
-    ) {
+        authProvider: AuthProvider = AuthProvider.ID,
+    ): JwtAuthenticationToken {
         Mockito.`when`(jwtDecoder.decode(systemUser.email))
-            .thenReturn(TokenUtils(authConfig).getUserToken(systemUser))
+            .thenReturn(
+                when (authProvider) {
+                    AuthProvider.GOOGLE -> tokenUtils.getGoogleToken(systemUser)
+                    AuthProvider.AUTH0 -> tokenUtils.getAuth0Token(
+                        systemUser,
+                    )
+
+                    else -> tokenUtils.getSystemUserToken(
+                        systemUser,
+                    )
+                },
+            )
         val jwt = JwtAuthenticationToken(
             jwtDecoder.decode(
                 systemUser.email,
@@ -24,8 +42,6 @@ class UserUtils(val authConfig: AuthConfig, val jwtDecoder: JwtDecoder, val toke
         )
         SecurityContextHolder.getContext().authentication = jwt
 
-        Mockito.`when`(tokenService.jwt).thenReturn(jwt)
-        Mockito.`when`(tokenService.subject)
-            .thenReturn(systemUser.email)
+        return jwt
     }
 }

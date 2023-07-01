@@ -143,9 +143,9 @@ class PortfolioBase : ContractVerifierBase() {
     @BeforeEach
     fun mockPortfolio() {
         val systemUser = ContractHelper(userUtils).defaultUser(
-            systemUserRepository = systemUserRepository,
+            systemUserService = systemUserService,
         )
-        Mockito.`when`(mockSystemUserService.getOrThrow).thenReturn(systemUser)
+        Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
         portfolios(systemUser, keyGenUtils, portfolioRepository)
     }
 }

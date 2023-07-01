@@ -34,7 +34,7 @@ class Constants {
         val NZD = Currency("NZD")
 
         val NZX = Market("NZX", NZD.code)
-        val systemUser = SystemUser("user", "user@testing.com")
+        val systemUser = SystemUser("auth0|user", "user@testing.com", auth0 = "auth0")
 
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)

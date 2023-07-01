@@ -91,7 +91,7 @@ internal class FxValuationTest {
     fun setDefaultUser() {
         tokenUtils = TokenUtils(authConfig)
         val user = "user@testing.com"
-        token = tokenUtils.getUserToken(SystemUser("user", user))
+        token = tokenUtils.getSystemUserToken(SystemUser("user", user))
         mockAuthConfig.login(user)
     }
 

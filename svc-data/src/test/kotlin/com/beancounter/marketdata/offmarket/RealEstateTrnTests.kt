@@ -14,7 +14,6 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
-import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
@@ -85,7 +84,7 @@ class RealEstateTrnTests {
     fun setupObjects() {
         bcMvcHelper = BcMvcHelper(
             mockMvc,
-            mockAuthConfig.getUserToken(Constants.systemUser),
+            mockAuthConfig.getUserToken(SystemUser()),
         )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull

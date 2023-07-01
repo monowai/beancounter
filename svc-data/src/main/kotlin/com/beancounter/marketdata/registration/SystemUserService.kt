@@ -8,6 +8,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 
 /**
@@ -19,6 +20,29 @@ class SystemUserService(
     private val systemUserRepository: SystemUserRepository,
     private val tokenService: TokenService,
 ) : Registration {
+
+    fun register(): RegistrationResponse {
+        val jwt = tokenService.jwt.token
+        // ToDo: Find by email
+        var result = find(tokenService.getEmail())
+        if (result == null) {
+            if (tokenService.hasEmail()) {
+                val systemUser =
+                    SystemUser(email = tokenService.getEmail(), auth0 = getAuth0Id(jwt), googleId = getGoogleId(jwt))
+                result = save(systemUser)
+            } else {
+                throw BusinessException("Unable to identify your email")
+            }
+        }
+        return RegistrationResponse(result)
+    }
+
+    private fun getAuth0Id(jwt: Jwt): String =
+        if (tokenService.isAuth0()) jwt.subject else ""
+
+    private fun getGoogleId(jwt: Jwt): String =
+        if (tokenService.isGoogle()) jwt.subject else ""
+
     fun save(systemUser: SystemUser): SystemUser {
         return systemUserRepository.save(systemUser)
     }
@@ -29,22 +53,7 @@ class SystemUserService(
 
     fun find(id: String?): SystemUser? {
         if (id == null) return null
-        return systemUserRepository.findByAuth0(id).orElse(null)
-    }
-
-    fun register(): RegistrationResponse {
-        val jwt = tokenService.jwt.token
-        // ToDo: Find by email
-        var result = find(jwt.subject)
-        if (result == null) {
-            if (tokenService.hasEmail()) {
-                val systemUser = SystemUser(auth0 = jwt.subject, email = tokenService.getEmail())
-                result = save(systemUser)
-            } else {
-                throw BusinessException("Unable to identify your email")
-            }
-        }
-        return RegistrationResponse(result)
+        return systemUserRepository.findByEmail(tokenService.getEmail()).orElse(null)
     }
 
     fun getActiveUser(): SystemUser? {

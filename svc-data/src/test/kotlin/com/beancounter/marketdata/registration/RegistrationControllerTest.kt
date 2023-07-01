@@ -2,10 +2,12 @@ package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @EntityScan("com.beancounter.common.model")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
-class TestRegistrationController {
+class RegistrationControllerTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -38,22 +40,30 @@ class TestRegistrationController {
     private lateinit var mockAuthConfig: MockAuthConfig
 
     @Test
-    @Throws(Exception::class)
     fun is_RegisterMeWorking() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
-        val performed = mockMvc.perform(
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/register")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .content(objectMapper.writeValueAsString(RegistrationRequest()))
+                .contentType(MediaType.APPLICATION_JSON),
+        ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+            .andReturn()
+
+        val meResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/me")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn()
-        Assertions.assertThat(performed.response.status).isEqualTo(HttpStatus.OK.value())
+
+        assertThat(meResult.response.status).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MeWithNoToken() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
@@ -63,11 +73,10 @@ class TestRegistrationController {
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
-        Assertions.assertThat(performed.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
+        assertThat(performed.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MeUnregistered() {
         val user = SystemUser(
             "is_MeUnregistered",
@@ -81,6 +90,6 @@ class TestRegistrationController {
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andReturn()
-        Assertions.assertThat(performed.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(performed.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 }

@@ -75,6 +75,7 @@ dependencies {
 
 contracts {
     testFramework = "JUNIT5"
+    testMode = 'EXPLICIT'
     baseClassForTests = "com.contracts.position.ContractVerifierBase"
 
 }

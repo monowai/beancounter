@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestMethod
 /**
  * Integration calls to svc-position.
  */
-@FeignClient(name = "bcPosition", url = "\${position.url:http://localhost:9500/api}")
+@FeignClient(name = "bcPosition", url = "\${position.url:http://localhost:9500}")
 interface PositionGateway {
     @RequestMapping(
         method = [RequestMethod.POST],
-        value = ["/query"],
+        value = ["/api/query"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE],
     )
@@ -27,7 +27,7 @@ interface PositionGateway {
 
     @RequestMapping(
         method = [RequestMethod.GET],
-        value = ["/id/{id}/{asAt}?value={value}"],
+        value = ["/api/id/{id}/{asAt}?value={value}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     operator fun get(

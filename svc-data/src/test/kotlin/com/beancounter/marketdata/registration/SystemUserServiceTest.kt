@@ -8,7 +8,6 @@ import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -41,10 +40,6 @@ class SystemUserServiceTest {
 
     @Autowired
     lateinit var userUtils: UserUtils
-
-    @BeforeEach
-    fun setUp() {
-    }
 
     @Test
     fun registerAuth0User() {

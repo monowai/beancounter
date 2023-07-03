@@ -49,10 +49,10 @@ logging:
     kafa: info
 
 marketdata:
-  url: "http://localhost:9510/api"
+  url: "http://localhost:9510"
 
 position:
-  url: "http://localhost:9500/api"
+  url: "http://localhost:9500"
 
 auth:
   uri: "http://your-auth0-endpoint/"

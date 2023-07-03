@@ -13,15 +13,14 @@ import com.beancounter.position.Constants
 import com.beancounter.position.PositionBoot
 import com.beancounter.position.valuation.Valuation
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.restassured.module.mockmvc.RestAssuredMockMvc
+import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.core.io.ClassPathResource
-import org.springframework.test.context.web.WebAppConfiguration
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
 private const val BEARER_TOKEN = "no-token"
@@ -29,12 +28,12 @@ private const val BEARER_TOKEN = "no-token"
 /**
  * Verifies that the data mocked in this service matches the contract definitions.
  */
+// @WebAppConfiguration
 @SpringBootTest(
     classes = [PositionBoot::class],
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
 @AutoConfigureNoAuth
-@WebAppConfiguration
 class ContractVerifierBase {
     private val dateUtils = DateUtils()
     private val objectMapper: ObjectMapper = BcJson().objectMapper
@@ -51,12 +50,12 @@ class ContractVerifierBase {
     @Autowired
     private lateinit var context: WebApplicationContext
 
+    @LocalServerPort
+    lateinit var port: String
+
     @BeforeEach
     fun initMocks() {
-        val mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .build()
-        RestAssuredMockMvc.mockMvc(mockMvc)
-
+        RestAssured.port = Integer.valueOf(port)
         val portfolioId = "TEST"
         val valuationDate = "2020-05-01"
         val testPortfolio = Portfolio(

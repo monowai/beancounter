@@ -7,6 +7,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
@@ -57,7 +58,7 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig, private val dateUt
             if (dateUtils.isToday(priceRequest.date)) {
                 requests[batchId] = alphaProxyCache.getCurrent(
                     providerArguments.batch[batchId]!!,
-                    "today",
+                    today,
                     apiKey,
                 )
             } else {

@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service
 class UserUtils(val authConfig: AuthConfig, val jwtDecoder: JwtDecoder, val tokenService: TokenService) {
     private val tokenUtils = TokenUtils(authConfig)
 
+    /**
+     * Known providers id's that we will track.
+     */
     enum class AuthProvider {
         ID, GOOGLE, AUTH0
     }

@@ -23,7 +23,7 @@ management:
       mode: SIMPLE
 
 marketdata:
-  url: "http://localhost:9510/api"
+  url: "http://localhost:9510"
 
 auth:
   uri: "http://your-auth0-endpoint/"

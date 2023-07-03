@@ -4,7 +4,7 @@ priority: 2
 request:
   method: GET
   # https://github.com/tomakehurst/wiremock/issues/1262
-  url: /id/TEST/2020-05-01
+  url: /api/id/TEST/2020-05-01
 
 response:
   status: 200
@@ -16,7 +16,7 @@ name: kmiPosition
 priority: 1
 request:
   method: POST
-  url: /query
+  url: /api/query
   bodyFromFile: "kmi-request.json"
   headers:
     Content-Type: application/json
@@ -32,7 +32,7 @@ name: msftZeroPosition
 priority: 1
 request:
   method: POST
-  url: /query
+  url: /api/query
   bodyFromFile: "msft-request.json"
   headers:
     Content-Type: application/json

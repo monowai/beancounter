@@ -66,11 +66,11 @@ class TokenService(val authConfig: AuthConfig) {
         get() {
             val permissions = jwt.token.getClaim<ArrayList<String>>("permissions")
             for (c in permissions) {
-                if (c == AuthConstants.SYSTEM) {
-                    return true
+                if (c == AuthConstants.USER) {
+                    return false
                 }
             }
-            return false
+            return true
         }
 
     companion object {

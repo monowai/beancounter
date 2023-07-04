@@ -28,7 +28,7 @@ class TokenUtils(val authConfig: AuthConfig) {
             .header("alg", "none")
             .subject(subject)
             .claim(authConfig.claimEmail, systemUser.email)
-            .claim("permissions", arrayOf(AuthConstants.APP_NAME, AuthConstants.USER))
+            .claim("permissions", mutableListOf(AuthConstants.APP_NAME, AuthConstants.USER))
             .claim("scope", AuthConstants.SCOPE)
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
@@ -38,7 +38,8 @@ class TokenUtils(val authConfig: AuthConfig) {
         return Jwt.withTokenValue(systemUser.id)
             .header("alg", "none")
             .subject(systemUser.id)
-            .claim("permissions", arrayOf(AuthConstants.APP_NAME, AuthConstants.AUTH_M2M))
+            // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
+            .claim("permissions", mutableListOf(AuthConstants.APP_NAME, AuthConstants.SYSTEM))
             .claim("scope", AuthConstants.SCOPE)
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()

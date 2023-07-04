@@ -64,9 +64,9 @@ class TokenService(val authConfig: AuthConfig) {
 
     val isServiceToken: Boolean
         get() {
-            val permissions = jwt.token.getClaim<Array<*>>("permissions")
+            val permissions = jwt.token.getClaim<ArrayList<String>>("permissions")
             for (c in permissions) {
-                if (c == AuthConstants.AUTH_M2M) {
+                if (c == AuthConstants.SYSTEM) {
                     return true
                 }
             }

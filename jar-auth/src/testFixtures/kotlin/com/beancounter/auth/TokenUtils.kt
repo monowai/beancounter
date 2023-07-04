@@ -33,4 +33,14 @@ class TokenUtils(val authConfig: AuthConfig) {
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
     }
+
+    fun getSystemToken(systemUser: SystemUser): Jwt {
+        return Jwt.withTokenValue(systemUser.id)
+            .header("alg", "none")
+            .subject(systemUser.id)
+            .claim("permissions", arrayOf(AuthConstants.APP_NAME, AuthConstants.AUTH_M2M))
+            .claim("scope", AuthConstants.SCOPE)
+            .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
+            .build()
+    }
 }

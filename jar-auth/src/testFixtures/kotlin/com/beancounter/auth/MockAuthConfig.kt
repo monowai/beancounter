@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
-@Import(AuthConfig::class, LoginService::class, TokenService::class, TokenUtils::class, UserUtils::class)
+@Import(AuthConfig::class, LoginService::class, TokenService::class, TokenUtils::class, AuthUtilService::class)
 class MockAuthConfig {
 
     @MockBean

@@ -1,8 +1,8 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.auth.UserUtils
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
@@ -143,7 +143,7 @@ class KafkaTrnTest {
     private lateinit var cashServices: CashServices
 
     @Autowired
-    private lateinit var userUtils: UserUtils
+    private lateinit var authUtilService: AuthUtilService
 
     private val kafkaTestUtils = KafkaConsumerUtils()
 
@@ -173,8 +173,8 @@ class KafkaTrnTest {
             ),
         )
         val systemUser = SystemUser("mike")
-        val token = userUtils.authenticate(systemUser, UserUtils.AuthProvider.AUTH0).token
-        systemUserService.register(systemUser)
+        val token = authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0).token
+        systemUserService.register()
 
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
@@ -219,7 +219,7 @@ class KafkaTrnTest {
             .isNotNull
             .hasNoNullFieldsOrProperties()
         consumer.close()
-        userUtils.authenticate(systemUser, UserUtils.AuthProvider.AUTH0)
+        authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0)
         val imported = trnService.findForPortfolio(portfolio, dateUtils.date).data
         assertThat(imported).hasSize(trnRequest.data.size)
     }

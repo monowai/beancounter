@@ -40,7 +40,8 @@ logging:
       zaxxer: error
     org:
       springframework: error
-      springframework.scheduling: debug
+      springframework.scheduling: error
+      springframework.security: error
       springframework.web.servlet: error
       hibernate: error
       apache: error

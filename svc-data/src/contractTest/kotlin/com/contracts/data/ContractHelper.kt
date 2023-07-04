@@ -1,6 +1,6 @@
 package com.contracts.data
 
-import com.beancounter.auth.UserUtils
+import com.beancounter.auth.AuthUtilService
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.BcJson
@@ -11,7 +11,7 @@ import org.springframework.core.io.ClassPathResource
 /**
  * Authentication helper to resolve 401s with MVC mocking.
  */
-class ContractHelper(private val userUtils: UserUtils) {
+class ContractHelper(private val authUtilService: AuthUtilService) {
 
     companion object {
         @JvmStatic
@@ -26,7 +26,7 @@ class ContractHelper(private val userUtils: UserUtils) {
         systemUser: SystemUser = getSystemUser(),
         systemUserService: SystemUserService,
     ): SystemUser {
-        userUtils.authenticate(systemUser)
+        authUtilService.authenticate(systemUser)
 
         Mockito.`when`(
             systemUserService

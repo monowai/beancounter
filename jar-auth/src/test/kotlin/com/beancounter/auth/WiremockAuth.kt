@@ -16,10 +16,10 @@ import org.springframework.http.MediaType
  * You can't autowire JwtDecoder using this approach as beans are initialised before
  * wiremock is stood up
  */
-class AuthUtils {
+class WiremockAuth {
     companion object {
         @JvmStatic
-        fun mockOpenConnect(authConfig: AuthConfig) {
+        fun mockOpenConnect(authConfig: AuthConfig, token: String = "user-token-response.json") {
             // Mock expired token response
             // Todo: Not properly implemented as it expects JSON body.  Need to figure out mocking multipart params.
             WireMock.stubFor(
@@ -30,7 +30,7 @@ class AuthUtils {
                             .withBody(
                                 BcJson().objectMapper.writeValueAsString(
                                     BcJson().objectMapper.readValue(
-                                        ClassPathResource("token-response.json")
+                                        ClassPathResource(token)
                                             .file,
                                         HashMap::class.java,
                                     ),

@@ -1,9 +1,9 @@
 package com.contracts.data
 
+import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
-import com.beancounter.auth.UserUtils
 import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -83,13 +83,13 @@ class TrnBase {
     internal lateinit var keyGenUtils: KeyGenUtils
 
     @Autowired
-    lateinit var userUtils: UserUtils
+    lateinit var authUtilService: AuthUtilService
 
     @BeforeEach
     fun mockTrn() {
         RestAssured.port = Integer.valueOf(port)
 
-        userUtils.authenticate(
+        authUtilService.authenticate(
             ContractHelper.getSystemUser(),
         )
         Mockito.`when`(systemUserService.getOrThrow)

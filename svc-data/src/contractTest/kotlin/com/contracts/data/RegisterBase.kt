@@ -1,9 +1,9 @@
 package com.contracts.data
 
+import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
-import com.beancounter.auth.UserUtils
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserService
@@ -44,18 +44,18 @@ class RegisterBase {
     lateinit var noWebAuth: NoWebAuth
 
     @Autowired
-    lateinit var userUtils: UserUtils
+    lateinit var authUtilService: AuthUtilService
 
     internal val systemUser = ContractHelper.getSystemUser()
 
     @BeforeEach
     fun mockRegistration() {
         RestAssured.port = Integer.valueOf(port)
-        val jwt = userUtils.authenticate(systemUser)
+        val jwt = authUtilService.authenticate(systemUser)
         Mockito.`when`(systemUserService.register())
             .thenReturn(RegistrationResponse(systemUser))
         Mockito.`when`(tokenService.subject).thenReturn(jwt.token.subject)
-        ContractHelper(userUtils).defaultUser(
+        ContractHelper(authUtilService).defaultUser(
             systemUser,
             systemUserService = systemUserService,
         )

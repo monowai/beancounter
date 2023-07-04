@@ -11,8 +11,12 @@ import org.springframework.stereotype.Service
  * Mock out Beancounter user expectations for authentication.
  */
 @Service
-class UserUtils(val authConfig: AuthConfig, val jwtDecoder: JwtDecoder, val tokenService: TokenService) {
-    private val tokenUtils = TokenUtils(authConfig)
+class AuthUtilService(
+    val authConfig: AuthConfig,
+    val jwtDecoder: JwtDecoder,
+    val tokenService: TokenService,
+    val tokenUtils: TokenUtils,
+) {
 
     /**
      * Known providers id's that we will track.
@@ -44,7 +48,21 @@ class UserUtils(val authConfig: AuthConfig, val jwtDecoder: JwtDecoder, val toke
             ),
         )
         SecurityContextHolder.getContext().authentication = jwt
+        return jwt
+    }
 
+    fun authenticateM2M(
+        systemUser: SystemUser,
+        authProvider: AuthProvider = AuthProvider.ID,
+    ): JwtAuthenticationToken {
+        val jwt = JwtAuthenticationToken(
+            tokenUtils.getSystemToken(systemUser),
+        )
+        SecurityContextHolder.getContext().authentication = jwt
+        Mockito.`when`(jwtDecoder.decode(systemUser.id))
+            .thenReturn(
+                jwt.token,
+            )
         return jwt
     }
 }

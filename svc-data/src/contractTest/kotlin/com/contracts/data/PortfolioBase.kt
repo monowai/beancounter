@@ -1,6 +1,6 @@
 package com.contracts.data
 
-import com.beancounter.auth.UserUtils
+import com.beancounter.auth.AuthUtilService
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
@@ -35,7 +35,7 @@ class PortfolioBase : ContractVerifierBase() {
     internal lateinit var cashBalancesBean: CashBalancesBean
 
     @Autowired
-    internal lateinit var userUtils: UserUtils
+    internal lateinit var authUtilService: AuthUtilService
 
     companion object {
         @Throws(IOException::class)
@@ -142,7 +142,7 @@ class PortfolioBase : ContractVerifierBase() {
 
     @BeforeEach
     fun mockPortfolio() {
-        val systemUser = ContractHelper(userUtils).defaultUser(
+        val systemUser = ContractHelper(authUtilService).defaultUser(
             systemUserService = systemUserService,
         )
         Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)

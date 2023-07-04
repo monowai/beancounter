@@ -55,14 +55,22 @@ class TokenService(val authConfig: AuthConfig) {
     }
 
     fun hasEmail(): Boolean {
-        return jwt.token?.claims?.containsKey(authConfig.claimEmail) ?: false
+        if (jwt.token?.claims?.containsKey(authConfig.claimEmail)!!) {
+            val email = jwt.token.claims[authConfig.claimEmail] as String
+            return email.isNotBlank()
+        }
+        return false
     }
 
     val isServiceToken: Boolean
         get() {
-            val authentication = SecurityContextHolder.getContext().authentication
-                ?: return false
-            return authentication.authorities.contains(AuthConstants.AUTH_M2M)
+            val permissions = jwt.token.getClaim<Array<*>>("permissions")
+            for (c in permissions) {
+                if (c == AuthConstants.AUTH_M2M) {
+                    return true
+                }
+            }
+            return false
         }
 
     companion object {

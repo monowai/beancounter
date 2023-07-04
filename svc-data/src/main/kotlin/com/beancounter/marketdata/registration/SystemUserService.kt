@@ -5,11 +5,10 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import java.util.Optional
 
 /**
  * Registration of authenticated users.
@@ -19,29 +18,35 @@ import org.springframework.stereotype.Service
 class SystemUserService(
     private val systemUserRepository: SystemUserRepository,
     private val tokenService: TokenService,
+    private val authProviders: AuthProviders,
 ) : Registration {
 
     fun register(): RegistrationResponse {
-        val jwt = tokenService.jwt.token
-        // ToDo: Find by email
-        var result = find(tokenService.getEmail())
-        if (result == null) {
-            if (tokenService.hasEmail()) {
-                val systemUser =
-                    SystemUser(email = tokenService.getEmail(), auth0 = getAuth0Id(jwt), googleId = getGoogleId(jwt))
-                result = save(systemUser)
-            } else {
-                throw BusinessException("Unable to identify your email")
-            }
+        if (isServiceAccount()) {
+            throw BusinessException("Service accounts can not be registered for user activities")
         }
-        return RegistrationResponse(result)
+
+        if (!tokenService.hasEmail()) {
+            throw BusinessException("No email. This token cannot be registered for user activities.")
+        }
+
+        val result = find()
+        val jwt = tokenService.jwt.token
+        return if (result == null) {
+            RegistrationResponse(
+                save(
+                    SystemUser(
+                        email = tokenService.getEmail(),
+                        auth0 = authProviders.getAuth0Id(jwt),
+                        googleId = authProviders.getGoogleId(jwt),
+                    ),
+                ),
+            )
+        } else {
+            //
+            RegistrationResponse(authProviders.capture(result, jwt))
+        }
     }
-
-    private fun getAuth0Id(jwt: Jwt): String =
-        if (tokenService.isAuth0()) jwt.subject else ""
-
-    private fun getGoogleId(jwt: Jwt): String =
-        if (tokenService.isGoogle()) jwt.subject else ""
 
     fun save(systemUser: SystemUser): SystemUser {
         return systemUserRepository.save(systemUser)
@@ -56,20 +61,21 @@ class SystemUserService(
         return systemUserRepository.findByEmail(tokenService.getEmail()).orElse(null)
     }
 
-    fun getActiveUser(): SystemUser? {
-        return find(tokenService.subject)
+    fun find(): SystemUser? {
+        val result = if (tokenService.hasEmail()) {
+            systemUserRepository.findByEmail(tokenService.getEmail())
+        } else if (tokenService.isAuth0()) {
+            systemUserRepository.findByAuth0(tokenService.subject)
+        } else if (tokenService.isGoogle()) {
+            systemUserRepository.findByGoogleId(tokenService.subject)
+        } else {
+            Optional.ofNullable(null)
+        }
+        return result.orElse(null)
     }
 
-    fun verifySystemUser(systemUser: SystemUser?) {
-        if (systemUser == null) {
-            throw ForbiddenException("Unable to identify the owner")
-        }
-        if (systemUser.id == AuthConstants.SYSTEM) {
-            return
-        }
-        if (!systemUser.active) {
-            throw BusinessException("User is not active")
-        }
+    fun getActiveUser(): SystemUser? {
+        return find(tokenService.subject)
     }
 
     val getOrThrow: SystemUser
@@ -77,9 +83,7 @@ class SystemUserService(
             if (isServiceAccount()) {
                 return AuthConstants.authSystem
             }
-            val systemUser = getActiveUser()
-            verifySystemUser(systemUser)
-            return systemUser!!
+            return getActiveUser()!!
         }
 
     override fun register(systemUser: SystemUser): RegistrationResponse {

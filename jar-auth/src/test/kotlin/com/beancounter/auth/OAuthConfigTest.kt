@@ -41,7 +41,7 @@ class OAuthConfigTest {
 
     @BeforeEach
     fun mockJwtService() {
-        AuthUtils.mockOpenConnect(authConfig)
+        WiremockAuth.mockOpenConnect(authConfig)
     }
 
     @Test

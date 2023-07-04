@@ -1,9 +1,9 @@
 package com.contracts.data
 
+import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
-import com.beancounter.auth.UserUtils
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -19,7 +19,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
-import com.beancounter.marketdata.Constants.Companion.systemUser
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.OffMarketEnricher
@@ -101,7 +100,7 @@ class RealestateBase {
     private lateinit var portfolioService: PortfolioService
 
     @Autowired
-    internal lateinit var userUtils: UserUtils
+    internal lateinit var authUtilService: AuthUtilService
 
     lateinit var portfolio: Portfolio
 
@@ -122,7 +121,7 @@ class RealestateBase {
     @BeforeEach
     fun mockTrn() {
         RestAssured.port = Integer.valueOf(port)
-        jwt = userUtils.authenticate(
+        jwt = authUtilService.authenticate(
             systemUser,
         )
         // Hardcode the id of the system user so we can find it in the off-market asset code

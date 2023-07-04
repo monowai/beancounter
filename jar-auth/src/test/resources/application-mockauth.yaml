@@ -1,0 +1,12 @@
+spring:
+  security:
+    oauth2:
+      registration:
+        custom:
+          client-secret: secret
+      resourceserver:
+        jwt:
+          issuer-uri: "${auth.uri}"
+
+auth:
+  enabled: true

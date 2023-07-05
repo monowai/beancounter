@@ -65,7 +65,6 @@ class LoginServiceTest {
         )
     }
 
-    //    @Disabled
     @Test
     fun is_m2mLoginWorking() {
         val token = authUtilService.authenticateM2M(SystemUser())
@@ -88,6 +87,30 @@ class LoginServiceTest {
 
         loginService.loginM2m().token.isNotEmpty()
         assertTrue(tokenService.isServiceToken)
+    }
+
+    @Test
+    fun is_accountWithNoRulesNeitherServiceOrUser() {
+        val token = authUtilService.authenticateNoRoles(SystemUser())
+        Mockito.`when`(
+            authGateway.login(
+                LoginService.ClientCredentialsRequest(
+                    mockAuthConfig.authConfig.clientId,
+                    mockAuthConfig.authConfig.clientSecret,
+                    mockAuthConfig.authConfig.audience,
+                ),
+            ),
+        ).thenReturn(
+            OpenIdResponse(
+                token.token.tokenValue,
+                "beancounter beancounter:system",
+                Duration.ofSeconds(20_000).seconds,
+                BEARER,
+            ),
+        )
+
+        loginService.loginM2m().token.isNotEmpty()
+        assertFalse(tokenService.isServiceToken)
     }
 
     @Test

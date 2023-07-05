@@ -44,4 +44,15 @@ class TokenUtils(val authConfig: AuthConfig) {
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
     }
+
+    fun getNoRolesToken(systemUser: SystemUser): Jwt {
+        return Jwt.withTokenValue(systemUser.id)
+            .header("alg", "none")
+            .subject(systemUser.id)
+            // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
+            .claim("permissions", mutableListOf(AuthConstants.APP_NAME))
+            .claim("scope", AuthConstants.SCOPE)
+            .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
+            .build()
+    }
 }

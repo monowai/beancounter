@@ -58,6 +58,23 @@ class AuthUtilService(
         val jwt = JwtAuthenticationToken(
             tokenUtils.getSystemToken(systemUser),
         )
+        return jwtAuthenticationToken(jwt, systemUser)
+    }
+
+    fun authenticateNoRoles(
+        systemUser: SystemUser,
+        authProvider: AuthProvider = AuthProvider.ID,
+    ): JwtAuthenticationToken {
+        val jwt = JwtAuthenticationToken(
+            tokenUtils.getNoRolesToken(systemUser),
+        )
+        return jwtAuthenticationToken(jwt, systemUser)
+    }
+
+    private fun jwtAuthenticationToken(
+        jwt: JwtAuthenticationToken,
+        systemUser: SystemUser,
+    ): JwtAuthenticationToken {
         SecurityContextHolder.getContext().authentication = jwt
         Mockito.`when`(jwtDecoder.decode(systemUser.id))
             .thenReturn(

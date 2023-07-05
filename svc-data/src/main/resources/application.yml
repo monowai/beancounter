@@ -219,6 +219,10 @@ beancounter:
         aliases:
           FIGI: US
 
+      - code: US
+        timezoneId: US/Eastern
+        currencyId: USD
+
       - code: ASX
         timezoneId: Australia/Sydney
         currencyId: AUD
@@ -250,7 +254,7 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets: NASDAQ,AMEX,NYSE,ASX,LON,NZX
+        markets: US,NASDAQ,AMEX,NYSE,ASX,LON,NZX
 
       WTD:
         url: https://www.worldtradingdata.com

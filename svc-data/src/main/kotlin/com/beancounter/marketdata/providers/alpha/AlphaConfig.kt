@@ -37,7 +37,7 @@ class AlphaConfig : DataProviderConfig {
         }
     }
 
-    val nullMarket = "NASDAQ|NYSE|AMEX"
+    val nullMarket = "NASDAQ|NYSE|AMEX|US"
     fun isNullMarket(marketCode: String): Boolean {
         return nullMarket.contains(marketCode, true)
     }

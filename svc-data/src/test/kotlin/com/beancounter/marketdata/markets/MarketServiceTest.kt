@@ -83,7 +83,7 @@ class MarketServiceTest @Autowired constructor(
         // Alias exists, but no PK with this code
         assertThrows(BusinessException::class.java) {
             marketService.getMarket(
-                "US",
+                "NZ",
                 false,
             )
         }

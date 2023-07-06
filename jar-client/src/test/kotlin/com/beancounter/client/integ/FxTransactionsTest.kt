@@ -60,7 +60,7 @@ class FxTransactionsTest {
     fun balanceTransaction() {
         val trnInput = TrnInput(
             CallerRef(),
-            AssetUtils.Companion.getAsset(Market("RE"), "xxx").id,
+            AssetUtils.Companion.getTestAsset(Market("RE"), "xxx").id,
             cashCurrency = NZD.code,
             cashAmount = BigDecimal("1000.00"),
             tradeCurrency = NZD.code,
@@ -129,7 +129,7 @@ class FxTransactionsTest {
     fun is_fxTransactionsSettingCorrectlyWhenRatesNull() {
         val trnInput = TrnInput(
             CallerRef(),
-            AssetUtils.Companion.getAsset(NASDAQ, "MSFT").id,
+            AssetUtils.Companion.getTestAsset(NASDAQ, "MSFT").id,
             cashCurrency = USD.code,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
@@ -151,7 +151,7 @@ class FxTransactionsTest {
     fun is_fxTransactionsSettingCorrectlyWhenRatesAreZero() {
         val trnInput = TrnInput(
             CallerRef(),
-            AssetUtils.Companion.getAsset(NASDAQ, "MSFT").id,
+            AssetUtils.Companion.getTestAsset(NASDAQ, "MSFT").id,
             cashCurrency = USD.code,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,

@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.assets.AssetHydrationService
@@ -42,6 +43,19 @@ class PriceRefresh internal constructor(
             dateUtils.getZoneId().id,
         )
         return CompletableFuture.completedFuture(assetCount.get())
+    }
+
+    @Transactional(readOnly = true)
+    fun refreshPrice(assetId: String, date: String = "TODAY"): PriceResponse {
+        log.info("Updating Prices {}", LocalDateTime.now(dateUtils.getZoneId()))
+        val asset = assetService.find(assetId)
+        val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), today)
+        marketDataService.refresh(asset, date)
+        val response = marketDataService.getPriceResponse(priceRequest)
+        log.info(
+            "Refreshed asset price for ${asset.name} ",
+        )
+        return response
     }
 
     companion object {

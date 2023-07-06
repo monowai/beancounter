@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 @Service
 class AssetHydrationService(val marketService: MarketService, val assetCategoryConfig: AssetCategoryConfig) {
     fun hydrateAsset(asset: Asset): Asset {
-        asset.market = marketService.getMarket(asset.marketCode!!)
+        asset.market = marketService.getMarket(asset.marketCode)
         asset.assetCategory = assetCategoryConfig.get(asset.category)!!
         return asset
     }

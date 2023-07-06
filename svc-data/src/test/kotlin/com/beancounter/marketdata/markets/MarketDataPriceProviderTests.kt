@@ -3,7 +3,7 @@ package com.beancounter.marketdata.markets
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
@@ -44,10 +44,10 @@ class MarketDataPriceProviderTests @Autowired constructor(
 
     @Test
     fun is_FoundByMarket() {
-        val amp = getAsset(marketService.getMarket("ASX"), "AMP")
+        val amp = getTestAsset(marketService.getMarket("ASX"), "AMP")
         val asxMarket = mdFactory.getMarketDataProvider(amp.market)
         assertThat(asxMarket.getId()).isEqualTo(AlphaPriceService.ID)
-        val gne = getAsset(marketService.getMarket(NZX.code), "GNE")
+        val gne = getTestAsset(marketService.getMarket(NZX.code), "GNE")
         val nzxMarket = mdFactory.getMarketDataProvider(gne.market)
         assertThat(nzxMarket.getId()).isEqualTo(WtdService.ID)
         assertThat(nzxMarket.isMarketSupported(gne.market)).isTrue

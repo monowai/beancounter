@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service
 class FigiAdapter {
     fun transform(market: Market, assetCode: String, defaultName: String? = null, id: String): Asset {
         return Asset(
-            id = id,
             code = assetCode,
+            id = id,
             name = defaultName,
-            category = "Equity",
             market = market,
             marketCode = market.code,
             priceSymbol = assetCode,
+            category = "Equity",
         )
     }
 

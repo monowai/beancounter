@@ -9,7 +9,7 @@ beancounter:
 
   market.providers:
     ALPHA:
-      markets: NASDAQ,AMEX,NYSE,ASX,LON
+      markets: NASDAQ,AMEX,NYSE,ASX,LON,US
 
     WTD:
       markets: NZX

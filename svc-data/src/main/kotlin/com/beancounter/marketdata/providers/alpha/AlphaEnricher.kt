@@ -52,13 +52,13 @@ class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnr
             )
         } else {
             Asset(
-                id,
                 assetInput.code.uppercase(Locale.getDefault()),
+                id,
                 name = assetResult.name,
-                category = assetResult.type,
                 market = market,
                 marketCode = market.code,
                 priceSymbol = assetResult.symbol,
+                category = assetResult.type,
             )
         }
     }

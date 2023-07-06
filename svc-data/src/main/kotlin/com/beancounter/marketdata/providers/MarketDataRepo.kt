@@ -13,4 +13,5 @@ interface MarketDataRepo : CrudRepository<MarketData, String> {
     fun findByAssetIdAndPriceDate(assetId: String, date: LocalDate?): Optional<MarketData>
 
     fun findTop1ByAssetAndPriceDateLessThanEqual(asset: Asset, priceDate: LocalDate): Optional<MarketData>
+    fun deleteMarketDataByAssetIdAndPriceDate(assetId: String, date: LocalDate)
 }

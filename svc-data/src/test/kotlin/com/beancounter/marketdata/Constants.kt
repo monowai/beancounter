@@ -6,7 +6,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 
 /**
  * Centralise constant values. Reduces duplicate object code quality warnings.
@@ -24,10 +24,10 @@ class Constants {
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
 
-        val AAPL = getAsset(NASDAQ, "AAPL")
-        val MSFT = getAsset(NASDAQ, "MSFT")
+        val AAPL = getTestAsset(NASDAQ, "AAPL")
+        val MSFT = getTestAsset(NASDAQ, "MSFT")
 
-        val AMP = getAsset(ASX, "AMP")
+        val AMP = getTestAsset(ASX, "AMP")
         val SGD = Currency("SGD")
         val AUD = Currency("AUD")
         val GBP = Currency(code = "GBP", symbol = "￡")
@@ -41,22 +41,22 @@ class Constants {
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
 
         val nzdCashBalance = Asset(
-            id = NZD.code,
             code = NZD.code,
+            id = NZD.code,
             name = "${NZD.code} Balance",
-            priceSymbol = NZD.code,
-            assetCategory = AssetCategory("CASH", "Cash"),
             market = Market("CASH", NZD.code),
+            priceSymbol = NZD.code,
             category = "CASH",
+            assetCategory = AssetCategory("CASH", "Cash"),
         )
         val usdCashBalance = Asset(
-            id = USD.code,
             code = USD.code,
+            id = USD.code,
             name = "${USD.code} Balance",
-            priceSymbol = USD.code,
-            assetCategory = AssetCategory("CASH", "Cash"),
             market = Market("CASH", USD.code),
+            priceSymbol = USD.code,
             category = "CASH",
+            assetCategory = AssetCategory("CASH", "Cash"),
         )
     }
 }

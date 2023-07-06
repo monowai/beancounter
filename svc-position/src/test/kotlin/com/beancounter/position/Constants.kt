@@ -30,19 +30,19 @@ class Constants {
         const val KMI = "KMI"
         const val AAPL = "AAPL"
         val nzdCashBalance = Asset(
-            id = "${NZD.code} BALANCE",
             code = "${NZD.code} BALANCE",
+            id = "${NZD.code} BALANCE",
             name = "${NZD.code} Balance",
-            priceSymbol = NZD.code,
             market = Market("CASH", NZD.code),
+            priceSymbol = NZD.code,
             category = "CASH",
         )
         val usdCashBalance = Asset(
-            id = "${USD.code} BALANCE",
             code = "${USD.code} BALANCE",
+            id = "${USD.code} BALANCE",
             name = "${NZD.code} Balance",
-            priceSymbol = USD.code,
             market = Market("CASH"),
+            priceSymbol = USD.code,
             category = "CASH",
         )
 

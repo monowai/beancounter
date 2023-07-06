@@ -40,7 +40,7 @@ class AssetSerialization {
     @Test
     @Throws(Exception::class)
     fun assetResponseSerializes() {
-        val assetResponse = AssetResponse(Asset(market = Market("XXX"), code = "YYY"))
+        val assetResponse = AssetResponse(Asset(code = "YYY", market = Market("XXX")))
         val fromJson = objectMapper.readValue(objectMapper.writeValueAsString(assetResponse), AssetResponse::class.java)
         assertThat(fromJson.data)
             .isEqualTo(assetResponse.data)
@@ -98,7 +98,7 @@ class AssetSerialization {
 
     @Test
     fun dataProviderAsset() {
-        val asset = AssetUtils.getAsset(Market("1"), "2")
+        val asset = AssetUtils.getTestAsset(Market("1"), "2")
         val assetInput = AssetInput(market = "amarket", code = "acode", resolvedAsset = asset)
         assertThat(assetInput)
             .hasFieldOrPropertyWithValue("market", "amarket")

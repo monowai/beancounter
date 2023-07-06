@@ -20,7 +20,7 @@ class ProviderUtils(private val mdFactory: MdFactory, private val marketService:
                 market = input.resolvedAsset!!.market
             } else {
                 market = marketService.getMarket(input.market)
-                val resolvedAsset = Asset(code = input.code, market)
+                val resolvedAsset = Asset(code = input.code, market = market)
                 input.resolvedAsset = resolvedAsset
             }
             val marketDataProvider = mdFactory.getMarketDataProvider(market)

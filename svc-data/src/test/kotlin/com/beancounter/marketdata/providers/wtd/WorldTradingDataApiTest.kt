@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers.wtd
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
@@ -126,7 +126,7 @@ internal class WorldTradingDataApiTest {
     fun is_WtdInvalidAssetPriceDefaulting() {
         val inputs: Collection<PriceAsset> = arrayListOf(
             PriceAsset(AAPL),
-            PriceAsset(getAsset(NASDAQ, "${MSFT.code}x")),
+            PriceAsset(getTestAsset(NASDAQ, "${MSFT.code}x")),
         )
 
         val utcToday = dateUtils.offsetDateString()

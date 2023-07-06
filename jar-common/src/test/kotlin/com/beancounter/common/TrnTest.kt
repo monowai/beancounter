@@ -27,13 +27,13 @@ class TrnTest {
         val trnDefault = Trn(
             id = id,
             trnType = TrnType.BUY,
-            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
+            asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
             portfolio = PortfolioUtils.getPortfolio(),
         )
         val trn = Trn(
             id = id,
             trnType = TrnType.BUY,
-            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
+            asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
             portfolio = PortfolioUtils.getPortfolio(),
             version = "0",
         )
@@ -90,7 +90,7 @@ class TrnTest {
         val trn = Trn(
             id = "any",
             trnType = TrnType.BUY,
-            asset = AssetUtils.getAsset(Constants.NYSE, simpleRef),
+            asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
             portfolio = PortfolioUtils.getPortfolio(),
         )
         assertThat(trn.asset.market.currency).isNotNull

@@ -13,7 +13,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
@@ -45,7 +45,7 @@ internal class MarketValueTest {
     private val buyBehaviour: AccumulationStrategy = BuyBehaviour()
     private val sellBehaviour: AccumulationStrategy = SellBehaviour()
     private val portfolio = getPortfolio()
-    private val asset = getAsset(NASDAQ, "ABC")
+    private val asset = getTestAsset(NASDAQ, "ABC")
     private val simpleRate = BigDecimal("0.20")
 
     @Test
@@ -204,7 +204,7 @@ internal class MarketValueTest {
 
     @Test
     fun is_MarketValueWithNoPriceComputedForBuyBehaviour() {
-        val asset = getAsset(NASDAQ, "ABC")
+        val asset = getTestAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
         val buyTrn = Trn(
             trnType = TrnType.BUY,

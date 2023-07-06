@@ -8,7 +8,7 @@ import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.client.sharesight.ShareSightFactory
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.MOCK
@@ -77,7 +77,7 @@ class TrnCsvKafka {
             TrnAdapter::class.java,
         )
         Mockito.`when`(trnAdapter.resolveAsset(row))
-            .thenReturn(getAsset(MOCK, abc))
+            .thenReturn(getTestAsset(MOCK, abc))
 
         Mockito.`when`(shareSightFactory.adapter(row)).thenReturn(trnAdapter)
 

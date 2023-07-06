@@ -28,7 +28,7 @@ class AddBehaviourTest {
         val portfolio = Portfolio("TEST", Constants.USD, Constants.NZD)
         val trn = Trn(
             trnType = TrnType.ADD,
-            asset = Asset(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House", "test-user"), Market("RE")),
+            asset = Asset.of(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House", "test-user"), market = Market("RE")),
             quantity = BigDecimal.ONE,
             price = BigDecimal("1000000.00"),
             tradeAmount = BigDecimal("1000000.00"),

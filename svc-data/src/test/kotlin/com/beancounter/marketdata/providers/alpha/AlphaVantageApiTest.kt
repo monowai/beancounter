@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.PriceRequest.Companion.of
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
@@ -189,7 +190,7 @@ internal class AlphaVantageApiTest {
     fun is_ApiErrorMessageHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
         AlphaMockUtils.mockGlobalResponse("$api.ERR", jsonFile)
-        val asset = Asset(api, Market("ERR", USD.code))
+        val asset = Asset(code = api, market = Market("ERR", USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(of(asset))
         assertThat(results)
@@ -205,7 +206,7 @@ internal class AlphaVantageApiTest {
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
-        val asset = Asset(api, Market("EMPTY", USD.code))
+        val asset = Asset(code = api, market = Market("EMPTY", USD.code))
         val results = mdFactory
             .getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(of(asset))
@@ -226,7 +227,7 @@ internal class AlphaVantageApiTest {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file
         AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
         val nasdaq = Market(NASDAQ.code, USD.code)
-        val asset = Asset(MSFT.code, nasdaq)
+        val asset = getTestAsset(market = nasdaq, code = MSFT.code)
         val priceRequest = of(asset = asset)
         val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(priceRequest)
@@ -247,7 +248,7 @@ internal class AlphaVantageApiTest {
 
     @Test
     fun is_CurrentPriceAsxFound() {
-        val asset = Asset(amp, ASX)
+        val asset = getTestAsset(code = amp, market = ASX)
         val priceRequest = of(asset)
         val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(priceRequest)

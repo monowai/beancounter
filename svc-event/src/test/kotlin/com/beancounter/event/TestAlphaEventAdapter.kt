@@ -6,7 +6,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.event.Constants.Companion.kmi
@@ -30,7 +30,7 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_UsDividendCalculated() {
-        val asset = getAsset(market, kmi)
+        val asset = getTestAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
@@ -62,7 +62,7 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_FutureDatedTrnIgnored() {
-        val asset = getAsset(market, kmi)
+        val asset = getTestAsset(market, kmi)
         assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
         val today = dateUtils.date
@@ -85,7 +85,7 @@ class TestAlphaEventAdapter {
     @Test
     fun is_SplitCalculated() {
         val market = Market("NASDAQ")
-        val asset = getAsset(market, kmi)
+        val asset = getTestAsset(market, kmi)
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
         val position = Position(asset)

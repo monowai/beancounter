@@ -5,7 +5,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
@@ -53,7 +53,7 @@ internal class CashBehaviourTest {
 
     @Test
     fun is_DepositAccumulatedForSell() {
-        val asset = getAsset(NASDAQ, AAPL)
+        val asset = getTestAsset(NASDAQ, AAPL)
         val trn = Trn(
             trnType = TrnType.SELL,
             asset = asset,
@@ -100,7 +100,7 @@ internal class CashBehaviourTest {
 
     @Test
     fun is_WithdrawalAccumulatedForBuy() {
-        val asset = getAsset(NASDAQ, AAPL)
+        val asset = getTestAsset(NASDAQ, AAPL)
         val trn = Trn(
             trnType = TrnType.BUY,
             asset = asset,

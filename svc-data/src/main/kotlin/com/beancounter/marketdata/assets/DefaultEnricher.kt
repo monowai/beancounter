@@ -15,13 +15,13 @@ import java.util.Locale
 class DefaultEnricher : AssetEnricher {
     override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
         return Asset(
-            id = id,
-            market = market,
             code = assetInput.code.uppercase(Locale.getDefault()),
+            id = id,
             name = if (assetInput.name != null) assetInput.name!!.replace("\"", "") else null,
-            category = assetInput.category,
+            market = market,
             marketCode = market.code,
             priceSymbol = assetInput.currency,
+            category = assetInput.category,
         )
     }
 

@@ -1,12 +1,14 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.client.sharesight.ShareSightTradeAdapter.Companion.market
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -53,10 +55,7 @@ class PriceController(
             ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
         return marketDataService.getPriceResponse(
             PriceRequest.of(
-                AssetInput(
-                    market = asset.market.code,
-                    code = asset.code,
-                ),
+                asset = asset,
             ),
         )
     }
@@ -121,8 +120,12 @@ class PriceController(
         return marketDataService.getPriceResponse(priceRequest)
     }
 
-    @PostMapping("/refresh")
-    fun refreshPrices() = priceRefresh.updatePrices()
+    @GetMapping("/refresh/{assetId}/{date}")
+    fun refreshPrices(
+        @PathVariable assetId: String,
+        @PathVariable(required = false) date: String = today,
+    ): PriceResponse =
+        priceRefresh.refreshPrice(assetId, date)
 
     companion object {
         private val log = LoggerFactory.getLogger(this::class.java)

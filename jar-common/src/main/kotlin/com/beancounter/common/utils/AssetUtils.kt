@@ -21,13 +21,15 @@ class AssetUtils {
          * Asset on a market.
          *
          * @param market    market to return
-         * @param assetCode asset.code
+         * @param code asset.code
          * @return asset on a market
          */
         @JvmStatic
-        fun getAsset(market: Market, assetCode: String) =
+        fun getTestAsset(market: Market, code: String) =
             Asset(
-                code = assetCode,
+                code = code,
+                id = code,
+                name = code,
                 market = market,
             )
 
@@ -52,7 +54,7 @@ class AssetUtils {
         @JvmStatic
         @Throws(JsonProcessingException::class)
         fun getJsonAsset(market: String, code: String): Asset {
-            val asset = getAsset(Market(market), code)
+            val asset = getTestAsset(Market(market), code)
             return objectMapper.readValue(objectMapper.writeValueAsString(asset), Asset::class.java)
         }
 

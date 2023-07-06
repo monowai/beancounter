@@ -4,7 +4,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -44,7 +43,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -84,7 +82,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -124,7 +121,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -164,7 +160,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -204,7 +199,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -244,7 +238,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -284,7 +277,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -324,7 +316,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",
@@ -364,7 +355,6 @@
       "asset": {
         "id": "NDAQ",
         "code": "NDAQ",
-        "name": "NDAQ",
         "market": {
           "code": "US",
           "currencyId": "USD",

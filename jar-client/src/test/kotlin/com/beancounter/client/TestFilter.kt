@@ -2,7 +2,7 @@ package com.beancounter.client
 
 import com.beancounter.client.Constants.Companion.NYSE
 import com.beancounter.client.ingest.Filter
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -11,9 +11,9 @@ internal class TestFilter {
     fun is_FilteredAssetsCaseInsensitive() {
         val filter = Filter("Code")
         Assertions.assertThat(filter.hasFilter()).isTrue
-        Assertions.assertThat(filter.inFilter(getAsset(NYSE, "Code")))
+        Assertions.assertThat(filter.inFilter(getTestAsset(NYSE, "Code")))
             .isTrue
-        Assertions.assertThat(filter.inFilter(getAsset(NYSE, "code")))
+        Assertions.assertThat(filter.inFilter(getTestAsset(NYSE, "code")))
             .isTrue
     }
 

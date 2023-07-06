@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers.alpha
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -122,11 +122,11 @@ internal class AlphaPriceTest {
         assertThat(alphaPriceService.isMarketSupported(NZX))
             .isFalse
         assertThat(alphaConfig.getPriceCode(MSFT)).isEqualTo(MSFT.code)
-        val ohi = getAsset(NYSE, "OHI")
+        val ohi = getTestAsset(NYSE, "OHI")
         assertThat(alphaConfig.getPriceCode(ohi)).isEqualTo("OHI")
-        val abc = getAsset(Market("AMEX"), "ABC")
+        val abc = getTestAsset(Market("AMEX"), "ABC")
         assertThat(alphaConfig.getPriceCode(abc)).isEqualTo("ABC")
-        val nzx = getAsset(NZX, "AIRNZ")
+        val nzx = getTestAsset(NZX, "AIRNZ")
         assertThat(alphaConfig.getPriceCode(nzx)).isEqualTo("AIRNZ.NZX")
     }
 

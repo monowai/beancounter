@@ -2,8 +2,8 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
@@ -48,7 +48,7 @@ class AlphaApiInfraTest {
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
-        val asset = Asset(api, Market("KEY", Constants.USD.code))
+        val asset = getTestAsset(code = api, market = Market("KEY", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
         val results = alphaProvider.getMarketData(
             PriceRequest.Companion.of(asset),
@@ -65,7 +65,7 @@ class AlphaApiInfraTest {
     @Throws(Exception::class)
     fun is_ApiCallLimitExceededHandled() {
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
-        val asset = Asset("ABC", nasdaq)
+        val asset = getTestAsset(code = "ABC", market = nasdaq)
         AlphaMockUtils.mockGlobalResponse(
             asset.id,
             ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file,

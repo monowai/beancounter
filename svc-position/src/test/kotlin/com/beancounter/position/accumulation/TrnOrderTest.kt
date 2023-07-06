@@ -4,7 +4,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.AAPL
@@ -32,7 +32,7 @@ internal class TrnOrderTest {
      */
     @Test
     fun do_UnorderedTransactionsError() {
-        val apple = getAsset(NASDAQ, AAPL)
+        val apple = getTestAsset(NASDAQ, AAPL)
         val positions = Positions(getPortfolio())
         val today = LocalDate.now()
         val yesterday = today.minus(-1, ChronoUnit.DAYS)

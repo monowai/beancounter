@@ -38,6 +38,10 @@ class BcRowAdapterTest {
     private val csv = "CSV"
     private val portfolio: Portfolio = Portfolio(csv)
     private val pBatch = "callerRef.batch"
+    private val asset = Asset(
+        code = assetCode,
+        market = NASDAQ,
+    )
 
     @BeforeEach
     fun setupMocks() {
@@ -50,13 +54,9 @@ class BcRowAdapterTest {
                     owner = portfolio.owner.id,
                 ),
             ),
+        ).thenReturn(
+            asset,
         )
-            .thenReturn(
-                Asset(
-                    code = assetCode,
-                    market = NASDAQ,
-                ),
-            )
         Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, NZD.code, name = "", owner = portfolio.owner.id)))
             .thenReturn(nzdCashBalance)
         Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, USD.code, "", owner = portfolio.owner.id)))
@@ -93,7 +93,7 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue("comments", "")
             .hasFieldOrPropertyWithValue("tradeDate", DateUtils().getOrThrow("2021-08-11"))
             .hasFieldOrPropertyWithValue(propQuantity, BigDecimal(200))
-            .hasFieldOrPropertyWithValue(propAssetId, assetCode)
+            .hasFieldOrPropertyWithValue(propAssetId, asset.id)
             .hasFieldOrPropertyWithValue(cashAssetId, usdCashBalance.code)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-2000")) // Nothing sent, so nothing computed
             .hasFieldOrPropertyWithValue(tradeAmount, BigDecimal("2000"))

@@ -14,8 +14,8 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
@@ -55,8 +55,8 @@ internal class TestPositions {
 
     @Test
     fun is_MixedTradeCurrenciesHandled() {
-        val usdAsset = Asset("USDAsset", Market("USMarket"))
-        val nzdAsset = Asset("NZDAsset", Market("NZMarket", NZD.code))
+        val usdAsset = Asset(code = "USDAsset", market = Market("USMarket"))
+        val nzdAsset = Asset(code = "NZDAsset", market = Market("NZMarket", NZD.code))
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
         assertThat(positions.isMixedCurrencies).isFalse
         positions.add(positions[usdAsset])
@@ -67,7 +67,7 @@ internal class TestPositions {
 
     @Test
     fun is_DateValuesSetFromTransaction() {
-        val asset = getAsset(Market("Code"), "Dates")
+        val asset = getTestAsset(Market("Code"), "Dates")
         val expectedDate = "2018-12-01"
         val firstTradeDate = dateUtils.getDate(expectedDate)
         val secondTradeDate = dateUtils.getDate("2018-12-02")
@@ -83,7 +83,7 @@ internal class TestPositions {
     @Test
     fun is_GetPositionNonNull() {
         val positions = Positions(PortfolioUtils.getPortfolio())
-        val asset = getAsset(NYSE, "AnyCode")
+        val asset = getTestAsset(NYSE, "AnyCode")
         val position = positions[asset]
         assertThat(position).isNotNull.hasFieldOrPropertyWithValue("asset", asset)
     }

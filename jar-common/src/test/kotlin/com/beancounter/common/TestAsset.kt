@@ -8,8 +8,8 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.AssetUtils.Companion.split
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 internal class TestAsset {
     @Test
     fun assetDefaults() {
-        val asset = getAsset(
+        val asset = getTestAsset(
             Market("Any"),
             "Thing",
         )
@@ -31,7 +31,7 @@ internal class TestAsset {
 
     @Test
     fun assetKeyParses() {
-        val asset = getAsset(
+        val asset = getTestAsset(
             Market("MCODE"),
             "ACODE",
         )
@@ -46,7 +46,7 @@ internal class TestAsset {
         assertThat(toKey(assetInput))
             .isEqualTo(keyIn)
         assertThat(fromKey(keyIn))
-            .isEqualTo(asset)
+            .isEqualTo(asset).usingRecursiveComparison().ignoringFields("id")
     }
 
     @Test
@@ -91,6 +91,6 @@ internal class TestAsset {
         if (marketAsset.size != 2) {
             throw BusinessException(String.format("Unable to parse the key %s", key))
         }
-        return getAsset(Market(marketAsset[1]), marketAsset[0])
+        return getTestAsset(Market(marketAsset[1]), marketAsset[0])
     }
 }

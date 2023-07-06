@@ -3,10 +3,10 @@ package com.beancounter.position.valuation
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.PositionResponse
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.position.Constants.Companion.CASH
 import com.beancounter.position.Constants.Companion.NASDAQ
@@ -71,10 +71,10 @@ internal class CashLadderTest {
     @Test
     fun positionRequestFromTransactions() {
         val date = "2021-10-18"
-        val apple = Asset(code = "AAPL", market = NASDAQ)
+        val apple = getTestAsset(code = "AAPL", market = NASDAQ)
 
-        val usdCash = Asset(USD.code, CASH)
-        val nzdCash = Asset(NZD.code, CASH)
+        val usdCash = getTestAsset(code = USD.code, market = CASH)
+        val nzdCash = getTestAsset(code = NZD.code, market = CASH)
         val json = mockMvc.perform(
             MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))

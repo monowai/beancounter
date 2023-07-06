@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.KMI
@@ -121,7 +121,7 @@ internal class TrnValuationTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(code, portfolio.code)
         assertThat(positionResponse.data.asAt).isEqualTo(date)
-        assertThat(positionResponse.data[getAsset(NASDAQ, "AAPL")])
+        assertThat(positionResponse.data[getTestAsset(NASDAQ, "AAPL")])
             .isNotNull
     }
 

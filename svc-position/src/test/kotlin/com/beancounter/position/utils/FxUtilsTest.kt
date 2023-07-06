@@ -9,7 +9,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.GBP
 import com.beancounter.position.Constants.Companion.NASDAQ
@@ -30,7 +30,7 @@ internal class FxUtilsTest {
 
     @Test
     fun is_CurrencyPairResultsAsExpected() {
-        val (asset) = Position(getAsset(NASDAQ, "Test"))
+        val (asset) = Position(getTestAsset(NASDAQ, "Test"))
         val validCurrency = asset.market.currency
         assertThat(toPair(NZD, validCurrency))
             .isNotNull // From != To
@@ -44,13 +44,13 @@ internal class FxUtilsTest {
         val usdMarket = Market(USD.code)
 
         positions.add(
-            getPosition(getAsset(gbpMarket, "$GBP.code Asset"), positions),
+            getPosition(getTestAsset(gbpMarket, "$GBP.code Asset"), positions),
         )
         positions.add(
-            getPosition(getAsset(usdMarket, "$USD.code Asset"), positions),
+            getPosition(getTestAsset(usdMarket, "$USD.code Asset"), positions),
         )
         positions.add(
-            getPosition(getAsset(usdMarket, "$USD.code Asset Other"), positions),
+            getPosition(getTestAsset(usdMarket, "$USD.code Asset Other"), positions),
         )
         val (_, pairs) = fxUtils.buildRequest(USD, positions)
         assertThat(pairs).hasSize(3)

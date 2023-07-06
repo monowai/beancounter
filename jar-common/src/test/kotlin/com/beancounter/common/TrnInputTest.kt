@@ -16,7 +16,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
@@ -42,7 +42,7 @@ internal class TrnInputTest {
             callerRef = CallerRef(oneString, oneString, abc),
             tradeDate = DateUtils().getDate("2019-10-10"),
             settleDate = DateUtils().getDate("2019-10-10"),
-            assetId = getAsset(NYSE, "MSFT").id,
+            assetId = getTestAsset(NYSE, "MSFT").id,
             cashAssetId = toKey("USD-X", "USER"),
             cashCurrency = USD.code,
             fees = BigDecimal.ONE,
@@ -73,7 +73,7 @@ internal class TrnInputTest {
     @Throws(Exception::class)
     fun is_TransactionResponseSerializing() {
         val trnType = TrnType.BUY
-        val asset = getAsset(NYSE, "TEST")
+        val asset = getTestAsset(NYSE, "TEST")
         val portfolio = getPortfolio("TWEE")
         portfolio.owner = SystemUser("123", "whee", true)
         val trn = Trn(

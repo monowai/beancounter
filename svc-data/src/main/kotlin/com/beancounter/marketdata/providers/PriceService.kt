@@ -95,4 +95,8 @@ class PriceService internal constructor(
     fun purge() {
         marketDataRepo.deleteAll()
     }
+
+    fun purge(marketData: MarketData) {
+        marketDataRepo.deleteById(marketData.id)
+    }
 }

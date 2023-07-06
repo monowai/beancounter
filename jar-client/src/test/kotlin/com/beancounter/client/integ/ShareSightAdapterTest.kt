@@ -12,7 +12,7 @@ import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -47,9 +47,9 @@ internal class ShareSightAdapterTest {
 
     @Test
     fun is_ExchangeAliasReturnedInAssetCode() {
-        var expectedAsset = getAsset(NYSE, "ABBV")
+        var expectedAsset = getTestAsset(NYSE, "ABBV")
         verifyMarketCode("ABBV.NYSE", expectedAsset)
-        expectedAsset = getAsset(ASX, "AMP")
+        expectedAsset = getTestAsset(ASX, "AMP")
         verifyMarketCode("AMP.AX", expectedAsset)
     }
 

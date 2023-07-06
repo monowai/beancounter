@@ -40,21 +40,21 @@ internal class AssetHydrationServiceTest {
     @Test
     fun hydrateEquityWithDefaults() {
         val assetInput = AssetInput(NYSE.code, "EQUITY", category = "Equity")
-        val hydratedAsset = assetHydrationService.hydrateAsset(Asset(assetInput, NYSE))
+        val hydratedAsset = assetHydrationService.hydrateAsset(Asset.of(assetInput, NYSE))
         validate(hydratedAsset, assetCategoryConfig.get())
     }
 
     @Test
     fun hydrateMutualFund() {
         val assetInput = AssetInput(NYSE.code, "Fund", category = "Mutual Fund")
-        val hydratedAsset = assetHydrationService.hydrateAsset(Asset(assetInput, NYSE))
+        val hydratedAsset = assetHydrationService.hydrateAsset(Asset.of(assetInput, NYSE))
         validate(hydratedAsset, assetCategoryConfig.get("Mutual Fund"))
     }
 
     @Test
     fun hydrateCash() {
         val assetInput = AssetInput(NYSE.code, "USD Cash", category = "Cash")
-        val hydratedAsset = assetHydrationService.hydrateAsset(Asset(assetInput, NYSE))
+        val hydratedAsset = assetHydrationService.hydrateAsset(Asset.of(assetInput, NYSE))
         validate(hydratedAsset, assetCategoryConfig.get("Cash"))
     }
 

@@ -6,7 +6,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.MSFT
@@ -25,9 +25,9 @@ import java.time.LocalDate
  * of being based on batch sizes.
  */
 internal class DataProviderArgumentsTest {
-    private val aapl = getAsset(NASDAQ, AAPL.code)
-    private val msft = getAsset(NASDAQ, MSFT.code)
-    private val intc = getAsset(NASDAQ, "INTC")
+    private val aapl = getTestAsset(NASDAQ, AAPL.code)
+    private val msft = getTestAsset(NASDAQ, MSFT.code)
+    private val intc = getTestAsset(NASDAQ, "INTC")
     private val twee = "TWEE"
 
     @Test
@@ -76,7 +76,7 @@ internal class DataProviderArgumentsTest {
             PriceAsset(
                 marketA,
                 code,
-                getAsset(Market(marketA), code),
+                getTestAsset(Market(marketA), code),
             ),
         )
         val marketB = "BBB"
@@ -84,7 +84,7 @@ internal class DataProviderArgumentsTest {
             PriceAsset(
                 marketB,
                 code,
-                getAsset(Market(marketB), code),
+                getTestAsset(Market(marketB), code),
             ),
         )
         val marketC = "CCC"
@@ -92,7 +92,7 @@ internal class DataProviderArgumentsTest {
             PriceAsset(
                 marketC,
                 code,
-                getAsset(Market(marketC), code),
+                getTestAsset(Market(marketC), code),
             ),
         )
         val priceRequest = PriceRequest(assets = assets)
@@ -125,7 +125,7 @@ internal class DataProviderArgumentsTest {
             PriceAsset(
                 NYSE.code,
                 notActive,
-                Asset(AssetInput(NYSE.code, notActive), NYSE, Status.Inactive),
+                Asset.of(AssetInput(NYSE.code, notActive), NYSE, Status.Inactive),
                 notActive,
             )
         val assetInputs: MutableCollection<PriceAsset> = arrayListOf(priceAsset)

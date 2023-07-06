@@ -145,7 +145,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
                 // We have a market
                 market = Market(values[1])
             }
-            asset = Asset(values[0], market)
+            asset = Asset(code = values[0], market = market)
         }
         return asset
     }

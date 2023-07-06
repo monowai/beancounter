@@ -11,6 +11,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.assetRoot
@@ -60,8 +61,8 @@ internal class AssetControllerTest(
 
     @Test
     fun is_AssetCreationAndFindByWorking() {
-        val firstAsset = Asset(market = NASDAQ, code = "MyCode")
-        val secondAsset = Asset(market = NASDAQ, code = "Second")
+        val firstAsset = getTestAsset(market = NASDAQ, code = "MyCode")
+        val secondAsset = getTestAsset(market = NASDAQ, code = "Second")
         val assetInputMap = mapOf(
             Pair(toKey(firstAsset), getAssetInput(NASDAQ.code, firstAsset.code)),
             Pair(toKey(secondAsset), getAssetInput(NASDAQ.code, secondAsset.code)),
@@ -129,7 +130,7 @@ internal class AssetControllerTest(
             .hasFieldOrProperty("market")
             .hasFieldOrPropertyWithValue(pName, asset.name)
             .hasFieldOrPropertyWithValue("code", asset.code.uppercase(Locale.getDefault()))
-            .hasFieldOrPropertyWithValue("marketCode", null)
+            .hasFieldOrPropertyWithValue("marketCode", NASDAQ.code)
             .hasFieldOrPropertyWithValue("version", "1")
             .hasFieldOrPropertyWithValue("status", Status.Active)
             .hasFieldOrProperty(pId)

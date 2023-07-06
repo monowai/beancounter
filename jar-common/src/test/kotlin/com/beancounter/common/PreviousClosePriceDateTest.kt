@@ -72,7 +72,7 @@ internal class PreviousClosePriceDateTest {
         assertThat(previousClose.getPriceDate(utcEve, nasdaq, true))
             .isEqualTo(dateUtils.getDate("2021-10-12"))
 
-        val ofAsset = PriceRequest.of(AssetUtils.getAsset(Market("Blah"), "Test"))
+        val ofAsset = PriceRequest.of(AssetUtils.getTestAsset(Market("Blah"), "Test"))
         assertThat(ofAsset.date)
             .isEqualTo(DateUtils.today)
     }

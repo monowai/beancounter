@@ -5,7 +5,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -46,7 +46,7 @@ internal class QuantityAccumulationTest {
         val positions = Positions(getPortfolio())
         val buyTrn = Trn(
             trnType = TrnType.BUY,
-            asset = getAsset(Market("marketCode"), "CODE"),
+            asset = getTestAsset(Market("marketCode"), "CODE"),
             quantity = hundred,
             tradeAmount = BigDecimal(2000),
         )

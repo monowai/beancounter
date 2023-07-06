@@ -20,13 +20,13 @@ class OffMarketEnricher(
     override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
         val systemUser = systemUserService.getOrThrow
         return Asset(
-            id = id,
-            market = market,
             code = parseCode(systemUser, assetInput.code),
+            id = id,
             name = if (assetInput.name != null) assetInput.name!!.replace("\"", "") else null,
-            category = assetInput.category,
+            market = market,
             marketCode = market.code,
             priceSymbol = assetInput.currency,
+            category = assetInput.category,
             systemUser = systemUser,
         )
     }

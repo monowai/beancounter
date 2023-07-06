@@ -19,11 +19,11 @@ import jakarta.persistence.UniqueConstraint
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "marketCode"])])
 data class Asset(
-    @Id val id: String,
-    var code: String,
-    @JsonInclude(JsonInclude.Include.NON_NULL) var name: String?,
+    val code: String,
+    @Id val id: String = code,
+    @JsonInclude(JsonInclude.Include.NON_NULL) var name: String? = null,
     @Transient var market: Market,
-    @JsonIgnore val marketCode: String? = null,
+    @JsonIgnore val marketCode: String = market.code,
     val priceSymbol: String? = null,
     @JsonIgnore var category: String = "Equity",
     @Transient var assetCategory: AssetCategory = AssetCategory(category, category),
@@ -32,25 +32,28 @@ data class Asset(
     var version: String = "1",
 ) {
 
-    constructor(input: AssetInput, market: Market, status: Status = Status.Active) : this(
-        id = input.code,
-        code = input.code,
-        name = input.name,
-        category = input.category,
-        market = market,
-        marketCode = market.code,
-        priceSymbol = input.code,
-        status = status,
-    )
+    companion object {
+        @JvmStatic
+        fun of(input: AssetInput, market: Market, status: Status = Status.Active): Asset = Asset(
+            code = input.code,
+            id = input.code,
+            name = input.name,
+            market = market,
+            marketCode = market.code,
+            priceSymbol = input.code,
+            category = input.category,
+            status = status,
+        )
+    }
 
-    constructor(code: String, market: Market, marketCode: String? = null, status: Status = Status.Active) : this(
-        id = code,
-        code = code,
-        name = code,
-        market = market,
-        marketCode = marketCode,
-        status = status,
-    )
+//    constructor(code: String, market: Market, marketCode: String = market.code, status: Status = Status.Active) : this(
+//        id = code,
+//        code = code,
+//        name = code,
+//        market = market,
+//        marketCode = marketCode,
+//        status = status,
+//    )
 
     // Is this asset stored locally?
     @get:JsonIgnore

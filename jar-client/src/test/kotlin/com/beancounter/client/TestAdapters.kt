@@ -11,7 +11,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.common.utils.TradeCalculator
@@ -137,7 +137,7 @@ class TestAdapters {
             tradeCalculator,
         )
         Mockito.`when`(assetIngestService.resolveAsset(AssetInput(NYSE.code, "ABC")))
-            .thenReturn(getAsset(NYSE, "ABC"))
+            .thenReturn(getTestAsset(NYSE, "ABC"))
         val result = shareSightTradeAdapter.from(
             TrustedTrnImportRequest(
                 getPortfolio(),

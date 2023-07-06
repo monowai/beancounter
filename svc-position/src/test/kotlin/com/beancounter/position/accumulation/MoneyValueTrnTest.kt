@@ -4,7 +4,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.NASDAQ
@@ -28,7 +28,7 @@ import java.math.BigDecimal
  */
 @SpringBootTest(classes = [Accumulator::class])
 internal class MoneyValueTrnTest {
-    private val microsoft = getAsset(NASDAQ, "MSFT")
+    private val microsoft = getTestAsset(NASDAQ, "MSFT")
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired

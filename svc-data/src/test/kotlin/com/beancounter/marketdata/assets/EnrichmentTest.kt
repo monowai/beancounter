@@ -28,7 +28,7 @@ class EnrichmentTest {
     @Test
     fun is_FigiEnrichment() {
         val enricher: AssetEnricher = FigiEnricher(DefaultEnricher())
-        val asset = Asset(id = id, code = code, market = NYSE, name = null)
+        val asset = Asset(code = code, id = id, name = null, market = NYSE)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
         assertThat(enricher.canEnrich(asset)).isFalse
@@ -37,7 +37,7 @@ class EnrichmentTest {
     @Test
     fun is_AlphaEnrichment() {
         val enricher: AssetEnricher = AlphaEnricher(AlphaConfig(), DefaultEnricher())
-        val asset = Asset(id = id, code = code, market = NYSE, name = null)
+        val asset = Asset(code = code, id = id, name = null, market = NYSE)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name
         assertThat(enricher.canEnrich(asset)).isFalse
@@ -57,7 +57,7 @@ class EnrichmentTest {
         Mockito.`when`(
             keyGenUtils.id,
         ).thenReturn(keyGenId)
-        val asset = Asset(id = id, code = code, market = offMarket, name = null)
+        val asset = Asset(code = code, id = id, name = null, market = offMarket)
         assertThat(enricher.canEnrich(asset)).isTrue
         val enriched = enricher.enrich(asset.id, offMarket, AssetInput.toRealEstate(USD, code, "Anything", "test-user"))
         assertThat(enriched)

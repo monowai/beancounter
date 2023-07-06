@@ -4,7 +4,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.position.Constants.Companion.AAPL
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
@@ -26,7 +26,7 @@ internal class StockSplitTest {
 
     @Test
     fun is_QuantityWorkingForSplit() {
-        val apple = getAsset(NASDAQ, AAPL)
+        val apple = getTestAsset(NASDAQ, AAPL)
         val positions = Positions()
 
         val tradeAmount = BigDecimal("2000")

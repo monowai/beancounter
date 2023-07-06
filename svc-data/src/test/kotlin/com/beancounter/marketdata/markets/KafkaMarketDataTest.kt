@@ -9,9 +9,9 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
@@ -135,7 +135,7 @@ class KafkaMarketDataTest {
             PriceAsset(
                 NASDAQ.code,
                 Constants.AAPL.code,
-                resolvedAsset = AssetUtils.getAsset(NASDAQ, Constants.AAPL.code),
+                resolvedAsset = getTestAsset(NASDAQ, Constants.AAPL.code),
                 asset.id,
             ),
         )
@@ -164,7 +164,7 @@ class KafkaMarketDataTest {
         data["a"] = AssetInput(NASDAQ.code, "TWEE")
         val assetRequest = AssetRequest(data)
         `when`(assetService.handle(assetRequest))
-            .thenReturn(AssetUpdateResponse(mapOf(Pair("a", Asset("id", market = NASDAQ)))))
+            .thenReturn(AssetUpdateResponse(mapOf(Pair("a", getTestAsset(code = "id", market = NASDAQ)))))
         val assetResult = assetService.handle(assetRequest)
         assertThat(assetResult.data).hasSize(1)
         val asset = assetResult.data["a"]

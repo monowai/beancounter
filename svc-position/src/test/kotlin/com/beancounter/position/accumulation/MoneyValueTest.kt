@@ -4,7 +4,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.AssetUtils.Companion.getAsset
+import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
@@ -21,9 +21,9 @@ import java.math.RoundingMode
  */
 @SpringBootTest(classes = [Accumulator::class])
 internal class MoneyValueTest {
-    private val microsoft = getAsset(NASDAQ, "MSFT")
-    private val intel = getAsset(NASDAQ, "INTC")
-    private val bidu = getAsset(NASDAQ, "BIDU")
+    private val microsoft = getTestAsset(NASDAQ, "MSFT")
+    private val intel = getTestAsset(NASDAQ, "INTC")
+    private val bidu = getTestAsset(NASDAQ, "BIDU")
 
     @Autowired
     private lateinit var accumulator: Accumulator

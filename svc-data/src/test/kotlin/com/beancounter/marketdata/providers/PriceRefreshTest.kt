@@ -63,7 +63,7 @@ internal class PriceRefreshTest {
             alphaPriceService.getMarketData(
                 PriceRequest(today, listOf(PriceAsset(NASDAQ.code, code = code))),
             ),
-        ).thenReturn(listOf(MarketData(Asset("", NASDAQ))))
+        ).thenReturn(listOf(MarketData(Asset(code = "", market = NASDAQ))))
         val asset = assetRepository.save(
             Asset(
                 code = code,

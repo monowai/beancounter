@@ -24,7 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 
 /**
- * verify that prices and assets are correcectlly hydrated.
+ * Verify price refresh removes and re-imports the price for a single asset.
  */
 @SpringBootTest
 @Tag("slow")

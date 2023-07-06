@@ -10,7 +10,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils

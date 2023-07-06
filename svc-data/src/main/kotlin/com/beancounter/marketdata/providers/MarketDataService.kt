@@ -132,7 +132,7 @@ class MarketDataService @Autowired internal constructor(
         priceService.purge()
     }
 
-    fun refresh(asset: Asset, priceDate: String): MarketData {
+    fun refresh(asset: Asset, priceDate: String) {
         val priceAssets = mutableListOf(PriceAsset(asset))
         val priceRequest = PriceRequest(date = priceDate, assets = priceAssets)
         val providers = providerUtils.splitProviders(priceAssets)
@@ -146,9 +146,6 @@ class MarketDataService @Autowired internal constructor(
         if (md.isPresent) {
             priceService.purge(md.get())
         }
-        return getPriceResponse(priceRequest).data.iterator().next()
-//        val newPrice = priceService.getMarketData(asset, dateMap.iterator().next().value)
-//        return newPrice.get()
     }
 
     companion object {

@@ -17,6 +17,7 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
@@ -60,7 +61,7 @@ internal class PriceControllerTests @Autowired private constructor(
 
     private lateinit var priceDate: LocalDate
     private val mockPrice = BigDecimal("999.99")
-    private val asset: Asset = Asset(market = NASDAQ, code = "dummy")
+    private val asset: Asset = Asset(market = US, code = "dummy")
 
     @MockBean
     private lateinit var assetService: AssetService

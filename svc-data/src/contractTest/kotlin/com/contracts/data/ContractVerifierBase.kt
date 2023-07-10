@@ -3,7 +3,6 @@ package com.contracts.data
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.registration.SystemUserService
@@ -29,8 +28,6 @@ import org.springframework.test.context.ActiveProfiles
 @AutoConfigureNoAuth
 @Import(ContractHelper::class, NoWebAuth::class)
 class ContractVerifierBase {
-
-    internal var dateUtils = DateUtils()
 
     @LocalServerPort
     lateinit var port: String

@@ -10,12 +10,12 @@ beancounter:
       ALPHA:
         url: https://www.alphavantage.co
         batchSize: 1
-        markets:
-
-      WTD:
-        url: https://www.worldtradingdata.com
-        batchSize: 2
         markets: NASDAQ,AMEX,NYSE,NZX,ASX
+
+#      WTD:
+#        url: https://www.worldtradingdata.com
+#        batchSize: 2
+#        markets: NASDAQ,AMEX,NYSE,NZX,ASX
 
 logging:
   level:

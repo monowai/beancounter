@@ -1,5 +1,6 @@
 package com.contracts.data
 
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.fx.EcbMockUtils
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
@@ -7,6 +8,7 @@ import com.beancounter.marketdata.fx.fxrates.FxGateway
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 
 /**
@@ -15,6 +17,9 @@ import org.springframework.boot.test.mock.mockito.MockBean
 class FxBase : ContractVerifierBase() {
     @MockBean
     private lateinit var fxGateway: FxGateway
+
+    @Autowired
+    private lateinit var dateUtils: DateUtils
 
     private val eur = "0.8973438622"
     private val sgd = "1.3652189519"

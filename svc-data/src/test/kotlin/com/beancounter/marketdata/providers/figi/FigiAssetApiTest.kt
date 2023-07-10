@@ -37,6 +37,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -55,6 +56,7 @@ private const val berkshire = "BRK.B"
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
+@DirtiesContext
 class FigiAssetApiTest {
 
     @Autowired

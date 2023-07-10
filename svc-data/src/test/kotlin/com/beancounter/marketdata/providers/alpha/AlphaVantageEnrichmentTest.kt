@@ -19,11 +19,15 @@ import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -46,7 +50,9 @@ import java.math.BigDecimal
 @AutoConfigureMockAuth
 class AlphaVantageEnrichmentTest {
 
-    private val dateUtils = DateUtils()
+    @MockBean
+    private lateinit var dateUtils: DateUtils
+
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
@@ -78,9 +84,9 @@ class AlphaVantageEnrichmentTest {
 
     private lateinit var token: Jwt
 
-    @Autowired
-    @Throws(Exception::class)
+    @BeforeEach
     fun mockServices() {
+        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
         AlphaMockUtils.mockAlphaAssets()
         // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
@@ -88,12 +94,14 @@ class AlphaVantageEnrichmentTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MutualFundAssetEnrichedAndPriceReturned() {
         val code = "B6WZJX0"
         val lon = "LON"
         val alphaConfig = AlphaConfig()
-        AlphaMockUtils.mockSearchResponse("$code.$lon", ClassPathResource("/mock/alpha/mf-search.json").file)
+        AlphaMockUtils.mockSearchResponse(
+            "$code.$lon",
+            ClassPathResource("/mock/alpha/mf-search.json").file,
+        )
         val symbol = "0P0000XMSV.$lon"
         AlphaMockUtils.mockGlobalResponse(
             symbol,
@@ -102,21 +110,31 @@ class AlphaVantageEnrichmentTest {
 
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.get(marketCodeUrl, lon, code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)).contentType(MediaType.APPLICATION_JSON),
+                .with(
+                    SecurityMockMvcRequestPostProcessors
+                        .jwt().jwt(token),
+                ).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn()
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn()
+
         val (data) = objectMapper.readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.codeProp, code)
             .hasFieldOrProperty(AlphaConstants.marketProp).hasFieldOrPropertyWithValue("market.code", lon)
             .hasFieldOrPropertyWithValue(AlphaConstants.priceSymbolProp, symbol)
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "AXA Framlington Health Fund Z GBP Acc")
+
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
+
         val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(data))
         assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
         assertThat(
             priceResponse.data.iterator().next(),
-        ).isNotNull.hasFieldOrPropertyWithValue(AlphaConstants.priceDateProp, dateUtils.getDate("2020-05-12"))
+        ).isNotNull.hasFieldOrPropertyWithValue(
+            AlphaConstants.priceDateProp,
+            DateUtils().getDate("2020-05-12"),
+        )
             .hasFieldOrPropertyWithValue(AlphaConstants.closeProp, price)
             .hasFieldOrPropertyWithValue(AlphaConstants.prevCloseProp, price)
             .hasFieldOrPropertyWithValue(AlphaConstants.lowProp, price)
@@ -125,7 +143,6 @@ class AlphaVantageEnrichmentTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_EnrichedMarketCodeTranslated() {
         val amp = "AMP"
         val mvcResult = mockMvc.perform(
@@ -143,7 +160,6 @@ class AlphaVantageEnrichmentTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MismatchExchangeEnrichmentHandled() {
         // De-listed asset that can be found on the non-requested market
         val assetInputMap: MutableMap<String, AssetInput> = HashMap()

@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedEventInput
-import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
@@ -19,13 +18,10 @@ import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal

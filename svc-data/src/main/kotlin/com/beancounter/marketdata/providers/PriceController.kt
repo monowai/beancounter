@@ -1,14 +1,12 @@
 package com.beancounter.marketdata.providers
 
 import com.beancounter.auth.model.AuthConstants
-import com.beancounter.client.sharesight.ShareSightTradeAdapter.Companion.market
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -37,6 +35,7 @@ class PriceController(
     private val eventService: AlphaEventService,
     private val systemUserService: SystemUserService,
     private val priceService: PriceService,
+    private val dateUtils: DateUtils,
 ) {
 
     /**
@@ -123,7 +122,7 @@ class PriceController(
     @GetMapping("/refresh/{assetId}/{date}")
     fun refreshPrices(
         @PathVariable assetId: String,
-        @PathVariable(required = false) date: String = today,
+        @PathVariable(required = false) date: String = dateUtils.getDate().toString(),
     ): PriceResponse =
         priceRefresh.refreshPrice(assetId, date)
 

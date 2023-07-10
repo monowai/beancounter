@@ -19,6 +19,7 @@ import java.util.function.Consumer
  * Server side portfolio activities.
  */
 @Service
+@Transactional
 class PortfolioService internal constructor(
     private val portfolioInputAdapter: PortfolioInputAdapter,
     private val portfolioRepository: PortfolioRepository,
@@ -36,6 +37,7 @@ class PortfolioService internal constructor(
         return results
     }
 
+    @Transactional(Transactional.TxType.SUPPORTS)
     fun canView(found: Portfolio): Boolean {
         val systemUser = systemUserService.getOrThrow
         return systemUser.id == AuthConstants.SYSTEM || found.owner.id == systemUser.id
@@ -97,13 +99,11 @@ class PortfolioService internal constructor(
         throw BusinessException(String.format("Could not find a portfolio with code %s", code))
     }
 
-    @Transactional
     fun update(id: String, portfolioInput: PortfolioInput?): Portfolio {
         val existing = find(id)
         return portfolioRepository.save(portfolioInputAdapter.fromInput(portfolioInput!!, existing))
     }
 
-    @Transactional
     fun delete(id: String) {
         val portfolio = find(id)
         trnRepository.deleteByPortfolioId(portfolio.id)

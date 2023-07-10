@@ -8,7 +8,6 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.Constants.Companion.US
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
@@ -57,8 +56,13 @@ internal class PriceControllerRefreshTests
 
     @Autowired
     private lateinit var mdFactory: MdFactory
+    private var testDate = dateUtils.getLocalDate()
+
     private val asset = Asset(code = "DUMMY", market = US)
-    private val priceRequest = PriceRequest(assets = listOf(PriceAsset(asset)))
+    private val priceRequest = PriceRequest(
+        date = testDate.toString(),
+        assets = listOf(PriceAsset(asset)),
+    )
 
     @BeforeEach
     fun mockAlphaPriceService() {
@@ -71,9 +75,10 @@ internal class PriceControllerRefreshTests
 
         assertThat(mdFactory.getMarketDataProvider(US).getId())
             .isEqualTo(AlphaPriceService.ID)
-
         Mockito.`when`(alphaPriceService.getDate(asset.market, priceRequest))
-            .thenReturn(dateUtils.getDate(dateUtils.today()))
+            .thenReturn(testDate)
+//        Mockito.`when`(alphaPriceService.getDate(asset.market, priceRequest))
+//            .thenReturn(date)
     }
 
     @Test
@@ -95,7 +100,7 @@ internal class PriceControllerRefreshTests
         Mockito.`when`(alphaPriceService.getMarketData(priceRequest = priceRequest))
             .thenReturn(listOf(MarketData(asset = asset, close = BigDecimal("11.00"))))
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/prices/refresh/{assetId}/{date}", asset.id, today)
+            MockMvcRequestBuilders.get("/prices/refresh/{assetId}/{date}", asset.id, testDate)
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                 .contentType(MediaType.APPLICATION_JSON_VALUE),
         )

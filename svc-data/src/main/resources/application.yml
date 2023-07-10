@@ -43,7 +43,7 @@ logging:
       aspectj: error
       springframework: error
       springframework.scheduling: info
-      springframework.security: trace
+      #springframework.security: error
       hibernate: error
       apache: error
       postgres: error

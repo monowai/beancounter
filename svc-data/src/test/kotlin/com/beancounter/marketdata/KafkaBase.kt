@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles
     partitions = 1,
     topics = [
         TrnExportKafkaImportTest.TOPIC_CSV_IO,
-        KafkaMarketDataTest.TOPIC_EVENT
+        KafkaMarketDataTest.TOPIC_EVENT,
     ],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = ["log.dir=./build/kafka-trn", "auto.create.topics.enable=true"],
@@ -40,5 +40,4 @@ class KafkaBase {
 
     @Autowired
     lateinit var kafkaWriter: KafkaTemplate<Any, TrustedTrnImportRequest>
-
 }

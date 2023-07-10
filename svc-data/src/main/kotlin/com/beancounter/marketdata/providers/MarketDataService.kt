@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +12,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.util.Optional
+import java.util.*
 
 /**
  * Service container for MarketData information.
@@ -41,21 +42,43 @@ class MarketDataService @Autowired internal constructor(
      */
     @Transactional
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
-        val byFactory = providerUtils.splitProviders(priceRequest.assets)
+        val byProviders = providerUtils.splitProviders(priceRequest.assets)
         val foundInDb: MutableCollection<MarketData> = mutableListOf()
         val foundOverApi: MutableCollection<MarketData> = mutableListOf()
-        val marketData: MutableMap<String, LocalDate> = mutableMapOf()
+        val cachedDates: MutableMap<String, LocalDate> = mutableMapOf()
 
-        for (marketDataProvider in byFactory.keys) {
+        for (marketDataProvider in byProviders.keys) {
             // Find existing price for date
-            val assetIterable = (byFactory[marketDataProvider] ?: error("")).iterator()
-            while (assetIterable.hasNext()) {
-                getMarketData(assetIterable, marketDataProvider, priceRequest, marketData, foundInDb)
+            val assets = (byProviders[marketDataProvider] ?: error("")).iterator()
+            while (assets.hasNext()) {
+                val asset = assets.next()
+                val market = asset.market
+                if (!cachedDates.containsKey(market.timezone.id)) {
+                    val marketDate = getMarketDate(
+                        marketDataProvider,
+                        asset,
+                        priceRequest,
+                    )
+                    cachedDates[market.timezone.id] = marketDate
+                }
+
+                val response = getMarketData(
+                    asset,
+                    priceRequest,
+                    cachedDates[market.timezone.id]!!,
+                )
+
+                if (response.marketData.isPresent) {
+                    val mdValue = response.marketData.get()
+                    mdValue.asset = asset
+                    foundInDb.add(mdValue)
+                    assets.remove() // One less external query to make
+                }
             }
 
             // Pull the balance over external API integration
             foundOverApi.addAll(
-                getExternally(byFactory[marketDataProvider], priceRequest.date, marketDataProvider),
+                getFromProvider(byProviders[marketDataProvider], cachedDates, marketDataProvider),
             )
         }
         // Merge results into a response
@@ -70,59 +93,43 @@ class MarketDataService @Autowired internal constructor(
     }
 
     private fun getMarketData(
-        assetIterable: MutableIterator<Asset>,
-        marketDataProvider: MarketDataPriceProvider,
+        asset: Asset,
         priceRequest: PriceRequest,
-        marketDates: MutableMap<String, LocalDate> = mutableMapOf(),
-        foundInDb: MutableCollection<MarketData> = mutableListOf(),
-    ): Optional<MarketData> {
-        val asset = assetIterable.next()
-        val marketDate = getMarketDate(
-            marketDataProvider,
-            asset,
-            priceRequest,
-            marketDates,
-        )
-
+        marketDate: LocalDate,
+    ): MarketDataParameters {
         val md = priceService.getMarketData(asset, marketDate, priceRequest.closePrice)
-        if (md.isPresent) {
-            val mdValue = md.get()
-            mdValue.asset = asset
-            foundInDb.add(mdValue)
-            assetIterable.remove() // One less external query to make
-        }
-        return md
+        return MarketDataParameters(md, asset.market)
     }
 
-    private fun getExternally(
-        apiAssets: MutableCollection<Asset>?,
-        date: String,
+    class MarketDataParameters(
+        val marketData: Optional<MarketData>,
+        val market: Market,
+    )
+
+    private fun getFromProvider(
+        providerAssets: MutableCollection<Asset>?,
+        timezonePriceDates: MutableMap<String, LocalDate>,
         marketDataPriceProvider: MarketDataPriceProvider,
     ): Collection<MarketData> {
-        if (!apiAssets!!.isEmpty()) {
-            val assetInputs = providerUtils.getInputs(apiAssets)
-            val apiRequest = PriceRequest(date, assetInputs)
+        if (!providerAssets!!.isEmpty()) {
+            val assetInputs = providerUtils.getInputs(providerAssets)
+            val priceDate = timezonePriceDates[providerAssets.iterator().next().market.timezone.id]
+            val apiRequest = PriceRequest(priceDate.toString(), assetInputs)
             return marketDataPriceProvider.getMarketData(apiRequest)
         }
         return arrayListOf()
     }
 
-    private fun getMarketDate(
+    fun getMarketDate(
         marketDataPriceProvider: MarketDataPriceProvider,
         asset: Asset,
         priceRequest: PriceRequest,
-        marketDates: MutableMap<String, LocalDate>,
     ): LocalDate {
-        val forTimezone = marketDates[asset.market.timezone.id]
-        if (forTimezone == null) {
-            val marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
-            marketDates[asset.market.timezone.id] = marketDate
-            if (priceRequest.assets.size > 1) {
-                log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate, asset: ${asset.name}, assetId: ${asset.id}")
-            }
-            return marketDate
+        val marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
+        if (priceRequest.assets.size > 1) {
+            log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate, asset: ${asset.name}, assetId: ${asset.id}")
         }
-        return forTimezone
+        return marketDate
     }
 
     /**
@@ -134,17 +141,17 @@ class MarketDataService @Autowired internal constructor(
 
     fun refresh(asset: Asset, priceDate: String) {
         val priceAssets = mutableListOf(PriceAsset(asset))
-        val priceRequest = PriceRequest(date = priceDate, assets = priceAssets)
+        log.trace("Refreshing ${asset.name}: $priceDate")
         val providers = providerUtils.splitProviders(priceAssets)
-        val dateMap = mutableMapOf<String, LocalDate>()
-        val md = getMarketData(
-            mutableListOf(asset).iterator(),
-            marketDataProvider = providers.keys.iterator().next(),
+        val priceRequest = PriceRequest(date = priceDate, assets = priceAssets)
+        val marketDate = getMarketDate(providers.keys.iterator().next(), asset, priceRequest)
+        val response = getMarketData(
+            asset,
             priceRequest = priceRequest,
-            marketDates = dateMap,
+            marketDate = marketDate,
         )
-        if (md.isPresent) {
-            priceService.purge(md.get())
+        if (response.marketData.isPresent) {
+            priceService.purge(response.marketData.get())
         }
     }
 

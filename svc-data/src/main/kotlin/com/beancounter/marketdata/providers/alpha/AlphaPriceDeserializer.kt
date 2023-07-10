@@ -24,6 +24,22 @@ private const val DIVI = "7. dividend amount"
 
 private const val VOLUME = "6. volume"
 
+const val fOpen = "02. open"
+
+const val fHigh = "03. high"
+
+const val fLow = "04. low"
+
+const val fPrice = "05. price"
+
+const val fVolume = "06. volume"
+
+const val fPreviousClose = "08. previous close"
+
+const val fChange = "09. change"
+
+const val fDate = "07. latest trading day"
+
 /**
  * Deserialize various AlphaVantage responses to a normalised PriceResponse.
  *
@@ -59,14 +75,14 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     private fun getMdFromGlobal(asset: Asset?, data: Map<String, Any>?): PriceResponse {
         val results: MutableCollection<MarketData> = ArrayList()
         if (data != null && asset != null) {
-            val open = BigDecimal(data["02. open"].toString())
-            val high = BigDecimal(data["03. high"].toString())
-            val low = BigDecimal(data["04. low"].toString())
-            val close = BigDecimal(data["05. price"].toString())
-            val volume = Integer.decode(data["06. volume"].toString())
-            val priceDate = data["07. latest trading day"].toString()
-            val previousClose = get(data["08. previous close"].toString())
-            val change = get(data["09. change"].toString())
+            val open = BigDecimal(data[fOpen].toString())
+            val high = BigDecimal(data[fHigh].toString())
+            val low = BigDecimal(data[fLow].toString())
+            val close = BigDecimal(data[fPrice].toString())
+            val volume = Integer.decode(data[fVolume].toString())
+            val priceDate = data[fDate].toString()
+            val previousClose = get(data[fPreviousClose].toString())
+            val change = get(data[fChange].toString())
             val price = MarketData(asset, Objects.requireNonNull(dateUtils.getDate(priceDate))!!)
             price.open = open
             price.close = close

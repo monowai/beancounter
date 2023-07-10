@@ -47,8 +47,10 @@ import com.beancounter.marketdata.trn.cash.CashServices
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.mockito.Spy
 import org.mockito.kotlin.any
@@ -81,7 +83,7 @@ import java.math.BigDecimal
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 internal class AlphaVantageApiTest {
-    @Autowired
+    @MockBean
     private lateinit var dateUtils: DateUtils
 
     private val objectMapper: ObjectMapper = BcJson().objectMapper
@@ -124,8 +126,13 @@ internal class AlphaVantageApiTest {
     private lateinit var mockMvc: MockMvc
     private lateinit var token: Jwt
 
-    @Autowired
+    @BeforeEach
     fun mockServices() {
+        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
+        Mockito.`when`(dateUtils.offset(anyString()))
+            .thenReturn(DateUtils().offset())
+        Mockito.`when`(dateUtils.getZoneId()).thenReturn(DateUtils().getZoneId())
+
         mockAlphaAssets()
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
@@ -159,7 +166,6 @@ internal class AlphaVantageApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_BrkBTranslated() {
         val code = "BRK.B"
         val mvcResult = mockMvc.perform(
@@ -202,7 +208,6 @@ internal class AlphaVantageApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
@@ -222,7 +227,6 @@ internal class AlphaVantageApiTest {
     private val changeProp = "change"
 
     @Test
-    @Throws(Exception::class)
     fun is_CurrentPriceFound() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file
         AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
@@ -267,7 +271,6 @@ internal class AlphaVantageApiTest {
     private val mockAlpha = "/mock/alpha"
 
     @Test
-    @Throws(Exception::class)
     fun is_PriceNotFoundSetIntoAsset() {
         val code = "BWLD"
         mockSearchResponse(
@@ -284,7 +287,7 @@ internal class AlphaVantageApiTest {
         assertThat(asset!!.priceSymbol).isNull()
         val priceResult = priceService.getMarketData(
             asset,
-            dateUtils.date,
+            DateUtils().date,
         )
         if (priceResult.isPresent) {
             val priceResponse = marketDataService.getPriceResponse(of(asset))

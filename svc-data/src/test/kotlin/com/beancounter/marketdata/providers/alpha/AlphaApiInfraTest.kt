@@ -4,6 +4,7 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
@@ -12,10 +13,14 @@ import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.test.context.ActiveProfiles
@@ -38,11 +43,19 @@ class AlphaApiInfraTest {
     @Autowired
     private lateinit var mdFactory: MdFactory
 
+    @MockBean
+    private lateinit var dateUtils: DateUtils
+
     @Autowired
     private lateinit var marketDataService: MarketDataService
 
     @Autowired
     private lateinit var marketService: MarketService
+
+    @BeforeEach
+    fun mock() {
+        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
+    }
 
     @Test
     fun is_ApiInvalidKeyHandled() {
@@ -62,7 +75,6 @@ class AlphaApiInfraTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_ApiCallLimitExceededHandled() {
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
         val asset = getTestAsset(code = "ABC", market = nasdaq)

@@ -64,16 +64,14 @@ object AlphaMockUtils {
      * @param jsonFile     response file to return
      * @throws IOException anything
      */
-    @Throws(IOException::class)
-    fun mockAdjustedResponse(symbol: String, jsonFile: File?) {
+    fun mockAdjustedResponse(symbol: String, jsonFile: File) {
         mockGetResponse(
             "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo&outputsize=full",
             jsonFile,
         )
     }
 
-    @Throws(IOException::class)
-    fun mockGlobalResponse(symbol: String, jsonFile: File?) {
+    fun mockGlobalResponse(symbol: String, jsonFile: File) {
         mockGetResponse(
             "/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=demo",
             jsonFile,
@@ -87,8 +85,7 @@ object AlphaMockUtils {
      * @param jsonFile     response file to return
      * @throws IOException anything
      */
-    @Throws(IOException::class)
-    fun mockGetResponse(url: String?, jsonFile: File?) {
+    private fun mockGetResponse(url: String, jsonFile: File) {
         stubFor(
             WireMock.get(WireMock.urlEqualTo(url))
                 .willReturn(
@@ -107,7 +104,6 @@ object AlphaMockUtils {
         )
     }
 
-    @Throws(IOException::class)
     fun mockSearchResponse(code: String, file: File) {
         stubFor(
             WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))

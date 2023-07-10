@@ -1,11 +1,7 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
-import com.beancounter.common.contracts.PriceAsset
-import com.beancounter.common.contracts.PriceRequest
-import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnImportRequest
@@ -13,51 +9,32 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.KafkaBase
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
-import com.beancounter.marketdata.markets.KafkaMarketDataTest.Companion.TOPIC_EVENT
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.EmbeddedKafkaBroker
-import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
 
 /**
  * Non-trn related integrations over Kafka. Price and Corporate Action Events.
  */
-@EmbeddedKafka(
-    partitions = 1,
-    topics = [
-        "topicPrice",
-        TOPIC_EVENT,
-    ],
-    bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka-md", "auto.create.topics.enable=true"],
-)
-@SpringBootTest(classes = [MarketDataBoot::class])
-@ActiveProfiles("kafka")
-@Tag("slow")
-@AutoConfigureMockAuth
-class KafkaMarketDataTest {
+
+class KafkaMarketDataTest : KafkaBase() {
 
     companion object {
         const val TOPIC_EVENT = "topicEvent"
@@ -69,14 +46,6 @@ class KafkaMarketDataTest {
 
     @Autowired
     private lateinit var wac: WebApplicationContext
-
-    // Setup so that the wiring is tested
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    @Autowired
-    lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
-
-    @Autowired
-    lateinit var kafkaWriter: KafkaTemplate<Any, TrustedTrnImportRequest>
 
     @Autowired
     lateinit var marketDataService: MarketDataService
@@ -97,65 +66,6 @@ class KafkaMarketDataTest {
     lateinit var currencyService: CurrencyService
 
     private val kafkaTestUtils = KafkaConsumerUtils()
-
-    @Test
-    @Throws(Exception::class)
-    @Disabled // Not yet implemented.
-    fun pricePersisted() {
-        val assetRequest = AssetRequest(AssetInput(NASDAQ.code, MSFT.code, name = MSFT.code), "test")
-        val assetResult = assetService.handle(assetRequest)
-        val asset = assetResult.data["test"]
-        val idProp = "id"
-        assertThat(asset).isNotNull.hasFieldOrProperty(idProp)
-        val priceDate = "2020-04-29"
-        val marketData = MarketData(
-            asset!!,
-            dateUtils.getDate(priceDate, dateUtils.getZoneId()),
-        )
-        marketData.volume = 10
-        marketData.open = BigDecimal.TEN
-        marketData.dividend = BigDecimal.ZERO
-        val mdCollection: MutableCollection<MarketData> = ArrayList()
-        mdCollection.add(marketData)
-        var priceResponse = PriceResponse(mdCollection)
-        val assets: MutableCollection<PriceAsset> = ArrayList()
-        val results = priceWriter.processMessage(
-            objectMapper.writeValueAsString(priceResponse),
-        )
-        assertThat(results).isNotNull.isNotEmpty
-        for (result in results!!) {
-            assertThat(result).hasFieldOrProperty(idProp)
-            val priceAsset = PriceAsset(asset.market.code, asset.code, resolvedAsset = asset, "")
-            assets.add(priceAsset)
-        }
-
-        // Will be resolved over the mocked API
-        assets.add(
-            PriceAsset(
-                NASDAQ.code,
-                Constants.AAPL.code,
-                resolvedAsset = getTestAsset(NASDAQ, Constants.AAPL.code),
-                asset.id,
-            ),
-        )
-        val priceRequest = PriceRequest(priceDate, assets, currentMode = false)
-
-        // First call will persist the result in an async manner
-        priceResponse = marketDataService.getPriceResponse(priceRequest)
-        assertThat(priceResponse).isNotNull
-        assertThat(priceResponse.data).hasSize(2)
-        Thread.sleep(2000)
-        // Second call will retrieve from DB to assert objects are correctly hydrated
-        priceResponse = marketDataService.getPriceResponse(priceRequest)
-        assertThat(priceResponse).isNotNull
-        assertThat(priceResponse.data).hasSize(2)
-        for ((asset1) in priceResponse.data) {
-            assertThat(asset1).isNotNull
-                .hasFieldOrProperty(idProp)
-            assertThat(asset1.market) // These are not used client side so should be ignored
-                .hasNoNullFieldsOrPropertiesExcept("currencyId", "timezoneId", "enricher")
-        }
-    }
 
     @Test
     fun corporateEventDispatched() {

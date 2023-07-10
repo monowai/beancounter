@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.trn
 
 import com.beancounter.auth.AuthUtilService
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.AssetService
 import com.beancounter.common.contracts.AssetRequest
@@ -26,7 +25,7 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CUSTOM
 import com.beancounter.marketdata.Constants.Companion.USD
-import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.KafkaBase
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.fx.FxRateService
@@ -41,27 +40,18 @@ import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.test.EmbeddedKafkaBroker
-import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -74,21 +64,7 @@ import java.time.Duration
 /**
  * Check we can import the CSV file we export, via Kafka.
  */
-@EmbeddedKafka(
-    partitions = 1,
-    topics = [
-        KafkaTrnTest.TOPIC_CSV_IO,
-    ],
-    bootstrapServersProperty = "spring.kafka.bootstrap-servers",
-    brokerProperties = ["log.dir=./build/kafka-trn", "auto.create.topics.enable=true"],
-)
-@SpringBootTest(classes = [MarketDataBoot::class])
-@ActiveProfiles("kafka")
-@Tag("slow")
-@AutoConfigureWireMock(port = 0)
-@AutoConfigureMockAuth
-@AutoConfigureMockMvc
-class KafkaTrnTest {
+class TrnExportKafkaImportTest : KafkaBase() {
 
     final var dateUtils: DateUtils = DateUtils()
 
@@ -97,14 +73,6 @@ class KafkaTrnTest {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
-
-    // Setup so that the wiring is tested
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    @Autowired
-    lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
-
-    @Autowired
-    lateinit var kafkaWriter: KafkaTemplate<Any, TrustedTrnImportRequest>
 
     @Autowired
     lateinit var marketDataService: MarketDataService
@@ -150,7 +118,6 @@ class KafkaTrnTest {
     private val tradeDateString = "2020-01-01"
     private val tradeDate = dateUtils.getDate(tradeDateString)
 
-    @BeforeEach
     fun mockEnv() {
         `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
         assertThat(currencyService.currencies).isNotEmpty
@@ -165,6 +132,7 @@ class KafkaTrnTest {
 
     @Test
     fun exportFileImported() {
+        mockEnv()
         val portfolios: Collection<PortfolioInput> = arrayListOf(
             PortfolioInput(
                 code = "CSV-FLOW",
@@ -269,7 +237,7 @@ class KafkaTrnTest {
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN_VALUE))
             .andReturn()
         assertThat(results).isNotNull
-        val fileName = "${forPortfolio.code}.txt"
+        val fileName = "./build/${forPortfolio.code}.txt"
         File(fileName).bufferedWriter().use { out ->
             out.write(results.response.contentAsString)
         }
@@ -304,7 +272,7 @@ class KafkaTrnTest {
 
     companion object {
         const val TOPIC_CSV_IO = "topicCsvIo"
-        private val log = LoggerFactory.getLogger(KafkaTrnTest::class.java)
+        private val log = LoggerFactory.getLogger(TrnExportKafkaImportTest::class.java)
 
         @JvmStatic
         fun stubFx(url: String, rateResponse: File) {

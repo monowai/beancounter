@@ -90,7 +90,7 @@ class DateUtils(
 
     fun offsetNow(date: String): OffsetDateTime {
         if (isToday(date)) {
-            return OffsetDateTime.now()
+            return OffsetDateTime.now(UTC)
         }
         return OffsetDateTime.ofInstant(
             getDate(date).atTime(OffsetDateTime.now().toLocalTime()).toInstant(UTC),

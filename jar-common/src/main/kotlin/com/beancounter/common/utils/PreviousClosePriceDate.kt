@@ -6,8 +6,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 
 /**
  * Market TZ utilities to calculate close dates
@@ -16,19 +14,13 @@ import java.time.ZonedDateTime
 class PreviousClosePriceDate(private val dateUtils: DateUtils) {
 
     fun getPriceDate(
-        localOffsetDateTime: OffsetDateTime, // Callers requested date in UTC
+        gmtRequestDateTime: OffsetDateTime, // Callers requested date in UTC
         market: Market,
-        isCurrent: Boolean = dateUtils.isToday(localOffsetDateTime.toLocalDate().toString()),
+        isCurrent: Boolean = dateUtils.isToday(gmtRequestDateTime.toLocalDate().toString()),
     ): LocalDate {
         return if (isCurrent) {
-            val zonedLocal = ZonedDateTime.ofLocal(
-                localOffsetDateTime.toLocalDateTime(),
-                ZoneOffset.UTC,
-                null,
-            )
-
-            val marketLocal = zonedLocal.withZoneSameInstant(market.timezone.toZoneId())
-            val marketOffset = OffsetDateTime.of(
+            val marketLocal = gmtRequestDateTime.toLocalDateTime().atZone(market.timezone.toZoneId())
+            val pricesAvailable = OffsetDateTime.of(
                 marketLocal.toLocalDate(),
                 market.priceTime,
                 marketLocal.offset,
@@ -36,21 +28,25 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
 
             getPriceDate(
                 marketLocal.toLocalDateTime(),
-                getDaysToSubtract(market, zonedLocal, marketOffset),
+                getDaysToSubtract(
+                    market,
+                    marketLocal.toLocalDateTime(),
+                    pricesAvailable.toLocalDateTime(),
+                ),
             )
         } else {
             // Just account for work days
-            getPriceDate(localOffsetDateTime.toLocalDateTime(), 0)
+            getPriceDate(gmtRequestDateTime.toLocalDateTime(), 0)
         }
     }
 
     private fun getDaysToSubtract(
         market: Market,
-        requestedDate: ZonedDateTime,
-        pricesAvailable: OffsetDateTime,
+        requestedDate: LocalDateTime,
+        pricesAvailable: LocalDateTime,
     ): Int {
         // Is requested datetime on or after when prices are available?
-        if (requestedDate.toLocalDateTime() >= pricesAvailable.toLocalDateTime()) {
+        if (requestedDate >= pricesAvailable) {
             return 0 // at this point prices are updated
         }
         return market.daysToSubtract

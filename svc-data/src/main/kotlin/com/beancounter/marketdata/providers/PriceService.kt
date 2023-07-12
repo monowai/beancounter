@@ -25,9 +25,9 @@ import java.util.concurrent.Future
 @Transactional
 class PriceService internal constructor(
     private val marketDataRepo: MarketDataRepo,
+    private val cashUtils: CashUtils,
 ) {
     private lateinit var eventWriter: EventWriter
-    private val cashUtils = CashUtils()
 
     @Autowired
     fun setEventWriter(eventWriter: EventWriter) {

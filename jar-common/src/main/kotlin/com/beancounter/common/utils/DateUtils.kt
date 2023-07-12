@@ -1,6 +1,8 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.exception.BusinessException
+import jakarta.annotation.PostConstruct
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.text.ParseException
@@ -12,11 +14,10 @@ import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.Locale
-import java.util.TimeZone
+import java.util.*
 
 /**
- * Helper service for BC Date functions. Assume dates to be in UTC.
+ * Helper service for BC Date functions. Assumes dates to be in UTC.
  *
  * @author mikeh
  * @since 2019-03-12
@@ -27,6 +28,10 @@ class DateUtils(
     @Value("\${beancounter.zone:#{null}}")
     val defaultZone: String = TimeZone.getDefault().id,
 ) {
+    @PostConstruct
+    fun logConfig() {
+        log.info(getZoneId().id)
+    }
 
     fun today() = LocalDate.now(UTC).toString()
 
@@ -102,5 +107,6 @@ class DateUtils(
         const val format = "yyyy-MM-dd"
         const val today = "today"
         val defaultFormatter = SimpleDateFormat(format)
+        val log = LoggerFactory.getLogger(this::class.java)
     }
 }

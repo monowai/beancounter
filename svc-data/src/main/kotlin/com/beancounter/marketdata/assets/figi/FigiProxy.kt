@@ -32,14 +32,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
 
     @RateLimiter(name = "figi")
     fun find(market: Market, bcAssetCode: String, defaultName: String? = null, id: String = bcAssetCode): Asset? {
-        val figiCode = bcAssetCode.replace(".", "/").uppercase(Locale.getDefault())
-        val figiMarket = market.aliases[FIGI]
-        val figiSearch = FigiSearch(
-            figiCode,
-            figiMarket!!,
-            EQUITY,
-            true,
-        )
+        val (figiCode, figiMarket, figiSearch) = resolve(bcAssetCode, market)
         val response = resolve(figiSearch)
         if (response?.error != null) {
             log.debug("Error {}/{} {}", figiMarket, figiCode, response.error)
@@ -66,6 +59,21 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
         }
         log.debug("Couldn't find {}/{} - as {}/{}", market, bcAssetCode, figiMarket, figiCode)
         return null
+    }
+
+    fun resolve(
+        bcAssetCode: String,
+        market: Market,
+    ): Triple<String, String, FigiSearch> {
+        val figiCode = bcAssetCode.replace(".", "/").uppercase(Locale.getDefault())
+        val figiMarket = market.aliases[FIGI]!!
+        val figiSearch = FigiSearch(
+            figiCode,
+            figiMarket,
+            EQUITY,
+            true,
+        )
+        return Triple(figiCode, figiMarket, figiSearch)
     }
 
     private fun resolve(figiSearch: FigiSearch): FigiResponse? {

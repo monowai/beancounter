@@ -121,7 +121,6 @@ class FigiAssetApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_BrkBFound() {
         val mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())

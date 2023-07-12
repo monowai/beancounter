@@ -43,6 +43,10 @@ class AlphaConfig(
         return nullMarket.contains(marketCode, true)
     }
 
+    /**
+     * Resolves the Date to use when querying the market.
+     * This will be previous days CoB until the market is closed.
+     */
     override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
         return marketUtils.getPriceDate(
             dateUtils.offsetNow(date).toLocalDateTime(),

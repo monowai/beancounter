@@ -1,6 +1,7 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.model.Market
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -13,16 +14,19 @@ import java.time.ZonedDateTime
  */
 @Service
 class PreviousClosePriceDate(private val dateUtils: DateUtils) {
+    companion object {
+        val log = LoggerFactory.getLogger(this::class.java)
+    }
 
     fun getPriceDate(
-        gmtRequestDateTime: LocalDateTime, // Callers requested date in UTC
+        utcRequestDateTime: LocalDateTime, // Callers requested date in UTC
         market: Market,
-        isCurrent: Boolean = dateUtils.isToday(gmtRequestDateTime.toLocalDate().toString()),
+        isCurrent: Boolean = dateUtils.isToday(utcRequestDateTime.toLocalDate().toString()),
     ): LocalDate {
         return if (isCurrent) {
-            val marketLocal = gmtRequestDateTime.atZone(market.timezone.toZoneId())
+            val marketLocal = utcRequestDateTime.atZone(market.timezone.toZoneId())
             val pricesAvailable = getPricesAvailable(marketLocal, market)
-
+            log.debug("utc: $utcRequestDateTime, marketCloses: $pricesAvailable, marketLocal: $marketLocal, timezone: ${dateUtils.getZoneId().id}")
             getPriceDate(
                 marketLocal.toLocalDateTime(),
                 getDaysToSubtract(
@@ -33,7 +37,7 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
             )
         } else {
             // Just account for work days
-            getPriceDate(gmtRequestDateTime, 0)
+            getPriceDate(utcRequestDateTime, 0)
         }
     }
 

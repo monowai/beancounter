@@ -6,6 +6,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.CashUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
@@ -126,8 +127,8 @@ class MarketDataService @Autowired internal constructor(
         priceRequest: PriceRequest,
     ): LocalDate {
         val marketDate = marketDataPriceProvider.getDate(asset.market, priceRequest)
-        if (priceRequest.assets.size > 1) {
-            log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate, asset: ${asset.name}, assetId: ${asset.id}")
+        if (!CashUtils().isCash(asset)) {
+            log.debug("Requested date: ${priceRequest.date}, resolvedDate: $marketDate")
         }
         return marketDate
     }

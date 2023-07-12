@@ -17,8 +17,8 @@ import java.util.Locale
 @Service
 @Import(MarketConfig::class)
 class MarketService @Autowired constructor(val marketConfig: MarketConfig) : com.beancounter.client.MarketService {
-    private val aliases: MutableMap<String, String> = HashMap()
-    private var marketMap: Map<String, Market> = HashMap()
+    private val aliases: MutableMap<String, String> = mutableMapOf()
+    private var marketMap: Map<String, Market> = mutableMapOf()
 
     fun getMarketMap(): Map<String, Market> {
         if (marketMap.isEmpty()) {

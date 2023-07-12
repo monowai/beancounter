@@ -13,7 +13,7 @@ import com.beancounter.common.utils.DateUtils
  * @author mikeh
  * @since 2019-03-12
  */
-class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
+class ProviderArguments(private val dataProviderConfig: DataProviderConfig, private val dateUtils: DateUtils = DateUtils()) {
     private var count = 0
     private var currentBatch = 0
     var date: String = "today"
@@ -75,8 +75,6 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
     }
 
     companion object {
-        private val dateUtils = DateUtils()
-
         /**
          * Helper to build an instance of this class based on the supplied arguments.
          *
@@ -87,8 +85,10 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig) {
         fun getInstance(
             priceRequest: PriceRequest,
             dataProviderConfig: DataProviderConfig,
+            dateUtils: DateUtils = DateUtils(),
+
         ): ProviderArguments {
-            val providerArguments = ProviderArguments(dataProviderConfig)
+            val providerArguments = ProviderArguments(dataProviderConfig, dateUtils)
             providerArguments.date = priceRequest.date
             // Data providers can have market dependent price dates. Batch first by market, then by size
             val marketAssets: Map<String, Collection<PriceAsset>> = split(priceRequest.assets)

@@ -1,30 +1,27 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.model.Market
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 
 /**
  * Market TZ utilities to calculate close dates
  */
-@Component
+@Service
 class PreviousClosePriceDate(private val dateUtils: DateUtils) {
 
     fun getPriceDate(
-        gmtRequestDateTime: OffsetDateTime, // Callers requested date in UTC
+        gmtRequestDateTime: LocalDateTime, // Callers requested date in UTC
         market: Market,
         isCurrent: Boolean = dateUtils.isToday(gmtRequestDateTime.toLocalDate().toString()),
     ): LocalDate {
         return if (isCurrent) {
-            val marketLocal = gmtRequestDateTime.toLocalDateTime().atZone(market.timezone.toZoneId())
-            val pricesAvailable = OffsetDateTime.of(
-                marketLocal.toLocalDate(),
-                market.priceTime,
-                marketLocal.offset,
-            )
+            val marketLocal = gmtRequestDateTime.atZone(market.timezone.toZoneId())
+            val pricesAvailable = getPricesAvailable(marketLocal, market)
 
             getPriceDate(
                 marketLocal.toLocalDateTime(),
@@ -36,8 +33,19 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
             )
         } else {
             // Just account for work days
-            getPriceDate(gmtRequestDateTime.toLocalDateTime(), 0)
+            getPriceDate(gmtRequestDateTime, 0)
         }
+    }
+
+    fun getPricesAvailable(
+        marketLocal: ZonedDateTime,
+        market: Market,
+    ): OffsetDateTime {
+        return OffsetDateTime.of(
+            marketLocal.toLocalDate(),
+            market.priceTime,
+            marketLocal.offset,
+        )
     }
 
     private fun getDaysToSubtract(

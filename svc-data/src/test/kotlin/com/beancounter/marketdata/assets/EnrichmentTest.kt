@@ -4,7 +4,9 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.figi.FigiEnricher
@@ -15,6 +17,7 @@ import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import java.util.*
 
 /**
  * Verifies that default enricher behaviour is correct.
@@ -36,7 +39,8 @@ class EnrichmentTest {
 
     @Test
     fun is_AlphaEnrichment() {
-        val enricher: AssetEnricher = AlphaEnricher(AlphaConfig(), DefaultEnricher())
+        val dateUtils = DateUtils()
+        val enricher: AssetEnricher = AlphaEnricher(AlphaConfig(dateUtils = dateUtils, PreviousClosePriceDate(dateUtils)), DefaultEnricher())
         val asset = Asset(code = code, id = id, name = null, market = NYSE)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name

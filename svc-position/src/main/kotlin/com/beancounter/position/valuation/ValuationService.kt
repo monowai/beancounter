@@ -27,7 +27,7 @@ class ValuationService @Autowired internal constructor(
     private val positionValuationService: PositionValuationService,
     private val trnService: TrnService,
     private val positionService: PositionService,
-    private val dateUtils: DateUtils = DateUtils(),
+    private val dateUtils: DateUtils,
 ) : Valuation {
 
     override fun build(trnQuery: TrustedTrnQuery): PositionResponse {

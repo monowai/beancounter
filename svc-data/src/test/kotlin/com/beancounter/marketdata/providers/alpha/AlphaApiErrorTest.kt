@@ -2,6 +2,7 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
@@ -12,12 +13,11 @@ import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
+import com.beancounter.marketdata.utils.DateUtilsMocker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -37,7 +37,7 @@ import java.math.BigDecimal
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
-class AlphaApiInfraTest {
+class AlphaApiErrorTest {
     private val api = "API"
 
     @Autowired
@@ -54,7 +54,23 @@ class AlphaApiInfraTest {
 
     @BeforeEach
     fun mock() {
-        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
+        DateUtilsMocker.mockToday(dateUtils)
+    }
+
+    @Test
+    fun is_ApiErrorMessageHandled() {
+        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
+        AlphaMockUtils.mockGlobalResponse("${AlphaConstants.api}.ERR", jsonFile)
+        val asset = Asset(code = AlphaConstants.api, market = Market("ERR", Constants.USD.code))
+        val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+
+        val results = alphaProvider.getMarketData(PriceRequest.of(asset))
+        assertThat(results)
+            .isNotNull
+            .hasSize(1)
+        assertThat(results.iterator().next())
+            .hasFieldOrPropertyWithValue(assetProp, asset)
+            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
     }
 
     @Test
@@ -63,6 +79,7 @@ class AlphaApiInfraTest {
         AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
         val asset = getTestAsset(code = api, market = Market("KEY", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+
         val results = alphaProvider.getMarketData(
             PriceRequest.Companion.of(asset),
         )
@@ -95,7 +112,6 @@ class AlphaApiInfraTest {
         assertThat(mdpPrice)
             .hasFieldOrPropertyWithValue(assetProp, asset)
             .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-        val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(asset))
-        assertThat(priceResponse).isNotNull
+        assertThat(marketDataService.getPriceResponse(PriceRequest.of(asset))).isNotNull
     }
 }

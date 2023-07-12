@@ -40,7 +40,7 @@ class WtdConfig @Autowired constructor(val marketService: MarketService) : DataP
 
     override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
         return marketUtils.getPriceDate(
-            dateUtils.offsetNow(date),
+            dateUtils.offsetNow(date).toLocalDateTime(),
             market,
             currentMode,
         )

@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
 import com.beancounter.marketdata.providers.ProviderArguments.Companion.getInstance
@@ -28,6 +29,7 @@ class WtdService @Autowired internal constructor(
     private val wtdProxy: WtdProxy,
     private val wtdConfig: WtdConfig,
     private val wtdAdapter: WtdAdapter,
+    private val dateUtils: DateUtils,
 ) : MarketDataPriceProvider {
     @Value("\${beancounter.market.providers.WTD.key:demo}")
     private val apiKey: String? = null
@@ -42,7 +44,7 @@ class WtdService @Autowired internal constructor(
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val batchedRequests: MutableMap<Int, Future<WtdResponse>> = ConcurrentHashMap()
-        val providerArguments = getInstance(priceRequest, wtdConfig)
+        val providerArguments = getInstance(priceRequest, wtdConfig, dateUtils)
         for (batch in providerArguments.batch.keys) {
             batchedRequests[batch] = wtdProxy.getPrices(
                 providerArguments.batch[batch],

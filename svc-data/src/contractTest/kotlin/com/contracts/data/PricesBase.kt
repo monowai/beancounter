@@ -38,6 +38,7 @@ class PricesBase : ContractVerifierBase() {
         AssetsBase().mockAssets(assetService)
         mockPrices()
         Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
+        Mockito.`when`(dateUtils.getLocalDate()).thenReturn(DateUtils().getLocalDate())
     }
 
     fun mockPrices() {

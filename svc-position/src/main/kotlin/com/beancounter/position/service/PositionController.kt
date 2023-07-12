@@ -29,7 +29,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 @CrossOrigin
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
-class PositionController(private val portfolioServiceClient: PortfolioServiceClient) {
+class PositionController(
+    private val portfolioServiceClient: PortfolioServiceClient,
+    private val dateUtils: DateUtils,
+) {
     private lateinit var valuationService: Valuation
 
     @Autowired
@@ -40,7 +43,7 @@ class PositionController(private val portfolioServiceClient: PortfolioServiceCli
     @GetMapping(value = ["/id/{id}/{valuationDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun byId(
         @PathVariable id: String,
-        @PathVariable(required = false) valuationDate: String = DateUtils().offsetDateString(),
+        @PathVariable(required = false) valuationDate: String = dateUtils.offsetDateString(),
         @RequestParam(value = "value", defaultValue = "true") value: Boolean,
     ): PositionResponse {
         val portfolio = portfolioServiceClient.getPortfolioById(id)

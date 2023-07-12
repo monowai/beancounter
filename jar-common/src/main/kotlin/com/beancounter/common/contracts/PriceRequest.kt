@@ -57,6 +57,6 @@ data class PriceRequest(
             return PriceRequest(date, priceAsset, currentMode)
         }
 
-        val dateUtils = DateUtils()
+        private val dateUtils = DateUtils()
     }
 }

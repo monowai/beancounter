@@ -1,6 +1,6 @@
 package com.beancounter.common.model
 
-import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import jakarta.persistence.Embeddable
 import java.io.Serializable
@@ -23,7 +23,7 @@ data class CallerRef(
         fun from(callerRef: CallerRef): CallerRef {
             val provider = callerRef.provider.ifBlank { "BC" }
             val batch = callerRef.batch.ifBlank {
-                dateUtils.getDate().toString().replace("-", "")
+                DateUtils().getDate().toString().replace("-", "")
             }
             val callerId = callerRef.callerId.ifBlank { KeyGenUtils().id }
             return CallerRef(provider, batch, callerId)

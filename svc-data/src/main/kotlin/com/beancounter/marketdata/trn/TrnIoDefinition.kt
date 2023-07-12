@@ -8,8 +8,7 @@ import org.springframework.stereotype.Service
  * Export and Import format of a BC transaction.
  */
 @Service
-class TrnIoDefinition {
-    val dateUtils = DateUtils()
+class TrnIoDefinition(val dateUtils: DateUtils) {
 
     /**
      * TRN columns that will be read when importing a delimited file.

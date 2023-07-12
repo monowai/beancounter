@@ -23,9 +23,8 @@ import java.math.BigDecimal
  * Convert Alpha MarketData to BeanCounter MarketData
  */
 @Service
-class AlphaPriceAdapter : MarketDataAdapter {
-    final val alphaMapper: ObjectMapper = BcJson().objectMapper
-    private val dateUtils = DateUtils()
+class AlphaPriceAdapter(val dateUtils: DateUtils) : MarketDataAdapter {
+
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int?,
@@ -127,6 +126,7 @@ class AlphaPriceAdapter : MarketDataAdapter {
 
     companion object {
         private val log = LoggerFactory.getLogger(AlphaPriceAdapter::class.java)
+        val alphaMapper: ObjectMapper = BcJson().objectMapper
     }
 
     init {

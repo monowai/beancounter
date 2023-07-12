@@ -1,10 +1,10 @@
 package com.beancounter.common
 
-import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ private const val vBatch = "batch"
 class TrnTest {
 
     private val simpleRef = "simpleRef"
-    private val batch = dateUtils.getDate().toString().replace("-", "")
+    private val batch = DateUtils().getDate().toString().replace("-", "")
 
     @Test
     fun is_trnVersion() {

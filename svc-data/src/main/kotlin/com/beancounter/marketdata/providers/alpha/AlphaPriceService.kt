@@ -54,14 +54,14 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig, private val dateUt
         val providerArguments = getInstance(priceRequest, alphaConfig)
         val requests: MutableMap<Int, Future<String?>?> = ConcurrentHashMap()
         for (batchId in providerArguments.batch.keys) {
-            val date = providerArguments.getBatchConfigs()[batchId]!!.date
-            if (dateUtils.isToday(priceRequest.date)) {
+            if (priceRequest.currentMode) {
                 requests[batchId] = alphaProxyCache.getCurrent(
                     providerArguments.batch[batchId]!!,
                     today,
                     apiKey,
                 )
             } else {
+                val date = providerArguments.getBatchConfigs()[batchId]!!.date
                 requests[batchId] = alphaProxyCache.getHistoric(providerArguments.batch[batchId]!!, date, apiKey)
             }
         }
@@ -135,7 +135,7 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig, private val dateUt
             log.error(e.message)
             throw SystemException(unexpectedMsg)
         }
-        val priceResponse: PriceResponse = alphaPriceAdapter.alphaMapper.readValue(json, PriceResponse::class.java)
+        val priceResponse: PriceResponse = AlphaPriceAdapter.alphaMapper.readValue(json, PriceResponse::class.java)
         for (marketData in priceResponse.data) {
             marketData.source = ID
             marketData.asset = asset

@@ -13,9 +13,8 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.PriceSchedule
 import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.assetMarketCodeUrl
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
@@ -71,9 +70,6 @@ class AlphaVantageEnrichmentTest {
     private lateinit var priceService: PriceService
 
     @Autowired
-    private lateinit var priceSchedule: PriceSchedule
-
-    @Autowired
     private lateinit var assetService: AssetService
 
     @Autowired
@@ -109,7 +105,7 @@ class AlphaVantageEnrichmentTest {
         )
 
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, lon, code)
+            MockMvcRequestBuilders.get(assetMarketCodeUrl, lon, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors
                         .jwt().jwt(token),
@@ -125,7 +121,7 @@ class AlphaVantageEnrichmentTest {
             .hasFieldOrPropertyWithValue(AlphaConstants.nameProp, "AXA Framlington Health Fund Z GBP Acc")
 
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(symbol)
-
+        Mockito.`when`(dateUtils.offsetDateString(anyString())).thenReturn(DateUtils().offsetDateString())
         val priceResponse = marketDataService.getPriceResponse(PriceRequest.of(data))
         assertThat(priceResponse.data).isNotNull
         val price = BigDecimal("3.1620")
@@ -146,7 +142,7 @@ class AlphaVantageEnrichmentTest {
     fun is_EnrichedMarketCodeTranslated() {
         val amp = "AMP"
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, Constants.ASX.code, amp).with(
+            MockMvcRequestBuilders.get(assetMarketCodeUrl, Constants.ASX.code, amp).with(
                 SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
             ).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -169,7 +165,7 @@ class AlphaVantageEnrichmentTest {
         val asset = data[AlphaConstants.keyProp]
         assertThat(asset!!.priceSymbol).isNull()
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, Constants.NYSE.code, code).with(
+            MockMvcRequestBuilders.get(assetMarketCodeUrl, Constants.NYSE.code, code).with(
                 SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
             ).contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isOk)

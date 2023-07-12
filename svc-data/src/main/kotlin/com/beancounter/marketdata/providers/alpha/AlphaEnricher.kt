@@ -20,7 +20,7 @@ import java.util.Locale
 @Service
 class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnricher: DefaultEnricher) :
     AssetEnricher {
-    private val objectMapper = AlphaPriceAdapter().alphaMapper
+    private val objectMapper = AlphaPriceAdapter.alphaMapper
     private var alphaProxyCache: AlphaProxyCache? = null
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")

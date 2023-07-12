@@ -15,12 +15,13 @@ import java.time.LocalDate
  */
 @Configuration
 @Import(AlphaPriceService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
-class AlphaConfig : DataProviderConfig {
+class AlphaConfig(
+    val dateUtils: DateUtils = DateUtils(),
+    val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
+) : DataProviderConfig {
 
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
-    final var dateUtils = DateUtils()
-    var marketUtils = PreviousClosePriceDate(dateUtils)
 
     override fun getBatchSize(): Int {
         return 1
@@ -44,7 +45,7 @@ class AlphaConfig : DataProviderConfig {
 
     override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
         return marketUtils.getPriceDate(
-            dateUtils.offsetNow(date),
+            dateUtils.offsetNow(date).toLocalDateTime(),
             market,
             currentMode,
         )

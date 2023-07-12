@@ -23,12 +23,11 @@ import java.math.BigDecimal
  * @since 2019-03-03
  */
 internal class AlphaPriceTest {
-    private val priceMapper = AlphaPriceAdapter().alphaMapper
+    private val priceMapper = AlphaPriceAdapter.alphaMapper
     private val dateUtils = DateUtils()
     private val alphaConfig = AlphaConfig()
 
     @Test
-    @Throws(Exception::class)
     fun is_NullAsset() {
         assertThat(
             priceMapper.readValue(
@@ -39,7 +38,6 @@ internal class AlphaPriceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_GlobalResponse() {
         val marketData = priceMapper.readValue(
             ClassPathResource("$alphaContracts/global-response.json").file,
@@ -53,7 +51,6 @@ internal class AlphaPriceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_CollectionFromResponseReturnedWithDividend() {
         val result = priceMapper.readValue(
             ClassPathResource("$alphaContracts/kmi-backfill-response.json").file,
@@ -76,7 +73,6 @@ internal class AlphaPriceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MutualFundGlobalResponse() {
         val marketData = priceMapper.readValue(
             ClassPathResource("$alphaContracts/pence-price-response.json").file,
@@ -88,7 +84,6 @@ internal class AlphaPriceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_ResponseWithoutMarketCodeSetToUs() {
         val (asset) = validateResponse(
             ClassPathResource("$alphaContracts/alphavantage-nasdaq.json").file,
@@ -98,7 +93,6 @@ internal class AlphaPriceTest {
             .hasFieldOrPropertyWithValue("market.code", "US")
     }
 
-    @Throws(Exception::class)
     private fun validateResponse(jsonFile: File): MarketData {
         val priceResponse = priceMapper.readValue(jsonFile, PriceResponse::class.java)
         assertThat(priceResponse.data).isNotNull.isNotEmpty

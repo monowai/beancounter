@@ -4,7 +4,7 @@ server:
     context-path: '/api'
   shutdown: graceful
 schedule:
-  enabled: true
+  enabled: false
 management:
   server:
     port: 9511

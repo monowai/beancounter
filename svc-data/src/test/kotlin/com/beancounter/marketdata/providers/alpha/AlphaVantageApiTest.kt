@@ -23,7 +23,6 @@ import com.beancounter.marketdata.event.EventWriter
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.PriceSchedule
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.api
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
@@ -38,19 +37,19 @@ import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.openP
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.prevCloseProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceDateProp
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceSymbolProp
-import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.marketCodeUrl
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.assetMarketCodeUrl
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedResponse
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAlphaAssets
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
 import com.beancounter.marketdata.providers.wtd.WtdService
 import com.beancounter.marketdata.trn.cash.CashServices
+import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.mockito.Spy
 import org.mockito.kotlin.any
@@ -109,9 +108,6 @@ internal class AlphaVantageApiTest {
     @Autowired
     private lateinit var priceService: PriceService
 
-    @Autowired
-    private lateinit var priceSchedule: PriceSchedule
-
     @MockBean
     private lateinit var cashServices: CashServices
 
@@ -128,11 +124,7 @@ internal class AlphaVantageApiTest {
 
     @BeforeEach
     fun mockServices() {
-        Mockito.`when`(dateUtils.isToday(anyString())).thenReturn(true)
-        Mockito.`when`(dateUtils.offset(anyString()))
-            .thenReturn(DateUtils().offset())
-        Mockito.`when`(dateUtils.getZoneId()).thenReturn(DateUtils().getZoneId())
-
+        DateUtilsMocker.mockToday(dateUtils)
         mockAlphaAssets()
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
@@ -146,30 +138,10 @@ internal class AlphaVantageApiTest {
     private val amp = "AMP"
 
     @Test
-    fun is_PriceUpdated() {
-        marketDataService.purge()
-        assetService.purge()
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, ASX.code, amp)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON),
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (asset) = objectMapper
-            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
-        priceSchedule.updatePrices()
-        Thread.sleep(2000) // Async reads/writes
-        val price = marketDataService.getPriceResponse(of(AssetInput(asset.market.code, asset.code)))
-        assertThat(price).hasNoNullFieldsOrProperties()
-    }
-
-    @Test
     fun is_BrkBTranslated() {
         val code = "BRK.B"
         val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(marketCodeUrl, NYSE.code, code)
+            MockMvcRequestBuilders.get(assetMarketCodeUrl, NYSE.code, code)
                 .with(
                     SecurityMockMvcRequestPostProcessors.jwt()
                         .jwt(token),
@@ -192,26 +164,11 @@ internal class AlphaVantageApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
-    fun is_ApiErrorMessageHandled() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
-        AlphaMockUtils.mockGlobalResponse("$api.ERR", jsonFile)
-        val asset = Asset(code = api, market = Market("ERR", USD.code))
-        val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
-        val results = alphaProvider.getMarketData(of(asset))
-        assertThat(results)
-            .isNotNull
-            .hasSize(1)
-        assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-    }
-
-    @Test
     fun is_EmptyGlobalResponseHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
         val asset = Asset(code = api, market = Market("EMPTY", USD.code))
+
         val results = mdFactory
             .getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(of(asset))

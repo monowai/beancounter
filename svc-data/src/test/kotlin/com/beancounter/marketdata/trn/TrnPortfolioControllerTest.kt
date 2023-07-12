@@ -5,7 +5,6 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.PortfoliosResponse
-import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
@@ -13,6 +12,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.utils.BcMvcHelper
@@ -50,6 +50,9 @@ class TrnPortfolioControllerTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var dateUtils: DateUtils
 
     @Autowired
     private lateinit var portfolioService: PortfolioService

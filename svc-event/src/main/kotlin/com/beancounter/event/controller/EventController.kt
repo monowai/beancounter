@@ -31,6 +31,7 @@ class EventController(
     private val backfillService: BackfillService,
     private val eventLoader: EventLoader,
     private val portfolioService: PortfolioServiceClient,
+    private val dateUtils: DateUtils,
 ) {
     @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -86,5 +87,5 @@ class EventController(
 
     @GetMapping(value = ["/scheduled/{date}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getScheduledEvents(@PathVariable date: String): CorporateEventResponses =
-        eventService.getScheduledEvents(DateUtils().getDate(date))
+        eventService.getScheduledEvents(dateUtils.getDate(date))
 }

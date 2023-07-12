@@ -55,7 +55,7 @@ class TestAdapters {
             importFormat = ImportFormat.SHARESIGHT,
             row = row,
         )
-        val dividendAdapter: TrnAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService)
+        val dividendAdapter: TrnAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService, dateUtils)
         Assertions.assertThrows(BusinessException::class.java) { dividendAdapter.from(request) }
     }
 
@@ -162,7 +162,7 @@ class TestAdapters {
         row.add(ShareSightDividendAdapter.tax, "tax")
         row.add(ShareSightDividendAdapter.gross, "gross")
         row.add(ShareSightDividendAdapter.comments, "comments")
-        val dividendAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService)
+        val dividendAdapter = ShareSightDividendAdapter(shareSightConfig, assetIngestService, dateUtils)
         assertThat(dividendAdapter.isValid(row)).isTrue
     }
 }

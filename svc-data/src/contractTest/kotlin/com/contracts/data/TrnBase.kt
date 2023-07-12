@@ -4,11 +4,11 @@ import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.AutoConfigureNoAuth
 import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
-import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
@@ -84,6 +84,9 @@ class TrnBase {
 
     @Autowired
     lateinit var authUtilService: AuthUtilService
+
+    @Autowired
+    lateinit var dateUtils: DateUtils
 
     @BeforeEach
     fun mockTrn() {

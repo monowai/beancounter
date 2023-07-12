@@ -1,8 +1,9 @@
 package com.beancounter.marketdata.config
 
-import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
+import com.beancounter.common.utils.DateUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -12,7 +13,8 @@ import org.springframework.scheduling.annotation.EnableScheduling
  */
 @Configuration
 @EnableScheduling
-class PriceScheduleConfig {
+@ConditionalOnProperty(value = ["schedule.enabled"], havingValue = "true", matchIfMissing = false)
+class PriceScheduleConfig(val dateUtils: DateUtils) {
 
     companion object {
         private val log = LoggerFactory.getLogger(PriceScheduleConfig::class.java)

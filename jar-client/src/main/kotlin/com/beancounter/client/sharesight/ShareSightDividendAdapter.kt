@@ -22,7 +22,7 @@ import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.text.ParseException
-import java.util.Locale
+import java.util.*
 
 /**
  * Converts from the ShareSight dividend format.
@@ -37,8 +37,8 @@ import java.util.Locale
 class ShareSightDividendAdapter(
     private val shareSightConfig: ShareSightConfig,
     private val assetIngestService: AssetIngestService,
+    private val dateUtils: DateUtils,
 ) : TrnAdapter {
-    private val dateUtils = DateUtils()
     private var filter = Filter(null)
     private val numberUtils = NumberUtils()
 

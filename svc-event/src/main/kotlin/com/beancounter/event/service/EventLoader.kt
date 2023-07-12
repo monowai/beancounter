@@ -3,7 +3,6 @@ package com.beancounter.event.service
 import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.client.services.PriceService
-import com.beancounter.common.contracts.PriceRequest.Companion.dateUtils
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.model.Portfolio
@@ -26,8 +25,8 @@ class EventLoader(
     private val priceService: PriceService,
     private val eventService: EventService,
     private val loginService: LoginService,
+    private val dateSplitter: DateSplitter,
 ) {
-    private val dateSplitter = DateSplitter(dateUtils)
 
     @Async("applicationTaskExecutor")
     fun loadEvents(date: String) {

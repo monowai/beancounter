@@ -18,8 +18,7 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class CashProviderService : MarketDataPriceProvider {
-    private val dateUtils = DateUtils()
+class CashProviderService(val dateUtils: DateUtils = DateUtils()) : MarketDataPriceProvider {
     private fun getMarketData(asset: Asset): MarketData {
         val result = MarketData(asset, priceDate!!)
         result.close = BigDecimal.ONE

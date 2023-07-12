@@ -5,6 +5,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
+import com.beancounter.marketdata.providers.alpha.AlphaPriceAdapter.Companion.alphaMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -24,7 +25,7 @@ class AlphaEventService(val alphaGateway: AlphaGateway, val alphaPriceAdapter: A
             log.error("Provider API error $json")
             return PriceResponse()
         }
-        val priceResponse: PriceResponse = alphaPriceAdapter.alphaMapper.readValue(json, PriceResponse::class.java)
+        val priceResponse: PriceResponse = alphaMapper.readValue(json, PriceResponse::class.java)
         val events = ArrayList<MarketData>()
         for (marketData in priceResponse.data) {
             if (inFilter(marketData)) {

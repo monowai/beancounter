@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -89,7 +90,7 @@ class PriceController(
             listOf(
                 priceService.getMarketData(
                     asset = asset,
-                    date = DateUtils().getDate(offMarketPriceRequest.date),
+                    date = dateUtils.getDate(offMarketPriceRequest.date),
                     closePrice = offMarketPriceRequest.closePrice,
                 ).get(),
             ),
@@ -122,7 +123,7 @@ class PriceController(
     @GetMapping("/refresh/{assetId}/{date}")
     fun refreshPrices(
         @PathVariable assetId: String,
-        @PathVariable(required = false) date: String = dateUtils.getDate().toString(),
+        @PathVariable(required = false) date: String = today,
     ): PriceResponse =
         priceRefresh.refreshPrice(assetId, date)
 

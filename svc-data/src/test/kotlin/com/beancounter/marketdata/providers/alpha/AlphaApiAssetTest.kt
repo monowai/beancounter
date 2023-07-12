@@ -14,10 +14,9 @@ import org.springframework.core.io.ClassPathResource
  * @since 2019-03-03
  */
 internal class AlphaApiAssetTest {
-    private val assetMapper = AlphaPriceAdapter().alphaMapper
+    private val assetMapper = AlphaPriceAdapter.alphaMapper
 
     @Test
-    @Throws(Exception::class)
     fun is_NullAsset() {
         val jsonFile = ClassPathResource(
             AlphaMockUtils.alphaContracts +
@@ -27,7 +26,6 @@ internal class AlphaApiAssetTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_SearchResult() {
         val jsonFile = ClassPathResource(
             AlphaMockUtils.alphaContracts +

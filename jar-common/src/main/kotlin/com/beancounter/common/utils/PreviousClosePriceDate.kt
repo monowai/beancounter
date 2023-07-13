@@ -1,6 +1,7 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.model.Market
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
@@ -15,7 +16,7 @@ import java.time.ZonedDateTime
 @Service
 class PreviousClosePriceDate(private val dateUtils: DateUtils) {
     companion object {
-        val log = LoggerFactory.getLogger(this::class.java)
+        val log: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
     fun getPriceDate(
@@ -26,17 +27,23 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
         return if (isCurrent) {
             val marketLocal = utcRequestDateTime.atZone(market.timezone.toZoneId())
             val pricesAvailable = getPricesAvailable(marketLocal, market)
-            log.debug("utc: $utcRequestDateTime, marketCloses: $pricesAvailable, marketLocal: $marketLocal, timezone: ${dateUtils.getZoneId().id}")
+            val daysToSubtract = getDaysToSubtract(
+                market,
+                marketLocal.toLocalDateTime(),
+                pricesAvailable.toLocalDateTime(),
+            )
+
+            log.trace(
+                "utc: $utcRequestDateTime, subtract: $daysToSubtract, marketLocal: $marketLocal, " +
+                    "marketCloses: $pricesAvailable, timezone: ${dateUtils.getZoneId().id}",
+            )
             getPriceDate(
                 marketLocal.toLocalDateTime(),
-                getDaysToSubtract(
-                    market,
-                    marketLocal.toLocalDateTime(),
-                    pricesAvailable.toLocalDateTime(),
-                ),
+                daysToSubtract,
             )
         } else {
             // Just account for work days
+            log.debug("Returning last working day relative to requested date")
             getPriceDate(utcRequestDateTime, 0)
         }
     }

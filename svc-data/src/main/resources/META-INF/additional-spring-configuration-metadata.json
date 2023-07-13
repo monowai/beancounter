@@ -9,6 +9,12 @@
       "name": "beancounter.currency.base",
       "type": "java.lang.String",
       "description": "System based ISO currency code."
+    },
+    {
+      "name": "schedule.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Deploy price schedule update beans."
     }
+
   ]
 }

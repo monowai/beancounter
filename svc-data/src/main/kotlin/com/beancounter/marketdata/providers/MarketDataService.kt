@@ -115,8 +115,8 @@ class MarketDataService @Autowired internal constructor(
         if (!providerAssets!!.isEmpty()) {
             val assetInputs = providerUtils.getInputs(providerAssets)
             val priceDate = timezonePriceDates[providerAssets.iterator().next().market.timezone.id]
-            val apiRequest = PriceRequest(priceDate.toString(), assetInputs)
-            return marketDataPriceProvider.getMarketData(apiRequest)
+            val priceRequest = PriceRequest(priceDate.toString(), assetInputs)
+            return marketDataPriceProvider.getMarketData(priceRequest)
         }
         return arrayListOf()
     }

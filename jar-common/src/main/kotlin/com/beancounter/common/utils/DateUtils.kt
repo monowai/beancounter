@@ -30,7 +30,7 @@ class DateUtils(
 ) {
     @PostConstruct
     fun logConfig() {
-        log.info(getZoneId().id)
+        log.info("beancounter.zone: ${getZoneId().id}")
     }
 
     fun today() = LocalDate.now(UTC).toString()

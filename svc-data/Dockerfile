@@ -10,7 +10,7 @@ ARG VERSION
 ENV GIT_COMMIT ${GIT_COMMIT}
 ENV VERSION ${VERSION}
 
-EXPOSE 9510 9511 9515
+EXPOSE 9510 9511 5005
 
 VOLUME /tmp
 
@@ -19,4 +19,4 @@ WORKDIR /app
 
 COPY ${JAR_FILE} app.jar
 
-ENTRYPOINT ["java","-agentlib:jdwp=transport=dt_socket,address=*:9515,server=y,suspend=n","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

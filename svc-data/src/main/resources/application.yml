@@ -24,6 +24,7 @@ management:
         include: "*"
 
 logging:
+
   level:
     root: trace
     javax: error

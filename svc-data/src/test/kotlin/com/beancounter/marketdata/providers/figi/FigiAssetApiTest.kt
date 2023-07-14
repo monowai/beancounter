@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +37,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -56,7 +55,6 @@ private const val berkshire = "BRK.B"
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
-@DirtiesContext
 class FigiAssetApiTest {
 
     @Autowired
@@ -166,60 +164,60 @@ class FigiAssetApiTest {
             .hasFieldOrPropertyWithValue(pCode, createdAsset.code)
     }
 
+    @BeforeEach
+    fun mockApis() {
+        val prefix = "/mock/figi"
+
+        mock(
+            ClassPathResource("$prefix/common-stock-response.json").file,
+            MSFT.code,
+            "Common Stock",
+        )
+
+        mock(
+            ClassPathResource("$prefix/adr-response.json").file,
+            "BAIDU",
+            "Depositary Receipt",
+        )
+
+        mock(
+            ClassPathResource("$prefix/reit-response.json").file,
+            "OHI",
+            "REIT",
+        )
+
+        mock(
+            ClassPathResource("$prefix/mf-response.json").file,
+            "XLF",
+            "REIT",
+        )
+
+        mock(
+            ClassPathResource("$prefix/brkb-response.json").file,
+            "BRK/B",
+            "Common Stock",
+        )
+        stubFor(
+            WireMock.any(WireMock.anyUrl())
+                .atPriority(10)
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(
+                            "[{\"error\": \"No identifier found.\"\n" +
+                                "    }\n" +
+                                "]",
+                        ),
+                ),
+        )
+    }
+
     companion object {
         private val objectMapper: ObjectMapper = BcJson().objectMapper
 
-        @BeforeAll
         @JvmStatic
-        fun mockApis() {
-            val prefix = "/mock/figi"
-
-            mock(
-                ClassPathResource("$prefix/common-stock-response.json").file,
-                MSFT.code,
-                "Common Stock",
-            )
-
-            mock(
-                ClassPathResource("$prefix/adr-response.json").file,
-                "BAIDU",
-                "Depositary Receipt",
-            )
-
-            mock(
-                ClassPathResource("$prefix/reit-response.json").file,
-                "OHI",
-                "REIT",
-            )
-
-            mock(
-                ClassPathResource("$prefix/mf-response.json").file,
-                "XLF",
-                "REIT",
-            )
-
-            mock(
-                ClassPathResource("$prefix/brkb-response.json").file,
-                "BRK/B",
-                "Common Stock",
-            )
-            stubFor(
-                WireMock.any(WireMock.anyUrl())
-                    .atPriority(10)
-                    .willReturn(
-                        WireMock.aResponse()
-                            .withStatus(200)
-                            .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(
-                                "[{\"error\": \"No identifier found.\"\n" +
-                                    "    }\n" +
-                                    "]",
-                            ),
-                    ),
-            )
-        }
-
-        private fun mock(
+        fun mock(
             jsonFile: File,
             code: String,
             securityType: String,

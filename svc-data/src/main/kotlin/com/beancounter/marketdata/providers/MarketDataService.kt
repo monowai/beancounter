@@ -9,6 +9,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +23,7 @@ import java.util.*
  * @since 2019-01-28
  */
 @Import(ProviderUtils::class)
+@EnableConfigurationProperties
 @Service
 class MarketDataService @Autowired internal constructor(
     private val providerUtils: ProviderUtils,

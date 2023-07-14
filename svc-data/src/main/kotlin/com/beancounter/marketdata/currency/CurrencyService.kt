@@ -4,12 +4,11 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.stereotype.Component
-import java.util.Locale
-import java.util.Optional
+import org.springframework.stereotype.Service
+import java.util.*
 
 /**
  * Verification of Market related functions.
@@ -17,13 +16,15 @@ import java.util.Optional
  * @author mikeh
  * @since 2019-03-19
  */
-@Component
-@EnableConfigurationProperties
+@Service
 @ConfigurationProperties(prefix = "beancounter.currency")
-class CurrencyService(val currencyRepository: CurrencyRepository) {
+class CurrencyService {
     final var base: String = "USD"
     var values: Collection<Currency> = ArrayList()
     var baseCurrency: Currency = Currency(base)
+
+    @Autowired
+    private lateinit var currencyRepository: CurrencyRepository
 
     @PostConstruct
     private fun persist() {

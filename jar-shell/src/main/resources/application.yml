@@ -7,6 +7,10 @@ marketdata:
   url: "http://localhost:9510"
   actuator: "http://localhost:9511"
 
+org:
+  jline:
+    terminal:
+      dumb: false
 spring:
   main:
     banner-mode: "off"
@@ -42,7 +46,8 @@ logging:
     org: error
     com: error
     com.beancounter.shell.IngestBoot: error
-    com.beancounter: debug
+    com.beancounter: info
+    org.hibernate: error
     org.springframework.web.servlet: info
     feign: error
     sun: error

@@ -27,10 +27,15 @@ class UserCommands(
 
     @ShellMethod("Identify yourself")
     fun login(
-        @ShellOption(help = "User ID") user: String,
+        @ShellOption(help = "User ID", defaultValue = "") user: String?,
     ) {
+        val u = if (user.isNullOrBlank()) {
+            lineReader.readLine("User: ")
+        } else {
+            user
+        }
         val password = lineReader.readLine("Password: ", '*')
-        registrationService.login(LoginRequest(user, password))
+        registrationService.login(LoginRequest(u, password))
     }
 
     @ShellMethod("What's my access token?")

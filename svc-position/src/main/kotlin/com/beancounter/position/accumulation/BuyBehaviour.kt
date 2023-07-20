@@ -43,6 +43,6 @@ class BuyBehaviour : AccumulationStrategy {
         if (moneyValues.costBasis != BigDecimal.ZERO) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
         }
-        averageCost.setCostValue(position, moneyValues)
+        moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
     }
 }

@@ -6,14 +6,13 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.util.Objects
+import java.util.*
 
 /**
  * Compute the market value and accumulate gains
@@ -33,11 +32,10 @@ class MarketValue(private val gains: Gains) {
         val position = positions[asset]
         val portfolio = positions.portfolio
         val isCash = asset.market.code == "CASH"
-        val total = position.quantityValues.getTotal()
         val trade = position.getMoneyValues(Position.In.TRADE).currency
         value(
-            total,
-            position.getMoneyValues(Position.In.TRADE),
+            position,
+            Position.In.TRADE,
             marketData,
             FxRate(
                 trade,
@@ -48,15 +46,15 @@ class MarketValue(private val gains: Gains) {
             isCash,
         )
         value(
-            total,
-            position.getMoneyValues(Position.In.BASE),
+            position,
+            Position.In.BASE,
             marketData,
             rate(trade, portfolio.base, rates),
             isCash,
         )
         value(
-            total,
-            position.getMoneyValues(Position.In.PORTFOLIO),
+            position,
+            Position.In.PORTFOLIO,
             marketData,
             rate(trade, portfolio.currency, rates),
             isCash,
@@ -64,7 +62,10 @@ class MarketValue(private val gains: Gains) {
         return position
     }
 
-    private fun value(total: BigDecimal, moneyValues: MoneyValues, mktData: MarketData, rate: FxRate, isCash: Boolean) {
+    private fun value(position: Position, positionIn: Position.In, mktData: MarketData, rate: FxRate, isCash: Boolean) {
+        val total = position.quantityValues.getTotal()
+        val moneyValues = position.getMoneyValues(positionIn)
+
         moneyValues.priceData = of(mktData, rate.rate)
         if (total.compareTo(BigDecimal.ZERO) == 0) {
             moneyValues.marketValue = BigDecimal.ZERO
@@ -83,9 +84,10 @@ class MarketValue(private val gains: Gains) {
         }
         if (isCash) {
             moneyValues.realisedGain = BigDecimal.ZERO // Will figure this out later
-            moneyValues.unrealisedGain = BigDecimal.ZERO
-            moneyValues.totalGain = BigDecimal.ZERO // moneyValues.marketValue
-            moneyValues.costValue = moneyValues.marketValue // For the time being we aren't tracking cost of cash.
+            moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costBasis)
+            moneyValues.totalGain = moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
+            // moneyValues.costValue = total.multiply(moneyValues.averageCost)
+            // moneyValues.costValue = moneyValues.marketValue
         } else {
             gains.value(total, moneyValues)
         }

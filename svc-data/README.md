@@ -56,3 +56,5 @@ business previous day. For testing purposes you can force the date to use by sta
 # Setting request date for the WTD provider
 beancounter.marketdata.provider.WTD.date=yyyy-MM-dd
 ``` 
+
+

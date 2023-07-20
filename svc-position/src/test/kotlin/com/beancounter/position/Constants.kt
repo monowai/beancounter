@@ -26,6 +26,7 @@ class Constants {
         val GBP = Currency("GBP")
         val SGD = Currency("SGD")
         val NASDAQ = Market("NASDAQ")
+        val US = Market("US")
         val CASH = Market("CASH")
         const val KMI = "KMI"
         const val AAPL = "AAPL"

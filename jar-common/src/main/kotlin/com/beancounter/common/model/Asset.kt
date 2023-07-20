@@ -62,6 +62,6 @@ data class Asset(
         get() = !code.equals(id, ignoreCase = true)
 
     override fun toString(): String {
-        return "Asset(code=$code, name=$name, market=$market)"
+        return "Asset(code=$code, name=$name, market=${market.code})"
     }
 }

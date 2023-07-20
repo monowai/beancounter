@@ -19,6 +19,7 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
@@ -97,6 +98,8 @@ class CashTrnTests {
 
     @Test
     fun depositCash() {
+        val nzdBalance = BigDecimal("10000.00")
+        val tradePortfolioRate = BigDecimal("0.698971")
         val cashInput = AssetUtils.getCash(NZD.code)
         val nzCashAsset = assetService.handle(
             AssetRequest(
@@ -104,14 +107,17 @@ class CashTrnTests {
             ),
         ).data[NZD.code]
         assertThat(nzCashAsset).isNotNull
-        val usPortfolio = bcMvcHelper.portfolio(PortfolioInput(code = "depositCash"))
+        val usPortfolio =
+            bcMvcHelper.portfolio(PortfolioInput(code = "depositCash", base = NZD.code, currency = USD.code))
         val cashDeposit = TrnInput(
             callerRef = CallerRef(),
             assetId = nzCashAsset!!.id,
-            cashAssetId = nzCashAsset.id,
+            cashCurrency = NZD.code, // Credit generic cash balance.
             trnType = TrnType.DEPOSIT,
             tradeCashRate = ONE,
-            tradeAmount = fiveK,
+            tradeBaseRate = ONE,
+            tradePortfolioRate = tradePortfolioRate,
+            tradeAmount = nzdBalance,
             price = ONE,
         )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(cashDeposit)))
@@ -119,8 +125,9 @@ class CashTrnTests {
         val cashTrn = trns.data.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(propTradeAmount, cashDeposit.tradeAmount)
-            .hasFieldOrPropertyWithValue(propCashAmount, fiveK)
+            .hasFieldOrPropertyWithValue(propCashAmount, nzdBalance)
             .hasFieldOrPropertyWithValue("tradeCashRate", cashDeposit.tradeCashRate)
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", tradePortfolioRate)
             .hasFieldOrPropertyWithValue("cashAsset", nzCashAsset)
             .hasFieldOrPropertyWithValue("cashCurrency", NZD)
     }
@@ -135,7 +142,7 @@ class CashTrnTests {
         val buy = TrnInput(
             callerRef = CallerRef(),
             assetId = equity!!.id,
-            cashAssetId = nzCashAsset.id,
+            cashCurrency = NZD.code,
             tradeCashRate = BigDecimal("0.50"),
             tradeAmount = fiveK,
             price = ONE,

@@ -17,6 +17,7 @@ import java.util.EnumMap
     DepositBehaviour::class,
     WithdrawalBehaviour::class,
     DividendBehaviour::class,
+    CashAccumulator::class,
     SplitBehaviour::class,
     FxBuyBehaviour::class,
     BalanceBehaviour::class,

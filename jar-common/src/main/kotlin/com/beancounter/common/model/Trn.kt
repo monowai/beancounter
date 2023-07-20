@@ -48,7 +48,7 @@ data class Trn(
     @ManyToOne
     var cashAsset: Asset? = null,
     @ManyToOne
-    var cashCurrency: Currency? = null, // Trade CCY to cash settlement currency
+    var cashCurrency: Currency? = cashAsset?.market?.currency, // Trade CCY to cash settlement currency
     @Column(precision = 10, scale = 6)
     var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade Currency to system Base Currency
     @Column(precision = 10, scale = 6)

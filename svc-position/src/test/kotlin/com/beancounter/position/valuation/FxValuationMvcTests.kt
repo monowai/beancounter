@@ -58,7 +58,7 @@ private const val EBAY = "EBAY"
 @SpringBootTest
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
-internal class FxValuationTest {
+internal class FxValuationMvcTests {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
@@ -113,7 +113,6 @@ internal class FxValuationTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_MvcValuingPositions() {
         val asset = ebay
         assertThat(asset).hasFieldOrProperty("name")
@@ -164,7 +163,6 @@ internal class FxValuationTest {
         }
 
     @Test
-    @Throws(Exception::class)
     fun is_MvcRestException() {
         val result = mockMvc.perform(
             MockMvcRequestBuilders.post("/value")

@@ -23,8 +23,8 @@ class AverageCost {
         return costBasis.divide(total, getMathContext())
     }
 
-    fun setCostValue(position: Position, moneyValues: MoneyValues) {
+    fun getCostValue(position: Position, moneyValues: MoneyValues): BigDecimal {
         val quantityValues = position.quantityValues
-        moneyValues.costValue = multiply(moneyValues.averageCost, quantityValues.getTotal())!!
+        return multiply(moneyValues.averageCost, quantityValues.getTotal())!!
     }
 }

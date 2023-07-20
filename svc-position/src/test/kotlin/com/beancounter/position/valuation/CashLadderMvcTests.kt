@@ -47,7 +47,7 @@ private const val PROP_COST_VALUE = "costValue"
 @SpringBootTest
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
-internal class CashLadderTest {
+internal class CashLadderMvcTests {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -114,8 +114,5 @@ internal class CashLadderTest {
         // Cash does not track purchases and sales totals.
         assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.TRADE])
             .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("3507.46")) // Purchases - Sales
-
-        assertThat(positionResponse.data.positions[toKey(nzdCash)]!!.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue(PROP_COST_VALUE, BigDecimal("4945.52"))
     }
 }

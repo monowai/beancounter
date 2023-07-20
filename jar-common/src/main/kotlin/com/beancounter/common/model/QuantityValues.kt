@@ -31,4 +31,8 @@ class QuantityValues {
     fun setPrecision(precision: Int = 2) {
         this.precision = precision
     }
+
+    override fun toString(): String {
+        return getTotal().toString()
+    }
 }

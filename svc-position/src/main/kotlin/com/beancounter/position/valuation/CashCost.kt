@@ -17,17 +17,22 @@ class CashCost {
         quantity: BigDecimal,
         rate: BigDecimal,
     ) {
+        val amount = MathUtils.multiply(quantity, rate)
         if (quantity > BigDecimal.ZERO) {
-            moneyValues.purchases = moneyValues.purchases.add(MathUtils.multiply(quantity, rate))
+            moneyValues.purchases = moneyValues.purchases.add(amount)
         } else {
-            moneyValues.sales = moneyValues.sales.add(MathUtils.multiply(quantity, rate))
+            moneyValues.sales = moneyValues.sales.add(amount)
         }
         moneyValues.costBasis = moneyValues.costBasis.add(
-            MathUtils.multiply(quantity, rate),
+            amount,
         )
         if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
+            moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
+        } else {
+            moneyValues.averageCost = BigDecimal.ZERO
+            moneyValues.costValue = BigDecimal.ZERO
+            moneyValues.costBasis = BigDecimal.ZERO // Hmm - should we hold this long term?
         }
-        averageCost.setCostValue(position, moneyValues)
     }
 }

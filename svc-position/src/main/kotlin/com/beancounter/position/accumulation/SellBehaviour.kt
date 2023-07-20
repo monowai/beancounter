@@ -67,6 +67,6 @@ class SellBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver())
             position.quantityValues.purchased = BigDecimal.ZERO
         }
         // If quantity changes, we need to update the cost Value
-        averageCost.setCostValue(position, moneyValues)
+        moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
     }
 }

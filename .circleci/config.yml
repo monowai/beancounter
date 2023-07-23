@@ -6,6 +6,7 @@ executors:
     environment:
       _JAVA_OPTIONS: "-Xms256m -Xmx512m"
       GRADLE_OPTS: "-Dorg.gradle.daemon=true"
+      STACK_VER: << pipeline.number >>
 
     docker:
       - image: cimg/openjdk:17.0
@@ -113,7 +114,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-shell:latest" \
-                                      -t "monowai/bc-shell:${CIRCLE_BUILD_NUM}" \
+                                      -t "monowai/bc-shell:${STACK_VER}" \
                                        ~/project/jar-shell/.
       - persist_to_workspace:
           root: ~/project
@@ -163,7 +164,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-data:latest" \
-                                      -t "monowai/bc-data:${CIRCLE_BUILD_NUM}" \
+                                      -t "monowai/bc-data:${STACK_VER}" \
                                        ~/project/svc-data/.
             - persist_to_workspace:
                 root: ~/project
@@ -206,7 +207,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-position:latest" \
-                                      -t "monowai/bc-position:${CIRCLE_BUILD_NUM}" \
+                                      -t "monowai/bc-position:${STACK_VER}" \
                                        ~/project/svc-position/.
             - persist_to_workspace:
                 root: ~/project
@@ -248,7 +249,7 @@ jobs:
                   docker buildx build --push \
                                       --platform linux/arm64/v8,linux/amd64 \
                                       -t "monowai/bc-event:latest" \
-                                      -t "monowai/bc-event:${CIRCLE_BUILD_NUM}" \
+                                      -t "monowai/bc-event:${STACK_VER}" \
                                        ~/project/svc-event/.
 
             - persist_to_workspace:

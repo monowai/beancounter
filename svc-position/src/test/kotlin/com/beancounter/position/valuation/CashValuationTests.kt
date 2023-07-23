@@ -1,5 +1,6 @@
 package com.beancounter.position.valuation
 
+import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -10,12 +11,14 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.SGD
+import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.accumulation.Accumulator
 import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.Helper.Companion.convert
-import com.beancounter.position.valuation.Helper.Companion.getDeposit
+import com.beancounter.position.valuation.Helper.Companion.deposit
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -29,6 +32,7 @@ import java.math.BigDecimal
         Accumulator::class,
     ],
 )
+@Nested
 class CashValuationTests {
 
     @Autowired
@@ -42,10 +46,13 @@ class CashValuationTests {
     val sgdCash = getTestAsset(code = SGD.code, market = Constants.CASH)
 
     @Test
-    fun costOfCashInPositions() {
-        val positions = Positions(portfolio = Portfolio(code = "CostOfCash", currency = SGD, base = NZD))
+    fun averageCostOfCash() {
         val usdBalance = BigDecimal("10000.00")
-        val sgdBalance = BigDecimal("13308.00")
+        val sgdBalance = BigDecimal("20000.00")
+        val rate = usdBalance.divide(sgdBalance)
+
+        val positions = Positions(portfolio = Portfolio(code = "CostOfCash", currency = SGD, base = SGD))
+
         accumulator.accumulate(
             convert(
                 credit = usdCash,
@@ -53,6 +60,8 @@ class CashValuationTests {
                 debit = sgdCash,
                 debitAmount = sgdBalance,
                 portfolio = positions.portfolio,
+                tradeBaseRate = rate,
+                tradePortfolioRate = rate,
             ),
             positions,
         )
@@ -61,8 +70,54 @@ class CashValuationTests {
             .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ONE)
             .hasFieldOrPropertyWithValue("currency", USD)
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
+            .hasFieldOrPropertyWithValue("averageCost", rate)
             .hasFieldOrPropertyWithValue("currency", positions.portfolio.currency)
         assertThat(usdPosition.moneyValues[Position.In.BASE])
+            .hasFieldOrPropertyWithValue("averageCost", rate)
+            .hasFieldOrPropertyWithValue("currency", positions.portfolio.base)
+    }
+
+    @Test
+    fun `cost In Reference Currencies reflects the cost of cash of the cashAsset`() {
+        val usdBalance = BigDecimal("1000.00")
+        val expectedRate = BigDecimal("0.5")
+
+        val positions = Positions(portfolio = Portfolio(code = "AssetCost", currency = SGD, base = SGD))
+
+        accumulator.accumulate(
+            deposit(
+                usdCash,
+                balance = usdBalance,
+                portfolio = positions.portfolio,
+                tradeBaseRate = expectedRate,
+                tradePortfolioRate = expectedRate,
+            ),
+            positions,
+        )
+        val testAsset = getTestAsset(US, "AnyAsset")
+        accumulator.accumulate(
+            Trn(
+                callerRef = CallerRef(),
+                asset = testAsset,
+                portfolio = positions.portfolio,
+                trnType = TrnType.BUY,
+                quantity = usdBalance,
+                cashCurrency = USD,
+                cashAsset = usdCash,
+                tradeAmount = usdBalance,
+                price = BigDecimal.ONE,
+            ),
+            positions,
+        )
+        val equityPosition = positions[testAsset]
+        assertThat(equityPosition.moneyValues[Position.In.TRADE])
+            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue("currency", USD)
+        assertThat(equityPosition.moneyValues[Position.In.PORTFOLIO])
+            .hasFieldOrPropertyWithValue("averageCost", expectedRate)
+            .hasFieldOrPropertyWithValue("currency", positions.portfolio.currency)
+        assertThat(equityPosition.moneyValues[Position.In.BASE])
+            .hasFieldOrPropertyWithValue("averageCost", expectedRate)
             .hasFieldOrPropertyWithValue("currency", positions.portfolio.base)
     }
 
@@ -72,7 +127,7 @@ class CashValuationTests {
         // Initial Deposit
         val nzdBalance = BigDecimal("12000.00")
         accumulator.accumulate(
-            getDeposit(nzdCash, nzdBalance, portfolio = positions.portfolio),
+            deposit(nzdCash, nzdBalance, portfolio = positions.portfolio),
             positions,
         )
         assertThat(positions.isMixedCurrencies).isFalse()

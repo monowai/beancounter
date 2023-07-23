@@ -15,7 +15,13 @@ class Helper {
          * Helpers to build transactions without having to use wiremock.
          */
         @JvmStatic
-        fun getDeposit(cashAsset: Asset, balance: BigDecimal, portfolio: Portfolio): Trn {
+        fun deposit(
+            cashAsset: Asset,
+            balance: BigDecimal,
+            portfolio: Portfolio,
+            tradeBaseRate: BigDecimal = BigDecimal.ONE,
+            tradePortfolioRate: BigDecimal = BigDecimal.ONE,
+        ): Trn {
             return Trn(
                 trnType = TrnType.DEPOSIT,
                 portfolio = portfolio,
@@ -23,6 +29,8 @@ class Helper {
                 price = BigDecimal.ONE,
                 cashAsset = cashAsset, // This is the resolved cash asset that import will figure out from CashCurrency
                 quantity = balance,
+                tradeBaseRate = tradeBaseRate,
+                tradePortfolioRate = tradePortfolioRate,
             )
         }
 
@@ -33,6 +41,8 @@ class Helper {
             debit: Asset,
             debitAmount: BigDecimal,
             portfolio: Portfolio,
+            tradeBaseRate: BigDecimal = BigDecimal.ONE,
+            tradePortfolioRate: BigDecimal = BigDecimal.ONE,
         ): Trn {
             return Trn(
                 trnType = TrnType.FX_BUY,
@@ -40,6 +50,8 @@ class Helper {
                 asset = credit,
                 cashAsset = debit,
                 price = BigDecimal.ONE,
+                tradeBaseRate = tradeBaseRate,
+                tradePortfolioRate = tradePortfolioRate,
                 quantity = creditAmount, // Amount to receive
                 cashAmount = debitAmount.multiply(BigDecimal("-1")), // Amount to debit
             )

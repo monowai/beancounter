@@ -5,6 +5,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.OffsetDateTime
@@ -102,7 +103,12 @@ internal class PreviousClosePriceDateTest {
 
         // Requesting today, but prices are not yet available.
         val todayNoPrices = previousClose.getPriceDate(pricesUnavailable, nasdaq, true)
-        assertThat(todayNoPrices).isEqualTo(today.minusDays(1))
+        val deduct = if (today.dayOfWeek == DayOfWeek.SUNDAY) {
+            2L
+        } else {
+            1L
+        }
+        assertThat(todayNoPrices).isEqualTo(today.minusDays(deduct))
     }
 
     @Test

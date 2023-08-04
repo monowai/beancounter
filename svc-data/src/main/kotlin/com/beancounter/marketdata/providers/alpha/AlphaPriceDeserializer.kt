@@ -9,14 +9,12 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.get
 import com.beancounter.common.utils.PercentUtils
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
-import java.io.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Objects
+import java.util.*
 
 private const val SPLIT = "8. split coefficient"
 
@@ -50,7 +48,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     private val dateUtils = DateUtils()
     private val percentUtils = PercentUtils()
 
-    @Throws(IOException::class)
     override fun deserialize(p: JsonParser, ctx: DeserializationContext): PriceResponse? {
         val source = p.codec.readTree<JsonNode>(p)
         if (source.has(TIME_SERIES_DAILY)) {
@@ -63,7 +60,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         return null
     }
 
-    @Throws(JsonProcessingException::class)
     private fun handleGlobal(source: JsonNode): PriceResponse {
         val metaData = source["Global Quote"]
         val asset = getAsset(metaData, "01. symbol")
@@ -97,7 +93,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         return PriceResponse(results)
     }
 
-    @Throws(JsonProcessingException::class)
     private fun handleTimeSeries(source: JsonNode): PriceResponse {
         val results: MutableCollection<MarketData> = ArrayList()
         val metaData = source["Meta Data"]

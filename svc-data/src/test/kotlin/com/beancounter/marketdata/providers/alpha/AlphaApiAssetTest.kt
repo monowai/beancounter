@@ -14,7 +14,8 @@ import org.springframework.core.io.ClassPathResource
  * @since 2019-03-03
  */
 internal class AlphaApiAssetTest {
-    private val assetMapper = AlphaPriceAdapter.alphaMapper
+    private val alphaConfig = AlphaConfig()
+    private val assetMapper = alphaConfig.getObjectMapper()
 
     @Test
     fun is_NullAsset() {

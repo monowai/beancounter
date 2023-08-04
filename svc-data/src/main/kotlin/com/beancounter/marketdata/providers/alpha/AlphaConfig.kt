@@ -1,10 +1,16 @@
 package com.beancounter.marketdata.providers.alpha
 
+import com.beancounter.common.contracts.AssetSearchResponse
+import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.providers.DataProviderConfig
+import com.fasterxml.jackson.core.Version
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -22,6 +28,20 @@ class AlphaConfig(
 
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
+
+    companion object {
+        private val alphaMapper: ObjectMapper = BcJson().objectMapper
+    }
+
+    init {
+        val module = SimpleModule(
+            "AlphaMarketDataDeserializer",
+            Version(1, 0, 0, null, null, null),
+        )
+        module.addDeserializer(PriceResponse::class.java, AlphaPriceDeserializer())
+        module.addDeserializer(AssetSearchResponse::class.java, AlphaSearchDeserializer())
+        alphaMapper.registerModule(module)
+    }
 
     override fun getBatchSize(): Int {
         return 1
@@ -69,5 +89,9 @@ class AlphaConfig(
 
     fun translateSymbol(code: String): String {
         return code.replace(".", "-")
+    }
+
+    fun getObjectMapper(): ObjectMapper {
+        return alphaMapper
     }
 }

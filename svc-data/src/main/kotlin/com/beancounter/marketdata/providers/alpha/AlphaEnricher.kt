@@ -12,15 +12,18 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.Locale
+import java.util.*
 
 /**
- * Backfills missing asset data from a 3rd party. Basically adds asset.name for a supplied asset.code.
+ * Backfill missing asset data from a 3rd party. Basically adds asset.name for a supplied asset.code.
  */
 @Service
-class AlphaEnricher(private val alphaConfig: AlphaConfig, private val defaultEnricher: DefaultEnricher) :
+class AlphaEnricher(
+    private val alphaConfig: AlphaConfig,
+    private val defaultEnricher: DefaultEnricher,
+) :
     AssetEnricher {
-    private val objectMapper = AlphaPriceAdapter.alphaMapper
+    private val objectMapper = alphaConfig.getObjectMapper()
     private var alphaProxyCache: AlphaProxyCache? = null
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")

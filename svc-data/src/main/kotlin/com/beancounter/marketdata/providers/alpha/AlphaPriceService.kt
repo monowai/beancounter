@@ -6,7 +6,6 @@ import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderArguments
@@ -29,7 +28,7 @@ import kotlin.collections.set
  * @since 2019-03-03
  */
 @Service
-class AlphaPriceService(private val alphaConfig: AlphaConfig, private val dateUtils: DateUtils) :
+class AlphaPriceService(private val alphaConfig: AlphaConfig) :
     MarketDataPriceProvider {
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
@@ -135,7 +134,8 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig, private val dateUt
             log.error(e.message)
             throw SystemException(unexpectedMsg)
         }
-        val priceResponse: PriceResponse = AlphaPriceAdapter.alphaMapper.readValue(json, PriceResponse::class.java)
+        val priceResponse: PriceResponse = alphaConfig.getObjectMapper()
+            .readValue(json, PriceResponse::class.java)
         for (marketData in priceResponse.data) {
             marketData.source = ID
             marketData.asset = asset

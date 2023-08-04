@@ -23,9 +23,9 @@ import java.math.BigDecimal
  * @since 2019-03-03
  */
 internal class AlphaPriceTest {
-    private val priceMapper = AlphaPriceAdapter.alphaMapper
     private val dateUtils = DateUtils()
     private val alphaConfig = AlphaConfig()
+    private val priceMapper = alphaConfig.getObjectMapper()
 
     @Test
     fun is_NullAsset() {
@@ -111,7 +111,7 @@ internal class AlphaPriceTest {
 
     @Test
     fun is_KnownMarketVariancesHandled() {
-        val alphaPriceService = AlphaPriceService(alphaConfig, dateUtils)
+        val alphaPriceService = AlphaPriceService(alphaConfig)
         // No configured support to handle the market
         assertThat(alphaPriceService.isMarketSupported(NZX))
             .isFalse

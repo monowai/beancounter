@@ -1,19 +1,13 @@
 package com.beancounter.marketdata.providers.alpha
 
-import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.BcJson
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.marketdata.providers.MarketDataAdapter
 import com.beancounter.marketdata.providers.ProviderArguments
-import com.fasterxml.jackson.core.Version
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.IOException
@@ -23,7 +17,7 @@ import java.math.BigDecimal
  * Convert Alpha MarketData to BeanCounter MarketData
  */
 @Service
-class AlphaPriceAdapter(val dateUtils: DateUtils) : MarketDataAdapter {
+class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
 
     operator fun get(
         providerArguments: ProviderArguments,
@@ -62,7 +56,7 @@ class AlphaPriceAdapter(val dateUtils: DateUtils) : MarketDataAdapter {
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
     ) {
-        val priceResponse = alphaMapper.readValue(response, PriceResponse::class.java)
+        val priceResponse = alphaConfig.getObjectMapper().readValue(response, PriceResponse::class.java)
         if (priceResponse != null && priceResponse.data.isNotEmpty()) {
             for (marketData in priceResponse.data) {
                 marketData.asset = asset!! // Return BC view of the asset, not MarketProviders
@@ -86,7 +80,6 @@ class AlphaPriceAdapter(val dateUtils: DateUtils) : MarketDataAdapter {
         }
     }
 
-    @Throws(IOException::class)
     private fun isMdResponse(asset: Asset?, result: String?): Boolean {
         var field: String? = null
         if (result == null) {
@@ -106,7 +99,7 @@ class AlphaPriceAdapter(val dateUtils: DateUtils) : MarketDataAdapter {
             }
         }
         if (field != null) {
-            val resultMessage = alphaMapper.readTree(result)
+            val resultMessage = alphaConfig.getObjectMapper().readTree(result)
             log.debug("API returned [{}] for {}", resultMessage[field], asset)
             return false
         }
@@ -119,23 +112,12 @@ class AlphaPriceAdapter(val dateUtils: DateUtils) : MarketDataAdapter {
         if (date == null) {
             date = providerArguments.date
         }
-        val priceDate = dateUtils.getDate(date)
+        val priceDate = alphaConfig.dateUtils.getDate(date)
 
         return MarketData(asset!!, priceDate)
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(AlphaPriceAdapter::class.java)
-        val alphaMapper: ObjectMapper = BcJson().objectMapper
-    }
-
-    init {
-        val module = SimpleModule(
-            "AlphaMarketDataDeserializer",
-            Version(1, 0, 0, null, null, null),
-        )
-        module.addDeserializer(PriceResponse::class.java, AlphaPriceDeserializer())
-        module.addDeserializer(AssetSearchResponse::class.java, AlphaSearchDeserializer())
-        alphaMapper.registerModule(module)
     }
 }

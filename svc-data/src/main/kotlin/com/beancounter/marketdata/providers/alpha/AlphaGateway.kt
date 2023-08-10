@@ -20,7 +20,7 @@ interface AlphaGateway {
     fun getCurrent(
         @PathVariable("assetId") assetId: String,
         @PathVariable("apiKey") apiKey: String,
-    ): String?
+    ): String
 
     @RequestMapping(
         method = [RequestMethod.GET],
@@ -29,7 +29,7 @@ interface AlphaGateway {
     fun getHistoric(
         @PathVariable("assetId") assetId: String?,
         @PathVariable("apiKey") apiKey: String?,
-    ): String?
+    ): String
 
     @RequestMapping(
         method = [RequestMethod.GET],

@@ -22,7 +22,7 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-03-03
  */
-internal class AlphaPriceTest {
+internal class AlphaBehaviourTest {
     private val dateUtils = DateUtils()
     private val alphaConfig = AlphaConfig()
     private val priceMapper = alphaConfig.getObjectMapper()

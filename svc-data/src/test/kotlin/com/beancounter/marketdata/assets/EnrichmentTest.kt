@@ -12,12 +12,12 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.assets.figi.FigiEnricher
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaEnricher
+import com.beancounter.marketdata.providers.alpha.AlphaProxy
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import java.util.*
 
 /**
  * Verifies that default enricher behaviour is correct.
@@ -40,7 +40,12 @@ class EnrichmentTest {
     @Test
     fun is_AlphaEnrichment() {
         val dateUtils = DateUtils()
-        val enricher: AssetEnricher = AlphaEnricher(AlphaConfig(dateUtils = dateUtils, PreviousClosePriceDate(dateUtils)), DefaultEnricher())
+        val alphaProxy = Mockito.mock(AlphaProxy::class.java)
+        val enricher: AssetEnricher = AlphaEnricher(
+            AlphaConfig(dateUtils = dateUtils, PreviousClosePriceDate(dateUtils)),
+            DefaultEnricher(),
+            alphaProxy,
+        )
         val asset = Asset(code = code, id = id, name = null, market = NYSE)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name

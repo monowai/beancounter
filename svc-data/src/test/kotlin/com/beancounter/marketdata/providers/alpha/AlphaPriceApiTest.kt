@@ -81,7 +81,7 @@ import java.math.BigDecimal
 @ActiveProfiles("alpha")
 @Tag("slow")
 @AutoConfigureWireMock(port = 0)
-internal class AlphaVantageApiTest {
+internal class AlphaPriceApiTest {
     @MockBean
     private lateinit var dateUtils: DateUtils
 

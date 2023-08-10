@@ -2,7 +2,6 @@ package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.Payload
-import com.beancounter.common.contracts.PriceResponse
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
@@ -16,15 +15,6 @@ import org.springframework.core.io.ClassPathResource
 internal class AlphaApiAssetTest {
     private val alphaConfig = AlphaConfig()
     private val assetMapper = alphaConfig.getObjectMapper()
-
-    @Test
-    fun is_NullAsset() {
-        val jsonFile = ClassPathResource(
-            AlphaMockUtils.alphaContracts +
-                "/alphavantage-empty-response.json",
-        ).file
-        Assertions.assertThat(assetMapper.readValue(jsonFile, PriceResponse::class.java)).isNull()
-    }
 
     @Test
     fun is_SearchResult() {

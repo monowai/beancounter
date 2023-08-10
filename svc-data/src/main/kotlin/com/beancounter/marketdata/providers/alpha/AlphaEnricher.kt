@@ -9,8 +9,8 @@ import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetEnricher
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.fasterxml.jackson.core.JsonProcessingException
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -21,26 +21,22 @@ import java.util.*
 class AlphaEnricher(
     private val alphaConfig: AlphaConfig,
     private val defaultEnricher: DefaultEnricher,
+    private val alphaProxy: AlphaProxy,
 ) :
     AssetEnricher {
     private val objectMapper = alphaConfig.getObjectMapper()
-    private var alphaProxyCache: AlphaProxyCache? = null
 
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
     private val apiKey: String = "demo"
 
-    @Autowired(required = false)
-    fun setAlphaProxyCache(alphaProxyCache: AlphaProxyCache?) {
-        this.alphaProxyCache = alphaProxyCache
-    }
-
+    @Cacheable("asset.search")
     override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
         val marketCode = alphaConfig.translateMarketCode(market)
         var symbol = alphaConfig.translateSymbol(assetInput.code)
         if (marketCode != null) {
             symbol = "$symbol.$marketCode"
         }
-        val result = alphaProxyCache!!.search(symbol, apiKey)
+        val result = alphaProxy.search(symbol, apiKey)
         // var assetResult: AssetSearchResult? = null
         val assetResult = try {
             getAssetSearchResult(market, result)

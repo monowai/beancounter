@@ -20,7 +20,7 @@ import java.time.LocalDate
  * Helper functions for Alpha data provider. Enable dependant supporting classes
  */
 @Configuration
-@Import(AlphaPriceService::class, AlphaProxyCache::class, AlphaPriceAdapter::class)
+@Import(AlphaPriceService::class, AlphaProxy::class, AlphaPriceAdapter::class)
 class AlphaConfig(
     val dateUtils: DateUtils = DateUtils(),
     val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
@@ -43,9 +43,7 @@ class AlphaConfig(
         alphaMapper.registerModule(module)
     }
 
-    override fun getBatchSize(): Int {
-        return 1
-    }
+    override fun getBatchSize() = 1
 
     fun translateMarketCode(market: Market): String? {
         if (isNullMarket(market.code)) {
@@ -59,21 +57,18 @@ class AlphaConfig(
     }
 
     val nullMarket = "NASDAQ|NYSE|AMEX|US"
-    fun isNullMarket(marketCode: String): Boolean {
-        return nullMarket.contains(marketCode, true)
-    }
+    fun isNullMarket(marketCode: String) = nullMarket.contains(marketCode, true)
 
     /**
      * Resolves the Date to use when querying the market.
      * This will be previous days CoB until the market is closed.
      */
-    override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
-        return marketUtils.getPriceDate(
+    override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate =
+        marketUtils.getPriceDate(
             dateUtils.offsetNow(date).toLocalDateTime(),
             market,
             currentMode,
         )
-    }
 
     override fun getPriceCode(asset: Asset): String {
         if (asset.priceSymbol != null) {
@@ -87,11 +82,7 @@ class AlphaConfig(
         }
     }
 
-    fun translateSymbol(code: String): String {
-        return code.replace(".", "-")
-    }
+    fun translateSymbol(code: String): String = code.replace(".", "-")
 
-    fun getObjectMapper(): ObjectMapper {
-        return alphaMapper
-    }
+    fun getObjectMapper(): ObjectMapper = alphaMapper
 }

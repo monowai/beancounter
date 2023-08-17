@@ -34,13 +34,8 @@ class AssetUtils {
             )
 
         @JvmStatic
-        fun split(assets: Collection<PriceAsset>): Map<String, MutableCollection<PriceAsset>> {
-            val results: MutableMap<String, MutableCollection<PriceAsset>> = HashMap()
-            for (input in assets) {
-                val marketAssets = results.computeIfAbsent(input.market) { ArrayList() }
-                marketAssets.add(input)
-            }
-            return results
+        fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> {
+            return assets.groupByTo(mutableMapOf(), PriceAsset::market)
         }
 
         /**

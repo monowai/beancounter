@@ -50,44 +50,41 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
 
     override fun deserialize(p: JsonParser, ctx: DeserializationContext): PriceResponse? {
         val source = p.codec.readTree<JsonNode>(p)
-        if (source.has(TIME_SERIES_DAILY)) {
-            return handleTimeSeries(source)
-        } else if (source.has(GLOBAL_QUOTE)) {
-            return handleGlobal(source)
-            // nodeValue = source.get("Global Quote");
-            // marketData =getMarketData(asset, )
+
+        return when {
+            source.has(TIME_SERIES_DAILY) -> handleTimeSeries(source)
+            source.has(GLOBAL_QUOTE) -> handleGlobal(source)
+            else -> null
         }
-        return null
     }
 
     private fun handleGlobal(source: JsonNode): PriceResponse {
         val metaData = source["Global Quote"]
         val asset = getAsset(metaData, "01. symbol")
-        val mapType = mapper.typeFactory
-            .constructMapType(LinkedHashMap::class.java, String::class.java, String::class.java)
-        return getMdFromGlobal(asset, mapper.readValue<Map<String, Any>>(metaData.toString(), mapType))
+        val mapType =
+            mapper.typeFactory.constructMapType(LinkedHashMap::class.java, String::class.java, String::class.java)
+        val data = mapper.readValue<Map<String, Map<String, String>>>(metaData.toString(), mapType)
+
+        return getMdFromGlobal(asset, data)
     }
 
-    private fun getMdFromGlobal(asset: Asset?, data: Map<String, Any>?): PriceResponse {
-        val results: MutableCollection<MarketData> = ArrayList()
-        if (data != null && asset != null) {
-            val open = BigDecimal(data[fOpen].toString())
-            val high = BigDecimal(data[fHigh].toString())
-            val low = BigDecimal(data[fLow].toString())
-            val close = BigDecimal(data[fPrice].toString())
-            val volume = Integer.decode(data[fVolume].toString())
+    private fun getMdFromGlobal(asset: Asset?, data: Map<String, Any>): PriceResponse {
+        val results = mutableListOf<MarketData>()
+        if (asset != null) {
             val priceDate = data[fDate].toString()
-            val previousClose = get(data[fPreviousClose].toString())
-            val change = get(data[fChange].toString())
-            val price = MarketData(asset, Objects.requireNonNull(dateUtils.getDate(priceDate))!!)
-            price.open = open
-            price.close = close
-            price.high = high
-            price.low = low
-            price.volume = volume
-            price.previousClose = previousClose
-            price.change = change
-            price.changePercent = percentUtils.percent(change, previousClose)
+            val price = MarketData(
+                asset,
+                dateUtils.getDate(priceDate),
+            ).apply {
+                open = BigDecimal(data[fOpen].toString())
+                high = BigDecimal(data[fHigh].toString())
+                low = BigDecimal(data[fLow].toString())
+                close = BigDecimal(data[fPrice].toString())
+                volume = Integer.decode(data[fVolume].toString())
+                previousClose = get(data[fPreviousClose].toString())
+                change = get(data[fChange].toString())
+                changePercent = percentUtils.percent(change, previousClose)
+            }
             results.add(price)
         }
         return PriceResponse(results)
@@ -146,7 +143,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
     }
 
     private fun getAsset(nodeValue: JsonNode, assetField: String): Asset? {
-        var asset: Asset? = null
         if (!isNull(nodeValue)) {
             val symbols = nodeValue[assetField] ?: return null
 
@@ -156,14 +152,13 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
                 // We have a market
                 market = Market(values[1])
             }
-            asset = Asset(code = values[0], market = market)
+            return Asset(code = values[0], market = market)
         }
-        return asset
+        return null
     }
 
-    private fun isNull(nodeValue: JsonNode?): Boolean {
-        return nodeValue == null || nodeValue.isNull || nodeValue.asText() == "null"
-    }
+    private fun isNull(nodeValue: JsonNode?) =
+        nodeValue == null || nodeValue.isNull || nodeValue.asText() == "null"
 
     companion object {
         const val GLOBAL_QUOTE = "Global Quote"

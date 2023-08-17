@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.AssetUtils.Companion.split
@@ -13,7 +12,10 @@ import com.beancounter.common.utils.DateUtils
  * @author mikeh
  * @since 2019-03-12
  */
-class ProviderArguments(private val dataProviderConfig: DataProviderConfig, private val dateUtils: DateUtils = DateUtils()) {
+class ProviderArguments(
+    private val dataProviderConfig: DataProviderConfig,
+    private val dateUtils: DateUtils = DateUtils(),
+) {
     private var count = 0
     private var currentBatch = 0
     var date: String = "today"
@@ -26,9 +28,7 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig, priv
      */
     var batch: MutableMap<Int, String> = mutableMapOf()
 
-    private fun bumpBatch() {
-        currentBatch++
-    }
+    private fun bumpBatch() = currentBatch++
 
     /**
      * Tracks and batches the asset for the DataProvider.
@@ -38,33 +38,28 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig, priv
      */
     fun addAsset(asset: Asset, requestedDate: String) {
         val dpKey = dataProviderConfig.getPriceCode(asset)
-        var valuationDate = requestedDate
-        if (dateUtils.isToday(requestedDate)) {
-            valuationDate = dateUtils.offsetDateString(requestedDate)
-        }
         dpToBc[dpKey] = asset
-        var datedBatch = datedBatches[currentBatch]
-        if (datedBatch == null) {
-            datedBatch = DatedBatch(currentBatch, valuationDate)
-            datedBatches[currentBatch] = datedBatch
-        }
-        var searchKey = batch[datedBatch.batchId]
-        searchKey = if (searchKey == null) {
-            dpKey
+        val valuationDate = if (dateUtils.isToday(requestedDate)) {
+            dateUtils.offsetDateString(requestedDate)
         } else {
-            searchKey + delimiter + dpKey
+            requestedDate
         }
+
+        val datedBatch = datedBatches.getOrPut(currentBatch) {
+            DatedBatch(currentBatch, valuationDate)
+        }
+
+        val searchKey = batch[datedBatch.batchId]?.let { it + delimiter + dpKey } ?: dpKey
         batch[currentBatch] = searchKey
-        count++
-        if (count >= dataProviderConfig.getBatchSize()) {
+
+        if (++count >= dataProviderConfig.getBatchSize()) {
             count = 0
             currentBatch++
         }
     }
 
-    fun getAssets(batchId: Int?): Array<String> {
-        return batch[batchId]!!.split(delimiter).toTypedArray()
-    }
+    fun getAssets(batchId: Int): Array<String> =
+        batch[batchId]!!.split(delimiter).toTypedArray()
 
     fun getBatchConfigs(): Map<Int, DatedBatch?> {
         return datedBatches
@@ -90,19 +85,16 @@ class ProviderArguments(private val dataProviderConfig: DataProviderConfig, priv
         ): ProviderArguments {
             val providerArguments = ProviderArguments(dataProviderConfig, dateUtils)
             providerArguments.date = priceRequest.date
-            // Data providers can have market dependent price dates. Batch first by market, then by size
-            val marketAssets: Map<String, Collection<PriceAsset>> = split(priceRequest.assets)
-            for (market in marketAssets.keys) {
-                for (asset in marketAssets[market] ?: error("This should not happen")) {
-                    if (asset.resolvedAsset != null) {
-                        providerArguments.addAsset(
-                            asset.resolvedAsset!!,
-                            priceRequest.date,
-                        )
+
+            split(priceRequest.assets).forEach { (_, assets) ->
+                assets
+                    .filter { it.resolvedAsset != null }
+                    .forEach { asset ->
+                        providerArguments.addAsset(asset.resolvedAsset!!, priceRequest.date)
                     }
-                }
                 providerArguments.bumpBatch()
             }
+
             return providerArguments
         }
     }

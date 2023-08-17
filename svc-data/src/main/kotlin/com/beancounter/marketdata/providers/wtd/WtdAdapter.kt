@@ -21,7 +21,7 @@ class WtdAdapter : MarketDataAdapter {
     private val dateUtils = DateUtils()
     operator fun get(
         providerArguments: ProviderArguments,
-        batchId: Int?,
+        batchId: Int,
         response: Future<WtdResponse>?,
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()

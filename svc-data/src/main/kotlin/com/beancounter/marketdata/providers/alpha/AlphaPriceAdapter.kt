@@ -21,7 +21,7 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
 
     operator fun get(
         providerArguments: ProviderArguments,
-        batchId: Int?,
+        batchId: Int,
         response: String?,
     ): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList()

@@ -5,6 +5,7 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PriceRequest.Companion.of
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -47,6 +48,7 @@ import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -69,7 +71,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.math.BigDecimal
 
 /**
  * AlphaApi business functional
@@ -165,27 +166,22 @@ internal class AlphaPriceApiTest {
 
     @Test
     fun is_EmptyGlobalResponseHandled() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file
+        val jsonFile = ClassPathResource("${AlphaMockUtils.alphaContracts}/global-empty.json").file
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
         val asset = Asset(code = api, market = Market("EMPTY", USD.code))
 
-        val results = mdFactory
-            .getMarketDataProvider(AlphaPriceService.ID)
-            .getMarketData(of(asset))
-
-        assertThat(results) // Contains a default price
-            .isNotNull
-            .hasSize(1)
-        assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
-            .hasFieldOrProperty(assetProp)
+        assertThrows(BusinessException::class.java) {
+            mdFactory
+                .getMarketDataProvider(AlphaPriceService.ID)
+                .getMarketData(of(asset))
+        }
     }
 
     private val changeProp = "change"
 
     @Test
     fun is_CurrentPriceFound() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/global-response.json").file
+        val jsonFile = ClassPathResource("${AlphaMockUtils.alphaContracts}/global-response.json").file
         AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
         val nasdaq = Market(NASDAQ.code, USD.code)
         val asset = getTestAsset(market = nasdaq, code = MSFT.code)
@@ -193,7 +189,7 @@ internal class AlphaPriceApiTest {
         val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
             .getMarketData(priceRequest)
 
-        // Coverage - WTD does not support this market
+        // Coverage - AV does not support this market, but we expect a price
         assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(nasdaq)).isFalse
         val marketData = mdResult.iterator().next()
         assertThat(marketData)

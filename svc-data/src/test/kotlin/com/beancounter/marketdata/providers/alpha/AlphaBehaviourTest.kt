@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
@@ -11,6 +12,7 @@ import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZX
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.alphaContracts
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 import java.io.File
@@ -29,12 +31,12 @@ internal class AlphaBehaviourTest {
 
     @Test
     fun is_NullAsset() {
-        assertThat(
+        assertThrows(BusinessException::class.java) {
             priceMapper.readValue(
                 ClassPathResource("$alphaContracts/alphavantage-empty-response.json").file,
                 PriceResponse::class.java,
-            ),
-        ).isNull()
+            )
+        }
     }
 
     @Test

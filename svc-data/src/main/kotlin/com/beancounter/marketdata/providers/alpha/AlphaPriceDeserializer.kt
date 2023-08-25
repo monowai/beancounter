@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.providers.alpha
 
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
@@ -44,17 +45,17 @@ const val fDate = "07. latest trading day"
  * @author mikeh
  * @since 2019-03-03
  */
-class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
+class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
     private val dateUtils = DateUtils()
     private val percentUtils = PercentUtils()
 
-    override fun deserialize(p: JsonParser, ctx: DeserializationContext): PriceResponse? {
+    override fun deserialize(p: JsonParser, ctx: DeserializationContext): PriceResponse {
         val source = p.codec.readTree<JsonNode>(p)
 
         return when {
             source.has(TIME_SERIES_DAILY) -> handleTimeSeries(source)
             source.has(GLOBAL_QUOTE) -> handleGlobal(source)
-            else -> null
+            else -> throw BusinessException("Unable to handle ${source.asText()}")
         }
     }
 
@@ -94,23 +95,21 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         val results: MutableCollection<MarketData> = ArrayList()
         val metaData = source["Meta Data"]
         val asset = getAsset(metaData, "2. Symbol")
-        if (asset != null) {
-            val mapType = mapper.typeFactory
-                .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
-            val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
-                source["Time Series (Daily)"].toString(),
-                mapType,
+        val mapType = mapper.typeFactory
+            .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
+        val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
+            source["Time Series (Daily)"].toString(),
+            mapType,
+        )
+        for (key in allValues.keys) {
+            val rawData: Map<String, Any>? = allValues[key.toString()]
+            val localDateTime = dateUtils.getLocalDate(
+                key.toString(),
+                "yyyy-M-dd",
             )
-            for (key in allValues.keys) {
-                val rawData: Map<String, Any>? = allValues[key.toString()]
-                val localDateTime = dateUtils.getLocalDate(
-                    key.toString(),
-                    "yyyy-M-dd",
-                )
-                val priceData = getPrice(asset, localDateTime, rawData)
-                if (priceData != null) {
-                    results.add(priceData)
-                }
+            val priceData = getPrice(asset, localDateTime, rawData)
+            if (priceData != null) {
+                results.add(priceData)
             }
         }
         return PriceResponse(results)
@@ -142,9 +141,10 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
         return price
     }
 
-    private fun getAsset(nodeValue: JsonNode, assetField: String): Asset? {
+    private fun getAsset(nodeValue: JsonNode, assetField: String): Asset {
         if (!isNull(nodeValue)) {
-            val symbols = nodeValue[assetField] ?: return null
+            val symbols =
+                nodeValue[assetField] ?: throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")
 
             val values = symbols.asText().split(":").toTypedArray()
             var market = Market("US")
@@ -154,11 +154,11 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse?>() {
             }
             return Asset(code = values[0], market = market)
         }
-        return null
+        throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")
     }
 
-    private fun isNull(nodeValue: JsonNode?) =
-        nodeValue == null || nodeValue.isNull || nodeValue.asText() == "null"
+    private fun isNull(nodeValue: JsonNode) =
+        nodeValue.isNull || nodeValue.asText() == "null"
 
     companion object {
         const val GLOBAL_QUOTE = "Global Quote"

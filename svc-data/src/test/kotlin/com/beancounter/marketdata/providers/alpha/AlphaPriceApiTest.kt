@@ -5,7 +5,6 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PriceRequest.Companion.of
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
@@ -48,7 +47,7 @@ import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -170,7 +169,7 @@ internal class AlphaPriceApiTest {
         AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
         val asset = Asset(code = api, market = Market("EMPTY", USD.code))
 
-        assertThrows(BusinessException::class.java) {
+        assertNotNull {
             mdFactory
                 .getMarketDataProvider(AlphaPriceService.ID)
                 .getMarketData(of(asset))

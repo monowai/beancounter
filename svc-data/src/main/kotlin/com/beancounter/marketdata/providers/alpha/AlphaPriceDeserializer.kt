@@ -107,9 +107,11 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
                 key.toString(),
                 "yyyy-M-dd",
             )
-            val priceData = getPrice(asset, localDateTime, rawData)
-            if (priceData != null) {
-                results.add(priceData)
+            if (asset != null) {
+                val priceData = getPrice(asset, localDateTime, rawData)
+                if (priceData != null) {
+                    results.add(priceData)
+                }
             }
         }
         return PriceResponse(results)
@@ -141,10 +143,10 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         return price
     }
 
-    private fun getAsset(nodeValue: JsonNode, assetField: String): Asset {
+    private fun getAsset(nodeValue: JsonNode, assetField: String): Asset? {
         if (!isNull(nodeValue)) {
             val symbols =
-                nodeValue[assetField] ?: throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")
+                nodeValue[assetField] ?: return null
 
             val values = symbols.asText().split(":").toTypedArray()
             var market = Market("US")

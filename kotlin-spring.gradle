@@ -19,15 +19,14 @@ java {
     }
 }
 checkstyle {
-    //  Property 'scope' does not exist, please check the documentation @8.42
-    toolVersion = '8.41.1'
+    toolVersion = '10.12.3'
     configFile = project.file('../checkstyle.xml')
     configDirectory = file("$rootProject.projectDir/buildtools")
 
     configProperties = [
             'javaCommon.cache.file': "${buildDir}/javaCommon.cache",
     ]
-    ignoreFailures = true
+    ignoreFailures = false
     showViolations = true
 }
 

@@ -14,7 +14,7 @@ class Constants {
         const val integrationErrorMsg = "Integration Error"
         const val test = "test"
         const val testUri = "/$test"
-        const val detailMessage = "detailMessage"
+        const val message = "message"
         const val openProp = "open"
         const val closeProp = "close"
         const val previousCloseProp = "previousClose"

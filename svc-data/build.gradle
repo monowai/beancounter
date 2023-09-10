@@ -50,7 +50,7 @@ dependencies {
             "io.github.resilience4j:resilience4j-timelimiter",
             "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2", // Dev
-            'org.postgresql:postgresql:42.5.1',
+            "org.postgresql:postgresql:${postgresVersion}",
             "org.springframework.kafka:spring-kafka",
             'com.opencsv:opencsv:5.7.1',
     )
@@ -69,7 +69,7 @@ dependencies {
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
             "org.junit.jupiter:junit-jupiter",
-            "org.mockito.kotlin:mockito-kotlin:5.0.0",
+            "org.mockito.kotlin:mockito-kotlin:${mockitoVersion}",
             testFixtures(project(":jar-auth")),
     )
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"

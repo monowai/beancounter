@@ -1,6 +1,6 @@
 package com.beancounter.common
 
-import com.beancounter.common.Constants.Companion.detailMessage
+import com.beancounter.common.Constants.Companion.message
 import com.beancounter.common.Constants.Companion.testUri
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SpringExceptionMessage
@@ -43,14 +43,14 @@ internal class ExceptionMessagesTest {
     private fun throwBusinessException() {
         val businessException = BusinessException(testMessage)
         assertThat(businessException)
-            .hasFieldOrPropertyWithValue(detailMessage, testMessage)
+            .hasFieldOrPropertyWithValue(message, testMessage)
         throw businessException
     }
 
     private fun throwSystemException() {
         val systemException = SystemException(testMessage)
         assertThat(systemException)
-            .hasFieldOrPropertyWithValue(detailMessage, testMessage)
+            .hasFieldOrPropertyWithValue(message, testMessage)
         throw systemException
     }
 }

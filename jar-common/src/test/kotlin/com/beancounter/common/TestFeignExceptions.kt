@@ -1,7 +1,7 @@
 package com.beancounter.common
 
-import com.beancounter.common.Constants.Companion.detailMessage
 import com.beancounter.common.Constants.Companion.integrationErrorMsg
+import com.beancounter.common.Constants.Companion.message
 import com.beancounter.common.Constants.Companion.testUri
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
@@ -11,7 +11,6 @@ import com.beancounter.common.exception.SpringFeignDecoder
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.utils.BcJson
-import com.fasterxml.jackson.core.JsonProcessingException
 import feign.FeignException
 import feign.Request
 import feign.Request.Body.empty
@@ -125,7 +124,6 @@ class TestFeignExceptions {
     }
 
     @Test
-    @Throws(JsonProcessingException::class)
     fun is_ServiceIntegrationErrorDecoded() {
         val springFeignDecoder = SpringFeignDecoder()
         val springExceptionMessage = SpringExceptionMessage(
@@ -188,25 +186,22 @@ class TestFeignExceptions {
         assertThat(recordFailurePredicate.test(SystemException("System Error"))).isTrue
     }
 
-    @Throws(Exception::class)
     private fun validSystemException(e: Exception) {
         assertThat(e)
-            .hasFieldOrPropertyWithValue(detailMessage, integrationErrorMsg)
+            .hasFieldOrPropertyWithValue(message, integrationErrorMsg)
         throw e
     }
 
-    @Throws(Exception::class)
     private fun validIntegrationException(e: Exception) {
         val springExceptionMessage: SpringExceptionMessage = BcJson()
             .objectMapper.readValue(e.message, SpringExceptionMessage::class.java)
         assertThat(springExceptionMessage)
-            .hasFieldOrPropertyWithValue("message", integrationErrorMsg)
+            .hasFieldOrPropertyWithValue(message, integrationErrorMsg)
         throw e
     }
 
-    @Throws(Exception::class)
     private fun validBusinessException(e: Exception) {
-        assertThat(e).hasFieldOrPropertyWithValue(detailMessage, "Business Logic")
+        assertThat(e).hasFieldOrPropertyWithValue(message, "Business Logic")
         throw e
     }
 }

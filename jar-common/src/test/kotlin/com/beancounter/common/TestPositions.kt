@@ -40,7 +40,11 @@ internal class TestPositions {
         position.quantityValues.purchased = BigDecimal(200)
 
         position.dateValues = DateValues()
-            .apply { opened = dateUtils.date; closed = dateUtils.date; last = dateUtils.date; }
+            .apply {
+                opened = dateUtils.date
+                closed = dateUtils.date
+                last = dateUtils.date
+            }
 
         val positionResponse = PositionResponse(positions)
         val json = bcJson.objectMapper.writeValueAsString(positionResponse)

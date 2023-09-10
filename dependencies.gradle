@@ -3,6 +3,8 @@ ext{
   springCloudVersion='2022.0.3'
   verifierVersion='4.0.3'
   kotlinVersion='1.9.10'
-  jacocoVersion='0.8.8'
+  jacocoVersion='0.8.10'
   gitProperties='2.4.1'
+  postgresVersion='42.6.0'
+  mockitoVersion='5.1.0'
 }

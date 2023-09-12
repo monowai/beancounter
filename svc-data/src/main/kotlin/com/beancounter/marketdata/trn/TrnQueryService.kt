@@ -36,7 +36,7 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
                 tradeDate,
             )
         log.debug(
-            "Found {} for portfolio {} and asset {}",
+            "count: {}, portfolio: {}, asset: {}",
             results.size,
             portfolio.code,
             assetId,
@@ -90,6 +90,6 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(TrnQueryService::class.java)
     }
 }

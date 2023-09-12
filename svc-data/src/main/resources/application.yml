@@ -24,9 +24,8 @@ management:
         include: "*"
 
 logging:
-
   level:
-    root: trace
+    root: info
     javax: error
     java: error
     sun: error
@@ -83,7 +82,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext, currency.code, currency.all, jwt.token
+    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event
   jpa:
     open-in-view: false
     generate-ddl: true

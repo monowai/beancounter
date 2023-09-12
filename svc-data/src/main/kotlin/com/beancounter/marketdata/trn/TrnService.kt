@@ -37,20 +37,20 @@ class TrnService internal constructor(
     }
 
     fun save(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
-        var trnResponse = trnAdapter.convert(portfolio, trnRequest)
-        val (data) = TrnResponse(trnResponse.data)
         // Figure out
-        val saved = trnRepository.saveAll(data)
-        val trns: MutableCollection<Trn> = ArrayList()
-        saved.forEach(Consumer { e: Trn -> trns.add(e) })
-        trnResponse = TrnResponse(trns)
-        log.trace(
-            "Wrote {}/{} transactions for {}",
-            trnResponse.data.size,
-            trnRequest.data.size,
-            portfolio.code,
-        )
-        return trnResponse
+        val saved = trnRepository.saveAll(trnAdapter.convert(portfolio, trnRequest).data)
+        val results: MutableCollection<Trn> = mutableListOf()
+        saved.forEach(Consumer { e: Trn -> results.add(e) })
+        if (trnRequest.data.size == 1) {
+            log.debug(
+                "Wrote 1 transaction asset: ${trnRequest.data[0].assetId}, portfolio: ${portfolio.code}",
+            )
+        } else {
+            log.debug(
+                "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}",
+            )
+        }
+        return TrnResponse(results)
     }
 
     fun findForPortfolio(portfolio: Portfolio, tradeDate: LocalDate): TrnResponse {
@@ -133,6 +133,6 @@ class TrnService internal constructor(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(TrnService::class.java)
     }
 }

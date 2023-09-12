@@ -7,6 +7,7 @@ import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
@@ -50,8 +51,8 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
      *
      * @return token
      */
+    @Cacheable("auth.m2m")
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
-        log.debug("Performing m2m login")
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
         }
@@ -60,15 +61,20 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
             client_id = authConfig.clientId,
             audience = authConfig.audience,
         )
-        val response = authGateway.login(login)
-        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
-            jwtDecoder.decode(
-                response.token,
-            ),
-        )
-        log.debug("Service logged @ ${authConfig.clientId}")
+        log.info("m2mLogin: ${authConfig.clientId}")
+        return setAuthContext(authGateway.login(login))
+    }
+
+    fun setAuthContext(response: OpenIdResponse): OpenIdResponse {
+        SecurityContextHolder.getContext().authentication = authenticationToken(response)
         return response
     }
+
+    fun authenticationToken(response: OpenIdResponse) = JwtAuthenticationToken(
+        jwtDecoder.decode(
+            response.token,
+        ),
+    )
 
     /**
      * Interface to support various oAuth login request types.

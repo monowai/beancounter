@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 
 /**
  * Controls the ingestion of transaction into the BC format by acting on a TrustedTrnRequest.
- * Verifies the requested portfolio can be accessed and backfills missing FX Rates.
+ * Verifies the requested portfolio can be accessed and back-fill missing FX Rates.
  *
  * Transformations are delegated to the appropriate TrnAdapter
  */
@@ -79,10 +79,14 @@ class TrnImport {
                 return writeTrn(trustedTrnEvent.portfolio, trustedTrnEvent.trnInput)
             }
             run {
-                log.debug(
-                    "Ignoring transaction on {} that already exists",
-                    trustedTrnEvent.trnInput.tradeDate,
-                )
+                if (!existing.isEmpty()) {
+                    log.debug(
+                        "Ignoring " +
+                            "tradeDate: ${trustedTrnEvent.trnInput.tradeDate}, " +
+                            "assetId: ${trustedTrnEvent.trnInput.assetId}, " +
+                            "portfolioId: ${trustedTrnEvent.portfolio.id}",
+                    )
+                }
             }
         }
         return TrnResponse()

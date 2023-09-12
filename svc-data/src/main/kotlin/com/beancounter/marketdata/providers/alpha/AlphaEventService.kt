@@ -5,8 +5,10 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 /**
@@ -18,6 +20,8 @@ class AlphaEventService(val alphaGateway: AlphaGateway, val alphaConfig: AlphaCo
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
     private lateinit var apiKey: String
 
+    @RateLimiter(name = "alphaVantage") // AV "Free Plan" rate limits
+    @Cacheable("alpha.asset.event")
     fun getEvents(asset: Asset): PriceResponse {
         val json = alphaGateway.getAdjusted(asset.code, apiKey)
         if (json.contains("Error Message")) {

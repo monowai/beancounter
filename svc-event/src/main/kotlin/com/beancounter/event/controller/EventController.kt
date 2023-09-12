@@ -1,5 +1,6 @@
 package com.beancounter.event.controller
 
+import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.DateUtils
@@ -32,6 +33,7 @@ class EventController(
     private val eventLoader: EventLoader,
     private val portfolioService: PortfolioServiceClient,
     private val dateUtils: DateUtils,
+    private val loginService: LoginService,
 ) {
     @PostMapping(value = ["/backfill/{portfolioId}/{fromDate}/{toDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -56,7 +58,7 @@ class EventController(
 
     @PostMapping(value = ["/load/{startDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun loadEvents(
+    suspend fun loadEvents(
         @PathVariable(required = false) startDate: String = DateUtils.today,
     ) =
         eventLoader.loadEvents(startDate)
@@ -66,8 +68,9 @@ class EventController(
     fun loadPortfolioEvents(
         @PathVariable(required = false) asAtDate: String = DateUtils.today,
         @PathVariable portfolioId: String,
-    ) =
-        eventLoader.loadEvents(portfolioId, asAtDate)
+    ) {
+        eventLoader.loadEvents(portfolioId, asAtDate, loginService.loginM2m())
+    }
 
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getEvent(@PathVariable id: String): CorporateEventResponse =

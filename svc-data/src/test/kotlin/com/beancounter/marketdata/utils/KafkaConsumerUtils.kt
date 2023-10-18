@@ -11,8 +11,9 @@ import org.springframework.kafka.test.utils.KafkaTestUtils
  */
 class KafkaConsumerUtils {
     fun getConsumer(group: String, topic: String, broker: EmbeddedKafkaBroker): Consumer<String, String> {
-        val consumerProps = KafkaTestUtils.consumerProps(group, "false", broker)
-        consumerProps["session.timeout.ms"] = 6000
+        val consumerProps = KafkaTestUtils.consumerProps(group, "true", broker)
+        consumerProps[ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG] = 3000
+        consumerProps[ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG] = 2000
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         val cf = DefaultKafkaConsumerFactory<String, String>(consumerProps)
         val consumer = cf.createConsumer()

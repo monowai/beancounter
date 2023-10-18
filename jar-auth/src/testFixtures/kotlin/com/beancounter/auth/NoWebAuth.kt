@@ -17,7 +17,13 @@ class NoWebAuth {
 
     @Bean
     fun configure(http: HttpSecurity): SecurityFilterChain {
-        http.csrf().disable().authorizeHttpRequests().anyRequest().permitAll()
-        return http.build()
+        return http // ...
+            .authorizeHttpRequests { auth ->
+                auth
+                    .anyRequest().permitAll()
+            }
+            .csrf { csrf ->
+                csrf.disable()
+            }.build()
     }
 }

@@ -64,7 +64,7 @@ dependencies {
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.cloud:spring-cloud-contract-stub-runner",
             "org.junit.jupiter:junit-jupiter",
-            "org.mockito.kotlin:mockito-kotlin:${mockitoVersion}",
+            "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             testFixtures(project(":jar-auth")),
     )
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {

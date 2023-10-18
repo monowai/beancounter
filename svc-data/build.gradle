@@ -69,7 +69,7 @@ dependencies {
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
             "org.junit.jupiter:junit-jupiter",
-            "org.mockito.kotlin:mockito-kotlin:${mockitoVersion}",
+            "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             testFixtures(project(":jar-auth")),
     )
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"

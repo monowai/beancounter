@@ -32,7 +32,7 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-integration",
             "org.jetbrains.kotlin:kotlin-reflect",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            "org.mockito.kotlin:mockito-kotlin:${mockitoVersion}",
+            "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "io.github.resilience4j:resilience4j-spring-cloud2",
             "io.github.resilience4j:resilience4j-circuitbreaker",

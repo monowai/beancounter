@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -51,16 +52,23 @@ class WebAuthFilterConfig {
             listOf("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE")
         corsConfiguration.allowCredentials = true
 
-        http.authorizeHttpRequests()
-            .requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
-            .requestMatchers("$apiPath/auth").permitAll() // Get your token
-            .requestMatchers("$apiPath/**").hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
-            .requestMatchers("$actuatorPath/**").hasAuthority(AuthConstants.SCOPE_ADMIN) // Admin users
-            .anyRequest().permitAll() //
-            .and().csrf().disable().cors().configurationSource { corsConfiguration }
-            .and().oauth2ResourceServer()
-            .jwt() // User roles are carried in the claims and used for fine-grained control
-
+        http.authorizeHttpRequests { auth ->
+            auth.requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
+            auth.requestMatchers("$apiPath/auth").permitAll() // Get your token
+            auth.requestMatchers("$apiPath/**").hasAuthority(AuthConstants.SCOPE_BC) // Authenticated users
+            auth.requestMatchers("$actuatorPath/**").hasAuthority(AuthConstants.SCOPE_ADMIN) // Admin users
+//            auth.requestMatchers("$actuatorPath/**").hasRole(AuthConstants.ADMIN) // Admin users
+            auth.anyRequest().permitAll() //
+        }
+            .csrf { csrf ->
+                csrf.disable()
+            }
+            .cors { cors ->
+                cors.configurationSource { corsConfiguration }
+            }
+            .oauth2ResourceServer { resourceServer ->
+                resourceServer.jwt(Customizer.withDefaults())
+            }
         corsConfiguration.exposedHeaders = exposedHeaders
         return http.build()
     }

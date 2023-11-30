@@ -6,7 +6,6 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'org.jmailen.kotlinter'
-    id 'kotlin-jpa'
     id 'org.springframework.boot' version "${springVersion}"
     id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
 }
@@ -22,8 +21,8 @@ dependencies {
             project(":jar-auth"),
             project(":jar-client"),
             "org.springframework.boot:spring-boot-starter-web",
-            "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.boot:spring-boot-starter-data-jpa",
+            "org.springframework.boot:spring-boot-starter-logging",
             "org.springframework.cloud:spring-cloud-starter-openfeign",
             "org.springframework.boot:spring-boot-starter-security",
             "org.springframework.security:spring-security-oauth2-resource-server",
@@ -32,16 +31,15 @@ dependencies {
             "org.springframework.boot:spring-boot-starter-integration",
             "org.jetbrains.kotlin:kotlin-reflect",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             "io.github.resilience4j:resilience4j-spring-cloud2",
             "io.github.resilience4j:resilience4j-circuitbreaker",
             "io.github.resilience4j:resilience4j-annotations",
             "io.github.resilience4j:resilience4j-ratelimiter",
             "io.github.resilience4j:resilience4j-timelimiter",
+            "com.github.ben-manes.caffeine:caffeine",
             "com.h2database:h2",
             "org.postgresql:postgresql:${postgresVersion}",
-            "com.github.ben-manes.caffeine:caffeine",
             "org.springframework.kafka:spring-kafka"
     )
 
@@ -61,6 +59,7 @@ dependencies {
             "org.springframework.security:spring-security-test",
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
+            "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             testFixtures(project(":jar-auth")),
 
     )

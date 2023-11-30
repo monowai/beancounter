@@ -1,6 +1,6 @@
 package com.beancounter.auth
 
-import com.nimbusds.jose.jwk.source.JWKSourceBuilder
+import com.nimbusds.jose.jwk.source.RemoteJWKSet
 import com.nimbusds.jose.proc.SecurityContext
 import com.nimbusds.jose.util.DefaultResourceRetriever
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,7 +53,8 @@ class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager?) 
         // call a couple of functions. The Spring class is inconveniently package protected.
         val configuration = JwtUtil.getConfigurationForIssuerLocation(authConfig.issuer)
         val jwkSetUri = configuration["jwks_uri"].toString()
-        val jwkSource = JWKSourceBuilder.create<SecurityContext>(URL(jwkSetUri), DefaultResourceRetriever()).build()
+        val jwkSource = RemoteJWKSet<SecurityContext>(URL(jwkSetUri), DefaultResourceRetriever())
+        // val jwkSource = JWKSourceBuilder.create<SecurityContext>(URL(jwkSetUri), DefaultResourceRetriever()).build()
         val jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
             .jwsAlgorithms { algos: MutableSet<SignatureAlgorithm?> ->
                 algos.addAll(

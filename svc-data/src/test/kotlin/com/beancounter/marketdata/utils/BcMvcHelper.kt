@@ -114,7 +114,6 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
 
     private val objectMapper = BcJson().objectMapper
 
-    @Throws(Exception::class)
     fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult = mockMvc.perform(
             MockMvcRequestBuilders.post(assetRoot)
@@ -156,7 +155,6 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
         .andReturn()
 
-    @Throws(Exception::class)
     fun portfolio(portfolio: PortfolioInput): Portfolio {
         val portfolioResult = mockMvc.perform(
             MockMvcRequestBuilders.post(portfolioRoot, portfolio.code)

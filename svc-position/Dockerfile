@@ -15,10 +15,6 @@ WORKDIR /app
 
 EXPOSE 9500 9501
 
-#RUN groupadd -r beancounter && useradd --no-log-init -r -g beancounter beancounter
-
 COPY ${JAR_FILE} app.jar
-COPY build/resources/main/application.yml .
-#USER beancounter
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

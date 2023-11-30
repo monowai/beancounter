@@ -6,10 +6,10 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'org.jmailen.kotlinter'
-    id "maven-publish"
     id 'org.springframework.boot' version "${springVersion}"
     id 'org.springframework.cloud.contract' version "${verifierVersion}"
     id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
+    id "maven-publish"
 }
 apply from: '../kotlin-spring.gradle'
 

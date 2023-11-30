@@ -7,16 +7,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import java.util.Locale
+import java.util.*
 
 /**
  * Rate limited integration to OpenFigi.
  */
 @Service
 @ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
-class FigiProxy internal constructor(figiConfig: FigiConfig) {
-    private val figiConfig: FigiConfig
-    private val filter: MutableCollection<String> = ArrayList()
+class FigiProxy internal constructor(val figiConfig: FigiConfig) {
+    private val filter: List<String> =
+        arrayListOf("COMMON STOCK", "REIT", "DEPOSITARY RECEIPT", "MUTUAL FUND")
     private lateinit var figiGateway: FigiGateway
     private lateinit var figiAdapter: FigiAdapter
 
@@ -57,7 +57,7 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
                 }
             }
         }
-        log.debug("Couldn't find {}/{} - as {}/{}", market, bcAssetCode, figiMarket, figiCode)
+        log.debug("Couldn't find $market/$bcAssetCode - as $figiMarket/$figiCode")
         return null
     }
 
@@ -131,14 +131,5 @@ class FigiProxy internal constructor(figiConfig: FigiConfig) {
         const val FIGI = "FIGI"
         const val MF = "Mutual Fund"
         private val log = LoggerFactory.getLogger(FigiProxy::class.java)
-    }
-
-    init {
-        log.info("FIGI Enabled")
-        this.figiConfig = figiConfig
-        filter.add("COMMON STOCK")
-        filter.add("REIT")
-        filter.add("DEPOSITARY RECEIPT")
-        filter.add("MUTUAL FUND")
     }
 }

@@ -50,12 +50,8 @@ class EventService(
             if (trnEvent.trnInput.trnType != TrnType.IGNORE) {
                 trnEvent.trnInput
                 log.info(
-                    "event: {}, asset: {} code: {}, tradeDate: {}",
-                    event.id,
-                    event.assetId,
-                    trnEvent.portfolio.code,
-                    trnEvent
-                        .trnInput.tradeDate,
+                    "event: ${event.id}, asset: ${event.assetId}, portfolio: ${trnEvent.portfolio.code}, " +
+                        "tradeDate: ${trnEvent.trnInput.tradeDate}",
                 )
                 eventPublisher.send(trnEvent)
                 results.add(trnEvent)

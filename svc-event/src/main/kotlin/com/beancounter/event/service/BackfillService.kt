@@ -42,6 +42,6 @@ class BackfillService(
                 eventCount += events.size
             }
         }
-        log.info("Completed backfill for portfolio: ${portfolio.code}, events: $eventCount")
+        log.trace("Backfill portfolio: ${portfolio.code}, events: $eventCount completed")
     }
 }

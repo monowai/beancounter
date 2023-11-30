@@ -34,11 +34,13 @@ class EventLoader(
     private val dateSplitter: DateSplitter,
 ) {
 
-    suspend fun loadEvents(date: String) {
-        loginService.loginM2m() // m2m login
+    @Async
+    fun loadEvents(date: String) {
+        loginService.loginM2m()
         val portfolios = portfolioService.portfolios
         for (portfolio in portfolios.data) {
             loadEvents(portfolio.id, date)
+            log.info("Completed event load for ${portfolio.code}")
         }
     }
 
@@ -57,7 +59,7 @@ class EventLoader(
                 launch {
                     val events = loadEvents(portfolio, processDate, authContext = loginService.loginM2m())
                     if (events > 0) {
-                        log.info("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
+                        log.trace("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
                     }
                 }
             }
@@ -67,7 +69,9 @@ class EventLoader(
     fun loadEvents(portfolio: Portfolio, date: LocalDate, authContext: OpenIdResponse): Int {
         loginService.setAuthContext(authContext)
         val positionResponse = positionService.getPositions(portfolio, date.toString())
-        log.debug("Analyzing portfolio: ${portfolio.code}, positions: ${positionResponse.data.positions.size}, asAt: $date")
+        if (positionResponse.data.positions.values.isEmpty()) {
+            return 0
+        }
 
         var totalEvents = 0
 
@@ -78,7 +82,7 @@ class EventLoader(
                 val events = load(position, date, authContext)
                 if (events != 0) {
                     backfillService.backFillEvents(portfolio.id, date.toString())
-                    log.info("Published: $events nominal events")
+                    log.trace("Published: $events nominal events")
                 }
                 totalEvents += events
                 events
@@ -95,7 +99,7 @@ class EventLoader(
                     "Dispatched: $totalEvents nominal events, date: $date",
             )
         } else {
-            log.debug("Analyzed portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date")
+            log.trace("No events for portfolio: ${portfolio.code}, id: ${portfolio.id}, date: $date")
         }
 
         return totalEvents
@@ -121,7 +125,7 @@ class EventLoader(
                 }
             }
             if (eventCount != 0) {
-                log.debug("Loaded $eventCount events for asset: ${position.asset.id}, name: ${position.asset.name}")
+                log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
             }
         }
         return eventCount

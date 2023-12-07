@@ -168,9 +168,9 @@ beancounter:
         name: Dollar
         symbol: "$"
 
-      - code: MYR
-        name: Ringgit
-        symbol: "RM"
+#      - code: MYR
+#        name: Ringgit
+#        symbol: "RM"
 
 
   asset.categories:

@@ -27,7 +27,7 @@ class EventSchedule(
     fun processEventsForRange() {
         log.info("Checking for corporate events to process")
         if (loginService != null) {
-            loginService!!.loginM2m()
+            loginService!!.setAuthContext(loginService!!.loginM2m())
         }
         val end = dateUtils.date
         val start = end.minusDays(5)

@@ -31,7 +31,7 @@ class TrnService internal constructor(
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         if (result.isEmpty) {
-            throw BusinessException(String.format("Trn %s not found", trnId))
+            throw BusinessException("Trn $trnId not found")
         }
         return result.get()
     }
@@ -60,7 +60,7 @@ class TrnService internal constructor(
             Sort.by("tradeDate")
                 .and(Sort.by("asset.code")),
         )
-        // log.debug("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
+        log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
     }
 
@@ -101,12 +101,13 @@ class TrnService internal constructor(
     }
 
     fun existing(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
+        val start = trustedTrnEvent.trnInput.tradeDate.minusDays(5)
         val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(20)
         return trnRepository.findExisting(
             trustedTrnEvent.portfolio.id,
             trustedTrnEvent.trnInput.assetId!!,
             trustedTrnEvent.trnInput.trnType,
-            trustedTrnEvent.trnInput.tradeDate,
+            start,
             endDate,
         )
     }

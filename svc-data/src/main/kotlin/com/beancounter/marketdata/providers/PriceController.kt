@@ -11,7 +11,6 @@ import com.beancounter.common.utils.DateUtils.Companion.today
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.registration.SystemUserService
-import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -99,7 +98,6 @@ class PriceController(
 
     @PostMapping
     fun getPrices(@RequestBody priceRequest: PriceRequest): PriceResponse {
-        log.debug("priceRequestDate: ${priceRequest.date}")
         val systemUser = systemUserService.getActiveUser()
         for (priceAsset in priceRequest.assets) {
             val asset = if (priceAsset.assetId.isNotEmpty()) {
@@ -126,8 +124,4 @@ class PriceController(
         @PathVariable(required = false) date: String = today,
     ): PriceResponse =
         priceRefresh.refreshPrice(assetId, date)
-
-    companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
-    }
 }

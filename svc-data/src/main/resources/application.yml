@@ -167,6 +167,12 @@ beancounter:
       - code: SGD
         name: Dollar
         symbol: "$"
+
+      - code: MYR
+        name: Ringgit
+        symbol: "RM"
+
+
   asset.categories:
     default: Equity
     values:

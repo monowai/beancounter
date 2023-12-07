@@ -159,6 +159,6 @@ class MarketDataService @Autowired internal constructor(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
+        private val log = LoggerFactory.getLogger(MarketDataService::class.java)
     }
 }

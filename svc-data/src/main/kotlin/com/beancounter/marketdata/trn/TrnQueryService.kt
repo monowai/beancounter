@@ -44,16 +44,18 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
         return trnService.postProcess(results, false)
     }
 
+    private val typeFilter = arrayListOf(
+        TrnType.BUY,
+        TrnType.SELL,
+        TrnType.SPLIT,
+        TrnType.DEPOSIT,
+        TrnType.WITHDRAWAL,
+        TrnType.FX_BUY,
+        TrnType.BALANCE,
+        TrnType.ADD,
+    )
+
     fun findAssetTrades(portfolio: Portfolio, assetId: String): TrnResponse {
-        val typeFilter = arrayListOf(
-            TrnType.BUY,
-            TrnType.SELL,
-            TrnType.DEPOSIT,
-            TrnType.WITHDRAWAL,
-            TrnType.FX_BUY,
-            TrnType.BALANCE,
-            TrnType.ADD,
-        )
         return trnResponse(portfolio, assetId, typeFilter)
     }
 

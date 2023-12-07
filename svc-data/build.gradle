@@ -41,7 +41,7 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-jose",
             "org.springframework.boot:spring-boot-starter-actuator",
             "org.springframework.boot:spring-boot-starter-integration",
-            "org.jetbrains.kotlin:kotlin-reflect",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-reactor",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core",
             "io.github.resilience4j:resilience4j-spring-cloud2",
             "io.github.resilience4j:resilience4j-circuitbreaker",

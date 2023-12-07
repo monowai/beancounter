@@ -95,7 +95,7 @@ class EventLoader(
 
         if (totalEvents > 0) {
             log.debug(
-                "Analyzed portfolio: ${portfolio.code}, id: ${portfolio.id}. " +
+                "portfolio: ${portfolio.code}, id: ${portfolio.id}. " +
                     "Dispatched: $totalEvents nominal events, date: $date",
             )
         } else {

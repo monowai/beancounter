@@ -4,6 +4,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.EUR
 import com.beancounter.marketdata.Constants.Companion.GBP
+import com.beancounter.marketdata.Constants.Companion.MYR
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -29,6 +30,7 @@ object EcbMockUtils {
         gbp: String,
         nzd: String,
         aud: String,
+        myr: String,
     ): Map<String, BigDecimal> {
         val ratesTest: MutableMap<String, BigDecimal> = TreeMap()
         ratesTest[AUD.code] = BigDecimal(aud)
@@ -36,6 +38,7 @@ object EcbMockUtils {
         ratesTest[GBP.code] = BigDecimal(gbp)
         ratesTest[NZD.code] = BigDecimal(nzd)
         ratesTest[SGD.code] = BigDecimal(sgd)
+        ratesTest[MYR.code] = BigDecimal(myr)
         ratesTest[USD.code] = BigDecimal("1.0")
         return ratesTest
     }

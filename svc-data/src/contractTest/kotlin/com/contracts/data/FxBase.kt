@@ -26,6 +26,13 @@ class FxBase : ContractVerifierBase() {
     private val gbp = "0.7756191673"
     private val nzd = "1.5692749462"
     private val aud = "1.4606963388"
+    private val myr = "4.666894"
+    private val usdAudRate = "1.6201543812"
+    private val usdEurRate = "0.8482483671"
+    private val usdSgdRate = "1.6586648571"
+    private val usdGpbRate = "0.6031894139"
+    private val usdAudOtherRate = "1.4438857964"
+    private val usdNzdRate = "1.5053869635"
 
     @MockBean
     internal lateinit var cashBalancesBean: CashBalancesBean
@@ -44,6 +51,7 @@ class FxBase : ContractVerifierBase() {
                     gbp,
                     "10.0",
                     aud,
+                    myr,
                 ),
             ],
         )
@@ -59,6 +67,7 @@ class FxBase : ContractVerifierBase() {
                     "0.8218941856",
                     "1.5536294691",
                     "1.4734561213",
+                    myr,
                 ),
             ],
         )
@@ -72,6 +81,7 @@ class FxBase : ContractVerifierBase() {
                     "0.7791193827",
                     "1.5780299591",
                     "1.460463005",
+                    myr,
                 ),
             ],
         )
@@ -79,11 +89,12 @@ class FxBase : ContractVerifierBase() {
             EcbMockUtils[
                 "1999-01-04",
                 EcbMockUtils.getRateMap(
-                    "0.8482483671",
-                    "1.6586648571",
-                    "0.6031894139",
+                    usdEurRate,
+                    usdSgdRate,
+                    usdGpbRate,
                     "1.8855712953",
-                    "1.6201543812",
+                    usdAudRate,
+                    myr,
                 ),
             ],
         )
@@ -92,11 +103,12 @@ class FxBase : ContractVerifierBase() {
             EcbMockUtils[
                 "2021-10-18",
                 EcbMockUtils.getRateMap(
-                    "0.8482483671",
-                    "1.6586648571",
-                    "0.6031894139",
+                    usdEurRate,
+                    usdSgdRate,
+                    usdGpbRate,
                     "1.41030000",
-                    "1.6201543812",
+                    usdAudRate,
+                    myr,
                 ),
             ],
         )
@@ -112,6 +124,7 @@ class FxBase : ContractVerifierBase() {
                     gbp,
                     nzd,
                     aud,
+                    myr,
                 ),
             ],
         )
@@ -125,6 +138,7 @@ class FxBase : ContractVerifierBase() {
                     gbp,
                     nzd,
                     aud,
+                    myr,
                 ),
             ],
         )
@@ -138,6 +152,7 @@ class FxBase : ContractVerifierBase() {
                     gbp,
                     nzd,
                     aud,
+                    myr,
                 ),
             ],
         )
@@ -151,8 +166,9 @@ class FxBase : ContractVerifierBase() {
                     "0.897827258",
                     "1.3684683067",
                     "0.8047495062",
-                    "1.5053869635",
-                    "1.4438857964",
+                    usdNzdRate,
+                    usdAudOtherRate,
+                    myr,
                 ),
             ],
         )
@@ -164,8 +180,9 @@ class FxBase : ContractVerifierBase() {
                     "0.897827258",
                     "1.3684683067",
                     "0.8047495062",
-                    "1.5053869635",
-                    "1.4438857964",
+                    usdNzdRate,
+                    usdAudOtherRate,
+                    myr,
                 ),
             ],
             "2019-07-27",
@@ -180,7 +197,7 @@ class FxBase : ContractVerifierBase() {
             fxGateway.getRatesForSymbols(
                 rateDate,
                 Constants.USD.code,
-                java.lang.String.join(",", exRatesResponse.rates.keys),
+                exRatesResponse.rates.keys.joinToString(","),
             ),
         ).thenReturn(exRatesResponse)
     }

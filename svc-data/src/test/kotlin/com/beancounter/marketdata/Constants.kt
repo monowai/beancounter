@@ -29,6 +29,7 @@ class Constants {
 
         val AMP = getTestAsset(ASX, "AMP")
         val SGD = Currency("SGD")
+        val MYR = Currency("MYR")
         val AUD = Currency("AUD")
         val GBP = Currency(code = "GBP", symbol = "￡")
         val EUR = Currency("EUR", symbol = "€")

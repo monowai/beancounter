@@ -1,6 +1,4 @@
-#FROM amazoncorretto:17-alpine3.17-jdk
-FROM amazoncorretto:17
-#docker build . --build-arg JAR_FILE=build/libs/svc-data -t monowai/bc-data
+FROM amazoncorretto:21.0.1-al2023
 ARG JAR_FILE=build/libs/svc-data-0.1.1.jar
 #docker build . -t monowai/bc-data:dev
 
@@ -17,6 +15,6 @@ VOLUME /tmp
 RUN mkdir /app
 WORKDIR /app
 
-COPY ${JAR_FILE} app.jar
+COPY build/libs/svc-data-0.1.1.jar app.jar
 
 ENTRYPOINT ["java","-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n","-Djava.security.egd=file:/dev/./urandom","-jar","/app/app.jar"]

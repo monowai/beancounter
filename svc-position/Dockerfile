@@ -1,5 +1,4 @@
-FROM amazoncorretto:17
-#docker build . --build-arg JAR_FILE=build/libs/svc-position-0.1.1.jar -t monowai/bc-position
+FROM amazoncorretto:21.0.1-al2023
 
 ARG JAR_FILE=build/libs/svc-position-0.1.1.jar
 ARG GIT_COMMIT

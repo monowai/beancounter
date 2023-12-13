@@ -1,5 +1,4 @@
-FROM amazoncorretto:17-alpine
-#docker build . --build-arg JAR_FILE=build/libs/jar-shell-0.1.1.jar  -t monowai/bc-shell
+FROM amazoncorretto:21.0.1-al2023
 #docker build . -t bc/shell
 
 ARG JAR_FILE=build/libs/jar-shell-0.1.1.jar

@@ -5,6 +5,8 @@ kafka:
 spring:
   kafka:
     consumer:
+      auto-offset-reset: earliest
+      auto-create-topics-enable: true
       group-id: data-test
   embedded:
     kafka:

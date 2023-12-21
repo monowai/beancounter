@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.markets
+package com.beancounter.marketdata.broker
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetUpdateResponse
@@ -9,14 +9,12 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
-import com.beancounter.marketdata.KafkaBase
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.PriceWriter
-import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -29,7 +27,6 @@ import java.math.BigDecimal
 /**
  * Non-trn related integrations over Kafka. Price and Corporate Action Events.
  */
-
 class KafkaMarketDataTest : KafkaBase() {
 
     companion object {
@@ -56,12 +53,10 @@ class KafkaMarketDataTest : KafkaBase() {
     lateinit var portfolioService: PortfolioService
 
     @Autowired
-    lateinit var eventWriter: EventWriter
+    lateinit var eventProducer: EventProducer
 
     @Autowired
     lateinit var currencyService: CurrencyService
-
-    private val kafkaTestUtils = KafkaConsumerUtils()
 
     @Test
     fun corporateEventDispatched() {
@@ -82,21 +77,22 @@ class KafkaMarketDataTest : KafkaBase() {
         marketData.source = "ALPHA"
         marketData.dividend = BigDecimal("2.34")
         marketData.split = BigDecimal("1.000")
-        val consumer = kafkaTestUtils.getConsumer(
-            "is_CorporateEventDispatched",
+        // Compare with a serialised event
+        eventProducer.write(marketData)
+
+        val consumer = KafkaConsumerUtils().getConsumer(
+            this::class.toString(),
             TOPIC_EVENT,
             embeddedKafkaBroker,
         )
 
-        // Compare with a serialised event
-        eventWriter.write(marketData)
         val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_EVENT)
         assertThat(consumerRecord.value()).isNotNull
-        val (data1) = objectMapper.readValue(
+        val (eventInput) = objectMapper.readValue(
             consumerRecord.value(),
             TrustedEventInput::class.java,
         )
-        assertThat(data1)
+        assertThat(eventInput)
             .hasFieldOrPropertyWithValue("rate", marketData.dividend)
             .hasFieldOrPropertyWithValue("assetId", asset.id)
             .hasFieldOrProperty("recordDate")

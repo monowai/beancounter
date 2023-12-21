@@ -19,7 +19,7 @@ import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
@@ -118,7 +118,7 @@ internal class AlphaPriceApiTest {
     private lateinit var context: WebApplicationContext
 
     @Spy
-    private lateinit var mockEventWriter: EventWriter
+    private lateinit var mockEventProducer: EventProducer
     private lateinit var mockMvc: MockMvc
     private lateinit var token: Jwt
 
@@ -251,7 +251,7 @@ internal class AlphaPriceApiTest {
 
     @Test
     fun is_BackFillWritingDividendEvent() {
-        priceService.setEventWriter(mockEventWriter)
+        priceService.setEventWriter(mockEventProducer)
         val assetCode = "KMI"
         mockSearchResponse(assetCode, ClassPathResource("$mockAlpha/kmi-search.json").file)
         val file = ClassPathResource("$mockAlpha/kmi-backfill-response.json").file
@@ -264,7 +264,7 @@ internal class AlphaPriceApiTest {
         marketDataService.backFill(asset!!)
         Thread.sleep(300)
         Mockito.verify(
-            mockEventWriter,
+            mockEventProducer,
             Mockito.times(1), // Found the Dividend request; ignored the prices
         ).write(any())
     }

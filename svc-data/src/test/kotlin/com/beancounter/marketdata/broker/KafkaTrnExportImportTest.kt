@@ -1,4 +1,4 @@
-package com.beancounter.marketdata.trn
+package com.beancounter.marketdata.broker
 
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.MockAuthConfig
@@ -25,17 +25,17 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CUSTOM
 import com.beancounter.marketdata.Constants.Companion.USD
-import com.beancounter.marketdata.KafkaBase
 import com.beancounter.marketdata.currency.CurrencyService
-import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.trn.TrnImport
+import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.trn.cash.CashServices
-import com.beancounter.marketdata.utils.KafkaConsumerUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
@@ -49,6 +49,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -64,7 +65,7 @@ import java.time.Duration
 /**
  * Check we can import the CSV file we export, via Kafka.
  */
-class TrnExportKafkaImportTest : KafkaBase() {
+class KafkaTrnExportImportTest : KafkaBase() {
 
     final var dateUtils: DateUtils = DateUtils()
 
@@ -96,7 +97,7 @@ class TrnExportKafkaImportTest : KafkaBase() {
     lateinit var trnService: TrnService
 
     @Autowired
-    lateinit var eventWriter: EventWriter
+    lateinit var eventProducer: EventProducer
 
     @Autowired
     lateinit var currencyService: CurrencyService
@@ -113,6 +114,9 @@ class TrnExportKafkaImportTest : KafkaBase() {
     @Autowired
     private lateinit var authUtilService: AuthUtilService
 
+    @Autowired
+    lateinit var kafkaTemplate: KafkaTemplate<Any, TrustedTrnImportRequest>
+
     private val kafkaTestUtils = KafkaConsumerUtils()
 
     private val tradeDateString = "2020-01-01"
@@ -121,17 +125,24 @@ class TrnExportKafkaImportTest : KafkaBase() {
     fun mockEnv() {
         `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
         assertThat(currencyService.currencies).isNotEmpty
-        assertThat(eventWriter.kafkaEnabled).isTrue
+        assertThat(eventProducer.kafkaEnabled).isTrue
         val rateResponse = ClassPathResource("mock/fx/fx-current-rates.json").file
 
         stubFx(
             "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
             rateResponse,
         )
+        `when`(fxService.getRates(any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01"))),
+                ),
+            ),
+        )
     }
 
     @Test
-    fun exportFileImported() {
+    fun exportFileCanBeImported() {
         mockEnv()
         val portfolios: Collection<PortfolioInput> = arrayListOf(
             PortfolioInput(
@@ -147,13 +158,6 @@ class TrnExportKafkaImportTest : KafkaBase() {
         val pfResponse = portfolioService.save(portfolios)
         assertThat(pfResponse).isNotNull.hasSize(1)
         val portfolio = pfResponse.iterator().next()
-        `when`(fxService.getRates(any())).thenReturn(
-            FxResponse(
-                FxPairResults(
-                    mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01"))),
-                ),
-            ),
-        )
         val provider = "BC"
         val batch = "batch"
         val qcom = getAsset("QCOM", CUSTOM)
@@ -175,13 +179,13 @@ class TrnExportKafkaImportTest : KafkaBase() {
             .isNotNull
             .hasSize(trnRequest.data.size)
 
-        importRows(exportDelimitedFile(portfolio, token), portfolio, trnRequest.data.size + 1) // Include a header row.
-
         val consumer = kafkaTestUtils.getConsumer(
-            "is_ExportFileImported",
+            this::class.toString(),
             TOPIC_CSV_IO,
             embeddedKafkaBroker,
         )
+
+        importRows(exportDelimitedFile(portfolio, token), portfolio, trnRequest.data.size + 1) // Include a header row.
 
         assertThat(processQueue(consumer))
             .isNotNull
@@ -207,7 +211,7 @@ class TrnExportKafkaImportTest : KafkaBase() {
                 val splitRow = csvRow.split(",")
                 val bcRequest = TrustedTrnImportRequest(portfolio, row = splitRow)
                 log.info("Sending {}, {}, {}", splitRow[0], splitRow[1], splitRow[2])
-                kafkaWriter.send(TOPIC_CSV_IO, bcRequest).get()
+                kafkaTemplate.send(TOPIC_CSV_IO, bcRequest).get()
             }
         }
     }
@@ -252,7 +256,7 @@ class TrnExportKafkaImportTest : KafkaBase() {
     }
 
     private fun processQueue(consumer: Consumer<String, String>): TrnResponse {
-        val consumerRecords = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(10), 2)
+        val consumerRecords = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(5), 2)
         val created = ArrayList<Trn>()
         for (consumerRecord in consumerRecords) {
             assertThat(consumerRecord.value()).isNotNull
@@ -272,7 +276,7 @@ class TrnExportKafkaImportTest : KafkaBase() {
 
     companion object {
         const val TOPIC_CSV_IO = "topicCsvIo"
-        private val log = LoggerFactory.getLogger(TrnExportKafkaImportTest::class.java)
+        private val log = LoggerFactory.getLogger(KafkaTrnExportImportTest::class.java)
 
         @JvmStatic
         fun stubFx(url: String, rateResponse: File) {

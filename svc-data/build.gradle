@@ -72,7 +72,7 @@ dependencies {
             "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             testFixtures(project(":jar-auth")),
     )
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 contracts {
@@ -115,5 +115,5 @@ bootBuildImage {
     imageName = "monowai/bc-data"
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

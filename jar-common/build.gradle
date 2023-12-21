@@ -52,7 +52,7 @@ dependencies() {
     )
 
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin") { exclude module: 'kotlin-reflect' }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 idea {
@@ -67,5 +67,5 @@ repositories {
     mavenCentral()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

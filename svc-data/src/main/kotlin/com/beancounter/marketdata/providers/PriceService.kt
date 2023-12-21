@@ -6,7 +6,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import com.beancounter.common.utils.CashUtils
-import com.beancounter.marketdata.event.EventWriter
+import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,11 +27,11 @@ class PriceService internal constructor(
     private val marketDataRepo: MarketDataRepo,
     private val cashUtils: CashUtils,
 ) {
-    private lateinit var eventWriter: EventWriter
+    private lateinit var eventProducer: EventProducer
 
     @Autowired
-    fun setEventWriter(eventWriter: EventWriter) {
-        this.eventWriter = eventWriter
+    fun setEventWriter(eventProducer: EventProducer) {
+        this.eventProducer = eventProducer
     }
 
     fun getMarketData(asset: Asset, date: LocalDate, closePrice: BigDecimal = BigDecimal.ZERO): Optional<MarketData> {
@@ -77,7 +77,7 @@ class PriceService internal constructor(
                     createSet.add(marketData)
                 }
                 if (isCorporateEvent(marketData)) {
-                    eventWriter.write(marketData)
+                    eventProducer.write(marketData)
                 }
             }
         }

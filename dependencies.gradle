@@ -1,6 +1,6 @@
 ext{
   springVersion='3.1.6'
-  springCloudVersion='2022.0.4'
+  springCloudVersion='2022.0.3'
   verifierVersion='4.0.4'
   kotlinVersion='1.9.21'
   jacocoVersion='0.8.10'

@@ -46,7 +46,7 @@ dependencies {
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
 }
 
@@ -66,5 +66,5 @@ repositories {
     mavenCentral()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

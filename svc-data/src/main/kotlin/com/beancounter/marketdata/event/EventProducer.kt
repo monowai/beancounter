@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
  * Kafka Corporate Action/Event subscriber.
  */
 @Service
-class EventWriter {
+class EventProducer {
 
     @Value("\${kafka.enabled:true}")
     var kafkaEnabled: Boolean = false
@@ -62,6 +62,6 @@ class EventWriter {
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(EventWriter::class.java)
+        private val log = LoggerFactory.getLogger(EventProducer::class.java)
     }
 }

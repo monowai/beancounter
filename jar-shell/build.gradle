@@ -12,8 +12,8 @@ plugins {
 apply from: '../kotlin-spring.gradle'
 version = "0.1.1"
 ext {
-    set('springCloudVersion', "2022.0.3")
-    set('springShellVersion', "3.1.2")
+    set('springCloudVersion', "2022.0.4")
+    set('springShellVersion', "3.1.6")
 }
 
 dependencyManagement {
@@ -39,7 +39,7 @@ dependencies {
             "com.fasterxml.jackson.module:jackson-module-kotlin",
             'com.github.ben-manes.caffeine:caffeine:3.1.2',
             "org.springframework.kafka:spring-kafka",
-            'com.opencsv:opencsv:5.5.2'
+            'com.opencsv:opencsv:5.9'
     )
 
     compileOnly(
@@ -61,7 +61,7 @@ dependencies {
     testImplementation("org.beancounter:svc-data:0.1.1:stubs") {
         transitive = false
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 jacoco {
@@ -71,5 +71,5 @@ repositories {
     mavenCentral()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

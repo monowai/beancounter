@@ -21,9 +21,9 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
-import java.net.URL
+import java.net.URI
 import java.time.Duration
-import java.util.Objects
+import java.util.*
 
 /**
  * Configuration to integrate with Auth0.  This config has eager initialization, so you might want to
@@ -53,8 +53,7 @@ class OAuthConfig(@Autowired(required = false) val cacheManager: CacheManager?) 
         // call a couple of functions. The Spring class is inconveniently package protected.
         val configuration = JwtUtil.getConfigurationForIssuerLocation(authConfig.issuer)
         val jwkSetUri = configuration["jwks_uri"].toString()
-        val jwkSource = RemoteJWKSet<SecurityContext>(URL(jwkSetUri), DefaultResourceRetriever())
-        // val jwkSource = JWKSourceBuilder.create<SecurityContext>(URL(jwkSetUri), DefaultResourceRetriever()).build()
+        val jwkSource = RemoteJWKSet<SecurityContext>(URI.create(jwkSetUri).toURL(), DefaultResourceRetriever())
         val jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
             .jwsAlgorithms { algos: MutableSet<SignatureAlgorithm?> ->
                 algos.addAll(

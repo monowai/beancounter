@@ -53,12 +53,12 @@ dependencies {
             "org.springframework.security:spring-security-oauth2-jose"
 
     )
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 repositories {
     mavenCentral()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 

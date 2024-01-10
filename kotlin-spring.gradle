@@ -1,21 +1,7 @@
 // Common config for a Kotlin/Spring builds
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    gradlePluginPortal()
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs.addAll('-Xlint:unchecked','-parameters')
-    options.deprecation = true
-}
-
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
-//        vendor = JvmVendorSpec.ADOPTOPENJDK
     }
 }
 checkstyle {
@@ -32,9 +18,9 @@ checkstyle {
 
 test {
     useJUnitPlatform()
-    testLogging {
-        events "failed"
-    }
+//    testLogging {
+//        events "failed"
+//    }
 }
 jacoco {
     toolVersion = "$jacocoVersion"

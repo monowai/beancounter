@@ -8,8 +8,8 @@ plugins {
     id 'org.jmailen.kotlinter'
     id 'org.springframework.boot' version "${springVersion}"
     id 'org.springframework.cloud.contract' version "${verifierVersion}"
-    id "com.gorylenko.gradle-git-properties" version "${gitProperties}"
-    id "maven-publish"
+    id 'com.gorylenko.gradle-git-properties' version "${gitProperties}"
+    id 'maven-publish'
 }
 apply from: '../kotlin-spring.gradle'
 
@@ -101,6 +101,10 @@ tasks.lintKotlinContractTest {
 
 tasks.formatKotlinContractTest {
     dependsOn generateContractTests
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.fork = false
 }
 
 springBoot {

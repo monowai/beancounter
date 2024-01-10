@@ -12,7 +12,7 @@ plugins {
 apply from: '../kotlin-spring.gradle'
 
 version = '0.0.1'
-
+build.dependsOn formatKotlin
 dependencies {
     implementation(
             platform("org.springframework.boot:spring-boot-dependencies:${springVersion}"),

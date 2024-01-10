@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
-import java.util.*
+import java.util.Locale
 
 /**
  * Client side access to static configuration business data.
@@ -50,12 +50,15 @@ class StaticService(
     }
 
     @Cacheable("market")
-    override fun getMarket(@NonNull marketCode: String): Market {
+    override fun getMarket(
+        @NonNull marketCode: String,
+    ): Market {
         return try {
-            val (data) = staticGateway.getMarketByCode(
-                tokenService.bearerToken,
-                marketCode.uppercase(Locale.getDefault()),
-            )
+            val (data) =
+                staticGateway.getMarketByCode(
+                    tokenService.bearerToken,
+                    marketCode.uppercase(Locale.getDefault()),
+                )
             if (data.isNullOrEmpty()) {
                 throw BusinessException("Unable to resolve market code $marketCode")
             }

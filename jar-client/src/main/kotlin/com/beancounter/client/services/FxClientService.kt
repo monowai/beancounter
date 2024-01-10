@@ -18,28 +18,28 @@ import org.springframework.web.bind.annotation.RequestHeader
 @Service
 class FxClientService internal constructor(private val fxGateway: FxGateway, private val tokenService: TokenService) :
     FxService {
-    @Cacheable("fx-request")
-    override fun getRates(fxRequest: FxRequest): FxResponse {
-        return if (fxRequest.pairs.isEmpty()) {
-            FxResponse(FxPairResults())
-        } else {
-            fxGateway.getRates(tokenService.bearerToken, fxRequest)
+        @Cacheable("fx-request")
+        override fun getRates(fxRequest: FxRequest): FxResponse {
+            return if (fxRequest.pairs.isEmpty()) {
+                FxResponse(FxPairResults())
+            } else {
+                fxGateway.getRates(tokenService.bearerToken, fxRequest)
+            }
+        }
+
+        /**
+         * Gateway integration call to the backend.
+         */
+        @FeignClient(name = "fxrates", url = "\${marketdata.url:http://localhost:9510}")
+        interface FxGateway {
+            @PostMapping(
+                value = ["/api/fx"],
+                produces = [MediaType.APPLICATION_JSON_VALUE],
+                consumes = [MediaType.APPLICATION_JSON_VALUE],
+            )
+            fun getRates(
+                @RequestHeader("Authorization") bearerToken: String?,
+                fxRequest: FxRequest,
+            ): FxResponse
         }
     }
-
-    /**
-     * Gateway integration call to the backend.
-     */
-    @FeignClient(name = "fxrates", url = "\${marketdata.url:http://localhost:9510}")
-    interface FxGateway {
-        @PostMapping(
-            value = ["/api/fx"],
-            produces = [MediaType.APPLICATION_JSON_VALUE],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
-        )
-        fun getRates(
-            @RequestHeader("Authorization") bearerToken: String?,
-            fxRequest: FxRequest,
-        ): FxResponse
-    }
-}

@@ -18,5 +18,4 @@ data class EnvConfig(
     var marketDataUrl: String,
     @Value("\${marketdata.actuator:http://localhost:9510}")
     var mdActuator: String,
-
 )

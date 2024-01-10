@@ -25,14 +25,14 @@ class WtdConfigTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun jsonGoodResponse() {
         val jsonFile = ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
-        val compareTo = ZonedDateTime.of(
-            LocalDate.parse("2019-03-08").atStartOfDay(),
-            ZoneId.of("UTC"),
-        )
+        val compareTo =
+            ZonedDateTime.of(
+                LocalDate.parse("2019-03-08").atStartOfDay(),
+                ZoneId.of("UTC"),
+            )
         assertThat(response)
             .isNotNull
             .hasFieldOrPropertyWithValue(
@@ -43,7 +43,6 @@ class WtdConfigTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun jsonResponseWithMessage() {
         val jsonFile = ClassPathResource("$CONTRACTS/NoData.json").file
         val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)

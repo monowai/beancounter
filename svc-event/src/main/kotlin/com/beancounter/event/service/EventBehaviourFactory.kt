@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 class EventBehaviourFactory {
     // final var adapters: MutableMap<String, Event> = HashMap()
     private final val alphaEventAdapter = AlphaEventAdapter(TaxService())
+
     fun getAdapter(event: CorporateEvent): Event {
         return alphaEventAdapter // We only have one adapter
     }

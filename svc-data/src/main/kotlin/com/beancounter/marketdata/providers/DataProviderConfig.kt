@@ -12,6 +12,12 @@ interface DataProviderConfig {
      * @return Number of Assets to request in a single call.
      */
     fun getBatchSize(): Int
-    fun getMarketDate(market: Market, date: String, currentMode: Boolean = true): LocalDate
+
+    fun getMarketDate(
+        market: Market,
+        date: String,
+        currentMode: Boolean = true,
+    ): LocalDate
+
     fun getPriceCode(asset: Asset): String
 }

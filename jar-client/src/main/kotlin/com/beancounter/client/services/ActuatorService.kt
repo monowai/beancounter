@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping
  */
 @Service
 class ActuatorService(val actuatorGateway: ActuatorGateway) {
-
     fun ping(): String {
         return actuatorGateway.ping()
     }

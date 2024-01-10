@@ -75,7 +75,10 @@ class TestIngestCommand {
 
     @Service
     internal class MockIngester : AbstractIngester() {
-        override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
+        override fun prepare(
+            ingestionRequest: IngestionRequest,
+            trnWriter: TrnWriter,
+        ) {
             // NoOp
         }
 

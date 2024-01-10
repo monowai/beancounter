@@ -28,23 +28,27 @@ class PortfolioController internal constructor(
     private val portfolioService: PortfolioService,
     private val dateUtils: DateUtils,
 ) {
-
     @get:GetMapping
     val portfolios: PortfoliosResponse
         get() = PortfoliosResponse(portfolioService.portfolios)
 
     @GetMapping("/{id}")
-    fun getPortfolio(@PathVariable id: String): PortfolioResponse = PortfolioResponse(portfolioService.find(id))
+    fun getPortfolio(
+        @PathVariable id: String,
+    ): PortfolioResponse = PortfolioResponse(portfolioService.find(id))
 
     @DeleteMapping("/{id}")
-    fun deletePortfolio(@PathVariable id: String): String {
+    fun deletePortfolio(
+        @PathVariable id: String,
+    ): String {
         portfolioService.delete(id)
         return "deleted $id"
     }
 
     @GetMapping("/code/{code}")
-    fun getPortfolioByCode(@PathVariable code: String): PortfolioResponse =
-        PortfolioResponse(portfolioService.findByCode(code))
+    fun getPortfolioByCode(
+        @PathVariable code: String,
+    ): PortfolioResponse = PortfolioResponse(portfolioService.findByCode(code))
 
     @PatchMapping(value = ["/{id}"])
     fun savePortfolio(

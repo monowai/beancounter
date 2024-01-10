@@ -7,11 +7,13 @@ import com.beancounter.common.input.TrustedTrnImportRequest
  */
 interface TrnWriter {
     fun reset()
+
     fun write(trnRequest: TrustedTrnImportRequest)
 
     /**
      * if writer supports batching, this tells you when we're ready to push.
      */
     fun flush()
+
     fun id(): String
 }

@@ -24,20 +24,20 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.api
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.codeProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.highProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.keyProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.lowProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.marketProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.nameProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.openProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.prevCloseProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceDateProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.priceSymbolProp
-import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.assetMarketCodeUrl
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.API
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_ASSET
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_CLOSE
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_CODE
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_HIGH
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_KEY
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_LOW
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_MARKET
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_NAME
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_OPEN
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_PREV_CLOSE
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_PRICE_DATE
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_SYMBOL
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.URL_ASSETS_MARKET_CODE
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAdjustedResponse
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockAlphaAssets
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockSearchResponse
@@ -126,9 +126,10 @@ internal class AlphaPriceApiTest {
     fun mockServices() {
         DateUtilsMocker.mockToday(dateUtils)
         mockAlphaAssets()
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
+        mockMvc =
+            MockMvcBuilders.webAppContextSetup(context)
+                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+                .build()
 
         // Set up a user account
         token = mockAuthConfig.getUserToken(Constants.systemUser)
@@ -140,34 +141,36 @@ internal class AlphaPriceApiTest {
     @Test
     fun is_BrkBTranslated() {
         val code = "BRK.B"
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get(assetMarketCodeUrl, NYSE.code, code)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(token),
-                )
-                .contentType(MediaType.APPLICATION_JSON),
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data) = objectMapper
-            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get(URL_ASSETS_MARKET_CODE, NYSE.code, code)
+                    .with(
+                        SecurityMockMvcRequestPostProcessors.jwt()
+                            .jwt(token),
+                    )
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val (data) =
+            objectMapper
+                .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         val brkB = "BRK-B"
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue(codeProp, code)
-            .hasFieldOrProperty(marketProp)
-            .hasFieldOrPropertyWithValue(priceSymbolProp, brkB)
-            .hasFieldOrPropertyWithValue(nameProp, "Berkshire Hathaway Inc.")
+            .hasFieldOrPropertyWithValue(P_CODE, code)
+            .hasFieldOrProperty(P_MARKET)
+            .hasFieldOrPropertyWithValue(P_SYMBOL, brkB)
+            .hasFieldOrPropertyWithValue(P_NAME, "Berkshire Hathaway Inc.")
         assertThat(alphaConfig.getPriceCode(data)).isEqualTo(brkB)
     }
 
     @Test
     fun is_EmptyGlobalResponseHandled() {
-        val jsonFile = ClassPathResource("${AlphaMockUtils.alphaContracts}/global-empty.json").file
-        AlphaMockUtils.mockGlobalResponse("$api.EMPTY", jsonFile)
-        val asset = Asset(code = api, market = Market("EMPTY", USD.code))
+        val jsonFile = ClassPathResource("${AlphaMockUtils.ALPHA_MOCK}/global-empty.json").file
+        AlphaMockUtils.mockGlobalResponse("$API.EMPTY", jsonFile)
+        val asset = Asset(code = API, market = Market("EMPTY", USD.code))
 
         assertNotNull {
             mdFactory
@@ -180,25 +183,26 @@ internal class AlphaPriceApiTest {
 
     @Test
     fun is_CurrentPriceFound() {
-        val jsonFile = ClassPathResource("${AlphaMockUtils.alphaContracts}/global-response.json").file
+        val jsonFile = ClassPathResource("${AlphaMockUtils.ALPHA_MOCK}/global-response.json").file
         AlphaMockUtils.mockGlobalResponse(MSFT.code, jsonFile)
         val nasdaq = Market(NASDAQ.code, USD.code)
         val asset = getTestAsset(market = nasdaq, code = MSFT.code)
         val priceRequest = of(asset = asset)
-        val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
-            .getMarketData(priceRequest)
+        val mdResult =
+            mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+                .getMarketData(priceRequest)
 
         // Coverage - AV does not support this market, but we expect a price
         assertThat(mdFactory.getMarketDataProvider(WtdService.ID).isMarketSupported(nasdaq)).isFalse
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrProperty(closeProp)
-            .hasFieldOrProperty(openProp)
-            .hasFieldOrProperty(lowProp)
-            .hasFieldOrProperty(highProp)
-            .hasFieldOrProperty(prevCloseProp)
+            .hasFieldOrPropertyWithValue(P_ASSET, asset)
+            .hasFieldOrProperty(P_CLOSE)
+            .hasFieldOrProperty(P_OPEN)
+            .hasFieldOrProperty(P_LOW)
+            .hasFieldOrProperty(P_HIGH)
+            .hasFieldOrProperty(P_PREV_CLOSE)
             .hasFieldOrProperty(changeProp)
     }
 
@@ -206,17 +210,18 @@ internal class AlphaPriceApiTest {
     fun is_CurrentPriceAsxFound() {
         val asset = getTestAsset(code = amp, market = ASX)
         val priceRequest = of(asset)
-        val mdResult = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
-            .getMarketData(priceRequest)
+        val mdResult =
+            mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+                .getMarketData(priceRequest)
         val marketData = mdResult.iterator().next()
         assertThat(marketData)
             .isNotNull
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrProperty(closeProp)
-            .hasFieldOrProperty(openProp)
-            .hasFieldOrProperty(lowProp)
-            .hasFieldOrProperty(highProp)
-            .hasFieldOrProperty(prevCloseProp)
+            .hasFieldOrPropertyWithValue(P_ASSET, asset)
+            .hasFieldOrProperty(P_CLOSE)
+            .hasFieldOrProperty(P_OPEN)
+            .hasFieldOrProperty(P_LOW)
+            .hasFieldOrProperty(P_HIGH)
+            .hasFieldOrProperty(P_PREV_CLOSE)
             .hasFieldOrProperty(changeProp)
     }
 
@@ -233,19 +238,21 @@ internal class AlphaPriceApiTest {
             code,
             ClassPathResource("$mockAlpha/price-not-found.json").file,
         )
-        val (data) = assetService
-            .handle(AssetRequest(mapOf(Pair(keyProp, AssetInput(NYSE.code, code)))))
-        val asset = data[keyProp]
+        val (data) =
+            assetService
+                .handle(AssetRequest(mapOf(Pair(P_KEY, AssetInput(NYSE.code, code)))))
+        val asset = data[P_KEY]
         assertThat(asset!!.priceSymbol).isNull()
-        val priceResult = priceService.getMarketData(
-            asset,
-            DateUtils().date,
-        )
+        val priceResult =
+            priceService.getMarketData(
+                asset,
+                DateUtils().date,
+            )
         if (priceResult.isPresent) {
             val priceResponse = marketDataService.getPriceResponse(of(asset))
             assertThat(priceResponse).isNotNull.hasFieldOrProperty(DATA)
             val price = priceResponse.data.iterator().next()
-            assertThat(price).hasFieldOrProperty(priceDateProp)
+            assertThat(price).hasFieldOrProperty(P_PRICE_DATE)
         }
     }
 
@@ -258,14 +265,15 @@ internal class AlphaPriceApiTest {
         mockAdjustedResponse(assetCode, file)
         val asset =
             assetService.handle(
-                AssetRequest(mapOf(Pair(keyProp, AssetInput(NASDAQ.code, assetCode)))),
-            ).data[keyProp]
+                AssetRequest(mapOf(Pair(P_KEY, AssetInput(NASDAQ.code, assetCode)))),
+            ).data[P_KEY]
         assertThat(asset).isNotNull.hasFieldOrProperty("id")
         marketDataService.backFill(asset!!)
         Thread.sleep(300)
         Mockito.verify(
             mockEventProducer,
-            Mockito.times(1), // Found the Dividend request; ignored the prices
+            // Found the Dividend request; ignored the prices
+            Mockito.times(1),
         ).write(any())
     }
 }

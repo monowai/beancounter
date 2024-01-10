@@ -8,7 +8,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.Constants.Companion.CASH
+import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -38,10 +38,11 @@ class BcRowAdapterTest {
     private val csv = "CSV"
     private val portfolio: Portfolio = Portfolio(csv)
     private val pBatch = "callerRef.batch"
-    private val asset = Asset(
-        code = assetCode,
-        market = NASDAQ,
-    )
+    private val asset =
+        Asset(
+            code = assetCode,
+            market = NASDAQ,
+        )
 
     @BeforeEach
     fun setupMocks() {
@@ -57,13 +58,13 @@ class BcRowAdapterTest {
         ).thenReturn(
             asset,
         )
-        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, NZD.code, name = "", owner = portfolio.owner.id)))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH_MARKET.code, NZD.code, name = "", owner = portfolio.owner.id)))
             .thenReturn(nzdCashBalance)
-        Mockito.`when`(ais.resolveAsset(AssetInput(CASH.code, USD.code, "", owner = portfolio.owner.id)))
+        Mockito.`when`(ais.resolveAsset(AssetInput(CASH_MARKET.code, USD.code, "", owner = portfolio.owner.id)))
             .thenReturn(usdCashBalance)
-        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH.code, NZD.code)))
+        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH_MARKET.code, NZD.code)))
             .thenReturn(nzdCashBalance)
-        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH.code, USD.code)))
+        Mockito.`when`(assetService.findOrCreate(AssetInput(CASH_MARKET.code, USD.code)))
             .thenReturn(usdCashBalance)
         Mockito.`when`(assetService.find(USD.code))
             .thenReturn(usdCashBalance)
@@ -79,8 +80,9 @@ class BcRowAdapterTest {
 
     @Test
     fun trimmedCsvInputValues() {
-        val values = "USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
-            "USD ,USD ,2021-08-11 ,200.000000  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
+        val values =
+            "USX  ,Kt-1jW3x1g,BUY  ,NASDAQ  ,$assetCode,Caredx," +
+                "USD ,USD ,2021-08-11 ,200.000000  ,1.000000  ,USD  ,77.780000  ,0.00,1.386674  ,2000.00  ,-2000.00  ,"
 
 // BC will receive data in the same manner
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
@@ -103,9 +105,10 @@ class BcRowAdapterTest {
     @Test
     fun forwardTradeDateFails() {
         val tomorrow = LocalDate.now().atStartOfDay().plusDays(1)
-        val values = "ff-r5w,BUY ,NYSE,QQQ ,Invesco QQQ Trust Series 1,USD Balance,USD ," +
-            "$tomorrow,1.000000,SGD ,0.740494,308.110000,0.00,1.000000 ,309.11 " +
-            ",-309.11 ,"
+        val values =
+            "ff-r5w,BUY ,NYSE,QQQ ,Invesco QQQ Trust Series 1,USD Balance,USD ," +
+                "$tomorrow,1.000000,SGD ,0.740494,308.110000,0.00,1.000000 ,309.11 " +
+                ",-309.11 ,"
 
         val trustedTrnImportRequest = trustedTrnImportRequest(values)
 
@@ -168,7 +171,7 @@ class BcRowAdapterTest {
         Mockito.`when`(
             ais.resolveAsset(
                 AssetInput(
-                    CASH.code,
+                    CASH_MARKET.code,
                     "KB31",
                     "",
                     owner = portfolio.owner.id,
@@ -189,9 +192,7 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue(pBatch, "20230501")
     }
 
-    private fun trustedTrnImportRequest(
-        values: String,
-    ): TrustedTrnImportRequest =
+    private fun trustedTrnImportRequest(values: String): TrustedTrnImportRequest =
         TrustedTrnImportRequest(
             portfolio,
             row = values.split(","),

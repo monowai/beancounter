@@ -3,7 +3,8 @@ server:
 
 kafka:
   enabled: false
-
+cache:
+  enabled: false
 beancounter:
   enricher: DEFAULT
 

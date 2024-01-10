@@ -25,91 +25,97 @@ import java.util.concurrent.Future
  * @since 2019-03-03
  */
 @Service
-class WtdService @Autowired internal constructor(
-    private val wtdProxy: WtdProxy,
-    private val wtdConfig: WtdConfig,
-    private val wtdAdapter: WtdAdapter,
-    private val dateUtils: DateUtils,
-) : MarketDataPriceProvider {
-    @Value("\${beancounter.market.providers.WTD.key:demo}")
-    private val apiKey: String? = null
+class WtdService
+    @Autowired
+    internal constructor(
+        private val wtdProxy: WtdProxy,
+        private val wtdConfig: WtdConfig,
+        private val wtdAdapter: WtdAdapter,
+        private val dateUtils: DateUtils,
+    ) : MarketDataPriceProvider {
+        @Value("\${beancounter.market.providers.WTD.key:demo}")
+        private val apiKey: String? = null
 
-    @PostConstruct
-    fun logStatus() {
-        log.info(
-            "BEANCOUNTER_MARKET_PROVIDERS_WTD_KEY: {}",
-            if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **",
-        )
-    }
-
-    override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
-        val batchedRequests: MutableMap<Int, Future<WtdResponse>> = ConcurrentHashMap()
-        val providerArguments = getInstance(priceRequest, wtdConfig, dateUtils)
-        for (batch in providerArguments.batch.keys) {
-            batchedRequests[batch] = wtdProxy.getPrices(
-                providerArguments.batch[batch],
-                providerArguments.getBatchConfigs()[batch]?.date,
-                apiKey,
+        @PostConstruct
+        fun logStatus() {
+            log.info(
+                "BEANCOUNTER_MARKET_PROVIDERS_WTD_KEY: {}",
+                if (apiKey.equals("DEMO", ignoreCase = true)) "DEMO" else "** Redacted **",
             )
         }
-        log.trace("Assets price processing complete.")
-        return getMarketData(providerArguments, batchedRequests)
-    }
 
-    private fun getMarketData(
-        providerArguments: ProviderArguments,
-        requests: MutableMap<Int, Future<WtdResponse>>,
-    ): Collection<MarketData> {
-        val results: MutableCollection<MarketData> = ArrayList()
-        var empty = requests.isEmpty()
-        while (!empty) {
-            for (key in requests.keys) {
-                setResultFromBatch(requests, key, providerArguments, results)
-                empty = requests.isEmpty()
+        override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
+            val batchedRequests: MutableMap<Int, Future<WtdResponse>> = ConcurrentHashMap()
+            val providerArguments = getInstance(priceRequest, wtdConfig, dateUtils)
+            for (batch in providerArguments.batch.keys) {
+                batchedRequests[batch] =
+                    wtdProxy.getPrices(
+                        providerArguments.batch[batch],
+                        providerArguments.getBatchConfigs()[batch]?.date,
+                        apiKey,
+                    )
             }
-            Thread.sleep(1000)
+            log.trace("Assets price processing complete.")
+            return getMarketData(providerArguments, batchedRequests)
         }
-        return results
-    }
 
-    private fun setResultFromBatch(
-        requests: MutableMap<Int, Future<WtdResponse>>,
-        key: Int,
-        providerArguments: ProviderArguments,
-        results: MutableCollection<MarketData>,
-    ) {
-        val request = requests[key]
-        if (request!!.isDone) {
-            val batchResult = wtdAdapter[providerArguments, key, request]
-            if (!batchResult.isEmpty()) {
-                results.addAll(batchResult)
+        private fun getMarketData(
+            providerArguments: ProviderArguments,
+            requests: MutableMap<Int, Future<WtdResponse>>,
+        ): Collection<MarketData> {
+            val results: MutableCollection<MarketData> = ArrayList()
+            var empty = requests.isEmpty()
+            while (!empty) {
+                for (key in requests.keys) {
+                    setResultFromBatch(requests, key, providerArguments, results)
+                    empty = requests.isEmpty()
+                }
+                Thread.sleep(1000)
             }
-            requests.remove(key)
+            return results
+        }
+
+        private fun setResultFromBatch(
+            requests: MutableMap<Int, Future<WtdResponse>>,
+            key: Int,
+            providerArguments: ProviderArguments,
+            results: MutableCollection<MarketData>,
+        ) {
+            val request = requests[key]
+            if (request!!.isDone) {
+                val batchResult = wtdAdapter[providerArguments, key, request]
+                if (!batchResult.isEmpty()) {
+                    results.addAll(batchResult)
+                }
+                requests.remove(key)
+            }
+        }
+
+        override fun getId(): String {
+            return ID
+        }
+
+        override fun isMarketSupported(market: Market): Boolean {
+            return if (wtdConfig.markets!!.isBlank()) {
+                false
+            } else {
+                wtdConfig.markets!!.contains(market.code)
+            }
+        }
+
+        override fun getDate(
+            market: Market,
+            priceRequest: PriceRequest,
+        ): LocalDate {
+            return wtdConfig.getMarketDate(market, priceRequest.date)
+        }
+
+        override fun backFill(asset: Asset): PriceResponse {
+            return PriceResponse()
+        }
+
+        companion object {
+            const val ID = "WTD"
+            private val log = LoggerFactory.getLogger(WtdService::class.java)
         }
     }
-
-    override fun getId(): String {
-        return ID
-    }
-
-    override fun isMarketSupported(market: Market): Boolean {
-        return if (wtdConfig.markets!!.isBlank()) {
-            false
-        } else {
-            wtdConfig.markets!!.contains(market.code)
-        }
-    }
-
-    override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {
-        return wtdConfig.getMarketDate(market, priceRequest.date)
-    }
-
-    override fun backFill(asset: Asset): PriceResponse {
-        return PriceResponse()
-    }
-
-    companion object {
-        const val ID = "WTD"
-        private val log = LoggerFactory.getLogger(WtdService::class.java)
-    }
-}

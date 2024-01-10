@@ -36,7 +36,10 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
      * @param positions Position collection to accumulate into
      * @return the position affected by Trn.assetId
      */
-    fun accumulate(trn: Trn, positions: Positions): Position {
+    fun accumulate(
+        trn: Trn,
+        positions: Positions,
+    ): Position {
         val position = positions[trn.asset, trn.tradeDate]
         if (trn.trnType !== DIVI) {
             isDateSequential(trn, position)
@@ -58,7 +61,10 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         return false
     }
 
-    private fun accumulateCash(trn: Trn, positions: Positions) {
+    private fun accumulateCash(
+        trn: Trn,
+        positions: Positions,
+    ) {
         val cashPosition = positions[trn.cashAsset!!, trn.tradeDate]
         if (TrnType.isCashCredited(trn.trnType)) {
             trnBehaviourFactory[DEPOSIT].accumulate(trn, positions, cashPosition)
@@ -68,7 +74,10 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         cashPosition.dateValues.last = trn.tradeDate
     }
 
-    private fun isDateSequential(trn: Trn, position: Position) {
+    private fun isDateSequential(
+        trn: Trn,
+        position: Position,
+    ) {
         var validDate = false
         val tradeDate = trn.tradeDate
         val positionDate = position.dateValues.last

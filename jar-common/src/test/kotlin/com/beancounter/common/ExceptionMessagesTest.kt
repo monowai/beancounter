@@ -1,7 +1,7 @@
 package com.beancounter.common
 
-import com.beancounter.common.Constants.Companion.message
-import com.beancounter.common.Constants.Companion.testUri
+import com.beancounter.common.Constants.Companion.MESSAGE
+import com.beancounter.common.Constants.Companion.TEST_UR
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.exception.SystemException
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
  * Coverage of basic BC Exception and Message functionality.
  */
 internal class ExceptionMessagesTest {
-
     private val testMessage = "Test Message"
 
     @Test
@@ -26,11 +25,12 @@ internal class ExceptionMessagesTest {
     @Test
     @Throws(Exception::class)
     fun is_SpringErrorSerializable() {
-        val springExceptionMessage = SpringExceptionMessage(
-            error = "I'm a teapot",
-            message = "Message",
-            path = testUri,
-        )
+        val springExceptionMessage =
+            SpringExceptionMessage(
+                error = "I'm a teapot",
+                message = "Message",
+                path = TEST_UR,
+            )
         val mapper = BcJson().objectMapper
         val json = mapper.writeValueAsString(springExceptionMessage)
         val fromJson = mapper.readValue(json, SpringExceptionMessage::class.java)
@@ -43,14 +43,14 @@ internal class ExceptionMessagesTest {
     private fun throwBusinessException() {
         val businessException = BusinessException(testMessage)
         assertThat(businessException)
-            .hasFieldOrPropertyWithValue(message, testMessage)
+            .hasFieldOrPropertyWithValue(MESSAGE, testMessage)
         throw businessException
     }
 
     private fun throwSystemException() {
         val systemException = SystemException(testMessage)
         assertThat(systemException)
-            .hasFieldOrPropertyWithValue(message, testMessage)
+            .hasFieldOrPropertyWithValue(MESSAGE, testMessage)
         throw systemException
     }
 }

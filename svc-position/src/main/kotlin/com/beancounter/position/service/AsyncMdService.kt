@@ -16,18 +16,20 @@ import java.util.concurrent.CompletableFuture
  * Facade to support async requests.
  */
 @Service
-class AsyncMdService @Autowired internal constructor(
-    private val priceService: PriceService,
-    private val fxRateService: FxService,
-) {
-    @Async
-    @Retry(name = "bcData")
-    fun getMarketData(priceRequest: PriceRequest): CompletableFuture<PriceResponse> {
-        return CompletableFuture.completedFuture(priceService.getPrices(priceRequest))
-    }
+class AsyncMdService
+    @Autowired
+    internal constructor(
+        private val priceService: PriceService,
+        private val fxRateService: FxService,
+    ) {
+        @Async
+        @Retry(name = "bcData")
+        fun getMarketData(priceRequest: PriceRequest): CompletableFuture<PriceResponse> {
+            return CompletableFuture.completedFuture(priceService.getPrices(priceRequest))
+        }
 
-    @Async
-    fun getFxData(fxRequest: FxRequest): CompletableFuture<FxResponse> {
-        return CompletableFuture.completedFuture(fxRateService.getRates(fxRequest))
+        @Async
+        fun getFxData(fxRequest: FxRequest): CompletableFuture<FxResponse> {
+            return CompletableFuture.completedFuture(fxRateService.getRates(fxRequest))
+        }
     }
-}

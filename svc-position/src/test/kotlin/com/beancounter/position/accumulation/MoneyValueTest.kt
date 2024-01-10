@@ -47,15 +47,16 @@ internal class MoneyValueTest {
         val positions = Positions()
         val buy = Trn(trnType = TrnType.BUY, asset = microsoft, quantity = hundred, tradeAmount = BigDecimal(2000))
         accumulator.accumulate(buy, positions)
-        val position = accumulator.accumulate(
-            Trn(
-                trnType = TrnType.SELL,
-                asset = microsoft,
-                quantity = BigDecimal(50),
-                tradeAmount = BigDecimal(2000),
-            ),
-            positions,
-        )
+        val position =
+            accumulator.accumulate(
+                Trn(
+                    trnType = TrnType.SELL,
+                    asset = microsoft,
+                    quantity = BigDecimal(50),
+                    tradeAmount = BigDecimal(2000),
+                ),
+                positions,
+            )
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal.valueOf(50))
         assertThat(position.getMoneyValues(Position.In.TRADE).realisedGain)
             .isEqualTo(BigDecimal("1000.00"))
@@ -80,12 +81,13 @@ internal class MoneyValueTest {
                 tradeAmount = BigDecimal("1695.02"),
             )
         val position = accumulator.accumulate(buy, positions)
-        buy = Trn(
-            trnType = TrnType.BUY,
-            asset = bidu,
-            quantity = BigDecimal(2),
-            tradeAmount = BigDecimal("405.21"),
-        )
+        buy =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = bidu,
+                quantity = BigDecimal(2),
+                tradeAmount = BigDecimal("405.21"),
+            )
         accumulator.accumulate(buy, positions)
         val tradeMoney = position.getMoneyValues(Position.In.TRADE)
         assertThat(
@@ -131,15 +133,16 @@ internal class MoneyValueTest {
     @Test
     fun is_RealisedGainAfterSellingToZeroCalculated() {
         val positions = Positions(getPortfolio())
-        val position = accumulator.accumulate(
-            Trn(
-                trnType = TrnType.BUY,
-                asset = microsoft,
-                quantity = BigDecimal(8),
-                tradeAmount = BigDecimal("1695.02"),
-            ),
-            positions,
-        )
+        val position =
+            accumulator.accumulate(
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = microsoft,
+                    quantity = BigDecimal(8),
+                    tradeAmount = BigDecimal("1695.02"),
+                ),
+                positions,
+            )
         accumulator.accumulate(
             Trn(
                 trnType = TrnType.BUY,

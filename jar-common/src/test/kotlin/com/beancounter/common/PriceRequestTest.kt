@@ -17,7 +17,7 @@ class PriceRequestTest {
     fun is_PriceRequestForAsset() {
         val priceRequest = PriceRequest.of(AssetUtils.getTestAsset(Market("NASDAQ"), "EBAY"))
         assertThat(priceRequest.assets).hasSize(1)
-        assertThat(priceRequest.date).isEqualTo(DateUtils.today)
+        assertThat(priceRequest.date).isEqualTo(DateUtils.TODAY)
     }
 
     @Test

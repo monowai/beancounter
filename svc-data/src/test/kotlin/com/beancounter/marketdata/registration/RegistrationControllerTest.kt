@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -26,13 +27,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
  * Verify user registration behaviour.
  */
 @SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@Tag("db")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
+@DirtiesContext
 class RegistrationControllerTest {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -52,13 +53,14 @@ class RegistrationControllerTest {
         ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn()
 
-        val meResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/me")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
-            .andReturn()
+        val meResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/me")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+                .andReturn()
 
         assertThat(meResult.response.status).isEqualTo(HttpStatus.OK.value())
     }
@@ -67,29 +69,32 @@ class RegistrationControllerTest {
     fun is_MeWithNoToken() {
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
         registerUser(mockMvc, token)
-        val performed = mockMvc.perform(
-            MockMvcRequestBuilders.get("/me")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
-            .andReturn()
+        val performed =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/me")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+                .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
     }
 
     @Test
     fun is_MeUnregistered() {
-        val user = SystemUser(
-            "is_MeUnregistered",
-            "is_MeUnregistered@testing.com",
-        )
+        val user =
+            SystemUser(
+                "is_MeUnregistered",
+                "is_MeUnregistered@testing.com",
+            )
         val token = mockAuthConfig.getUserToken(user)
-        val performed = mockMvc.perform(
-            MockMvcRequestBuilders.get("/me")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
-            .andReturn()
+        val performed =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/me")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+                .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 }

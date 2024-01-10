@@ -40,27 +40,34 @@ abstract class AbstractIngester : Ingester {
      */
     override fun ingest(ingestionRequest: IngestionRequest) {
         val portfolio = portfolioService.getPortfolioByCode(ingestionRequest.portfolioCode!!)
-        val writer = getWriter(ingestionRequest.writer)
-            ?: throw BusinessException(String.format("Unable to resolve the Writer %s", ingestionRequest.writer))
+        val writer =
+            getWriter(ingestionRequest.writer)
+                ?: throw BusinessException(String.format("Unable to resolve the Writer %s", ingestionRequest.writer))
         prepare(ingestionRequest, writer)
         val rows = values
         for ((i, row) in rows.withIndex()) {
-            val callerRef = CallerRef(
-                ingestionRequest.provider ?: portfolio.id,
-                i.toString(),
-                i.toString(),
-            )
-            val trnRequest = TrustedTrnImportRequest(
-                portfolio,
-                ImportFormat.SHARESIGHT,
-                row = row,
-                callerRef = callerRef,
-            )
+            val callerRef =
+                CallerRef(
+                    ingestionRequest.provider ?: portfolio.id,
+                    i.toString(),
+                    i.toString(),
+                )
+            val trnRequest =
+                TrustedTrnImportRequest(
+                    portfolio,
+                    ImportFormat.SHARESIGHT,
+                    row = row,
+                    callerRef = callerRef,
+                )
             writer.write(trnRequest)
         }
         writer.flush()
     }
 
-    abstract fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter)
+    abstract fun prepare(
+        ingestionRequest: IngestionRequest,
+        trnWriter: TrnWriter,
+    )
+
     abstract val values: List<List<String>>
 }

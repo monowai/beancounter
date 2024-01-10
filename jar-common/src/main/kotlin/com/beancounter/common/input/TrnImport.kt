@@ -15,5 +15,6 @@ interface TrnImport {
  * Delimited formats supported by BC.
  */
 enum class ImportFormat {
-    BC, SHARESIGHT
+    BC,
+    SHARESIGHT,
 }

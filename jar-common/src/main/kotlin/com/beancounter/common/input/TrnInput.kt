@@ -17,15 +17,19 @@ import java.time.LocalDate
  */
 data class TrnInput(
     val callerRef: CallerRef = CallerRef(),
-    val assetId: String? = null, // What is being traded
-    val cashAssetId: String? = null, // A specific cash balance
+    val assetId: String? = null,
+    // Optional, specific cash balance
+    val cashAssetId: String? = null,
     val trnType: TrnType = TrnType.BUY,
     val quantity: BigDecimal = BigDecimal.ZERO,
     val tradeCurrency: String = "USD",
-    val cashCurrency: String? = null, // Generic cash balance
-    var tradeBaseRate: BigDecimal = BigDecimal.ZERO, // Trade to Portfolio Base Rate. Calculated if zero
-    var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade to Cash Settlement Rate. Calculated if zero
-    var tradePortfolioRate: BigDecimal = BigDecimal.ZERO, // Trade CCY to portfolio Currency. Calculated if zero
+    val cashCurrency: String? = null,
+    // Trade to Portfolio Base Rate. Calculated if zero
+    var tradeBaseRate: BigDecimal = BigDecimal.ZERO,
+    // Trade to Cash Settlement Rate. Calculated if zero
+    var tradeCashRate: BigDecimal = BigDecimal.ZERO,
+    // Trade CCY to portfolio Currency. Calculated if zero
+    var tradePortfolioRate: BigDecimal = BigDecimal.ZERO,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
@@ -34,10 +38,12 @@ data class TrnInput(
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null,
-    val fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
-    val price: BigDecimal = BigDecimal.ZERO, // In trade Currency
-    val tradeAmount: BigDecimal = BigDecimal.ZERO, // In trade Currency
-    val tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    // In trade Currency
+    val fees: BigDecimal = BigDecimal.ZERO,
+    val price: BigDecimal = BigDecimal.ZERO,
+    val tradeAmount: BigDecimal = BigDecimal.ZERO,
+    val tax: BigDecimal = BigDecimal.ZERO,
+    // End In trade Currency
     val status: TrnStatus = TrnStatus.CONFIRMED,
     var comments: String? = null,
     val cashAmount: BigDecimal = BigDecimal.ZERO,

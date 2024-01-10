@@ -18,7 +18,6 @@ import java.math.BigDecimal
  */
 @Service
 class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
-
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int,
@@ -69,7 +68,10 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         }
     }
 
-    private fun normalise(market: Market, marketData: MarketData) {
+    private fun normalise(
+        market: Market,
+        marketData: MarketData,
+    ) {
         if (market.multiplier.compareTo(BigDecimal.ONE) != 0) {
             marketData.close = multiplyAbs(marketData.close, market.multiplier, 4)
             marketData.open = multiplyAbs(marketData.open, market.multiplier, 4)
@@ -80,7 +82,10 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         }
     }
 
-    private fun isMdResponse(asset: Asset?, result: String?): Boolean {
+    private fun isMdResponse(
+        asset: Asset?,
+        result: String?,
+    ): Boolean {
         var field: String? = null
         if (result == null) {
             return false
@@ -106,7 +111,10 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         return true
     }
 
-    private fun getDefault(asset: Asset?, providerArguments: ProviderArguments): MarketData {
+    private fun getDefault(
+        asset: Asset?,
+        providerArguments: ProviderArguments,
+    ): MarketData {
         var date = providerArguments.getBatchConfigs()[0]?.date
 
         if (date == null) {

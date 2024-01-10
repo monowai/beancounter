@@ -5,7 +5,7 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.DateUtils.Companion.today
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.assets.AssetHydrationService
@@ -19,19 +19,19 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.ActiveProfiles
 
 /**
  * Verify price refresh removes and re-imports the price for a single asset.
  */
 @SpringBootTest
 @Tag("slow")
-@EntityScan("com.beancounter.common.model")
+@Tag("db")
+@ActiveProfiles("test")
 @AutoConfigureMockAuth
 internal class PriceRefreshTest {
-
     @Autowired
     private lateinit var priceRefresh: PriceRefresh
 
@@ -61,16 +61,17 @@ internal class PriceRefreshTest {
         val code = keyGenUtils.id
         Mockito.`when`(
             alphaPriceService.getMarketData(
-                PriceRequest(today, listOf(PriceAsset(NASDAQ.code, code = code))),
+                PriceRequest(TODAY, listOf(PriceAsset(NASDAQ.code, code = code))),
             ),
         ).thenReturn(listOf(MarketData(Asset(code = "", market = NASDAQ))))
-        val asset = assetRepository.save(
-            Asset(
-                code = code,
-                market = NASDAQ,
-                marketCode = NASDAQ.code,
-            ),
-        )
+        val asset =
+            assetRepository.save(
+                Asset(
+                    code = code,
+                    market = NASDAQ,
+                    marketCode = NASDAQ.code,
+                ),
+            )
         val hydratedAsset = assetHydrationService.hydrateAsset(asset)
         assertThat(hydratedAsset).hasFieldOrProperty("market")
         val completable = priceRefresh.updatePrices()

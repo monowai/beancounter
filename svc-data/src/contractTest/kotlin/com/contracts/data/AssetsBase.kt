@@ -87,7 +87,11 @@ class AssetsBase : ContractVerifierBase() {
         )
     }
 
-    private fun mockAssetCreateResponses(jsonRequest: File, jsonResponse: File, assetService: AssetService) {
+    private fun mockAssetCreateResponses(
+        jsonRequest: File,
+        jsonResponse: File,
+        assetService: AssetService,
+    ) {
         val assetRequest = BcJson().objectMapper.readValue(jsonRequest, AssetRequest::class.java)
         val assetUpdateResponse = BcJson().objectMapper.readValue(jsonResponse, AssetUpdateResponse::class.java)
         Mockito.`when`(assetService.handle(assetRequest))

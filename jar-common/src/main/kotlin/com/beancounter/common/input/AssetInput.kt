@@ -11,19 +11,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 data class AssetInput(
     var market: String,
     var code: String,
-    val name: String? = null, // Enricher should fill this in if it is not supplied
+    // Enricher should fill this in if it is not supplied
+    val name: String? = null,
     @JsonIgnore var resolvedAsset: Asset? = null,
     val currency: String? = null,
-    val category: String = "Equity", // Case in-sensitive assetCategory ID
+    // Case in-sensitive assetCategory ID
+    val category: String = "Equity",
     val owner: String = "",
 ) {
     companion object {
-
         @JvmStatic
         val cashAsset = "CASH"
 
         @JvmStatic
-        fun toCash(currency: Currency, name: String): AssetInput {
+        fun toCash(
+            currency: Currency,
+            name: String,
+        ): AssetInput {
             return AssetInput(
                 "CASH",
                 code = name,
@@ -34,7 +38,12 @@ data class AssetInput(
         }
 
         @JvmStatic
-        fun toRealEstate(currency: Currency, code: String, name: String, owner: String): AssetInput {
+        fun toRealEstate(
+            currency: Currency,
+            code: String,
+            name: String,
+            owner: String,
+        ): AssetInput {
             return AssetInput(
                 "OFFM",
                 code = code,

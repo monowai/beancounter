@@ -64,11 +64,12 @@ class PortfolioCommands(private val portfolioService: PortfolioServiceClient) {
         } catch (e: BusinessException) {
             log.info("Creating portfolio {}", code)
         }
-        val portfoliosRequest = PortfoliosRequest(
-            setOf(
-                PortfolioInput(code, name, baseCurrency, currencyCode),
-            ),
-        )
+        val portfoliosRequest =
+            PortfoliosRequest(
+                setOf(
+                    PortfolioInput(code, name, baseCurrency, currencyCode),
+                ),
+            )
         val (data) = portfolioService.add(portfoliosRequest)
         return bcJson.writer.writeValueAsString(data.iterator().next())
     }

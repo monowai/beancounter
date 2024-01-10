@@ -10,7 +10,6 @@ import java.time.LocalDate
  */
 @Service
 class DateSplitter(val dateUtils: DateUtils) {
-
     fun split(
         days: Int = 25,
         from: String = dateUtils.date.minusDays(days.toLong()).toString(),
@@ -35,12 +34,16 @@ class DateSplitter(val dateUtils: DateUtils) {
         return results
     }
 
-    fun dateRange(date: String, toDate: String): List<LocalDate> {
-        val asAt: String = if (date.equals(DateUtils.today, ignoreCase = true)) {
-            dateUtils.today()
-        } else {
-            dateUtils.getDate(date).toString()
-        }
+    fun dateRange(
+        date: String,
+        toDate: String,
+    ): List<LocalDate> {
+        val asAt: String =
+            if (date.equals(DateUtils.TODAY, ignoreCase = true)) {
+                dateUtils.today()
+            } else {
+                dateUtils.getDate(date).toString()
+            }
         return split(from = asAt, until = toDate, days = 1)
     }
 }

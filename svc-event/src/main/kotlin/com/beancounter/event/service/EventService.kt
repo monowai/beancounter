@@ -40,10 +40,11 @@ class EventService(
 
     fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
         val results: MutableCollection<TrustedTrnEvent> = mutableListOf()
-        val response = positionService.findWhereHeld(
-            event.assetId,
-            event.recordDate,
-        )
+        val response =
+            positionService.findWhereHeld(
+                event.assetId,
+                event.recordDate,
+            )
         for (portfolio in response.data) {
             val trnEvent = positionService.process(portfolio, event)
             // Don't create forward dated transactions
@@ -61,23 +62,25 @@ class EventService(
     }
 
     fun save(event: CorporateEvent): CorporateEvent {
-        val existing = eventRepository.findByAssetIdAndRecordDate(
-            event.assetId,
-            event.recordDate,
-        )
+        val existing =
+            eventRepository.findByAssetIdAndRecordDate(
+                event.assetId,
+                event.recordDate,
+            )
         if (existing.isPresent) {
             return existing.get()
         }
-        val save = CorporateEvent(
-            keyGenUtils.id,
-            event.trnType,
-            event.source,
-            event.assetId,
-            event.recordDate,
-            event.rate,
-            event.split,
-            event.payDate,
-        )
+        val save =
+            CorporateEvent(
+                keyGenUtils.id,
+                event.trnType,
+                event.source,
+                event.assetId,
+                event.recordDate,
+                event.rate,
+                event.split,
+                event.payDate,
+            )
 
         val corporateEvent = eventRepository.save(save)
         log.trace(
@@ -109,7 +112,10 @@ class EventService(
         return eventRepository.findByAssetIdOrderByPayDateDesc(assetId)
     }
 
-    fun findInRange(start: LocalDate, end: LocalDate): Collection<CorporateEvent> {
+    fun findInRange(
+        start: LocalDate,
+        end: LocalDate,
+    ): Collection<CorporateEvent> {
         return eventRepository.findByDateRange(start, end)
     }
 
@@ -118,7 +124,10 @@ class EventService(
         return CorporateEventResponses(events)
     }
 
-    fun find(assetIds: Collection<String>, recordDate: LocalDate): Collection<CorporateEvent> {
+    fun find(
+        assetIds: Collection<String>,
+        recordDate: LocalDate,
+    ): Collection<CorporateEvent> {
         return eventRepository.findByAssetsAndRecordDate(assetIds, recordDate)
     }
 }

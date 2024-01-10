@@ -27,7 +27,6 @@ import org.springframework.web.cors.CorsConfiguration
 @Service
 @EnableWebSecurity
 class WebAuthFilterConfig {
-
     @Value("\${server.servlet.context-path:/api}")
     private lateinit var apiPath: String
 

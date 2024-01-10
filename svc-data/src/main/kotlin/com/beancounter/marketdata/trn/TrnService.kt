@@ -26,8 +26,10 @@ class TrnService internal constructor(
     private val portfolioService: PortfolioService,
     private val trnMigrator: TrnMigrator,
 ) {
-
-    fun getPortfolioTrn(portfolio: Portfolio, trnId: String): TrnResponse {
+    fun getPortfolioTrn(
+        portfolio: Portfolio,
+        trnId: String,
+    ): TrnResponse {
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         if (result.isEmpty) {
@@ -36,7 +38,10 @@ class TrnService internal constructor(
         return result.get()
     }
 
-    fun save(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
+    fun save(
+        portfolio: Portfolio,
+        trnRequest: TrnRequest,
+    ): TrnResponse {
         // Figure out
         val saved = trnRepository.saveAll(trnAdapter.convert(portfolio, trnRequest).data)
         val results: MutableCollection<Trn> = mutableListOf()
@@ -53,13 +58,17 @@ class TrnService internal constructor(
         return TrnResponse(results)
     }
 
-    fun findForPortfolio(portfolio: Portfolio, tradeDate: LocalDate): TrnResponse {
-        val results = trnRepository.findByPortfolioId(
-            portfolio.id,
-            tradeDate,
-            Sort.by("tradeDate")
-                .and(Sort.by("asset.code")),
-        )
+    fun findForPortfolio(
+        portfolio: Portfolio,
+        tradeDate: LocalDate,
+    ): TrnResponse {
+        val results =
+            trnRepository.findByPortfolioId(
+                portfolio.id,
+                tradeDate,
+                Sort.by("tradeDate")
+                    .and(Sort.by("asset.code")),
+            )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")
         return postProcess(results)
     }
@@ -85,7 +94,10 @@ class TrnService internal constructor(
         return upgraded
     }
 
-    internal fun postProcess(trns: Iterable<Trn>, secure: Boolean = true): TrnResponse {
+    internal fun postProcess(
+        trns: Iterable<Trn>,
+        secure: Boolean = true,
+    ): TrnResponse {
         val results: MutableCollection<Trn> = ArrayList()
         for (trn in trns) {
             val add = !secure || portfolioService.canView(trn.portfolio)
@@ -126,7 +138,11 @@ class TrnService internal constructor(
         return postProcess(deleted)
     }
 
-    fun patch(portfolio: Portfolio, trnId: String, trnInput: TrnInput): TrnResponse {
+    fun patch(
+        portfolio: Portfolio,
+        trnId: String,
+        trnInput: TrnInput,
+    ): TrnResponse {
         val existing = getPortfolioTrn(portfolio, trnId)
         val trn = trnAdapter.map(portfolio, trnInput, existing.data.iterator().next())
         trnRepository.save(trn)

@@ -24,12 +24,16 @@ class SpringFeignDecoder : ErrorDecoder {
         private val log: Logger = LoggerFactory.getLogger(SpringFeignDecoder::class.java)
     }
 
-    override fun decode(methodKey: String, response: Response): Exception {
-        val reason: String? = try {
-            getMessage(response)
-        } catch (e: IOException) {
-            throw SystemException(e.message)
-        }
+    override fun decode(
+        methodKey: String,
+        response: Response,
+    ): Exception {
+        val reason: String? =
+            try {
+                getMessage(response)
+            } catch (e: IOException) {
+                throw SystemException(e.message)
+            }
         log.error("$methodKey - [${response.status()}] $reason")
         if (response.status() == HttpStatus.UNAUTHORIZED.value()) {
             // Clearly communicate an authentication issue

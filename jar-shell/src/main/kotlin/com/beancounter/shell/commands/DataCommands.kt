@@ -18,9 +18,10 @@ class DataCommands internal constructor(private val staticService: StaticService
         @ShellOption(help = "Optional market code", defaultValue = "__NULL__") marketCode: String?,
     ): String {
         return if (marketCode != null) {
-            val market = staticService.getMarket(
-                marketCode,
-            )
+            val market =
+                staticService.getMarket(
+                    marketCode,
+                )
             val markets: MutableCollection<Market> = ArrayList()
             markets.add(market)
             return BcJson().objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MarketResponse(markets))

@@ -25,9 +25,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
  * Verify that an unauthenticated user can request a token with correct credentials.
  */
 @SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@Tag("db")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 class AuthControllerTest {
@@ -52,13 +52,14 @@ class AuthControllerTest {
                 ),
         )
             .thenReturn(mockResponse)
-        val performed = mockMvc.perform(
-            MockMvcRequestBuilders.post("/auth")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .content(BcJson().objectMapper.writeValueAsString(loginRequest))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
-            .andReturn()
+        val performed =
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/auth")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .content(BcJson().objectMapper.writeValueAsString(loginRequest))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+                .andReturn()
         val response = BcJson().objectMapper.readValue(performed.response.contentAsString, OpenIdResponse::class.java)
         assertThat(response).isNotNull().usingRecursiveComparison().isEqualTo(mockResponse)
     }

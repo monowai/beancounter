@@ -34,7 +34,6 @@ import java.math.BigDecimal
 )
 @Nested
 class CashValuationTests {
-
     @Autowired
     private lateinit var accumulator: Accumulator
 
@@ -171,7 +170,8 @@ class CashValuationTests {
                 asset = usdCash,
                 cashAsset = usdCash,
                 price = BigDecimal.ONE,
-                quantity = usdBalance.multiply(BigDecimal("-1")), // Amount to receive
+                // Amount to receive
+                quantity = usdBalance.multiply(BigDecimal("-1")),
             ),
             positions,
         )

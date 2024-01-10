@@ -17,7 +17,7 @@ import java.time.LocalDate
  * Representation of market data information pertaining to the price of an asset.
  */
 data class PriceData(
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.format)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var priceDate: LocalDate?,
@@ -35,26 +35,31 @@ data class PriceData(
             return of(marketData, BigDecimal.ONE)
         }
 
-        fun of(mktData: MarketData, rate: BigDecimal?): PriceData {
-            val result = PriceData(
-                mktData.priceDate,
-                multiplyAbs(mktData.open, rate),
-                multiplyAbs(mktData.close, rate),
-                multiplyAbs(mktData.low, rate),
-                multiplyAbs(mktData.high, rate),
-                multiplyAbs(mktData.previousClose, rate),
-                multiplyAbs(mktData.change, rate),
-                mktData.changePercent,
-                mktData.volume,
-            )
+        fun of(
+            mktData: MarketData,
+            rate: BigDecimal?,
+        ): PriceData {
+            val result =
+                PriceData(
+                    mktData.priceDate,
+                    multiplyAbs(mktData.open, rate),
+                    multiplyAbs(mktData.close, rate),
+                    multiplyAbs(mktData.low, rate),
+                    multiplyAbs(mktData.high, rate),
+                    multiplyAbs(mktData.previousClose, rate),
+                    multiplyAbs(mktData.change, rate),
+                    mktData.changePercent,
+                    mktData.volume,
+                )
 
             if (MathUtils.hasValidRate(rate) &&
                 numberUtils.isSet(result.previousClose) &&
                 numberUtils.isSet(result.close)
             ) {
                 // Convert
-                val change = BigDecimal("1.00")
-                    .subtract(percentUtils.percent(result.previousClose, result.close, 4))
+                val change =
+                    BigDecimal("1.00")
+                        .subtract(percentUtils.percent(result.previousClose, result.close, 4))
                 result.changePercent = change
                 result.change = result.close!!.subtract(result.previousClose)
             }

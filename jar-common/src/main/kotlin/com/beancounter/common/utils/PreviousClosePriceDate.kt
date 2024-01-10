@@ -20,25 +20,25 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
     }
 
     fun getPriceDate(
-        utcRequestDateTime: LocalDateTime, // Callers requested date in UTC
+        utcRequestDateTime: ZonedDateTime,
         market: Market,
         isCurrent: Boolean = dateUtils.isToday(utcRequestDateTime.toLocalDate().toString()),
     ): LocalDate {
         return if (isCurrent) {
-            val marketLocal = utcRequestDateTime.atZone(market.timezone.toZoneId())
-            val pricesAvailable = getPricesAvailable(marketLocal, market)
-            val daysToSubtract = getDaysToSubtract(
-                market,
-                marketLocal.toLocalDateTime(),
-                pricesAvailable.toLocalDateTime(),
-            )
+            val pricesAvailable = getPricesAvailable(utcRequestDateTime, market)
+            val daysToSubtract =
+                getDaysToSubtract(
+                    market,
+                    utcRequestDateTime.toLocalDateTime(),
+                    pricesAvailable.toLocalDateTime(),
+                )
 
             log.trace(
-                "utc: $utcRequestDateTime, subtract: $daysToSubtract, marketLocal: $marketLocal, " +
+                "utc: $utcRequestDateTime, subtract: $daysToSubtract, marketLocal: $utcRequestDateTime, " +
                     "marketCloses: $pricesAvailable, timezone: ${dateUtils.getZoneId().id}",
             )
             getPriceDate(
-                marketLocal.toLocalDateTime(),
+                utcRequestDateTime,
                 daysToSubtract,
             )
         } else {
@@ -77,7 +77,10 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
      * @param seedDate   usually Today
      * @return resolved Date
      */
-    fun getPriceDate(seedDate: LocalDateTime, daysToSubtract: Int): LocalDate {
+    fun getPriceDate(
+        seedDate: ZonedDateTime,
+        daysToSubtract: Int,
+    ): LocalDate {
         var notionalDateTime = seedDate.minusDays(daysToSubtract.toLong())
         while (!isTradingDay(notionalDateTime)) {
             notionalDateTime = notionalDateTime.minusDays(1)
@@ -85,14 +88,15 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
         return notionalDateTime.toLocalDate()
     }
 
-    fun isTradingDay(dateTime: LocalDateTime): Boolean {
+    fun isTradingDay(dateTime: ZonedDateTime): Boolean {
         // Naive implementation that is only aware of Western markets
         // ToDo: market holidays...
-        val weekend = if (dateTime.dayOfWeek == DayOfWeek.SUNDAY) {
-            false
-        } else {
-            dateTime.dayOfWeek != DayOfWeek.SATURDAY
-        }
+        val weekend =
+            if (dateTime.dayOfWeek == DayOfWeek.SUNDAY) {
+                false
+            } else {
+                dateTime.dayOfWeek != DayOfWeek.SATURDAY
+            }
         return weekend
     }
 }

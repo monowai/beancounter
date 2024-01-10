@@ -28,7 +28,6 @@ private const val BEARER_TOKEN = "no-token"
 /**
  * Verifies that the data mocked in this service matches the contract definitions.
  */
-// @WebAppConfiguration
 @SpringBootTest(
     classes = [PositionBoot::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -58,13 +57,14 @@ class ContractVerifierBase {
         RestAssured.port = Integer.valueOf(port)
         val portfolioId = "TEST"
         val valuationDate = "2020-05-01"
-        val testPortfolio = Portfolio(
-            portfolioId,
-            portfolioId,
-            "${Constants.NZD.code} Portfolio",
-            Currency(Constants.NZD.code),
-            Currency(Constants.USD.code),
-        )
+        val testPortfolio =
+            Portfolio(
+                portfolioId,
+                portfolioId,
+                "${Constants.NZD.code} Portfolio",
+                Currency(Constants.NZD.code),
+                Currency(Constants.USD.code),
+            )
 
         `when`(portfolioServiceClient.getPortfolioByCode(portfolioId))
             .thenReturn(testPortfolio)

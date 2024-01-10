@@ -32,7 +32,6 @@ import java.math.BigDecimal
 @SpringBootTest
 @ActiveProfiles("test")
 class OffMarketPriceDataTest {
-
     @Autowired
     lateinit var marketService: MarketService
 
@@ -72,31 +71,35 @@ class OffMarketPriceDataTest {
 
     @Test
     fun findNoPrice() {
-        val assetResponse = assetService.handle(
-            AssetRequest(
-                mapOf(
-                    Pair(
-                        NZD.code,
-                        AssetInput.toRealEstate(
-                            currency = NZD,
-                            code = "NO-PRICE",
-                            name = "Worthless place",
-                            owner = owner,
+        val assetResponse =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(
+                        Pair(
+                            NZD.code,
+                            AssetInput.toRealEstate(
+                                currency = NZD,
+                                code = "NO-PRICE",
+                                name = "Worthless place",
+                                owner = owner,
+                            ),
                         ),
                     ),
                 ),
-            ),
-        )
+            )
         val asset = assetResponse.data.iterator().next().value
 
         // No price exists, so return 0
-        val prices = marketDataService.getPriceResponse(
-            priceRequest = PriceRequest(
-                assets = listOf(
-                    PriceAsset(asset),
-                ),
-            ),
-        )
+        val prices =
+            marketDataService.getPriceResponse(
+                priceRequest =
+                    PriceRequest(
+                        assets =
+                            listOf(
+                                PriceAsset(asset),
+                            ),
+                    ),
+            )
 
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
@@ -105,43 +108,48 @@ class OffMarketPriceDataTest {
 
     @Test
     fun findClosestPrice() {
-        val assetResponse = assetService.handle(
-            AssetRequest(
-                mapOf(
-                    Pair(
-                        NZD.code,
-                        AssetInput.toRealEstate(
-                            currency = NZD,
-                            code = "PNZ",
-                            name = "My Place In NZD",
-                            owner = owner,
+        val assetResponse =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(
+                        Pair(
+                            NZD.code,
+                            AssetInput.toRealEstate(
+                                currency = NZD,
+                                code = "PNZ",
+                                name = "My Place In NZD",
+                                owner = owner,
+                            ),
                         ),
                     ),
                 ),
-            ),
-        )
+            )
         val asset = assetResponse.data.iterator().next().value
 
-        val priceResponse = PriceResponse(
-            listOf(
-                priceService.getMarketData(
-                    asset = asset,
-                    date = DateUtils().getDate("2022-01-01"),
-                    closePrice = BigDecimal.TEN,
-                ).get(),
-            ),
-        )
+        val priceResponse =
+            PriceResponse(
+                listOf(
+                    priceService.getMarketData(
+                        asset = asset,
+                        date = DateUtils().getDate("2022-01-01"),
+                        closePrice = BigDecimal.TEN,
+                    ).get(),
+                ),
+            )
 
         assertThat(priceResponse.data).hasSize(1)
 
         // Should return the last known price
-        val prices = marketDataService.getPriceResponse(
-            priceRequest = PriceRequest(
-                assets = listOf(
-                    PriceAsset(asset),
-                ),
-            ),
-        )
+        val prices =
+            marketDataService.getPriceResponse(
+                priceRequest =
+                    PriceRequest(
+                        assets =
+                            listOf(
+                                PriceAsset(asset),
+                            ),
+                    ),
+            )
 
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())

@@ -24,7 +24,11 @@ class PositionValuationService internal constructor(
     private val fxUtils: FxUtils,
 ) {
     val percentUtils = PercentUtils()
-    fun value(positions: Positions, assets: Collection<AssetInput>): Positions {
+
+    fun value(
+        positions: Positions,
+        assets: Collection<AssetInput>,
+    ): Positions {
         if (assets.isEmpty()) {
             return positions // Nothing to value
         }
@@ -46,29 +50,33 @@ class PositionValuationService internal constructor(
         val refTotals = Totals()
         for (marketData in priceResponse.data) {
             val position = marketValue.value(positions, marketData, fxResponse.data.rates)
-            val baseAmount = position.getMoneyValues(
-                Position.In.BASE,
-                positions.portfolio.base,
-            ).marketValue
+            val baseAmount =
+                position.getMoneyValues(
+                    Position.In.BASE,
+                    positions.portfolio.base,
+                ).marketValue
             baseTotals.total = baseTotals.total.add(baseAmount)
-            val refAmount = position.getMoneyValues(
-                Position.In.PORTFOLIO,
-                position.asset.market.currency,
-            ).marketValue
+            val refAmount =
+                position.getMoneyValues(
+                    Position.In.PORTFOLIO,
+                    position.asset.market.currency,
+                ).marketValue
             refTotals.total = refTotals.total.add(refAmount)
         }
         positions.setTotal(Position.In.BASE, baseTotals)
         positions.setTotal(Position.In.PORTFOLIO, refTotals)
         for (position in positions.positions.values) {
-            var moneyValues = position.getMoneyValues(
-                Position.In.BASE,
-                positions.portfolio.base,
-            )
+            var moneyValues =
+                position.getMoneyValues(
+                    Position.In.BASE,
+                    positions.portfolio.base,
+                )
             moneyValues.weight = percentUtils.percent(moneyValues.marketValue, baseTotals.total)
-            moneyValues = position.getMoneyValues(
-                Position.In.PORTFOLIO,
-                positions.portfolio.currency,
-            )
+            moneyValues =
+                position.getMoneyValues(
+                    Position.In.PORTFOLIO,
+                    positions.portfolio.currency,
+                )
             moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
             moneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
             moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
@@ -81,15 +89,17 @@ class PositionValuationService internal constructor(
     }
 
     private fun getValuationData(positions: Positions): ValuationData {
-        val futureFxResponse = asyncMdService.getFxData(
-            fxUtils.buildRequest(
-                positions.portfolio.base,
-                positions,
-            ),
-        )
-        val futurePriceResponse = asyncMdService.getMarketData(
-            PriceRequest.of(positions.asAt, positions),
-        )
+        val futureFxResponse =
+            asyncMdService.getFxData(
+                fxUtils.buildRequest(
+                    positions.portfolio.base,
+                    positions,
+                ),
+            )
+        val futurePriceResponse =
+            asyncMdService.getMarketData(
+                PriceRequest.of(positions.asAt, positions),
+            )
         return ValuationData(
             futurePriceResponse[180, TimeUnit.SECONDS],
             futureFxResponse[30, TimeUnit.SECONDS],

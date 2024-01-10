@@ -17,10 +17,18 @@ interface TrnRepository : CrudRepository<Trn, String> {
             "where t.portfolio.id =?1  " +
             "and t.tradeDate <= ?2",
     )
-    fun findByPortfolioId(portfolioId: String, tradeDate: LocalDate, sort: Sort): Collection<Trn>
+    fun findByPortfolioId(
+        portfolioId: String,
+        tradeDate: LocalDate,
+        sort: Sort,
+    ): Collection<Trn>
 
     fun deleteByPortfolioId(portfolioId: String): Long
-    fun findByPortfolioIdAndId(portfolioId: String, trnId: String): Optional<Trn>
+
+    fun findByPortfolioIdAndId(
+        portfolioId: String,
+        trnId: String,
+    ): Optional<Trn>
 
     @Query(
         "select t from Trn t " +

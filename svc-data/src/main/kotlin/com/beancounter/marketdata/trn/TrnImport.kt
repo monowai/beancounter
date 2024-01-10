@@ -63,8 +63,9 @@ class TrnImport {
         if (trustedRequest.row.isNotEmpty()) {
             log.trace("Received Message {}", trustedRequest.toString())
             if (verifyPortfolio(trustedRequest.portfolio.id)) {
-                val trnInput = adapterFactory.get(trustedRequest.importFormat)
-                    .transform(trustedRequest)
+                val trnInput =
+                    adapterFactory.get(trustedRequest.importFormat)
+                        .transform(trustedRequest)
                 return writeTrn(trustedRequest.portfolio, trnInput)
             }
         }
@@ -92,7 +93,10 @@ class TrnImport {
         return TrnResponse()
     }
 
-    private fun writeTrn(portfolio: Portfolio, trnInput: TrnInput): TrnResponse {
+    private fun writeTrn(
+        portfolio: Portfolio,
+        trnInput: TrnInput,
+    ): TrnResponse {
         val trnRequest = TrnRequest(portfolio.id, arrayOf(trnInput))
         return trnService.save(portfolio, trnRequest)
     }

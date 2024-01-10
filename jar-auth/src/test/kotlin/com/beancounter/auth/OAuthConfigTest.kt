@@ -29,7 +29,6 @@ import org.springframework.web.client.RestTemplate
 @ActiveProfiles("auth")
 @AutoConfigureWireMock(port = 0)
 class OAuthConfigTest {
-
     @Autowired
     private lateinit var authConfig: AuthConfig
 

@@ -22,7 +22,11 @@ import java.nio.file.Paths
 class CsvIngester : AbstractIngester() {
     private var reader: Reader? = null
     private val log = LoggerFactory.getLogger(CsvIngester::class.java)
-    override fun prepare(ingestionRequest: IngestionRequest, trnWriter: TrnWriter) {
+
+    override fun prepare(
+        ingestionRequest: IngestionRequest,
+        trnWriter: TrnWriter,
+    ) {
         val trimmedFile = ingestionRequest.file.trim { it <= ' ' }
         trnWriter.reset()
         trnWriter.flush()

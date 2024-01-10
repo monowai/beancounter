@@ -10,7 +10,7 @@ import java.time.LocalDate
  */
 class EcbDate(val dateUtils: DateUtils) {
     private fun earliestDate(): LocalDate {
-        return dateUtils.getOrThrow(earliest)
+        return dateUtils.getOrThrow(EARLIEST)
     }
 
     fun getValidDate(tradeDate: String): String {
@@ -20,13 +20,13 @@ class EcbDate(val dateUtils: DateUtils) {
         }
         val requestedDate = dateUtils.getOrThrow(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {
-            earliest
+            EARLIEST
         } else {
             tradeDate
         }
     }
 
     companion object {
-        const val earliest = "1999-01-04"
+        const val EARLIEST = "1999-01-04"
     }
 }

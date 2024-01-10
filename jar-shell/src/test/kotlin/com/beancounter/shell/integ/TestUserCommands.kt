@@ -107,8 +107,9 @@ class TestUserCommands {
         ).thenReturn(RegistrationResponse(systemUser))
 
         val registrationResponse = userCommands.register()
-        val registered = bcJson.objectMapper
-            .readValue(registrationResponse, SystemUser::class.java)
+        val registered =
+            bcJson.objectMapper
+                .readValue(registrationResponse, SystemUser::class.java)
         assertThat(registered)
             .isNotNull
             .hasFieldOrPropertyWithValue("id", systemUser.id)

@@ -11,17 +11,17 @@ class Constants {
     companion object {
         val SGD = Currency("SGD")
         val NYSE = Market("NYSE")
-        const val integrationErrorMsg = "Integration Error"
-        const val test = "test"
-        const val testUri = "/$test"
-        const val message = "message"
-        const val openProp = "open"
-        const val closeProp = "close"
-        const val previousCloseProp = "previousClose"
-        const val changeProp = "change"
-        const val changePercentProp = "changePercent"
+        const val INT_ERROR = "Integration Error"
+        const val TEST = "test"
+        const val TEST_UR = "/$TEST"
+        const val MESSAGE = "message"
+        const val P_OPEN = "open"
+        const val P_CLOSE = "close"
+        const val P_PREVIOUS_CLOSE = "previousClose"
+        const val P_CHANGE = "change"
+        const val P_CHANGE_PERCENT = "changePercent"
         val two = BigDecimal("2.0")
         val one = BigDecimal("1.00")
-        const val oneString = "1"
+        const val ONE = "1"
     }
 }

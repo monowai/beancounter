@@ -48,18 +48,21 @@ class TestMsftFlow {
 
     @Test
     fun is_DividendRequestIgnoreDueToZeroHolding() {
-        val trustedEvent = objectMapper.readValue(
-            ClassPathResource("/msft-flow/1-event.json").file,
-            TrustedEventInput::class.java,
-        )
-        val whereHeld = objectMapper.readValue(
-            ClassPathResource("/msft-flow/2-where-held.json").file,
-            PortfoliosResponse::class.java,
-        )
-        val positionResponse = objectMapper.readValue(
-            ClassPathResource("/msft-flow/3-position.json").file,
-            PositionResponse::class.java,
-        )
+        val trustedEvent =
+            objectMapper.readValue(
+                ClassPathResource("/msft-flow/1-event.json").file,
+                TrustedEventInput::class.java,
+            )
+        val whereHeld =
+            objectMapper.readValue(
+                ClassPathResource("/msft-flow/2-where-held.json").file,
+                PortfoliosResponse::class.java,
+            )
+        val positionResponse =
+            objectMapper.readValue(
+                ClassPathResource("/msft-flow/3-position.json").file,
+                PositionResponse::class.java,
+            )
         val positionGateway = Mockito.mock(PositionGateway::class.java)
         val (_, _, _, assetId, recordDate) = trustedEvent.data
 

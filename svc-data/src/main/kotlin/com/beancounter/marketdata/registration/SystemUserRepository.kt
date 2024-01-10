@@ -9,7 +9,10 @@ import java.util.Optional
  */
 interface SystemUserRepository : CrudRepository<SystemUser, String?> {
     fun findById(id: String): Optional<SystemUser>
+
     fun findByEmail(email: String): Optional<SystemUser>
+
     fun findByAuth0(auto0: String): Optional<SystemUser>
+
     fun findByGoogleId(google: String): Optional<SystemUser>
 }

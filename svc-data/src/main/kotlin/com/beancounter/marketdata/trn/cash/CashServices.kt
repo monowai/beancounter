@@ -17,8 +17,10 @@ import java.math.BigDecimal
  */
 @Service
 class CashServices(val assetService: AssetService, val currencyService: CurrencyService) {
-
-    fun getCashImpact(trnInput: TrnInput, tradeAmount: BigDecimal = trnInput.tradeAmount): BigDecimal {
+    fun getCashImpact(
+        trnInput: TrnInput,
+        tradeAmount: BigDecimal = trnInput.tradeAmount,
+    ): BigDecimal {
         if (TrnType.isCashImpacted(trnInput.trnType)) {
             if (trnInput.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
                 return trnInput.cashAmount // Cash amount has been set by the caller
@@ -33,7 +35,11 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
         return BigDecimal.ZERO
     }
 
-    fun getCashAsset(trnType: TrnType, cashAssetId: String?, cashCurrency: String?): Asset? {
+    fun getCashAsset(
+        trnType: TrnType,
+        cashAssetId: String?,
+        cashCurrency: String?,
+    ): Asset? {
         if (!TrnType.isCashImpacted(trnType)) {
             return null // No cash asset required
         }
@@ -42,7 +48,7 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
                 return null // no cash to look up.
             }
             // Generic Cash Balance
-            return assetService.findOrCreate(AssetInput(cash, cashCurrency))
+            return assetService.findOrCreate(AssetInput(CASH, cashCurrency))
         }
         return assetService.find(cashAssetId)
     }
@@ -52,6 +58,6 @@ class CashServices(val assetService: AssetService, val currencyService: Currency
     }
 
     companion object {
-        const val cash = "CASH"
+        const val CASH = "CASH"
     }
 }

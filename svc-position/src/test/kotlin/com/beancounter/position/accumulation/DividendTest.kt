@@ -15,7 +15,6 @@ import java.math.BigDecimal
 
 @SpringBootTest(classes = [Accumulator::class])
 internal class DividendTest {
-
     @Autowired
     private lateinit var accumulator: Accumulator
 

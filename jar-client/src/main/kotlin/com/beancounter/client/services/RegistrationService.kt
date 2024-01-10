@@ -32,19 +32,21 @@ class RegistrationService(
 ) {
     fun login(loginRequest: LoginRequest): OpenIdResponse {
         val openIdResponse = registrationGateway.auth(loginRequest)
-        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(
-            jwtDecoder.decode(
-                openIdResponse.token,
-            ),
-        )
+        SecurityContextHolder.getContext().authentication =
+            JwtAuthenticationToken(
+                jwtDecoder.decode(
+                    openIdResponse.token,
+                ),
+            )
         log.info("Logged in ${loginRequest.user}")
         return openIdResponse
     }
 
     fun register(registrationRequest: RegistrationRequest): SystemUser {
-        val (data) = registrationGateway
-            .register(token, registrationRequest)
-            ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
+        val (data) =
+            registrationGateway
+                .register(token, registrationRequest)
+                ?: throw UnauthorizedException("Your request was rejected. Have you logged in?")
         return data
     }
 
@@ -74,17 +76,18 @@ class RegistrationService(
             value = ["/api/me"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
         )
-        fun me(@RequestHeader("Authorization") bearerToken: String): RegistrationResponse
+        fun me(
+            @RequestHeader("Authorization") bearerToken: String,
+        ): RegistrationResponse
 
         @PostMapping(
             value = ["/api/auth"],
             produces = [MediaType.APPLICATION_JSON_VALUE],
             consumes = [MediaType.APPLICATION_JSON_VALUE],
         )
-        fun auth(
-            loginRequest: LoginRequest,
-        ): OpenIdResponse
+        fun auth(loginRequest: LoginRequest): OpenIdResponse
     }
+
     companion object {
         val log: Logger = LoggerFactory.getLogger(this::class.java)
     }

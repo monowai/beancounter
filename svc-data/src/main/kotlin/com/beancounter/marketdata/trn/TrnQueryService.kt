@@ -15,7 +15,6 @@ import java.time.LocalDate
 @Service
 @Transactional
 class TrnQueryService(val trnService: TrnService, val trnRepository: TrnRepository) {
-
     /**
      * Trades in a portfolio for the specified asset.
      *
@@ -29,12 +28,13 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
         assetId: String,
         tradeDate: LocalDate,
     ): TrnResponse {
-        val results = trnRepository
-            .findByPortfolioIdAndAssetIdUpTo(
-                portfolio.id,
-                assetId,
-                tradeDate,
-            )
+        val results =
+            trnRepository
+                .findByPortfolioIdAndAssetIdUpTo(
+                    portfolio.id,
+                    assetId,
+                    tradeDate,
+                )
         log.debug(
             "count: {}, portfolio: {}, asset: {}",
             results.size,
@@ -44,18 +44,22 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
         return trnService.postProcess(results, false)
     }
 
-    private val typeFilter = arrayListOf(
-        TrnType.BUY,
-        TrnType.SELL,
-        TrnType.SPLIT,
-        TrnType.DEPOSIT,
-        TrnType.WITHDRAWAL,
-        TrnType.FX_BUY,
-        TrnType.BALANCE,
-        TrnType.ADD,
-    )
+    private val typeFilter =
+        arrayListOf(
+            TrnType.BUY,
+            TrnType.SELL,
+            TrnType.SPLIT,
+            TrnType.DEPOSIT,
+            TrnType.WITHDRAWAL,
+            TrnType.FX_BUY,
+            TrnType.BALANCE,
+            TrnType.ADD,
+        )
 
-    fun findAssetTrades(portfolio: Portfolio, assetId: String): TrnResponse {
+    fun findAssetTrades(
+        portfolio: Portfolio,
+        assetId: String,
+    ): TrnResponse {
         return trnResponse(portfolio, assetId, typeFilter)
     }
 
@@ -66,22 +70,30 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
      * @param assetId   filter by pk
      * @return Transactions in display order that is friendly for viewing.
      */
-    fun findEvents(portfolio: Portfolio, assetId: String): TrnResponse {
+    fun findEvents(
+        portfolio: Portfolio,
+        assetId: String,
+    ): TrnResponse {
         val typeFilter = ArrayList<TrnType>()
         typeFilter.add(TrnType.DIVI)
         typeFilter.add(TrnType.SPLIT)
         return trnResponse(portfolio, assetId, typeFilter)
     }
 
-    private fun trnResponse(portfolio: Portfolio, assetId: String, typeFilter: ArrayList<TrnType>): TrnResponse {
-        val results = trnRepository
-            .findByPortfolioIdAndAssetIdAndTrnType(
-                portfolio.id,
-                assetId,
-                typeFilter,
-                Sort.by("tradeDate").descending()
-                    .and(Sort.by("asset.code")),
-            )
+    private fun trnResponse(
+        portfolio: Portfolio,
+        assetId: String,
+        typeFilter: ArrayList<TrnType>,
+    ): TrnResponse {
+        val results =
+            trnRepository
+                .findByPortfolioIdAndAssetIdAndTrnType(
+                    portfolio.id,
+                    assetId,
+                    typeFilter,
+                    Sort.by("tradeDate").descending()
+                        .and(Sort.by("asset.code")),
+                )
         log.debug(
             "Found {} for portfolio {} and asset {}",
             results.size,

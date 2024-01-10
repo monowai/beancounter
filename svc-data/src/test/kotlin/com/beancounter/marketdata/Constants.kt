@@ -13,14 +13,14 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
  */
 class Constants {
     companion object {
-        const val pName = "name"
-        const val pCode = "code"
+        const val P_NAME = "name"
+        const val P_CODE = "code"
 
         val USD = Currency("USD")
         val NASDAQ = Market("NASDAQ")
         val US = Market("US")
         val CUSTOM = Market("CUSTOM") // Echo enricher to support mocking scenarios
-        val CASH = Market("CASH")
+        val CASH_MARKET = Market("CASH")
         val NYSE = Market("NYSE")
         val ASX = Market("ASX")
 
@@ -41,23 +41,25 @@ class Constants {
         val msftInput = AssetUtils.getAssetInput(NASDAQ.code, MSFT.code)
         val aaplInput = AssetUtils.getAssetInput(NASDAQ.code, AAPL.code)
 
-        val nzdCashBalance = Asset(
-            code = NZD.code,
-            id = NZD.code,
-            name = "${NZD.code} Balance",
-            market = Market("CASH", NZD.code),
-            priceSymbol = NZD.code,
-            category = "CASH",
-            assetCategory = AssetCategory("CASH", "Cash"),
-        )
-        val usdCashBalance = Asset(
-            code = USD.code,
-            id = USD.code,
-            name = "${USD.code} Balance",
-            market = Market("CASH", USD.code),
-            priceSymbol = USD.code,
-            category = "CASH",
-            assetCategory = AssetCategory("CASH", "Cash"),
-        )
+        val nzdCashBalance =
+            Asset(
+                code = NZD.code,
+                id = NZD.code,
+                name = "${NZD.code} Balance",
+                market = Market("CASH", NZD.code),
+                priceSymbol = NZD.code,
+                category = "CASH",
+                assetCategory = AssetCategory("CASH", "Cash"),
+            )
+        val usdCashBalance =
+            Asset(
+                code = USD.code,
+                id = USD.code,
+                name = "${USD.code} Balance",
+                market = Market("CASH", USD.code),
+                priceSymbol = USD.code,
+                category = "CASH",
+                assetCategory = AssetCategory("CASH", "Cash"),
+            )
     }
 }

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
+import java.util.Objects
 
 private const val SPLIT = "8. split coefficient"
 
@@ -23,21 +23,21 @@ private const val DIVI = "7. dividend amount"
 
 private const val VOLUME = "6. volume"
 
-const val fOpen = "02. open"
+const val F_OPEN = "02. open"
 
-const val fHigh = "03. high"
+const val F_HIGH = "03. high"
 
-const val fLow = "04. low"
+const val F_LOW = "04. low"
 
-const val fPrice = "05. price"
+const val F_PRICE = "05. price"
 
-const val fVolume = "06. volume"
+const val F_VOLUME = "06. volume"
 
-const val fPreviousClose = "08. previous close"
+const val F_PREVIOUS_CLOSE = "08. previous close"
 
-const val fChange = "09. change"
+const val F_CHANGE = "09. change"
 
-const val fDate = "07. latest trading day"
+const val F_DATE = "07. latest trading day"
 
 /**
  * Deserialize various AlphaVantage responses to a normalised PriceResponse.
@@ -49,7 +49,10 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
     private val dateUtils = DateUtils()
     private val percentUtils = PercentUtils()
 
-    override fun deserialize(p: JsonParser, ctx: DeserializationContext): PriceResponse {
+    override fun deserialize(
+        p: JsonParser,
+        ctx: DeserializationContext,
+    ): PriceResponse {
         val source = p.codec.readTree<JsonNode>(p)
 
         return when {
@@ -69,23 +72,27 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         return getMdFromGlobal(asset, data)
     }
 
-    private fun getMdFromGlobal(asset: Asset?, data: Map<String, Any>): PriceResponse {
+    private fun getMdFromGlobal(
+        asset: Asset?,
+        data: Map<String, Any>,
+    ): PriceResponse {
         val results = mutableListOf<MarketData>()
         if (asset != null) {
-            val priceDate = data[fDate].toString()
-            val price = MarketData(
-                asset,
-                dateUtils.getDate(priceDate),
-            ).apply {
-                open = BigDecimal(data[fOpen].toString())
-                high = BigDecimal(data[fHigh].toString())
-                low = BigDecimal(data[fLow].toString())
-                close = BigDecimal(data[fPrice].toString())
-                volume = Integer.decode(data[fVolume].toString())
-                previousClose = get(data[fPreviousClose].toString())
-                change = get(data[fChange].toString())
-                changePercent = percentUtils.percent(change, previousClose)
-            }
+            val priceDate = data[F_DATE].toString()
+            val price =
+                MarketData(
+                    asset,
+                    dateUtils.getDate(priceDate),
+                ).apply {
+                    open = BigDecimal(data[F_OPEN].toString())
+                    high = BigDecimal(data[F_HIGH].toString())
+                    low = BigDecimal(data[F_LOW].toString())
+                    close = BigDecimal(data[F_PRICE].toString())
+                    volume = Integer.decode(data[F_VOLUME].toString())
+                    previousClose = get(data[F_PREVIOUS_CLOSE].toString())
+                    change = get(data[F_CHANGE].toString())
+                    changePercent = percentUtils.percent(change, previousClose)
+                }
             results.add(price)
         }
         return PriceResponse(results)
@@ -95,18 +102,21 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         val results: MutableCollection<MarketData> = ArrayList()
         val metaData = source["Meta Data"]
         val asset = getAsset(metaData, "2. Symbol")
-        val mapType = mapper.typeFactory
-            .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
-        val allValues = mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
-            source["Time Series (Daily)"].toString(),
-            mapType,
-        )
+        val mapType =
+            mapper.typeFactory
+                .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
+        val allValues =
+            mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
+                source["Time Series (Daily)"].toString(),
+                mapType,
+            )
         for (key in allValues.keys) {
             val rawData: Map<String, Any>? = allValues[key.toString()]
-            val localDateTime = dateUtils.getLocalDate(
-                key.toString(),
-                "yyyy-M-dd",
-            )
+            val localDateTime =
+                dateUtils.getLocalDate(
+                    key.toString(),
+                    "yyyy-M-dd",
+                )
             if (asset != null) {
                 val priceData = getPrice(asset, localDateTime, rawData)
                 if (priceData != null) {
@@ -117,7 +127,11 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         return PriceResponse(results)
     }
 
-    private fun getPrice(asset: Asset, priceDate: LocalDate?, data: Map<String, Any>?): MarketData? {
+    private fun getPrice(
+        asset: Asset,
+        priceDate: LocalDate?,
+        data: Map<String, Any>?,
+    ): MarketData? {
         var price: MarketData? = null
         if (data != null) {
             try {
@@ -143,7 +157,10 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         return price
     }
 
-    private fun getAsset(nodeValue: JsonNode, assetField: String): Asset? {
+    private fun getAsset(
+        nodeValue: JsonNode,
+        assetField: String,
+    ): Asset? {
         if (!isNull(nodeValue)) {
             val symbols =
                 nodeValue[assetField] ?: return null
@@ -159,8 +176,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         throw BusinessException("Unable to resolve asset ${nodeValue.asText()}")
     }
 
-    private fun isNull(nodeValue: JsonNode) =
-        nodeValue.isNull || nodeValue.asText() == "null"
+    private fun isNull(nodeValue: JsonNode) = nodeValue.isNull || nodeValue.asText() == "null"
 
     companion object {
         const val GLOBAL_QUOTE = "Global Quote"

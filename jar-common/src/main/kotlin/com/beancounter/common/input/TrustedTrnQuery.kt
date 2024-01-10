@@ -22,7 +22,6 @@ data class TrustedTrnQuery(
     val tradeDate: LocalDate = DateUtils().date,
     val assetId: String,
 ) {
-
     override fun toString(): String {
         return "TrustedTrnQuery(portfolio=$portfolio, tradeDate=$tradeDate, assetId=$assetId)"
     }

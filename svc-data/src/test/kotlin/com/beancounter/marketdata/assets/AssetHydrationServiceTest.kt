@@ -58,7 +58,10 @@ internal class AssetHydrationServiceTest {
         validate(hydratedAsset, assetCategoryConfig.get("Cash"))
     }
 
-    private fun validate(hydratedAsset: Asset, category: AssetCategory?) {
+    private fun validate(
+        hydratedAsset: Asset,
+        category: AssetCategory?,
+    ) {
         assertThat(hydratedAsset)
             .hasFieldOrPropertyWithValue("market", NYSE)
             .hasFieldOrPropertyWithValue("assetCategory", category)

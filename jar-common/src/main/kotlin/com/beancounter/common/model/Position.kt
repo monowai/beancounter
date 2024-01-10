@@ -11,7 +11,6 @@ import java.util.EnumMap
  * @since 2019-01-28
  */
 data class Position(val asset: Asset) {
-
     var quantityValues: QuantityValues = QuantityValues()
     var dateValues = DateValues()
     val moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)
@@ -20,7 +19,9 @@ data class Position(val asset: Asset) {
      * View currencies that cost is tracked in.
      */
     enum class In {
-        TRADE, PORTFOLIO, BASE
+        TRADE,
+        PORTFOLIO,
+        BASE,
     }
 
     /**
@@ -31,7 +32,10 @@ data class Position(val asset: Asset) {
      * @return init reportCurrency "moneyValues" as tracking valueCurrency.
      */
     @JsonIgnore
-    fun getMoneyValues(reportCurrency: In, currency: Currency): MoneyValues {
+    fun getMoneyValues(
+        reportCurrency: In,
+        currency: Currency,
+    ): MoneyValues {
         var result = moneyValues[reportCurrency]
         if (result == null) {
             result = MoneyValues(currency)

@@ -7,5 +7,6 @@ package com.beancounter.common.model
  * @since 2021-11-05
  */
 enum class Status {
-    Active, Inactive
+    Active,
+    Inactive,
 }

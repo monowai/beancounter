@@ -30,14 +30,16 @@ import kotlin.collections.set
 @Service
 class AlphaPriceService(private val alphaConfig: AlphaConfig) :
     MarketDataPriceProvider {
-
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
     private lateinit var apiKey: String
     private lateinit var alphaProxy: AlphaProxy
     private lateinit var alphaPriceAdapter: AlphaPriceAdapter
 
     @Autowired
-    fun setAlphaHelpers(alphaProxyCache: AlphaProxy, alphaPriceAdapter: AlphaPriceAdapter) {
+    fun setAlphaHelpers(
+        alphaProxyCache: AlphaProxy,
+        alphaPriceAdapter: AlphaPriceAdapter,
+    ) {
         this.alphaProxy = alphaProxyCache
         this.alphaPriceAdapter = alphaPriceAdapter
     }
@@ -54,13 +56,14 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) :
         val requests = mutableMapOf<Int, Deferred<String>>()
 
         for (batchId in providerArguments.batch.keys) {
-            requests[batchId] = CoroutineScope(Dispatchers.Default).async {
-                if (priceRequest.currentMode) {
-                    alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
-                } else {
-                    alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+            requests[batchId] =
+                CoroutineScope(Dispatchers.Default).async {
+                    if (priceRequest.currentMode) {
+                        alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
+                    } else {
+                        alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+                    }
                 }
-            }
         }
 
         return runBlocking { getMarketData(providerArguments, requests) }
@@ -74,9 +77,10 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) :
         val results = mutableListOf<MarketData>()
 
         while (requests.isNotEmpty()) {
-            val completedBatches = requests.filter { (_, requestDeferred) ->
-                requestDeferred.isCompleted
-            }
+            val completedBatches =
+                requests.filter { (_, requestDeferred) ->
+                    requestDeferred.isCompleted
+                }
 
             completedBatches.forEach { (batchId, requestDeferred) ->
                 results.addAll(
@@ -101,13 +105,16 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) :
             alphaConfig.markets!!.contains(market.code)
         }
 
-    override fun getDate(market: Market, priceRequest: PriceRequest) =
-        alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
+    override fun getDate(
+        market: Market,
+        priceRequest: PriceRequest,
+    ) = alphaConfig.getMarketDate(market, priceRequest.date, priceRequest.currentMode)
 
     override fun backFill(asset: Asset): PriceResponse {
         val json = alphaProxy.getAdjusted(asset.code, apiKey)
-        val priceResponse: PriceResponse = alphaConfig.getObjectMapper()
-            .readValue(json, PriceResponse::class.java)
+        val priceResponse: PriceResponse =
+            alphaConfig.getObjectMapper()
+                .readValue(json, PriceResponse::class.java)
         for (marketData in priceResponse.data) {
             marketData.source = ID
             marketData.asset = asset

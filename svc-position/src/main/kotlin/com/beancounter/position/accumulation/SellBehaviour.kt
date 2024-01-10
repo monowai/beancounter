@@ -17,7 +17,12 @@ import java.math.BigDecimal
 @Service
 class SellBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver()) : AccumulationStrategy {
     private val averageCost = AverageCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
+
+    override fun accumulate(
+        trn: Trn,
+        positions: Positions,
+        position: Position,
+    ): Position {
         var soldQuantity = trn.quantity
         if (soldQuantity.toDouble() > 0) {
             // Sign the quantities
@@ -42,16 +47,19 @@ class SellBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver())
         rate: BigDecimal,
         trn: Trn,
     ) {
-        val moneyValues = position.getMoneyValues(
-            `in`,
-            currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
-        )
-        moneyValues.sales = moneyValues.sales.add(
-            multiply(trn.tradeAmount, rate),
-        )
+        val moneyValues =
+            position.getMoneyValues(
+                `in`,
+                currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
+            )
+        moneyValues.sales =
+            moneyValues.sales.add(
+                multiply(trn.tradeAmount, rate),
+            )
         if (trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0) {
-            val unitCost = multiply(trn.tradeAmount, rate)
-                ?.divide(trn.quantity.abs(), getMathContext())
+            val unitCost =
+                multiply(trn.tradeAmount, rate)
+                    ?.divide(trn.quantity.abs(), getMathContext())
             val unitProfit = unitCost?.subtract(moneyValues.averageCost)
             val realisedGain = unitProfit!!.multiply(trn.quantity.abs())
             moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)

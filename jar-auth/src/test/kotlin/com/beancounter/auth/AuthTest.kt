@@ -43,7 +43,6 @@ import org.springframework.web.client.RestOperations
     ],
 )
 class AuthTest {
-
     @MockBean
     private lateinit var jwtDecoder: JwtDecoder
 
@@ -60,30 +59,32 @@ class AuthTest {
     private lateinit var mockMvc: MockMvc
 
     companion object {
-        private const val hello = "/api/hello"
-        const val what = "/api/what"
+        private const val HELLO = "/api/hello"
+        const val WHAT = "/api/what"
     }
 
     @Test
     fun has_NoTokenAndIsUnauthorized() {
-        var result = mockMvc.perform(
-            MockMvcRequestBuilders.get(hello)
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
-            .andReturn()
+        var result =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get(HELLO)
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+                .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
-        result = mockMvc.perform(
-            MockMvcRequestBuilders.get(what)
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
-            .andReturn()
+        result =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get(WHAT)
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+                .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.UNAUTHORIZED.value())
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
     fun has_AuthorityToSayHello() {
-        mockMvc.perform(MockMvcRequestBuilders.get(hello))
+        mockMvc.perform(MockMvcRequestBuilders.get(HELLO))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
@@ -92,7 +93,7 @@ class AuthTest {
     @Test
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_USER])
     fun has_NoAuthorityToSayWhat() {
-        mockMvc.perform(MockMvcRequestBuilders.get(what))
+        mockMvc.perform(MockMvcRequestBuilders.get(WHAT))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
@@ -103,29 +104,29 @@ class AuthTest {
     @WithMockUser(username = "testUser", authorities = ["no-valid-auth"])
     fun has_tokenButNoRoleToSayAnything() {
         mockMvc.perform(
-            MockMvcRequestBuilders.get(hello)
+            MockMvcRequestBuilders.get(HELLO)
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().isForbidden)
             .andReturn()
 
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.get(what)
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isForbidden)
-            .andReturn()
+        val result =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get(WHAT)
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
+                .andReturn()
         assertThat(result.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @RestController
     internal class SimpleController {
-
-        @GetMapping(hello)
+        @GetMapping(HELLO)
         @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_USER}')")
         fun sayHello(): String {
             return "hello"
         }
 
-        @GetMapping(what)
+        @GetMapping(WHAT)
         @PreAuthorize("hasAuthority('${AuthConstants.ADMIN}')")
         fun sayWhat(): String {
             return "no one can call this"

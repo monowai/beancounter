@@ -19,11 +19,17 @@ class AverageCost {
      * @param total     current quantity
      * @return unit cost
      */
-    fun value(costBasis: BigDecimal, total: BigDecimal?): BigDecimal {
+    fun value(
+        costBasis: BigDecimal,
+        total: BigDecimal?,
+    ): BigDecimal {
         return costBasis.divide(total, getMathContext())
     }
 
-    fun getCostValue(position: Position, moneyValues: MoneyValues): BigDecimal {
+    fun getCostValue(
+        position: Position,
+        moneyValues: MoneyValues,
+    ): BigDecimal {
         val quantityValues = position.quantityValues
         return multiply(moneyValues.averageCost, quantityValues.getTotal())!!
     }

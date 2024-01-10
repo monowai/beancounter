@@ -2,7 +2,7 @@ package com.beancounter.marketdata.providers
 
 import com.beancounter.common.contracts.PriceRequest.Companion.of
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.marketdata.Constants.Companion.CASH
+import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import org.assertj.core.api.Assertions.assertThat
@@ -19,7 +19,7 @@ internal class CashProviderServiceTest {
     @Test
     fun is_CashProviderReturningValues() {
         val provider: MarketDataPriceProvider = CashProviderService()
-        val result = provider.getMarketData(of(getTestAsset(CASH, NZD.code)))
+        val result = provider.getMarketData(of(getTestAsset(CASH_MARKET, NZD.code)))
         assertThat(result)
             .isNotNull
             .isNotEmpty

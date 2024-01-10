@@ -25,7 +25,6 @@ class AlphaConfig(
     val dateUtils: DateUtils = DateUtils(),
     val marketUtils: PreviousClosePriceDate = PreviousClosePriceDate(DateUtils()),
 ) : DataProviderConfig {
-
     @Value("\${beancounter.market.providers.ALPHA.markets}")
     var markets: String? = null
 
@@ -34,10 +33,11 @@ class AlphaConfig(
     }
 
     init {
-        val module = SimpleModule(
-            "AlphaMarketDataDeserializer",
-            Version(1, 0, 0, null, null, null),
-        )
+        val module =
+            SimpleModule(
+                "AlphaMarketDataDeserializer",
+                Version(1, 0, 0, null, null, null),
+            )
         module.addDeserializer(PriceResponse::class.java, AlphaPriceDeserializer())
         module.addDeserializer(AssetSearchResponse::class.java, AlphaSearchDeserializer())
         alphaMapper.registerModule(module)
@@ -57,15 +57,20 @@ class AlphaConfig(
     }
 
     val nullMarket = "NASDAQ|NYSE|AMEX|US"
+
     fun isNullMarket(marketCode: String) = nullMarket.contains(marketCode, true)
 
     /**
      * Resolves the Date to use when querying the market.
      * This will be previous days CoB until the market is closed.
      */
-    override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate =
+    override fun getMarketDate(
+        market: Market,
+        date: String,
+        currentMode: Boolean,
+    ): LocalDate =
         marketUtils.getPriceDate(
-            dateUtils.offsetNow(date).toLocalDateTime(),
+            dateUtils.offsetNow(date).toZonedDateTime(),
             market,
             currentMode,
         )

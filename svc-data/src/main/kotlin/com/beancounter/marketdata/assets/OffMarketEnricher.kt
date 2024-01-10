@@ -17,7 +17,11 @@ import org.springframework.stereotype.Service
 class OffMarketEnricher(
     private val systemUserService: SystemUserService,
 ) : AssetEnricher {
-    override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
+    override fun enrich(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+    ): Asset {
         val systemUser = systemUserService.getOrThrow
         return Asset(
             code = parseCode(systemUser, assetInput.code),
@@ -36,18 +40,20 @@ class OffMarketEnricher(
     }
 
     override fun id(): String {
-        return id
+        return ID
     }
 
     companion object {
-        const val id = OffMarketDataProvider.ID
+        const val ID = OffMarketDataProvider.ID
 
         @JvmStatic
-        fun parseCode(systemUser: SystemUser, code: String) =
-            if (code.startsWith(systemUser.id)) {
-                code
-            } else {
-                "${systemUser.id}.${code.uppercase()}"
-            }
+        fun parseCode(
+            systemUser: SystemUser,
+            code: String,
+        ) = if (code.startsWith(systemUser.id)) {
+            code
+        } else {
+            "${systemUser.id}.${code.uppercase()}"
+        }
     }
 }

@@ -36,13 +36,14 @@ class SerializationTests {
 
     @Test
     fun is_InteractiveJsonCorrect() {
-        val passwordRequest = LoginService.PasswordRequest(
-            client_id = "cid",
-            username = "mike",
-            password = secret,
-            audience = "the-audience",
-            client_secret = "the-secret",
-        )
+        val passwordRequest =
+            LoginService.PasswordRequest(
+                client_id = "cid",
+                username = "mike",
+                password = secret,
+                audience = "the-audience",
+                client_secret = "the-secret",
+            )
         assertThat(passwordRequest.grant_type).isNotNull
         val json = BcJson().objectMapper.writeValueAsString(passwordRequest)
         assertThat(json).contains(

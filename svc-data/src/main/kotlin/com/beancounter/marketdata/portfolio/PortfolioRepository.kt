@@ -11,7 +11,11 @@ import java.util.Optional
  * Portfolio CRUD interface.
  */
 interface PortfolioRepository : CrudRepository<Portfolio, String> {
-    fun findByCodeAndOwner(code: String, systemUser: SystemUser): Optional<Portfolio>
+    fun findByCodeAndOwner(
+        code: String,
+        systemUser: SystemUser,
+    ): Optional<Portfolio>
+
     fun findByOwner(systemUser: SystemUser): Iterable<Portfolio>
 
     @Query(

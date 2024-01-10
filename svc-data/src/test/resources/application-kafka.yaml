@@ -7,7 +7,8 @@ spring:
     consumer:
       auto-offset-reset: earliest
       auto-create-topics-enable: true
-      group-id: data-test
+      group-id: "data-test:${kafka.broker.port}"
+
   embedded:
     kafka:
       brokers: "localhost:${kafka.broker.port}"

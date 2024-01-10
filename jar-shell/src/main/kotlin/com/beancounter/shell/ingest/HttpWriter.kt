@@ -48,10 +48,11 @@ class HttpWriter(
                 portfolio!!.code,
             )
             if (portfolio != null) {
-                val trnRequest = TrnRequest(
-                    portfolio!!.id,
-                    trnInputs.toTypedArray(),
-                )
+                val trnRequest =
+                    TrnRequest(
+                        portfolio!!.id,
+                        trnInputs.toTypedArray(),
+                    )
                 val (data) = trnService.write(trnRequest)
                 log.info("Wrote {}", data.size)
             }

@@ -31,19 +31,23 @@ data class Asset(
     val status: Status = Status.Active,
     var version: String = "1",
 ) {
-
     companion object {
         @JvmStatic
-        fun of(input: AssetInput, market: Market, status: Status = Status.Active): Asset = Asset(
-            code = input.code,
-            id = input.code,
-            name = input.name,
-            market = market,
-            marketCode = market.code,
-            priceSymbol = input.code,
-            category = input.category,
-            status = status,
-        )
+        fun of(
+            input: AssetInput,
+            market: Market,
+            status: Status = Status.Active,
+        ): Asset =
+            Asset(
+                code = input.code,
+                id = input.code,
+                name = input.name,
+                market = market,
+                marketCode = market.code,
+                priceSymbol = input.code,
+                category = input.category,
+                status = status,
+            )
     }
 
 //    constructor(code: String, market: Market, marketCode: String = market.code, status: Status = Status.Active) : this(

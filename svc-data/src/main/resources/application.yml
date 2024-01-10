@@ -82,7 +82,7 @@ spring:
   application:
     name: bc-data
   cache:
-    cache-names: asset.prices, asset.search, fx.rates, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event
+    cache-names: asset.prices, asset.search, fx.rates, provider, providers, asset.ext, currency.code, currency.all, jwt.token, auth.m2m, alpha.asset.event, market.holidays
   jpa:
     open-in-view: false
     generate-ddl: true
@@ -189,6 +189,13 @@ beancounter:
 
   # Default asset enricher - FIGI/ALPHA - can be set on a per market basis
   enricher: ALPHA
+  calendar:
+    values:
+      - day: "25"
+        month: "12"
+        markets:
+          - "US"
+          - "ASX"
   market:
     values:
       - code: CASH

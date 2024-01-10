@@ -14,13 +14,14 @@ class AuthProviders(
     private val tokenService: TokenService,
     private val systemUserRepository: SystemUserRepository,
 ) {
-    fun getAuth0Id(jwt: Jwt): String =
-        if (tokenService.isAuth0()) jwt.subject else ""
+    fun getAuth0Id(jwt: Jwt): String = if (tokenService.isAuth0()) jwt.subject else ""
 
-    fun getGoogleId(jwt: Jwt): String =
-        if (tokenService.isGoogle()) jwt.subject else ""
+    fun getGoogleId(jwt: Jwt): String = if (tokenService.isGoogle()) jwt.subject else ""
 
-    fun capture(result: SystemUser, jwt: Jwt): SystemUser {
+    fun capture(
+        result: SystemUser,
+        jwt: Jwt,
+    ): SystemUser {
         if (tokenService.isGoogle() && result.googleId.isBlank()) {
             // Capture google Id.
             return systemUserRepository.save(

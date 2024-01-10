@@ -80,7 +80,11 @@ class PortfolioBase : ContractVerifierBase() {
         }
 
         @JvmStatic
-        fun portfolios(systemUser: SystemUser, keyGenUtils: KeyGenUtils, portfolioRepository: PortfolioRepository) {
+        fun portfolios(
+            systemUser: SystemUser,
+            keyGenUtils: KeyGenUtils,
+            portfolioRepository: PortfolioRepository,
+        ) {
             val dateUtils = DateUtils()
             mockPortfolio(emptyPortfolio, systemUser, portfolioRepository)
             mockPortfolio(testPortfolio, systemUser, portfolioRepository)
@@ -142,9 +146,10 @@ class PortfolioBase : ContractVerifierBase() {
 
     @BeforeEach
     fun mockPortfolio() {
-        val systemUser = ContractHelper(authUtilService).defaultUser(
-            systemUserService = systemUserService,
-        )
+        val systemUser =
+            ContractHelper(authUtilService).defaultUser(
+                systemUserService = systemUserService,
+            )
         Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
         portfolios(systemUser, keyGenUtils, portfolioRepository)
     }

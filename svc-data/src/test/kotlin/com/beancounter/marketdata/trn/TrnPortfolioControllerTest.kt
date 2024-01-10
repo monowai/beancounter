@@ -23,13 +23,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -41,10 +41,10 @@ import java.math.BigDecimal
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Tag("slow")
-@EntityScan("com.beancounter.common.model")
+@Tag("db")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
+@DirtiesContext
 class TrnPortfolioControllerTest {
     private lateinit var token: Jwt
 
@@ -72,9 +72,10 @@ class TrnPortfolioControllerTest {
         token = mockAuthConfig.getUserToken(SystemUser(auth0 = "auth0"))
         bcMvcHelper = BcMvcHelper(mockMvc, token)
         RegistrationUtils.registerUser(mockMvc, token)
-        msft = bcMvcHelper.asset(
-            AssetRequest(Constants.msftInput),
-        )
+        msft =
+            bcMvcHelper.asset(
+                AssetRequest(Constants.msftInput),
+            )
         // Creating in reverse trade order and assert retrieved in Sort Order.
         bcMvcHelper.postTrn(
             TrnRequest(
@@ -87,7 +88,7 @@ class TrnPortfolioControllerTest {
                         msft.id,
                         trnType = TrnType.BUY,
                         quantity = BigDecimal.TEN,
-                        tradeDate = dateUtils.getDate(BcMvcHelper.tradeDate),
+                        tradeDate = dateUtils.getDate(BcMvcHelper.TRADE_DATE),
                         price = BigDecimal.TEN,
                     ),
                     TrnInput(
@@ -136,9 +137,9 @@ class TrnPortfolioControllerTest {
             objectMapper.readValue(
                 mockMvc.perform(
                     MockMvcRequestBuilders.get(
-                        "${BcMvcHelper.portfolioRoot}/asset/{assetId}/{tradeDate}",
+                        "${BcMvcHelper.PORTFOLIO_ROOT}/asset/{assetId}/{tradeDate}",
                         msft.id,
-                        BcMvcHelper.tradeDate,
+                        BcMvcHelper.TRADE_DATE,
                     )
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                         .contentType(MediaType.APPLICATION_JSON),

@@ -23,7 +23,10 @@ class TokenUtils(val authConfig: AuthConfig) {
         return getUserToken(systemUser, systemUser.googleId)
     }
 
-    fun getUserToken(systemUser: SystemUser, subject: String): Jwt {
+    fun getUserToken(
+        systemUser: SystemUser,
+        subject: String,
+    ): Jwt {
         return Jwt.withTokenValue(systemUser.id)
             .header("alg", "none")
             .subject(subject)

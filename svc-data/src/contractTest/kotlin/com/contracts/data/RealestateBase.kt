@@ -54,7 +54,6 @@ import java.math.BigDecimal
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
 class RealestateBase {
-
     private lateinit var jwt: JwtAuthenticationToken
 
     @LocalServerPort
@@ -121,9 +120,10 @@ class RealestateBase {
     @BeforeEach
     fun mockTrn() {
         RestAssured.port = Integer.valueOf(port)
-        jwt = authUtilService.authenticate(
-            systemUser,
-        )
+        jwt =
+            authUtilService.authenticate(
+                systemUser,
+            )
         // Hardcode the id of the system user so we can find it in the off-market asset code
         Mockito.`when`(systemUserService.getOrThrow).thenReturn(systemUser)
         Mockito.`when`(systemUserService.getActiveUser()).thenReturn(systemUser)
@@ -159,11 +159,12 @@ class RealestateBase {
     private fun trnCashResponse(trnId: String): TrnResponse {
         val assetInput = AssetInput.toCash(NZD, trnId)
         Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
-        val asset = assetService.handle(
-            AssetRequest(
-                mapOf(Pair(assetInput.code, assetInput)),
-            ),
-        ).data[assetInput.code]
+        val asset =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(Pair(assetInput.code, assetInput)),
+                ),
+            ).data[assetInput.code]
         Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
         return save(
             portfolio,
@@ -182,19 +183,20 @@ class RealestateBase {
 
     fun reTrnFlow() {
         Mockito.`when`(keyGenUtils.id).thenReturn("1")
-        val buy = save(
-            portfolio,
-            TrnInput(
-                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
-                tradeDate = DateUtils().getLocalDate(tradeDate),
-                assetId = houseAsset.id,
-                trnType = TrnType.BALANCE,
-                tradeAmount = tenK,
-                tradeBaseRate = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE,
-            ),
-        )
+        val buy =
+            save(
+                portfolio,
+                TrnInput(
+                    callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
+                    tradeDate = DateUtils().getLocalDate(tradeDate),
+                    assetId = houseAsset.id,
+                    trnType = TrnType.BALANCE,
+                    tradeAmount = tenK,
+                    tradeBaseRate = BigDecimal.ONE,
+                    tradeCashRate = BigDecimal.ONE,
+                    tradePortfolioRate = BigDecimal.ONE,
+                ),
+            )
         assertThat(buy.data).isNotNull.hasSize(1)
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
         assertThat(buy.data.iterator().next())
@@ -202,41 +204,47 @@ class RealestateBase {
             .containsExactly("1", tenK, BigDecimal.ZERO)
 
         Mockito.`when`(keyGenUtils.id).thenReturn("2")
-        val r = save(
-            portfolio,
-            TrnInput(
-                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
-                tradeDate = DateUtils().getLocalDate(tradeDate),
-                assetId = houseAsset.id,
-                trnType = TrnType.BALANCE,
-                tradeAmount = nOneK,
-                tradeBaseRate = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE,
-            ),
-        )
+        val r =
+            save(
+                portfolio,
+                TrnInput(
+                    callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
+                    tradeDate = DateUtils().getLocalDate(tradeDate),
+                    assetId = houseAsset.id,
+                    trnType = TrnType.BALANCE,
+                    tradeAmount = nOneK,
+                    tradeBaseRate = BigDecimal.ONE,
+                    tradeCashRate = BigDecimal.ONE,
+                    tradePortfolioRate = BigDecimal.ONE,
+                ),
+            )
         assertThat(r.data).isNotNull.hasSize(1)
         verifyTrn(r, nOneK, nOneK)
 
         Mockito.`when`(keyGenUtils.id).thenReturn("3")
-        val i = save(
-            portfolio,
-            TrnInput(
-                callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
-                assetId = houseAsset.id,
-                tradeDate = DateUtils().getLocalDate(tradeDate),
-                trnType = TrnType.BALANCE,
-                tradeAmount = oneK,
-                tradeBaseRate = BigDecimal.ONE,
-                tradeCashRate = BigDecimal.ONE,
-                tradePortfolioRate = BigDecimal.ONE,
-            ),
-        )
+        val i =
+            save(
+                portfolio,
+                TrnInput(
+                    callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
+                    assetId = houseAsset.id,
+                    tradeDate = DateUtils().getLocalDate(tradeDate),
+                    trnType = TrnType.BALANCE,
+                    tradeAmount = oneK,
+                    tradeBaseRate = BigDecimal.ONE,
+                    tradeCashRate = BigDecimal.ONE,
+                    tradePortfolioRate = BigDecimal.ONE,
+                ),
+            )
         assertThat(i.data).isNotNull.hasSize(1)
         verifyTrn(i, oneK, oneK)
     }
 
-    private fun verifyTrn(r: TrnResponse, tradeAmount: BigDecimal, quantity: BigDecimal) {
+    private fun verifyTrn(
+        r: TrnResponse,
+        tradeAmount: BigDecimal,
+        quantity: BigDecimal,
+    ) {
         assertThat(r.data.iterator().next())
             .extracting(pTradeAmount, pQuantity, pCashAmount)
             .containsExactly(tradeAmount, quantity, BigDecimal.ZERO)

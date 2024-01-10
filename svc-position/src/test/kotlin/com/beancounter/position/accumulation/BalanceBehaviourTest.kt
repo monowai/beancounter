@@ -28,16 +28,17 @@ class BalanceBehaviourTest {
     @Test
     fun is_CashAccumulated() {
         val portfolio = Portfolio("TEST", USD, NZD)
-        val trn = Trn(
-            trnType = TrnType.BALANCE,
-            asset = Constants.nzdCashBalance,
-            quantity = BigDecimal("-10000.00"),
-            cashCurrency = NZD,
-            tradeCashRate = BigDecimal.ONE,
-            tradeBaseRate = BigDecimal.ONE,
-            tradePortfolioRate = BigDecimal("0.56"),
-            portfolio = portfolio,
-        )
+        val trn =
+            Trn(
+                trnType = TrnType.BALANCE,
+                asset = Constants.nzdCashBalance,
+                quantity = BigDecimal("-10000.00"),
+                cashCurrency = NZD,
+                tradeCashRate = BigDecimal.ONE,
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = BigDecimal("0.56"),
+                portfolio = portfolio,
+            )
         val positions = Positions(portfolio)
         val position = accumulator.accumulate(trn, positions)
         val usCost = BigDecimal("-5600.00")

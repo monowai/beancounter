@@ -35,14 +35,15 @@ class BcRowAdapter(
         val marketCode = trustedTrnImportRequest.row[Columns.Market.ordinal].trim()
         val assetCode = trustedTrnImportRequest.row[Columns.Code.ordinal].trim()
 
-        val asset = assetIngestService.resolveAsset(
-            AssetInput(
-                market = marketCode,
-                code = assetCode,
-                name = trustedTrnImportRequest.row[Columns.Name.ordinal].trim(),
-                owner = trustedTrnImportRequest.portfolio.owner.id,
-            ),
-        )
+        val asset =
+            assetIngestService.resolveAsset(
+                AssetInput(
+                    market = marketCode,
+                    code = assetCode,
+                    name = trustedTrnImportRequest.row[Columns.Name.ordinal].trim(),
+                    owner = trustedTrnImportRequest.portfolio.owner.id,
+                ),
+            )
         val cashCurrency = trustedTrnImportRequest.row[Columns.CashCurrency.ordinal].trim()
         val cashAccount = trustedTrnImportRequest.row[Columns.CashAccount.ordinal].trim()
         val cashAssetId = getCashAssetId(trnType, asset, cashAccount, cashCurrency)
@@ -56,11 +57,13 @@ class BcRowAdapter(
             MathUtils.nullSafe(MathUtils.parse(trustedTrnImportRequest.row[Columns.TradeAmount.ordinal]))
 
         return TrnInput(
-            callerRef = CallerRef(
-                trustedTrnImportRequest.portfolio.owner.id, // SystemUserId
-                trustedTrnImportRequest.row[Columns.Batch.ordinal].trim(),
-                trustedTrnImportRequest.row[Columns.CallerId.ordinal].trim(),
-            ),
+            callerRef =
+                CallerRef(
+                    // SystemUserId
+                    trustedTrnImportRequest.portfolio.owner.id,
+                    trustedTrnImportRequest.row[Columns.Batch.ordinal].trim(),
+                    trustedTrnImportRequest.row[Columns.CallerId.ordinal].trim(),
+                ),
             assetId = asset.id,
             trnType = trnType,
             quantity = quantity,
@@ -83,11 +86,12 @@ class BcRowAdapter(
         cashAccount: String,
         cashCurrency: String,
     ): String? {
-        val cashAsset: Asset? = if (TrnType.isCash(trnType)) {
-            asset
-        } else {
-            cashServices.getCashAsset(trnType, cashAccount, cashCurrency)
-        }
+        val cashAsset: Asset? =
+            if (TrnType.isCash(trnType)) {
+                asset
+            } else {
+                cashServices.getCashAsset(trnType, cashAccount, cashCurrency)
+            }
         return cashAsset?.id
     }
 }

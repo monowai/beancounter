@@ -14,6 +14,7 @@ import java.math.BigDecimal
 @Service
 class CashAccumulator(val currencyResolver: CurrencyResolver) {
     private val cashCost = CashCost()
+
     fun accumulate(
         cashPosition: Position,
         position: Position,

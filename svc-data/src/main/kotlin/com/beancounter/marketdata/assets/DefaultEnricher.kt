@@ -13,7 +13,11 @@ import java.util.Locale
  */
 @Service
 class DefaultEnricher : AssetEnricher {
-    override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
+    override fun enrich(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+    ): Asset {
         return Asset(
             code = assetInput.code.uppercase(Locale.getDefault()),
             id = id,

@@ -27,14 +27,18 @@ class PriceService internal constructor(
     private val marketDataRepo: MarketDataRepo,
     private val cashUtils: CashUtils,
 ) {
-    private lateinit var eventProducer: EventProducer
+    private var eventProducer: EventProducer? = null
 
-    @Autowired
-    fun setEventWriter(eventProducer: EventProducer) {
+    @Autowired(required = false)
+    fun setEventWriter(eventProducer: EventProducer?) {
         this.eventProducer = eventProducer
     }
 
-    fun getMarketData(asset: Asset, date: LocalDate, closePrice: BigDecimal = BigDecimal.ZERO): Optional<MarketData> {
+    fun getMarketData(
+        asset: Asset,
+        date: LocalDate,
+        closePrice: BigDecimal = BigDecimal.ZERO,
+    ): Optional<MarketData> {
         val response = marketDataRepo.findByAssetIdAndPriceDate(asset.id, date)
         if (response.isPresent) return response
         return handleOffMarketPrice(asset, closePrice, date, response)
@@ -47,13 +51,14 @@ class PriceService internal constructor(
         response: Optional<MarketData>,
     ): Optional<MarketData> {
         if (asset.market.code == OffMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
-            val price = marketDataRepo.save(
-                MarketData(
-                    asset = asset,
-                    close = closePrice,
-                    priceDate = date,
-                ),
-            )
+            val price =
+                marketDataRepo.save(
+                    MarketData(
+                        asset = asset,
+                        close = closePrice,
+                        priceDate = date,
+                    ),
+                )
             return Optional.of(price)
         }
         return response
@@ -76,8 +81,8 @@ class PriceService internal constructor(
                     // Create
                     createSet.add(marketData)
                 }
-                if (isCorporateEvent(marketData)) {
-                    eventProducer.write(marketData)
+                if (eventProducer != null && isCorporateEvent(marketData)) {
+                    eventProducer!!.write(marketData)
                 }
             }
         }

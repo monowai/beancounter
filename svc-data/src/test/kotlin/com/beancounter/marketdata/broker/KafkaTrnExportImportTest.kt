@@ -66,7 +66,6 @@ import java.time.Duration
  * Check we can import the CSV file we export, via Kafka.
  */
 class KafkaTrnExportImportTest : KafkaBase() {
-
     final var dateUtils: DateUtils = DateUtils()
 
     @Autowired
@@ -144,13 +143,14 @@ class KafkaTrnExportImportTest : KafkaBase() {
     @Test
     fun exportFileCanBeImported() {
         mockEnv()
-        val portfolios: Collection<PortfolioInput> = arrayListOf(
-            PortfolioInput(
-                code = "CSV-FLOW",
-                name = "SomeName",
-                base = USD.code,
-            ),
-        )
+        val portfolios: Collection<PortfolioInput> =
+            arrayListOf(
+                PortfolioInput(
+                    code = "CSV-FLOW",
+                    name = "SomeName",
+                    base = USD.code,
+                ),
+            )
         val systemUser = SystemUser("mike")
         val token = authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0).token
         systemUserService.register()
@@ -162,28 +162,31 @@ class KafkaTrnExportImportTest : KafkaBase() {
         val batch = "batch"
         val qcom = getAsset("QCOM", CUSTOM)
         val trex = getAsset("TREX", CUSTOM)
-        val trnRequest = TrnRequest(
-            portfolio.id,
-            arrayOf(
-                getTrnInput(qcom, CallerRef(provider, batch, "1")),
-                getTrnInput(trex, CallerRef(provider, batch, "2")),
-            ),
-        )
+        val trnRequest =
+            TrnRequest(
+                portfolio.id,
+                arrayOf(
+                    getTrnInput(qcom, CallerRef(provider, batch, "1")),
+                    getTrnInput(trex, CallerRef(provider, batch, "2")),
+                ),
+            )
 
-        val trnResponse = trnService.save(
-            portfolio,
-            trnRequest = trnRequest,
-        )
+        val trnResponse =
+            trnService.save(
+                portfolio,
+                trnRequest = trnRequest,
+            )
 
         assertThat(trnResponse.data)
             .isNotNull
             .hasSize(trnRequest.data.size)
 
-        val consumer = kafkaTestUtils.getConsumer(
-            this::class.toString(),
-            TOPIC_CSV_IO,
-            embeddedKafkaBroker,
-        )
+        val consumer =
+            kafkaTestUtils.getConsumer(
+                this::class.toString(),
+                TOPIC_CSV_IO,
+                embeddedKafkaBroker,
+            )
 
         importRows(exportDelimitedFile(portfolio, token), portfolio, trnRequest.data.size + 1) // Include a header row.
 
@@ -196,7 +199,11 @@ class KafkaTrnExportImportTest : KafkaBase() {
         assertThat(imported).hasSize(trnRequest.data.size)
     }
 
-    private fun importRows(fileName: String, portfolio: Portfolio, expectedTrns: Int) {
+    private fun importRows(
+        fileName: String,
+        portfolio: Portfolio,
+        expectedTrns: Int,
+    ) {
         trnService.purge(portfolio)
         assertThat(trnService.findForPortfolio(portfolio, dateUtils.date).data).isEmpty()
         val csvRows = File(fileName).useLines { it.toList() }
@@ -216,7 +223,10 @@ class KafkaTrnExportImportTest : KafkaBase() {
         }
     }
 
-    private fun getTrnInput(asset: Asset, callerRef: CallerRef): TrnInput {
+    private fun getTrnInput(
+        asset: Asset,
+        callerRef: CallerRef,
+    ): TrnInput {
         return TrnInput(
             callerRef,
             asset.id,
@@ -229,17 +239,21 @@ class KafkaTrnExportImportTest : KafkaBase() {
         )
     }
 
-    private fun exportDelimitedFile(forPortfolio: Portfolio, token: Jwt): String {
-        val results = mockMvc.perform(
-            MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
-                )
-                .with(SecurityMockMvcRequestPostProcessors.csrf()),
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN_VALUE))
-            .andReturn()
+    private fun exportDelimitedFile(
+        forPortfolio: Portfolio,
+        token: Jwt,
+    ): String {
+        val results =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/trns/portfolio/{portfolioId}/export", forPortfolio.id)
+                    .with(
+                        SecurityMockMvcRequestPostProcessors.jwt().jwt(token),
+                    )
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            )
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN_VALUE))
+                .andReturn()
         assertThat(results).isNotNull
         val fileName = "./build/${forPortfolio.code}.txt"
         File(fileName).bufferedWriter().use { out ->
@@ -248,7 +262,10 @@ class KafkaTrnExportImportTest : KafkaBase() {
         return fileName
     }
 
-    private fun getAsset(code: String, market: Market): Asset {
+    private fun getAsset(
+        code: String,
+        market: Market,
+    ): Asset {
         val asset = AssetRequest(getAssetInput(market.code, code), code)
         val response = assetService.handle(asset)!!
         assertThat(response).isNotNull
@@ -260,8 +277,9 @@ class KafkaTrnExportImportTest : KafkaBase() {
         val created = ArrayList<Trn>()
         for (consumerRecord in consumerRecords) {
             assertThat(consumerRecord.value()).isNotNull
-            val received = objectMapper
-                .readValue(consumerRecord.value(), TrustedTrnImportRequest::class.java)
+            val received =
+                objectMapper
+                    .readValue(consumerRecord.value(), TrustedTrnImportRequest::class.java)
             val trnResponse = trnImport.fromCsvImport(received)
             assertThat(trnResponse).isNotNull
             assertThat(trnResponse.data)
@@ -279,7 +297,10 @@ class KafkaTrnExportImportTest : KafkaBase() {
         private val log = LoggerFactory.getLogger(KafkaTrnExportImportTest::class.java)
 
         @JvmStatic
-        fun stubFx(url: String, rateResponse: File) {
+        fun stubFx(
+            url: String,
+            rateResponse: File,
+        ) {
             WireMock.stubFor(
                 WireMock.get(WireMock.urlEqualTo(url))
                     .willReturn(

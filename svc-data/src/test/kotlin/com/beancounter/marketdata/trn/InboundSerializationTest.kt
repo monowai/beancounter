@@ -15,20 +15,23 @@ class InboundSerializationTest {
     @Test
     @Throws(Exception::class)
     fun is_InboundPayloadConverted() {
-        val payload = objectMapper.readValue(
-            ClassPathResource("/kafka/bc-view-send.json").file,
-            TrustedTrnImportRequest::class.java,
-        )
+        val payload =
+            objectMapper.readValue(
+                ClassPathResource("/kafka/bc-view-send.json").file,
+                TrustedTrnImportRequest::class.java,
+            )
         assertThat(payload).isNotNull
-        val message: HashMap<String, Any> = objectMapper.readValue(
-            ClassPathResource("/kafka/csv-import-message.json").file,
-            object : TypeReference<HashMap<String, Any>>() {},
-        )
+        val message: HashMap<String, Any> =
+            objectMapper.readValue(
+                ClassPathResource("/kafka/csv-import-message.json").file,
+                object : TypeReference<HashMap<String, Any>>() {},
+            )
         assertThat(message).hasFieldOrProperty("payload")
-        val (portfolio, _, _, row, callerRef) = objectMapper.readValue(
-            message["payload"].toString(),
-            TrustedTrnImportRequest::class.java,
-        )
+        val (portfolio, _, _, row, callerRef) =
+            objectMapper.readValue(
+                message["payload"].toString(),
+                TrustedTrnImportRequest::class.java,
+            )
         assertThat(portfolio).usingRecursiveComparison().isEqualTo(payload.portfolio)
         for (column in row) {
             assertThat(payload.row).contains(column)
@@ -42,20 +45,22 @@ class InboundSerializationTest {
     @Test
     @Throws(Exception::class)
     fun is_InboundMessagePayloadConverted() {
-        val payload = objectMapper.readValue(
-            ClassPathResource("/kafka/bc-view-message.json").file,
-            TrustedTrnImportRequest::class.java,
-        )
+        val payload =
+            objectMapper.readValue(
+                ClassPathResource("/kafka/bc-view-message.json").file,
+                TrustedTrnImportRequest::class.java,
+            )
         assertThat(payload).isNotNull
     }
 
     @Test
     @Throws(Exception::class)
     fun is_IncomingTrustedEvent() {
-        val inbound = objectMapper.readValue(
-            ClassPathResource("/kafka/event-incoming.json").file,
-            TrustedTrnEvent::class.java,
-        )
+        val inbound =
+            objectMapper.readValue(
+                ClassPathResource("/kafka/event-incoming.json").file,
+                TrustedTrnEvent::class.java,
+            )
         assertThat(inbound).isNotNull
     }
 }

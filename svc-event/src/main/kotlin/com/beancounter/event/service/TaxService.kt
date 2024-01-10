@@ -9,6 +9,7 @@ import java.math.BigDecimal
 @Service
 class TaxService {
     private val rates: MutableMap<String, BigDecimal> = HashMap()
+
     fun getRate(code: String?): BigDecimal {
         return rates[code] ?: return BigDecimal.ZERO
     }

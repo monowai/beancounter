@@ -14,9 +14,18 @@ import com.beancounter.common.utils.DateUtils
  * @since 2019-02-24
  */
 interface Valuation {
-    fun build(portfolio: Portfolio, valuationDate: String): PositionResponse
+    fun build(
+        portfolio: Portfolio,
+        valuationDate: String,
+    ): PositionResponse
+
     fun build(trnQuery: TrustedTrnQuery): PositionResponse
-    fun getPositions(portfolio: Portfolio, valuationDate: String = DateUtils.today, value: Boolean): PositionResponse
+
+    fun getPositions(
+        portfolio: Portfolio,
+        valuationDate: String = DateUtils.TODAY,
+        value: Boolean,
+    ): PositionResponse
 
     /**
      * Values positions. This should also set the Asset details as the caller has only

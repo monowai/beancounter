@@ -9,7 +9,12 @@ import org.springframework.stereotype.Service
  */
 @Service
 class FigiAdapter {
-    fun transform(market: Market, assetCode: String, defaultName: String? = null, id: String): Asset {
+    fun transform(
+        market: Market,
+        assetCode: String,
+        defaultName: String? = null,
+        id: String,
+    ): Asset {
         return Asset(
             code = assetCode,
             id = id,
@@ -21,7 +26,12 @@ class FigiAdapter {
         )
     }
 
-    fun transform(market: Market, assetCode: String, figiAsset: FigiAsset, id: String): Asset {
+    fun transform(
+        market: Market,
+        assetCode: String,
+        figiAsset: FigiAsset,
+        id: String,
+    ): Asset {
         val asset = transform(market, assetCode, defaultName = figiAsset.name, id = id)
         asset.name = figiAsset.name
         asset.category = figiAsset.securityType2

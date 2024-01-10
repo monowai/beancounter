@@ -19,21 +19,23 @@ import java.math.BigDecimal
  */
 @SpringBootTest(classes = [Accumulator::class])
 class FxBuyBehaviourTest {
-
     @Autowired
     private lateinit var accumulator: Accumulator
 
     @Test
     fun is_FxBuyAccumulated() {
-        val trn = Trn(
-            trnType = TrnType.FX_BUY,
-            asset = usdCashBalance,
-            quantity = BigDecimal("2500.00"), // Buy
-            cashAsset = nzdCashBalance,
-            cashCurrency = NZD,
-            tradeCashRate = BigDecimal("1.5"), // Sell
-            cashAmount = BigDecimal("-5000.00"),
-        )
+        val trn =
+            Trn(
+                trnType = TrnType.FX_BUY,
+                asset = usdCashBalance,
+                // Buy
+                quantity = BigDecimal("2500.00"),
+                cashAsset = nzdCashBalance,
+                cashCurrency = NZD,
+                // Sell
+                tradeCashRate = BigDecimal("1.5"),
+                cashAmount = BigDecimal("-5000.00"),
+            )
         val positions = Positions()
         val usdPosition = accumulator.accumulate(trn, positions)
         // Fx affects two positions

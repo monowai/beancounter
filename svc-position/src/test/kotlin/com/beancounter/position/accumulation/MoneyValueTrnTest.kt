@@ -101,44 +101,51 @@ internal class MoneyValueTrnTest {
         validatePosition(position, amount)
     }
 
-    private fun buyTrn() = Trn(
-        trnType = TrnType.BUY,
-        asset = microsoft,
-        quantity = hundred,
-        tradeAmount = twoK,
-        tradeCashRate = BigDecimal("0.56"),
-        tradePortfolioRate = tradePortfolioRate,
-    )
+    private fun buyTrn() =
+        Trn(
+            trnType = TrnType.BUY,
+            asset = microsoft,
+            quantity = hundred,
+            tradeAmount = twoK,
+            tradeCashRate = BigDecimal("0.56"),
+            tradePortfolioRate = tradePortfolioRate,
+        )
 
-    private fun dividendTrn() = Trn(
-        trnType = TrnType.DIVI,
-        asset = microsoft,
-        quantity = BigDecimal.ZERO,
-        tradeAmount = BigDecimal.TEN,
-        tradeCashRate = BigDecimal.TEN,
-        tradePortfolioRate = tradePortfolioRate,
-        cashAmount = BigDecimal.TEN,
-    )
+    private fun dividendTrn() =
+        Trn(
+            trnType = TrnType.DIVI,
+            asset = microsoft,
+            quantity = BigDecimal.ZERO,
+            tradeAmount = BigDecimal.TEN,
+            tradeCashRate = BigDecimal.TEN,
+            tradePortfolioRate = tradePortfolioRate,
+            cashAmount = BigDecimal.TEN,
+        )
 
-    private fun sellTrn(position: Position) = Trn(
-        trnType = TrnType.SELL,
-        asset = microsoft,
-        quantity = position.quantityValues.getTotal(),
-        tradeAmount = fourK,
-        tradeCashRate = BigDecimal.TEN,
-        tradePortfolioRate = tradePortfolioRate,
-    )
+    private fun sellTrn(position: Position) =
+        Trn(
+            trnType = TrnType.SELL,
+            asset = microsoft,
+            quantity = position.quantityValues.getTotal(),
+            tradeAmount = fourK,
+            tradeCashRate = BigDecimal.TEN,
+            tradePortfolioRate = tradePortfolioRate,
+        )
 
-    private fun splitTrn() = Trn(
-        trnType = TrnType.SPLIT,
-        asset = microsoft,
-        quantity = BigDecimal.TEN,
-        tradeCashRate = BigDecimal.TEN,
-        tradePortfolioRate = tradePortfolioRate,
-        cashAmount = BigDecimal.TEN,
-    )
+    private fun splitTrn() =
+        Trn(
+            trnType = TrnType.SPLIT,
+            asset = microsoft,
+            quantity = BigDecimal.TEN,
+            tradeCashRate = BigDecimal.TEN,
+            tradePortfolioRate = tradePortfolioRate,
+            cashAmount = BigDecimal.TEN,
+        )
 
-    private fun validatePosition(position: Position, amount: BigDecimal) {
+    private fun validatePosition(
+        position: Position,
+        amount: BigDecimal,
+    ) {
         assertThat(position.getMoneyValues(Position.In.TRADE).sales)
             .isEqualTo(fourK)
         assertThat(position.getMoneyValues(Position.In.TRADE).realisedGain)

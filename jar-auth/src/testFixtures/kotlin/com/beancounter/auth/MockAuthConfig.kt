@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = false)
 @Import(AuthConfig::class, LoginService::class, TokenService::class, TokenUtils::class, AuthUtilService::class)
 class MockAuthConfig {
-
     @MockBean
     lateinit var oAuthConfig: OAuthConfig
 
@@ -56,7 +55,10 @@ class MockAuthConfig {
     /**
      * Log the user in, optionally registering them if an ISystemUser is supplied
      */
-    fun login(systemUser: SystemUser, registrationService: Registration?): Jwt {
+    fun login(
+        systemUser: SystemUser,
+        registrationService: Registration?,
+    ): Jwt {
         val jwt = getUserToken(systemUser)
         Mockito.`when`(jwtDecoder.decode(systemUser.email)).thenReturn(jwt)
         SecurityContextHolder.getContext().authentication =

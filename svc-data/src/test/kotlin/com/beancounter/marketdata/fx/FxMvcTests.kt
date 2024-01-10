@@ -29,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultMatcher
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -41,12 +42,12 @@ import java.time.LocalDate
  * FX MVC tests for rates at today and historic dates
  */
 @SpringBootTest
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@ActiveProfiles("test")
+@Tag("db")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 internal class FxMvcTests {
-
     private var dateUtils = DateUtils()
 
     @Autowired
@@ -65,15 +66,17 @@ internal class FxMvcTests {
     @Test
     fun fxResponseObjectReturned() {
         mockProviderRates()
-        val fxRequest = FxRequest(
-            rateDate = date,
-            pairs = arrayListOf(
-                nzdUsd,
-                usdNzd,
-                IsoCurrencyPair(usd, usd),
-                IsoCurrencyPair(nzd, nzd),
-            ),
-        )
+        val fxRequest =
+            FxRequest(
+                rateDate = date,
+                pairs =
+                    arrayListOf(
+                        nzdUsd,
+                        usdNzd,
+                        IsoCurrencyPair(usd, usd),
+                        IsoCurrencyPair(nzd, nzd),
+                    ),
+            )
 
         val results = getResults(fxRequest)
         val theRates = results.rates
@@ -86,8 +89,9 @@ internal class FxMvcTests {
 
     private fun getResults(fxRequest: FxRequest): FxPairResults {
         val mvcResult = fxPost(fxRequest)
-        val (results) = BcJson().objectMapper
-            .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+        val (results) =
+            BcJson().objectMapper
+                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
         assertThat(results.rates)
             .isNotNull
             .hasSize(fxRequest.pairs.size)
@@ -119,8 +123,9 @@ internal class FxMvcTests {
                 ),
             )
         val mvcResult = fxPost(fxRequest)
-        val (results) = BcJson().objectMapper
-            .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
+        val (results) =
+            BcJson().objectMapper
+                .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
         assertThat(results.rates)
             .isNotNull
             .hasSize(fxRequest.pairs.size)
@@ -140,27 +145,29 @@ internal class FxMvcTests {
         return ecbResponse
     }
 
-    private fun fxPost(fxRequest: FxRequest, expectedResult: ResultMatcher = status().isOk) =
-        mockMvc.perform(
-            MockMvcRequestBuilders.post(fxRoot)
-                .with(
-                    SecurityMockMvcRequestPostProcessors.jwt()
-                        .jwt(mockAuthConfig.getUserToken(Constants.systemUser)),
-                )
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    BcJson().objectMapper.writeValueAsString(fxRequest),
-                ),
-        ).andExpect(expectedResult)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
+    private fun fxPost(
+        fxRequest: FxRequest,
+        expectedResult: ResultMatcher = status().isOk,
+    ) = mockMvc.perform(
+        MockMvcRequestBuilders.post(FX_ROOT)
+            .with(
+                SecurityMockMvcRequestPostProcessors.jwt()
+                    .jwt(mockAuthConfig.getUserToken(Constants.systemUser)),
+            )
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                BcJson().objectMapper.writeValueAsString(fxRequest),
+            ),
+    ).andExpect(expectedResult)
+        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+        .andReturn()
 
     @Test
     fun earliestRateDateValid() {
         val ecbDate = EcbDate(dateUtils)
         assertThat(ecbDate.getValidDate("1990-01-01"))
-            .isEqualTo(EcbDate.earliest)
+            .isEqualTo(EcbDate.EARLIEST)
     }
 
     @Test
@@ -173,9 +180,10 @@ internal class FxMvcTests {
         fxRequest.add(invalid)
 
         val mvcResult = fxPost(fxRequest, status().is4xxClientError)
-        val someException = java.util.Optional.ofNullable(
-            mvcResult.resolvedException as BusinessException,
-        )
+        val someException =
+            java.util.Optional.ofNullable(
+                mvcResult.resolvedException as BusinessException,
+            )
         assertThat(someException.isPresent).isTrue
         assertThat(someException.get()).hasMessageContaining(from)
     }
@@ -183,9 +191,9 @@ internal class FxMvcTests {
     companion object {
         val nzd = NZD.code
         val usd = USD.code
-        const val fxRoot = "/fx"
+        const val FX_ROOT = "/fx"
         val usdNzd = IsoCurrencyPair(usd, nzd)
         val nzdUsd = IsoCurrencyPair(nzd, usd)
-        const val fxMock = "/mock/fx"
+        const val FX_MOCK = "/mock/fx"
     }
 }

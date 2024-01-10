@@ -19,15 +19,19 @@ import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
 /**
  * Simulate the flow of an off market real estate purchase.
  */
 @SpringBootTest
+@AutoConfigureMockMvc
 @AutoConfigureMockAuth
+@ActiveProfiles("test")
 class RealEstateAssetTest {
     @Autowired
     private lateinit var assetService: AssetService
@@ -53,12 +57,13 @@ class RealEstateAssetTest {
     @Autowired
     private lateinit var systemUserService: Registration
 
-    val reInput = AssetInput.toRealEstate(
-        currency = NZD,
-        code = "HAKL",
-        name = "My House In Auckland",
-        owner = "test-user",
-    )
+    val reInput =
+        AssetInput.toRealEstate(
+            currency = NZD,
+            code = "HAKL",
+            name = "My House In Auckland",
+            owner = "test-user",
+        )
 
     private val dateUtils = DateUtils()
 
@@ -71,11 +76,12 @@ class RealEstateAssetTest {
             .hasFieldOrPropertyWithValue("subject", sysUser.id)
 
         val category = assetCategoryConfig.get(reInput.category.uppercase())
-        val assetResponse = assetService.handle(
-            AssetRequest(
-                mapOf(Pair(NZD.code, reInput)),
-            ),
-        )
+        val assetResponse =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(Pair(NZD.code, reInput)),
+                ),
+            )
         assertThat(assetResponse.data).hasSize(1)
         val reAsset = assetResponse.data[NZD.code]
         assertThat(reAsset)
@@ -97,13 +103,14 @@ class RealEstateAssetTest {
         val marketData = priceService.getMarketData(reAsset!!, dateUtils.date)
         assertThat(marketData.isPresent).isFalse() // no price exists
         val housePrice = BigDecimal("10000.99")
-        val priceResponse = marketDataService.getPriceResponse(
-            PriceRequest(
-                dateUtils.today(),
-                listOf(PriceAsset(reAsset)),
-                closePrice = housePrice,
-            ),
-        )
+        val priceResponse =
+            marketDataService.getPriceResponse(
+                PriceRequest(
+                    dateUtils.today(),
+                    listOf(PriceAsset(reAsset)),
+                    closePrice = housePrice,
+                ),
+            )
 
         assertThat(priceResponse.data).isNotNull()
         assertThat(priceResponse.data.iterator().next())

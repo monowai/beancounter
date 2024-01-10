@@ -8,7 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Locale
+import java.util.Optional
 
 /**
  * Verification of Market related functions.
@@ -20,7 +21,7 @@ import java.util.*
 @ConfigurationProperties(prefix = "beancounter.currency")
 class CurrencyService {
     final var base: String = "USD"
-    var values: Collection<Currency> = ArrayList()
+    var values: Collection<Currency> = arrayListOf()
     var baseCurrency: Currency = Currency(base)
 
     @Autowired

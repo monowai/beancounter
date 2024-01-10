@@ -36,18 +36,23 @@ class ProviderArguments(
      *
      * @param asset BeanCounter Asset
      */
-    fun addAsset(asset: Asset, requestedDate: String) {
+    fun addAsset(
+        asset: Asset,
+        requestedDate: String,
+    ) {
         val dpKey = dataProviderConfig.getPriceCode(asset)
         dpToBc[dpKey] = asset
-        val valuationDate = if (dateUtils.isToday(requestedDate)) {
-            dateUtils.offsetDateString(requestedDate)
-        } else {
-            requestedDate
-        }
+        val valuationDate =
+            if (dateUtils.isToday(requestedDate)) {
+                dateUtils.offsetDateString(requestedDate)
+            } else {
+                requestedDate
+            }
 
-        val datedBatch = datedBatches.getOrPut(currentBatch) {
-            DatedBatch(currentBatch, valuationDate)
-        }
+        val datedBatch =
+            datedBatches.getOrPut(currentBatch) {
+                DatedBatch(currentBatch, valuationDate)
+            }
 
         val searchKey = batch[datedBatch.batchId]?.let { it + delimiter + dpKey } ?: dpKey
         batch[currentBatch] = searchKey
@@ -58,8 +63,7 @@ class ProviderArguments(
         }
     }
 
-    fun getAssets(batchId: Int): Array<String> =
-        batch[batchId]!!.split(delimiter).toTypedArray()
+    fun getAssets(batchId: Int): Array<String> = batch[batchId]!!.split(delimiter).toTypedArray()
 
     fun getBatchConfigs(): Map<Int, DatedBatch?> {
         return datedBatches
@@ -81,7 +85,6 @@ class ProviderArguments(
             priceRequest: PriceRequest,
             dataProviderConfig: DataProviderConfig,
             dateUtils: DateUtils = DateUtils(),
-
         ): ProviderArguments {
             val providerArguments = ProviderArguments(dataProviderConfig, dateUtils)
             providerArguments.date = priceRequest.date

@@ -28,7 +28,6 @@ import java.math.BigDecimal
  * Non-trn related integrations over Kafka. Price and Corporate Action Events.
  */
 class KafkaMarketDataTest : KafkaBase() {
-
     companion object {
         const val TOPIC_EVENT = "topicEvent"
     }
@@ -60,8 +59,7 @@ class KafkaMarketDataTest : KafkaBase() {
 
     @Test
     fun corporateEventDispatched() {
-        val data: MutableMap<String, AssetInput> = HashMap()
-        data["a"] = AssetInput(NASDAQ.code, "TWEE")
+        val data: MutableMap<String, AssetInput> = mutableMapOf(Pair("a", AssetInput(NASDAQ.code, "TWEE")))
         val assetRequest = AssetRequest(data)
         `when`(assetService.handle(assetRequest))
             .thenReturn(AssetUpdateResponse(mapOf(Pair("a", getTestAsset(code = "id", market = NASDAQ)))))
@@ -70,28 +68,32 @@ class KafkaMarketDataTest : KafkaBase() {
         val asset = assetResult.data["a"]
         assertThat(asset!!.id).isNotNull
         assertThat(asset.market).isNotNull
-        val marketData = MarketData(
-            asset,
-            dateUtils.getDate("2019-12-10", dateUtils.getZoneId()),
-        )
+        val marketData =
+            MarketData(
+                asset,
+                dateUtils.getDate("2019-12-10", dateUtils.getZoneId()),
+            )
         marketData.source = "ALPHA"
         marketData.dividend = BigDecimal("2.34")
         marketData.split = BigDecimal("1.000")
         // Compare with a serialised event
         eventProducer.write(marketData)
 
-        val consumer = KafkaConsumerUtils().getConsumer(
-            this::class.toString(),
-            TOPIC_EVENT,
-            embeddedKafkaBroker,
-        )
+        val consumer =
+            KafkaConsumerUtils().getConsumer(
+                this::class.toString(),
+                TOPIC_EVENT,
+                embeddedKafkaBroker,
+            )
 
         val consumerRecord = KafkaTestUtils.getSingleRecord(consumer, TOPIC_EVENT)
+        consumer.close()
         assertThat(consumerRecord.value()).isNotNull
-        val (eventInput) = objectMapper.readValue(
-            consumerRecord.value(),
-            TrustedEventInput::class.java,
-        )
+        val (eventInput) =
+            objectMapper.readValue(
+                consumerRecord.value(),
+                TrustedEventInput::class.java,
+            )
         assertThat(eventInput)
             .hasFieldOrPropertyWithValue("rate", marketData.dividend)
             .hasFieldOrPropertyWithValue("assetId", asset.id)

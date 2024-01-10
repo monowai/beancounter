@@ -49,20 +49,22 @@ class AssetSerialization {
     @Test
     @Throws(JsonProcessingException::class)
     fun searchResponse() {
-        val searchResult = AssetSearchResult(
-            "Some Symbol",
-            "Some Name",
-            "Non Default",
-            "Some Region",
-            USD.code,
-        )
-        val withDefaults = AssetSearchResult(
-            "Symbol",
-            "Name",
-            "Equity",
-            "Some Region",
-            USD.code,
-        )
+        val searchResult =
+            AssetSearchResult(
+                "Some Symbol",
+                "Some Name",
+                "Non Default",
+                "Some Region",
+                USD.code,
+            )
+        val withDefaults =
+            AssetSearchResult(
+                "Symbol",
+                "Name",
+                "Equity",
+                "Some Region",
+                USD.code,
+            )
 
         val results: MutableCollection<AssetSearchResult> = ArrayList()
         results.add(searchResult)

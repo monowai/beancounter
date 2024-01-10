@@ -37,7 +37,6 @@ import java.math.BigDecimal
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 class ShareSightRatesInTrn {
-
     @Autowired
     private lateinit var shareSightFactory: ShareSightFactory
 
@@ -68,24 +67,25 @@ class ShareSightRatesInTrn {
         Assertions.assertThat(portfolio).isNotNull
 
         // Trade is in USD
-        row.add(ShareSightDividendAdapter.id, "ABC")
-        row.add(ShareSightDividendAdapter.code, "ABBV.NYS")
-        row.add(ShareSightDividendAdapter.name, "Test Asset")
-        row.add(ShareSightDividendAdapter.date, "21/01/2019")
+        row.add(ShareSightDividendAdapter.ID, "ABC")
+        row.add(ShareSightDividendAdapter.CODE, "ABBV.NYS")
+        row.add(ShareSightDividendAdapter.NAME, "Test Asset")
+        row.add(ShareSightDividendAdapter.DATE, "21/01/2019")
         val rate = "0.8074" // Sharesight Trade to Reference Rate
-        row.add(ShareSightDividendAdapter.fxRate, rate)
-        row.add(ShareSightDividendAdapter.currency, USD.code) // TradeCurrency
+        row.add(ShareSightDividendAdapter.FX_RATE, rate)
+        row.add(ShareSightDividendAdapter.CURRENCY, USD.code) // TradeCurrency
         val net = "15.85"
-        row.add(ShareSightDividendAdapter.net, net)
-        row.add(ShareSightDividendAdapter.tax, BigDecimal.ZERO.toString())
-        row.add(ShareSightDividendAdapter.gross, net)
-        row.add(ShareSightDividendAdapter.comments, testComment)
+        row.add(ShareSightDividendAdapter.NET, net)
+        row.add(ShareSightDividendAdapter.TAX, BigDecimal.ZERO.toString())
+        row.add(ShareSightDividendAdapter.GROSS, net)
+        row.add(ShareSightDividendAdapter.COMMENTS, testComment)
         val dividends = shareSightFactory.adapter(row)
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio,
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio,
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = dividends.from(trustedTrnImportRequest)
         val fxRate = BigDecimal(rate)
         Assertions.assertThat(trn) // Id comes from svc-data/contracts/assets
@@ -101,7 +101,7 @@ class ShareSightRatesInTrn {
                 multiplyAbs(BigDecimal(net), fxRate),
             )
             .hasFieldOrPropertyWithValue("tax", BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue("comments", row[ShareSightDividendAdapter.comments])
+            .hasFieldOrPropertyWithValue("comments", row[ShareSightDividendAdapter.COMMENTS])
             .hasFieldOrPropertyWithValue("tradeCurrency", USD.code)
             .hasFieldOrProperty("tradeDate")
     }
@@ -115,11 +115,12 @@ class ShareSightRatesInTrn {
         // Portfolio is in NZD
         val portfolio = getPortfolio("is_TradeRowWithFxConverted", NZD)
         // System base currency
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio,
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio,
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 
         log.info(BcJson().objectMapper.writeValueAsString(trn))

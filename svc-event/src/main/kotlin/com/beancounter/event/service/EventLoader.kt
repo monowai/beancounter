@@ -33,7 +33,6 @@ class EventLoader(
     private val loginService: LoginService,
     private val dateSplitter: DateSplitter,
 ) {
-
     @Async
     fun loadEvents(date: String) {
         loginService.loginM2m()
@@ -66,7 +65,11 @@ class EventLoader(
         }
     }
 
-    fun loadEvents(portfolio: Portfolio, date: LocalDate, authContext: OpenIdResponse): Int {
+    fun loadEvents(
+        portfolio: Portfolio,
+        date: LocalDate,
+        authContext: OpenIdResponse,
+    ): Int {
         loginService.setAuthContext(authContext)
         val positionResponse = positionService.getPositions(portfolio, date.toString())
         if (positionResponse.data.positions.values.isEmpty()) {
@@ -77,17 +80,18 @@ class EventLoader(
 
         val executor: ExecutorService = Executors.newFixedThreadPool(positionResponse.data.positions.values.size)
 
-        val tasks: List<Callable<Int>> = positionResponse.data.positions.values.map { position ->
-            Callable {
-                val events = load(position, date, authContext)
-                if (events != 0) {
-                    backfillService.backFillEvents(portfolio.id, date.toString())
-                    log.trace("Published: $events nominal events")
+        val tasks: List<Callable<Int>> =
+            positionResponse.data.positions.values.map { position ->
+                Callable {
+                    val events = load(position, date, authContext)
+                    if (events != 0) {
+                        backfillService.backFillEvents(portfolio.id, date.toString())
+                        log.trace("Published: $events nominal events")
+                    }
+                    totalEvents += events
+                    events
                 }
-                totalEvents += events
-                events
             }
-        }
 
         executor.invokeAll(tasks)
 
@@ -105,7 +109,11 @@ class EventLoader(
         return totalEvents
     }
 
-    private fun load(position: Position, date: LocalDate, authContext: OpenIdResponse): Int {
+    private fun load(
+        position: Position,
+        date: LocalDate,
+        authContext: OpenIdResponse,
+    ): Int {
         var eventCount = 0
         if (positionService.includePosition(position)) {
             loginService.setAuthContext(authContext)

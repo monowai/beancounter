@@ -31,7 +31,6 @@ class Positions(
     val positions: MutableMap<String, Position> = TreeMap(),
     val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java),
 ) {
-
     var isMixedCurrencies = false
 
     @JsonIgnore
@@ -72,7 +71,10 @@ class Positions(
     operator fun contains(asset: Asset) = positions.contains(toKey(asset))
 
     @JsonIgnore
-    operator fun get(asset: Asset, tradeDate: LocalDate): Position {
+    operator fun get(
+        asset: Asset,
+        tradeDate: LocalDate,
+    ): Position {
         val firstTrade = !positions.containsKey(toKey(asset))
         val position = get(asset)
         if (firstTrade) {
@@ -85,7 +87,10 @@ class Positions(
         return positions.isNotEmpty()
     }
 
-    fun setTotal(valueIn: Position.In, totals: Totals) {
+    fun setTotal(
+        valueIn: Position.In,
+        totals: Totals,
+    ) {
         this.totals[valueIn] = totals
     }
 }

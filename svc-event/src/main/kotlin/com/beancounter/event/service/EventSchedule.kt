@@ -15,7 +15,6 @@ class EventSchedule(
     private val eventService: EventService,
     private val dateUtils: DateUtils,
 ) {
-
     private var loginService: LoginService? = null
 
     @Autowired(required = false)

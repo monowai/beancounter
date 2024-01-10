@@ -12,7 +12,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.MOCK
-import com.beancounter.shell.integ.TrnCsvKafka.Companion.topic
+import com.beancounter.shell.integ.TrnCsvKafka.Companion.TOPIC
 import com.beancounter.shell.kafka.KafkaTrnProducer
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -39,7 +39,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
  */
 @EmbeddedKafka(
     partitions = 1,
-    topics = [topic],
+    topics = [TOPIC],
     bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = ["log.dir=./build/kafka", "listeners=PLAINTEXT://localhost:\${kafka.broker.port}", "auto.create.topics.enable=true"],
 )
@@ -56,6 +56,7 @@ class TrnCsvKafka {
     private final val abc = "ABC"
     private val row: List<String> = listOf(abc, abc, abc)
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
 
@@ -73,38 +74,40 @@ class TrnCsvKafka {
     @BeforeEach
     fun mockBeans() {
         log.debug("!!! {}", embeddedKafkaBroker.brokersAsString)
-        val trnAdapter = Mockito.mock(
-            TrnAdapter::class.java,
-        )
+        val trnAdapter =
+            Mockito.mock(
+                TrnAdapter::class.java,
+            )
         Mockito.`when`(trnAdapter.resolveAsset(row))
             .thenReturn(getTestAsset(MOCK, abc))
 
         Mockito.`when`(shareSightFactory.adapter(row)).thenReturn(trnAdapter)
 
-        val consumerProps: MutableMap<String, Any> = KafkaTestUtils.consumerProps(
-            "shell-test",
-            "false",
-            embeddedKafkaBroker,
-        )
+        val consumerProps: MutableMap<String, Any> =
+            KafkaTestUtils.consumerProps(
+                "shell-test",
+                "false",
+                embeddedKafkaBroker,
+            )
         consumerProps["session.timeout.ms"] = 6000
         consumerProps[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         val cf = DefaultKafkaConsumerFactory<String, String>(consumerProps)
         consumer = cf.createConsumer()
-        embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, topic)
+        embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TOPIC)
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_TrnRequestSendingCorrectly() {
-        val trnRequest = TrustedTrnImportRequest(
-            getPortfolio(),
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val trnRequest =
+            TrustedTrnImportRequest(
+                getPortfolio(),
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         kafkaTrnProducer!!.write(trnRequest)
         log.info("Waiting for Result")
         try {
-            val received = KafkaTestUtils.getSingleRecord(consumer, topic)
+            val received = KafkaTestUtils.getSingleRecord(consumer, TOPIC)
             Assertions.assertThat(received.value()).isNotNull
             Assertions.assertThat(
                 objectMapper.readValue(
@@ -120,6 +123,6 @@ class TrnCsvKafka {
     }
 
     companion object {
-        const val topic: String = "shellTrnTopic"
+        const val TOPIC: String = "shellTrnTopic"
     }
 }

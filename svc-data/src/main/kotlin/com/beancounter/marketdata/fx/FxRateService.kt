@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service
 class FxRateService
 (private val ecbService: EcbService, private val currencyService: CurrencyService) :
     FxService {
-
     @Cacheable("fx.rates")
     @Retryable
     @RateLimiter(name = "fxRates")

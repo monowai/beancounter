@@ -21,7 +21,11 @@ class FigiEnricher(val defaultEnricher: DefaultEnricher) : AssetEnricher {
     }
 
     // @Cacheable(value = "asset.ext") //, unless = "#result == null"
-    override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
+    override fun enrich(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+    ): Asset {
         return figiProxy.find(market, assetInput.code, id = id) ?: defaultEnricher.enrich(
             id,
             market,

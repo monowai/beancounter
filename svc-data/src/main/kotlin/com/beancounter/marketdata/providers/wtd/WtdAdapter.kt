@@ -19,6 +19,7 @@ import java.util.concurrent.Future
 @Service
 class WtdAdapter : MarketDataAdapter {
     private val dateUtils = DateUtils()
+
     operator fun get(
         providerArguments: ProviderArguments,
         batchId: Int,
@@ -61,7 +62,11 @@ class WtdAdapter : MarketDataAdapter {
         }
     }
 
-    private fun getDefault(asset: Asset?, dpAsset: String, datedBatch: DatedBatch?): MarketData {
+    private fun getDefault(
+        asset: Asset?,
+        dpAsset: String,
+        datedBatch: DatedBatch?,
+    ): MarketData {
         log.trace(
             "{}/{} - unable to locate a price on {}",
             dpAsset,

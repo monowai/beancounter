@@ -18,43 +18,43 @@ import java.io.IOException
  * @since 2019-03-09
  */
 object AlphaMockUtils {
-    const val alphaContracts = "mock/alpha"
+    const val ALPHA_MOCK = "mock/alpha"
     private val objectMapper: ObjectMapper = BcJson().objectMapper
-    const val assetMarketCodeUrl = "/assets/{market}/{code}"
+    const val URL_ASSETS_MARKET_CODE = "/assets/{market}/{code}"
 
     @JvmStatic
     fun mockAlphaAssets() {
         mockSearchResponse(
             MSFT.code,
-            ClassPathResource("$alphaContracts/msft-response.json").file,
+            ClassPathResource("$ALPHA_MOCK/msft-response.json").file,
         )
         mockSearchResponse(
             "BRK-B",
-            ClassPathResource("$alphaContracts/brkb-response.json").file,
+            ClassPathResource("$ALPHA_MOCK/brkb-response.json").file,
         )
         mockSearchResponse(
             "AAPL",
-            ClassPathResource("$alphaContracts/aapl-response.json").file,
+            ClassPathResource("$ALPHA_MOCK/aapl-response.json").file,
         )
         mockSearchResponse(
             "AMP.AX",
-            ClassPathResource("$alphaContracts/amp-search.json").file,
+            ClassPathResource("$ALPHA_MOCK/amp-search.json").file,
         )
         mockSearchResponse(
             "DTV",
-            ClassPathResource("$alphaContracts/dtv-search.json").file,
+            ClassPathResource("$ALPHA_MOCK/dtv-search.json").file,
         )
         mockGlobalResponse(
             "AMP.AX",
-            ClassPathResource("$alphaContracts/amp-global.json").file,
+            ClassPathResource("$ALPHA_MOCK/amp-global.json").file,
         )
         mockGlobalResponse(
             "AMP.AUS",
-            ClassPathResource("$alphaContracts/amp-global.json").file,
+            ClassPathResource("$ALPHA_MOCK/amp-global.json").file,
         )
         mockGlobalResponse(
             MSFT.code,
-            ClassPathResource("$alphaContracts/msft-global.json").file,
+            ClassPathResource("$ALPHA_MOCK/msft-global.json").file,
         )
     }
 
@@ -64,14 +64,20 @@ object AlphaMockUtils {
      * @param jsonFile     response file to return
      * @throws IOException anything
      */
-    fun mockAdjustedResponse(symbol: String, jsonFile: File) {
+    fun mockAdjustedResponse(
+        symbol: String,
+        jsonFile: File,
+    ) {
         mockGetResponse(
             "/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=$symbol&apikey=demo&outputsize=full",
             jsonFile,
         )
     }
 
-    fun mockGlobalResponse(symbol: String, jsonFile: File) {
+    fun mockGlobalResponse(
+        symbol: String,
+        jsonFile: File,
+    ) {
         mockGetResponse(
             "/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=demo",
             jsonFile,
@@ -85,7 +91,10 @@ object AlphaMockUtils {
      * @param jsonFile     response file to return
      * @throws IOException anything
      */
-    private fun mockGetResponse(url: String, jsonFile: File) {
+    private fun mockGetResponse(
+        url: String,
+        jsonFile: File,
+    ) {
         stubFor(
             WireMock.get(WireMock.urlEqualTo(url))
                 .willReturn(
@@ -104,7 +113,10 @@ object AlphaMockUtils {
         )
     }
 
-    fun mockSearchResponse(code: String, file: File) {
+    fun mockSearchResponse(
+        code: String,
+        file: File,
+    ) {
         stubFor(
             WireMock.get(WireMock.urlEqualTo("/query?function=SYMBOL_SEARCH&keywords=$code&apikey=demo"))
                 .willReturn(

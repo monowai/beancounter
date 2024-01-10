@@ -118,10 +118,11 @@ class KeyGenUtils {
             var j = 0
             while (i < 15) {
                 // Get the next four characters.
-                val d = i256[s[j++].code] shl 18 or (
-                    i256[s[j++].code] shl 12
+                val d =
+                    i256[s[j++].code] shl 18 or (
+                        i256[s[j++].code] shl 12
                     ) or (
-                    i256[s[j++].code] shl 6
+                        i256[s[j++].code] shl 6
                     ) or i256[s[j++].code]
 
                 // Put them in these three bytes.

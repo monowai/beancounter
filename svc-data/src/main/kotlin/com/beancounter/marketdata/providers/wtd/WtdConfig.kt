@@ -17,45 +17,50 @@ import java.time.LocalDate
  */
 @Configuration
 @Import(WtdService::class, WtdProxy::class, WtdAdapter::class)
-class WtdConfig @Autowired constructor(val marketService: MarketService) : DataProviderConfig {
+class WtdConfig
+    @Autowired
+    constructor(val marketService: MarketService) : DataProviderConfig {
+        @Value("\${beancounter.market.providers.WTD.batchSize:2}")
+        var assetsPerRequest = 2
 
-    @Value("\${beancounter.market.providers.WTD.batchSize:2}")
-    var assetsPerRequest = 2
+        // For testing purposes - allows us to set up a static base date for which Market Prices Dates
+        // can be reliably computed from.
+        @Value("\${beancounter.market.providers.WTD.date:#{null}}")
+        var date: String? = null
+            get() = if (field == null) dateUtils.today() else field
 
-    // For testing purposes - allows us to set up a static base date for which Market Prices Dates
-    // can be reliably computed from.
-    @Value("\${beancounter.market.providers.WTD.date:#{null}}")
-    var date: String? = null
-        get() = if (field == null) dateUtils.today() else field
+        @Value("\${beancounter.market.providers.WTD.markets}")
+        var markets: String? = null
 
-    @Value("\${beancounter.market.providers.WTD.markets}")
-    var markets: String? = null
+        final var dateUtils = DateUtils()
+        var marketUtils = PreviousClosePriceDate(dateUtils)
 
-    final var dateUtils = DateUtils()
-    var marketUtils = PreviousClosePriceDate(dateUtils)
+        private fun translateMarketCode(market: Market): String? {
+            return marketService.getMarket(market.code).aliases[WtdService.ID]
+        }
 
-    private fun translateMarketCode(market: Market): String? {
-        return marketService.getMarket(market.code).aliases[WtdService.ID]
-    }
+        override fun getMarketDate(
+            market: Market,
+            date: String,
+            currentMode: Boolean,
+        ): LocalDate {
+            return marketUtils.getPriceDate(
+                dateUtils.offsetNow(date).toZonedDateTime(),
+                market,
+                currentMode,
+            )
+        }
 
-    override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
-        return marketUtils.getPriceDate(
-            dateUtils.offsetNow(date).toLocalDateTime(),
-            market,
-            currentMode,
-        )
-    }
+        override fun getPriceCode(asset: Asset): String {
+            val marketCode = translateMarketCode(asset.market)
+            return if (!marketCode.isNullOrEmpty()) {
+                asset.code + "." + marketCode
+            } else {
+                asset.code
+            }
+        }
 
-    override fun getPriceCode(asset: Asset): String {
-        val marketCode = translateMarketCode(asset.market)
-        return if (!marketCode.isNullOrEmpty()) {
-            asset.code + "." + marketCode
-        } else {
-            asset.code
+        override fun getBatchSize(): Int {
+            return assetsPerRequest
         }
     }
-
-    override fun getBatchSize(): Int {
-        return assetsPerRequest
-    }
-}

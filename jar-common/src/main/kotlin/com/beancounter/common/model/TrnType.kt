@@ -20,7 +20,6 @@ enum class TrnType {
     ;
 
     companion object {
-
         val creditsCash = arrayOf(DEPOSIT, SELL, DIVI)
         val debitsCash = arrayOf(BUY, WITHDRAWAL, FX_BUY)
 

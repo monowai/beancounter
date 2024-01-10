@@ -15,7 +15,6 @@ class ShareSightFactory(
     val shareSightDivi: ShareSightDividendAdapter,
     val shareSightTrade: ShareSightTradeAdapter,
 ) {
-
     /**
      * Figure out if we're dealing with a Trade or Dividend row.
      *
@@ -23,7 +22,7 @@ class ShareSightFactory(
      * @return appropriate transformer
      */
     fun adapter(row: List<String>): TrnAdapter {
-        return if (TRADE_TYPES.contains(row[ShareSightTradeAdapter.type].uppercase(Locale.getDefault()))) {
+        return if (TRADE_TYPES.contains(row[ShareSightTradeAdapter.TYPE].uppercase(Locale.getDefault()))) {
             shareSightTrade
         } else {
             shareSightDivi

@@ -20,22 +20,24 @@ class Constants {
         val NYSE = Market("NYSE")
         val NASDAQ = Market("NASDAQ")
         val ASX = Market("ASX", AUD.code)
-        private val owner = SystemUser(
-            id = "blah@blah.com",
-            email = "blah@blah.com",
-            true,
-            since = DateUtils().getDate("2020-03-08"),
-        )
-        var portfolio: Portfolio = Portfolio(
-            id = "TEST",
-            code = "TEST",
-            name = "NZD Portfolio",
-            currency = NZD,
-            base = USD,
-            owner = owner,
-        )
-        const val pTradeCashRate = "tradeCashRate"
-        const val pTradePortfolioRate = "tradePortfolioRate"
-        const val pTradeBaseRate = "tradeBaseRate"
+        private val owner =
+            SystemUser(
+                id = "blah@blah.com",
+                email = "blah@blah.com",
+                true,
+                since = DateUtils().getDate("2020-03-08"),
+            )
+        var portfolio: Portfolio =
+            Portfolio(
+                id = "TEST",
+                code = "TEST",
+                name = "NZD Portfolio",
+                currency = NZD,
+                base = USD,
+                owner = owner,
+            )
+        const val P_TRADE_CASH_RATE = "tradeCashRate"
+        const val P_TRADE_PORTFOLIO_RATE = "tradePortfolioRate"
+        const val P_TRADE_BASE_RATE = "tradeBaseRate"
     }
 }

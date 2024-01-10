@@ -29,8 +29,10 @@ class TrnAdapter(
     val fxTransactions: FxTransactions,
     val keyGenUtils: KeyGenUtils,
 ) {
-
-    fun convert(portfolio: Portfolio, trnRequest: TrnRequest): TrnResponse {
+    fun convert(
+        portfolio: Portfolio,
+        trnRequest: TrnRequest,
+    ): TrnResponse {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {
             trns.add(map(portfolio = portfolio, trnInput = trnInput))
@@ -38,17 +40,22 @@ class TrnAdapter(
         return TrnResponse(trns)
     }
 
-    fun map(portfolio: Portfolio, trnInput: TrnInput, existing: Trn? = null): Trn {
+    fun map(
+        portfolio: Portfolio,
+        trnInput: TrnInput,
+        existing: Trn? = null,
+    ): Trn {
         fxTransactions.setRates(portfolio, trnInput)
 
         val cashAsset = cashServices.getCashAsset(trnInput)
         var cashCurrency: Currency? = null
         if (cashAsset != null) {
-            cashCurrency = if (cashAsset.priceSymbol == null) {
-                currencyService.getCode(trnInput.cashCurrency!!)
-            } else {
-                currencyService.getCode(cashAsset.priceSymbol!!)
-            }
+            cashCurrency =
+                if (cashAsset.priceSymbol == null) {
+                    currencyService.getCode(trnInput.cashCurrency!!)
+                } else {
+                    currencyService.getCode(cashAsset.priceSymbol!!)
+                }
         }
         val tradeAmount = tradeCalculator.amount(trnInput)
         val quantity = if (trnInput.quantity == BigDecimal.ZERO) tradeAmount else trnInput.quantity

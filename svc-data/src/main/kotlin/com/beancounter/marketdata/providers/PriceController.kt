@@ -7,7 +7,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.today
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -37,7 +37,6 @@ class PriceController(
     private val priceService: PriceService,
     private val dateUtils: DateUtils,
 ) {
-
     /**
      * Market:Asset i.e. NYSE:MSFT.
      *
@@ -50,8 +49,9 @@ class PriceController(
         @PathVariable("marketCode") marketCode: String,
         @PathVariable("assetCode") assetCode: String,
     ): PriceResponse {
-        val asset = assetService.findLocally(AssetInput(marketCode, assetCode))
-            ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
+        val asset =
+            assetService.findLocally(AssetInput(marketCode, assetCode))
+                ?: throw BusinessException(String.format("Asset not found %s/%s", marketCode, assetCode))
         return marketDataService.getPriceResponse(
             PriceRequest.of(
                 asset = asset,
@@ -83,7 +83,9 @@ class PriceController(
     }
 
     @PostMapping("/write")
-    fun writeOffMarketPrice(@RequestBody offMarketPriceRequest: OffMarketPriceRequest): PriceResponse {
+    fun writeOffMarketPrice(
+        @RequestBody offMarketPriceRequest: OffMarketPriceRequest,
+    ): PriceResponse {
         val asset = assetService.find(offMarketPriceRequest.assetId)
         return PriceResponse(
             listOf(
@@ -97,20 +99,23 @@ class PriceController(
     }
 
     @PostMapping
-    fun getPrices(@RequestBody priceRequest: PriceRequest): PriceResponse {
+    fun getPrices(
+        @RequestBody priceRequest: PriceRequest,
+    ): PriceResponse {
         val systemUser = systemUserService.getActiveUser()
         for (priceAsset in priceRequest.assets) {
-            val asset = if (priceAsset.assetId.isNotEmpty()) {
-                assetService.find(priceAsset.assetId)
-            } else {
-                assetService.findLocally(
-                    AssetInput(
-                        market = priceAsset.market,
-                        code = priceAsset.code,
-                        owner = systemUser?.id ?: "",
-                    ),
-                )
-            }
+            val asset =
+                if (priceAsset.assetId.isNotEmpty()) {
+                    assetService.find(priceAsset.assetId)
+                } else {
+                    assetService.findLocally(
+                        AssetInput(
+                            market = priceAsset.market,
+                            code = priceAsset.code,
+                            owner = systemUser?.id ?: "",
+                        ),
+                    )
+                }
             if (asset != null) {
                 priceAsset.resolvedAsset = asset
             }
@@ -121,7 +126,6 @@ class PriceController(
     @GetMapping("/refresh/{assetId}/{date}")
     fun refreshPrices(
         @PathVariable assetId: String,
-        @PathVariable(required = false) date: String = today,
-    ): PriceResponse =
-        priceRefresh.refreshPrice(assetId, date)
+        @PathVariable(required = false) date: String = TODAY,
+    ): PriceResponse = priceRefresh.refreshPrice(assetId, date)
 }

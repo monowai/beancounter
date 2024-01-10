@@ -17,7 +17,6 @@ import org.springframework.shell.standard.ShellOption
 @ShellComponent
 class UserCommands(
     private val registrationService: RegistrationService,
-
 ) {
     @Lazy
     @Autowired(required = false)
@@ -29,11 +28,12 @@ class UserCommands(
     fun login(
         @ShellOption(help = "User ID", defaultValue = "") user: String?,
     ) {
-        val u = if (user.isNullOrBlank()) {
-            lineReader.readLine("User: ")
-        } else {
-            user
-        }
+        val u =
+            if (user.isNullOrBlank()) {
+                lineReader.readLine("User: ")
+            } else {
+                user
+            }
         val password = lineReader.readLine("Password: ", '*')
         registrationService.login(LoginRequest(u, password))
     }

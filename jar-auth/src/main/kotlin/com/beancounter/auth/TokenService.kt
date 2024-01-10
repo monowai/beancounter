@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service
  */
 @Service
 class TokenService(val authConfig: AuthConfig) {
-
     val jwt: JwtAuthenticationToken
         get() {
             val authentication = SecurityContextHolder.getContext().authentication
@@ -72,6 +71,7 @@ class TokenService(val authConfig: AuthConfig) {
 
     companion object {
         const val BEARER = "Bearer"
+
         private fun isTokenBased(authentication: Authentication): Boolean {
             return authentication.javaClass.isAssignableFrom(JwtAuthenticationToken::class.java)
         }

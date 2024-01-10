@@ -30,23 +30,25 @@ class TestEvent {
     "payDate": "$recordDateString",
     "recordDate": "$recordDateString"
   }"""
-        val (_, _, _, _, recordDate, _, _, payDate) = objectMapper.readValue(
-            eventJson,
-            CorporateEvent::class.java,
-        )
+        val (_, _, _, _, recordDate, _, _, payDate) =
+            objectMapper.readValue(
+                eventJson,
+                CorporateEvent::class.java,
+            )
         assertThat(recordDate).isEqualTo(recordDateString)
         assertThat(payDate).isEqualTo(recordDateString)
     }
 
     @Test
     fun is_EventConstructingAndSerializing() {
-        val event = CorporateEvent(
-            id = null,
-            trnType = TrnType.DIVI,
-            source = "TEST",
-            "assetId",
-            rate = BigDecimal.TEN,
-        )
+        val event =
+            CorporateEvent(
+                id = null,
+                trnType = TrnType.DIVI,
+                source = "TEST",
+                "assetId",
+                rate = BigDecimal.TEN,
+            )
         val eventRequest = EventRequest(event)
         val json = objectMapper.writeValueAsBytes(eventRequest)
         val fromJson = objectMapper.readValue(json, EventRequest::class.java)
@@ -56,13 +58,14 @@ class TestEvent {
 
     @Test
     fun is_EventInputSerializing() {
-        val trustedEventInput = TrustedEventInput(
-            CorporateEvent(
-                source = "test",
-                assetId = "xxx",
-                rate = BigDecimal.ONE,
-            ),
-        )
+        val trustedEventInput =
+            TrustedEventInput(
+                CorporateEvent(
+                    source = "test",
+                    assetId = "xxx",
+                    rate = BigDecimal.ONE,
+                ),
+            )
         val json = objectMapper.writeValueAsString(trustedEventInput)
         assertThat(objectMapper.readValue(json, TrustedEventInput::class.java))
             .usingRecursiveComparison().isEqualTo(trustedEventInput)

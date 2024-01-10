@@ -20,7 +20,12 @@ import java.math.BigDecimal
 class BuyBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
     private val averageCost = AverageCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
+
+    override fun accumulate(
+        trn: Trn,
+        positions: Positions,
+        position: Position,
+    ): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
         value(trn, position, TRADE, costRate(TRADE, trn.cashAsset, positions))
         // Use cost of cash for Base and Portfolio(?) rate if cash is impacted
@@ -50,16 +55,19 @@ class BuyBehaviour : AccumulationStrategy {
         `in`: Position.In,
         rate: BigDecimal,
     ) {
-        val moneyValues = position.getMoneyValues(
-            `in`,
-            currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
-        )
-        moneyValues.purchases = moneyValues.purchases.add(
-            multiply(trn.tradeAmount, rate),
-        )
-        moneyValues.costBasis = moneyValues.costBasis.add(
-            multiply(trn.tradeAmount, rate),
-        )
+        val moneyValues =
+            position.getMoneyValues(
+                `in`,
+                currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
+            )
+        moneyValues.purchases =
+            moneyValues.purchases.add(
+                multiply(trn.tradeAmount, rate),
+            )
+        moneyValues.costBasis =
+            moneyValues.costBasis.add(
+                multiply(trn.tradeAmount, rate),
+            )
         if (moneyValues.costBasis != BigDecimal.ZERO) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
         }

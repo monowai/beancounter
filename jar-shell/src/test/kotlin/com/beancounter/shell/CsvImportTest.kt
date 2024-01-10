@@ -14,7 +14,6 @@ import org.mockito.Mockito
  * Delimited Import test for trades and events.
  */
 class CsvImportTest {
-
     private var trnService: TrnService = Mockito.mock(TrnService::class.java)
 
     private var rowAdapter: RowAdapter = Mockito.mock(RowAdapter::class.java)

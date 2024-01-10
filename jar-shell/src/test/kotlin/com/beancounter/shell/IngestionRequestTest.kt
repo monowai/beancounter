@@ -14,12 +14,13 @@ class IngestionRequestTest {
     @Test
     @Throws(Exception::class)
     fun is_SerializationWorking() {
-        val ingestionRequest = IngestionRequest(
-            "",
-            file = "TWEE",
-            provider = "TheProvider",
-            portfolioCode = "Test",
-        )
+        val ingestionRequest =
+            IngestionRequest(
+                "",
+                file = "TWEE",
+                provider = "TheProvider",
+                portfolioCode = "Test",
+            )
         assertThat(ingestionRequest.ratesIgnored).isTrue
         val json = objectMapper.writeValueAsString(ingestionRequest)
         assertThat(objectMapper.readValue(json, IngestionRequest::class.java))

@@ -27,7 +27,6 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("contracts")
 @AutoConfigureNoAuth
 class RegisterBase {
-
     @LocalServerPort
     lateinit var port: String
 

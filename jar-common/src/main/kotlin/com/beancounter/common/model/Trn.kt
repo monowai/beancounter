@@ -38,23 +38,29 @@ data class Trn(
     var asset: Asset,
     @Column(precision = 15, scale = 6)
     val quantity: BigDecimal = BigDecimal.ZERO,
+    // In trade Currency - scale is to support Mutual Fund pricing.
     @Embedded
-    var callerRef: CallerRef? = null, // In trade Currency - scale is to support Mutual Fund pricing.
+    var callerRef: CallerRef? = null,
+    // In trade Currency
     @Column(precision = 15, scale = 6)
-    var price: BigDecimal? = null, // In trade Currency
+    var price: BigDecimal? = null,
     var tradeAmount: BigDecimal = quantity,
     @ManyToOne
     val tradeCurrency: Currency = asset.market.currency,
     @ManyToOne
     var cashAsset: Asset? = null,
+    // Trade CCY to cash settlement currency
     @ManyToOne
-    var cashCurrency: Currency? = cashAsset?.market?.currency, // Trade CCY to cash settlement currency
+    var cashCurrency: Currency? = cashAsset?.market?.currency,
+    // Trade Currency to system Base Currency
     @Column(precision = 10, scale = 6)
-    var tradeCashRate: BigDecimal = BigDecimal.ZERO, // Trade Currency to system Base Currency
+    var tradeCashRate: BigDecimal = BigDecimal.ZERO,
+    // Trade CCY to portfolio reference  currency
     @Column(precision = 10, scale = 6)
-    var tradeBaseRate: BigDecimal = BigDecimal.ONE, // Trade CCY to portfolio reference  currency
+    var tradeBaseRate: BigDecimal = BigDecimal.ONE,
+    // Signed Cash in settlement currency.
     @Column(precision = 10, scale = 6)
-    var tradePortfolioRate: BigDecimal = BigDecimal.ONE, // Signed Cash in settlement currency.
+    var tradePortfolioRate: BigDecimal = BigDecimal.ONE,
     var cashAmount: BigDecimal = BigDecimal.ZERO,
     @ManyToOne
     var portfolio: Portfolio = PortfolioUtils.getPortfolio(),
@@ -62,15 +68,15 @@ data class Trn(
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var settleDate: LocalDate? = null,
-    var fees: BigDecimal = BigDecimal.ZERO, // In trade Currency
-    var tax: BigDecimal = BigDecimal.ZERO, // In trade Currency
+    // In trade Currency
+    var fees: BigDecimal = BigDecimal.ZERO,
+    // In trade Currency
+    var tax: BigDecimal = BigDecimal.ZERO,
     var comments: String? = null,
-    var version: String = latestVersion,
+    var version: String = LATEST_VERSION,
     var status: TrnStatus = TrnStatus.CONFIRMED,
-
 ) {
-
     companion object {
-        const val latestVersion: String = "3"
+        const val LATEST_VERSION: String = "3"
     }
 }

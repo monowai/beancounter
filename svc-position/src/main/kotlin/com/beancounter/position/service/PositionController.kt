@@ -53,7 +53,7 @@ class PositionController(
     @GetMapping(value = ["/{code}/{valuationDate}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun get(
         @PathVariable code: String,
-        @PathVariable(required = false) valuationDate: String = DateUtils.today,
+        @PathVariable(required = false) valuationDate: String = DateUtils.TODAY,
         @RequestParam(value = "value", defaultValue = "true") value: Boolean,
     ): PositionResponse {
         log.debug("valuationDate: $valuationDate")
@@ -66,7 +66,9 @@ class PositionController(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun query(@RequestBody trnQuery: TrustedTrnQuery): PositionResponse {
+    fun query(
+        @RequestBody trnQuery: TrustedTrnQuery,
+    ): PositionResponse {
         return valuationService.build(trnQuery)
     }
 

@@ -35,7 +35,6 @@ import java.math.BigDecimal
 )
 @SpringBootTest(classes = [ShareSightConfig::class, ClientConfig::class])
 internal class ShareSightTradeTest {
-
     @Autowired
     private lateinit var shareSightRowProcessor: ShareSightRowAdapter
 
@@ -47,18 +46,19 @@ internal class ShareSightTradeTest {
 
     @Test
     fun is_SplitTransformerFoundForRow() {
-        val row: List<String> = mutableListOf(
-            "1",
-            "ASX",
-            "SLB",
-            "Test Asset",
-            "split",
-            tradeDate,
-            quantity,
-            price,
-            brokerage,
-            "AUD",
-        )
+        val row: List<String> =
+            mutableListOf(
+                "1",
+                "ASX",
+                "SLB",
+                "Test Asset",
+                "split",
+                TRADE_DATE,
+                QUANTITY,
+                PRICE,
+                BROKERAGE,
+                "AUD",
+            )
         val trnAdapter = shareSightFactory.adapter(row)
         Assertions.assertThat(trnAdapter).isInstanceOf(
             ShareSightTradeAdapter::class.java,
@@ -68,18 +68,19 @@ internal class ShareSightTradeTest {
     @Test
     fun is_RowWithNoCommentTransformed() {
         val row = getRow("buy", "0.8988", "2097.85").toMutableList()
-        row[ShareSightTradeAdapter.comments] = "null"
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio = getPortfolio("Test", NZD),
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        row[ShareSightTradeAdapter.COMMENTS] = "null"
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio = getPortfolio("Test", NZD),
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("TrnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue("quantity", BigDecimal(10))
-            .hasFieldOrPropertyWithValue("fees", BigDecimal(brokerage)) // No FX Rate
-            .hasFieldOrPropertyWithValue("price", BigDecimal(price))
+            .hasFieldOrPropertyWithValue("fees", BigDecimal(BROKERAGE)) // No FX Rate
+            .hasFieldOrPropertyWithValue("price", BigDecimal(PRICE))
             .hasFieldOrPropertyWithValue("comments", null)
             .hasFieldOrProperty("assetId")
             .hasFieldOrProperty("tradeDate")
@@ -88,18 +89,19 @@ internal class ShareSightTradeTest {
     @Test
     fun is_SplitTransactionTransformed() {
         val row = getRow("split", "0", "null")
-        val trn = shareSightRowProcessor.transform(
-            TrustedTrnImportRequest(
-                portfolio = getPortfolio("Test", NZD),
-                importFormat = ImportFormat.SHARESIGHT,
-                row = row,
-            ),
-        )
+        val trn =
+            shareSightRowProcessor.transform(
+                TrustedTrnImportRequest(
+                    portfolio = getPortfolio("Test", NZD),
+                    importFormat = ImportFormat.SHARESIGHT,
+                    row = row,
+                ),
+            )
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("callerRef.callerId", "1")
             .hasFieldOrPropertyWithValue("TrnType", TrnType.SPLIT)
-            .hasFieldOrPropertyWithValue("quantity", BigDecimal(quantity))
-            .hasFieldOrPropertyWithValue("price", BigDecimal(price))
+            .hasFieldOrPropertyWithValue("quantity", BigDecimal(QUANTITY))
+            .hasFieldOrPropertyWithValue("price", BigDecimal(PRICE))
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("comments", "Test Comment")
             .hasFieldOrPropertyWithValue("tradeCurrency", AUD.code)
@@ -110,7 +112,7 @@ internal class ShareSightTradeTest {
     @Test
     fun is_IllegalDateHandled() {
         val row = getRow("buy", "0.8988", "2097.85").toMutableList()
-        row.add(ShareSightTradeAdapter.date, "$tradeDate'")
+        row.add(ShareSightTradeAdapter.DATE, "$TRADE_DATE'")
         assertThrows(
             BusinessException::class.java,
         ) {
@@ -125,17 +127,21 @@ internal class ShareSightTradeTest {
     }
 
     companion object {
-        private const val price = "12.23"
+        private const val PRICE = "12.23"
 
-        fun getRow(tranType: String, fxRate: String, tradeAmount: String): List<String> {
+        fun getRow(
+            tranType: String,
+            fxRate: String,
+            tradeAmount: String,
+        ): List<String> {
             return getRow("AMP", "ASX", tranType, fxRate, tradeAmount)
         }
 
-        private const val brokerage = "12.99"
+        private const val BROKERAGE = "12.99"
 
-        private const val tradeDate = "21/01/2019"
+        private const val TRADE_DATE = "21/01/2019"
 
-        private const val quantity = "10"
+        private const val QUANTITY = "10"
 
         fun getRow(
             code: String,
@@ -145,19 +151,19 @@ internal class ShareSightTradeTest {
             tradeAmount: String,
         ): List<String> {
             val row: MutableList<String> = mutableListOf()
-            row.add(ShareSightTradeAdapter.id, "1")
-            row.add(ShareSightTradeAdapter.market, market)
-            row.add(ShareSightTradeAdapter.code, code)
-            row.add(ShareSightTradeAdapter.name, "Test Asset")
-            row.add(ShareSightTradeAdapter.type, tranType)
-            row.add(ShareSightTradeAdapter.date, tradeDate)
-            row.add(ShareSightTradeAdapter.quantity, quantity)
-            row.add(ShareSightTradeAdapter.price, price)
-            row.add(ShareSightTradeAdapter.brokerage, brokerage)
-            row.add(ShareSightTradeAdapter.currency, AUD.code)
-            row.add(ShareSightTradeAdapter.fxRate, fxRate)
-            row.add(ShareSightTradeAdapter.value, tradeAmount)
-            row.add(ShareSightTradeAdapter.comments, "Test Comment")
+            row.add(ShareSightTradeAdapter.ID, "1")
+            row.add(ShareSightTradeAdapter.MARKET, market)
+            row.add(ShareSightTradeAdapter.CODE, code)
+            row.add(ShareSightTradeAdapter.NAME, "Test Asset")
+            row.add(ShareSightTradeAdapter.TYPE, tranType)
+            row.add(ShareSightTradeAdapter.DATE, TRADE_DATE)
+            row.add(ShareSightTradeAdapter.QUANTITY, QUANTITY)
+            row.add(ShareSightTradeAdapter.PRICE, PRICE)
+            row.add(ShareSightTradeAdapter.BROKERAGE, BROKERAGE)
+            row.add(ShareSightTradeAdapter.CURRENCY, AUD.code)
+            row.add(ShareSightTradeAdapter.FX_RATE, fxRate)
+            row.add(ShareSightTradeAdapter.VALUE, tradeAmount)
+            row.add(ShareSightTradeAdapter.COMMENTS, "Test Comment")
             return row
         }
     }

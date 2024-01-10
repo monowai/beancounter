@@ -27,20 +27,21 @@ import java.math.BigDecimal
  */
 @SpringBootTest(classes = [Accumulator::class])
 internal class CashBehaviourTest {
-
     @Autowired
     private lateinit var accumulator: Accumulator
     private val cashAmount = BigDecimal("-10000.00")
 
     @Test
     fun is_DepositAccumulated() {
-        val trn = Trn(
-            trnType = TrnType.DEPOSIT,
-            asset = usdCashBalance,
-            quantity = BigDecimal("10000.00"),
-            cashCurrency = USD, // Buy
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
+        val trn =
+            Trn(
+                trnType = TrnType.DEPOSIT,
+                asset = usdCashBalance,
+                quantity = BigDecimal("10000.00"),
+                // Buy
+                cashCurrency = USD,
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
         assertThat(position.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
@@ -54,16 +55,18 @@ internal class CashBehaviourTest {
     @Test
     fun is_DepositAccumulatedForSell() {
         val asset = getTestAsset(NASDAQ, AAPL)
-        val trn = Trn(
-            trnType = TrnType.SELL,
-            asset = asset,
-            quantity = BigDecimal.ONE,
-            tradeAmount = BigDecimal.ONE,
-            cashAsset = usdCashBalance,
-            cashCurrency = USD,
-            cashAmount = cashAmount.abs(), // Cash is signed
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
+        val trn =
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                quantity = BigDecimal.ONE,
+                tradeAmount = BigDecimal.ONE,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                // Cash is signed
+                cashAmount = cashAmount.abs(),
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
 
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
@@ -80,13 +83,15 @@ internal class CashBehaviourTest {
 
     @Test
     fun is_WithdrawalAccumulated() {
-        val trn = Trn(
-            trnType = TrnType.WITHDRAWAL,
-            asset = usdCashBalance,
-            quantity = cashAmount,
-            cashCurrency = USD, // Cash is signed
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
+        val trn =
+            Trn(
+                trnType = TrnType.WITHDRAWAL,
+                asset = usdCashBalance,
+                quantity = cashAmount,
+                // Cash is signed
+                cashCurrency = USD,
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
         assertThat(position.quantityValues)
@@ -101,16 +106,17 @@ internal class CashBehaviourTest {
     @Test
     fun is_WithdrawalAccumulatedForBuy() {
         val asset = getTestAsset(NASDAQ, AAPL)
-        val trn = Trn(
-            trnType = TrnType.BUY,
-            asset = asset,
-            quantity = BigDecimal.ONE,
-            tradeAmount = BigDecimal.ONE,
-            cashAsset = usdCashBalance,
-            cashCurrency = USD,
-            cashAmount = cashAmount,
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
+        val trn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = BigDecimal.ONE,
+                tradeAmount = BigDecimal.ONE,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                cashAmount = cashAmount,
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
         val positions = Positions()
         val position = accumulator.accumulate(trn, positions)
         assertThat(position).hasFieldOrPropertyWithValue("asset", asset)

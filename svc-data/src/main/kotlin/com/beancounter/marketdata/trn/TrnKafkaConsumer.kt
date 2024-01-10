@@ -18,7 +18,6 @@ import java.io.IOException
 @Controller
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 class TrnKafkaConsumer {
-
     private lateinit var trnImport: TrnImport
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 

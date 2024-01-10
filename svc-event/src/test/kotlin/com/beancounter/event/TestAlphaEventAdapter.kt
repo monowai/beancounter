@@ -9,7 +9,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.beancounter.event.Constants.Companion.kmi
+import com.beancounter.event.Constants.Companion.KMI
 import com.beancounter.event.service.EventBehaviourFactory
 import com.beancounter.event.service.alpha.AlphaEventAdapter
 import com.beancounter.event.service.alpha.AlphaEventConfig
@@ -30,7 +30,7 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_UsDividendCalculated() {
-        val asset = getTestAsset(market, kmi)
+        val asset = getTestAsset(market, KMI)
         assertThat(asset.id).isNotNull
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
@@ -40,13 +40,14 @@ class TestAlphaEventAdapter {
         val dateUtils = DateUtils()
         val onDate = dateUtils.getDate("2020-05-01")
         assertThat(onDate).isNotNull
-        val event = CorporateEvent(
-            id = "123",
-            trnType = TrnType.DIVI,
-            recordDate = onDate,
-            assetId = asset.id,
-            rate = BigDecimal("0.2625"),
-        )
+        val event =
+            CorporateEvent(
+                id = "123",
+                trnType = TrnType.DIVI,
+                recordDate = onDate,
+                assetId = asset.id,
+                rate = BigDecimal("0.2625"),
+            )
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull
@@ -62,17 +63,18 @@ class TestAlphaEventAdapter {
 
     @Test
     fun is_FutureDatedTrnIgnored() {
-        val asset = getTestAsset(market, kmi)
+        val asset = getTestAsset(market, KMI)
         assertThat(asset.id).isNotNull
         val dateUtils = DateUtils()
         val today = dateUtils.date
         assertThat(today).isNotNull
-        val event = CorporateEvent(
-            trnType = TrnType.DIVI,
-            recordDate = today,
-            assetId = asset.id,
-            rate = BigDecimal("0.2625"),
-        )
+        val event =
+            CorporateEvent(
+                trnType = TrnType.DIVI,
+                recordDate = today,
+                assetId = asset.id,
+                rate = BigDecimal("0.2625"),
+            )
         val behaviourFactory = EventBehaviourFactory()
         val portfolio = getPortfolio()
         assertThat(
@@ -85,7 +87,7 @@ class TestAlphaEventAdapter {
     @Test
     fun is_SplitCalculated() {
         val market = Market("NASDAQ")
-        val asset = getTestAsset(market, kmi)
+        val asset = getTestAsset(market, KMI)
         val quantityValues = QuantityValues()
         quantityValues.purchased = BigDecimal("80")
         val position = Position(asset)
@@ -94,13 +96,14 @@ class TestAlphaEventAdapter {
         val dateUtils = DateUtils()
         val onDate = dateUtils.getDate("2020-05-01")
         assertThat(onDate).isNotNull
-        val event = CorporateEvent(
-            id = "123",
-            trnType = TrnType.SPLIT,
-            recordDate = onDate,
-            assetId = asset.id,
-            split = BigDecimal("10"),
-        )
+        val event =
+            CorporateEvent(
+                id = "123",
+                trnType = TrnType.SPLIT,
+                recordDate = onDate,
+                assetId = asset.id,
+                split = BigDecimal("10"),
+            )
         val portfolio = getPortfolio()
         val trnEvent = alphaEventAdapter.calculate(portfolio, position, event)
         assertThat(trnEvent).isNotNull

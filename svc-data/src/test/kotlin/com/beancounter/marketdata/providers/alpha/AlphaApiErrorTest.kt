@@ -11,8 +11,8 @@ import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.assetProp
-import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.closeProp
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_ASSET
+import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_CLOSE
 import com.beancounter.marketdata.utils.DateUtilsMocker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -59,9 +59,9 @@ class AlphaApiErrorTest {
 
     @Test
     fun is_ApiErrorMessageHandled() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageError.json").file
-        AlphaMockUtils.mockGlobalResponse("${AlphaConstants.api}.ERR", jsonFile)
-        val asset = Asset(code = AlphaConstants.api, market = Market("ERR", Constants.USD.code))
+        val jsonFile = ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageError.json").file
+        AlphaMockUtils.mockGlobalResponse("${AlphaConstants.API}.ERR", jsonFile)
+        val asset = Asset(code = AlphaConstants.API, market = Market("ERR", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
 
         val results = alphaProvider.getMarketData(PriceRequest.of(asset))
@@ -69,26 +69,27 @@ class AlphaApiErrorTest {
             .isNotNull
             .hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(P_ASSET, asset)
+            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal.ZERO)
     }
 
     @Test
     fun is_ApiInvalidKeyHandled() {
-        val jsonFile = ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageInfo.json").file
+        val jsonFile = ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageInfo.json").file
         AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
         val asset = getTestAsset(code = api, market = Market("KEY", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
 
-        val results = alphaProvider.getMarketData(
-            PriceRequest.Companion.of(asset),
-        )
+        val results =
+            alphaProvider.getMarketData(
+                PriceRequest.Companion.of(asset),
+            )
         assertThat(results)
             .isNotNull
             .hasSize(1)
         assertThat(results.iterator().next())
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(P_ASSET, asset)
+            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal.ZERO)
     }
 
     @Test
@@ -97,21 +98,22 @@ class AlphaApiErrorTest {
         val asset = getTestAsset(code = "ABC", market = nasdaq)
         AlphaMockUtils.mockGlobalResponse(
             asset.id,
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/alphavantageNote.json").file,
+            ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageNote.json").file,
         )
         assertThat(asset).isNotNull
 
-        val results = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
-            .getMarketData(
-                PriceRequest.of(asset),
-            )
+        val results =
+            mdFactory.getMarketDataProvider(AlphaPriceService.ID)
+                .getMarketData(
+                    PriceRequest.of(asset),
+                )
         assertThat(results)
             .isNotNull
             .hasSize(1)
         val mdpPrice = results.iterator().next()
         assertThat(mdpPrice)
-            .hasFieldOrPropertyWithValue(assetProp, asset)
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(P_ASSET, asset)
+            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal.ZERO)
         assertThat(marketDataService.getPriceResponse(PriceRequest.of(asset))).isNotNull
     }
 }

@@ -8,7 +8,6 @@ import java.math.BigDecimal
  */
 @Service
 class NumberUtils {
-
     fun isSet(value: BigDecimal?) = !isUnset(value)
 
     // Null and Zero are treated as "unSet"

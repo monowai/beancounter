@@ -49,20 +49,21 @@ internal class TrnMigratorTest {
 
     @Test
     fun upgrade() {
-        val trnV1 = Trn(
-            id = "TrnV1",
-            trnType = TrnType.BUY,
-            tradeDate = tradeDate,
-            asset = MSFT,
-            quantity = BigDecimal("1.0"),
-            price = BigDecimal("1.0"),
-            tradeAmount = BigDecimal("1000.00"),
-            tradeCurrency = USD,
-            cashAsset = Constants.nzdCashBalance,
-            cashCurrency = NZD,
-            portfolio = Portfolio("test", NZD, USD),
-            version = "2",
-        )
+        val trnV1 =
+            Trn(
+                id = "TrnV1",
+                trnType = TrnType.BUY,
+                tradeDate = tradeDate,
+                asset = MSFT,
+                quantity = BigDecimal("1.0"),
+                price = BigDecimal("1.0"),
+                tradeAmount = BigDecimal("1000.00"),
+                tradeCurrency = USD,
+                cashAsset = Constants.nzdCashBalance,
+                cashCurrency = NZD,
+                portfolio = Portfolio("test", NZD, USD),
+                version = "2",
+            )
         trnV1.callerRef = CallerRef("ABC", "DEF", "GHI")
         val trnV2 = trnMigrator.upgrade(trnV1)
         assertThat(trnV2)

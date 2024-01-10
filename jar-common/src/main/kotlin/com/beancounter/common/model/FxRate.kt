@@ -10,5 +10,5 @@ data class FxRate(
     val from: Currency,
     val to: Currency,
     val rate: BigDecimal = BigDecimal.ONE,
-    val date: String = DateUtils.today,
+    val date: String = DateUtils.TODAY,
 )

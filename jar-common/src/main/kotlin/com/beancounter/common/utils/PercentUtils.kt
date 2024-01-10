@@ -12,11 +12,18 @@ class PercentUtils {
     private val percentScale = 6
     private val numberUtils = NumberUtils()
 
-    fun percent(currentValue: BigDecimal?, oldValue: BigDecimal?): BigDecimal? {
+    fun percent(
+        currentValue: BigDecimal?,
+        oldValue: BigDecimal?,
+    ): BigDecimal? {
         return percent(currentValue, oldValue, percentScale)
     }
 
-    fun percent(previous: BigDecimal?, current: BigDecimal?, percentScale: Int): BigDecimal? {
+    fun percent(
+        previous: BigDecimal?,
+        current: BigDecimal?,
+        percentScale: Int,
+    ): BigDecimal? {
         return if (numberUtils.isUnset(previous) || numberUtils.isUnset(current)) {
             null
         } else {

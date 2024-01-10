@@ -21,7 +21,10 @@ class FxTransactions(
 ) {
     private val numberUtils = NumberUtils()
 
-    fun getFxRequest(portfolio: Portfolio, trn: TrnInput): FxRequest {
+    fun getFxRequest(
+        portfolio: Portfolio,
+        trn: TrnInput,
+    ): FxRequest {
         val tradeDate = trn.tradeDate.toString()
         val fxRequest = getFxRequest(HashMap(), tradeDate)
         fxRequest.addTradePf(
@@ -66,14 +69,21 @@ class FxTransactions(
         }
     }
 
-    fun pair(from: Currency, to: Currency, rate: BigDecimal?): IsoCurrencyPair? {
+    fun pair(
+        from: Currency,
+        to: Currency,
+        rate: BigDecimal?,
+    ): IsoCurrencyPair? {
         if (numberUtils.isUnset(rate) && from.code != to.code) {
             return IsoCurrencyPair(from = from.code, to = to.code)
         }
         return null
     }
 
-    private fun getFxRequest(fxRequests: MutableMap<String?, FxRequest>, tradeDate: String): FxRequest {
+    private fun getFxRequest(
+        fxRequests: MutableMap<String?, FxRequest>,
+        tradeDate: String,
+    ): FxRequest {
         val fxRequest = FxRequest(tradeDate, ArrayList())
         fxRequests[tradeDate] = fxRequest
         return fxRequest
@@ -84,10 +94,13 @@ class FxTransactions(
             numberUtils.isUnset(trnInput.tradePortfolioRate) ||
                 numberUtils.isUnset(trnInput.tradeBaseRate) ||
                 numberUtils.isUnset(trnInput.tradeCashRate)
-            ) && trnInput.trnType != TrnType.SPLIT
+        ) && trnInput.trnType != TrnType.SPLIT
     }
 
-    fun setRates(portfolio: Portfolio, trnInput: TrnInput) {
+    fun setRates(
+        portfolio: Portfolio,
+        trnInput: TrnInput,
+    ) {
         if (needsRates(trnInput)) {
             val fxRequest = getFxRequest(portfolio, trnInput)
             val (data) = fxClientService.getRates(fxRequest)

@@ -44,37 +44,38 @@ internal class QuantityAccumulationTest {
     @Test
     fun is_TotalQuantityCorrect() {
         val positions = Positions(getPortfolio())
-        val buyTrn = Trn(
-            trnType = TrnType.BUY,
-            asset = getTestAsset(Market("marketCode"), "CODE"),
-            quantity = hundred,
-            tradeAmount = BigDecimal(2000),
-        )
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = getTestAsset(Market("marketCode"), "CODE"),
+                quantity = hundred,
+                tradeAmount = BigDecimal(2000),
+            )
         assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(totalProp, hundred)
-            .hasFieldOrPropertyWithValue(purchasedProp, hundred)
+            .hasFieldOrPropertyWithValue(P_TOTAL, hundred)
+            .hasFieldOrPropertyWithValue(P_PURCHASED, hundred)
 
         assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(purchasedProp, twoHundred)
-            .hasFieldOrPropertyWithValue(soldProp, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(totalProp, twoHundred)
+            .hasFieldOrPropertyWithValue(P_PURCHASED, twoHundred)
+            .hasFieldOrPropertyWithValue(P_SOLD, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(P_TOTAL, twoHundred)
         // Sell to zero
         val sell = Trn(trnType = TrnType.SELL, asset = buyTrn.asset, quantity = hundred)
         // Track the money
         assertThat(accumulator.accumulate(sell, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(soldProp, BigDecimal(-100))
-            .hasFieldOrPropertyWithValue(purchasedProp, twoHundred)
-            .hasFieldOrPropertyWithValue(totalProp, hundred)
+            .hasFieldOrPropertyWithValue(P_SOLD, BigDecimal(-100))
+            .hasFieldOrPropertyWithValue(P_PURCHASED, twoHundred)
+            .hasFieldOrPropertyWithValue(P_TOTAL, hundred)
         // But reset the quantities
         assertThat(accumulator.accumulate(sell, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(soldProp, zero)
-            .hasFieldOrPropertyWithValue(purchasedProp, zero)
-            .hasFieldOrPropertyWithValue(totalProp, zero)
+            .hasFieldOrPropertyWithValue(P_SOLD, zero)
+            .hasFieldOrPropertyWithValue(P_PURCHASED, zero)
+            .hasFieldOrPropertyWithValue(P_TOTAL, zero)
     }
 
     companion object {
-        const val soldProp = "sold"
-        const val purchasedProp = "purchased"
-        const val totalProp = "total"
+        const val P_SOLD = "sold"
+        const val P_PURCHASED = "purchased"
+        const val P_TOTAL = "total"
     }
 }

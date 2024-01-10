@@ -30,22 +30,24 @@ class Constants {
         val CASH = Market("CASH")
         const val KMI = "KMI"
         const val AAPL = "AAPL"
-        val nzdCashBalance = Asset(
-            code = "${NZD.code} BALANCE",
-            id = "${NZD.code} BALANCE",
-            name = "${NZD.code} Balance",
-            market = Market("CASH", NZD.code),
-            priceSymbol = NZD.code,
-            category = "CASH",
-        )
-        val usdCashBalance = Asset(
-            code = "${USD.code} BALANCE",
-            id = "${USD.code} BALANCE",
-            name = "${NZD.code} Balance",
-            market = Market("CASH"),
-            priceSymbol = USD.code,
-            category = "CASH",
-        )
+        val nzdCashBalance =
+            Asset(
+                code = "${NZD.code} BALANCE",
+                id = "${NZD.code} BALANCE",
+                name = "${NZD.code} Balance",
+                market = Market("CASH", NZD.code),
+                priceSymbol = NZD.code,
+                category = "CASH",
+            )
+        val usdCashBalance =
+            Asset(
+                code = "${USD.code} BALANCE",
+                id = "${USD.code} BALANCE",
+                name = "${NZD.code} Balance",
+                market = Market("CASH"),
+                priceSymbol = USD.code,
+                category = "CASH",
+            )
 
         const val PROP_PURCHASES = "purchases"
         const val PROP_COST_BASIS = "costBasis"
@@ -56,12 +58,13 @@ class Constants {
 
         const val PROP_TOTAL = "total"
 
-        private const val id = "blah@blah.com"
-        val owner = SystemUser(
-            id = id,
-            email = id,
-            true,
-            since = DateUtils().getDate("2020-03-08"),
-        )
+        private const val ID = "blah@blah.com"
+        val owner =
+            SystemUser(
+                id = ID,
+                email = ID,
+                true,
+                since = DateUtils().getDate("2020-03-08"),
+            )
     }
 }

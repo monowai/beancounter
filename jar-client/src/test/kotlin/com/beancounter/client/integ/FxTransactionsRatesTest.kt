@@ -69,9 +69,10 @@ class FxTransactionsRatesTest {
         val trnInput = TrnInput()
         val fxRequest = fxTransactions.getFxRequest(portfolio, trnInput)
         val rate = BigDecimal("1.50")
-        val fxPairResults = FxPairResults(
-            mapOf(Pair(IsoCurrencyPair(USD.code, NZD.code), FxRate(USD, NZD, rate))),
-        )
+        val fxPairResults =
+            FxPairResults(
+                mapOf(Pair(IsoCurrencyPair(USD.code, NZD.code), FxRate(USD, NZD, rate))),
+            )
         Mockito.`when`(fxClientService.getRates(fxRequest))
             .thenReturn(
                 FxResponse(

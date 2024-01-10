@@ -59,14 +59,15 @@ internal class TrnValuationTest {
 
     private val test = "TEST"
 
-    var portfolio: Portfolio = Portfolio(
-        id = test,
-        code = test,
-        name = "${NZD.code} Portfolio",
-        currency = NZD,
-        base = USD,
-        owner = owner,
-    )
+    var portfolio: Portfolio =
+        Portfolio(
+            id = test,
+            code = test,
+            name = "${NZD.code} Portfolio",
+            currency = NZD,
+            base = USD,
+            owner = owner,
+        )
 
     @Autowired
     fun setUser() {
@@ -76,19 +77,21 @@ internal class TrnValuationTest {
     @Test
     fun singleAssetPosition() {
         val dateUtils = DateUtils()
-        val query = TrustedTrnQuery(
-            portfolio,
-            dateUtils.getDate("2020-05-01"),
-            KMI,
-        )
-        val json = mockMvc.perform(
-            MockMvcRequestBuilders.post("/query")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .content(objectMapper.writeValueAsBytes(query))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andReturn().response.contentAsString
+        val query =
+            TrustedTrnQuery(
+                portfolio,
+                dateUtils.getDate("2020-05-01"),
+                KMI,
+            )
+        val json =
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/query")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .content(objectMapper.writeValueAsBytes(query))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().response.contentAsString
 
         assertThat(json).isNotNull
 
@@ -104,16 +107,17 @@ internal class TrnValuationTest {
     @Test
     fun positionRequestFromTransactions() {
         val date = "2019-10-18"
-        val json = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON_VALUE),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-            ).andReturn()
-            .response
-            .contentAsString
+        val json =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn()
+                .response
+                .contentAsString
 
         val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull
@@ -128,15 +132,16 @@ internal class TrnValuationTest {
     @Test
     fun emptyPortfolioPositionsReturned() {
         val empty = "EMPTY"
-        val json = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{portfolioCode}/${DateUtils.today}", empty)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON_VALUE),
-        ).andExpect(
-            MockMvcResultMatchers.status().isOk,
-        )
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andReturn().response.contentAsString
+        val json =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/{portfolioCode}/${DateUtils.TODAY}", empty)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE),
+            ).andExpect(
+                MockMvcResultMatchers.status().isOk,
+            )
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().response.contentAsString
         val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull
         assertThat(positionResponse.data.portfolio)

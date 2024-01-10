@@ -23,9 +23,10 @@ class CashCost {
         } else {
             moneyValues.sales = moneyValues.sales.add(amount)
         }
-        moneyValues.costBasis = moneyValues.costBasis.add(
-            amount,
-        )
+        moneyValues.costBasis =
+            moneyValues.costBasis.add(
+                amount,
+            )
         if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
             moneyValues.costValue = averageCost.getCostValue(position, moneyValues)

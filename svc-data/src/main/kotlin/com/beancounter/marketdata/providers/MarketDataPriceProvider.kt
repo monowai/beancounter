@@ -22,7 +22,13 @@ interface MarketDataPriceProvider {
      * @return Unique id of the MarketDataProvider
      */
     fun getId(): String
+
     fun isMarketSupported(market: Market): Boolean
-    fun getDate(market: Market, priceRequest: PriceRequest): LocalDate
+
+    fun getDate(
+        market: Market,
+        priceRequest: PriceRequest,
+    ): LocalDate
+
     fun backFill(asset: Asset): PriceResponse
 }

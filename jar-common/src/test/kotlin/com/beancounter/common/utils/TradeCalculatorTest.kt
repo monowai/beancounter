@@ -26,12 +26,13 @@ internal class TradeCalculatorTest {
 
     @Test
     fun testAmountFromTrnInputTradeAmount() {
-        val trnInput = TrnInput(
-            tradeAmount = amount,
-            assetId = "any",
-            quantity = BigDecimal("99"),
-            price = price,
-        )
+        val trnInput =
+            TrnInput(
+                tradeAmount = amount,
+                assetId = "any",
+                quantity = BigDecimal("99"),
+                price = price,
+            )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }
 
@@ -43,13 +44,14 @@ internal class TradeCalculatorTest {
 
     @Test
     fun testAmountForCorporateAction() {
-        val trnInput = TrnInput(
-            trnType = TrnType.DIVI,
-            tradeAmount = amount,
-            quantity = quantity,
-            assetId = "any",
-            price = price,
-        )
+        val trnInput =
+            TrnInput(
+                trnType = TrnType.DIVI,
+                tradeAmount = amount,
+                quantity = quantity,
+                assetId = "any",
+                price = price,
+            )
         assertThat(tradeCalculator.amount(trnInput)).isEqualTo(amount)
     }
 }

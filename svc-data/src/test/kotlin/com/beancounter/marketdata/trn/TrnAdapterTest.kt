@@ -44,7 +44,6 @@ import java.util.Locale
     ],
 )
 internal class TrnAdapterTest {
-
     @MockBean
     private lateinit var portfolioService: PortfolioService
 
@@ -97,22 +96,23 @@ internal class TrnAdapterTest {
 
     @Test
     fun buyInputToTrnComputingTradeAmount() {
-        val trnInput = TrnInput(
-            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
-            assetId = asset.id,
-            trnType = TrnType.BUY,
-            quantity = BigDecimal.TEN,
-            price = price,
-            tradeCurrency = USD.code,
-            cashAssetId = toKey("USD-X", "USER"),
-            tradeDate = theDate,
-            cashAmount = BigDecimal("100.99"),
-            cashCurrency = USD.code,
-            tradeCashRate = BigDecimal("1.99"),
-            tradePortfolioRate = price,
-            tradeBaseRate = BigDecimal.ONE,
-            comments = "Comment",
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+                assetId = asset.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.TEN,
+                price = price,
+                tradeCurrency = USD.code,
+                cashAssetId = toKey("USD-X", "USER"),
+                tradeDate = theDate,
+                cashAmount = BigDecimal("100.99"),
+                cashCurrency = USD.code,
+                tradeCashRate = BigDecimal("1.99"),
+                tradePortfolioRate = price,
+                tradeBaseRate = BigDecimal.ONE,
+                comments = "Comment",
+            )
         // TradeAmount should be computed for a buy
         trnInput.settleDate = theDate
 
@@ -128,7 +128,7 @@ internal class TrnAdapterTest {
             .hasFieldOrPropertyWithValue("cashAmount", trnInput.cashAmount)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.LATEST_VERSION)
             .hasFieldOrPropertyWithValue("tradeBaseRate", trnInput.tradeBaseRate)
             .hasFieldOrPropertyWithValue("tradeCashRate", trnInput.tradeCashRate)
             .hasFieldOrPropertyWithValue("tradePortfolioRate", trnInput.tradePortfolioRate)
@@ -144,17 +144,18 @@ internal class TrnAdapterTest {
     @Test
     fun diviInputToTrnComputingTradeAmount() {
         val tradeAmount = BigDecimal("12.22")
-        val trnInput = TrnInput(
-            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
-            asset.id,
-            trnType = TrnType.DIVI,
-            quantity = BigDecimal.TEN,
-            price = price,
-            tradeBaseRate = BigDecimal.ONE,
-            tradeCashRate = BigDecimal.ZERO,
-            tradePortfolioRate = BigDecimal.ONE,
-            tradeAmount = tradeAmount,
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+                asset.id,
+                trnType = TrnType.DIVI,
+                quantity = BigDecimal.TEN,
+                price = price,
+                tradeBaseRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ZERO,
+                tradePortfolioRate = BigDecimal.ONE,
+                tradeAmount = tradeAmount,
+            )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
@@ -165,7 +166,7 @@ internal class TrnAdapterTest {
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.LATEST_VERSION)
             .hasFieldOrPropertyWithValue(tradeAmountProp, tradeAmount)
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
@@ -174,17 +175,18 @@ internal class TrnAdapterTest {
     @Test
     fun tradeAmountOverridingComputedValue() {
         val tradeAmount = BigDecimal("88.88")
-        val trnInput = TrnInput(
-            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
-            asset.id,
-            trnType = TrnType.BUY,
-            quantity = BigDecimal.TEN,
-            price = price,
-            tradeBaseRate = BigDecimal.ONE,
-            tradeCashRate = BigDecimal.ZERO,
-            tradePortfolioRate = BigDecimal.ONE,
-            tradeAmount = tradeAmount,
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+                asset.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.TEN,
+                price = price,
+                tradeBaseRate = BigDecimal.ONE,
+                tradeCashRate = BigDecimal.ZERO,
+                tradePortfolioRate = BigDecimal.ONE,
+                tradeAmount = tradeAmount,
+            )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
@@ -195,7 +197,7 @@ internal class TrnAdapterTest {
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.LATEST_VERSION)
             .hasFieldOrPropertyWithValue(tradeAmountProp, tradeAmount)
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
@@ -203,13 +205,14 @@ internal class TrnAdapterTest {
 
     @Test
     fun splitInputToTrnComputingTradeAmount() {
-        val trnInput = TrnInput(
-            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
-            asset.id,
-            trnType = TrnType.SPLIT,
-            quantity = BigDecimal.TEN,
-            price = price,
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+                asset.id,
+                trnType = TrnType.SPLIT,
+                quantity = BigDecimal.TEN,
+                price = price,
+            )
 
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
@@ -220,7 +223,7 @@ internal class TrnAdapterTest {
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
-            .hasFieldOrPropertyWithValue(versionProp, Trn.latestVersion)
+            .hasFieldOrPropertyWithValue(versionProp, Trn.LATEST_VERSION)
             .hasFieldOrPropertyWithValue(trnTypeProp, trnInput.trnType)
             .hasFieldOrPropertyWithValue(commentsProp, trnInput.comments)
     }

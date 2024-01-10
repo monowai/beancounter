@@ -43,8 +43,9 @@ class RegistrationClientTest {
         Mockito.`when`(registrationGateway.register(tokenService.bearerToken, RegistrationRequest()))
             .thenReturn(RegistrationResponse(SystemUser()))
 
-        val registeredUser = registrationService
-            .register(RegistrationRequest())
+        val registeredUser =
+            registrationService
+                .register(RegistrationRequest())
         assertThat(registeredUser).hasNoNullFieldsOrProperties()
 
         Mockito.`when`(registrationGateway.me(tokenService.bearerToken))

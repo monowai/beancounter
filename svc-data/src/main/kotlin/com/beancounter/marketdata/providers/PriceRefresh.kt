@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.today
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetService
 import org.slf4j.LoggerFactory
@@ -24,7 +24,6 @@ class PriceRefresh internal constructor(
     private val marketDataService: MarketDataService,
     private val dateUtils: DateUtils,
 ) {
-
     @Transactional(readOnly = true)
     @Async("priceExecutor")
     fun updatePrices(): CompletableFuture<Int> {
@@ -32,7 +31,7 @@ class PriceRefresh internal constructor(
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets) {
-            val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), today)
+            val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), TODAY)
             marketDataService.getPriceResponse(priceRequest)
             assetCount.getAndIncrement()
         }
@@ -45,7 +44,10 @@ class PriceRefresh internal constructor(
         return CompletableFuture.completedFuture(assetCount.get())
     }
 
-    fun refreshPrice(assetId: String, date: String = dateUtils.getDate().toString()): PriceResponse {
+    fun refreshPrice(
+        assetId: String,
+        date: String = dateUtils.getDate().toString(),
+    ): PriceResponse {
         log.info("Updating Prices {}", LocalDateTime.now(dateUtils.getZoneId()))
         val asset = assetService.find(assetId)
         val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), date)

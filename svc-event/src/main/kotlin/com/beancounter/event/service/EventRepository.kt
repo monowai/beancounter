@@ -11,13 +11,19 @@ import java.util.Optional
  * This interface exposes the persistent state and associated queries.
  */
 interface EventRepository : CrudRepository<CorporateEvent, String> {
-    fun findByAssetIdAndRecordDate(assetId: String, recordDate: LocalDate): Optional<CorporateEvent>
+    fun findByAssetIdAndRecordDate(
+        assetId: String,
+        recordDate: LocalDate,
+    ): Optional<CorporateEvent>
 
     @Query(
         "select e from CorporateEvent e " +
             "where e.assetId in (?1) and e.recordDate = ?2 order by e.recordDate asc ",
     )
-    fun findByAssetsAndRecordDate(assetIds: Collection<String>, recordDate: LocalDate): Collection<CorporateEvent>
+    fun findByAssetsAndRecordDate(
+        assetIds: Collection<String>,
+        recordDate: LocalDate,
+    ): Collection<CorporateEvent>
 
     fun findByAssetIdOrderByPayDateDesc(assetId: String): Collection<CorporateEvent>
 
@@ -25,7 +31,10 @@ interface EventRepository : CrudRepository<CorporateEvent, String> {
         "select e from CorporateEvent e " +
             "where e.recordDate >= ?1 and e.recordDate <= ?2 order by e.recordDate asc ",
     )
-    fun findByDateRange(start: LocalDate?, end: LocalDate?): Collection<CorporateEvent>
+    fun findByDateRange(
+        start: LocalDate?,
+        end: LocalDate?,
+    ): Collection<CorporateEvent>
 
     @Query(
         "select e from CorporateEvent e " +

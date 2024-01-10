@@ -4,14 +4,14 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
-import com.beancounter.marketdata.providers.alpha.fChange
-import com.beancounter.marketdata.providers.alpha.fDate
-import com.beancounter.marketdata.providers.alpha.fHigh
-import com.beancounter.marketdata.providers.alpha.fLow
-import com.beancounter.marketdata.providers.alpha.fOpen
-import com.beancounter.marketdata.providers.alpha.fPreviousClose
-import com.beancounter.marketdata.providers.alpha.fPrice
-import com.beancounter.marketdata.providers.alpha.fVolume
+import com.beancounter.marketdata.providers.alpha.F_CHANGE
+import com.beancounter.marketdata.providers.alpha.F_DATE
+import com.beancounter.marketdata.providers.alpha.F_HIGH
+import com.beancounter.marketdata.providers.alpha.F_LOW
+import com.beancounter.marketdata.providers.alpha.F_OPEN
+import com.beancounter.marketdata.providers.alpha.F_PREVIOUS_CLOSE
+import com.beancounter.marketdata.providers.alpha.F_PRICE
+import com.beancounter.marketdata.providers.alpha.F_VOLUME
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentMatchers.anyString
@@ -23,7 +23,6 @@ import java.math.BigDecimal
  * Base class for Price Contract tests. This is called by the spring cloud contract verifier
  */
 class PricesBase : ContractVerifierBase() {
-
     @MockBean
     internal lateinit var alphaGateway: AlphaGateway
 
@@ -99,21 +98,21 @@ class PricesBase : ContractVerifierBase() {
     class AlphaPriceResponse(
         @JsonProperty("01. symbol")
         val symbol: String,
-        @JsonProperty(fOpen)
+        @JsonProperty(F_OPEN)
         val open: BigDecimal,
-        @JsonProperty(fHigh)
+        @JsonProperty(F_HIGH)
         val high: BigDecimal,
-        @JsonProperty(fLow)
+        @JsonProperty(F_LOW)
         val low: BigDecimal,
-        @JsonProperty(fPrice)
+        @JsonProperty(F_PRICE)
         val close: BigDecimal,
-        @JsonProperty(fVolume)
+        @JsonProperty(F_VOLUME)
         val volume: Int,
-        @JsonProperty(fDate)
+        @JsonProperty(F_DATE)
         val priceDate: String,
-        @JsonProperty(fPreviousClose)
+        @JsonProperty(F_PREVIOUS_CLOSE)
         val previousClose: BigDecimal = close,
-        @JsonProperty(fChange)
+        @JsonProperty(F_CHANGE)
         val changePercent: BigDecimal = BigDecimal.ZERO,
     )
 }

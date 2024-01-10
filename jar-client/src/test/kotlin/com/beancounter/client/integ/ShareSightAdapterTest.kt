@@ -58,7 +58,10 @@ internal class ShareSightAdapterTest {
         Assertions.assertThat(shareSightConfig.isCalculateRates).isTrue
     }
 
-    private fun verifyMarketCode(code: String, expectedAsset: Asset) {
+    private fun verifyMarketCode(
+        code: String,
+        expectedAsset: Asset,
+    ) {
         val row: MutableList<String> = ArrayList()
         row.add("1")
         row.add(code)
@@ -70,42 +73,43 @@ internal class ShareSightAdapterTest {
     @Test
     fun is_AssetsSetIntoTransaction() {
         var row: MutableList<String> = mutableListOf()
-        row.add(ShareSightTradeAdapter.id, "1")
-        row.add(ShareSightTradeAdapter.market, ASX.code)
-        row.add(ShareSightTradeAdapter.code, "BHP")
-        row.add(ShareSightTradeAdapter.name, "Test Asset")
-        row.add(ShareSightTradeAdapter.type, "buy")
-        row.add(ShareSightTradeAdapter.date, "21/01/2019")
-        row.add(ShareSightTradeAdapter.quantity, "10")
-        row.add(ShareSightTradeAdapter.price, "12.23")
-        row.add(ShareSightTradeAdapter.brokerage, "12.99")
-        row.add(ShareSightTradeAdapter.currency, "AUD")
-        row.add(ShareSightTradeAdapter.fxRate, "99.99")
-        row.add(ShareSightTradeAdapter.value, "2097.85")
+        row.add(ShareSightTradeAdapter.ID, "1")
+        row.add(ShareSightTradeAdapter.MARKET, ASX.code)
+        row.add(ShareSightTradeAdapter.CODE, "BHP")
+        row.add(ShareSightTradeAdapter.NAME, "Test Asset")
+        row.add(ShareSightTradeAdapter.TYPE, "buy")
+        row.add(ShareSightTradeAdapter.DATE, "21/01/2019")
+        row.add(ShareSightTradeAdapter.QUANTITY, "10")
+        row.add(ShareSightTradeAdapter.PRICE, "12.23")
+        row.add(ShareSightTradeAdapter.BROKERAGE, "12.99")
+        row.add(ShareSightTradeAdapter.CURRENCY, "AUD")
+        row.add(ShareSightTradeAdapter.FX_RATE, "99.99")
+        row.add(ShareSightTradeAdapter.VALUE, "2097.85")
         val rows: MutableList<List<String>> = ArrayList()
         rows.add(row)
         row = ArrayList()
-        row.add(ShareSightTradeAdapter.id, "2")
-        row.add(ShareSightTradeAdapter.market, "NASDAQ")
-        row.add(ShareSightTradeAdapter.code, "MSFT")
-        row.add(ShareSightTradeAdapter.name, "Microsoft")
-        row.add(ShareSightTradeAdapter.type, "buy")
-        row.add(ShareSightTradeAdapter.date, "21/01/2019")
-        row.add(ShareSightTradeAdapter.quantity, "10")
-        row.add(ShareSightTradeAdapter.price, "12.23")
-        row.add(ShareSightTradeAdapter.brokerage, "12.99")
-        row.add(ShareSightTradeAdapter.currency, "USD")
-        row.add(ShareSightTradeAdapter.fxRate, "99.99")
-        row.add(ShareSightTradeAdapter.value, "2097.85")
+        row.add(ShareSightTradeAdapter.ID, "2")
+        row.add(ShareSightTradeAdapter.MARKET, "NASDAQ")
+        row.add(ShareSightTradeAdapter.CODE, "MSFT")
+        row.add(ShareSightTradeAdapter.NAME, "Microsoft")
+        row.add(ShareSightTradeAdapter.TYPE, "buy")
+        row.add(ShareSightTradeAdapter.DATE, "21/01/2019")
+        row.add(ShareSightTradeAdapter.QUANTITY, "10")
+        row.add(ShareSightTradeAdapter.PRICE, "12.23")
+        row.add(ShareSightTradeAdapter.BROKERAGE, "12.99")
+        row.add(ShareSightTradeAdapter.CURRENCY, "USD")
+        row.add(ShareSightTradeAdapter.FX_RATE, "99.99")
+        row.add(ShareSightTradeAdapter.VALUE, "2097.85")
         rows.add(row)
         val trnInputs: MutableCollection<TrnInput> = ArrayList()
         val portfolio = getPortfolio()
         for (columnValues in rows) {
-            val trustedTrnImportRequest = TrustedTrnImportRequest(
-                portfolio,
-                ImportFormat.SHARESIGHT,
-                row = columnValues,
-            )
+            val trustedTrnImportRequest =
+                TrustedTrnImportRequest(
+                    portfolio,
+                    ImportFormat.SHARESIGHT,
+                    row = columnValues,
+                )
             trnInputs.add(
                 shareSightRowProcessor
                     .transform(trustedTrnImportRequest),

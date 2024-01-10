@@ -45,8 +45,9 @@ internal object JwtUtil {
     }
 
     fun getSignatureAlgorithms(jwkSource: JWKSource<SecurityContext>): Set<SignatureAlgorithm> {
-        val jwkMatcher = JWKMatcher.Builder().publicOnly(true).keyUses(KeyUse.SIGNATURE, null)
-            .keyTypes(KeyType.RSA, KeyType.EC).build()
+        val jwkMatcher =
+            JWKMatcher.Builder().publicOnly(true).keyUses(KeyUse.SIGNATURE, null)
+                .keyTypes(KeyType.RSA, KeyType.EC).build()
         val jwsAlgorithms: MutableSet<JWSAlgorithm> = HashSet()
         try {
             val jwks = jwkSource[JWKSelector(jwkMatcher), null]
@@ -76,7 +77,10 @@ internal object JwtUtil {
         return signatureAlgorithms
     }
 
-    private fun getConfiguration(issuer: String, vararg uris: URI): Map<String, Any> {
+    private fun getConfiguration(
+        issuer: String,
+        vararg uris: URI,
+    ): Map<String, Any> {
         val errorMessage = "Unable to resolve the Configuration with the provided Issuer of \"$issuer\""
         for (uri in uris) {
             try {
@@ -89,7 +93,7 @@ internal object JwtUtil {
                 if (!(
                         ex is HttpClientErrorException &&
                             ex.statusCode.is4xxClientError
-                        )
+                    )
                 ) {
                     throw IllegalArgumentException(errorMessage, ex)
                 }

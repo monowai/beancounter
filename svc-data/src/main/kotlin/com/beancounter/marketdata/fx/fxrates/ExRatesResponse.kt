@@ -18,5 +18,4 @@ data class ExRatesResponse(
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val date: LocalDate,
     val rates: Map<String, BigDecimal>,
-
 )

@@ -17,8 +17,10 @@ import org.springframework.stereotype.Service
 class PositionService internal constructor(
     private val accumulator: Accumulator,
 ) : Position {
-
-    override fun build(portfolio: Portfolio, positionRequest: PositionRequest): PositionResponse {
+    override fun build(
+        portfolio: Portfolio,
+        positionRequest: PositionRequest,
+    ): PositionResponse {
         val positions = Positions(portfolio)
         for (trn in positionRequest.trns) {
             accumulator.accumulate(trn, positions)

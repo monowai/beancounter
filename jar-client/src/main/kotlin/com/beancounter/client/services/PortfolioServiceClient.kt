@@ -29,7 +29,10 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         return getPortfolioById(portfolioId, tokenService.bearerToken)
     }
 
-    fun getPortfolioById(portfolioId: String, bearerToken: String): Portfolio {
+    fun getPortfolioById(
+        portfolioId: String,
+        bearerToken: String,
+    ): Portfolio {
         val response: PortfolioResponse = portfolioGw.getPortfolioById(bearerToken, portfolioId)
         return getOrThrow(portfolioId, response)
     }
@@ -41,7 +44,10 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         return portfolioGw.addPortfolios(tokenService.bearerToken, portfoliosRequest)
     }
 
-    fun getWhereHeld(assetId: String, tradeDate: LocalDate): PortfoliosResponse {
+    fun getWhereHeld(
+        assetId: String,
+        tradeDate: LocalDate,
+    ): PortfoliosResponse {
         return portfolioGw.getWhereHeld(
             tokenService.bearerToken,
             assetId,
@@ -49,7 +55,10 @@ class PortfolioServiceClient(private val portfolioGw: PortfolioGw, private val t
         )
     }
 
-    private fun getOrThrow(portfolioCode: String?, response: PortfolioResponse?): Portfolio {
+    private fun getOrThrow(
+        portfolioCode: String?,
+        response: PortfolioResponse?,
+    ): Portfolio {
         if (response?.data == null) {
             throw BusinessException(String.format("Unable to find portfolio %s", portfolioCode))
         }

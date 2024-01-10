@@ -19,17 +19,24 @@ class PortfolioUtils private constructor() {
         }
 
         @JvmStatic
-        fun getPortfolio(code: String = DateUtils.today): Portfolio {
+        fun getPortfolio(code: String = DateUtils.TODAY): Portfolio {
             return getPortfolio(code, Currency(NZD))
         }
 
         @JvmStatic
-        fun getPortfolio(code: String, currency: Currency): Portfolio {
+        fun getPortfolio(
+            code: String,
+            currency: Currency,
+        ): Portfolio {
             return Portfolio(id = code, code = code, name = code, currency = currency, base = Currency(USD))
         }
 
         @JvmStatic
-        fun getPortfolio(code: String, name: String, currency: Currency): Portfolio {
+        fun getPortfolio(
+            code: String,
+            name: String,
+            currency: Currency,
+        ): Portfolio {
             return Portfolio(id = code, code = code, name = name, currency = currency, base = Currency(USD))
         }
     }

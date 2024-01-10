@@ -45,11 +45,12 @@ class TestPortfolioServiceClient {
 
     @Test
     fun is_PortfolioAddRequest() {
-        val request = PortfoliosRequest(
-            setOf(
-                PortfolioInput(SGD.code, "${SGD.code} Balanced", USD.code, SGD.code),
-            ),
-        )
+        val request =
+            PortfoliosRequest(
+                setOf(
+                    PortfolioInput(SGD.code, "${SGD.code} Balanced", USD.code, SGD.code),
+                ),
+            )
         val response = portfolioService.add(request)
         assertThat(response).isNotNull.hasNoNullFieldsOrProperties()
         assertThat(response.data).isNotEmpty
@@ -63,10 +64,11 @@ class TestPortfolioServiceClient {
 
     @Test
     fun is_WhereHeld() {
-        val (data) = portfolioService.getWhereHeld(
-            "KMI",
-            DateUtils().getDate("2020-05-01"),
-        )
+        val (data) =
+            portfolioService.getWhereHeld(
+                "KMI",
+                DateUtils().getDate("2020-05-01"),
+            )
         assertThat(data).isNotNull.isNotEmpty
     }
 

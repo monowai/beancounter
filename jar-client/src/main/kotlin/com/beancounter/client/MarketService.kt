@@ -8,5 +8,6 @@ import com.beancounter.common.model.Market
  */
 interface MarketService {
     fun getMarkets(): MarketResponse
+
     fun getMarket(marketCode: String): Market
 }

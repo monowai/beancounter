@@ -12,6 +12,8 @@ import com.beancounter.common.model.Asset
  */
 interface TrnAdapter {
     fun from(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput
+
     fun isValid(row: List<String>): Boolean
+
     fun resolveAsset(row: List<String>): Asset?
 }

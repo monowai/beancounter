@@ -41,11 +41,11 @@ import java.math.BigDecimal
  * Check the flow of a real estate purchase.
  */
 @SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
-@AutoConfigureMockAuth
+@ActiveProfiles("test")
+@Tag("db")
 @AutoConfigureMockMvc
+@AutoConfigureMockAuth
 class RealEstateTrnTests {
     @Autowired
     lateinit var assetService: AssetService
@@ -82,10 +82,11 @@ class RealEstateTrnTests {
 
     @BeforeEach
     fun setupObjects() {
-        bcMvcHelper = BcMvcHelper(
-            mockMvc,
-            mockAuthConfig.getUserToken(SystemUser()),
-        )
+        bcMvcHelper =
+            BcMvcHelper(
+                mockMvc,
+                mockAuthConfig.getUserToken(SystemUser()),
+            )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
@@ -97,45 +98,50 @@ class RealEstateTrnTests {
     fun is_BuyHouse() {
         mockAuthConfig.login(SystemUser(), systemUserService)
         val house = AssetInput.toRealEstate(USD, "USAPT", "NY Apartment", "test-user")
-        val houseAsset = assetService.handle(
-            AssetRequest(
-                mapOf(Pair(house.code, house)),
-            ),
-        ).data[house.code]
+        val houseAsset =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(Pair(house.code, house)),
+                ),
+            ).data[house.code]
         assertThat(houseAsset).isNotNull
         val portfolio = bcMvcHelper.portfolio(PortfolioInput("RE-TEST"))
-        val purchase = TrnInput(
-            callerRef = CallerRef(),
-            assetId = houseAsset!!.id,
-            trnType = TrnType.BUY,
-            tradeAmount = tenK,
-            tradeCashRate = BigDecimal.ONE,
-        )
+        val purchase =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = houseAsset!!.id,
+                trnType = TrnType.BUY,
+                tradeAmount = tenK,
+                tradeCashRate = BigDecimal.ONE,
+            )
 
         val oneK = BigDecimal("1000")
-        val reduce = TrnInput(
-            callerRef = CallerRef(),
-            assetId = houseAsset.id,
-            trnType = TrnType.BALANCE,
-            tradeAmount = oneK,
-            tradeCashRate = BigDecimal.ONE,
-        )
+        val reduce =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = houseAsset.id,
+                trnType = TrnType.BALANCE,
+                tradeAmount = oneK,
+                tradeCashRate = BigDecimal.ONE,
+            )
 
-        val increase = TrnInput(
-            callerRef = CallerRef(),
-            assetId = houseAsset.id,
-            trnType = TrnType.BALANCE,
-            tradeAmount = oneK,
-            tradeCashRate = BigDecimal.ONE,
-        )
+        val increase =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = houseAsset.id,
+                trnType = TrnType.BALANCE,
+                tradeAmount = oneK,
+                tradeCashRate = BigDecimal.ONE,
+            )
 
-        val trns = trnService.save(
-            portfolio,
-            TrnRequest(
-                portfolio.id,
-                arrayOf(purchase, reduce, increase),
-            ),
-        )
+        val trns =
+            trnService.save(
+                portfolio,
+                TrnRequest(
+                    portfolio.id,
+                    arrayOf(purchase, reduce, increase),
+                ),
+            )
         assertThat(trns.data).isNotNull.hasSize(3)
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
         val iterator = trns.data.iterator()

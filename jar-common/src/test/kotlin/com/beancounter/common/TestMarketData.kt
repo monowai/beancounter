@@ -18,28 +18,30 @@ internal class TestMarketData {
     private val bcJson = BcJson()
 
     @Test
-    @Throws(Exception::class)
     fun is_MarketDataSerializing() {
         val marketDataCollection: MutableCollection<MarketData> = ArrayList()
-        val marketData = MarketData(
-            asset = getJsonAsset("Market", "Asset"),
-            source = "TEST",
-            priceDate = dateUtils.getDate("2012-10-01"),
-            open = BigDecimal.ONE,
-            close = BigDecimal.TEN,
-            low = BigDecimal.ONE,
-            high = BigDecimal.TEN,
-            previousClose = BigDecimal("9.56"),
-            change = BigDecimal("1.56"), // Change
-            changePercent = BigDecimal("0.04"), // change %
-            10,
-        )
+        val marketData =
+            MarketData(
+                asset = getJsonAsset("Market", "Asset"),
+                source = "TEST",
+                priceDate = dateUtils.getDate("2012-10-01"),
+                open = BigDecimal.ONE,
+                close = BigDecimal.TEN,
+                low = BigDecimal.ONE,
+                high = BigDecimal.TEN,
+                previousClose = BigDecimal("9.56"),
+                // Change $
+                change = BigDecimal("1.56"),
+                changePercent = BigDecimal("0.04"),
+                10,
+            )
         marketDataCollection.add(marketData)
         val priceResponse = PriceResponse(marketDataCollection)
-        val (data) = bcJson.objectMapper.readValue(
-            bcJson.objectMapper.writeValueAsString(priceResponse),
-            PriceResponse::class.java,
-        )
+        val (data) =
+            bcJson.objectMapper.readValue(
+                bcJson.objectMapper.writeValueAsString(priceResponse),
+                PriceResponse::class.java,
+            )
         assertThat(data).isNotNull
         val mdResponse = data.iterator().next()
         compare(mdResponse)
@@ -47,7 +49,6 @@ internal class TestMarketData {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_QuantitiesWorking() {
         val quantityValues = QuantityValues()
         AssertionsForClassTypes.assertThat(quantityValues)
@@ -61,14 +62,14 @@ internal class TestMarketData {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_PriceRequestSerializing() {
-        val priceRequest = PriceRequest(
-            "2019-11-11",
-            arrayListOf(
-                PriceAsset("XYZ", "ABC", assetId = "ABC"),
-            ),
-        )
+        val priceRequest =
+            PriceRequest(
+                "2019-11-11",
+                arrayListOf(
+                    PriceAsset("XYZ", "ABC", assetId = "ABC"),
+                ),
+            )
         val json = bcJson.objectMapper.writeValueAsString(priceRequest)
         val (_, assets) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
         assertThat(assets.iterator().next())

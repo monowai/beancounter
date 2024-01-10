@@ -8,8 +8,8 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioByCode
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioById
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_CODE
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions
@@ -44,7 +44,6 @@ import java.util.UUID
 @AutoConfigureMockAuth
 @EnableWebSecurity
 class PortfolioExceptionTests {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -55,17 +54,18 @@ class PortfolioExceptionTests {
 
     @Autowired
     fun registerUser() {
-        token = RegistrationUtils.registerUser(
-            mockMvc,
-            mockAuthConfig.getUserToken(SystemUser()),
-        )
+        token =
+            RegistrationUtils.registerUser(
+                mockMvc,
+                mockAuthConfig.getUserToken(SystemUser()),
+            )
     }
 
     @Test
     fun notFoundByCode() {
         // Assert not found
         mockMvc.perform(
-            MockMvcRequestBuilders.get(portfolioByCode, "does not exist")
+            MockMvcRequestBuilders.get(PORTFOLIO_BY_CODE, "does not exist")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON),
         ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
@@ -75,7 +75,7 @@ class PortfolioExceptionTests {
     @Test
     fun notFoundById() {
         mockMvc.perform(
-            MockMvcRequestBuilders.get(portfolioById, "invalidId")
+            MockMvcRequestBuilders.get(PORTFOLIO_BY_ID, "invalidId")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON),
@@ -85,26 +85,28 @@ class PortfolioExceptionTests {
 
     @Test
     fun uniqueConstraintInPlace() {
-        val portfolioInput = PortfolioInput(
-            UUID.randomUUID().toString().uppercase(Locale.getDefault()),
-            "is_UniqueConstraintInPlace",
-            Constants.USD.code,
-            Constants.NZD.code,
-        )
+        val portfolioInput =
+            PortfolioInput(
+                UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                "is_UniqueConstraintInPlace",
+                Constants.USD.code,
+                Constants.NZD.code,
+            )
         // Code and Owner are the same so, reject
         // Can't create two portfolios with the same code
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.post(BcMvcHelper.portfolioRoot)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .with(
-                    SecurityMockMvcRequestPostProcessors.csrf(),
-                ).content(
-                    objectMapper
-                        .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput))),
-                )
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isConflict)
-            .andReturn()
+        val result =
+            mockMvc.perform(
+                MockMvcRequestBuilders.post(BcMvcHelper.PORTFOLIO_ROOT)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(
+                        SecurityMockMvcRequestPostProcessors.csrf(),
+                    ).content(
+                        objectMapper
+                            .writeValueAsBytes(PortfoliosRequest(arrayListOf(portfolioInput, portfolioInput))),
+                    )
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isConflict)
+                .andReturn()
         Assertions.assertThat(result.resolvedException)
             .isNotNull
             .isInstanceOfAny(DataIntegrityViolationException::class.java)
@@ -113,15 +115,16 @@ class PortfolioExceptionTests {
     @Test
     @WithMockUser(username = "unregisteredUser", authorities = [AuthConstants.SCOPE_BC])
     fun unregisteredUserRejected() {
-        val portfolioInput = PortfolioInput(
-            UUID.randomUUID().toString().uppercase(Locale.getDefault()),
-            "is_UnregisteredUserRejected",
-            Constants.USD.code,
-            Constants.NZD.code,
-        )
+        val portfolioInput =
+            PortfolioInput(
+                UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                "is_UnregisteredUserRejected",
+                Constants.USD.code,
+                Constants.NZD.code,
+            )
         // Authenticated, but unregistered user can't create portfolios
         mockMvc.perform(
-            MockMvcRequestBuilders.post(BcMvcHelper.portfolioRoot)
+            MockMvcRequestBuilders.post(BcMvcHelper.PORTFOLIO_ROOT)
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
                     objectMapper

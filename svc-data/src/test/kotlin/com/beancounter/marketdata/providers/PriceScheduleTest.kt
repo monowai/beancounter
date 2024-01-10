@@ -34,7 +34,7 @@ import org.springframework.web.context.WebApplicationContext
  * PriceScheduler bean deploys when enabled and functionality works
  */
 @SpringBootTest(classes = [MarketDataBoot::class], properties = ["schedule.enabled=true"])
-@Tag("slow")
+@Tag("db")
 @AutoConfigureMockAuth
 class PriceScheduleTest {
     @MockBean
@@ -72,9 +72,10 @@ class PriceScheduleTest {
     fun is_PriceUpdated() {
         val code = "AMP"
         token = mockAuthConfig.getUserToken(Constants.systemUser)
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
+        mockMvc =
+            MockMvcBuilders.webAppContextSetup(context)
+                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+                .build()
 
         marketDataService.purge()
         assetService.purge()
@@ -89,14 +90,15 @@ class PriceScheduleTest {
             .thenReturn(setOf(MarketData(assetResult)))
         priceSchedule.updatePrices()
         Thread.sleep(2000) // Async reads/writes
-        val price = marketDataService.getPriceResponse(
-            PriceRequest.of(
-                AssetInput(
-                    assetResult.market.code,
-                    assetResult.code,
+        val price =
+            marketDataService.getPriceResponse(
+                PriceRequest.of(
+                    AssetInput(
+                        assetResult.market.code,
+                        assetResult.code,
+                    ),
                 ),
-            ),
-        )
+            )
         Assertions.assertThat(price).hasNoNullFieldsOrProperties()
     }
 }

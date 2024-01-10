@@ -14,10 +14,11 @@ class FigiSerializationTest {
     @Test
     @Throws(Exception::class)
     fun figiResponseSerializable() {
-        val responses: Collection<FigiResponse> = BcJson().objectMapper.readValue(
-            ClassPathResource("/mock/figi/multi-asset-response.json").file,
-            object : TypeReference<Collection<FigiResponse>>() {},
-        )
+        val responses: Collection<FigiResponse> =
+            BcJson().objectMapper.readValue(
+                ClassPathResource("/mock/figi/multi-asset-response.json").file,
+                object : TypeReference<Collection<FigiResponse>>() {},
+            )
         Assertions.assertThat(responses).hasSize(2)
     }
 }

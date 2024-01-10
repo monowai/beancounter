@@ -17,12 +17,13 @@ class AuthUtilService(
     val tokenService: TokenService,
     val tokenUtils: TokenUtils,
 ) {
-
     /**
      * Known providers id's that we will track.
      */
     enum class AuthProvider {
-        ID, GOOGLE, AUTH0
+        ID,
+        GOOGLE,
+        AUTH0,
     }
 
     fun authenticate(
@@ -33,20 +34,23 @@ class AuthUtilService(
             .thenReturn(
                 when (authProvider) {
                     AuthProvider.GOOGLE -> tokenUtils.getGoogleToken(systemUser)
-                    AuthProvider.AUTH0 -> tokenUtils.getAuth0Token(
-                        systemUser,
-                    )
+                    AuthProvider.AUTH0 ->
+                        tokenUtils.getAuth0Token(
+                            systemUser,
+                        )
 
-                    else -> tokenUtils.getSystemUserToken(
-                        systemUser,
-                    )
+                    else ->
+                        tokenUtils.getSystemUserToken(
+                            systemUser,
+                        )
                 },
             )
-        val jwt = JwtAuthenticationToken(
-            jwtDecoder.decode(
-                systemUser.email,
-            ),
-        )
+        val jwt =
+            JwtAuthenticationToken(
+                jwtDecoder.decode(
+                    systemUser.email,
+                ),
+            )
         SecurityContextHolder.getContext().authentication = jwt
         return jwt
     }
@@ -55,9 +59,10 @@ class AuthUtilService(
         systemUser: SystemUser,
         authProvider: AuthProvider = AuthProvider.ID,
     ): JwtAuthenticationToken {
-        val jwt = JwtAuthenticationToken(
-            tokenUtils.getSystemToken(systemUser),
-        )
+        val jwt =
+            JwtAuthenticationToken(
+                tokenUtils.getSystemToken(systemUser),
+            )
         return jwtAuthenticationToken(jwt, systemUser)
     }
 
@@ -65,9 +70,10 @@ class AuthUtilService(
         systemUser: SystemUser,
         authProvider: AuthProvider = AuthProvider.ID,
     ): JwtAuthenticationToken {
-        val jwt = JwtAuthenticationToken(
-            tokenUtils.getNoRolesToken(systemUser),
-        )
+        val jwt =
+            JwtAuthenticationToken(
+                tokenUtils.getNoRolesToken(systemUser),
+            )
         return jwtAuthenticationToken(jwt, systemUser)
     }
 

@@ -24,7 +24,6 @@ import org.springframework.test.context.ActiveProfiles
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class AlphaEnricherTest {
-
     @Autowired
     lateinit var assetService: AssetService
 
@@ -36,7 +35,7 @@ class AlphaEnricherTest {
         val key = "ABC"
         AlphaMockUtils.mockSearchResponse(
             key,
-            ClassPathResource(AlphaMockUtils.alphaContracts + "/global-empty.json").file,
+            ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/global-empty.json").file,
         )
 
         val assetRequest = AssetRequest(AssetInput(Constants.NASDAQ.code, key, "My Default Name"))

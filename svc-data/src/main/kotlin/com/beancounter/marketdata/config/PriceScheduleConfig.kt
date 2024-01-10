@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @ConditionalOnProperty(value = ["schedule.enabled"], havingValue = "true", matchIfMissing = false)
 class PriceScheduleConfig(val dateUtils: DateUtils) {
-
     companion object {
         private val log = LoggerFactory.getLogger(PriceScheduleConfig::class.java)
     }
@@ -27,7 +26,9 @@ class PriceScheduleConfig(val dateUtils: DateUtils) {
     }
 
     @Bean
-    fun assetsSchedule(@Value("\${assets.schedule:0 0/15 7-18 * * Tue-Sat}") schedule: String): String {
+    fun assetsSchedule(
+        @Value("\${assets.schedule:0 0/15 7-18 * * Tue-Sat}") schedule: String,
+    ): String {
         log.info("ASSETS_SCHEDULE: {}, BEANCOUNTER_ZONE: {}", schedule, dateUtils.defaultZone)
         return schedule
     }

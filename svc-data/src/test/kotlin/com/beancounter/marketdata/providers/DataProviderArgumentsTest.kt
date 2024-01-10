@@ -33,9 +33,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_BatchOfOne() {
         val providerArguments = ProviderArguments(TestConfig(1))
-        providerArguments.addAsset(aapl, DateUtils.today)
-        providerArguments.addAsset(msft, DateUtils.today)
-        providerArguments.addAsset(intc, DateUtils.today)
+        providerArguments.addAsset(aapl, DateUtils.TODAY)
+        providerArguments.addAsset(msft, DateUtils.TODAY)
+        providerArguments.addAsset(intc, DateUtils.TODAY)
         val batch: Map<Int, String?> = providerArguments.batch
         assertThat(batch)
             .containsOnlyKeys(0, 1, 2)
@@ -45,9 +45,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_BatchOfTwo() {
         val providerArguments = ProviderArguments(TestConfig(2))
-        providerArguments.addAsset(aapl, DateUtils.today)
-        providerArguments.addAsset(msft, DateUtils.today)
-        providerArguments.addAsset(intc, DateUtils.today)
+        providerArguments.addAsset(aapl, DateUtils.TODAY)
+        providerArguments.addAsset(msft, DateUtils.TODAY)
+        providerArguments.addAsset(intc, DateUtils.TODAY)
         val batch: Map<Int, String?> = providerArguments.batch
         assertThat(batch)
             .containsOnlyKeys(0, 1)
@@ -58,9 +58,9 @@ internal class DataProviderArgumentsTest {
     @Test
     fun is_BatchOfThree() {
         val providerArguments = ProviderArguments(TestConfig(3))
-        providerArguments.addAsset(aapl, DateUtils.today)
-        providerArguments.addAsset(msft, DateUtils.today)
-        providerArguments.addAsset(intc, DateUtils.today)
+        providerArguments.addAsset(aapl, DateUtils.TODAY)
+        providerArguments.addAsset(msft, DateUtils.TODAY)
+        providerArguments.addAsset(intc, DateUtils.TODAY)
         val batch: Map<Int, String?> = providerArguments.batch
         assertThat(batch)
             .containsOnlyKeys(0)
@@ -106,9 +106,10 @@ internal class DataProviderArgumentsTest {
     @Test
     fun activeAssetsByProvider() {
         val providerUtils = getProviderUtils(NYSE)
-        val assetInputs: MutableCollection<PriceAsset> = arrayListOf(
-            PriceAsset(NYSE.code, twee, assetId = twee),
-        )
+        val assetInputs: MutableCollection<PriceAsset> =
+            arrayListOf(
+                PriceAsset(NYSE.code, twee, assetId = twee),
+            )
         val splitResults: Map<MarketDataPriceProvider, MutableCollection<Asset>> =
             providerUtils.splitProviders(assetInputs)
         assertThat(splitResults).hasSize(1)
@@ -150,11 +151,16 @@ internal class DataProviderArgumentsTest {
 
     private class TestConfig(private val batchSize: Int) : DataProviderConfig {
         private val dateUtils = DateUtils()
+
         override fun getBatchSize(): Int {
             return batchSize
         }
 
-        override fun getMarketDate(market: Market, date: String, currentMode: Boolean): LocalDate {
+        override fun getMarketDate(
+            market: Market,
+            date: String,
+            currentMode: Boolean,
+        ): LocalDate {
             return if (dateUtils.isToday(date)) {
                 dateUtils.date
             } else {

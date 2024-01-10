@@ -47,13 +47,12 @@ import java.math.BigDecimal.ONE
  * Test the impact on cash for various transaction scenario flows.
  */
 @SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
-@AutoConfigureMockAuth
+@Tag("db")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
+@AutoConfigureMockAuth
 class CashTrnTests {
-
     @Autowired
     lateinit var assetService: AssetService
 
@@ -85,10 +84,11 @@ class CashTrnTests {
 
     @BeforeEach
     fun setupObjects() {
-        bcMvcHelper = BcMvcHelper(
-            mockMvc,
-            mockAuthConfig.getUserToken(Constants.systemUser),
-        )
+        bcMvcHelper =
+            BcMvcHelper(
+                mockMvc,
+                mockAuthConfig.getUserToken(Constants.systemUser),
+            )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
@@ -101,25 +101,28 @@ class CashTrnTests {
         val nzdBalance = BigDecimal("10000.00")
         val tradePortfolioRate = BigDecimal("0.698971")
         val cashInput = AssetUtils.getCash(NZD.code)
-        val nzCashAsset = assetService.handle(
-            AssetRequest(
-                mapOf(Pair(NZD.code, cashInput)),
-            ),
-        ).data[NZD.code]
+        val nzCashAsset =
+            assetService.handle(
+                AssetRequest(
+                    mapOf(Pair(NZD.code, cashInput)),
+                ),
+            ).data[NZD.code]
         assertThat(nzCashAsset).isNotNull
         val usPortfolio =
             bcMvcHelper.portfolio(PortfolioInput(code = "depositCash", base = NZD.code, currency = USD.code))
-        val cashDeposit = TrnInput(
-            callerRef = CallerRef(),
-            assetId = nzCashAsset!!.id,
-            cashCurrency = NZD.code, // Credit generic cash balance.
-            trnType = TrnType.DEPOSIT,
-            tradeCashRate = ONE,
-            tradeBaseRate = ONE,
-            tradePortfolioRate = tradePortfolioRate,
-            tradeAmount = nzdBalance,
-            price = ONE,
-        )
+        val cashDeposit =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = nzCashAsset!!.id,
+                // Credit generic cash balance.
+                cashCurrency = NZD.code,
+                trnType = TrnType.DEPOSIT,
+                tradeCashRate = ONE,
+                tradeBaseRate = ONE,
+                tradePortfolioRate = tradePortfolioRate,
+                tradeAmount = nzdBalance,
+                price = ONE,
+            )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(cashDeposit)))
         assertThat(trns.data).isNotNull.hasSize(1)
         val cashTrn = trns.data.iterator().next()
@@ -139,14 +142,15 @@ class CashTrnTests {
         val equity =
             assetService.handle(AssetRequest(AssetInput(NYSE.code, MSFT.code), MSFT.code)).data[MSFT.code]
         val usPortfolio = bcMvcHelper.portfolio(PortfolioInput(code = "buyDebitsCash"))
-        val buy = TrnInput(
-            callerRef = CallerRef(),
-            assetId = equity!!.id,
-            cashCurrency = NZD.code,
-            tradeCashRate = BigDecimal("0.50"),
-            tradeAmount = fiveK,
-            price = ONE,
-        )
+        val buy =
+            TrnInput(
+                callerRef = CallerRef(),
+                assetId = equity!!.id,
+                cashCurrency = NZD.code,
+                tradeCashRate = BigDecimal("0.50"),
+                tradeAmount = fiveK,
+                price = ONE,
+            )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(buy)))
         assertThat(trns.data).isNotNull.hasSize(1)
         val cashTrn = trns.data.iterator().next()

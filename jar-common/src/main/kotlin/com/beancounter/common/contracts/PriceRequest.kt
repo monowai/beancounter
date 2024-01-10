@@ -4,7 +4,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.today
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.math.BigDecimal
 
@@ -12,7 +12,7 @@ import java.math.BigDecimal
  * Arguments by which prices on a date are located.
  */
 data class PriceRequest(
-    val date: String = today,
+    val date: String = TODAY,
     val assets: Collection<PriceAsset>,
     val currentMode: Boolean = true,
     val closePrice: BigDecimal = BigDecimal.ZERO,
@@ -21,9 +21,12 @@ data class PriceRequest(
     var resolvedAsset: Asset? = null
 
     companion object {
-
         @JvmStatic
-        fun of(date: String = today, assets: Collection<AssetInput>, currentMode: Boolean = true): PriceRequest {
+        fun of(
+            date: String = TODAY,
+            assets: Collection<AssetInput>,
+            currentMode: Boolean = true,
+        ): PriceRequest {
             val priceAsset = arrayListOf<PriceAsset>()
             for (asset in assets) {
                 priceAsset.add(parse(asset))
@@ -33,7 +36,7 @@ data class PriceRequest(
 
         @JvmStatic
         fun of(assetInput: AssetInput): PriceRequest {
-            return PriceRequest(dateUtils.offsetDateString(today), arrayListOf(parse(assetInput)))
+            return PriceRequest(dateUtils.offsetDateString(TODAY), arrayListOf(parse(assetInput)))
         }
 
         private fun parse(assetInput: AssetInput): PriceAsset {
@@ -45,11 +48,18 @@ data class PriceRequest(
         }
 
         @JvmStatic
-        fun of(asset: Asset, date: String = today): PriceRequest {
+        fun of(
+            asset: Asset,
+            date: String = TODAY,
+        ): PriceRequest {
             return PriceRequest(date, arrayListOf(PriceAsset(asset)))
         }
 
-        fun of(date: String, positions: Positions, currentMode: Boolean = true): PriceRequest {
+        fun of(
+            date: String,
+            positions: Positions,
+            currentMode: Boolean = true,
+        ): PriceRequest {
             val priceAsset = arrayListOf<PriceAsset>()
             for (position in positions.positions) {
                 priceAsset.add(parse(position.value.asset))

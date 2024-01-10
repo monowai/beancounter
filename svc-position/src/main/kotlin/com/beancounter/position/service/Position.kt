@@ -18,5 +18,8 @@ interface Position {
      * @param positionRequest Data to value
      * @return computed stock positions
      */
-    fun build(portfolio: Portfolio, positionRequest: PositionRequest): PositionResponse
+    fun build(
+        portfolio: Portfolio,
+        positionRequest: PositionRequest,
+    ): PositionResponse
 }

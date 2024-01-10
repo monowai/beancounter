@@ -34,8 +34,9 @@ class CsvImportStubbedTest {
 
     @Test
     fun is_CsvCommandFlowWorking() {
-        val result = ingestionCommand
-            .ingest(reader = "CSV", writer = "HTTP", file = "/MSFT.csv", portfolio = "TEST")
+        val result =
+            ingestionCommand
+                .ingest(reader = "CSV", writer = "HTTP", file = "/MSFT.csv", portfolio = "TEST")
         assertThat(result).isEqualToIgnoringCase("DONE")
     }
 }

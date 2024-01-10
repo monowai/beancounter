@@ -28,8 +28,9 @@ class AlphaEventService(val alphaGateway: AlphaGateway, val alphaConfig: AlphaCo
             log.error("Provider API error $json")
             return PriceResponse()
         }
-        val priceResponse: PriceResponse = alphaConfig.getObjectMapper()
-            .readValue(json, PriceResponse::class.java)
+        val priceResponse: PriceResponse =
+            alphaConfig.getObjectMapper()
+                .readValue(json, PriceResponse::class.java)
         val events = ArrayList<MarketData>()
         for (marketData in priceResponse.data) {
             if (inFilter(marketData)) {

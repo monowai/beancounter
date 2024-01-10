@@ -15,12 +15,13 @@ class FigiAdapterTest {
     fun is_CodePreserved() {
         val figiAdapter = FigiAdapter()
         val figiAsset = FigiAsset("BRK", "BRK/B", "Mutual Fund")
-        val asset = figiAdapter.transform(
-            Market("TEST", USD.code),
-            "BRK.B",
-            figiAsset,
-            "ABC",
-        )
+        val asset =
+            figiAdapter.transform(
+                Market("TEST", USD.code),
+                "BRK.B",
+                figiAsset,
+                "ABC",
+            )
         Assertions.assertThat(asset)
             .hasFieldOrPropertyWithValue("name", "BRK")
             .hasFieldOrPropertyWithValue("code", "BRK.B")

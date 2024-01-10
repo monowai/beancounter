@@ -15,7 +15,12 @@ import java.math.BigDecimal
 @Service
 class DividendBehaviour : AccumulationStrategy {
     private val currencyResolver = CurrencyResolver()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
+
+    override fun accumulate(
+        trn: Trn,
+        positions: Positions,
+        position: Position,
+    ): Position {
         position.dateValues.lastDividend = trn.tradeDate
         value(trn, position, Position.In.TRADE, BigDecimal.ONE)
         value(trn, position, Position.In.BASE, trn.tradeBaseRate)
@@ -34,13 +39,15 @@ class DividendBehaviour : AccumulationStrategy {
         `in`: Position.In,
         rate: BigDecimal,
     ) {
-        val moneyValues = position.getMoneyValues(
-            `in`,
-            currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
-        )
-        moneyValues.dividends = add(
-            moneyValues.dividends,
-            multiply(trn.tradeAmount, rate),
-        )
+        val moneyValues =
+            position.getMoneyValues(
+                `in`,
+                currencyResolver.resolve(`in`, trn.portfolio, trn.tradeCurrency),
+            )
+        moneyValues.dividends =
+            add(
+                moneyValues.dividends,
+                multiply(trn.tradeAmount, rate),
+            )
     }
 }

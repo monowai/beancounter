@@ -9,8 +9,11 @@ import java.util.Locale
  * Determines if the asset code is in a comma separated filter string.
  */
 @Service
-class Filter(@Value("\${filter:#{null}}") filter: String?) {
+class Filter(
+    @Value("\${filter:#{null}}") filter: String?,
+) {
     private val filteredAssets: MutableCollection<String> = ArrayList()
+
     private fun init(filter: String?) {
         if (filter != null) {
             val values = filter.split(",").toTypedArray()

@@ -57,30 +57,32 @@ internal class StubbedTradesWithFx {
 
     @Test
     fun fxRatesSetFromCurrencies() {
-        val row: List<String> = arrayListOf(
-            "999",
-            LON,
-            "BHP",
-            "Test Asset",
-            "buy",
-            testDate,
-            "10",
-            "12.23",
-            "12.99",
-            "GBP",
-            BigDecimal.ZERO.toString(),
-            "2097.85",
-        )
+        val row: List<String> =
+            arrayListOf(
+                "999",
+                LON,
+                "BHP",
+                "Test Asset",
+                "buy",
+                testDate,
+                "10",
+                "12.23",
+                "12.99",
+                "GBP",
+                BigDecimal.ZERO.toString(),
+                "2097.85",
+            )
 
         val trades = shareSightFactory.adapter(row)
 
         // Portfolio is in NZD
         val portfolio = getPortfolio("NZDTest", Currency("NZD"))
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio,
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio,
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(portfolio, trn)
@@ -93,30 +95,32 @@ internal class StubbedTradesWithFx {
         // USD System Base
         // GBP Trade
         assertThat(shareSightConfig.isCalculateRates).isTrue
-        val row: List<String> = arrayListOf(
-            "999",
-            LON,
-            "BHP",
-            "Test Asset",
-            "buy",
-            testDate,
-            "10",
-            "12.23",
-            "12.99",
-            GBP.code,
-            "99.99",
-            "2097.85",
-        )
+        val row: List<String> =
+            arrayListOf(
+                "999",
+                LON,
+                "BHP",
+                "Test Asset",
+                "buy",
+                testDate,
+                "10",
+                "12.23",
+                "12.99",
+                GBP.code,
+                "99.99",
+                "2097.85",
+            )
         // With switch true, ignore the supplied rate and pull from service
         val trades = shareSightFactory.adapter(row)
 
         // Portfolio is in NZD
         val portfolio = getPortfolio("Test", NZD)
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio,
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio,
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(portfolio, trn)
@@ -134,34 +138,37 @@ internal class StubbedTradesWithFx {
     @Test
     fun fxRatesSetAndTradeAmountCalculated() {
         // Trade CCY USD
-        val row: List<String> = arrayListOf(
-            "333",
-            "NASDAQ",
-            msft,
-            msft,
-            "BUY",
-            "18/10/2019",
-            "10",
-            "100",
-            BigDecimal.ZERO.toString(),
-            USD.code,
-            BigDecimal.ZERO.toString(),
-            "1001.00",
-        )
+        val row: List<String> =
+            arrayListOf(
+                "333",
+                "NASDAQ",
+                msft,
+                msft,
+                "BUY",
+                "18/10/2019",
+                "10",
+                "100",
+                BigDecimal.ZERO.toString(),
+                USD.code,
+                BigDecimal.ZERO.toString(),
+                "1001.00",
+            )
         val trades = shareSightFactory.adapter(row)
 
         // Testing all currency buckets
-        val portfolio = Portfolio(
-            id = "Test",
-            code = "Test",
-            currency = NZD,
-            base = GBP,
-        )
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio,
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val portfolio =
+            Portfolio(
+                id = "Test",
+                code = "Test",
+                currency = NZD,
+                base = GBP,
+            )
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio,
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(portfolio, trn)
@@ -177,29 +184,31 @@ internal class StubbedTradesWithFx {
     @Test
     fun rateOfOneSetForUndefinedCurrencies() {
         // Trade CCY USD
-        val row: List<String> = arrayListOf(
-            "222",
-            "NASDAQ",
-            msft,
-            msft,
-            "BUY",
-            testDate,
-            "10",
-            "100",
-            BigDecimal.ZERO.toString(),
-            "USD",
-            BigDecimal.ONE.toString(),
-            "1000.00",
-        )
+        val row: List<String> =
+            arrayListOf(
+                "222",
+                "NASDAQ",
+                msft,
+                msft,
+                "BUY",
+                testDate,
+                "10",
+                "100",
+                BigDecimal.ZERO.toString(),
+                "USD",
+                BigDecimal.ONE.toString(),
+                "1000.00",
+            )
         val trades = shareSightFactory.adapter(row)
 
         // Testing all currency buckets
         val portfolio = getPortfolio("TEST", USD)
-        val trustedTrnImportRequest = TrustedTrnImportRequest(
-            portfolio,
-            importFormat = ImportFormat.SHARESIGHT,
-            row = row,
-        )
+        val trustedTrnImportRequest =
+            TrustedTrnImportRequest(
+                portfolio,
+                importFormat = ImportFormat.SHARESIGHT,
+                row = row,
+            )
         val trn = trades.from(trustedTrnImportRequest)
         assertThat(trn).isNotNull
         fxTransactions.setRates(portfolio, trn)
@@ -212,7 +221,10 @@ internal class StubbedTradesWithFx {
             .hasFieldOrPropertyWithValue(tradePortfolioRateProp, BigDecimal.ONE)
     }
 
-    private fun assertTransaction(portfolio: Portfolio, trn: TrnInput?) {
+    private fun assertTransaction(
+        portfolio: Portfolio,
+        trn: TrnInput?,
+    ) {
         assertThat(trn)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue(tradeCurrencyProp, GBP.code)

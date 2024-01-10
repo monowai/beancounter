@@ -41,7 +41,6 @@ import java.time.Duration
     ],
 )
 class LoginServiceTest {
-
     private lateinit var loginService: LoginService
 
     @Autowired
@@ -58,11 +57,12 @@ class LoginServiceTest {
 
     @BeforeEach
     fun mockJwtService() {
-        loginService = LoginService(
-            authGateway,
-            jwtDecoder = mockAuthConfig.jwtDecoder,
-            mockAuthConfig.authConfig,
-        )
+        loginService =
+            LoginService(
+                authGateway,
+                jwtDecoder = mockAuthConfig.jwtDecoder,
+                mockAuthConfig.authConfig,
+            )
     }
 
     @Test
@@ -117,10 +117,11 @@ class LoginServiceTest {
     fun is_userLoginWorking() {
         val systemUser = SystemUser()
         val token = authUtilService.authenticate(systemUser)
-        val response = BcJson().objectMapper.readValue(
-            ClassPathResource("user-token-response.json").file,
-            OpenIdResponse::class.java,
-        )
+        val response =
+            BcJson().objectMapper.readValue(
+                ClassPathResource("user-token-response.json").file,
+                OpenIdResponse::class.java,
+            )
 
         Mockito.`when`(mockAuthConfig.jwtDecoder.decode(systemUser.email))
             .thenReturn(token.token)

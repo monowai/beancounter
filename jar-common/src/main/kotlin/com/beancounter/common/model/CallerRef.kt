@@ -13,18 +13,19 @@ import java.io.Serializable
  */
 @Embeddable
 data class CallerRef(
-    var provider: String = "", // The Owner of the transaction
+    // The System that owns the transaction
+    var provider: String = "",
     var batch: String = "",
     var callerId: String = "",
 ) : Serializable {
-
     companion object {
         @JvmStatic
         fun from(callerRef: CallerRef): CallerRef {
             val provider = callerRef.provider.ifBlank { "BC" }
-            val batch = callerRef.batch.ifBlank {
-                DateUtils().getDate().toString().replace("-", "")
-            }
+            val batch =
+                callerRef.batch.ifBlank {
+                    DateUtils().getDate().toString().replace("-", "")
+                }
             val callerId = callerRef.callerId.ifBlank { KeyGenUtils().id }
             return CallerRef(provider, batch, callerId)
         }

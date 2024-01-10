@@ -13,10 +13,10 @@ import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.event.Constants.Companion.ALPHA
+import com.beancounter.event.Constants.Companion.KMI
 import com.beancounter.event.Constants.Companion.NZD
 import com.beancounter.event.Constants.Companion.USD
-import com.beancounter.event.Constants.Companion.alpha
-import com.beancounter.event.Constants.Companion.kmi
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.service.BackfillService
 import com.beancounter.event.service.EventService
@@ -100,38 +100,41 @@ class StubbedEvents {
 
     @Autowired
     private lateinit var wac: WebApplicationContext
-    private val systemUser = SystemUser(
-        id = EMAIL,
-        email = EMAIL,
-        true,
-        since = DateUtils().getDate("2020-03-08"),
-    )
+    private val systemUser =
+        SystemUser(
+            id = EMAIL,
+            email = EMAIL,
+            true,
+            since = DateUtils().getDate("2020-03-08"),
+        )
 
     @BeforeEach
     fun mockLogin() {
         mockAuthConfig.login()
     }
 
-    var portfolio: Portfolio = Portfolio(
-        id = "TEST",
-        code = "TEST",
-        name = "NZD Portfolio",
-        currency = NZD,
-        base = USD,
-        owner = systemUser,
-    )
+    var portfolio: Portfolio =
+        Portfolio(
+            id = "TEST",
+            code = "TEST",
+            name = "NZD Portfolio",
+            currency = NZD,
+            base = USD,
+            owner = systemUser,
+        )
     val caDate = "2020-05-01"
 
     @Test
     fun is_NoQuantityOnDateNull() {
-        val corporateEvent = CorporateEvent(
-            id = null,
-            trnType = TrnType.DIVI,
-            recordDate = DateUtils().getDate(caDate),
-            source = alpha,
-            assetId = "MSFT",
-            rate = BigDecimal("0.2625"),
-        )
+        val corporateEvent =
+            CorporateEvent(
+                id = null,
+                trnType = TrnType.DIVI,
+                recordDate = DateUtils().getDate(caDate),
+                source = ALPHA,
+                assetId = "MSFT",
+                rate = BigDecimal("0.2625"),
+            )
         val trnEvent = positionService.process(portfolio, corporateEvent)
         assertThat(trnEvent.trnInput.trnType).isEqualTo(TrnType.IGNORE)
     }
@@ -144,37 +147,41 @@ class StubbedEvents {
         val cf = DefaultKafkaConsumerFactory<String, String>(consumerProps)
         val consumer = cf.createConsumer()
         embeddedKafkaBroker.consumeFromEmbeddedTopics(consumer, TRN_EVENT)
-        val corporateEvent = CorporateEvent(
-            trnType = TrnType.DIVI,
-            recordDate = DateUtils().getDate(caDate),
-            source = alpha,
-            assetId = kmi,
-            rate = BigDecimal("0.2625"),
-        )
+        val corporateEvent =
+            CorporateEvent(
+                trnType = TrnType.DIVI,
+                recordDate = DateUtils().getDate(caDate),
+                source = ALPHA,
+                assetId = KMI,
+                rate = BigDecimal("0.2625"),
+            )
         val eventInput = TrustedEventInput(corporateEvent)
         val trnEvents = eventService.process(eventInput)
         assertThat(trnEvents).isNotNull.hasSize(1)
 
         // Check the receiver gets what we send
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
-        val events = eventService.forAsset(kmi)
+        val events = eventService.forAsset(KMI)
         assertThat(events).hasSize(1)
         val (id) = events.iterator().next()
         val token = mockAuthConfig.getUserToken(systemUser)
         // Reprocess the corporate event
-        val mvcResult = mockMvc.perform(
-            post("/$id")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(
-            status().isAccepted,
-        ).andReturn()
+        val mvcResult =
+            mockMvc.perform(
+                post("/$id")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(
+                status().isAccepted,
+            ).andReturn()
 
-        val eventsResponse = om.readValue(
-            mvcResult.response.contentAsString,
-            CorporateEventResponse::class.java,
-        )
+        val eventsResponse =
+            om.readValue(
+                mvcResult.response.contentAsString,
+                CorporateEventResponse::class.java,
+            )
         assertThat(eventsResponse).isNotNull.hasFieldOrProperty(DATA)
         verify(portfolio, trnEvents, KafkaTestUtils.getSingleRecord(consumer, TRN_EVENT))
+        consumer.close()
 
         mockMvc.perform(
             post("/backfill/${portfolio.id}/$caDate/$caDate")

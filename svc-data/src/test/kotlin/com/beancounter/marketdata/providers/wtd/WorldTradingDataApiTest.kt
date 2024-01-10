@@ -38,7 +38,7 @@ import kotlin.collections.set
  */
 @SpringBootTest
 @ActiveProfiles("wtd")
-@Tag("slow")
+@Tag("db")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 internal class WorldTradingDataApiTest {
@@ -49,11 +49,11 @@ internal class WorldTradingDataApiTest {
     private lateinit var wtdService: WtdService
 
     @Test
-    @Throws(Exception::class)
     fun is_AsxMarketConvertedToAx() {
-        val response = getResponseMap(
-            ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
-        )
+        val response =
+            getResponseMap(
+                ClassPathResource("$CONTRACTS/${AMP.code}-${ASX.code}.json").file,
+            )
         val assets: MutableCollection<PriceAsset> = ArrayList()
         assets.add(PriceAsset(AMP))
 
@@ -70,9 +70,10 @@ internal class WorldTradingDataApiTest {
                         .withStatus(200),
                 ),
         )
-        val mdResult = wtdService.getMarketData(
-            PriceRequest(priceDate, assets),
-        )
+        val mdResult =
+            wtdService.getMarketData(
+                PriceRequest(priceDate, assets),
+            )
         assertThat(mdResult).isNotNull
             .hasSize(1)
     }
@@ -86,7 +87,6 @@ internal class WorldTradingDataApiTest {
     private val priceDateField = "priceDate"
 
     @Test
-    @Throws(Exception::class)
     fun is_MarketDataDateOverridingRequestDate() {
         val inputs: MutableCollection<PriceAsset> = ArrayList()
         inputs.add(PriceAsset(AAPL))
@@ -97,7 +97,7 @@ internal class WorldTradingDataApiTest {
         mockWtdResponse(
             inputs,
             priceDate,
-            false, // Prices are at T-1. configured date set in -test.yaml
+            false,
             ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file,
         )
         val mdResult = wtdService.getMarketData(PriceRequest(priceDate, inputs))
@@ -122,12 +122,12 @@ internal class WorldTradingDataApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_WtdInvalidAssetPriceDefaulting() {
-        val inputs: Collection<PriceAsset> = arrayListOf(
-            PriceAsset(AAPL),
-            PriceAsset(getTestAsset(NASDAQ, "${MSFT.code}x")),
-        )
+        val inputs: Collection<PriceAsset> =
+            arrayListOf(
+                PriceAsset(AAPL),
+                PriceAsset(getTestAsset(NASDAQ, "${MSFT.code}x")),
+            )
 
         val utcToday = dateUtils.offsetDateString()
 
@@ -137,8 +137,9 @@ internal class WorldTradingDataApiTest {
             false,
             ClassPathResource("$CONTRACTS/${AAPL.code}.json").file,
         )
-        val mdResult = wtdService
-            .getMarketData(PriceRequest(assets = inputs))
+        val mdResult =
+            wtdService
+                .getMarketData(PriceRequest(assets = inputs))
         assertThat(mdResult)
             .isNotNull
             .hasSize(2)
@@ -159,14 +160,14 @@ internal class WorldTradingDataApiTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_NoDataReturned() {
         val inputs: MutableCollection<PriceAsset> = ArrayList()
         inputs.add(PriceAsset(MSFT))
         mockWtdResponse(inputs, priceDate, true, ClassPathResource("$CONTRACTS/NoData.json").file)
-        val prices = wtdService.getMarketData(
-            PriceRequest(priceDate, inputs),
-        )
+        val prices =
+            wtdService.getMarketData(
+                PriceRequest(priceDate, inputs),
+            )
         assertThat(prices).hasSize(inputs.size)
         assertThat(
             prices.iterator().next(),
@@ -177,7 +178,10 @@ internal class WorldTradingDataApiTest {
         private val objectMapper: ObjectMapper = BcJson().objectMapper
 
         @JvmStatic
-        operator fun get(date: String, prices: Map<String, WtdMarketData>): WtdResponse {
+        operator fun get(
+            date: String,
+            prices: Map<String, WtdMarketData>,
+        ): WtdResponse {
             return WtdResponse(date, prices)
         }
 
@@ -190,7 +194,6 @@ internal class WorldTradingDataApiTest {
          * @param jsonFile     Read response from this file.
          * @throws IOException error
          */
-        @Throws(IOException::class)
         @JvmStatic
         fun mockWtdResponse(
             assets: Collection<PriceAsset>,
@@ -242,11 +245,11 @@ internal class WorldTradingDataApiTest {
          * @return Map
          * @throws IOException err
          */
-        @Throws(IOException::class)
         @JvmStatic
         fun getResponseMap(jsonFile: File?): HashMap<String, Any> {
-            val mapType = objectMapper.typeFactory
-                .constructMapType(LinkedHashMap::class.java, String::class.java, Any::class.java)
+            val mapType =
+                objectMapper.typeFactory
+                    .constructMapType(LinkedHashMap::class.java, String::class.java, Any::class.java)
             return objectMapper.readValue(jsonFile, mapType)
         }
     }

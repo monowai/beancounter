@@ -19,7 +19,10 @@ import org.springframework.http.MediaType
 class WiremockAuth {
     companion object {
         @JvmStatic
-        fun mockOpenConnect(authConfig: AuthConfig, token: String = "user-token-response.json") {
+        fun mockOpenConnect(
+            authConfig: AuthConfig,
+            token: String = "user-token-response.json",
+        ) {
             // Mock expired token response
             // Todo: Not properly implemented as it expects JSON body.  Need to figure out mocking multipart params.
             WireMock.stubFor(
@@ -73,14 +76,18 @@ class WiremockAuth {
         }
 
         @JvmStatic
-        private fun remapLocalhostForWiremock(authConfig: AuthConfig, file: String = "./openid-config.json"): Map<String, Any> {
+        private fun remapLocalhostForWiremock(
+            authConfig: AuthConfig,
+            file: String = "./openid-config.json",
+        ): Map<String, Any> {
             // This is to support mocking via WireMock.
             val localTemplate = "{localhost}"
-            val configuration = BcJson().objectMapper.readValue(
-                ClassPathResource(file)
-                    .file,
-                HashMap::class.java,
-            )
+            val configuration =
+                BcJson().objectMapper.readValue(
+                    ClassPathResource(file)
+                        .file,
+                    HashMap::class.java,
+                )
             val results: MutableMap<String, String> = mutableMapOf()
             configuration.forEach { entry ->
                 results[entry.key.toString()] =

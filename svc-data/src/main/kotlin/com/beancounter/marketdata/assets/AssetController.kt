@@ -29,28 +29,36 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/assets")
 @CrossOrigin
 @PreAuthorize("hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')")
-class AssetController @Autowired internal constructor(
-    private val assetService: AssetService,
-    private val marketDataService: MarketDataService,
-) {
-    @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getAsset(@PathVariable market: String, @PathVariable code: String): AssetResponse =
-        AssetResponse(assetService.findOrCreate(AssetInput(market, code)))
+class AssetController
+    @Autowired
+    internal constructor(
+        private val assetService: AssetService,
+        private val marketDataService: MarketDataService,
+    ) {
+        @GetMapping(value = ["/{market}/{code}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        fun getAsset(
+            @PathVariable market: String,
+            @PathVariable code: String,
+        ): AssetResponse = AssetResponse(assetService.findOrCreate(AssetInput(market, code)))
 
-    @GetMapping(value = ["/{assetId}"])
-    fun getAsset(@PathVariable assetId: String): AssetResponse =
-        AssetResponse(assetService.find(assetId))
+        @GetMapping(value = ["/{assetId}"])
+        fun getAsset(
+            @PathVariable assetId: String,
+        ): AssetResponse = AssetResponse(assetService.find(assetId))
 
-    @PostMapping(value = ["/{assetId}/enrich"])
-    fun enrichAsset(@PathVariable assetId: String): AssetResponse =
-        AssetResponse(assetService.enrich(assetService.find(assetId)))
+        @PostMapping(value = ["/{assetId}/enrich"])
+        fun enrichAsset(
+            @PathVariable assetId: String,
+        ): AssetResponse = AssetResponse(assetService.enrich(assetService.find(assetId)))
 
-    @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun update(@RequestBody assetRequest: AssetRequest): AssetUpdateResponse =
-        assetService.handle(assetRequest)
+        @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
+        fun update(
+            @RequestBody assetRequest: AssetRequest,
+        ): AssetUpdateResponse = assetService.handle(assetRequest)
 
-    @PostMapping(value = ["/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    fun backFill(@PathVariable assetId: String) =
-        marketDataService.backFill(assetService.find(assetId))
-}
+        @PostMapping(value = ["/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
+        @ResponseStatus(HttpStatus.ACCEPTED)
+        fun backFill(
+            @PathVariable assetId: String,
+        ) = marketDataService.backFill(assetService.find(assetId))
+    }

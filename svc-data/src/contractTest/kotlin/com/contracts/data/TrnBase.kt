@@ -32,7 +32,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import java.util.Optional
 
-const val asAtDate = "2021-10-18"
+const val AS_AT_DATE = "2021-10-18"
 
 /**
  * Base class for Trn Contract tests. This is called by the spring cloud contract verifier
@@ -109,7 +109,7 @@ class TrnBase {
         mockTrnGetResponse(
             cashPortfolio(),
             "contracts/trn/cash/ladder-response.json",
-            asAtDate,
+            AS_AT_DATE,
         )
 
         Mockito.`when`(
@@ -128,14 +128,15 @@ class TrnBase {
     }
 
     private fun cashPortfolio(): Portfolio {
-        val portfolio = Portfolio(
-            id = "CASHLADDER",
-            code = "CASHLADDER",
-            name = "cashLadderFlow",
-            currency = Constants.USD,
-            base = Constants.NZD,
-            owner = ContractHelper.getSystemUser(),
-        )
+        val portfolio =
+            Portfolio(
+                id = "CASHLADDER",
+                code = "CASHLADDER",
+                name = "cashLadderFlow",
+                currency = Constants.USD,
+                base = Constants.NZD,
+                owner = ContractHelper.getSystemUser(),
+            )
         mockPortfolio(portfolio)
         return portfolio
     }
@@ -147,7 +148,11 @@ class TrnBase {
             .thenReturn(Optional.of(portfolio))
     }
 
-    fun mockTrnGetResponse(portfolio: Portfolio, trnFile: String, date: String = "today") {
+    fun mockTrnGetResponse(
+        portfolio: Portfolio,
+        trnFile: String,
+        date: String = "today",
+    ) {
         val jsonFile = ClassPathResource(trnFile).file
         val trnResponse = RegistrationUtils.objectMapper.readValue(jsonFile, TrnResponse::class.java)
         Mockito.`when`(

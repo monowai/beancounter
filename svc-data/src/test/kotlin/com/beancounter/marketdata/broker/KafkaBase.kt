@@ -25,7 +25,7 @@ import org.springframework.test.context.ActiveProfiles
 )
 @SpringBootTest(classes = [MarketDataBoot::class])
 @ActiveProfiles("kafka")
-@Tag("slow")
+@Tag("kafka")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc

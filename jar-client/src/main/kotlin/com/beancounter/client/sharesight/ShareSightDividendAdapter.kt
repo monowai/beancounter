@@ -22,7 +22,7 @@ import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.text.ParseException
-import java.util.*
+import java.util.Locale
 
 /**
  * Converts from the ShareSight dividend format.
@@ -53,39 +53,44 @@ class ShareSightDividendAdapter(
         val row = trustedTrnImportRequest!!.row
         return try {
             val asset = resolveAsset(row)
-            val tradeRate = parse(row[fxRate], shareSightConfig.numberFormat)
-            val trnInput = TrnInput(
-                CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[id]),
-                asset.id,
-                trnType = TrnType.DIVI,
-                quantity = BigDecimal.ZERO,
-                tradeCurrency = row[currency],
-                tradeDate = dateUtils.getDate(
-                    row[date],
-                    shareSightConfig.dateFormat,
-                    dateUtils.getZoneId(),
-                ),
-                fees = BigDecimal.ZERO,
-                price = BigDecimal.ZERO,
-                tradeAmount = multiplyAbs(
-                    parse(
-                        row[net],
-                        shareSightConfig.numberFormat,
-                    ),
-                    tradeRate,
-                ),
-                tax = multiplyAbs(BigDecimal(row[tax]), tradeRate),
-                cashAmount = multiplyAbs(
-                    parse(row[net], shareSightConfig.numberFormat),
-                    tradeRate,
-                ),
-                comments = row[comments],
-            )
-            trnInput.tradeCashRate = if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
-                BigDecimal.ZERO
-            } else {
-                tradeRate
-            }
+            val tradeRate = parse(row[FX_RATE], shareSightConfig.numberFormat)
+            val trnInput =
+                TrnInput(
+                    CallerRef(trustedTrnImportRequest.portfolio.id, callerId = row[ID]),
+                    asset.id,
+                    trnType = TrnType.DIVI,
+                    quantity = BigDecimal.ZERO,
+                    tradeCurrency = row[CURRENCY],
+                    tradeDate =
+                        dateUtils.getDate(
+                            row[DATE],
+                            shareSightConfig.dateFormat,
+                            dateUtils.getZoneId(),
+                        ),
+                    fees = BigDecimal.ZERO,
+                    price = BigDecimal.ZERO,
+                    tradeAmount =
+                        multiplyAbs(
+                            parse(
+                                row[NET],
+                                shareSightConfig.numberFormat,
+                            ),
+                            tradeRate,
+                        ),
+                    tax = multiplyAbs(BigDecimal(row[TAX]), tradeRate),
+                    cashAmount =
+                        multiplyAbs(
+                            parse(row[NET], shareSightConfig.numberFormat),
+                            tradeRate,
+                        ),
+                    comments = row[COMMENTS],
+                )
+            trnInput.tradeCashRate =
+                if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
+                    BigDecimal.ZERO
+                } else {
+                    tradeRate
+                }
             trnInput // Result!
         } catch (e: NumberFormatException) {
             val message = e.message
@@ -97,12 +102,12 @@ class ShareSightDividendAdapter(
     }
 
     override fun isValid(row: List<String>): Boolean {
-        val rate = row[fxRate].uppercase(Locale.getDefault())
+        val rate = row[FX_RATE].uppercase(Locale.getDefault())
         return rate.contains(".") // dividends have a fx rate in this column
     }
 
     override fun resolveAsset(row: List<String>): Asset {
-        val values = parseAsset(row[code])
+        val values = parseAsset(row[CODE])
         return assetIngestService.resolveAsset(
             AssetInput(
                 values[1].uppercase(Locale.getDefault()),
@@ -115,10 +120,11 @@ class ShareSightDividendAdapter(
         if (input.isNullOrEmpty()) {
             throw BusinessException("Unable to resolve Asset code")
         }
-        val values = Splitter
-            .on(CharMatcher.anyOf(".:-"))
-            .trimResults()
-            .splitToList(input)
+        val values =
+            Splitter
+                .on(CharMatcher.anyOf(".:-"))
+                .trimResults()
+                .splitToList(input)
         if (values.isEmpty() || values[0] == input) {
             throw BusinessException(String.format("Unable to parse %s", input))
         }
@@ -126,15 +132,15 @@ class ShareSightDividendAdapter(
     }
 
     companion object {
-        const val id = 0
-        const val code = 1
-        const val name = 2
-        const val date = 3
-        const val fxRate = 4
-        const val currency = 5
-        const val net = 6
-        const val tax = 7
-        const val gross = 8
-        const val comments = 9
+        const val ID = 0
+        const val CODE = 1
+        const val NAME = 2
+        const val DATE = 3
+        const val FX_RATE = 4
+        const val CURRENCY = 5
+        const val NET = 6
+        const val TAX = 7
+        const val GROSS = 8
+        const val COMMENTS = 9
     }
 }

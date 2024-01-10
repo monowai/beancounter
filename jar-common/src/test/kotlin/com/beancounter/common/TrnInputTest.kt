@@ -1,7 +1,7 @@
 package com.beancounter.common
 
 import com.beancounter.common.Constants.Companion.NYSE
-import com.beancounter.common.Constants.Companion.oneString
+import com.beancounter.common.Constants.Companion.ONE
 import com.beancounter.common.TestMarkets.Companion.USD
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
@@ -38,21 +38,22 @@ internal class TrnInputTest {
     @Throws(Exception::class)
     fun is_TransactionRequestSerializing() {
         val price = BigDecimal("10.99")
-        val trnInput = TrnInput(
-            callerRef = CallerRef(oneString, oneString, abc),
-            tradeDate = DateUtils().getDate("2019-10-10"),
-            settleDate = DateUtils().getDate("2019-10-10"),
-            assetId = getTestAsset(NYSE, "MSFT").id,
-            cashAssetId = toKey("USD-X", "USER"),
-            cashCurrency = USD.code,
-            fees = BigDecimal.ONE,
-            price = price,
-            tradeAmount = BigDecimal("100.99"),
-            cashAmount = BigDecimal("100.99"),
-            tradeBaseRate = BigDecimal.ONE,
-            tradePortfolioRate = price,
-            comments = "Comment",
-        )
+        val trnInput =
+            TrnInput(
+                callerRef = CallerRef(ONE, ONE, abc),
+                tradeDate = DateUtils().getDate("2019-10-10"),
+                settleDate = DateUtils().getDate("2019-10-10"),
+                assetId = getTestAsset(NYSE, "MSFT").id,
+                cashAssetId = toKey("USD-X", "USER"),
+                cashCurrency = USD.code,
+                fees = BigDecimal.ONE,
+                price = price,
+                tradeAmount = BigDecimal("100.99"),
+                cashAmount = BigDecimal("100.99"),
+                tradeBaseRate = BigDecimal.ONE,
+                tradePortfolioRate = price,
+                comments = "Comment",
+            )
 
         val trnRequest = TrnRequest(abc.lowercase(Locale.getDefault()), arrayOf(trnInput))
         val json = objectMapper.writeValueAsString(trnRequest)
@@ -76,15 +77,16 @@ internal class TrnInputTest {
         val asset = getTestAsset(NYSE, "TEST")
         val portfolio = getPortfolio("TWEE")
         portfolio.owner = SystemUser("123", "whee", true)
-        val trn = Trn(
-            id = "PK",
-            trnType = trnType,
-            tradeDate = LocalDate.now(),
-            asset = asset,
-            callerRef = CallerRef(oneString, oneString, "TEST"),
-            price = BigDecimal("100.01"),
-            portfolio = portfolio,
-        )
+        val trn =
+            Trn(
+                id = "PK",
+                trnType = trnType,
+                tradeDate = LocalDate.now(),
+                asset = asset,
+                callerRef = CallerRef(ONE, ONE, "TEST"),
+                price = BigDecimal("100.01"),
+                portfolio = portfolio,
+            )
         trn.settleDate = LocalDate.now()
         trn.price = BigDecimal("22.11")
         trn.fees = BigDecimal("10")
@@ -129,19 +131,21 @@ internal class TrnInputTest {
             .isEqualTo(ttr)
     }
 
-    private val simpleTrnInput = TrnInput(
-        assetId = "aid",
-        price = BigDecimal.TEN,
-    )
+    private val simpleTrnInput =
+        TrnInput(
+            assetId = "aid",
+            price = BigDecimal.TEN,
+        )
 
     @Test
     @Throws(Exception::class)
     fun is_TrustedEventWithMessageValid() {
-        val ttr = TrustedTrnEvent(
-            portfolio = getPortfolio(),
-            message = "the message",
-            trnInput = simpleTrnInput,
-        )
+        val ttr =
+            TrustedTrnEvent(
+                portfolio = getPortfolio(),
+                message = "the message",
+                trnInput = simpleTrnInput,
+            )
 
         assertThat(ttr)
             .hasFieldOrPropertyWithValue(importFormatProp, ImportFormat.BC)
@@ -159,10 +163,11 @@ internal class TrnInputTest {
     @Test
     @Throws(Exception::class)
     fun is_TrustedEventRequestValid() {
-        val ttr = TrustedTrnEvent(
-            portfolio = getPortfolio(),
-            trnInput = simpleTrnInput,
-        )
+        val ttr =
+            TrustedTrnEvent(
+                portfolio = getPortfolio(),
+                trnInput = simpleTrnInput,
+            )
 
         assertThat(ttr)
             .hasFieldOrPropertyWithValue(importFormatProp, ImportFormat.BC)

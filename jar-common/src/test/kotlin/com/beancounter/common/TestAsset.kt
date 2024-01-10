@@ -20,10 +20,11 @@ import org.junit.jupiter.api.Test
 internal class TestAsset {
     @Test
     fun assetDefaults() {
-        val asset = getTestAsset(
-            Market("Any"),
-            "Thing",
-        )
+        val asset =
+            getTestAsset(
+                Market("Any"),
+                "Thing",
+            )
         assertThat(asset)
             .hasFieldOrPropertyWithValue("status", Status.Active)
             .hasFieldOrPropertyWithValue("version", "1")
@@ -31,10 +32,11 @@ internal class TestAsset {
 
     @Test
     fun assetKeyParses() {
-        val asset = getTestAsset(
-            Market("MCODE"),
-            "ACODE",
-        )
+        val asset =
+            getTestAsset(
+                Market("MCODE"),
+                "ACODE",
+            )
         val keyIn = toKey(asset)
         assertThat(toKey(AssetInput("MCODE", "ACODE")))
             .isEqualTo(keyIn)

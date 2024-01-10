@@ -23,9 +23,10 @@ class RegistrationController internal constructor(
     private val tokenService: TokenService,
 ) {
     @GetMapping("/me")
-    fun getMe(): RegistrationResponse = RegistrationResponse(
-        systemUserService.find(tokenService.subject) ?: throw ForbiddenException("Authenticated, but unregistered"),
-    )
+    fun getMe(): RegistrationResponse =
+        RegistrationResponse(
+            systemUserService.find(tokenService.subject) ?: throw ForbiddenException("Authenticated, but unregistered"),
+        )
 
     @PostMapping(value = ["/register"])
     fun register(

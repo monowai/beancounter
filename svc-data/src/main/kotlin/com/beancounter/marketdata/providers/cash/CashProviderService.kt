@@ -46,7 +46,10 @@ class CashProviderService(val dateUtils: DateUtils = DateUtils()) : MarketDataPr
     val priceDate: LocalDate?
         get() = dateUtils.getLocalDate()
 
-    override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {
+    override fun getDate(
+        market: Market,
+        priceRequest: PriceRequest,
+    ): LocalDate {
         return priceDate!!
     }
 

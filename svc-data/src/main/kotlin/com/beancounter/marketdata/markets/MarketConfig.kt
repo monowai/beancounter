@@ -5,6 +5,7 @@ import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
 
@@ -18,13 +19,16 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties(prefix = "beancounter.market")
 @Import(CurrencyService::class)
 @Component
-class MarketConfig @Autowired constructor(
-    val values: Collection<Market>,
-    val currencyService: CurrencyService,
-) {
-
-    fun getProviders(): Map<String, Market> = values.associateByTo(mutableMapOf()) {
-        it.currency = currencyService.getCode(it.currencyId)
-        it.code
+class MarketConfig
+    @Autowired
+    constructor(
+        val values: Collection<Market>,
+        val currencyService: CurrencyService,
+    ) {
+        @Cacheable("providers")
+        fun getProviders(): Map<String, Market> =
+            values.associateByTo(mutableMapOf()) {
+                it.currency = currencyService.getCode(it.currencyId)
+                it.code
+            }
     }
-}

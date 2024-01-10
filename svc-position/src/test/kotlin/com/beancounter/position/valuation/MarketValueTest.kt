@@ -51,17 +51,18 @@ internal class MarketValueTest {
     @Test
     fun is_MarketValueFromBehaviour() {
         val positions = Positions(portfolio)
-        val position = buyBehaviour.accumulate(
-            Trn(
-                trnType = TrnType.BUY,
-                asset = asset,
-                quantity = hundred,
-                tradeAmount = twoThousand,
-                tradePortfolioRate = simpleRate,
-                portfolio = portfolio,
-            ),
-            positions,
-        )
+        val position =
+            buyBehaviour.accumulate(
+                Trn(
+                    trnType = TrnType.BUY,
+                    asset = asset,
+                    quantity = hundred,
+                    tradeAmount = twoThousand,
+                    tradePortfolioRate = simpleRate,
+                    portfolio = portfolio,
+                ),
+                positions,
+            )
         val marketData = MarketData(asset, close = BigDecimal("10.00"))
         marketData.previousClose = BigDecimal("5.00")
 
@@ -114,27 +115,29 @@ internal class MarketValueTest {
     @Test
     fun is_GainsOnSellBehaviour() {
         val simpleRate = BigDecimal("0.20")
-        val fxRateMap = mapOf(
-            Pair(
-                toPair(
-                    asset.market.currency,
-                    portfolio.currency,
-                )!!,
-                FxRate(
-                    Currency("X"),
-                    Currency("X"),
-                    simpleRate,
+        val fxRateMap =
+            mapOf(
+                Pair(
+                    toPair(
+                        asset.market.currency,
+                        portfolio.currency,
+                    )!!,
+                    FxRate(
+                        Currency("X"),
+                        Currency("X"),
+                        simpleRate,
+                    ),
                 ),
-            ),
-        )
-        val buyTrn = Trn(
-            trnType = TrnType.BUY,
-            asset = asset,
-            quantity = hundred,
-            tradeAmount = twoThousand,
-            tradePortfolioRate = simpleRate,
-            portfolio = portfolio,
-        )
+            )
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = twoThousand,
+                tradePortfolioRate = simpleRate,
+                portfolio = portfolio,
+            )
 
         val positions = Positions(portfolio)
         val position = buyBehaviour.accumulate(buyTrn, positions)
@@ -148,11 +151,12 @@ internal class MarketValueTest {
                 portfolio = portfolio,
             )
         sellBehaviour.accumulate(sellTrn, positions)
-        val marketData = MarketData(
-            asset,
-            close = BigDecimal("10.00"),
-            previousClose = BigDecimal("9.00"),
-        )
+        val marketData =
+            MarketData(
+                asset,
+                close = BigDecimal("10.00"),
+                previousClose = BigDecimal("9.00"),
+            )
         MarketValue(Gains()).value(positions, marketData, fxRateMap)
         verifyTradeBaseMoneyValues(MoneyValues(USD), marketData, buyTrn, sellTrn, position)
         verifyPortfolioMoneyValues(MoneyValues(portfolio.currency), marketData, simpleRate, position)
@@ -206,13 +210,14 @@ internal class MarketValueTest {
     fun is_MarketValueWithNoPriceComputedForBuyBehaviour() {
         val asset = getTestAsset(NASDAQ, "ABC")
         val simpleRate = BigDecimal("0.20")
-        val buyTrn = Trn(
-            trnType = TrnType.BUY,
-            asset = asset,
-            quantity = hundred,
-            tradeAmount = BigDecimal("2000.00"),
-            portfolio = getPortfolio(),
-        )
+        val buyTrn =
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = hundred,
+                tradeAmount = BigDecimal("2000.00"),
+                portfolio = getPortfolio(),
+            )
         assertThat(buyTrn.tradeCurrency.code).isEqualTo(asset.market.currency.code)
         buyTrn.tradePortfolioRate = simpleRate
         // Behaviour tests manage their own Positions.
@@ -233,16 +238,18 @@ internal class MarketValueTest {
         simpleRate: BigDecimal,
     ): Map<IsoCurrencyPair, FxRate> {
         val fxRateMap: MutableMap<IsoCurrencyPair, FxRate> = HashMap()
-        val pair = toPair(
-            asset.market.currency,
-            portfolio.currency,
-        )
-        if (pair != null) {
-            fxRateMap[pair] = FxRate(
-                Currency("test"),
-                Currency("TEST"),
-                simpleRate,
+        val pair =
+            toPair(
+                asset.market.currency,
+                portfolio.currency,
             )
+        if (pair != null) {
+            fxRateMap[pair] =
+                FxRate(
+                    Currency("test"),
+                    Currency("TEST"),
+                    simpleRate,
+                )
         }
         return fxRateMap
     }

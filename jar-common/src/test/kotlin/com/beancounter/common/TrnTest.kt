@@ -9,34 +9,35 @@ import com.beancounter.common.utils.PortfolioUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-private const val vProvider = "provider"
+private const val V_PROVIDER = "provider"
 
-private const val vBatch = "batch"
+private const val V_BATCH = "batch"
 
 /**
  * Trn related defaults
  */
 class TrnTest {
-
     private val simpleRef = "simpleRef"
     private val batch = DateUtils().getDate().toString().replace("-", "")
 
     @Test
     fun is_trnVersion() {
         val id = "any"
-        val trnDefault = Trn(
-            id = id,
-            trnType = TrnType.BUY,
-            asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
-        val trn = Trn(
-            id = id,
-            trnType = TrnType.BUY,
-            asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
-            portfolio = PortfolioUtils.getPortfolio(),
-            version = "0",
-        )
+        val trnDefault =
+            Trn(
+                id = id,
+                trnType = TrnType.BUY,
+                asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
+        val trn =
+            Trn(
+                id = id,
+                trnType = TrnType.BUY,
+                asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
+                portfolio = PortfolioUtils.getPortfolio(),
+                version = "0",
+            )
         assertThat(trnDefault)
             .hasFieldOrProperty("version")
         assertThat(trn.version).isEqualTo("0")
@@ -47,7 +48,7 @@ class TrnTest {
     fun is_TrnIdDefaulting() {
         val fromNull: CallerRef = CallerRef.from(callerRef = CallerRef())
         assertThat(fromNull).hasNoNullFieldsOrProperties()
-        val id = CallerRef(vProvider, vBatch, "456")
+        val id = CallerRef(V_PROVIDER, V_BATCH, "456")
         assertThat(CallerRef.from(id)).usingRecursiveComparison().isEqualTo(id)
     }
 
@@ -56,16 +57,16 @@ class TrnTest {
         val fromNull: CallerRef = CallerRef.from(CallerRef())
         assertThat(fromNull)
             .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue(vProvider, "BC")
-            .hasFieldOrPropertyWithValue(vBatch, batch) // Defaults to today
+            .hasFieldOrPropertyWithValue(V_PROVIDER, "BC")
+            .hasFieldOrPropertyWithValue(V_BATCH, batch) // Defaults to today
     }
 
     @Test
     fun is_TrnIdDefaults() {
         var callerRef = CallerRef()
         assertThat(callerRef).hasNoNullFieldsOrProperties()
-        val batchProp = vBatch
-        val providerProp = vProvider
+        val batchProp = V_BATCH
+        val providerProp = V_PROVIDER
         val callerIdProp = "callerId"
 
         assertThat(CallerRef.from(callerRef))
@@ -87,12 +88,13 @@ class TrnTest {
 
     @Test
     fun is_TradeCurrencySetFromAsset() {
-        val trn = Trn(
-            id = "any",
-            trnType = TrnType.BUY,
-            asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
+        val trn =
+            Trn(
+                id = "any",
+                trnType = TrnType.BUY,
+                asset = AssetUtils.getTestAsset(Constants.NYSE, simpleRef),
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
         assertThat(trn.asset.market.currency).isNotNull
         assertThat(trn.tradeCurrency.code).isEqualTo(trn.asset.market.currency.code)
     }

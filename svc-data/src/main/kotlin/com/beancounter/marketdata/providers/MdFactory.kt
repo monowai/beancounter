@@ -37,7 +37,7 @@ class MdFactory internal constructor(
      * @param market who is pricing this for this market
      * @return the provider that supports the asset
      */
-    @Cacheable("providers")
+    @Cacheable("provider")
     fun getMarketDataProvider(market: Market): MarketDataPriceProvider {
         return resolveProvider(market)
     }

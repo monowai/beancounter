@@ -16,7 +16,10 @@ object RegistrationUtils {
     var objectMapper = BcJson().objectMapper
 
     @JvmStatic
-    fun registerUser(mockMvc: MockMvc, token: Jwt): Jwt {
+    fun registerUser(
+        mockMvc: MockMvc,
+        token: Jwt,
+    ): Jwt {
         mockMvc.perform(
             MockMvcRequestBuilders.post("/register")
                 .with(

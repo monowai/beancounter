@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.utils
 
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.common.utils.DateUtils.Companion.today
+import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 
@@ -30,7 +30,7 @@ class DateUtilsMocker {
                 i++
             }
 
-            Mockito.`when`(dateUtils.getDate(today))
+            Mockito.`when`(dateUtils.getDate(TODAY))
                 .thenReturn(DateUtils().getDate())
         }
     }

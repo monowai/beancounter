@@ -14,7 +14,12 @@ import java.math.BigDecimal
 @Service
 class FxBuyBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStrategy {
     private val cashCost = CashCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
+
+    override fun accumulate(
+        trn: Trn,
+        positions: Positions,
+        position: Position,
+    ): Position {
         position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
         cashCost.value(
             currencyResolver.getMoneyValues(Position.In.TRADE, trn.tradeCurrency, trn.portfolio, position),

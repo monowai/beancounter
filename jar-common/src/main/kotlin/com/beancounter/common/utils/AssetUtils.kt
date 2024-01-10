@@ -13,7 +13,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
  * @since 2019-02-24
  */
 class AssetUtils {
-
     companion object {
         private val objectMapper = BcJson().objectMapper
 
@@ -25,13 +24,15 @@ class AssetUtils {
          * @return asset on a market
          */
         @JvmStatic
-        fun getTestAsset(market: Market, code: String) =
-            Asset(
-                code = code,
-                id = code,
-                name = code,
-                market = market,
-            )
+        fun getTestAsset(
+            market: Market,
+            code: String,
+        ) = Asset(
+            code = code,
+            id = code,
+            name = code,
+            market = market,
+        )
 
         @JvmStatic
         fun split(assets: Collection<PriceAsset>): Map<String, List<PriceAsset>> {
@@ -48,13 +49,19 @@ class AssetUtils {
          */
         @JvmStatic
         @Throws(JsonProcessingException::class)
-        fun getJsonAsset(market: String, code: String): Asset {
+        fun getJsonAsset(
+            market: String,
+            code: String,
+        ): Asset {
             val asset = getTestAsset(Market(market), code)
             return objectMapper.readValue(objectMapper.writeValueAsString(asset), Asset::class.java)
         }
 
         @JvmStatic
-        fun getAssetInput(market: String, code: String) = AssetInput(market, code, name = code)
+        fun getAssetInput(
+            market: String,
+            code: String,
+        ) = AssetInput(market, code, name = code)
 
         @JvmStatic
         fun getAssetInput(asset: Asset) =

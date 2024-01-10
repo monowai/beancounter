@@ -20,7 +20,6 @@ class SystemUserService(
     private val tokenService: TokenService,
     private val authProviders: AuthProviders,
 ) : Registration {
-
     fun register(): RegistrationResponse {
         if (isServiceAccount()) {
             throw BusinessException("Service accounts can not be registered for user activities")
@@ -62,15 +61,16 @@ class SystemUserService(
     }
 
     fun find(): SystemUser? {
-        val result = if (tokenService.hasEmail()) {
-            systemUserRepository.findByEmail(tokenService.getEmail())
-        } else if (tokenService.isAuth0()) {
-            systemUserRepository.findByAuth0(tokenService.subject)
-        } else if (tokenService.isGoogle()) {
-            systemUserRepository.findByGoogleId(tokenService.subject)
-        } else {
-            Optional.ofNullable(null)
-        }
+        val result =
+            if (tokenService.hasEmail()) {
+                systemUserRepository.findByEmail(tokenService.getEmail())
+            } else if (tokenService.isAuth0()) {
+                systemUserRepository.findByAuth0(tokenService.subject)
+            } else if (tokenService.isGoogle()) {
+                systemUserRepository.findByGoogleId(tokenService.subject)
+            } else {
+                Optional.ofNullable(null)
+            }
         return result.orElse(null)
     }
 

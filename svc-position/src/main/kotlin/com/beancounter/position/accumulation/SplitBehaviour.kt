@@ -16,7 +16,12 @@ import java.math.BigDecimal
 class SplitBehaviour : AccumulationStrategy {
     private val averageCost = AverageCost()
     private val currencyResolver = CurrencyResolver()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
+
+    override fun accumulate(
+        trn: Trn,
+        positions: Positions,
+        position: Position,
+    ): Position {
         val total = position.quantityValues.getTotal()
         position.quantityValues
             .adjustment = trn.quantity.multiply(total).subtract(total)
@@ -44,7 +49,10 @@ class SplitBehaviour : AccumulationStrategy {
         return position
     }
 
-    private fun value(position: Position, moneyValues: MoneyValues) {
+    private fun value(
+        position: Position,
+        moneyValues: MoneyValues,
+    ) {
         if (moneyValues.costBasis != BigDecimal.ZERO) {
             moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
         }

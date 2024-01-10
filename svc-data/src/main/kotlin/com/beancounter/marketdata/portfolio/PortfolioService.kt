@@ -27,7 +27,6 @@ class PortfolioService internal constructor(
     private val systemUserService: SystemUserService,
     private val dateUtils: DateUtils,
 ) {
-
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow
         val results: MutableCollection<Portfolio> = ArrayList()
@@ -47,11 +46,12 @@ class PortfolioService internal constructor(
         get() {
             val systemUser = systemUserService.getOrThrow
             val results: MutableCollection<Portfolio> = ArrayList()
-            val portfolios = if (systemUser.id == "beancounter:system") {
-                portfolioRepository.findAll()
-            } else {
-                portfolioRepository.findByOwner(systemUser)
-            }
+            val portfolios =
+                if (systemUser.id == "beancounter:system") {
+                    portfolioRepository.findAll()
+                } else {
+                    portfolioRepository.findByOwner(systemUser)
+                }
             for (portfolio in portfolios) {
                 results.add(portfolio)
             }
@@ -82,24 +82,29 @@ class PortfolioService internal constructor(
     fun findByCode(code: String): Portfolio {
         val systemUser = systemUserService.getOrThrow
         log.trace("Searching on behalf of {}", systemUser.id)
-        val found = portfolioRepository
-            .findByCodeAndOwner(code.uppercase(Locale.getDefault()), systemUser)
-        val portfolio = found.orElseThrow {
-            BusinessException(
-                String.format(
-                    "Could not find a portfolio with code %s owned by %s",
-                    code,
-                    systemUser.id,
-                ),
-            )
-        }
+        val found =
+            portfolioRepository
+                .findByCodeAndOwner(code.uppercase(Locale.getDefault()), systemUser)
+        val portfolio =
+            found.orElseThrow {
+                BusinessException(
+                    String.format(
+                        "Could not find a portfolio with code %s owned by %s",
+                        code,
+                        systemUser.id,
+                    ),
+                )
+            }
         if (canView(portfolio)) {
             return portfolio
         }
         throw BusinessException(String.format("Could not find a portfolio with code %s", code))
     }
 
-    fun update(id: String, portfolioInput: PortfolioInput?): Portfolio {
+    fun update(
+        id: String,
+        portfolioInput: PortfolioInput?,
+    ): Portfolio {
         val existing = find(id)
         return portfolioRepository.save(portfolioInputAdapter.fromInput(portfolioInput!!, existing))
     }
@@ -110,10 +115,14 @@ class PortfolioService internal constructor(
         portfolioRepository.delete(portfolio)
     }
 
-    fun findWhereHeld(assetId: String?, tradeDate: LocalDate?): PortfoliosResponse {
+    fun findWhereHeld(
+        assetId: String?,
+        tradeDate: LocalDate?,
+    ): PortfoliosResponse {
         val recordDate = tradeDate ?: dateUtils.getDate(dateUtils.today())
-        val portfolios = portfolioRepository
-            .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate)
+        val portfolios =
+            portfolioRepository
+                .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate)
         log.trace("Found {} notional holders for assetId: {}", portfolios.size, assetId)
         return PortfoliosResponse(portfolios)
     }

@@ -7,7 +7,11 @@ import jakarta.persistence.Id
 /**
  * Persistent representation of a Currency.
  */
-data class Currency(@Id var code: String, var name: String? = "Dollar", var symbol: String? = "$") {
+data class Currency(
+    @Id var code: String,
+    var name: String? = "Dollar",
+    var symbol: String? = "$",
+) {
     constructor(code: String) : this(code, "Dollar", "$")
 
     override fun equals(other: Any?): Boolean {

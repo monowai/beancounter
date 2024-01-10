@@ -42,9 +42,10 @@ internal class StockSplitTest {
         // 7 for one split
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(totalField, BigDecimal(700))
-        val costBasis = Objects.requireNonNull(
-            position.getMoneyValues(Position.In.TRADE, position.asset.market.currency),
-        ).costBasis
+        val costBasis =
+            Objects.requireNonNull(
+                position.getMoneyValues(Position.In.TRADE, position.asset.market.currency),
+            ).costBasis
         assertThat(position.getMoneyValues(Position.In.TRADE, position.asset.market.currency))
             .hasFieldOrPropertyWithValue("costBasis", costBasis)
 

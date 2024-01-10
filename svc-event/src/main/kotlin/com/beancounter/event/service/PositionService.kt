@@ -26,7 +26,6 @@ import java.time.LocalDate
 @Service
 class PositionService(
     private val behaviourFactory: EventBehaviourFactory,
-
 ) {
     private lateinit var assetService: AssetService
     private lateinit var positionGateway: PositionGateway
@@ -62,15 +61,22 @@ class PositionService(
         log.info("position.url: {}", positionUrl)
     }
 
-    fun findWhereHeld(assetId: String, date: LocalDate): PortfoliosResponse {
+    fun findWhereHeld(
+        assetId: String,
+        date: LocalDate,
+    ): PortfoliosResponse {
         return portfolioService.getWhereHeld(assetId, date)
     }
 
-    fun process(portfolio: Portfolio, event: CorporateEvent): TrustedTrnEvent {
-        val positionResponse = positionGateway.query(
-            tokenService.bearerToken,
-            TrustedTrnQuery(portfolio, event.recordDate, event.assetId),
-        )
+    fun process(
+        portfolio: Portfolio,
+        event: CorporateEvent,
+    ): TrustedTrnEvent {
+        val positionResponse =
+            positionGateway.query(
+                tokenService.bearerToken,
+                TrustedTrnQuery(portfolio, event.recordDate, event.assetId),
+            )
         if (positionResponse != null && positionResponse.data.hasPositions()) {
             for (position in positionResponse.data.positions.values) {
                 // Cash positions do not have Events and Interest is not currently calculated.
@@ -88,7 +94,10 @@ class PositionService(
         return (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0)
     }
 
-    fun getPositions(portfolio: Portfolio, asAt: String): PositionResponse {
+    fun getPositions(
+        portfolio: Portfolio,
+        asAt: String,
+    ): PositionResponse {
         return positionGateway[tokenService.bearerToken, portfolio.id, asAt]
     }
 

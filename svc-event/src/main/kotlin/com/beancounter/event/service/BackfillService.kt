@@ -21,7 +21,11 @@ class BackfillService(
     private val dateSplitter = DateSplitter(dateUtils)
     private val log = LoggerFactory.getLogger(BackfillService::class.java)
 
-    fun backFillEvents(portfolioId: String, date: String = "today", toDate: String = date) {
+    fun backFillEvents(
+        portfolioId: String,
+        date: String = "today",
+        toDate: String = date,
+    ) {
         val dates = dateSplitter.dateRange(date, toDate)
         val portfolio =
             portfolioService.getPortfolioById(portfolioId, tokenService.bearerToken)

@@ -26,7 +26,7 @@ class FxRateCalculator private constructor() {
          * @return rates for the requested pairs on the requested date.
          */
         fun compute(
-            asAt: String = DateUtils.today,
+            asAt: String = DateUtils.TODAY,
             currencyPairs: Collection<IsoCurrencyPair>,
             rateMap: Map<String, FxRate>,
         ): FxPairResults {
@@ -36,19 +36,21 @@ class FxRateCalculator private constructor() {
                 if (!pair.from.equals(pair.to, ignoreCase = true)) { // Is the answer one?
                     val from = rateMap[pair.from.uppercase(Locale.getDefault())]!!
                     val to = rateMap[pair.to.uppercase(Locale.getDefault())]!!
-                    val rate = if (pair.from == "USD") {
-                        to.rate
-                    } else {
-                        to.rate.divide(from.rate, 8, RoundingMode.HALF_UP) // .divide(from.rate, 8, RoundingMode.HALF_UP)
-                    }
+                    val rate =
+                        if (pair.from == "USD") {
+                            to.rate
+                        } else {
+                            to.rate.divide(from.rate, 8, RoundingMode.HALF_UP) // .divide(from.rate, 8, RoundingMode.HALF_UP)
+                        }
                     rates[pair] = FxRate(from.to, to.to, rate, from.date)
                 } else {
-                    rates[pair] = FxRate(
-                        (rateMap[pair.from] ?: error("")).from,
-                        (rateMap[pair.to] ?: error("")).to,
-                        BigDecimal.ONE,
-                        asAt,
-                    )
+                    rates[pair] =
+                        FxRate(
+                            (rateMap[pair.from] ?: error("")).from,
+                            (rateMap[pair.to] ?: error("")).to,
+                            BigDecimal.ONE,
+                            asAt,
+                        )
                 }
             }
             return FxPairResults(rates)

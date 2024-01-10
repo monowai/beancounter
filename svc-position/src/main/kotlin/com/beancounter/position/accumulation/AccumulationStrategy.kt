@@ -12,7 +12,8 @@ interface AccumulationStrategy {
     fun accumulate(
         trn: Trn,
         positions: Positions,
-        position: Position = positions[trn.asset, trn.tradeDate], // Some strategies mutate multiple positions (FX)
+        // Some strategies mutate multiple positions (FX)
+        position: Position = positions[trn.asset, trn.tradeDate],
     ): Position
 
     fun getCashPosition(

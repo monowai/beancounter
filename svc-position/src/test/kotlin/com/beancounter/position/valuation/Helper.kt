@@ -27,7 +27,8 @@ class Helper {
                 portfolio = portfolio,
                 asset = cashAsset,
                 price = BigDecimal.ONE,
-                cashAsset = cashAsset, // This is the resolved cash asset that import will figure out from CashCurrency
+                // This is the resolved cash asset that import will figure out from CashCurrency
+                cashAsset = cashAsset,
                 quantity = balance,
                 tradeBaseRate = tradeBaseRate,
                 tradePortfolioRate = tradePortfolioRate,
@@ -52,8 +53,10 @@ class Helper {
                 price = BigDecimal.ONE,
                 tradeBaseRate = tradeBaseRate,
                 tradePortfolioRate = tradePortfolioRate,
-                quantity = creditAmount, // Amount to receive
-                cashAmount = debitAmount.multiply(BigDecimal("-1")), // Amount to debit
+                // Amount to receive
+                quantity = creditAmount,
+                // Amount to debit
+                cashAmount = debitAmount.multiply(BigDecimal("-1")),
             )
         }
     }

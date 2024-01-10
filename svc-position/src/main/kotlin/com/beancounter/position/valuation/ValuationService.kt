@@ -23,59 +23,67 @@ import org.springframework.stereotype.Service
  */
 @Configuration
 @Service
-class ValuationService @Autowired internal constructor(
-    private val positionValuationService: PositionValuationService,
-    private val trnService: TrnService,
-    private val positionService: PositionService,
-    private val dateUtils: DateUtils,
-) : Valuation {
-
-    override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
-        val trnResponse = trnService.query(trnQuery)
-        return buildPositions(
-            trnQuery.portfolio,
-            trnQuery.tradeDate.toString(),
-            trnResponse,
-        )
-    }
-
-    override fun build(portfolio: Portfolio, valuationDate: String): PositionResponse {
-        val trnResponse = trnService.query(portfolio, valuationDate)
-        return buildPositions(portfolio, valuationDate, trnResponse)
-    }
-
-    private fun buildPositions(
-        portfolio: Portfolio,
-        valuationDate: String,
-        trnResponse: TrnResponse,
-    ): PositionResponse {
-        val positionRequest = PositionRequest(portfolio.id, trnResponse.data)
-        val positionResponse = positionService.build(portfolio, positionRequest)
-        if (!valuationDate.equals(DateUtils.today, ignoreCase = true)) {
-            positionResponse.data.asAt = valuationDate
+class ValuationService
+    @Autowired
+    internal constructor(
+        private val positionValuationService: PositionValuationService,
+        private val trnService: TrnService,
+        private val positionService: PositionService,
+        private val dateUtils: DateUtils,
+    ) : Valuation {
+        override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
+            val trnResponse = trnService.query(trnQuery)
+            return buildPositions(
+                trnQuery.portfolio,
+                trnQuery.tradeDate.toString(),
+                trnResponse,
+            )
         }
-        return positionResponse
-    }
 
-    override fun getPositions(portfolio: Portfolio, valuationDate: String, value: Boolean): PositionResponse {
-        val positions = build(portfolio, valuationDate).data
-        return if (value) {
-            value(positions)
-        } else {
-            PositionResponse(positions)
+        override fun build(
+            portfolio: Portfolio,
+            valuationDate: String,
+        ): PositionResponse {
+            val trnResponse = trnService.query(portfolio, valuationDate)
+            return buildPositions(portfolio, valuationDate, trnResponse)
         }
-    }
 
-    override fun value(positions: Positions): PositionResponse {
-        dateUtils.getOrThrow(positions.asAt)
-        val assets: MutableCollection<AssetInput> = ArrayList()
-        if (positions.hasPositions()) {
-            for (position in positions.positions.values) {
-                assets.add(AssetInput(position.asset.market.code, position.asset.code))
+        private fun buildPositions(
+            portfolio: Portfolio,
+            valuationDate: String,
+            trnResponse: TrnResponse,
+        ): PositionResponse {
+            val positionRequest = PositionRequest(portfolio.id, trnResponse.data)
+            val positionResponse = positionService.build(portfolio, positionRequest)
+            if (!valuationDate.equals(DateUtils.TODAY, ignoreCase = true)) {
+                positionResponse.data.asAt = valuationDate
             }
-            val valuedPositions = positionValuationService.value(positions, assets)
-            return PositionResponse(valuedPositions)
+            return positionResponse
         }
-        return PositionResponse(positions)
+
+        override fun getPositions(
+            portfolio: Portfolio,
+            valuationDate: String,
+            value: Boolean,
+        ): PositionResponse {
+            val positions = build(portfolio, valuationDate).data
+            return if (value) {
+                value(positions)
+            } else {
+                PositionResponse(positions)
+            }
+        }
+
+        override fun value(positions: Positions): PositionResponse {
+            dateUtils.getOrThrow(positions.asAt)
+            val assets: MutableCollection<AssetInput> = ArrayList()
+            if (positions.hasPositions()) {
+                for (position in positions.positions.values) {
+                    assets.add(AssetInput(position.asset.market.code, position.asset.code))
+                }
+                val valuedPositions = positionValuationService.value(positions, assets)
+                return PositionResponse(valuedPositions)
+            }
+            return PositionResponse(positions)
+        }
     }
-}

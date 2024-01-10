@@ -48,7 +48,6 @@ private const val PROP_COST_VALUE = "costValue"
 @AutoConfigureMockAuth
 @AutoConfigureMockMvc
 internal class CashLadderMvcTests {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -59,14 +58,15 @@ internal class CashLadderMvcTests {
 
     private val test = "CASHLADDER"
 
-    var portfolio: Portfolio = Portfolio(
-        id = test,
-        code = test,
-        name = "${NZD.code} Portfolio",
-        currency = NZD,
-        base = USD,
-        owner = owner,
-    )
+    var portfolio: Portfolio =
+        Portfolio(
+            id = test,
+            code = test,
+            name = "${NZD.code} Portfolio",
+            currency = NZD,
+            base = USD,
+            owner = owner,
+        )
 
     @Test
     fun positionRequestFromTransactions() {
@@ -75,16 +75,17 @@ internal class CashLadderMvcTests {
 
         val usdCash = getTestAsset(code = USD.code, market = CASH)
         val nzdCash = getTestAsset(code = NZD.code, market = CASH)
-        val json = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
-                .contentType(MediaType.APPLICATION_JSON_VALUE),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(
-                MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
-            ).andReturn()
-            .response
-            .contentAsString
+        val json =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/{portfolioCode}/$date", portfolio.code)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(
+                    MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
+                ).andReturn()
+                .response
+                .contentAsString
 
         val positionResponse = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(positionResponse).isNotNull

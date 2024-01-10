@@ -21,9 +21,7 @@ data class Portfolio(
     @ManyToOne val currency: Currency,
     @ManyToOne val base: Currency,
     @ManyToOne var owner: SystemUser = SystemUser(id),
-
 ) {
-
     constructor(code: String) : this(code, code, code, Currency("USD"), Currency("USD"))
 
     constructor(code: String, currency: Currency) : this(code, code, code, currency, currency)

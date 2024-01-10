@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service
  */
 @Service
 class FxUtils {
-    fun buildRequest(base: Currency, positions: Positions): FxRequest {
+    fun buildRequest(
+        base: Currency,
+        positions: Positions,
+    ): FxRequest {
         val fxRequest = FxRequest(positions.asAt)
         val portfolio = positions.portfolio.currency
         for (position in positions.positions.values) {

@@ -9,7 +9,7 @@ class Constants {
     companion object {
         val USD = Currency("USD")
         val NZD = Currency("NZD")
-        const val alpha = "ALPHA"
-        const val kmi = "KMI"
+        const val ALPHA = "ALPHA"
+        const val KMI = "KMI"
     }
 }

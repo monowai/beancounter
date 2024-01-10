@@ -27,17 +27,19 @@ class TrnMigrator(private val fxRateService: FxRateService) {
         val tradePortfolio = IsoCurrencyPair(trn.tradeCurrency.code, trn.portfolio.currency.code)
         val tradeBase = IsoCurrencyPair(trn.tradeCurrency.code, trn.portfolio.base.code)
 
-        val rateList = if (tradeCash == null) {
-            arrayListOf(tradePortfolio, tradeBase)
-        } else {
-            arrayListOf(tradePortfolio, tradeBase, tradeCash)
-        }
-        val rates = fxRateService.getRates(
-            FxRequest(
-                trn.tradeDate.toString(),
-                rateList,
-            ),
-        )
+        val rateList =
+            if (tradeCash == null) {
+                arrayListOf(tradePortfolio, tradeBase)
+            } else {
+                arrayListOf(tradePortfolio, tradeBase, tradeCash)
+            }
+        val rates =
+            fxRateService.getRates(
+                FxRequest(
+                    trn.tradeDate.toString(),
+                    rateList,
+                ),
+            )
         trn.tradeBaseRate = rates.data.rates[tradeBase]!!.rate
         trn.tradePortfolioRate = rates.data.rates[tradePortfolio]!!.rate
         if (tradeCash != null) {

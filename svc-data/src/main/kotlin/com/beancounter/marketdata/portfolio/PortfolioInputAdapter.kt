@@ -17,7 +17,10 @@ class PortfolioInputAdapter internal constructor(
     private val currencyService: CurrencyService,
     private val keyGenUtils: KeyGenUtils,
 ) {
-    fun prepare(owner: SystemUser, portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
+    fun prepare(
+        owner: SystemUser,
+        portfolios: Collection<PortfolioInput>,
+    ): Collection<Portfolio> {
         val results: MutableCollection<Portfolio> = mutableListOf()
         for (portfolio in portfolios) {
             results.add(prepare(owner, portfolio))
@@ -25,7 +28,10 @@ class PortfolioInputAdapter internal constructor(
         return results
     }
 
-    private fun prepare(owner: SystemUser, portfolioInput: PortfolioInput): Portfolio {
+    private fun prepare(
+        owner: SystemUser,
+        portfolioInput: PortfolioInput,
+    ): Portfolio {
         log.debug("Creating for {}", owner.id)
         return Portfolio(
             keyGenUtils.id,
@@ -37,7 +43,10 @@ class PortfolioInputAdapter internal constructor(
         )
     }
 
-    fun fromInput(data: PortfolioInput, existing: Portfolio): Portfolio {
+    fun fromInput(
+        data: PortfolioInput,
+        existing: Portfolio,
+    ): Portfolio {
         return Portfolio(
             existing.id,
             data.code.uppercase(Locale.getDefault()),

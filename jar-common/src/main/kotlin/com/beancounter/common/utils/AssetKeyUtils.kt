@@ -25,7 +25,10 @@ class AssetKeyUtils {
         }
 
         @JvmStatic
-        fun toKey(asset: String, market: String): String {
+        fun toKey(
+            asset: String,
+            market: String,
+        ): String {
             return "$asset:$market"
         }
     }

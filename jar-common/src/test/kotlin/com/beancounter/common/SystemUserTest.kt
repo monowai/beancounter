@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
  * POJO java contracts
  */
 class SystemUserTest {
-
     @Test
     fun systemUserContractHonoured() {
         val sua = SystemUser("abc")

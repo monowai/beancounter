@@ -91,8 +91,9 @@ class TestPortfolioCommands {
             ),
         ).thenReturn(response)
 
-        val result = portfolioCommands
-            .add(pfCode, pfCode, NZD.code, USD.code)
+        val result =
+            portfolioCommands
+                .add(pfCode, pfCode, NZD.code, USD.code)
         assertThat(result).isNotNull
         val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
         assertThat(portfolio)
@@ -109,8 +110,9 @@ class TestPortfolioCommands {
         val portfolioResponse = PortfolioResponse(existing)
         Mockito.`when`(portfolioGw.getPortfolioByCode(tokenService.bearerToken, existing.code))
             .thenReturn(portfolioResponse) // Portfolio exists
-        val result = portfolioCommands
-            .add(code, pfCode, NZD.code, USD.code)
+        val result =
+            portfolioCommands
+                .add(code, pfCode, NZD.code, USD.code)
         assertThat(result).isNotNull
         val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
         assertThat(portfolio)
@@ -123,7 +125,10 @@ class TestPortfolioCommands {
             return SystemUser(KeyGenUtils().format(UUID.randomUUID()))
         }
 
-    private fun getPortfolio(code: String, owner: SystemUser): Portfolio {
+    private fun getPortfolio(
+        code: String,
+        owner: SystemUser,
+    ): Portfolio {
         val toReturn = getPortfolio(code)
         toReturn.owner = owner
         return toReturn

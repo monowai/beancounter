@@ -23,13 +23,15 @@ class OffMarketDataProvider(
     val marketDataRepo: MarketDataRepo,
     val dateUtils: DateUtils,
 ) : MarketDataPriceProvider {
-
     private fun getMarketData(asset: Asset): MarketData {
         val closest = marketDataRepo.findTop1ByAssetAndPriceDateLessThanEqual(asset, priceDate!!)
         return if (closest.isPresent) getMarketData(asset, closest.get()) else MarketData(asset, priceDate!!)
     }
 
-    fun getMarketData(asset: Asset, from: MarketData): MarketData {
+    fun getMarketData(
+        asset: Asset,
+        from: MarketData,
+    ): MarketData {
         return MarketData(asset, close = from.close, priceDate = priceDate)
     }
 
@@ -54,7 +56,10 @@ class OffMarketDataProvider(
     val priceDate: LocalDate?
         get() = dateUtils.getLocalDate()
 
-    override fun getDate(market: Market, priceRequest: PriceRequest): LocalDate {
+    override fun getDate(
+        market: Market,
+        priceRequest: PriceRequest,
+    ): LocalDate {
         return dateUtils.getDate(priceRequest.date)
     }
 

@@ -26,25 +26,28 @@ class KafkaConfig {
     lateinit var topicPriceName: String
 
     @Bean
-    fun topicTrnCvs(): NewTopic = TopicBuilder.name(topicTrnCsvName)
-        .partitions(1)
-        .replicas(1)
-        .compact()
-        .build()
+    fun topicTrnCvs(): NewTopic =
+        TopicBuilder.name(topicTrnCsvName)
+            .partitions(1)
+            .replicas(1)
+            .compact()
+            .build()
 
     @Bean
-    fun topicTrnEvent(): NewTopic = TopicBuilder.name(topicTrnEventName)
-        .partitions(1)
-        .replicas(1)
-        .compact()
-        .build()
+    fun topicTrnEvent(): NewTopic =
+        TopicBuilder.name(topicTrnEventName)
+            .partitions(1)
+            .replicas(1)
+            .compact()
+            .build()
 
     @Bean
-    fun topicPrice(kafaConfig: KafkaConfig): NewTopic = TopicBuilder.name(topicPriceName)
-        .partitions(1)
-        .replicas(1)
-        .compact()
-        .build()
+    fun topicPrice(kafaConfig: KafkaConfig): NewTopic =
+        TopicBuilder.name(topicPriceName)
+            .partitions(1)
+            .replicas(1)
+            .compact()
+            .build()
 
     @Bean
     fun trnCsvTopic(): String {

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Locale
 
 /**
  * Backfill missing asset data from a 3rd party. Basically adds asset.name for a supplied asset.code.
@@ -30,7 +30,11 @@ class AlphaEnricher(
     private val apiKey: String = "demo"
 
     @Cacheable("asset.search")
-    override fun enrich(id: String, market: Market, assetInput: AssetInput): Asset {
+    override fun enrich(
+        id: String,
+        market: Market,
+        assetInput: AssetInput,
+    ): Asset {
         val marketCode = alphaConfig.translateMarketCode(market)
         var symbol = alphaConfig.translateSymbol(assetInput.code)
         if (marketCode != null) {
@@ -38,11 +42,12 @@ class AlphaEnricher(
         }
         val result = alphaProxy.search(symbol, apiKey)
         // var assetResult: AssetSearchResult? = null
-        val assetResult = try {
-            getAssetSearchResult(market, result)
-        } catch (e: JsonProcessingException) {
-            throw SystemException("This shouldn't have happened")
-        }
+        val assetResult =
+            try {
+                getAssetSearchResult(market, result)
+            } catch (e: JsonProcessingException) {
+                throw SystemException("This shouldn't have happened")
+            }
         return if (assetResult == null) {
             defaultEnricher.enrich(
                 id,
@@ -63,7 +68,10 @@ class AlphaEnricher(
     }
 
     @Throws(JsonProcessingException::class)
-    private fun getAssetSearchResult(market: Market, result: String?): AssetSearchResult? {
+    private fun getAssetSearchResult(
+        market: Market,
+        result: String?,
+    ): AssetSearchResult? {
         val (data) = objectMapper.readValue(result, AssetSearchResponse::class.java)
         if (data.isEmpty()) {
             return null
@@ -77,7 +85,10 @@ class AlphaEnricher(
         }
     }
 
-    fun currencyMatch(currency: String?, currencyId: String): Boolean {
+    fun currencyMatch(
+        currency: String?,
+        currencyId: String,
+    ): Boolean {
         var match = currency
         if (currency == "GBX") {
             match = "GBP"

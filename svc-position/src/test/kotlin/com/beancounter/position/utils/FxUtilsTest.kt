@@ -55,13 +55,19 @@ internal class FxUtilsTest {
         val (_, pairs) = fxUtils.buildRequest(USD, positions)
         assertThat(pairs).hasSize(3)
             .containsOnly(
-                IsoCurrencyPair(USD.code, SGD.code), // TRADE:PF
-                IsoCurrencyPair(GBP.code, SGD.code), // PF:TRADE
-                IsoCurrencyPair(GBP.code, USD.code), // BASE:TRADE
+                // TRADE:PF
+                IsoCurrencyPair(USD.code, SGD.code),
+                // PF:TRADE
+                IsoCurrencyPair(GBP.code, SGD.code),
+                // BASE:TRADE
+                IsoCurrencyPair(GBP.code, USD.code),
             )
     }
 
-    private fun getPosition(asset: Asset, positions: Positions): Position {
+    private fun getPosition(
+        asset: Asset,
+        positions: Positions,
+    ): Position {
         val buyBehaviour: AccumulationStrategy = BuyBehaviour()
         return buyBehaviour.accumulate(
             Trn(

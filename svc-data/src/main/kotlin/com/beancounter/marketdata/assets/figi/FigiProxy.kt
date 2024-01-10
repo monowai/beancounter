@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Locale
 
 /**
  * Rate limited integration to OpenFigi.
@@ -31,7 +31,12 @@ class FigiProxy internal constructor(val figiConfig: FigiConfig) {
     }
 
     @RateLimiter(name = "figi")
-    fun find(market: Market, bcAssetCode: String, defaultName: String? = null, id: String = bcAssetCode): Asset? {
+    fun find(
+        market: Market,
+        bcAssetCode: String,
+        defaultName: String? = null,
+        id: String = bcAssetCode,
+    ): Asset? {
         val (figiCode, figiMarket, figiSearch) = resolve(bcAssetCode, market)
         val response = resolve(figiSearch)
         if (response?.error != null) {
@@ -67,12 +72,13 @@ class FigiProxy internal constructor(val figiConfig: FigiConfig) {
     ): Triple<String, String, FigiSearch> {
         val figiCode = bcAssetCode.replace(".", "/").uppercase(Locale.getDefault())
         val figiMarket = market.aliases[FIGI]!!
-        val figiSearch = FigiSearch(
-            figiCode,
-            figiMarket,
-            EQUITY,
-            true,
-        )
+        val figiSearch =
+            FigiSearch(
+                figiCode,
+                figiMarket,
+                EQUITY,
+                true,
+            )
         return Triple(figiCode, figiMarket, figiSearch)
     }
 

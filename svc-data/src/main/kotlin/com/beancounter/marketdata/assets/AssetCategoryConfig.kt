@@ -12,25 +12,27 @@ import org.springframework.stereotype.Component
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "beancounter.asset.categories")
 @Component
-data class AssetCategoryConfig @Autowired constructor(
-    val values: Collection<AssetCategory>,
-) {
-    private var categories = mutableMapOf<String, AssetCategory>()
-    private val default: String = "Equity"
+data class AssetCategoryConfig
+    @Autowired
+    constructor(
+        val values: Collection<AssetCategory>,
+    ) {
+        private var categories = mutableMapOf<String, AssetCategory>()
+        private val default: String = "Equity"
 
-    fun getCategories(): MutableMap<String, AssetCategory> {
-        if (categories.isEmpty()) {
-            for (assetCategory in values) {
-                categories[assetCategory.id.uppercase()] = assetCategory
+        fun getCategories(): MutableMap<String, AssetCategory> {
+            if (categories.isEmpty()) {
+                for (assetCategory in values) {
+                    categories[assetCategory.id.uppercase()] = assetCategory
+                }
             }
+            return categories
         }
-        return categories
-    }
 
-    fun get(id: String = default): AssetCategory? {
-        if (id == "Common Stock") {
-            return getCategories()["EQUITY"]
+        fun get(id: String = default): AssetCategory? {
+            if (id == "Common Stock") {
+                return getCategories()["EQUITY"]
+            }
+            return getCategories()[id.uppercase()]
         }
-        return getCategories()[id.uppercase()]
     }
-}

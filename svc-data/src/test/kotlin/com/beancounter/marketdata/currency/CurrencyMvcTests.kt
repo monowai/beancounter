@@ -22,11 +22,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 @SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
-@AutoConfigureMockAuth
+@Tag("db")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
+@AutoConfigureMockAuth
 internal class CurrencyMvcTests {
     private val objectMapper = BcJson().objectMapper
 
@@ -39,15 +39,17 @@ internal class CurrencyMvcTests {
     @Test
     fun is_CurrencyDataReturning() {
         val token = TokenUtils(authConfig).getSystemUserToken(SystemUser("currencies"))
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/currencies")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val currencyResponse = objectMapper
-            .readValue(mvcResult.response.contentAsString, CurrencyResponse::class.java)
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/currencies")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val currencyResponse =
+            objectMapper
+                .readValue(mvcResult.response.contentAsString, CurrencyResponse::class.java)
         Assertions.assertThat(currencyResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(currencyResponse.data).isNotEmpty
     }

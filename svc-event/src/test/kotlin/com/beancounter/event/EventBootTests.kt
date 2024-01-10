@@ -17,12 +17,14 @@ import org.springframework.web.context.WebApplicationContext
 @Tag("slow")
 @ActiveProfiles("test")
 @AutoConfigureMockAuth
-internal class EventBootTests @Autowired private constructor(private val context: WebApplicationContext) {
+internal class EventBootTests
     @Autowired
-    private lateinit var mockAuthConfig: MockAuthConfig
+    private constructor(private val context: WebApplicationContext) {
+        @Autowired
+        private lateinit var mockAuthConfig: MockAuthConfig
 
-    @Test
-    fun contextLoads() {
-        Assertions.assertThat(context).isNotNull
+        @Test
+        fun contextLoads() {
+            Assertions.assertThat(context).isNotNull
+        }
     }
-}

@@ -13,7 +13,6 @@ import java.time.LocalDateTime
 @Service
 @ConditionalOnProperty(value = ["schedule.enabled"], havingValue = "true", matchIfMissing = false)
 class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtils: DateUtils) {
-
     companion object {
         private val log = LoggerFactory.getLogger(PriceSchedule::class.java)
     }

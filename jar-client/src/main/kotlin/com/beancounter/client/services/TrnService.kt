@@ -31,7 +31,10 @@ class TrnService internal constructor(
         return trnGateway.read(tokenService.bearerToken, trustedTrnQuery)
     }
 
-    fun query(portfolio: Portfolio, asAt: String = "today"): TrnResponse {
+    fun query(
+        portfolio: Portfolio,
+        asAt: String = "today",
+    ): TrnResponse {
         return trnGateway.read(tokenService.bearerToken, portfolio.id, asAt)
     }
 

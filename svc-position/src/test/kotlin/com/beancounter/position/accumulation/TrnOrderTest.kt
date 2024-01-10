@@ -36,23 +36,27 @@ internal class TrnOrderTest {
         val positions = Positions(getPortfolio())
         val today = LocalDate.now()
         val yesterday = today.minus(-1, ChronoUnit.DAYS)
-        val buyYesterday = Trn(
-            trnType = TrnType.BUY,
-            tradeDate = yesterday.atStartOfDay(DateUtils().getZoneId())
-                .toLocalDate(),
-            asset = apple,
-            quantity = hundred,
-            tradeAmount = twoK,
-        )
+        val buyYesterday =
+            Trn(
+                trnType = TrnType.BUY,
+                tradeDate =
+                    yesterday.atStartOfDay(DateUtils().getZoneId())
+                        .toLocalDate(),
+                asset = apple,
+                quantity = hundred,
+                tradeAmount = twoK,
+            )
         accumulator.accumulate(buyYesterday, positions)
-        val buyToday = Trn(
-            trnType = TrnType.BUY,
-            tradeDate = today.atStartOfDay(DateUtils().getZoneId())
-                .toLocalDate(),
-            asset = apple,
-            quantity = hundred,
-            tradeAmount = twoK,
-        )
+        val buyToday =
+            Trn(
+                trnType = TrnType.BUY,
+                tradeDate =
+                    today.atStartOfDay(DateUtils().getZoneId())
+                        .toLocalDate(),
+                asset = apple,
+                quantity = hundred,
+                tradeAmount = twoK,
+            )
 
         assertThrows(BusinessException::class.java) {
             accumulator.accumulate(buyToday, positions)

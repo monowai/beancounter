@@ -15,18 +15,23 @@ class AdapterFactory {
     private lateinit var shareSightAdapter: RowAdapter
 
     @Autowired
-    fun setShareSightAdapter(@Qualifier("shareSightRowAdapter") shareSightAdapter: RowAdapter) {
+    fun setShareSightAdapter(
+        @Qualifier("shareSightRowAdapter") shareSightAdapter: RowAdapter,
+    ) {
         this.shareSightAdapter = shareSightAdapter
     }
 
     @Autowired
-    fun setBcAdapter(@Qualifier("bcRowAdapter") bcRowAdapter: RowAdapter) {
+    fun setBcAdapter(
+        @Qualifier("bcRowAdapter") bcRowAdapter: RowAdapter,
+    ) {
         this.bcRowAdapter = bcRowAdapter
     }
 
-    fun get(importFormat: ImportFormat): RowAdapter = if (importFormat == ImportFormat.SHARESIGHT) {
-        this.shareSightAdapter
-    } else {
-        bcRowAdapter
-    }
+    fun get(importFormat: ImportFormat): RowAdapter =
+        if (importFormat == ImportFormat.SHARESIGHT) {
+            this.shareSightAdapter
+        } else {
+            bcRowAdapter
+        }
 }

@@ -4,7 +4,6 @@ package com.beancounter.common.model
  * Consistent representation of a currency pairing
  */
 data class IsoCurrencyPair(val from: String, val to: String) {
-
     override fun toString(): String {
         return "$from:$to"
     }
@@ -27,7 +26,10 @@ data class IsoCurrencyPair(val from: String, val to: String) {
 
     companion object {
         @JvmStatic
-        fun toPair(from: Currency, to: Currency): IsoCurrencyPair? {
+        fun toPair(
+            from: Currency,
+            to: Currency,
+        ): IsoCurrencyPair? {
             if (from.code == to.code) {
                 return null
             }

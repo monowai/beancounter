@@ -23,7 +23,10 @@ class IngestionFactory {
             ?: throw SystemException("Unable to resolve ingestor for ${ingestionRequest.reader}")
     }
 
-    fun add(key: String, ingester: Ingester) {
+    fun add(
+        key: String,
+        ingester: Ingester,
+    ) {
         ingesterMap[key.uppercase(Locale.getDefault())] = ingester
     }
 }

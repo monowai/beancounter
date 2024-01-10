@@ -41,11 +41,12 @@ class EnrichmentTest {
     fun is_AlphaEnrichment() {
         val dateUtils = DateUtils()
         val alphaProxy = Mockito.mock(AlphaProxy::class.java)
-        val enricher: AssetEnricher = AlphaEnricher(
-            AlphaConfig(dateUtils = dateUtils, PreviousClosePriceDate(dateUtils)),
-            DefaultEnricher(),
-            alphaProxy,
-        )
+        val enricher: AssetEnricher =
+            AlphaEnricher(
+                AlphaConfig(dateUtils = dateUtils, PreviousClosePriceDate(dateUtils)),
+                DefaultEnricher(),
+                alphaProxy,
+            )
         val asset = Asset(code = code, id = id, name = null, market = NYSE)
         assertThat(enricher.canEnrich(asset)).isTrue
         asset.name = name

@@ -8,13 +8,15 @@ import org.springframework.stereotype.Service
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.OffsetTime.now
 import java.time.ZoneId
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.*
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Helper service for BC Date functions. Assumes dates to be in UTC.
@@ -37,41 +39,59 @@ class DateUtils(
 
     fun getZoneId(): ZoneId = ZoneId.of(defaultZone)
 
-    fun offset(date: String = today): OffsetDateTime {
-        return OffsetDateTime.of(getDate(date), now().toLocalTime(), UTC)
+    fun offset(date: String = TODAY): OffsetDateTime {
+        return offset(date, now().toLocalTime())
     }
 
-    fun offsetDateString(date: String = today): String {
+    fun offset(
+        date: String = TODAY,
+        localTime: LocalTime = now().toLocalTime(),
+    ): OffsetDateTime {
+        return OffsetDateTime.of(getDate(date), localTime, UTC)
+    }
+
+    fun offsetDateString(date: String = TODAY): String {
         return offset(date).toLocalDate().toString()
     }
 
     val date: LocalDate
-        get() = getDate(today, format, ZoneId.of(defaultZone))
+        get() = getDate(TODAY, FORMAT, ZoneId.of(defaultZone))
 
-    fun getDate(inDate: String = today, zoneId: ZoneId = getZoneId()): LocalDate {
+    fun getDate(
+        inDate: String = TODAY,
+        zoneId: ZoneId = getZoneId(),
+    ): LocalDate {
         return when (inDate) {
-            today -> {
+            TODAY -> {
                 return LocalDate.now(zoneId)
             }
 
-            else -> getDate(inDate, format, zoneId)
+            else -> getDate(inDate, FORMAT, zoneId)
         }
     }
 
-    fun getDate(inDate: String = today, dateFormat: String = format, zoneId: ZoneId = getZoneId()): LocalDate {
+    fun getDate(
+        inDate: String = TODAY,
+        dateFormat: String = FORMAT,
+        zoneId: ZoneId = getZoneId(),
+    ): LocalDate {
         return getLocalDate(inDate, dateFormat, zoneId)
             .atStartOfDay(zoneId).toLocalDate()
     }
 
-    fun getLocalDate(inDate: String = today, dateFormat: String = format, zoneId: ZoneId = getZoneId()): LocalDate {
-        return if (inDate.lowercase(Locale.getDefault()) == today) {
+    fun getLocalDate(
+        inDate: String = TODAY,
+        dateFormat: String = FORMAT,
+        zoneId: ZoneId = getZoneId(),
+    ): LocalDate {
+        return if (inDate.lowercase(Locale.getDefault()) == TODAY) {
             LocalDate.now(zoneId)
         } else {
             LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat))
         }
     }
 
-    fun getOrThrow(inDate: String = today): LocalDate {
+    fun getOrThrow(inDate: String = TODAY): LocalDate {
         try {
             return getDate(inDate)
         } catch (e: DateTimeParseException) {
@@ -79,8 +99,8 @@ class DateUtils(
         }
     }
 
-    fun isToday(inDate: String = today): Boolean {
-        return if (inDate.isBlank() || today == inDate.lowercase(Locale.getDefault())) {
+    fun isToday(inDate: String = TODAY): Boolean {
+        return if (inDate.isBlank() || TODAY == inDate.lowercase(Locale.getDefault())) {
             true // Null date is BC is "today"
         } else {
             try {
@@ -104,9 +124,9 @@ class DateUtils(
     }
 
     companion object {
-        const val format = "yyyy-MM-dd"
-        const val today = "today"
-        val defaultFormatter = SimpleDateFormat(format)
+        const val FORMAT = "yyyy-MM-dd"
+        const val TODAY = "today"
+        val defaultFormatter = SimpleDateFormat(FORMAT)
         val log = LoggerFactory.getLogger(this::class.java)
     }
 }

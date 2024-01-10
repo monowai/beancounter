@@ -25,9 +25,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 @SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
 @EntityScan("com.beancounter.common.model")
+@Tag("db")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 internal class MarketMvcTests {
@@ -50,15 +50,17 @@ internal class MarketMvcTests {
     @Test
     @Throws(Exception::class)
     fun is_AllMarketsFound() {
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/markets")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val marketResponse = objectMapper
-            .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/markets")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val marketResponse =
+            objectMapper
+                .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
         Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotEmpty
     }
@@ -66,15 +68,17 @@ internal class MarketMvcTests {
     @Test
     @Throws(Exception::class)
     fun is_SingleMarketFoundCaseInsensitive() {
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/markets/nzx")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val marketResponse = objectMapper
-            .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/markets/nzx")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val marketResponse =
+            objectMapper
+                .readValue(mvcResult.response.contentAsString, MarketResponse::class.java)
         Assertions.assertThat(marketResponse).isNotNull.hasFieldOrProperty(Payload.DATA)
         Assertions.assertThat(marketResponse.data).isNotNull.hasSize(1)
         val nzx = marketResponse.data!!.iterator().next()
@@ -84,11 +88,12 @@ internal class MarketMvcTests {
     @Test
     @Throws(Exception::class)
     fun is_SingleMarketBadRequest() {
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.get("/markets/non-existent")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+        val result =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/markets/non-existent")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
         Assertions.assertThat(result.andReturn().resolvedException)
             .isNotNull
             .isInstanceOfAny(BusinessException::class.java)

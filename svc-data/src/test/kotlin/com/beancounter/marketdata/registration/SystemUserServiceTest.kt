@@ -9,35 +9,42 @@ import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 
-private const val email = "data.email"
+private const val EMAIL = "data.email"
 
-private const val auth0 = "data.auth0"
+private const val AUTH0 = "data.auth0"
 
-private const val active = "data.active"
+private const val ACTIVE = "data.active"
 
-private const val google = "data.googleId"
+private const val GOOGLE = "data.googleId"
 
-private const val auth0Id = "auth0Id"
+private const val AUTH0ID = "auth0Id"
 
-private const val googleId = "googleId"
+private const val GOOGLEID = "googleId"
 
-private const val userEmail = "user@email.com"
+private const val USER_EMAIL = "user@email.com"
 
-private const val gmail = "email@gmail.com"
+private const val GMAIL = "email@gmail.com"
 
 /**
  * Verify service registration capabilities for various authentication providers.
  */
 @SpringBootTest
 @EntityScan("com.beancounter.common.model")
+@Tag("db")
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
 @AutoConfigureMockAuth
+@DirtiesContext
 class SystemUserServiceTest {
-
     @Autowired
     lateinit var mockAuthConfig: MockAuthConfig
 
@@ -55,34 +62,34 @@ class SystemUserServiceTest {
 
     @Test
     fun registerUserWithNoEmailFails() {
-        val auth0User = SystemUser(email = "", auth0 = auth0Id)
+        val auth0User = SystemUser(email = "", auth0 = AUTH0ID)
         authUtilService.authenticate(auth0User, AuthUtilService.AuthProvider.AUTH0)
         assertThrows(BusinessException::class.java) { systemUserService.register() }
     }
 
     @Test
     fun registerAuth0User() {
-        val auth0User = SystemUser(email = "auth0", auth0 = auth0Id)
+        val auth0User = SystemUser(email = "auth0", auth0 = AUTH0ID)
         authUtilService.authenticate(auth0User, AuthUtilService.AuthProvider.AUTH0)
         val result = systemUserService.register()
         assertThat(result).isNotNull
-            .hasFieldOrPropertyWithValue(email, auth0User.email)
-            .hasFieldOrPropertyWithValue(auth0, auth0User.auth0)
-            .hasFieldOrPropertyWithValue(active, true)
-            .hasFieldOrPropertyWithValue(google, "")
+            .hasFieldOrPropertyWithValue(EMAIL, auth0User.email)
+            .hasFieldOrPropertyWithValue(AUTH0, auth0User.auth0)
+            .hasFieldOrPropertyWithValue(ACTIVE, true)
+            .hasFieldOrPropertyWithValue(GOOGLE, "")
 
         assertThat(systemUserService.getActiveUser()).isNotNull
     }
 
     @Test
     fun registerGoogleUser() {
-        val googleUser = SystemUser(email = "gmail", googleId = googleId)
+        val googleUser = SystemUser(email = "gmail", googleId = GOOGLEID)
         authUtilService.authenticate(googleUser, AuthUtilService.AuthProvider.GOOGLE)
         val result = systemUserService.register()
         assertThat(result).isNotNull
-            .hasFieldOrPropertyWithValue(email, googleUser.email)
-            .hasFieldOrPropertyWithValue(active, true)
-            .hasFieldOrPropertyWithValue(google, googleUser.googleId)
+            .hasFieldOrPropertyWithValue(EMAIL, googleUser.email)
+            .hasFieldOrPropertyWithValue(ACTIVE, true)
+            .hasFieldOrPropertyWithValue(GOOGLE, googleUser.googleId)
 
         assertThat(systemUserService.getActiveUser()).isNotNull
         assertThat(systemUserService.getOrThrow).isNotNull
@@ -99,43 +106,43 @@ class SystemUserServiceTest {
     @Test
     fun auth0AndGoogleId() {
         authUtilService.authenticate(
-            SystemUser(email = userEmail, auth0 = auth0Id),
+            SystemUser(email = USER_EMAIL, auth0 = AUTH0ID),
             AuthUtilService.AuthProvider.AUTH0,
         )
         systemUserService.register()
         authUtilService.authenticate(
-            SystemUser(email = userEmail, googleId = googleId),
+            SystemUser(email = USER_EMAIL, googleId = GOOGLEID),
             AuthUtilService.AuthProvider.GOOGLE,
         )
         assertThat(systemUserService.register()).isNotNull
-            .hasFieldOrPropertyWithValue(email, userEmail)
-            .hasFieldOrPropertyWithValue(active, true)
-            .hasFieldOrPropertyWithValue(google, googleId)
-            .hasFieldOrPropertyWithValue(auth0, auth0Id)
+            .hasFieldOrPropertyWithValue(EMAIL, USER_EMAIL)
+            .hasFieldOrPropertyWithValue(ACTIVE, true)
+            .hasFieldOrPropertyWithValue(GOOGLE, GOOGLEID)
+            .hasFieldOrPropertyWithValue(AUTH0, AUTH0ID)
     }
 
     @Test
     fun googleIdAndAuth0() {
         // Inverse test
         authUtilService.authenticate(
-            SystemUser(email = gmail, googleId = googleId),
+            SystemUser(email = GMAIL, googleId = GOOGLEID),
             AuthUtilService.AuthProvider.GOOGLE,
         )
         systemUserService.register()
         authUtilService.authenticate(
-            SystemUser(email = gmail, auth0 = auth0Id),
+            SystemUser(email = GMAIL, auth0 = AUTH0ID),
             AuthUtilService.AuthProvider.AUTH0,
         )
         assertThat(systemUserService.register()).isNotNull
-            .hasFieldOrPropertyWithValue(email, gmail)
-            .hasFieldOrPropertyWithValue(active, true)
-            .hasFieldOrPropertyWithValue(google, googleId)
-            .hasFieldOrPropertyWithValue(auth0, auth0Id)
+            .hasFieldOrPropertyWithValue(EMAIL, GMAIL)
+            .hasFieldOrPropertyWithValue(ACTIVE, true)
+            .hasFieldOrPropertyWithValue(GOOGLE, GOOGLEID)
+            .hasFieldOrPropertyWithValue(AUTH0, AUTH0ID)
     }
 
     @Test
     fun systemAccount() {
-        val systemUser = SystemUser(email = "", auth0 = googleId)
+        val systemUser = SystemUser(email = "", auth0 = GOOGLEID)
         authUtilService.authenticateM2M(
             systemUser,
             AuthUtilService.AuthProvider.AUTH0,

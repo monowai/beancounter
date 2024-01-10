@@ -1,12 +1,12 @@
 package com.beancounter.common
 
 import com.beancounter.common.Constants.Companion.NYSE
-import com.beancounter.common.Constants.Companion.changePercentProp
-import com.beancounter.common.Constants.Companion.changeProp
-import com.beancounter.common.Constants.Companion.closeProp
+import com.beancounter.common.Constants.Companion.P_CHANGE
+import com.beancounter.common.Constants.Companion.P_CHANGE_PERCENT
+import com.beancounter.common.Constants.Companion.P_CLOSE
+import com.beancounter.common.Constants.Companion.P_OPEN
+import com.beancounter.common.Constants.Companion.P_PREVIOUS_CLOSE
 import com.beancounter.common.Constants.Companion.one
-import com.beancounter.common.Constants.Companion.openProp
-import com.beancounter.common.Constants.Companion.previousCloseProp
 import com.beancounter.common.Constants.Companion.two
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
@@ -32,18 +32,18 @@ class TestPriceData {
 
         val noFx = PriceData.of(marketData, BigDecimal("1.0"))
         assertThat(noFx)
-            .hasFieldOrPropertyWithValue(openProp, marketData.open)
-            .hasFieldOrPropertyWithValue(previousCloseProp, marketData.previousClose)
-            .hasFieldOrPropertyWithValue(closeProp, marketData.close)
-            .hasFieldOrPropertyWithValue(changeProp, marketData.change)
-            .hasFieldOrPropertyWithValue(changePercentProp, marketData.changePercent)
+            .hasFieldOrPropertyWithValue(P_OPEN, marketData.open)
+            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, marketData.previousClose)
+            .hasFieldOrPropertyWithValue(P_CLOSE, marketData.close)
+            .hasFieldOrPropertyWithValue(P_CHANGE, marketData.change)
+            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, marketData.changePercent)
         val withFx = PriceData.of(marketData, two)
         assertThat(withFx)
-            .hasFieldOrPropertyWithValue(openProp, BigDecimal("4.00"))
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal("4.00"))
-            .hasFieldOrPropertyWithValue(previousCloseProp, BigDecimal("2.00"))
-            .hasFieldOrPropertyWithValue(changeProp, BigDecimal("2.00"))
-            .hasFieldOrPropertyWithValue(changePercentProp, BigDecimal("0.5000"))
+            .hasFieldOrPropertyWithValue(P_OPEN, BigDecimal("4.00"))
+            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal("4.00"))
+            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue(P_CHANGE, BigDecimal("2.00"))
+            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, BigDecimal("0.5000"))
     }
 
     @Test
@@ -57,16 +57,16 @@ class TestPriceData {
 
         val noFx = PriceData.of(marketData, BigDecimal("1.0"))
         assertThat(noFx)
-            .hasFieldOrPropertyWithValue(previousCloseProp, marketData.previousClose)
-            .hasFieldOrPropertyWithValue(closeProp, marketData.close)
-            .hasFieldOrPropertyWithValue(changeProp, marketData.change)
-            .hasFieldOrPropertyWithValue(changePercentProp, marketData.changePercent)
+            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, marketData.previousClose)
+            .hasFieldOrPropertyWithValue(P_CLOSE, marketData.close)
+            .hasFieldOrPropertyWithValue(P_CHANGE, marketData.change)
+            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, marketData.changePercent)
         val withFx = PriceData.of(marketData, two)
         assertThat(withFx)
-            .hasFieldOrPropertyWithValue(previousCloseProp, BigDecimal("81.84"))
-            .hasFieldOrPropertyWithValue(closeProp, BigDecimal("82.70"))
-            .hasFieldOrPropertyWithValue(changeProp, BigDecimal("0.86"))
-            .hasFieldOrPropertyWithValue(changePercentProp, BigDecimal("0.0104"))
+            .hasFieldOrPropertyWithValue(P_PREVIOUS_CLOSE, BigDecimal("81.84"))
+            .hasFieldOrPropertyWithValue(P_CLOSE, BigDecimal("82.70"))
+            .hasFieldOrPropertyWithValue(P_CHANGE, BigDecimal("0.86"))
+            .hasFieldOrPropertyWithValue(P_CHANGE_PERCENT, BigDecimal("0.0104"))
     }
 
     @Test

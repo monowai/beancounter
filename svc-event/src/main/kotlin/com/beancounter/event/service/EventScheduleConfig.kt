@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @Configuration
 class EventScheduleConfig(val dateUtils: DateUtils) {
-
     @Bean
     fun scheduleZone(): String {
         log.info("BEANCOUNTER_ZONE: {}", dateUtils.defaultZone)
@@ -21,7 +20,9 @@ class EventScheduleConfig(val dateUtils: DateUtils) {
     }
 
     @Bean
-    fun eventsSchedule(@Value("\${events.schedule:0 0/15 6-9 * * Tue-Sat}") schedule: String): String {
+    fun eventsSchedule(
+        @Value("\${events.schedule:0 0/15 6-9 * * Tue-Sat}") schedule: String,
+    ): String {
         log.info("EVENT_SCHEDULE: {}, ZONE: {}", schedule, dateUtils.defaultZone)
         return schedule
     }

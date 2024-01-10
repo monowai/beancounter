@@ -52,12 +52,13 @@ class TestPortfolio {
     fun is_PortfoliosResponseSerializing() {
         val portfolios = ArrayList<Portfolio>()
         val portfolio = getPortfolio()
-        portfolio.owner = SystemUser(
-            "id",
-            "email",
-            false,
-            since = LocalDate.now().minusDays(5),
-        )
+        portfolio.owner =
+            SystemUser(
+                "id",
+                "email",
+                false,
+                since = LocalDate.now().minusDays(5),
+            )
         portfolios.add(portfolio)
         val portfoliosResponse = PortfoliosResponse(portfolios)
         val json = objectMapper.writeValueAsString(portfoliosResponse)

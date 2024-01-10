@@ -7,7 +7,7 @@ import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.event.Constants.Companion.alpha
+import com.beancounter.event.Constants.Companion.ALPHA
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
@@ -69,53 +69,60 @@ internal class EventControllerTest {
 
     @Test
     fun is_IllegalEventBad() {
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
         val responseBody = mvcResult.response.contentAsString
-        val message = objectMapper
-            .readValue(responseBody, SpringExceptionMessage::class.java)
+        val message =
+            objectMapper
+                .readValue(responseBody, SpringExceptionMessage::class.java)
         assertThat(message).hasNoNullFieldsOrProperties()
     }
 
     @Test
     fun is_EventCreatedAndFoundOk() {
         // Create
-        var event = CorporateEvent(
-            trnType = TrnType.DIVI,
-            recordDate = dateUtils.getDate("2020-10-10"),
-            source = "SOURCE",
-            assetId = "ABC123",
-            rate = BigDecimal("0.1234"),
-        )
+        var event =
+            CorporateEvent(
+                trnType = TrnType.DIVI,
+                recordDate = dateUtils.getDate("2020-10-10"),
+                source = "SOURCE",
+                assetId = "ABC123",
+                rate = BigDecimal("0.1234"),
+            )
         event = eventService.save(event)
         assertThat(event).hasFieldOrProperty("id")
 
         // Find By PK
-        var mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/{eventId}", event.id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data) = objectMapper.readValue(
-            mvcResult.response.contentAsString,
-            CorporateEventResponse::class.java,
-        )
+        var mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/{eventId}", event.id)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val (data) =
+            objectMapper.readValue(
+                mvcResult.response.contentAsString,
+                CorporateEventResponse::class.java,
+            )
         assertThat(data).usingRecursiveComparison().isEqualTo(event)
-        mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val events = objectMapper.readValue(
-            mvcResult.response.contentAsString,
-            CorporateEventResponses::class.java,
-        )
+        mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val events =
+            objectMapper.readValue(
+                mvcResult.response.contentAsString,
+                CorporateEventResponses::class.java,
+            )
         assertThat(events).isNotNull
         assertThat(events.data).hasSize(1)
         assertThat(events.data.iterator().next()).usingRecursiveComparison().isEqualTo(event)
@@ -123,13 +130,14 @@ internal class EventControllerTest {
 
     @Test
     fun is_ServiceBasedDividendCreateAndFindOk() {
-        val event = CorporateEvent(
-            trnType = TrnType.DIVI,
-            payDate = Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
-            source = alpha,
-            assetId = "assetId",
-            rate = BigDecimal("2.3400"),
-        )
+        val event =
+            CorporateEvent(
+                trnType = TrnType.DIVI,
+                payDate = Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
+                source = ALPHA,
+                assetId = "assetId",
+                rate = BigDecimal("2.3400"),
+            )
         val saved = eventService.save(event)
         assertThat(saved.id).isNotNull
         val (id) = eventService.save(event)
@@ -139,11 +147,12 @@ internal class EventControllerTest {
             .hasSize(1)
 
         // Check it can be found within a date range
-        val events = eventService
-            .findInRange(
-                event.recordDate.minusDays(2),
-                event.recordDate,
-            )
+        val events =
+            eventService
+                .findInRange(
+                    event.recordDate.minusDays(2),
+                    event.recordDate,
+                )
         assertThat(events).hasSize(1)
         assertThat(events.iterator().next())
             .usingRecursiveComparison().isEqualTo(saved)

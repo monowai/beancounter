@@ -13,10 +13,11 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioByCode
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioById
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioCreate
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioRoot
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Tag
@@ -37,13 +38,13 @@ import java.util.Locale
 import java.util.UUID
 import java.util.function.Consumer
 
-private const val pCode = "code"
+private const val P_CODE = "code"
 
-const val pId = "id"
+const val P_ID = "id"
 
-private const val pName = "name"
+private const val P_NAME = "name"
 
-private const val pCurrencyCode = "currency.code"
+private const val P_CCY_CODE = "currency.code"
 
 /**
  * MVC Controller tests for Portfolios.
@@ -66,19 +67,21 @@ internal class PortfolioControllerTests {
 
     @Autowired
     fun registerUser() {
-        token = registerUser(
-            mockMvc,
-            mockAuthConfig.getUserToken(SystemUser("portfolioControllerTests")),
-        )
+        token =
+            registerUser(
+                mockMvc,
+                mockAuthConfig.getUserToken(SystemUser("portfolioControllerTests")),
+            )
     }
 
     @Test
     fun findingByIdCode() {
-        val portfolioInput = PortfolioInput(
-            code = "is_findingByIdCode",
-            USD.code,
-            NZD.code,
-        )
+        val portfolioInput =
+            PortfolioInput(
+                code = "is_findingByIdCode",
+                USD.code,
+                NZD.code,
+            )
         val portfolioResponse = portfolioCreate(portfolioInput, mockMvc, token)
         assertThat(portfolioResponse.data).hasSize(1)
         val portfolio = portfolioResponse.data.iterator().next()
@@ -98,7 +101,7 @@ internal class PortfolioControllerTests {
             objectMapper
                 .readValue(
                     mockMvc.perform(
-                        MockMvcRequestBuilders.get(portfolioRoot)
+                        MockMvcRequestBuilders.get(PORTFOLIO_ROOT)
                             .with(csrf())
                             .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                             .contentType(MediaType.APPLICATION_JSON),
@@ -112,14 +115,15 @@ internal class PortfolioControllerTests {
 
     @Test
     fun persistAndFindPortfoliosWorking() {
-        val portfolios: Collection<PortfolioInput> = arrayListOf(
-            PortfolioInput(
-                UUID.randomUUID().toString().uppercase(Locale.getDefault()),
-                "is_persistAndFindPortfoliosWorking",
-                USD.code,
-                NZD.code,
-            ),
-        )
+        val portfolios: Collection<PortfolioInput> =
+            arrayListOf(
+                PortfolioInput(
+                    UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                    "is_persistAndFindPortfoliosWorking",
+                    USD.code,
+                    NZD.code,
+                ),
+            )
 
         val portfoliosResponse = portfolioCreate(portfolios, mockMvc, token)
 
@@ -132,13 +136,13 @@ internal class PortfolioControllerTests {
             .forEach(
                 Consumer { foundPortfolio: Portfolio ->
                     assertThat(foundPortfolio)
-                        .hasFieldOrProperty(pId)
-                        .hasFieldOrPropertyWithValue(pCode, portfolios.iterator().next().code)
+                        .hasFieldOrProperty(P_ID)
+                        .hasFieldOrPropertyWithValue(P_CODE, portfolios.iterator().next().code)
                         .hasFieldOrPropertyWithValue(
-                            pName,
+                            P_NAME,
                             portfolios.iterator().next().name,
                         )
-                        .hasFieldOrPropertyWithValue(pCurrencyCode, portfolios.iterator().next().currency)
+                        .hasFieldOrPropertyWithValue(P_CCY_CODE, portfolios.iterator().next().currency)
                         .hasFieldOrProperty("owner")
                         .hasFieldOrProperty("base")
                 },
@@ -147,66 +151,72 @@ internal class PortfolioControllerTests {
 
     @Test
     fun deletePortfolio() {
-        val portfolioInput = PortfolioInput(
-            UUID.randomUUID().toString().uppercase(Locale.getDefault()),
-            "Delete Portfolio",
-            USD.code,
-            NZD.code,
-        )
+        val portfolioInput =
+            PortfolioInput(
+                UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                "Delete Portfolio",
+                USD.code,
+                NZD.code,
+            )
 
         val created = portfolioCreate(portfolioInput, mockMvc, token).data
         assertThat(created)
             .hasSize(1)
         val id = created.iterator().next().id
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.delete(portfolioById, id)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.delete(PORTFOLIO_BY_ID, id)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
         assertThat(mvcResult.response.contentAsString).isEqualTo("deleted $id")
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
     fun updatePortfolio() {
-        val portfolioResponse = portfolioCreate(
-            PortfolioInput(
-                UUID.randomUUID().toString().uppercase(Locale.getDefault()),
-                "is_UpdatePortfolioWorking",
-                USD.code,
-                NZD.code,
-            ),
-            mockMvc,
-            token,
-        ).data
+        val portfolioResponse =
+            portfolioCreate(
+                PortfolioInput(
+                    UUID.randomUUID().toString().uppercase(Locale.getDefault()),
+                    "is_UpdatePortfolioWorking",
+                    USD.code,
+                    NZD.code,
+                ),
+                mockMvc,
+                token,
+            ).data
 
         val (id, _, _, _, _, owner) = portfolioResponse.iterator().next()
-        val updateTo = PortfolioInput(
-            "123",
-            "Mikey",
-            USD.code,
-            SGD.code,
-        )
-        val patchResult = mockMvc.perform(
-            MockMvcRequestBuilders.patch(portfolioById, id)
-                .with(csrf())
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .content(objectMapper.writeValueAsBytes(updateTo))
-                .contentType(MediaType.APPLICATION_JSON),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data) = objectMapper
-            .readValue(patchResult.response.contentAsString, PortfolioResponse::class.java)
+        val updateTo =
+            PortfolioInput(
+                "123",
+                "Mikey",
+                USD.code,
+                SGD.code,
+            )
+        val patchResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.patch(PORTFOLIO_BY_ID, id)
+                    .with(csrf())
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .content(objectMapper.writeValueAsBytes(updateTo))
+                    .contentType(MediaType.APPLICATION_JSON),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val (data) =
+            objectMapper
+                .readValue(patchResult.response.contentAsString, PortfolioResponse::class.java)
         assertThat(owner).isNotNull
         // ID and SystemUser are immutable:
         assertThat(data)
-            .hasFieldOrPropertyWithValue(pId, id)
-            .hasFieldOrPropertyWithValue(pName, updateTo.name)
-            .hasFieldOrPropertyWithValue(pCode, updateTo.code)
-            .hasFieldOrPropertyWithValue(pCurrencyCode, updateTo.currency)
+            .hasFieldOrPropertyWithValue(P_ID, id)
+            .hasFieldOrPropertyWithValue(P_NAME, updateTo.name)
+            .hasFieldOrPropertyWithValue(P_CODE, updateTo.code)
+            .hasFieldOrPropertyWithValue(P_CCY_CODE, updateTo.currency)
             .hasFieldOrPropertyWithValue("base.code", updateTo.base)
             .hasFieldOrPropertyWithValue("owner.id", owner.id)
     }

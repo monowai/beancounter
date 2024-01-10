@@ -15,7 +15,12 @@ import java.math.BigDecimal
 @Service
 class BalanceBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStrategy {
     private val cashCost = CashCost()
-    override fun accumulate(trn: Trn, positions: Positions, position: Position): Position {
+
+    override fun accumulate(
+        trn: Trn,
+        positions: Positions,
+        position: Position,
+    ): Position {
         position.quantityValues.purchased = trn.tradeAmount
         cashCost.value(
             currencyResolver.getMoneyValues(Position.In.BASE, trn.tradeCurrency, trn.portfolio, position),

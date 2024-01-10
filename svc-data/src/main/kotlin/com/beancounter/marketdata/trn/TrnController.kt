@@ -36,24 +36,22 @@ class TrnController(
     var dateUtils: DateUtils,
     var trnIoDefinition: TrnIoDefinition,
 ) {
-
     @GetMapping(value = ["/portfolio/{portfolioId}/{asAt}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAsAt(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable asAt: String = dateUtils.today(),
-    ): TrnResponse =
-        trnService.findForPortfolio(portfolioService.find(portfolioId), dateUtils.getDate(asAt))
+    ): TrnResponse = trnService.findForPortfolio(portfolioService.find(portfolioId), dateUtils.getDate(asAt))
 
     @GetMapping(value = ["/{portfolioId}/{trnId}"])
     fun find(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("trnId") trnId: String,
-    ): TrnResponse =
-        trnService.getPortfolioTrn(portfolioService.find(portfolioId), trnId)
+    ): TrnResponse = trnService.getPortfolioTrn(portfolioService.find(portfolioId), trnId)
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun update(@RequestBody trnRequest: TrnRequest): TrnResponse =
-        trnService.save(portfolioService.find(trnRequest.portfolioId), trnRequest)
+    fun update(
+        @RequestBody trnRequest: TrnRequest,
+    ): TrnResponse = trnService.save(portfolioService.find(trnRequest.portfolioId), trnRequest)
 
     @PatchMapping(
         value = ["/{portfolioId}/{trnId}"],
@@ -71,26 +69,26 @@ class TrnController(
     }
 
     @DeleteMapping(value = ["/portfolio/{portfolioId}"])
-    fun purge(@PathVariable("portfolioId") portfolioId: String): Long =
-        trnService.purge(portfolioService.find(portfolioId))
+    fun purge(
+        @PathVariable("portfolioId") portfolioId: String,
+    ): Long = trnService.purge(portfolioService.find(portfolioId))
 
     @DeleteMapping(value = ["/{trnId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun delete(@PathVariable("trnId") trnId: String): TrnResponse =
-        trnService.delete(trnId)
+    fun delete(
+        @PathVariable("trnId") trnId: String,
+    ): TrnResponse = trnService.delete(trnId)
 
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/events"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAssetEvents(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("assetId") assetId: String,
-    ): TrnResponse =
-        trnQueryService.findEvents(portfolioService.find(portfolioId), assetId)
+    ): TrnResponse = trnQueryService.findEvents(portfolioService.find(portfolioId), assetId)
 
     @GetMapping(value = ["/{portfolioId}/asset/{assetId}/trades"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAssetTrades(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable("assetId") assetId: String,
-    ): TrnResponse =
-        trnQueryService.findAssetTrades(portfolioService.find(portfolioId), assetId)
+    ): TrnResponse = trnQueryService.findAssetTrades(portfolioService.find(portfolioId), assetId)
 
     @PostMapping(
         value = ["/query"],
@@ -105,7 +103,10 @@ class TrnController(
         )
 
     @GetMapping(value = ["/portfolio/{portfolioId}/export"])
-    fun export(response: HttpServletResponse, @PathVariable("portfolioId") portfolioId: String) {
+    fun export(
+        response: HttpServletResponse,
+        @PathVariable("portfolioId") portfolioId: String,
+    ) {
         val portfolio = portfolioService.find(portfolioId)
         response.contentType = MediaType.TEXT_PLAIN_VALUE
         response.setHeader(
@@ -113,9 +114,10 @@ class TrnController(
             "attachment; filename=\"${portfolio.code}.csv\"",
         )
         val trnResponse = trnService.findForPortfolio(portfolio, dateUtils.date)
-        val csvWriter = CSVWriterBuilder(response.writer)
-            .withSeparator(',')
-            .build()
+        val csvWriter =
+            CSVWriterBuilder(response.writer)
+                .withSeparator(',')
+                .build()
         csvWriter.writeNext(trnIoDefinition.headers(), false)
         for (datum in trnResponse.data) {
             csvWriter.writeNext(trnIoDefinition.export(datum), false)

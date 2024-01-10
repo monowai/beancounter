@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service
 @ConditionalOnProperty("auth.enabled", havingValue = "false")
 @ConditionalOnBean(HttpSecurity::class)
 class NoWebAuth {
-
     @Bean
     fun configure(http: HttpSecurity): SecurityFilterChain {
         return http // ...

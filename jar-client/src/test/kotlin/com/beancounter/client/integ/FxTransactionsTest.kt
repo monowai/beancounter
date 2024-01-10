@@ -6,11 +6,11 @@ import com.beancounter.client.Constants.Companion.EUR
 import com.beancounter.client.Constants.Companion.GBP
 import com.beancounter.client.Constants.Companion.NASDAQ
 import com.beancounter.client.Constants.Companion.NZD
+import com.beancounter.client.Constants.Companion.P_TRADE_BASE_RATE
+import com.beancounter.client.Constants.Companion.P_TRADE_CASH_RATE
+import com.beancounter.client.Constants.Companion.P_TRADE_PORTFOLIO_RATE
 import com.beancounter.client.Constants.Companion.SGD
 import com.beancounter.client.Constants.Companion.USD
-import com.beancounter.client.Constants.Companion.pTradeBaseRate
-import com.beancounter.client.Constants.Companion.pTradeCashRate
-import com.beancounter.client.Constants.Companion.pTradePortfolioRate
 import com.beancounter.client.FxService
 import com.beancounter.client.config.ClientConfig
 import com.beancounter.client.ingest.FxTransactions
@@ -58,24 +58,25 @@ class FxTransactionsTest {
 
     @Test
     fun balanceTransaction() {
-        val trnInput = TrnInput(
-            CallerRef(),
-            AssetUtils.Companion.getTestAsset(Market("RE"), "xxx").id,
-            cashCurrency = NZD.code,
-            cashAmount = BigDecimal("1000.00"),
-            tradeCurrency = NZD.code,
-            trnType = TrnType.BALANCE,
-            quantity = BigDecimal("-1000.00"),
-            tradeDate = DateUtils().getDate("2019-10-18"),
-            price = BigDecimal.ONE,
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(),
+                AssetUtils.Companion.getTestAsset(Market("RE"), "xxx").id,
+                cashCurrency = NZD.code,
+                cashAmount = BigDecimal("1000.00"),
+                tradeCurrency = NZD.code,
+                trnType = TrnType.BALANCE,
+                quantity = BigDecimal("-1000.00"),
+                tradeDate = DateUtils().getDate("2019-10-18"),
+                price = BigDecimal.ONE,
+            )
         val portfolio = Portfolio("tst", NZD, NZD)
         fxTransactions.setRates(portfolio, trnInput)
         assertThat(trnInput)
             .isNotNull
-            .hasFieldOrPropertyWithValue(pTradeCashRate, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(pTradeBaseRate, BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue(pTradePortfolioRate, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(P_TRADE_CASH_RATE, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(P_TRADE_BASE_RATE, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(P_TRADE_PORTFOLIO_RATE, BigDecimal.ONE)
     }
 
     @Test
@@ -127,15 +128,16 @@ class FxTransactionsTest {
 
     @Test
     fun is_fxTransactionsSettingCorrectlyWhenRatesNull() {
-        val trnInput = TrnInput(
-            CallerRef(),
-            AssetUtils.Companion.getTestAsset(NASDAQ, "MSFT").id,
-            cashCurrency = USD.code,
-            trnType = TrnType.BUY,
-            quantity = BigDecimal.TEN,
-            tradeDate = DateUtils().getDate("2019-07-26"),
-            price = BigDecimal.TEN,
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(),
+                AssetUtils.Companion.getTestAsset(NASDAQ, "MSFT").id,
+                cashCurrency = USD.code,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.TEN,
+                tradeDate = DateUtils().getDate("2019-07-26"),
+                price = BigDecimal.TEN,
+            )
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")
@@ -149,16 +151,17 @@ class FxTransactionsTest {
 
     @Test
     fun is_fxTransactionsSettingCorrectlyWhenRatesAreZero() {
-        val trnInput = TrnInput(
-            CallerRef(),
-            AssetUtils.Companion.getTestAsset(NASDAQ, "MSFT").id,
-            cashCurrency = USD.code,
-            trnType = TrnType.BUY,
-            quantity = BigDecimal.TEN,
-            tradeDate = DateUtils().getDate("2019-07-26"),
-            price = BigDecimal.TEN,
-            tradePortfolioRate = BigDecimal.ZERO,
-        )
+        val trnInput =
+            TrnInput(
+                CallerRef(),
+                AssetUtils.Companion.getTestAsset(NASDAQ, "MSFT").id,
+                cashCurrency = USD.code,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal.TEN,
+                tradeDate = DateUtils().getDate("2019-07-26"),
+                price = BigDecimal.TEN,
+                tradePortfolioRate = BigDecimal.ZERO,
+            )
         val portfolio = getPortfolio()
         val request = fxTransactions.getFxRequest(portfolio, trnInput)
         assertThat(request).hasFieldOrProperty("tradePf")

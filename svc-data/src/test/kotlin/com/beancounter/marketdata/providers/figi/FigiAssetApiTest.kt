@@ -10,15 +10,15 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
-import com.beancounter.marketdata.Constants.Companion.pCode
-import com.beancounter.marketdata.Constants.Companion.pName
+import com.beancounter.marketdata.Constants.Companion.P_CODE
+import com.beancounter.marketdata.Constants.Companion.P_NAME
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.assets.figi.FigiSearch
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.utils.BcMvcHelper.Companion.assetRoot
+import com.beancounter.marketdata.utils.BcMvcHelper.Companion.ASSET_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -45,7 +45,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
-private const val berkshire = "BRK.B"
+private const val BRK_B = "BRK.B"
 
 /**
  * Bloomberg OpenFigi via mocks.
@@ -56,7 +56,6 @@ private const val berkshire = "BRK.B"
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class FigiAssetApiTest {
-
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
@@ -83,7 +82,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), MSFT.code)
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(pName, "MICROSOFT CORP")
+            .hasFieldOrPropertyWithValue(P_NAME, "MICROSOFT CORP")
             .isNotNull
     }
 
@@ -92,7 +91,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NASDAQ.code), "BAIDU")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(pName, "BAIDU INC - SPON ADR")
+            .hasFieldOrPropertyWithValue(P_NAME, "BAIDU INC - SPON ADR")
             .isNotNull
     }
 
@@ -101,7 +100,7 @@ class FigiAssetApiTest {
         val asset = figiProxy.find(marketService.getMarket(NYSE.code), "OHI")
         assertThat(asset)
             .isNotNull
-            .hasFieldOrPropertyWithValue(pName, "OMEGA HEALTHCARE INVESTORS")
+            .hasFieldOrPropertyWithValue(P_NAME, "OMEGA HEALTHCARE INVESTORS")
             .isNotNull
     }
 
@@ -111,7 +110,7 @@ class FigiAssetApiTest {
         assertThat(asset)
             .isNotNull
             .hasFieldOrPropertyWithValue(
-                pName,
+                P_NAME,
                 "FINANCIAL SELECT SECTOR SPDR",
             ) // Unknown to BC, but is known to FIGI
             .hasNoNullFieldsOrPropertiesExcept("id", "priceSymbol", "systemUser")
@@ -120,9 +119,10 @@ class FigiAssetApiTest {
 
     @Test
     fun is_BrkBFound() {
-        val mockMvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
+        val mockMvc =
+            MockMvcBuilders.webAppContextSetup(context)
+                .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+                .build()
 
         // Authorise the caller to access the BC API
         val token = mockAuthConfig.getUserToken(Constants.systemUser)
@@ -132,20 +132,22 @@ class FigiAssetApiTest {
         // System default enricher is found
         assertThat(enrichmentFactory.getEnricher(market)).isNotNull
 
-        val mvcResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("$assetRoot/{market}/{code}", NYSE.code, berkshire)
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON),
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn()
-        val (data) = objectMapper
-            .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
+        val mvcResult =
+            mockMvc.perform(
+                MockMvcRequestBuilders.get("$ASSET_ROOT/{market}/{code}", NYSE.code, BRK_B)
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn()
+        val (data) =
+            objectMapper
+                .readValue(mvcResult.response.contentAsString, AssetResponse::class.java)
         assertThat(data)
             .isNotNull
-            .hasFieldOrPropertyWithValue(pCode, berkshire)
-            .hasFieldOrPropertyWithValue(pName, "BERKSHIRE HATHAWAY INC-CL B")
+            .hasFieldOrPropertyWithValue(P_CODE, BRK_B)
+            .hasFieldOrPropertyWithValue(P_NAME, "BERKSHIRE HATHAWAY INC-CL B")
     }
 
     @Test
@@ -160,8 +162,8 @@ class FigiAssetApiTest {
 
         val createdAsset = assetResponse.data.iterator().next().value
         assertThat(createdAsset)
-            .hasFieldOrPropertyWithValue(pName, createdAsset.name)
-            .hasFieldOrPropertyWithValue(pCode, createdAsset.code)
+            .hasFieldOrPropertyWithValue(P_NAME, createdAsset.name)
+            .hasFieldOrPropertyWithValue(P_CODE, createdAsset.code)
     }
 
     @BeforeEach
@@ -225,10 +227,11 @@ class FigiAssetApiTest {
             val search = FigiSearch(code, "US", securityType, true)
             val searchCollection: MutableCollection<FigiSearch> = ArrayList()
             searchCollection.add(search)
-            val response: Collection<FigiResponse> = objectMapper.readValue(
-                jsonFile,
-                object : TypeReference<Collection<FigiResponse>>() {},
-            )
+            val response: Collection<FigiResponse> =
+                objectMapper.readValue(
+                    jsonFile,
+                    object : TypeReference<Collection<FigiResponse>>() {},
+                )
             stubFor(
                 WireMock.post(WireMock.urlEqualTo("/v2/mapping"))
                     .withRequestBody(

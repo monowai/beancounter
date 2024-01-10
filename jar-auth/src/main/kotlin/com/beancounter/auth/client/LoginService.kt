@@ -26,7 +26,10 @@ import org.springframework.web.bind.annotation.RequestBody
 class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDecoder, val authConfig: AuthConfig) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun login(user: String, password: String): OpenIdResponse {
+    fun login(
+        user: String,
+        password: String,
+    ): OpenIdResponse {
         val passwordRequest = passwordRequest(user, password)
         val response = authGateway.login(passwordRequest)
         log.info("Logged in $user")
@@ -56,11 +59,12 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
         }
-        val login = ClientCredentialsRequest(
-            client_secret = secretIn,
-            client_id = authConfig.clientId,
-            audience = authConfig.audience,
-        )
+        val login =
+            ClientCredentialsRequest(
+                client_secret = secretIn,
+                client_id = authConfig.clientId,
+                audience = authConfig.audience,
+            )
         log.info("m2mLogin: ${authConfig.clientId}")
         return setAuthContext(authGateway.login(login))
     }
@@ -70,11 +74,12 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
         return response
     }
 
-    fun authenticationToken(response: OpenIdResponse) = JwtAuthenticationToken(
-        jwtDecoder.decode(
-            response.token,
-        ),
-    )
+    fun authenticationToken(response: OpenIdResponse) =
+        JwtAuthenticationToken(
+            jwtDecoder.decode(
+                response.token,
+            ),
+        )
 
     /**
      * Interface to support various oAuth login request types.
@@ -117,6 +122,8 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
             consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE],
             produces = [MediaType.APPLICATION_JSON_VALUE],
         )
-        fun login(@RequestBody authRequest: AuthRequest): OpenIdResponse
+        fun login(
+            @RequestBody authRequest: AuthRequest,
+        ): OpenIdResponse
     }
 }

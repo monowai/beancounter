@@ -26,7 +26,6 @@ class MarketDataClient internal constructor(
     private val assetGateway: AssetGateway,
     private val tokenService: TokenService,
 ) : AssetService {
-
     @Value("\${marketdata.url:http://localhost:9510}")
     private lateinit var marketDataUrl: String
 

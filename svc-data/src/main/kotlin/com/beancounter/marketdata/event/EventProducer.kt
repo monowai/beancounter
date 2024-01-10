@@ -10,6 +10,7 @@ import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
@@ -17,8 +18,8 @@ import org.springframework.stereotype.Service
  * Kafka Corporate Action/Event subscriber.
  */
 @Service
+@ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
 class EventProducer {
-
     @Value("\${kafka.enabled:true}")
     var kafkaEnabled: Boolean = false
 
@@ -40,15 +41,16 @@ class EventProducer {
         if (!kafkaEnabled || !isValidEvent(marketData)) {
             return
         }
-        val corporateEvent = CorporateEvent(
-            id = null,
-            trnType = TrnType.DIVI,
-            source = marketData.source,
-            recordDate = marketData.priceDate!!,
-            assetId = marketData.asset.id,
-            rate = marketData.dividend,
-            split = marketData.split,
-        )
+        val corporateEvent =
+            CorporateEvent(
+                id = null,
+                trnType = TrnType.DIVI,
+                source = marketData.source,
+                recordDate = marketData.priceDate!!,
+                assetId = marketData.asset.id,
+                rate = marketData.dividend,
+                split = marketData.split,
+            )
         log.trace("Dispatch {} ... {}", topicEvent, marketData)
         kafkaCaProducer.send(topicEvent, TrustedEventInput(corporateEvent))
     }

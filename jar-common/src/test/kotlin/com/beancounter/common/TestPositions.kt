@@ -39,12 +39,13 @@ internal class TestPositions {
         position.getMoneyValues(Position.In.TRADE, asset.market.currency).dividends = BigDecimal("100")
         position.quantityValues.purchased = BigDecimal(200)
 
-        position.dateValues = DateValues()
-            .apply {
-                opened = dateUtils.date
-                closed = dateUtils.date
-                last = dateUtils.date
-            }
+        position.dateValues =
+            DateValues()
+                .apply {
+                    opened = dateUtils.date
+                    closed = dateUtils.date
+                    last = dateUtils.date
+                }
 
         val positionResponse = PositionResponse(positions)
         val json = bcJson.objectMapper.writeValueAsString(positionResponse)
@@ -96,12 +97,13 @@ internal class TestPositions {
     @Throws(Exception::class)
     fun is_PositionRequestSerializing() {
         val trns: MutableCollection<Trn> = ArrayList()
-        val trn = Trn(
-            id = "any",
-            trnType = TrnType.BUY,
-            asset = getJsonAsset("RandomMarket", "Blah"),
-            portfolio = PortfolioUtils.getPortfolio(),
-        )
+        val trn =
+            Trn(
+                id = "any",
+                trnType = TrnType.BUY,
+                asset = getJsonAsset("RandomMarket", "Blah"),
+                portfolio = PortfolioUtils.getPortfolio(),
+            )
         trns.add(trn)
         val positionRequest = PositionRequest("TWEE", trns)
 

@@ -22,11 +22,17 @@ import java.math.BigDecimal
 class AlphaEventAdapter(private val taxService: TaxService) : Event {
     private val dateUtils = DateUtils()
 
-    private fun calculateGross(currentPosition: Position?, rate: BigDecimal?): BigDecimal {
+    private fun calculateGross(
+        currentPosition: Position?,
+        rate: BigDecimal?,
+    ): BigDecimal {
         return nullSafe(multiplyAbs(currentPosition!!.quantityValues.getTotal(), rate))
     }
 
-    private fun calculateTax(currentPosition: Position?, gross: BigDecimal?): BigDecimal {
+    private fun calculateTax(
+        currentPosition: Position?,
+        gross: BigDecimal?,
+    ): BigDecimal {
         return nullSafe(
             multiplyAbs(
                 gross,
@@ -41,17 +47,18 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
         corporateEvent: CorporateEvent,
     ): TrustedTrnEvent {
         if (corporateEvent.trnType == TrnType.DIVI) {
-            val trnInput = toDividend(currentPosition, corporateEvent)
-                ?: return TrustedTrnEvent(
-                    portfolio,
-                    trnInput = TrnInput(trnType = TrnType.IGNORE),
-                ) // We didn't create anything
+            val trnInput =
+                toDividend(currentPosition, corporateEvent)
+                    ?: return TrustedTrnEvent(
+                        portfolio,
+                        trnInput = TrnInput(trnType = TrnType.IGNORE),
+                    ) // We didn't create anything
             return TrustedTrnEvent(portfolio, trnInput = trnInput)
         } else if (corporateEvent.trnType == TrnType.SPLIT) {
             return TrustedTrnEvent(
                 portfolio,
                 trnInput =
-                toSplit(currentPosition, corporateEvent),
+                    toSplit(currentPosition, corporateEvent),
             )
         }
         throw SystemException(String.format("Unsupported event type %s", corporateEvent.trnType))
@@ -71,7 +78,6 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             price = corporateEvent.split,
             status = TrnStatus.CONFIRMED,
             cashCurrency = currentPosition.asset.market.currency.code,
-
         )
     }
 
@@ -99,7 +105,6 @@ class AlphaEventAdapter(private val taxService: TaxService) : Event {
             status = TrnStatus.PROPOSED,
             cashCurrency = currentPosition.asset.market.currency.code,
             tax = tax,
-
         )
     }
 }

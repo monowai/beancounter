@@ -10,7 +10,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZX
-import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.alphaContracts
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.ALPHA_MOCK
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -33,7 +33,7 @@ internal class AlphaBehaviourTest {
     fun is_NullAsset() {
         assertThrows(BusinessException::class.java) {
             priceMapper.readValue(
-                ClassPathResource("$alphaContracts/alphavantage-empty-response.json").file,
+                ClassPathResource("$ALPHA_MOCK/alphavantage-empty-response.json").file,
                 PriceResponse::class.java,
             )
         }
@@ -41,10 +41,11 @@ internal class AlphaBehaviourTest {
 
     @Test
     fun is_GlobalResponse() {
-        val marketData = priceMapper.readValue(
-            ClassPathResource("$alphaContracts/global-response.json").file,
-            PriceResponse::class.java,
-        )
+        val marketData =
+            priceMapper.readValue(
+                ClassPathResource("$ALPHA_MOCK/global-response.json").file,
+                PriceResponse::class.java,
+            )
         assertThat(marketData)
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
@@ -54,10 +55,11 @@ internal class AlphaBehaviourTest {
 
     @Test
     fun is_CollectionFromResponseReturnedWithDividend() {
-        val result = priceMapper.readValue(
-            ClassPathResource("$alphaContracts/kmi-backfill-response.json").file,
-            PriceResponse::class.java,
-        )
+        val result =
+            priceMapper.readValue(
+                ClassPathResource("$ALPHA_MOCK/kmi-backfill-response.json").file,
+                PriceResponse::class.java,
+            )
         assertThat(result.data).isNotNull.hasSize(4)
         for (marketData in result.data) {
             assertThat(marketData)
@@ -76,10 +78,11 @@ internal class AlphaBehaviourTest {
 
     @Test
     fun is_MutualFundGlobalResponse() {
-        val marketData = priceMapper.readValue(
-            ClassPathResource("$alphaContracts/pence-price-response.json").file,
-            PriceResponse::class.java,
-        )
+        val marketData =
+            priceMapper.readValue(
+                ClassPathResource("$ALPHA_MOCK/pence-price-response.json").file,
+                PriceResponse::class.java,
+            )
         assertThat(marketData)
             .isNotNull
             .hasNoNullFieldsOrPropertiesExcept("id", "requestDate")
@@ -87,9 +90,10 @@ internal class AlphaBehaviourTest {
 
     @Test
     fun is_ResponseWithoutMarketCodeSetToUs() {
-        val (asset) = validateResponse(
-            ClassPathResource("$alphaContracts/alphavantage-nasdaq.json").file,
-        )
+        val (asset) =
+            validateResponse(
+                ClassPathResource("$ALPHA_MOCK/alphavantage-nasdaq.json").file,
+            )
         assertThat(asset)
             .hasFieldOrPropertyWithValue("code", "NDAQ")
             .hasFieldOrPropertyWithValue("market.code", "US")

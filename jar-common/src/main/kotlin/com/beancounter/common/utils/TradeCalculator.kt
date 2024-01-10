@@ -11,7 +11,11 @@ import java.math.BigDecimal
 @Service
 @Import(NumberUtils::class)
 class TradeCalculator(val numberUtils: NumberUtils) {
-    fun amount(quantity: BigDecimal, price: BigDecimal, fees: BigDecimal = BigDecimal.ZERO): BigDecimal {
+    fun amount(
+        quantity: BigDecimal,
+        price: BigDecimal,
+        fees: BigDecimal = BigDecimal.ZERO,
+    ): BigDecimal {
         var result: BigDecimal?
         result = MathUtils.multiplyAbs(quantity, price)
         if (!numberUtils.isUnset(fees)) {

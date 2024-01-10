@@ -29,12 +29,10 @@ data class CorporateEvent(
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
     var recordDate: LocalDate = DateUtils().date,
-
     @Column(precision = 15, scale = 4)
     var rate: BigDecimal = BigDecimal.ZERO,
     @Column(precision = 15, scale = 4)
     var split: BigDecimal = BigDecimal("1.0000"),
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)

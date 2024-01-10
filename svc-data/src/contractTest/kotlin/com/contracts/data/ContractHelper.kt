@@ -12,7 +12,6 @@ import org.springframework.core.io.ClassPathResource
  * Authentication helper to resolve 401s with MVC mocking.
  */
 class ContractHelper(private val authUtilService: AuthUtilService) {
-
     companion object {
         @JvmStatic
         fun getSystemUser(): SystemUser {

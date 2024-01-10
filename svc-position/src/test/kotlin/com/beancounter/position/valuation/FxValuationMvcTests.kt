@@ -119,14 +119,15 @@ internal class FxValuationMvcTests {
         val positions = getPositions(asset)
         val positionResponse = PositionResponse(positions)
         assertThat(mockMvc).isNotNull
-        val json = mockMvc.perform(
-            MockMvcRequestBuilders.post("/value")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(positionResponse)),
-        ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andReturn().response.contentAsString
+        val json =
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/value")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(positionResponse)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().response.contentAsString
         val fromJson = objectMapper.readValue(json, PositionResponse::class.java)
         assertThat(fromJson).isNotNull.hasFieldOrProperty(DATA)
         val jsonPositions = fromJson.data
@@ -164,12 +165,13 @@ internal class FxValuationMvcTests {
 
     @Test
     fun is_MvcRestException() {
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.post("/value")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString("{asdf}")),
-        ).andExpect(MockMvcResultMatchers.status().is4xxClientError).andReturn()
+        val result =
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/value")
+                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString("{asdf}")),
+            ).andExpect(MockMvcResultMatchers.status().is4xxClientError).andReturn()
         val someException = Optional.ofNullable(result.resolvedException as HttpMessageNotReadableException)
         assertThat(someException.isPresent).isTrue
     }

@@ -9,7 +9,7 @@ executors:
       STACK_VER: << pipeline.number >>
 
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:21.0
 jobs:
   build-common:
     executor: java-build

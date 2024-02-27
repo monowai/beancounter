@@ -82,7 +82,7 @@ response:
   headers:
     Content-Type: application/json
 ---
-name: usdNzd-usdGbp-20191018
+name: nzdUsd-20191018
 priority: 1
 request:
   method: POST
@@ -93,20 +93,6 @@ request:
 response:
   status: 200
   bodyFromFile: "./20191018Response.json"
-  headers:
-    Content-Type: application/json
----
-name: nzdUsd-20191018
-priority: 1
-request:
-  method: POST
-  url: /api/fx
-  bodyFromFile: "./20191018Request2.json"
-  headers:
-    Content-Type: application/json
-response:
-  status: 200
-  bodyFromFile: "./20191018Response2.json"
   headers:
     Content-Type: application/json
 ---

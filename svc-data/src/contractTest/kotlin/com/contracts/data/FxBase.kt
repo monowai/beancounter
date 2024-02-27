@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import java.math.BigDecimal
 
 /**
  * Base class for FX Contract tests
@@ -95,6 +96,14 @@ class FxBase : ContractVerifierBase() {
                     "1.8855712953",
                     usdAudRate,
                     myr,
+                ),
+            ],
+        )
+        mockEcbRates(
+            EcbMockUtils[
+                "2019-10-18",
+                mapOf(
+                    Pair(Constants.NZD.code, BigDecimal("1.41030000")),
                 ),
             ],
         )

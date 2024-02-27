@@ -54,7 +54,11 @@ class FxTransactions(
             }
         }
         if (fxRequest.tradeBase != null && numberUtils.isUnset(trnInput.tradeBaseRate)) {
-            trnInput.tradeBaseRate = rates.rates[fxRequest.tradeBase!!]!!.rate
+//            log.info(fxRequest.toString())
+//            rates.rates.forEach {
+//                log.info("Results - ${it.key}")
+//            }
+            trnInput.tradeBaseRate = rates.rates[fxRequest.tradeBase]!!.rate
         } else {
             if (numberUtils.isUnset(trnInput.tradeBaseRate)) {
                 trnInput.tradeBaseRate = BigDecimal.ONE
@@ -107,4 +111,8 @@ class FxTransactions(
             setRates(data, fxRequest, trnInput)
         }
     }
+
+//    companion object {
+//        private val log = LoggerFactory.getLogger(FxTransactions::class.java)
+//    }
 }

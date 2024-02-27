@@ -3,6 +3,7 @@ package com.beancounter.marketdata.fx
 import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.marketdata.currency.CurrencyService
@@ -28,14 +29,9 @@ class FxRateService
             currencyService.getCode(from)
             currencyService.getCode(to)
         }
-
-        val rates: Collection<FxRate>
-        val rateDate = fxRequest.rateDate
-        rates = ecbService.getRates(rateDate)
-        val mappedRates: MutableMap<String, FxRate> = HashMap()
-        for (rate in rates) {
-            mappedRates[rate.to.code] = rate
-        }
-        return FxResponse(FxRateCalculator.compute(rateDate, fxRequest.pairs, mappedRates))
+        val rates: Collection<FxRate> = ecbService.getRates(fxRequest.rateDate)
+        if (rates.isEmpty()) throw BusinessException("No Rates were returned for ${fxRequest.rateDate}")
+        val mappedRates = rates.associateBy { it.to.code }
+        return FxResponse(FxRateCalculator.compute(fxRequest.rateDate, fxRequest.pairs, mappedRates))
     }
 }

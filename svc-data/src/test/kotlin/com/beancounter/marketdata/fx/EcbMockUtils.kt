@@ -10,7 +10,6 @@ import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
 import java.math.BigDecimal
-import java.util.TreeMap
 
 /**
  * Helper to create payloads for FX api.
@@ -35,14 +34,14 @@ object EcbMockUtils {
         aud: String,
         myr: String,
     ): Map<String, BigDecimal> {
-        val ratesTest: MutableMap<String, BigDecimal> = TreeMap()
-        ratesTest[AUD.code] = BigDecimal(aud)
-        ratesTest[EUR.code] = BigDecimal(eur)
-        ratesTest[GBP.code] = BigDecimal(gbp)
-        ratesTest[NZD.code] = BigDecimal(nzd)
-        ratesTest[SGD.code] = BigDecimal(sgd)
-        ratesTest[MYR.code] = BigDecimal(myr)
-        ratesTest[USD.code] = BigDecimal("1.0")
-        return ratesTest
+        return mapOf(
+            AUD.code to BigDecimal(aud),
+            EUR.code to BigDecimal(eur),
+            GBP.code to BigDecimal(gbp),
+            MYR.code to BigDecimal(myr),
+            NZD.code to BigDecimal(nzd),
+            SGD.code to BigDecimal(sgd),
+            USD.code to BigDecimal("1.0"),
+        )
     }
 }

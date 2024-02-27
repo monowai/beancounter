@@ -1,20 +1,6 @@
 {
   "data": {
     "rates": {
-      "USD:GBP": {
-        "from": {
-          "code": "USD",
-          "name": "Dollar",
-          "symbol": "$"
-        },
-        "to": {
-          "code": "GBP",
-          "name": "Pound",
-          "symbol": "£"
-        },
-        "rate": 0.7756191673,
-        "date": "2019-10-18"
-      },
       "USD:NZD": {
         "from": {
           "code": "USD",

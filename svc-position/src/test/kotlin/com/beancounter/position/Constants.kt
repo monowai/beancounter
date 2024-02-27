@@ -7,6 +7,8 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import java.math.BigDecimal
 
+private const val BALANCE = "BALANCE"
+
 /**
  * Used to reduce duplicate object code quality warnings.
  */
@@ -32,21 +34,21 @@ class Constants {
         const val AAPL = "AAPL"
         val nzdCashBalance =
             Asset(
-                code = "${NZD.code} BALANCE",
-                id = "${NZD.code} BALANCE",
+                code = "${NZD.code} $BALANCE",
+                id = "${NZD.code} $BALANCE",
                 name = "${NZD.code} Balance",
-                market = Market("CASH", NZD.code),
+                market = Market(CASH.code, NZD.code),
                 priceSymbol = NZD.code,
-                category = "CASH",
+                category = CASH.code,
             )
         val usdCashBalance =
             Asset(
-                code = "${USD.code} BALANCE",
-                id = "${USD.code} BALANCE",
+                code = "${USD.code} $BALANCE",
+                id = "${USD.code} $BALANCE",
                 name = "${NZD.code} Balance",
-                market = Market("CASH"),
+                market = Market(CASH.code),
                 priceSymbol = USD.code,
-                category = "CASH",
+                category = CASH.code,
             )
 
         const val PROP_PURCHASES = "purchases"

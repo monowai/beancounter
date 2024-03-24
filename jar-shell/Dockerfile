@@ -1,4 +1,4 @@
-FROM amazoncorretto:21.0.1-al2023
+FROM amazoncorretto:21-al2023-jdk
 #docker build . -t bc/shell
 
 ARG JAR_FILE=build/libs/jar-shell-0.1.1.jar

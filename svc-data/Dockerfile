@@ -1,4 +1,4 @@
-FROM amazoncorretto:21.0.1-al2023
+FROM amazoncorretto:21-al2023-jdk
 ARG JAR_FILE=build/libs/svc-data-0.1.1.jar
 #docker build . -t monowai/bc-data:dev
 

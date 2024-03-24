@@ -1,4 +1,4 @@
-FROM amazoncorretto:21.0.1-al2023
+FROM amazoncorretto:21-al2023-jdk
 #docker build . -t monowai/bc-event
 ARG JAR_FILE=build/libs/svc-event-0.1.1.jar
 

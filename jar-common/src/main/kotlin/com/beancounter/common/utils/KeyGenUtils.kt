@@ -1,7 +1,6 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.exception.BusinessException
-import org.springframework.lang.NonNull
 import org.springframework.stereotype.Service
 import java.nio.ByteBuffer
 import java.util.UUID
@@ -29,11 +28,12 @@ class KeyGenUtils {
      * @throws IllegalArgumentException if the underlying UUID implementation is not 16 bytes.
      */
     fun format(uuid: UUID?): String {
-        if (uuid == null) {
-            throw BusinessException("Null UUID")
-        }
-        val bytes = extract(uuid)
-        return encodeBase64(bytes)
+        val bb =
+            ByteBuffer.wrap(ByteArray(16)).apply {
+                putLong(uuid?.mostSignificantBits ?: throw BusinessException("Null UUID"))
+                putLong(uuid.leastSignificantBits)
+            }
+        return encodeBase64(bb.array())
     }
 
     /**
@@ -64,14 +64,6 @@ class KeyGenUtils {
         bb.put(bytes, 0, 16)
         bb.clear()
         return UUID(bb.long, bb.long)
-    }
-
-    @NonNull
-    private fun extract(uuid: UUID): ByteArray {
-        val bb = ByteBuffer.wrap(ByteArray(16))
-        bb.putLong(uuid.mostSignificantBits)
-        bb.putLong(uuid.leastSignificantBits)
-        return bb.array()
     }
 
     val id: String

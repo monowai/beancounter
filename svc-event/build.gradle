@@ -60,6 +60,9 @@ dependencies {
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
             "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
+            "io.kotest:kotest-runner-junit5:${koTestVersion}",
+            "io.kotest:kotest-assertions-core:${koTestVersion}",
+            "io.kotest:kotest-framework-engine:${koTestVersion}",
             testFixtures(project(":jar-auth")),
 
     )

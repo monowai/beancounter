@@ -39,95 +39,77 @@ class EventService(
     }
 
     fun processEvent(event: CorporateEvent): Collection<TrustedTrnEvent> {
-        val results: MutableCollection<TrustedTrnEvent> = mutableListOf()
-        val response =
-            positionService.findWhereHeld(
-                event.assetId,
-                event.recordDate,
-            )
-        for (portfolio in response.data) {
+        val response = positionService.findWhereHeld(event.assetId, event.recordDate)
+
+        return response.data.mapNotNull { portfolio ->
             val trnEvent = positionService.process(portfolio, event)
-            // Don't create forward dated transactions
-            if (trnEvent.trnInput.trnType != TrnType.IGNORE) {
-                trnEvent.trnInput
+            // Skip forward dated transactions
+            if (trnEvent.trnInput.trnType == TrnType.IGNORE) {
+                null
+            } else {
                 log.info(
-                    "event: ${event.id}, asset: ${event.assetId}, portfolio: ${trnEvent.portfolio.code}, " +
-                        "tradeDate: ${trnEvent.trnInput.tradeDate}",
+                    "Processed event: ${event.id}, asset: ${event.assetId}, " +
+                        "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}",
                 )
                 eventPublisher.send(trnEvent)
-                results.add(trnEvent)
+                trnEvent
             }
         }
-        return results
     }
 
     fun save(event: CorporateEvent): CorporateEvent {
-        val existing =
-            eventRepository.findByAssetIdAndRecordDate(
-                event.assetId,
-                event.recordDate,
-            )
+        val existing = eventRepository.findByAssetIdAndRecordDate(event.assetId, event.recordDate)
+
+        // Check if an existing event is present and return it if so
         if (existing.isPresent) {
             return existing.get()
         }
-        val save =
+        // Create a new event if no existing one is found
+        val newEvent =
             CorporateEvent(
-                keyGenUtils.id,
-                event.trnType,
-                event.source,
-                event.assetId,
-                event.recordDate,
-                event.rate,
-                event.split,
-                event.payDate,
+                id = keyGenUtils.id,
+                trnType = event.trnType,
+                source = event.source,
+                assetId = event.assetId,
+                recordDate = event.recordDate,
+                rate = event.rate,
+                split = event.split,
+                payDate = event.payDate,
             )
 
-        val corporateEvent = eventRepository.save(save)
-        log.trace(
-            "Recorded type: {}, id: {}, assetId: {}, payDate: {}",
-            corporateEvent.trnType,
-            corporateEvent.id,
-            corporateEvent.assetId,
-            corporateEvent.payDate,
-        )
-        return corporateEvent
+        // Save the new event and log the details
+        return eventRepository.save(newEvent).also { savedEvent ->
+            log.trace(
+                "Recorded type: {}, id: {}, assetId: {}, payDate: {}",
+                savedEvent.trnType,
+                savedEvent.id,
+                savedEvent.assetId,
+                savedEvent.payDate,
+            )
+        }
     }
 
-    operator fun get(id: String): CorporateEventResponse {
-        val result = eventRepository.findById(id)
-        return result
-            .map { data: CorporateEvent? -> CorporateEventResponse(data!!) }
+    operator fun get(id: String): CorporateEventResponse =
+        eventRepository.findById(id)
+            .map { CorporateEventResponse(it) }
             .orElseThrow { BusinessException("Not found $id") }
-    }
 
     fun getAssetEvents(assetId: String): CorporateEventResponses {
         val events = forAsset(assetId)
-        if (events.isEmpty()) {
-            return CorporateEventResponses()
-        }
         return CorporateEventResponses(events)
     }
 
-    fun forAsset(assetId: String): Collection<CorporateEvent> {
-        return eventRepository.findByAssetIdOrderByPayDateDesc(assetId)
-    }
+    fun forAsset(assetId: String): Collection<CorporateEvent> = eventRepository.findByAssetIdOrderByPayDateDesc(assetId)
 
     fun findInRange(
         start: LocalDate,
         end: LocalDate,
-    ): Collection<CorporateEvent> {
-        return eventRepository.findByDateRange(start, end)
-    }
+    ): Collection<CorporateEvent> = eventRepository.findByDateRange(start, end)
 
-    fun getScheduledEvents(start: LocalDate): CorporateEventResponses {
-        val events = eventRepository.findByStartDate(start)
-        return CorporateEventResponses(events)
-    }
+    fun getScheduledEvents(start: LocalDate): CorporateEventResponses = CorporateEventResponses(eventRepository.findByStartDate(start))
 
     fun find(
         assetIds: Collection<String>,
         recordDate: LocalDate,
-    ): Collection<CorporateEvent> {
-        return eventRepository.findByAssetsAndRecordDate(assetIds, recordDate)
-    }
+    ): Collection<CorporateEvent> = eventRepository.findByAssetsAndRecordDate(assetIds, recordDate)
 }

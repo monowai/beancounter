@@ -13,7 +13,10 @@ import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -62,24 +65,29 @@ internal class EventControllerTest {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
     lateinit var token: Jwt
 
-    @Autowired
+    @BeforeEach
     fun setDefaultUser() {
         token = mockAuthConfig.getUserToken()
     }
 
     @Test
-    fun is_IllegalEventBad() {
-        val mvcResult =
+    fun validateBadRequestResponse() {
+        // Execute the request and directly retrieve and parse the response body
+        val message =
             mockMvc.perform(
                 MockMvcRequestBuilders.get("/{eventId}", "event.getId()")
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+            )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-        val responseBody = mvcResult.response.contentAsString
-        val message =
-            objectMapper
-                .readValue(responseBody, SpringExceptionMessage::class.java)
+                .response
+                .contentAsString
+                .let { responseBody ->
+                    objectMapper.readValue(responseBody, SpringExceptionMessage::class.java)
+                }
+
+        // Assert that the response message object has no null fields or properties
         assertThat(message).hasNoNullFieldsOrProperties()
     }
 
@@ -97,21 +105,34 @@ internal class EventControllerTest {
         event = eventService.save(event)
         assertThat(event).hasFieldOrProperty("id")
 
-        // Find By PK
-        var mvcResult =
+        // Find By event.id
+        val eventResponse = eventsById(event)
+        eventResponse.shouldNotBeNull()
+        assertThat(eventResponse.data).usingRecursiveComparison().isEqualTo(event)
+
+        val events = eventsByAssetId(event)
+        events.shouldNotBeNull()
+
+        // Ensure the data list contains exactly one item and it matches the expected event
+        events.data shouldContainExactly listOf(event)
+    }
+
+    private fun eventsById(event: CorporateEvent): CorporateEventResponse? {
+        val mvcResult =
             mockMvc.perform(
                 MockMvcRequestBuilders.get("/{eventId}", event.id)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
             ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
-        val (data) =
-            objectMapper.readValue(
-                mvcResult.response.contentAsString,
-                CorporateEventResponse::class.java,
-            )
-        assertThat(data).usingRecursiveComparison().isEqualTo(event)
-        mvcResult =
+        return objectMapper.readValue(
+            mvcResult.response.contentAsString,
+            CorporateEventResponse::class.java,
+        )
+    }
+
+    private fun eventsByAssetId(event: CorporateEvent): CorporateEventResponses? {
+        val mvcResult =
             mockMvc.perform(
                 MockMvcRequestBuilders.get("/asset/{assetId}", event.assetId)
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
@@ -123,9 +144,7 @@ internal class EventControllerTest {
                 mvcResult.response.contentAsString,
                 CorporateEventResponses::class.java,
             )
-        assertThat(events).isNotNull
-        assertThat(events.data).hasSize(1)
-        assertThat(events.data.iterator().next()).usingRecursiveComparison().isEqualTo(event)
+        return events
     }
 
     @Test
@@ -140,8 +159,11 @@ internal class EventControllerTest {
             )
         val saved = eventService.save(event)
         assertThat(saved.id).isNotNull
-        val (id) = eventService.save(event)
-        assertThat(id).isEqualTo(saved.id)
+
+        // Check that the saved event's ID matches a new save attempt (assuming idempotency)
+        val newSaved = eventService.save(event)
+        assertThat(newSaved.id).isEqualTo(saved.id)
+
         assertThat(eventService.forAsset(event.assetId))
             .isNotNull
             .hasSize(1)
@@ -153,8 +175,12 @@ internal class EventControllerTest {
                     event.recordDate.minusDays(2),
                     event.recordDate,
                 )
+        // Validate the collection has exactly one element and check that element
         assertThat(events).hasSize(1)
-        assertThat(events.iterator().next())
-            .usingRecursiveComparison().isEqualTo(saved)
+
+        // Validate the size and contents of the retrieved events
+        assertThat(events.single())
+            .usingRecursiveComparison()
+            .isEqualTo(saved)
     }
 }

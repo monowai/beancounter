@@ -26,8 +26,6 @@ jobs:
           keys:
             - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
       - run: './gradlew jar-common:build jar-auth:build'
-      - run: './gradlew svc-data:publishToMavenLocal'
-      - run: './gradlew svc-position:publishToMavenLocal'
       - codecov/upload:
           file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
 
@@ -141,7 +139,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - run: './gradlew svc-data:build'
+      - run: './gradlew svc-data:build svc-data:publishToMavenLocal'
       - store_test_results:
           path: ./svc-data/build/test-results/test
       - codecov/upload:
@@ -185,7 +183,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - run: './gradlew svc-position:build'
+      - run: './gradlew svc-position:build svc-position:publishToMavenLocal'
       - codecov/upload:
           file: ./svc-position/build/reports/jacoco/test/jacocoTestReport.xml
       - store_test_results:
@@ -279,19 +277,22 @@ workflows:
   build_and_stage:
     jobs:
       - build-common
+      - build-data:
+          requires:
+            - build-common
+      - build-position:
+          requires:
+            - build-data
+      - build-event:
+          requires:
+            - build-data
+            - build-position
       - build-client:
           requires:
             - build-common
+            - build-data
+            - build-position
       - build-shell:
-          requires:
-            - build-client
-      - build-data:
-          requires:
-            - build-client
-      - build-position:
-          requires:
-            - build-client
-      - build-event:
           requires:
             - build-client
       - publish-coverage:

@@ -1,7 +1,6 @@
 package com.beancounter.position.valuation
 
 import com.beancounter.auth.AuthConfig
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenUtils
 import com.beancounter.client.AssetService
@@ -21,22 +20,16 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
+import com.beancounter.position.StubbedTest
 import com.beancounter.position.accumulation.Accumulator
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
-import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -48,16 +41,7 @@ private const val EBAY = "EBAY"
 /**
  * Integration tests using mocked data from bc-data.
  */
-@WebAppConfiguration
-@AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
-)
-@ActiveProfiles("test")
-@Tag("slow")
-@SpringBootTest
-@AutoConfigureMockAuth
-@AutoConfigureMockMvc
+@StubbedTest
 internal class FxValuationMvcTests {
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 

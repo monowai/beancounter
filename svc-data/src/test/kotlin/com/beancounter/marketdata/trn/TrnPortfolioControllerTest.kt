@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
@@ -14,23 +13,18 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -39,12 +33,7 @@ import java.math.BigDecimal
 /**
  * Transactional range query tests.
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("db")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
-@DirtiesContext
+@SpringMvcDbTest
 class TrnPortfolioControllerTest {
     private lateinit var token: Jwt
 
@@ -67,8 +56,11 @@ class TrnPortfolioControllerTest {
 
     private lateinit var msft: Asset
 
-    @BeforeEach
-    fun setupObjects() {
+    @Autowired
+    fun setupObjects(
+        mockMvc: MockMvc,
+        mockAuthConfig: MockAuthConfig,
+    ) {
         token = mockAuthConfig.getUserToken(SystemUser(auth0 = "auth0"))
         bcMvcHelper = BcMvcHelper(mockMvc, token)
         RegistrationUtils.registerUser(mockMvc, token)

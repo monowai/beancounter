@@ -25,6 +25,7 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CUSTOM
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcKafkaTest
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.fx.FxRateService
@@ -50,6 +51,7 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -65,8 +67,14 @@ import java.time.Duration
 /**
  * Check we can import the CSV file we export, via Kafka.
  */
-class KafkaTrnExportImportTest : KafkaBase() {
+@SpringMvcKafkaTest
+class KafkaTrnExportImportTest {
     final var dateUtils: DateUtils = DateUtils()
+
+    // Setup so that the wiring is tested
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+    @Autowired
+    lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -274,7 +282,7 @@ class KafkaTrnExportImportTest : KafkaBase() {
 
     private fun processQueue(consumer: Consumer<String, String>): TrnResponse {
         val consumerRecords = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(5), 2)
-        val created = ArrayList<Trn>()
+        val created = arrayListOf<Trn>()
         for (consumerRecord in consumerRecords) {
             assertThat(consumerRecord.value()).isNotNull
             val received =

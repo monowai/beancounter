@@ -12,13 +12,11 @@ apply from: '../kotlin-spring.gradle'
 
 
 ext {
-    openfeignVersion = '12.1'
-    guavaVersion = '31.1-android'
+    guavaVersion = '33.0.0-jre'
 }
 
 dependencies() {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    compileOnly(
+    implementation(
             "jakarta.servlet:jakarta.servlet-api:6.0.0",
             "com.fasterxml.jackson.core:jackson-databind",
             "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
@@ -26,12 +24,13 @@ dependencies() {
             "org.jetbrains.kotlin:kotlin-reflect",
             "org.springframework:spring-web",
             "org.springframework.boot:spring-boot-starter-data-jpa",
-            "io.github.openfeign:feign-core:${openfeignVersion}",
             "org.springframework.kafka:spring-kafka",
+            "org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1",
             "com.google.guava:guava:${guavaVersion}"
     )
+
     testImplementation(
-            "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}",
+            "org.springframework.boot:spring-boot-starter-test",
             "com.fasterxml.jackson.core:jackson-databind",
             "org.mockito:mockito-core",
             "org.mockito:mockito-junit-jupiter",
@@ -41,7 +40,6 @@ dependencies() {
             "org.springframework.kafka:spring-kafka",
             "org.jetbrains.kotlin:kotlin-reflect",
             "org.assertj:assertj-core",
-            "io.github.openfeign:feign-core:${openfeignVersion}",
             "com.google.guava:guava:${guavaVersion}",
             "org.springframework:spring-web",
             "org.junit.jupiter:junit-jupiter",
@@ -59,8 +57,6 @@ idea {
     module {
         inheritOutputDirs = false
         downloadSources = true
-        outputDir = file("$buildDir/classes/main/")
-        testOutputDir = file("$buildDir/classes/main/")
     }
 }
 repositories {

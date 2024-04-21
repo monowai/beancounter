@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.offmarket
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.AssetRequest
@@ -10,6 +9,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetCategoryConfig
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.MarketDataService
@@ -19,19 +19,13 @@ import com.beancounter.marketdata.trn.cash.CashBalancesBean
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
 /**
  * Simulate the flow of an off market real estate purchase.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
-@ActiveProfiles("test")
+@SpringMvcDbTest
 class RealEstateAssetTest {
     @Autowired
     private lateinit var assetService: AssetService

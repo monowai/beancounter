@@ -1,7 +1,6 @@
-package com.beancounter.common
+package com.beancounter.common.utils
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test

@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.marketdata.Constants.Companion.NZX
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
@@ -13,8 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 
 /**
  * Market related tests.
@@ -22,9 +20,7 @@ import org.springframework.test.context.ActiveProfiles
  * @author mikeh
  * @since 2019-03-19
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 class MarketDataPriceProviderTests
     @Autowired
     constructor(

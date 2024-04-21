@@ -1,12 +1,3 @@
-server:
-  port: 0
-
-schedule:
-  enabled: false
-
-kafka:
-  enabled: false
-
 beancounter:
   enricher: ALPHA
   market:

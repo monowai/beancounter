@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
@@ -22,6 +21,7 @@ import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.aaplInput
 import com.beancounter.marketdata.Constants.Companion.msftInput
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
@@ -32,17 +32,12 @@ import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRNS_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.URI_TRN_FOR_PORTFOLIO
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -52,11 +47,7 @@ import java.math.BigDecimal
 /**
  * Splits out the general flow of transactions to verify they work as expected through the trn lifecycle.
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("db")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 class TrnControllerFlowTest(
     @Autowired var mockMvc: MockMvc,
     @Autowired var mockAuthConfig: MockAuthConfig,
@@ -87,8 +78,11 @@ class TrnControllerFlowTest(
     private lateinit var trnInputC: TrnInput
     private lateinit var trnInputD: TrnInput
 
-    @BeforeEach
-    fun setupObjects() {
+    @Autowired
+    fun setupObjects(
+        mockMvc: MockMvc,
+        mockAuthConfig: MockAuthConfig,
+    ) {
         enrichmentFactory.register(DefaultEnricher())
         token = mockAuthConfig.getUserToken(Constants.systemUser)
         bcMvcHelper = BcMvcHelper(mockMvc, token)

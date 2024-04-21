@@ -1,22 +1,16 @@
 package com.beancounter.marketdata.registration
 
 import com.beancounter.auth.AuthUtilService
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenService
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 
 private const val EMAIL = "data.email"
 
@@ -37,13 +31,7 @@ private const val GMAIL = "email@gmail.com"
 /**
  * Verify service registration capabilities for various authentication providers.
  */
-@SpringBootTest
-@EntityScan("com.beancounter.common.model")
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
-@DirtiesContext
+@SpringMvcDbTest
 class SystemUserServiceTest {
     @Autowired
     lateinit var mockAuthConfig: MockAuthConfig

@@ -1,38 +1,25 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.Payload
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
-@SpringBootTest
-@EntityScan("com.beancounter.common.model")
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 internal class MarketMvcTests {
-    private val objectMapper = BcJson().objectMapper
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -41,14 +28,17 @@ internal class MarketMvcTests {
 
     private lateinit var token: Jwt
 
-    @BeforeEach
-    fun mockServices() {
+    @Autowired
+    fun getToken(
+        mockMvc: MockMvc,
+        mockAuthConfig: MockAuthConfig,
+    ): Jwt {
         token = mockAuthConfig.getUserToken(SystemUser("MarketMvcTests", "MarketMvcTests@testing.com"))
         registerUser(mockMvc, token)
+        return token
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_AllMarketsFound() {
         val mvcResult =
             mockMvc.perform(

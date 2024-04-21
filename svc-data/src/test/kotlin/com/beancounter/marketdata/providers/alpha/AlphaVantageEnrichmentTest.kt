@@ -43,7 +43,7 @@ import java.math.BigDecimal
  */
 @SpringBootTest
 @ActiveProfiles("alpha")
-@Tag("slow")
+@Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth

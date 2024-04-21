@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.offmarket
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.Registration
 import com.beancounter.client.ingest.FxTransactions
@@ -15,6 +14,7 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
@@ -23,29 +23,18 @@ import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 
 /**
  * Check the flow of a real estate purchase.
  */
-@SpringBootTest
-@EntityScan("com.beancounter.common.model")
-@ActiveProfiles("test")
-@Tag("db")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 class RealEstateTrnTests {
     @Autowired
     lateinit var assetService: AssetService
@@ -80,8 +69,11 @@ class RealEstateTrnTests {
     private val pCashAmount = "cashAmount"
     private val pQuantity = "quantity"
 
-    @BeforeEach
-    fun setupObjects() {
+    @Autowired
+    fun setupObjects(
+        mockMvc: MockMvc,
+        mockAuthConfig: MockAuthConfig,
+    ) {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,

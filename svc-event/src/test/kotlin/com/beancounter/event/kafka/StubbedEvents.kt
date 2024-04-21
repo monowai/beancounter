@@ -21,7 +21,6 @@ import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.service.BackfillService
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
-import com.fasterxml.jackson.core.JsonProcessingException
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.assertj.core.api.Assertions.assertThat
@@ -61,7 +60,6 @@ private const val EMAIL = "blah@blah.com"
         StubbedEvents.TRN_EVENT,
         StubbedEvents.CA_EVENT,
     ],
-    bootstrapServersProperty = "spring.kafka.bootstrap-servers",
     brokerProperties = ["log.dir=./build/kafka", "auto.create.topics.enable=true"],
 )
 @AutoConfigureStubRunner(
@@ -71,7 +69,7 @@ private const val EMAIL = "blah@blah.com"
         "org.beancounter:svc-position:+:stubs:12999",
     ],
 )
-@Tag("slow")
+@Tag("kafka")
 @SpringBootTest
 @ActiveProfiles("kafka")
 @AutoConfigureMockMvc
@@ -203,7 +201,6 @@ class StubbedEvents {
     }
 
     // We're working with exactly the same event, so output should be the same
-    @Throws(JsonProcessingException::class)
     private fun verify(
         portfolio: Portfolio,
         trnEvents: Collection<TrustedTrnEvent>,

@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.markets
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AUD
@@ -9,34 +8,24 @@ import com.beancounter.marketdata.Constants.Companion.GBP
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import com.beancounter.marketdata.providers.wtd.WtdService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.context.ActiveProfiles
 import java.time.ZoneOffset
 import java.util.TimeZone
 
 /**
  * Market Configuration data tests.
  */
-@SpringBootTest
-@EntityScan("com.beancounter.common.model")
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 class MarketServiceTest
     @Autowired
     constructor(
@@ -45,8 +34,8 @@ class MarketServiceTest
         @MockBean
         lateinit var currencyService: CurrencyService
 
-        @BeforeEach
-        fun mockCurrency() {
+        @Autowired
+        fun setMockCurrency(currencyService: CurrencyService) {
             Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
             Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
             Mockito.`when`(currencyService.getCode(AUD.code)).thenReturn(AUD)

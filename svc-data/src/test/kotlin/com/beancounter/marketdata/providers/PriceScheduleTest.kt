@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
@@ -8,15 +7,14 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.ASX
-import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Tag
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
@@ -33,9 +31,8 @@ import org.springframework.web.context.WebApplicationContext
 /**
  * PriceScheduler bean deploys when enabled and functionality works
  */
-@SpringBootTest(classes = [MarketDataBoot::class], properties = ["schedule.enabled=true"])
-@Tag("db")
-@AutoConfigureMockAuth
+@SpringBootTest(properties = ["schedule.enabled=true"])
+@SpringMvcDbTest
 class PriceScheduleTest {
     @MockBean
     private lateinit var enrichmentFactory: EnrichmentFactory
@@ -99,6 +96,6 @@ class PriceScheduleTest {
                     ),
                 ),
             )
-        Assertions.assertThat(price).hasNoNullFieldsOrProperties()
+        assertThat(price).hasNoNullFieldsOrProperties()
     }
 }

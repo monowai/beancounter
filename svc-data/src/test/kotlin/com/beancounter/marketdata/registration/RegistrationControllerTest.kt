@@ -1,24 +1,18 @@
 package com.beancounter.marketdata.registration
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -26,13 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 /**
  * Verify user registration behaviour.
  */
-@SpringBootTest
-@EntityScan("com.beancounter.common.model")
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
-@DirtiesContext
+@SpringMvcDbTest
 class RegistrationControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc

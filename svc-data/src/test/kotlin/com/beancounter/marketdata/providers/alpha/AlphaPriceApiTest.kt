@@ -78,8 +78,8 @@ import org.springframework.web.context.WebApplicationContext
  * @since 2019-03-04
  */
 @SpringBootTest(classes = [MarketDataBoot::class, MockAuthConfig::class])
-@ActiveProfiles("alpha")
-@Tag("slow")
+@ActiveProfiles("h2db", "alpha")
+@Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 internal class AlphaPriceApiTest {
     @MockBean

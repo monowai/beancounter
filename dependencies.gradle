@@ -1,11 +1,11 @@
 ext{
-  springVersion='3.1.9'
-  springCloudVersion='2022.0.4'
-  verifierVersion='4.0.4'
+  springVersion='3.2.4'
+  springCloudVersion='2023.0.1'
+  verifierVersion='4.1.2'
   kotlinVersion='1.9.21'
   jacocoVersion='0.8.10'
   gitProperties='2.4.1'
   postgresVersion='42.7.2'
-  mockitoKotlinVersion='5.1.0'
+  mockitoKotlinVersion='5.3.1'
   koTestVersion="5.5.5"
 }

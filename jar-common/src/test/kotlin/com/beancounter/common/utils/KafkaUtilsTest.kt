@@ -1,6 +1,5 @@
-package com.beancounter.common
+package com.beancounter.common.utils
 
-import com.beancounter.common.utils.KafkaUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.kafka.listener.ListenerExecutionFailedException
@@ -10,7 +9,7 @@ import org.springframework.messaging.support.ErrorMessage
 /**
  * Can we interpret BC exceptions from Kafka Exceptions?
  */
-class TestKafkaExceptions {
+class KafkaUtilsTest {
     @Test
     fun is_ErrorCovered() {
         val kafkaUtils = KafkaUtils()

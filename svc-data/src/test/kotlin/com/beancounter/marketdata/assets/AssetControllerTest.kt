@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.assets
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
@@ -12,20 +11,16 @@ import com.beancounter.common.model.Status
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.ASSET_ROOT
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
@@ -36,16 +31,10 @@ import java.util.Locale
 /**
  * MVC tests for Assets
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
-@AutoConfigureMockAuth
-@AutoConfigureMockMvc
+@SpringMvcDbTest
 internal class AssetControllerTest(
     @Autowired var enrichmentFactory: EnrichmentFactory,
 ) {
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 

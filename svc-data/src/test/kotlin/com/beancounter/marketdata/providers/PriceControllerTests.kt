@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.MarketResponse
@@ -17,6 +16,7 @@ import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.US
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
@@ -25,13 +25,10 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -42,11 +39,7 @@ import java.util.Optional
 /**
  * MVC tests related to market activities.
  */
-@SpringBootTest
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 internal class PriceControllerTests
     @Autowired
     private constructor(
@@ -118,7 +111,7 @@ internal class PriceControllerTests
         }
 
         @Test
-        @Tag("slow")
+        @Tag("wiremock")
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_PriceFromMarketAssetFound() {
             val json =
@@ -148,7 +141,7 @@ internal class PriceControllerTests
         private val assetCode = "assetCode"
 
         @Test
-        @Tag("slow")
+        @Tag("wiremock")
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_MdCollectionReturnedForAssets() {
             Mockito.`when`(assetService.findLocally(AssetInput(CASH_MARKET.code, assetCode)))
@@ -182,7 +175,7 @@ internal class PriceControllerTests
         }
 
         @Test
-        @Tag("slow")
+        @Tag("wiremock")
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_OffMarketPriceWritten() {
             val offMarketAsset = getTestAsset(market = Market(OffMarketDataProvider.ID), code = assetCode)
@@ -232,7 +225,7 @@ internal class PriceControllerTests
         }
 
         @Test
-        @Tag("slow")
+        @Tag("wiremock")
         @WithMockUser(username = "test-user", roles = [AuthConstants.USER])
         fun is_ValuationRequestHydratingAssets() {
             val json =

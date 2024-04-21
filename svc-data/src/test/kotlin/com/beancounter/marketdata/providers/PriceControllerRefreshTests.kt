@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PriceAsset
@@ -9,21 +8,17 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.US
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -32,11 +27,7 @@ import java.math.BigDecimal
 /**
  * MVC tests related to market activities.
  */
-@SpringBootTest
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 internal class PriceControllerRefreshTests
     @Autowired
     private constructor(
@@ -64,8 +55,8 @@ internal class PriceControllerRefreshTests
                 assets = listOf(PriceAsset(asset)),
             )
 
-        @BeforeEach
-        fun mockAlphaPriceService() {
+        @Autowired
+        fun mockAlphaPriceService(assetService: AssetService) {
             Mockito.`when`(assetService.find(asset.id)).thenReturn(asset)
             Mockito.`when`(alphaPriceService.isMarketSupported(US))
                 .thenReturn(true)
@@ -77,8 +68,6 @@ internal class PriceControllerRefreshTests
                 .isEqualTo(AlphaPriceService.ID)
             Mockito.`when`(alphaPriceService.getDate(asset.market, priceRequest))
                 .thenReturn(testDate)
-//        Mockito.`when`(alphaPriceService.getDate(asset.market, priceRequest))
-//            .thenReturn(date)
         }
 
         @Test

@@ -69,6 +69,8 @@ dependencies {
             "org.springframework.cloud:spring-cloud-contract-wiremock",
             "org.springframework.kafka:spring-kafka-test",
             "org.junit.jupiter:junit-jupiter",
+            "org.junit.platform:junit-platform-suite-api",
+            "org.junit.platform:junit-platform-suite-engine",
             "org.mockito.kotlin:mockito-kotlin:${mockitoKotlinVersion}",
             testFixtures(project(":jar-auth")),
     )
@@ -89,7 +91,13 @@ contractTest {
     }
 }
 
-
+tasks.register('testSuites', Test) {
+    include '**/suites/**'
+    useJUnitPlatform()
+}
+test {
+    exclude '**/suites/**'
+}
 tasks.register('pubStubs') {
     dependsOn build
     dependsOn publishToMavenLocal

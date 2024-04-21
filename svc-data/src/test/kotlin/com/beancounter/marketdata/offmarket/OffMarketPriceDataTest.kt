@@ -11,6 +11,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataRepo
@@ -19,18 +20,14 @@ import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.custom.OffMarketDataProvider
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 
 /**
  * Validate prices for off market assets.
  */
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringMvcDbTest
 class OffMarketPriceDataTest {
     @Autowired
     lateinit var marketService: MarketService
@@ -58,8 +55,8 @@ class OffMarketPriceDataTest {
 
     private val owner = "test-user"
 
-    @BeforeEach
-    fun init() {
+    @Autowired
+    fun setAuth(mockAuthConfig: MockAuthConfig) {
         mockAuthConfig.login(SystemUser(id = owner), this.systemUserService)
     }
 
@@ -150,7 +147,6 @@ class OffMarketPriceDataTest {
                             ),
                     ),
             )
-
         assertThat(prices.data).hasSize(1)
         assertThat(prices.data.iterator().next())
             .hasFieldOrPropertyWithValue("close", BigDecimal("10.000000"))

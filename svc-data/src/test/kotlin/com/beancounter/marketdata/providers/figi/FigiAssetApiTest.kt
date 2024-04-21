@@ -52,7 +52,7 @@ private const val BRK_B = "BRK.B"
  */
 @SpringBootTest
 @ActiveProfiles("figi")
-@Tag("slow")
+@Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class FigiAssetApiTest {

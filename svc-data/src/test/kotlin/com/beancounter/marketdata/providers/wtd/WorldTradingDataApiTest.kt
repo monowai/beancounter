@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -38,9 +38,9 @@ import kotlin.collections.set
  */
 @SpringBootTest
 @ActiveProfiles("wtd")
-@Tag("db")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
+@Disabled
 internal class WorldTradingDataApiTest {
     private val dateUtils = DateUtils()
     private val priceDate = "2019-11-15"

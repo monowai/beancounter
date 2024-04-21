@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
@@ -19,34 +18,24 @@ import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 
 /**
  * Validate miscellaneous transaction scenarios that impact cash.
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("db")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
-@DirtiesContext
+@SpringMvcDbTest
 class TrnCashFlowTest {
     @Autowired
     lateinit var assetService: AssetService
@@ -82,8 +71,8 @@ class TrnCashFlowTest {
     private lateinit var nzCashAsset: Asset
     private lateinit var usCashAsset: Asset
 
-    @BeforeEach
-    fun setupObjects() {
+    @Autowired
+    fun setupObjects(assetService: AssetService) {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,

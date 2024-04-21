@@ -1,36 +1,30 @@
 package com.beancounter.marketdata.portfolio
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
-import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.Payload.Companion.DATA
 import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioByCode
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioById
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioCreate
+import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -49,14 +43,8 @@ private const val P_CCY_CODE = "currency.code"
 /**
  * MVC Controller tests for Portfolios.
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 internal class PortfolioControllerTests {
-    private val objectMapper = BcJson().objectMapper
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -66,12 +54,16 @@ internal class PortfolioControllerTests {
     private lateinit var token: Jwt
 
     @Autowired
-    fun registerUser() {
+    fun getToken(
+        mockMvc: MockMvc,
+        mockAuthConfig: MockAuthConfig,
+    ): Jwt {
         token =
             registerUser(
                 mockMvc,
                 mockAuthConfig.getUserToken(SystemUser("portfolioControllerTests")),
             )
+        return token
     }
 
     @Test
@@ -175,13 +167,12 @@ internal class PortfolioControllerTests {
     }
 
     @Test
-    @WithMockUser(username = "testUser", authorities = [AuthConstants.SCOPE_BC, AuthConstants.SCOPE_USER])
     fun updatePortfolio() {
         val portfolioResponse =
             portfolioCreate(
                 PortfolioInput(
                     UUID.randomUUID().toString().uppercase(Locale.getDefault()),
-                    "is_UpdatePortfolioWorking",
+                    "updatePortfolio",
                     USD.code,
                     NZD.code,
                 ),
@@ -192,7 +183,7 @@ internal class PortfolioControllerTests {
         val (id, _, _, _, _, owner) = portfolioResponse.iterator().next()
         val updateTo =
             PortfolioInput(
-                "123",
+                "UPDATE_TO_THIS",
                 "Mikey",
                 USD.code,
                 SGD.code,

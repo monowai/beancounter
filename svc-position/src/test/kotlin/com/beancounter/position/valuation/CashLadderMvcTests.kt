@@ -1,6 +1,5 @@
 package com.beancounter.position.valuation
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.Portfolio
@@ -13,19 +12,13 @@ import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
+import com.beancounter.position.StubbedTest
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner
-import org.springframework.cloud.contract.stubrunner.spring.StubRunnerProperties
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -37,16 +30,7 @@ private const val PROP_COST_VALUE = "costValue"
  * Verify cash impact on purchase and sale. The contract data for this test
  * originates in CashTrnTests
  */
-@WebAppConfiguration
-@AutoConfigureStubRunner(
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL,
-    ids = ["org.beancounter:svc-data:+:stubs:10999"],
-)
-@ActiveProfiles("test")
-@Tag("slow")
-@SpringBootTest
-@AutoConfigureMockAuth
-@AutoConfigureMockMvc
+@StubbedTest
 internal class CashLadderMvcTests {
     @Autowired
     private lateinit var mockMvc: MockMvc

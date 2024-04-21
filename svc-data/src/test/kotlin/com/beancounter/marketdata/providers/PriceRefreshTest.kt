@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Asset
@@ -8,6 +7,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetHydrationService
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
@@ -15,22 +15,15 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.context.ActiveProfiles
 
 /**
  * Verify price refresh removes and re-imports the price for a single asset.
  */
-@SpringBootTest
-@Tag("slow")
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockAuth
+@SpringMvcDbTest
 internal class PriceRefreshTest {
     @Autowired
     private lateinit var priceRefresh: PriceRefresh

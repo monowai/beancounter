@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.cash
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
@@ -20,6 +19,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NYSE
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.DefaultEnricher
 import com.beancounter.marketdata.assets.EnrichmentFactory
@@ -28,17 +28,11 @@ import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
@@ -46,12 +40,8 @@ import java.math.BigDecimal.ONE
 /**
  * Test the impact on cash for various transaction scenario flows.
  */
-@SpringBootTest
-@EntityScan("com.beancounter.common.model")
-@Tag("db")
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
+
+@SpringMvcDbTest
 class CashTrnTests {
     @Autowired
     lateinit var assetService: AssetService
@@ -82,8 +72,11 @@ class CashTrnTests {
     private val propTradeAmount = "tradeAmount"
     private val propCashAmount = "cashAmount"
 
-    @BeforeEach
-    fun setupObjects() {
+    @Autowired
+    fun setupObjects(
+        mockAuthConfig: MockAuthConfig,
+        mockMvc: MockMvc,
+    ) {
         bcMvcHelper =
             BcMvcHelper(
                 mockMvc,

@@ -10,6 +10,7 @@ spring:
   kafka:
     consumer:
       group-id: event-test
+    bootstrap-servers: "${spring.embedded.kafka.brokers}"
   embedded:
     kafka:
       brokers: "localhost:${kafka.broker.port}"

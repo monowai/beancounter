@@ -7,12 +7,12 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
-import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_ASSET
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_CLOSE
+import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockGlobalResponse
 import com.beancounter.marketdata.utils.DateUtilsMocker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -32,9 +32,9 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-03-04
  */
-@SpringBootTest(classes = [MarketDataBoot::class])
+@SpringBootTest
 @ActiveProfiles("alpha")
-@Tag("slow")
+@Tag("wiremock")
 @AutoConfigureWireMock(port = 0)
 @AutoConfigureMockAuth
 class AlphaApiErrorTest {
@@ -60,7 +60,7 @@ class AlphaApiErrorTest {
     @Test
     fun is_ApiErrorMessageHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageError.json").file
-        AlphaMockUtils.mockGlobalResponse("${AlphaConstants.API}.ERR", jsonFile)
+        mockGlobalResponse("${AlphaConstants.API}.ERR", jsonFile)
         val asset = Asset(code = AlphaConstants.API, market = Market("ERR", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
 
@@ -76,7 +76,7 @@ class AlphaApiErrorTest {
     @Test
     fun is_ApiInvalidKeyHandled() {
         val jsonFile = ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageInfo.json").file
-        AlphaMockUtils.mockGlobalResponse("$api.KEY", jsonFile)
+        mockGlobalResponse("$api.KEY", jsonFile)
         val asset = getTestAsset(code = api, market = Market("KEY", Constants.USD.code))
         val alphaProvider = mdFactory.getMarketDataProvider(AlphaPriceService.ID)
 
@@ -96,7 +96,7 @@ class AlphaApiErrorTest {
     fun is_ApiCallLimitExceededHandled() {
         val nasdaq = marketService.getMarket(Constants.NASDAQ.code)
         val asset = getTestAsset(code = "ABC", market = nasdaq)
-        AlphaMockUtils.mockGlobalResponse(
+        mockGlobalResponse(
             asset.id,
             ClassPathResource(AlphaMockUtils.ALPHA_MOCK + "/alphavantageNote.json").file,
         )

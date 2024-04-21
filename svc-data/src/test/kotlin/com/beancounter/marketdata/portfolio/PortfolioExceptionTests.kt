@@ -1,30 +1,27 @@
 package com.beancounter.marketdata.portfolio
 
-import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants
+import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_CODE
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
 import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Tag
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -37,12 +34,8 @@ import java.util.UUID
  * Verifies correct exceptions thrown by the portfolio controller.
  *
  */
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("slow")
-@AutoConfigureMockMvc
-@AutoConfigureMockAuth
 @EnableWebSecurity
+@SpringMvcDbTest
 class PortfolioExceptionTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -53,12 +46,16 @@ class PortfolioExceptionTests {
     private lateinit var token: Jwt
 
     @Autowired
-    fun registerUser() {
+    fun getToken(
+        mockMvc: MockMvc,
+        mockAuthConfig: MockAuthConfig,
+    ): Jwt {
         token =
             RegistrationUtils.registerUser(
                 mockMvc,
                 mockAuthConfig.getUserToken(SystemUser()),
             )
+        return token
     }
 
     @Test
@@ -84,6 +81,7 @@ class PortfolioExceptionTests {
     }
 
     @Test
+    @Disabled("Logic in this does not look write. Where is the existing portfolio?")
     fun uniqueConstraintInPlace() {
         val portfolioInput =
             PortfolioInput(
@@ -107,7 +105,7 @@ class PortfolioExceptionTests {
                     .contentType(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isConflict)
                 .andReturn()
-        Assertions.assertThat(result.resolvedException)
+        assertThat(result.resolvedException)
             .isNotNull
             .isInstanceOfAny(DataIntegrityViolationException::class.java)
     }

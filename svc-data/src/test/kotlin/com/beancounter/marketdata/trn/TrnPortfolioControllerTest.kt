@@ -9,6 +9,7 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -16,8 +17,8 @@ import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.RegistrationUtils
 import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,69 +58,69 @@ class TrnPortfolioControllerTest {
     private lateinit var msft: Asset
 
     @Autowired
-    fun setupObjects(
-        mockMvc: MockMvc,
-        mockAuthConfig: MockAuthConfig,
-    ) {
+    fun setupTestEnvironment(mockAuthConfig: MockAuthConfig) {
+        initializeAuthentication(mockAuthConfig)
+        registerUser(mockMvc, token)
+        setupAssetsAndTransactions()
+    }
+
+    private fun initializeAuthentication(mockAuthConfig: MockAuthConfig) {
         token = mockAuthConfig.getUserToken(SystemUser(auth0 = "auth0"))
         bcMvcHelper = BcMvcHelper(mockMvc, token)
-        RegistrationUtils.registerUser(mockMvc, token)
-        msft =
-            bcMvcHelper.asset(
-                AssetRequest(Constants.msftInput),
+    }
+
+    private fun setupAssetsAndTransactions() {
+        msft = bcMvcHelper.asset(AssetRequest(Constants.msftInput))
+        postTransactions()
+    }
+
+    private fun postTransactions() {
+        val portfolioA = createPortfolio("PCA", "PCA-NAME")
+        val portfolioB = createPortfolio("PCB", "PCB-NAME")
+
+        val transactionsA =
+            arrayOf(
+                createTransactionInput("1", "2016-01-01", BigDecimal.ONE),
+                createTransactionInput("2", BcMvcHelper.TRADE_DATE),
             )
-        // Creating in reverse trade order and assert retrieved in Sort Order.
-        bcMvcHelper.postTrn(
-            TrnRequest(
-                bcMvcHelper.portfolio(
-                    PortfolioInput("PCA", "PCA-NAME", currency = Constants.NZD.code),
-                ).id,
-                arrayOf(
-                    TrnInput(
-                        CallerRef(batch = BigDecimal.ZERO.toString(), callerId = "1"),
-                        msft.id,
-                        trnType = TrnType.BUY,
-                        quantity = BigDecimal.TEN,
-                        tradeDate = dateUtils.getDate(BcMvcHelper.TRADE_DATE),
-                        price = BigDecimal.TEN,
-                    ),
-                    TrnInput(
-                        CallerRef(batch = BigDecimal.ZERO.toString(), callerId = "2"),
-                        msft.id,
-                        trnType = TrnType.BUY,
-                        quantity = BigDecimal.TEN,
-                        tradeDate = dateUtils.getDate("2016-01-01"),
-                        price = BigDecimal.TEN,
-                        tradePortfolioRate = BigDecimal.ONE,
-                    ),
-                ),
-            ),
+        val transactionsB =
+            arrayOf(
+                createTransactionInput("3", "2018-10-01"),
+                createTransactionInput("34", "2017-01-01"),
+            )
+
+        postTransaction(portfolioA.id, transactionsA)
+        postTransaction(portfolioB.id, transactionsB)
+    }
+
+    private fun createPortfolio(
+        type: String,
+        name: String,
+    ): Portfolio {
+        return bcMvcHelper.portfolio(PortfolioInput(type, name, currency = Constants.NZD.code))
+    }
+
+    private fun createTransactionInput(
+        callerId: String,
+        tradeDate: String,
+        tradePortfolioRate: BigDecimal = BigDecimal.TEN,
+    ): TrnInput {
+        return TrnInput(
+            CallerRef(batch = BigDecimal.ZERO.toString(), callerId = callerId),
+            msft.id,
+            trnType = TrnType.BUY,
+            quantity = BigDecimal.TEN,
+            tradeDate = dateUtils.getDate(tradeDate),
+            price = BigDecimal.TEN,
+            tradePortfolioRate = tradePortfolioRate,
         )
-        bcMvcHelper.postTrn(
-            TrnRequest(
-                bcMvcHelper.portfolio(
-                    PortfolioInput("PCB", "PCB-NAME", currency = Constants.NZD.code),
-                ).id,
-                arrayOf(
-                    TrnInput(
-                        CallerRef(batch = BigDecimal.ZERO.toString(), callerId = "3"),
-                        msft.id,
-                        trnType = TrnType.BUY,
-                        quantity = BigDecimal.TEN,
-                        price = BigDecimal.TEN,
-                        tradeDate = dateUtils.getDate("2018-10-01"),
-                    ),
-                    TrnInput(
-                        CallerRef(batch = BigDecimal.ZERO.toString(), callerId = "34"),
-                        msft.id,
-                        trnType = TrnType.BUY,
-                        quantity = BigDecimal.TEN,
-                        tradeDate = dateUtils.getDate("2017-01-01"),
-                        price = BigDecimal.TEN,
-                    ),
-                ),
-            ),
-        )
+    }
+
+    private fun postTransaction(
+        portfolioId: String,
+        transactions: Array<TrnInput>,
+    ) {
+        bcMvcHelper.postTrn(TrnRequest(portfolioId, transactions))
     }
 
     @Test

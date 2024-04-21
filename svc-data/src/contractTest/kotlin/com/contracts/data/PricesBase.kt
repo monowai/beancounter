@@ -41,50 +41,44 @@ class PricesBase : ContractVerifierBase() {
     }
 
     fun mockPrices() {
+        val open = BigDecimal("39.21")
+        val high = BigDecimal("39.35")
+        val low = BigDecimal("38.74")
+        val close = BigDecimal("100.00")
+        val volume = Integer.decode("6274307")
         mockPriceResponse(
             AlphaPriceResponse(
                 "EBAY",
-                BigDecimal("39.21"),
-                BigDecimal("39.35"),
-                BigDecimal("38.74"),
-                BigDecimal("100.00"),
-                Integer.decode("6274307"),
+                open,
+                high,
+                low,
+                close,
+                volume,
                 rateDate,
             ),
         )
         mockPriceResponse(
             AlphaPriceResponse(
                 "MSFT",
-                BigDecimal("39.21"),
-                BigDecimal("39.35"),
-                BigDecimal("38.74"),
-                BigDecimal("100.00"),
-                Integer.decode("6274307"),
+                open,
+                high,
+                low,
+                close,
+                volume,
                 rateDate,
             ),
         )
         mockPriceResponse(
             AlphaPriceResponse(
                 "AAPL",
-                BigDecimal("39.21"),
-                BigDecimal("39.35"),
-                BigDecimal("38.74"),
-                BigDecimal("100.00"),
-                Integer.decode("6274307"),
+                open,
+                high,
+                low,
+                close,
+                volume,
                 rateDate,
             ),
         )
-//        mockPriceResponse(
-//            AlphaPriceResponse(
-//                "EBAY",
-//                BigDecimal("39.21"),
-//                BigDecimal("39.35"),
-//                BigDecimal("38.74"),
-//                BigDecimal("100.00"),
-//                Integer.decode("6274307"),
-//                "2021-10-19"
-//            )
-//        )
     }
 
     private fun mockPriceResponse(marketData: AlphaPriceResponse) {
@@ -95,6 +89,9 @@ class PricesBase : ContractVerifierBase() {
         ).thenReturn(BcJson().objectMapper.writeValueAsString(response))
     }
 
+    /**
+     * Alphavantage price response structure.
+     */
     class AlphaPriceResponse(
         @JsonProperty("01. symbol")
         val symbol: String,

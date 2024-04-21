@@ -4,7 +4,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import java.util.Locale
@@ -14,21 +13,15 @@ import java.util.Locale
  */
 @Service
 @ConditionalOnProperty(value = ["beancounter.marketdata.provider.FIGI.enabled"], matchIfMissing = true)
-class FigiProxy internal constructor(val figiConfig: FigiConfig) {
+class FigiProxy internal constructor(
+    val figiConfig: FigiConfig,
+    val figiGateway: FigiGateway,
+    val figiAdapter: FigiAdapter,
+) {
     private val filter: List<String> =
         arrayListOf("COMMON STOCK", "REIT", "DEPOSITARY RECEIPT", "MUTUAL FUND")
-    private lateinit var figiGateway: FigiGateway
-    private lateinit var figiAdapter: FigiAdapter
-
-    @Autowired
-    fun setFigiGateway(figiGateway: FigiGateway) {
-        this.figiGateway = figiGateway
-    }
-
-    @Autowired
-    fun setFigiAdapter(figiAdapter: FigiAdapter) {
-        this.figiAdapter = figiAdapter
-    }
+    // private lateinit var figiGateway: FigiGateway
+    // private lateinit var figiAdapter: FigiAdapter
 
     @RateLimiter(name = "figi")
     fun find(

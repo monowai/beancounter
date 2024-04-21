@@ -6,6 +6,14 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import java.util.Date
 
+private const val SCOPE = "scope"
+
+private const val PERMISSIONS = "permissions"
+
+private const val ALG = "alg"
+
+private const val NONE = "none"
+
 /**
  * TestHelper class to generate JWT tokens configured as required.
  */
@@ -28,33 +36,33 @@ class TokenUtils(val authConfig: AuthConfig) {
         subject: String,
     ): Jwt {
         return Jwt.withTokenValue(systemUser.id)
-            .header("alg", "none")
+            .header(ALG, NONE)
             .subject(subject)
             .claim(authConfig.claimEmail, systemUser.email)
-            .claim("permissions", mutableListOf(AuthConstants.APP_NAME, AuthConstants.USER))
-            .claim("scope", AuthConstants.SCOPE)
+            .claim(PERMISSIONS, mutableListOf(AuthConstants.APP_NAME, AuthConstants.USER))
+            .claim(SCOPE, AuthConstants.SCOPE)
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
     }
 
     fun getSystemToken(systemUser: SystemUser): Jwt {
         return Jwt.withTokenValue(systemUser.id)
-            .header("alg", "none")
+            .header(ALG, NONE)
             .subject(systemUser.id)
             // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
-            .claim("permissions", mutableListOf(AuthConstants.APP_NAME, AuthConstants.SYSTEM))
-            .claim("scope", AuthConstants.SCOPE)
+            .claim(PERMISSIONS, mutableListOf(AuthConstants.APP_NAME, AuthConstants.SYSTEM))
+            .claim(SCOPE, AuthConstants.SCOPE)
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
     }
 
     fun getNoRolesToken(systemUser: SystemUser): Jwt {
         return Jwt.withTokenValue(systemUser.id)
-            .header("alg", "none")
+            .header(ALG, NONE)
             .subject(systemUser.id)
             // has to be mutableListOf otherwise becomes ArrayList<Array<String>>
-            .claim("permissions", mutableListOf(AuthConstants.APP_NAME))
-            .claim("scope", AuthConstants.SCOPE)
+            .claim(PERMISSIONS, mutableListOf(AuthConstants.APP_NAME))
+            .claim(SCOPE, AuthConstants.SCOPE)
             .expiresAt(Date(System.currentTimeMillis() + 60000).toInstant())
             .build()
     }

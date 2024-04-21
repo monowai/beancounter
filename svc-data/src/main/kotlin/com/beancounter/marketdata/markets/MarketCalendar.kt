@@ -6,6 +6,9 @@ import java.time.LocalDate
 
 data class MarketHolidayAnnual(val day: Int, val month: String, val year: String = "*", val markets: List<String>)
 
+/**
+ * Determine if it is a holiday on a market.
+ */
 @Service
 class MarketCalendar(val marketCalendarConfig: MarketCalendarConfig) {
     fun isMarketHoliday(

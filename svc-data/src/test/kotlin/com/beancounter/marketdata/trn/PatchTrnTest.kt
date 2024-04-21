@@ -26,6 +26,9 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.test.web.servlet.MockMvc
 import java.math.BigDecimal
 
+/**
+ * Ensure patching behaviour works as expected.
+ */
 @SpringMvcDbTest
 class PatchTrnTest {
     private lateinit var bcMvcHelper: BcMvcHelper
@@ -132,13 +135,13 @@ class PatchTrnTest {
             ).data.iterator().next()
 
         assertThat(updatedTrn).isNotNull
-        assertThat(updatedTrn).hasFieldOrPropertyWithValue("id", originalTransaction.data.iterator().next().id)
-        assertThat(updatedTrn).hasFieldOrPropertyWithValue(
-            "comments",
-            originalTransaction.data.iterator().next().comments,
-        )
-        assertThat(updatedTrn).hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.000000"))
-        assertThat(updatedTrn).hasFieldOrPropertyWithValue("price", BigDecimal("10.000000"))
-        assertThat(updatedTrn).hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2021-03-10"))
+            .hasFieldOrPropertyWithValue("id", originalTransaction.data.iterator().next().id)
+            .hasFieldOrPropertyWithValue(
+                "comments",
+                originalTransaction.data.iterator().next().comments,
+            )
+            .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.000000"))
+            .hasFieldOrPropertyWithValue("price", BigDecimal("10.000000"))
+            .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2021-03-10"))
     }
 }

@@ -1,7 +1,7 @@
-## Corporate Action Processor
+# Corporate Action Processor
 
-Responds and manages corproate action headers.
-Generates transaction notifications for affected portfolios.
+Responds and manages corporate action headers.
+This service records events and generates notional events.
 
-svc-data is responsible for all persistence. This is a stateless service that will respond to events and generate
-events.
+svc-position is queries to determine if a holder is entitled.
+svc-data is responsible for trn persistence. 

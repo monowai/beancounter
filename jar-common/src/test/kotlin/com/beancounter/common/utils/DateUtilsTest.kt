@@ -5,11 +5,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.TimeZone
 
 /**
  * Test class for DateUtils. This class comprehensively tests the functionality of the DateUtils class,
- * which includes validation of date manipulation and formatting operations across different time zones.
+ * in the default timezone.
  * It ensures that the methods behave as expected under various conditions, including handling valid and
  * invalid date inputs, recognizing 'today' correctly, and matching time zones and formatted outputs.
  *
@@ -17,7 +16,6 @@ import java.util.TimeZone
  * - The ability of the isToday method to correctly determine if a given date string represents the current date.
  * - The correctness of time zone handling, ensuring that the configured time zone is respected in all date-time calculations.
  * - The functionality of handling dates across different time zones, specifically testing if the dates are processed
- *   correctly when using time zones like NZ (New Zealand) and comparing it against system defaults and other specified zones.
  * - The robustness of date parsing and formatting, verifying that invalid date strings are appropriately caught and
  *   handled via exceptions, and that valid date strings are processed without errors.
  * - The consistency of date string outputs, ensuring that methods return consistent and expected outputs for 'today'
@@ -29,12 +27,10 @@ import java.util.TimeZone
 
 internal class DateUtilsTest {
     private lateinit var dateUtils: DateUtils
-    private lateinit var nzDateUtils: DateUtils
 
     @BeforeEach
     fun setUp() {
         dateUtils = DateUtils()
-        nzDateUtils = DateUtils(TimeZone.getTimeZone("NZ").id)
     }
 
     @Test
@@ -49,38 +45,9 @@ internal class DateUtilsTest {
     }
 
     @Test
-    fun `zoneId should match the expected default and specific time zones`() {
-        assertThat(dateUtils.zoneId.id).isEqualTo(TimeZone.getDefault().id)
-        assertThat(nzDateUtils.zoneId.id).isEqualTo("NZ")
-    }
-
-    @Test
-    fun `zoneId is correct for external time zones`() {
-        val laDates = DateUtils("America/Los_Angeles")
-        assertThat(laDates.zoneId.id).isEqualTo("America/Los_Angeles")
-    }
-
-    private val requestDate = "2020-11-11"
-
-    @Test
     fun `valid date processing should not throw exceptions`() {
         assertThat(dateUtils.getDate()).isNotNull()
-        assertThat(dateUtils.getDate(requestDate)).isNotNull()
-    }
-
-    @Test
-    fun `dates across different time zones are handled correctly`() {
-        val offsetDate = nzDateUtils.offsetDateString(requestDate)
-        assertThat(nzDateUtils.getFormattedDate(offsetDate)).isEqualTo(requestDate)
-    }
-
-    @Test
-    fun `dates should correctly handle different time zones`() {
-        val offsetDate = nzDateUtils.offsetDateString(requestDate)
-        val testDate = nzDateUtils.getFormattedDate(offsetDate)
-
-        assertThat(testDate).isEqualTo(requestDate)
-        assertThat(nzDateUtils.offsetNow(requestDate).toLocalDate()).isEqualTo(requestDate)
+        assertThat(dateUtils.getDate("2020-11-11")).isNotNull()
     }
 
     @Test

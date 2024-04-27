@@ -58,7 +58,7 @@ class Constants {
         const val PROP_COST_VALUE = "costValue"
         const val AVERAGE_COST_PROP = "averageCost"
         const val PROP_SOLD = "sold"
-
+        const val PROP_PURCHASED = "purchased"
         const val PROP_TOTAL = "total"
 
         const val PROP_REALIZED_GAIN = "realisedGain"

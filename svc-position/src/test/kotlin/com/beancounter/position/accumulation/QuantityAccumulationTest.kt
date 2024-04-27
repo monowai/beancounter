@@ -7,6 +7,10 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants.Companion.PROP_PURCHASED
+import com.beancounter.position.Constants.Companion.PROP_SOLD
+import com.beancounter.position.Constants.Companion.PROP_TOTAL
+import com.beancounter.position.Constants.Companion.hundred
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,64 +22,86 @@ import java.math.BigDecimal
  */
 @SpringBootTest(classes = [Accumulator::class])
 internal class QuantityAccumulationTest {
-    private val hundred: BigDecimal = BigDecimal("100")
-    private val zero: BigDecimal = BigDecimal(0)
-    private val twoHundred = BigDecimal(200)
-
     @Autowired
     private lateinit var accumulator: Accumulator
 
-    @Test
-    fun is_QuantityPrecision() {
-        val quantityValues = QuantityValues()
-        // Null total
-        assertThat(quantityValues.getPrecision()).isEqualTo(0)
-        quantityValues.purchased = BigDecimal("100.9992")
-        assertThat(quantityValues.getTotal()).isEqualTo("100.9992")
-        assertThat(quantityValues.getPrecision()).isEqualTo(3)
-        quantityValues.purchased = hundred
-        assertThat(quantityValues.getPrecision()).isEqualTo(0)
-
-        // User defined precision
-        quantityValues.setPrecision(40)
-        assertThat(quantityValues.getPrecision()).isEqualTo(40)
-    }
-
-    @Test
-    fun is_TotalQuantityCorrect() {
-        val positions = Positions(getPortfolio())
-        val buyTrn =
-            Trn(
-                trnType = TrnType.BUY,
-                asset = getTestAsset(Market("marketCode"), "CODE"),
-                quantity = hundred,
-                tradeAmount = BigDecimal(2000),
-            )
-        assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(P_TOTAL, hundred)
-            .hasFieldOrPropertyWithValue(P_PURCHASED, hundred)
-
-        assertThat(accumulator.accumulate(buyTrn, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(P_PURCHASED, twoHundred)
-            .hasFieldOrPropertyWithValue(P_SOLD, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(P_TOTAL, twoHundred)
-        // Sell to zero
-        val sell = Trn(trnType = TrnType.SELL, asset = buyTrn.asset, quantity = hundred)
-        // Track the money
-        assertThat(accumulator.accumulate(sell, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(P_SOLD, BigDecimal(-100))
-            .hasFieldOrPropertyWithValue(P_PURCHASED, twoHundred)
-            .hasFieldOrPropertyWithValue(P_TOTAL, hundred)
-        // But reset the quantities
-        assertThat(accumulator.accumulate(sell, positions).quantityValues)
-            .hasFieldOrPropertyWithValue(P_SOLD, zero)
-            .hasFieldOrPropertyWithValue(P_PURCHASED, zero)
-            .hasFieldOrPropertyWithValue(P_TOTAL, zero)
-    }
-
     companion object {
-        const val P_SOLD = "sold"
-        const val P_PURCHASED = "purchased"
-        const val P_TOTAL = "total"
+        private const val CUSTOM_PRECISION = 40
+    }
+
+    @Test
+    fun `Verify quantity precision handling`() {
+        val quantityValues = QuantityValues()
+
+        // Verify initial precision should be zero when no quantities are defined
+        assertThat(quantityValues.getPrecision()).isEqualTo(0)
+
+        // Set purchased quantity with a decimal and verify precision calculation
+        val decimalQuantity = BigDecimal("100.9992")
+        quantityValues.purchased = decimalQuantity
+        assertThat(quantityValues.getTotal()).isEqualTo(decimalQuantity)
+        assertThat(quantityValues.getPrecision()).isEqualTo(3) // Precision of "100.9992" is 3
+
+        // Reset purchased to a whole number and verify precision resets to zero
+        val wholeNumberQuantity = BigDecimal(100)
+        quantityValues.purchased = wholeNumberQuantity
+        assertThat(quantityValues.getPrecision()).isEqualTo(0) // Whole numbers have zero decimal places
+
+        // Setting and verifying a user-defined precision level
+        quantityValues.setPrecision(CUSTOM_PRECISION)
+        assertThat(quantityValues.getPrecision()).isEqualTo(CUSTOM_PRECISION)
+    }
+
+    @Test
+    fun `Verify total quantity after transactions`() {
+        val positions = Positions(getPortfolio())
+        val asset = getTestAsset(Market("marketCode"), "CODE")
+        val twoHundred = BigDecimal(200)
+
+        // Perform the first buy transaction
+        performAndAssertTransaction(
+            positions,
+            Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            expectedTotal = hundred,
+            expectedPurchased = hundred,
+            expectedSold = BigDecimal.ZERO,
+        )
+
+        // Double the position
+        performAndAssertTransaction(
+            positions,
+            Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            expectedTotal = twoHundred,
+            expectedPurchased = twoHundred,
+            expectedSold = BigDecimal.ZERO,
+        )
+
+        // Perform a sell transaction to halve the position
+        performAndAssertTransaction(
+            positions,
+            Trn(trnType = TrnType.SELL, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+            expectedTotal = hundred,
+            expectedPurchased = twoHundred,
+            expectedSold = BigDecimal(-100),
+        )
+
+        // Sell down the entire position effectively cleaning
+        performAndAssertTransaction(
+            positions,
+            Trn(trnType = TrnType.SELL, asset = asset, quantity = hundred, tradeAmount = BigDecimal(2000)),
+        )
+    }
+
+    private fun performAndAssertTransaction(
+        positions: Positions,
+        transaction: Trn,
+        expectedTotal: BigDecimal = BigDecimal.ZERO,
+        expectedPurchased: BigDecimal = BigDecimal.ZERO,
+        expectedSold: BigDecimal = BigDecimal.ZERO,
+    ) {
+        val result = accumulator.accumulate(transaction, positions)
+        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(PROP_TOTAL, expectedTotal)
+        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(PROP_PURCHASED, expectedPurchased)
+        assertThat(result.quantityValues).hasFieldOrPropertyWithValue(PROP_SOLD, expectedSold)
     }
 }

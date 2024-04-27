@@ -20,6 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+/**
+ * Test scenarios for Realised Gains.
+ */
 @SpringBootTest(classes = [Accumulator::class])
 class RealisedGains {
     @Autowired

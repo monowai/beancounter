@@ -44,7 +44,7 @@ class TestTrnService {
         val query =
             TrustedTrnQuery(
                 portfolio,
-                DateUtils().getDate("2020-05-01"),
+                DateUtils().getFormattedDate("2020-05-01"),
                 "KMI",
             )
         val queryResults = trnService.query(query)

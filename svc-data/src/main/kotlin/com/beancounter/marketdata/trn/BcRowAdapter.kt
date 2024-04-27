@@ -26,7 +26,7 @@ class BcRowAdapter(
     val dateUtils: DateUtils = DateUtils(),
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
-        val tradeDate = dateUtils.getOrThrow(trustedTrnImportRequest.row[Columns.Date.ordinal].trim())
+        val tradeDate = dateUtils.getDate(trustedTrnImportRequest.row[Columns.Date.ordinal].trim())
         if (tradeDate.isAfter(LocalDate.now())) {
             throw BusinessException("Rejecting the forward dated trade date of $tradeDate")
         }

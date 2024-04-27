@@ -44,7 +44,8 @@ class KafkaMarketDataTest {
 
     private val objectMapper = BcJson().objectMapper
 
-    final var dateUtils: DateUtils = DateUtils()
+    @Autowired
+    lateinit var dateUtils: DateUtils
 
     @Autowired
     private lateinit var wac: WebApplicationContext
@@ -70,11 +71,6 @@ class KafkaMarketDataTest {
     @Autowired
     lateinit var kafkaUtils: KafkaUtils
 
-//    @AfterEach
-//    fun cleanUp() {
-//        kafkaUtils.cleanUp(arrayListOf(TOPIC_EVENT))
-//    }
-
     @Test
     fun corporateEventDispatched() {
         val data: MutableMap<String, AssetInput> = mutableMapOf(Pair("a", AssetInput(NASDAQ.code, "TWEE")))
@@ -82,14 +78,14 @@ class KafkaMarketDataTest {
         `when`(assetService.handle(assetRequest))
             .thenReturn(AssetUpdateResponse(mapOf(Pair("a", getTestAsset(code = "id", market = NASDAQ)))))
         val assetResult = assetService.handle(assetRequest)
-        assertThat(assetResult.data).hasSize(1)
+        assertThat(assetResult.data).hasSize(1).containsKeys("a")
         val asset = assetResult.data["a"]
         assertThat(asset!!.id).isNotNull
         assertThat(asset.market).isNotNull
         val marketData =
             MarketData(
                 asset,
-                dateUtils.getDate("2019-12-10", dateUtils.getZoneId()),
+                dateUtils.getDate("2019-12-10"),
             )
         marketData.source = "ALPHA"
         marketData.dividend = BigDecimal("2.34")

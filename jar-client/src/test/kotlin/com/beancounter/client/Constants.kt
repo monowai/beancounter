@@ -25,7 +25,7 @@ class Constants {
                 id = "blah@blah.com",
                 email = "blah@blah.com",
                 true,
-                since = DateUtils().getDate("2020-03-08"),
+                since = DateUtils().getFormattedDate("2020-03-08"),
             )
         var portfolio: Portfolio =
             Portfolio(

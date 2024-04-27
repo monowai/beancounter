@@ -10,15 +10,15 @@ import java.time.LocalDate
  */
 class EcbDate(val dateUtils: DateUtils) {
     private fun earliestDate(): LocalDate {
-        return dateUtils.getOrThrow(EARLIEST)
+        return dateUtils.getDate(EARLIEST)
     }
 
     fun getValidDate(tradeDate: String): String {
         if (dateUtils.isToday(tradeDate)) {
-            return dateUtils.getDate(dateUtils.offsetDateString(tradeDate))
+            return dateUtils.getFormattedDate(dateUtils.offsetDateString(tradeDate))
                 .minusDays(1).toString()
         }
-        val requestedDate = dateUtils.getOrThrow(tradeDate)
+        val requestedDate = dateUtils.getDate(tradeDate)
         return if (requestedDate.isBefore(earliestDate())) {
             EARLIEST
         } else {

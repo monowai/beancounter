@@ -62,10 +62,9 @@ class ShareSightDividendAdapter(
                     quantity = BigDecimal.ZERO,
                     tradeCurrency = row[CURRENCY],
                     tradeDate =
-                        dateUtils.getDate(
+                        dateUtils.getFormattedDate(
                             row[DATE],
                             shareSightConfig.dateFormat,
-                            dateUtils.getZoneId(),
                         ),
                     fees = BigDecimal.ZERO,
                     price = BigDecimal.ZERO,

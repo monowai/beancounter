@@ -103,7 +103,7 @@ class StubbedEvents {
             id = EMAIL,
             email = EMAIL,
             true,
-            since = DateUtils().getDate("2020-03-08"),
+            since = DateUtils().getFormattedDate("2020-03-08"),
         )
 
     @BeforeEach
@@ -128,7 +128,7 @@ class StubbedEvents {
             CorporateEvent(
                 id = null,
                 trnType = TrnType.DIVI,
-                recordDate = DateUtils().getDate(caDate),
+                recordDate = DateUtils().getFormattedDate(caDate),
                 source = ALPHA,
                 assetId = "MSFT",
                 rate = BigDecimal("0.2625"),
@@ -148,7 +148,7 @@ class StubbedEvents {
         val corporateEvent =
             CorporateEvent(
                 trnType = TrnType.DIVI,
-                recordDate = DateUtils().getDate(caDate),
+                recordDate = DateUtils().getFormattedDate(caDate),
                 source = ALPHA,
                 assetId = KMI,
                 rate = BigDecimal("0.2625"),

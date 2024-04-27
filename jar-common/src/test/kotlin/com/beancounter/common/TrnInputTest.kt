@@ -41,8 +41,8 @@ internal class TrnInputTest {
         val trnInput =
             TrnInput(
                 callerRef = CallerRef(ONE, ONE, abc),
-                tradeDate = DateUtils().getDate("2019-10-10"),
-                settleDate = DateUtils().getDate("2019-10-10"),
+                tradeDate = DateUtils().getFormattedDate("2019-10-10"),
+                settleDate = DateUtils().getFormattedDate("2019-10-10"),
                 assetId = getTestAsset(NYSE, "MSFT").id,
                 cashAssetId = toKey("USD-X", "USER"),
                 cashCurrency = USD.code,

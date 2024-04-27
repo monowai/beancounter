@@ -119,7 +119,7 @@ class PortfolioService internal constructor(
         assetId: String?,
         tradeDate: LocalDate?,
     ): PortfoliosResponse {
-        val recordDate = tradeDate ?: dateUtils.getDate(dateUtils.today())
+        val recordDate = tradeDate ?: dateUtils.getFormattedDate(dateUtils.today())
         val portfolios =
             portfolioRepository
                 .findDistinctPortfolioByAssetIdAndTradeDate(assetId!!, recordDate)

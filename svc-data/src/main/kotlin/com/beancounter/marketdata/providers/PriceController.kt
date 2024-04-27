@@ -91,7 +91,7 @@ class PriceController(
             listOf(
                 priceService.getMarketData(
                     asset = asset,
-                    date = dateUtils.getDate(offMarketPriceRequest.date),
+                    date = dateUtils.getFormattedDate(offMarketPriceRequest.date),
                     closePrice = offMarketPriceRequest.closePrice,
                 ).get(),
             ),

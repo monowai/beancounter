@@ -40,7 +40,7 @@ class TrnController(
     fun findAsAt(
         @PathVariable("portfolioId") portfolioId: String,
         @PathVariable asAt: String = dateUtils.today(),
-    ): TrnResponse = trnService.findForPortfolio(portfolioService.find(portfolioId), dateUtils.getDate(asAt))
+    ): TrnResponse = trnService.findForPortfolio(portfolioService.find(portfolioId), dateUtils.getFormattedDate(asAt))
 
     @GetMapping(value = ["/{portfolioId}/{trnId}"])
     fun find(

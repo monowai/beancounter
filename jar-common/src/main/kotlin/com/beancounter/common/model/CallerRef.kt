@@ -24,7 +24,7 @@ data class CallerRef(
             val provider = callerRef.provider.ifBlank { "BC" }
             val batch =
                 callerRef.batch.ifBlank {
-                    DateUtils().getDate().toString().replace("-", "")
+                    DateUtils().getFormattedDate().toString().replace("-", "")
                 }
             val callerId = callerRef.callerId.ifBlank { KeyGenUtils().id }
             return CallerRef(provider, batch, callerId)

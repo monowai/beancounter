@@ -74,15 +74,15 @@ internal class TestPositions {
     fun is_DateValuesSetFromTransaction() {
         val asset = getTestAsset(Market("Code"), "Dates")
         val expectedDate = "2018-12-01"
-        val firstTradeDate = dateUtils.getDate(expectedDate)
-        val secondTradeDate = dateUtils.getDate("2018-12-02")
+        val firstTradeDate = dateUtils.getFormattedDate(expectedDate)
+        val secondTradeDate = dateUtils.getFormattedDate("2018-12-02")
         val positions = Positions(PortfolioUtils.getPortfolio("Twee"))
         var position = positions[asset, firstTradeDate]
         positions.add(position)
         // Calling this should not set the "first" trade date.
         position = positions[asset, secondTradeDate]
         assertThat(position.dateValues)
-            .hasFieldOrPropertyWithValue("opened", dateUtils.getDate(expectedDate))
+            .hasFieldOrPropertyWithValue("opened", dateUtils.getFormattedDate(expectedDate))
     }
 
     @Test

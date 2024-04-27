@@ -164,7 +164,7 @@ internal class DataProviderArgumentsTest {
             return if (dateUtils.isToday(date)) {
                 dateUtils.date
             } else {
-                dateUtils.getDate(date)
+                dateUtils.getFormattedDate(date)
             }
         }
 

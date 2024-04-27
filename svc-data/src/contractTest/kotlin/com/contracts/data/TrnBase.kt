@@ -116,7 +116,7 @@ class TrnBase {
             trnQueryService.findAssetTrades(
                 PortfolioBase.testPortfolio,
                 "KMI",
-                dateUtils.getDate("2020-05-01", dateUtils.getZoneId()),
+                dateUtils.getDate("2020-05-01"),
             ),
         )
             .thenReturn(
@@ -128,10 +128,11 @@ class TrnBase {
     }
 
     private fun cashPortfolio(): Portfolio {
+        val id = "CASHLADDER"
         val portfolio =
             Portfolio(
-                id = "CASHLADDER",
-                code = "CASHLADDER",
+                id = id,
+                code = id,
                 name = "cashLadderFlow",
                 currency = Constants.USD,
                 base = Constants.NZD,
@@ -158,7 +159,7 @@ class TrnBase {
         Mockito.`when`(
             trnService.findForPortfolio(
                 portfolio,
-                dateUtils.getDate(date),
+                dateUtils.getFormattedDate(date),
             ),
         ).thenReturn(trnResponse)
     }

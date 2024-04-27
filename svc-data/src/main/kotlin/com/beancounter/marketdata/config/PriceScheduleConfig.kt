@@ -21,15 +21,14 @@ class PriceScheduleConfig(val dateUtils: DateUtils) {
 
     @Bean
     fun scheduleZone(): String {
-        log.debug("Schedule zone {}, zoneId: {}", dateUtils.defaultZone, dateUtils.getZoneId().id)
-        return dateUtils.defaultZone
+        return dateUtils.zoneId.id
     }
 
     @Bean
     fun assetsSchedule(
         @Value("\${assets.schedule:0 0/15 7-18 * * Tue-Sat}") schedule: String,
     ): String {
-        log.info("ASSETS_SCHEDULE: {}, BEANCOUNTER_ZONE: {}", schedule, dateUtils.defaultZone)
+        log.info("ASSETS_SCHEDULE: {}, BEANCOUNTER_ZONE: {}", schedule, dateUtils.zoneId.id)
         return schedule
     }
 }

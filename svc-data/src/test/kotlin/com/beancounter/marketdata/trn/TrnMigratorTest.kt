@@ -31,7 +31,7 @@ internal class TrnMigratorTest {
     private var fxRateService = FxRateService(ecbService, currencyService)
     private var trnMigrator = TrnMigrator(fxRateService)
     private val tradeDateStr = "2021-11-11"
-    val tradeDate = DateUtils().getDate(tradeDateStr)
+    val tradeDate = DateUtils().getFormattedDate(tradeDateStr)
 
     @BeforeEach
     fun setUp() {

@@ -54,13 +54,13 @@ class OffMarketDataProvider(
     }
 
     val priceDate: LocalDate?
-        get() = dateUtils.getLocalDate()
+        get() = dateUtils.getDate()
 
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest,
     ): LocalDate {
-        return dateUtils.getDate(priceRequest.date)
+        return dateUtils.getFormattedDate(priceRequest.date)
     }
 
     override fun backFill(asset: Asset): PriceResponse {

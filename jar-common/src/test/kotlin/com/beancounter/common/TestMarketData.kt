@@ -24,7 +24,7 @@ internal class TestMarketData {
             MarketData(
                 asset = getJsonAsset("Market", "Asset"),
                 source = "TEST",
-                priceDate = dateUtils.getDate("2012-10-01"),
+                priceDate = dateUtils.getFormattedDate("2012-10-01"),
                 open = BigDecimal.ONE,
                 close = BigDecimal.TEN,
                 low = BigDecimal.ONE,

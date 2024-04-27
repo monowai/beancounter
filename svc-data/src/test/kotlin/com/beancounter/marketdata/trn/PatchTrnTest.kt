@@ -91,7 +91,7 @@ class PatchTrnTest {
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 tradeCurrency = USD.code,
-                tradeDate = dateUtils.getDate(tradeDate),
+                tradeDate = dateUtils.getFormattedDate(tradeDate),
                 tradePortfolioRate = BigDecimal.TEN,
                 comments = "The Comments Will Not Change",
             )
@@ -111,7 +111,7 @@ class PatchTrnTest {
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
                 tradeCurrency = USD.code,
-                tradeDate = dateUtils.getDate(newTradeDate),
+                tradeDate = dateUtils.getFormattedDate(newTradeDate),
                 price = BigDecimal.TEN,
                 tradePortfolioRate = BigDecimal.ONE,
             )
@@ -142,6 +142,6 @@ class PatchTrnTest {
             )
             .hasFieldOrPropertyWithValue("tradePortfolioRate", BigDecimal("1.000000"))
             .hasFieldOrPropertyWithValue("price", BigDecimal("10.000000"))
-            .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2021-03-10"))
+            .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getFormattedDate("2021-03-10"))
     }
 }

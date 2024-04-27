@@ -35,7 +35,7 @@ class PreviousClosePriceDate(private val dateUtils: DateUtils) {
 
             log.trace(
                 "utc: $utcRequestDateTime, subtract: $daysToSubtract, marketLocal: $utcRequestDateTime, " +
-                    "marketCloses: $pricesAvailable, timezone: ${dateUtils.getZoneId().id}",
+                    "marketCloses: $pricesAvailable, timezone: ${dateUtils.zoneId}",
             )
             getPriceDate(
                 utcRequestDateTime,

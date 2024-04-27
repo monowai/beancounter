@@ -192,7 +192,7 @@ internal class PriceControllerTests
                 marketDataRepo.save(
                     MarketData(
                         asset = offMarketAsset,
-                        priceDate = DateUtils().getDate(offMarketPrice.date),
+                        priceDate = DateUtils().getFormattedDate(offMarketPrice.date),
                         close = offMarketPrice.closePrice,
                     ),
                 ),

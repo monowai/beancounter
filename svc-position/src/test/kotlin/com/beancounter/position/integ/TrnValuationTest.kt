@@ -64,7 +64,7 @@ internal class TrnValuationTest {
         val query =
             TrustedTrnQuery(
                 portfolio,
-                dateUtils.getDate("2020-05-01"),
+                dateUtils.getFormattedDate("2020-05-01"),
                 KMI,
             )
         val json =

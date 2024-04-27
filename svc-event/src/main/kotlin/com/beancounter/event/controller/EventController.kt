@@ -93,5 +93,5 @@ class EventController(
     @GetMapping(value = ["/scheduled/{date}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getScheduledEvents(
         @PathVariable date: String,
-    ): CorporateEventResponses = eventService.getScheduledEvents(dateUtils.getDate(date))
+    ): CorporateEventResponses = eventService.getScheduledEvents(dateUtils.getFormattedDate(date))
 }

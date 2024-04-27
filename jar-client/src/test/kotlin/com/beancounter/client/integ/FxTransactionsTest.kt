@@ -67,7 +67,7 @@ class FxTransactionsTest {
                 tradeCurrency = NZD.code,
                 trnType = TrnType.BALANCE,
                 quantity = BigDecimal("-1000.00"),
-                tradeDate = DateUtils().getDate("2019-10-18"),
+                tradeDate = DateUtils().getFormattedDate("2019-10-18"),
                 price = BigDecimal.ONE,
             )
         val portfolio = Portfolio("tst", NZD, NZD)
@@ -135,7 +135,7 @@ class FxTransactionsTest {
                 cashCurrency = USD.code,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
-                tradeDate = DateUtils().getDate("2019-07-26"),
+                tradeDate = DateUtils().getFormattedDate("2019-07-26"),
                 price = BigDecimal.TEN,
             )
         val portfolio = getPortfolio()
@@ -158,7 +158,7 @@ class FxTransactionsTest {
                 cashCurrency = USD.code,
                 trnType = TrnType.BUY,
                 quantity = BigDecimal.TEN,
-                tradeDate = DateUtils().getDate("2019-07-26"),
+                tradeDate = DateUtils().getFormattedDate("2019-07-26"),
                 price = BigDecimal.TEN,
                 tradePortfolioRate = BigDecimal.ZERO,
             )

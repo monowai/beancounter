@@ -65,5 +65,5 @@ class PortfolioController internal constructor(
     fun getWhereHeld(
         @PathVariable("assetId") assetId: String,
         @PathVariable("tradeDate") tradeDate: String,
-    ): PortfoliosResponse = portfolioService.findWhereHeld(assetId, dateUtils.getDate(tradeDate))
+    ): PortfoliosResponse = portfolioService.findWhereHeld(assetId, dateUtils.getFormattedDate(tradeDate))
 }

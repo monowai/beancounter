@@ -27,7 +27,7 @@ class PriceRefresh internal constructor(
     @Transactional(readOnly = true)
     @Async("priceExecutor")
     fun updatePrices(): CompletableFuture<Int> {
-        log.info("Updating Prices {}", dateUtils.getDate().toString())
+        log.info("Updating Prices {}", dateUtils.getFormattedDate().toString())
         val assetCount = AtomicInteger()
         val assets = assetService.findAllAssets()
         for (asset in assets) {
@@ -38,17 +38,17 @@ class PriceRefresh internal constructor(
         log.info(
             "Price update completed for {} assets @ {} - {}",
             assetCount.get(),
-            LocalDateTime.now(dateUtils.getZoneId()),
-            dateUtils.getZoneId().id,
+            LocalDateTime.now(dateUtils.zoneId),
+            dateUtils.zoneId.id,
         )
         return CompletableFuture.completedFuture(assetCount.get())
     }
 
     fun refreshPrice(
         assetId: String,
-        date: String = dateUtils.getDate().toString(),
+        date: String = dateUtils.getFormattedDate().toString(),
     ): PriceResponse {
-        log.info("Updating Prices {}", LocalDateTime.now(dateUtils.getZoneId()))
+        log.info("Updating Prices {}", LocalDateTime.now(dateUtils.zoneId))
         val asset = assetService.find(assetId)
         val priceRequest = PriceRequest.of(assetHydrationService.hydrateAsset(asset), date)
         marketDataService.refresh(asset, date)

@@ -170,7 +170,7 @@ class RealestateBase {
             portfolio,
             TrnInput(
                 callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
-                tradeDate = DateUtils().getLocalDate(tradeDate),
+                tradeDate = DateUtils().getDate(tradeDate),
                 assetId = asset!!.id,
                 trnType = TrnType.BALANCE,
                 tradeAmount = tenK.negate(),
@@ -188,7 +188,7 @@ class RealestateBase {
                 portfolio,
                 TrnInput(
                     callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
-                    tradeDate = DateUtils().getLocalDate(tradeDate),
+                    tradeDate = DateUtils().getDate(tradeDate),
                     assetId = houseAsset.id,
                     trnType = TrnType.BALANCE,
                     tradeAmount = tenK,
@@ -209,7 +209,7 @@ class RealestateBase {
                 portfolio,
                 TrnInput(
                     callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
-                    tradeDate = DateUtils().getLocalDate(tradeDate),
+                    tradeDate = DateUtils().getDate(tradeDate),
                     assetId = houseAsset.id,
                     trnType = TrnType.BALANCE,
                     tradeAmount = nOneK,
@@ -228,7 +228,7 @@ class RealestateBase {
                 TrnInput(
                     callerRef = CallerRef(batch = batch, callerId = keyGenUtils.id),
                     assetId = houseAsset.id,
-                    tradeDate = DateUtils().getLocalDate(tradeDate),
+                    tradeDate = DateUtils().getDate(tradeDate),
                     trnType = TrnType.BALANCE,
                     tradeAmount = oneK,
                     tradeBaseRate = BigDecimal.ONE,

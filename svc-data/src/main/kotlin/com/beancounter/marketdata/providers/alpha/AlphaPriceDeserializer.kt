@@ -82,7 +82,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             val price =
                 MarketData(
                     asset,
-                    dateUtils.getDate(priceDate),
+                    dateUtils.getFormattedDate(priceDate),
                 ).apply {
                     open = BigDecimal(data[F_OPEN].toString())
                     high = BigDecimal(data[F_HIGH].toString())
@@ -113,7 +113,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
         for (key in allValues.keys) {
             val rawData: Map<String, Any>? = allValues[key.toString()]
             val localDateTime =
-                dateUtils.getLocalDate(
+                dateUtils.getFormattedDate(
                     key.toString(),
                     "yyyy-M-dd",
                 )

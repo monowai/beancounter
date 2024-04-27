@@ -79,7 +79,7 @@ class ContractVerifierBase {
             valuationService.build(
                 TrustedTrnQuery(
                     testPortfolio,
-                    dateUtils.getDate(valuationDate),
+                    dateUtils.getFormattedDate(valuationDate),
                     "KMI",
                 ),
             ),
@@ -94,7 +94,7 @@ class ContractVerifierBase {
             valuationService.build(
                 TrustedTrnQuery(
                     testPortfolio,
-                    dateUtils.getDate(valuationDate),
+                    dateUtils.getFormattedDate(valuationDate),
                     "MSFT",
                 ),
             ),

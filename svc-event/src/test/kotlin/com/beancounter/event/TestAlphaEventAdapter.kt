@@ -38,7 +38,7 @@ class TestAlphaEventAdapter {
         position.quantityValues = quantityValues
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal("80"))
         val dateUtils = DateUtils()
-        val onDate = dateUtils.getDate("2020-05-01")
+        val onDate = dateUtils.getFormattedDate("2020-05-01")
         assertThat(onDate).isNotNull
         val event =
             CorporateEvent(
@@ -55,7 +55,7 @@ class TestAlphaEventAdapter {
         assertThat(trnEvent.trnInput).isNotNull.hasFieldOrPropertyWithValue("assetId", asset.id)
             .hasFieldOrPropertyWithValue("trnType", TrnType.DIVI)
             .hasFieldOrPropertyWithValue("status", TrnStatus.PROPOSED)
-            .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getDate("2020-05-19"))
+            .hasFieldOrPropertyWithValue("tradeDate", dateUtils.getFormattedDate("2020-05-19"))
             .hasFieldOrPropertyWithValue("price", event.rate)
             .hasFieldOrPropertyWithValue("tax", BigDecimal("6.30")) // @ 30%
             .hasFieldOrPropertyWithValue("tradeAmount", BigDecimal("14.70"))
@@ -94,7 +94,7 @@ class TestAlphaEventAdapter {
         position.quantityValues = quantityValues
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal("80"))
         val dateUtils = DateUtils()
-        val onDate = dateUtils.getDate("2020-05-01")
+        val onDate = dateUtils.getFormattedDate("2020-05-01")
         assertThat(onDate).isNotNull
         val event =
             CorporateEvent(

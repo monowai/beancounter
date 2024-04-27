@@ -110,7 +110,7 @@ class TrnPortfolioControllerTest {
             msft.id,
             trnType = TrnType.BUY,
             quantity = BigDecimal.TEN,
-            tradeDate = dateUtils.getDate(tradeDate),
+            tradeDate = dateUtils.getFormattedDate(tradeDate),
             price = BigDecimal.TEN,
             tradePortfolioRate = tradePortfolioRate,
         )
@@ -145,7 +145,7 @@ class TrnPortfolioControllerTest {
         assertThat(
             portfolioService.findWhereHeld(
                 msft.id,
-                dateUtils.getDate("2016-01-01"),
+                dateUtils.getFormattedDate("2016-01-01"),
             ).data,
         ).hasSize(1)
         assertThat(portfolioService.findWhereHeld(msft.id, null).data).hasSize(2)

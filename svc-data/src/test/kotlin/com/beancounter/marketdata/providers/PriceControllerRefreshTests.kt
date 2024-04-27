@@ -46,7 +46,7 @@ internal class PriceControllerRefreshTests
 
         @Autowired
         private lateinit var mdFactory: MdFactory
-        private var testDate = dateUtils.getLocalDate()
+        private var testDate = dateUtils.getDate()
 
         private val asset = Asset(code = "DUMMY", market = US)
         private val priceRequest =

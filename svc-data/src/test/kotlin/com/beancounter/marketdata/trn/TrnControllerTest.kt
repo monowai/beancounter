@@ -147,7 +147,7 @@ class TrnControllerTest {
                 trnType = TrnType.DIVI,
                 quantity = BigDecimal.TEN,
                 tradeCurrency = USD.code,
-                tradeDate = dateUtils.getDate("2020-03-10"),
+                tradeDate = dateUtils.getFormattedDate("2020-03-10"),
                 price = BigDecimal.TEN,
             )
         val existingTrns = arrayOf(trnInput)

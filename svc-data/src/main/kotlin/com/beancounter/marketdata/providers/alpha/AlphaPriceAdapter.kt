@@ -120,7 +120,7 @@ class AlphaPriceAdapter(val alphaConfig: AlphaConfig) : MarketDataAdapter {
         if (date == null) {
             date = providerArguments.date
         }
-        val priceDate = alphaConfig.dateUtils.getDate(date)
+        val priceDate = alphaConfig.dateUtils.getFormattedDate(date)
 
         return MarketData(asset!!, priceDate)
     }

@@ -107,13 +107,13 @@ internal class WorldTradingDataApiTest {
         for (marketData in mdResult) {
             if (marketData.asset == MSFT) {
                 assertThat(marketData)
-                    .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getDate(testDate))
+                    .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getFormattedDate(testDate))
                     .hasFieldOrPropertyWithValue(assetField, MSFT)
                     .hasFieldOrPropertyWithValue(openField, BigDecimal("109.16"))
                     .hasFieldOrPropertyWithValue(closeField, BigDecimal("110.51"))
             } else if (marketData.asset == AAPL) {
                 assertThat(marketData)
-                    .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getDate(testDate))
+                    .hasFieldOrPropertyWithValue(priceDateField, dateUtils.getFormattedDate(testDate))
                     .hasFieldOrPropertyWithValue(assetField, AAPL)
                     .hasFieldOrPropertyWithValue(openField, BigDecimal("170.32"))
                     .hasFieldOrPropertyWithValue(closeField, BigDecimal("172.91"))

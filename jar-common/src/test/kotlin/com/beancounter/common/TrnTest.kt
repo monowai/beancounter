@@ -20,7 +20,7 @@ private const val V_BATCH = "batch"
  */
 class TrnTest {
     private val simpleRef = "simpleRef"
-    private val batch = DateUtils().getDate().toString().replace("-", "")
+    private val batch = DateUtils().getFormattedDate().toString().replace("-", "")
 
     @Test
     fun is_trnVersion() {

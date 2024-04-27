@@ -66,7 +66,7 @@ internal class AlphaBehaviourTest {
                 .hasFieldOrProperty("volume")
                 .hasFieldOrProperty("dividend")
                 .hasFieldOrProperty("split")
-            val resolvedDate = dateUtils.getDate("2020-05-01")
+            val resolvedDate = dateUtils.getFormattedDate("2020-05-01")
             assertThat(resolvedDate).isNotNull
             assertThat(marketData.priceDate).isNotNull
             if (marketData.priceDate!!.compareTo(resolvedDate) == 0) {
@@ -135,12 +135,12 @@ internal class AlphaBehaviourTest {
         // Sunday
         val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-26")
         // Resolves to Friday
-        assertThat(computedDate).isEqualTo(dateUtils.getDate("2020-04-24"))
+        assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-24"))
     }
 
     @Test
     fun is_PriceDateInThePastConstant() {
         val computedDate = alphaConfig.getMarketDate(NASDAQ, "2020-04-28", false)
-        assertThat(computedDate).isEqualTo(dateUtils.getDate("2020-04-28"))
+        assertThat(computedDate).isEqualTo(dateUtils.getFormattedDate("2020-04-28"))
     }
 }

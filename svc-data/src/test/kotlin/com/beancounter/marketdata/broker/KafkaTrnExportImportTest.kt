@@ -127,7 +127,7 @@ class KafkaTrnExportImportTest {
     private val kafkaTestUtils = KafkaConsumerUtils()
 
     private val tradeDateString = "2020-01-01"
-    private val tradeDate = dateUtils.getDate(tradeDateString)
+    private val tradeDate = dateUtils.getFormattedDate(tradeDateString)
 
     fun mockEnv() {
         `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)

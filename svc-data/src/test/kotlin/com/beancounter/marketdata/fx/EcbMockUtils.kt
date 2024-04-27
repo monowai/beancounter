@@ -22,7 +22,7 @@ object EcbMockUtils {
         date: String,
         rates: Map<String, BigDecimal>,
     ): ExRatesResponse {
-        return ExRatesResponse(USD.code, dateUtils.getDate(date), rates)
+        return ExRatesResponse(USD.code, dateUtils.getFormattedDate(date), rates)
     }
 
     @JvmStatic

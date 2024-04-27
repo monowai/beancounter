@@ -97,7 +97,7 @@ internal class EventControllerTest {
         var event =
             CorporateEvent(
                 trnType = TrnType.DIVI,
-                recordDate = dateUtils.getDate("2020-10-10"),
+                recordDate = dateUtils.getFormattedDate("2020-10-10"),
                 source = "SOURCE",
                 assetId = "ABC123",
                 rate = BigDecimal("0.1234"),
@@ -152,7 +152,7 @@ internal class EventControllerTest {
         val event =
             CorporateEvent(
                 trnType = TrnType.DIVI,
-                payDate = Objects.requireNonNull(DateUtils().getDate("2019-12-20"))!!,
+                payDate = Objects.requireNonNull(DateUtils().getFormattedDate("2019-12-20"))!!,
                 source = ALPHA,
                 assetId = "assetId",
                 rate = BigDecimal("2.3400"),

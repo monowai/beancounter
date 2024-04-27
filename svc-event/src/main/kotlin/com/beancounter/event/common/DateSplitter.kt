@@ -16,11 +16,11 @@ class DateSplitter(val dateUtils: DateUtils) {
         until: String = dateUtils.today(),
     ): List<LocalDate> {
         if (from.contentEquals(until)) {
-            return listOf(dateUtils.getOrThrow(from))
+            return listOf(dateUtils.getDate(from))
         }
 
-        var calculatedDate = dateUtils.getOrThrow(from)
-        val endDate = dateUtils.getOrThrow(until)
+        var calculatedDate = dateUtils.getDate(from)
+        val endDate = dateUtils.getDate(until)
         val results: MutableList<LocalDate> = mutableListOf()
 
         while (calculatedDate.isBefore(endDate)) {
@@ -42,7 +42,7 @@ class DateSplitter(val dateUtils: DateUtils) {
             if (date.equals(DateUtils.TODAY, ignoreCase = true)) {
                 dateUtils.today()
             } else {
-                dateUtils.getDate(date).toString()
+                dateUtils.getFormattedDate(date).toString()
             }
         return split(from = asAt, until = toDate, days = 1)
     }

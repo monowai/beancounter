@@ -75,7 +75,7 @@ class ValuationService
         }
 
         override fun value(positions: Positions): PositionResponse {
-            dateUtils.getOrThrow(positions.asAt)
+            dateUtils.getDate(positions.asAt)
             val assets: MutableCollection<AssetInput> = ArrayList()
             if (positions.hasPositions()) {
                 for (position in positions.positions.values) {

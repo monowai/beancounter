@@ -101,7 +101,7 @@ class PortfolioBase : ContractVerifierBase() {
             Mockito.`when`(
                 portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
                     "KMI",
-                    dateUtils.getDate("2020-05-01", dateUtils.getZoneId()),
+                    dateUtils.getDate("2020-05-01"),
                 ),
             ).thenReturn(
                 arrayListOf(

@@ -129,7 +129,7 @@ class AlphaVantageEnrichmentTest {
             priceResponse.data.iterator().next(),
         ).isNotNull.hasFieldOrPropertyWithValue(
             AlphaConstants.P_PRICE_DATE,
-            DateUtils().getDate("2020-05-12"),
+            DateUtils().getFormattedDate("2020-05-12"),
         )
             .hasFieldOrPropertyWithValue(AlphaConstants.P_CLOSE, price)
             .hasFieldOrPropertyWithValue(AlphaConstants.P_PREV_CLOSE, price)

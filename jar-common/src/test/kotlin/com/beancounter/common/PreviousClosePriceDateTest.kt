@@ -24,45 +24,45 @@ internal class PreviousClosePriceDateTest {
     @Test
     fun why_this() {
         val sgtWednesday = LocalDateTime.of(2023, 7, 11, 13, 56)
-        val morningOf = sgtWednesday.atZone(dateUtils.getZoneId())
+        val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, true))
-            .isEqualTo(dateUtils.getDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
     }
 
     @Test
     fun is_previousDayOnCurrentTradingDay() {
         // Wednesday 2am SGT/Tues GMT
         val sgtWednesday = LocalDateTime.of(2023, 7, 11, 2, 15)
-        val morningOf = sgtWednesday.atZone(dateUtils.getZoneId())
+        val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, true))
-            .isEqualTo(dateUtils.getDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
     }
 
     @Test
     fun is_requestDateReturnedForNonCurrentMode() {
         // Wednesday 2am SGT/Tues GMT
         val sgtWednesday = LocalDateTime.of(2023, 7, 10, 2, 15)
-        val morningOf = sgtWednesday.atZone(dateUtils.getZoneId())
+        val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to same date as requested when it's in the past
         // Need to assess if this is legit - suggests caller date is always a literal date, not the
         //  market datetime
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, false))
-            .isEqualTo(dateUtils.getDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
 
         assertThat(previousClose.getPriceDate(morningOf, nasdaq))
-            .isEqualTo(dateUtils.getDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
     }
 
     @Test
     fun is_todayOnMarketsClosed() {
         // Wednesday 2am SGT/Tues GMT
         val sgtWednesday = LocalDateTime.of(2023, 7, 11, 7, 15)
-        val morningOf = sgtWednesday.atZone(dateUtils.getZoneId())
+        val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, true))
-            .isEqualTo(dateUtils.getDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
     }
 
     @Test
@@ -76,7 +76,7 @@ internal class PreviousClosePriceDateTest {
 
         // Prices Now available.
         assertThat(previousClose.getPriceDate(asAtDate, nasdaq, true))
-            .isEqualTo(dateUtils.getDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
     }
 
     @Test
@@ -89,7 +89,7 @@ internal class PreviousClosePriceDateTest {
             ).toZonedDateTime()
         // Resolve to Friday
         assertThat(previousClose.getPriceDate(asAtDate, nasdaq, false))
-            .isEqualTo(dateUtils.getDate("2023-07-07")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate("2023-07-07")) // Nasdaq last close
     }
 
     @Test

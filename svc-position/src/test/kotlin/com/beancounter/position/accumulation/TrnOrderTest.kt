@@ -21,10 +21,13 @@ import java.time.temporal.ChronoUnit
 /**
  * Test rules that would prevent a transaction from accumulating.
  */
-@SpringBootTest(classes = [Accumulator::class])
+@SpringBootTest(classes = [Accumulator::class, DateUtils::class])
 internal class TrnOrderTest {
     @Autowired
     private lateinit var accumulator: Accumulator
+
+    @Autowired
+    private lateinit var dateUtils: DateUtils
 
     /**
      * Transactions should be ordered.  If the date is ==, then it will be accepted but
@@ -40,7 +43,7 @@ internal class TrnOrderTest {
             Trn(
                 trnType = TrnType.BUY,
                 tradeDate =
-                    yesterday.atStartOfDay(DateUtils().getZoneId())
+                    yesterday.atStartOfDay(dateUtils.zoneId)
                         .toLocalDate(),
                 asset = apple,
                 quantity = hundred,
@@ -51,7 +54,7 @@ internal class TrnOrderTest {
             Trn(
                 trnType = TrnType.BUY,
                 tradeDate =
-                    today.atStartOfDay(DateUtils().getZoneId())
+                    today.atStartOfDay(dateUtils.zoneId)
                         .toLocalDate(),
                 asset = apple,
                 quantity = hundred,

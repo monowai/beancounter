@@ -67,7 +67,7 @@ internal class TrnAdapterTest {
 
     final val asset = MSFT
     final val price: BigDecimal = BigDecimal("10.99")
-    private val theDate = DateUtils().getDate("2019-10-10")
+    private val theDate = DateUtils().getFormattedDate("2019-10-10")
     private val one = "1"
     val portfolioId = "abc"
 

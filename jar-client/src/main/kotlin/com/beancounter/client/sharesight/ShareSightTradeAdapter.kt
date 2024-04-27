@@ -87,10 +87,9 @@ class ShareSightTradeAdapter(
                     tradeCurrency = row[CURRENCY],
                     cashCurrency = trustedTrnImportRequest.portfolio.currency.code,
                     tradeDate =
-                        dateUtils.getDate(
+                        dateUtils.getFormattedDate(
                             row[DATE],
                             shareSightConfig.dateFormat,
-                            dateUtils.getZoneId(),
                         ),
                     fees = fees,
                     price = MathUtils.nullSafe(parse(row[PRICE], shareSightConfig.numberFormat)),

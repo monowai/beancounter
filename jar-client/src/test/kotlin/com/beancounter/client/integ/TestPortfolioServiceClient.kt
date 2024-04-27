@@ -67,7 +67,7 @@ class TestPortfolioServiceClient {
         val (data) =
             portfolioService.getWhereHeld(
                 "KMI",
-                DateUtils().getDate("2020-05-01"),
+                DateUtils().getFormattedDate("2020-05-01"),
             )
         assertThat(data).isNotNull.isNotEmpty
     }

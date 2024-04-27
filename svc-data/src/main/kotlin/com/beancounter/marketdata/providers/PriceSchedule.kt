@@ -21,8 +21,8 @@ class PriceSchedule(private val priceRefresh: PriceRefresh, private val dateUtil
     fun updatePrices() {
         log.info(
             "Scheduled price update starting {} - {}",
-            LocalDateTime.now(dateUtils.getZoneId()),
-            dateUtils.defaultZone,
+            LocalDateTime.now(dateUtils.zoneId),
+            dateUtils.zoneId.id,
         )
         priceRefresh.updatePrices()
     }

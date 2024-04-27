@@ -93,7 +93,7 @@ class BcRowAdapterTest {
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue("tradeCurrency", "USD")
             .hasFieldOrPropertyWithValue("comments", "")
-            .hasFieldOrPropertyWithValue("tradeDate", DateUtils().getOrThrow("2021-08-11"))
+            .hasFieldOrPropertyWithValue("tradeDate", DateUtils().getDate("2021-08-11"))
             .hasFieldOrPropertyWithValue(propQuantity, BigDecimal(200))
             .hasFieldOrPropertyWithValue(propAssetId, asset.id)
             .hasFieldOrPropertyWithValue(cashAssetId, usdCashBalance.code)

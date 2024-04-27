@@ -12,7 +12,7 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
 
-internal class TestMathUtils {
+internal class MathUtilsTest {
     private val zeroDec = "0.00"
     private val ten = "10.00"
     private val oneThousandDec = "1000.00"

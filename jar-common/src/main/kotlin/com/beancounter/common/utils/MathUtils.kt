@@ -28,7 +28,7 @@ class MathUtils private constructor() {
             if (numberUtils.isUnset(rate) || numberUtils.isUnset(money)) {
                 return BigDecimal.ZERO
             }
-            return money!!.divide(rate, MONEY_SCALE, RoundingMode.HALF_UP)
+            return money?.divide(rate, MONEY_SCALE, RoundingMode.HALF_UP) ?: BigDecimal.ZERO
         }
 
         @JvmOverloads
@@ -65,21 +65,21 @@ class MathUtils private constructor() {
             return value.add(amount).setScale(MONEY_SCALE, RoundingMode.HALF_UP)
         }
 
-        @Throws(ParseException::class)
         @JvmStatic
+        @Throws(ParseException::class)
         fun parse(
             value: String?,
             numberFormat: NumberFormat,
         ): BigDecimal {
-            if (value == null || value == "null") {
+            if (value.isNullOrEmpty() || value.trim().equals("null", ignoreCase = true)) {
                 return BigDecimal.ZERO
             }
-            return if (value.isBlank()) {
-                BigDecimal.ZERO
-            } else {
-                BigDecimal(numberFormat.parse(value.trim().replace("\"", "")).toString())
-            }
+
+            return BigDecimal(numberFormat.parse(value.trim().replace("\"", "")).toString())
         }
+
+        @JvmStatic
+        fun parse(value: String?) = parse(value, NumberFormat.getInstance())
 
         @JvmStatic
         operator fun get(money: String?): BigDecimal? {
@@ -87,28 +87,11 @@ class MathUtils private constructor() {
         }
 
         @JvmStatic
-        fun hasValidRate(rate: BigDecimal?): Boolean {
-            if (rate == null) {
-                return false
-            }
-            return if (rate.compareTo(BigDecimal.ZERO) == 0) {
-                false
-            } else {
-                rate.compareTo(BigDecimal.ONE) != 0
-            }
-        }
+        fun hasValidRate(rate: BigDecimal?): Boolean =
+            rate != null && rate.compareTo(BigDecimal.ZERO) != 0 && rate.compareTo(BigDecimal.ONE) != 0
 
         @JvmStatic
-        fun nullSafe(value: BigDecimal?): BigDecimal {
-            if (value == null) {
-                return BigDecimal.ZERO
-            }
-            return value
-        }
-
-        fun parse(value: String): BigDecimal {
-            return parse(value, NumberFormat.getNumberInstance())
-        }
+        fun nullSafe(value: BigDecimal?): BigDecimal = value ?: BigDecimal.ZERO
     }
 
     init {

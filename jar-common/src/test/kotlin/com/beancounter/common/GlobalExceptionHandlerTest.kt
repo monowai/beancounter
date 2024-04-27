@@ -23,7 +23,7 @@ class GlobalExceptionHandlerTest {
         `when`(request.requestURI).thenReturn(uri)
     }
 
-    private val message = "message"
+    private val message = "detail"
 
     private val path = "path"
 
@@ -31,9 +31,7 @@ class GlobalExceptionHandlerTest {
     fun is_BadRequest() {
         assertThat(geh.handleBadRequest(request))
             .isNotNull
-            .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue(message, "Message not readable")
-            .hasFieldOrPropertyWithValue(path, uri)
+            .hasFieldOrPropertyWithValue(message, "We are unable to process your request.")
     }
 
     @Test
@@ -41,9 +39,7 @@ class GlobalExceptionHandlerTest {
         val se = SystemException("SE")
         assertThat(geh.handleSystemException(request, se))
             .isNotNull
-            .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue(message, se.message)
-            .hasFieldOrPropertyWithValue(path, uri)
     }
 
     @Test
@@ -51,17 +47,13 @@ class GlobalExceptionHandlerTest {
         val be = BusinessException("BE")
         assertThat(geh.handleBusinessException(request, be))
             .isNotNull
-            .hasNoNullFieldsOrProperties()
             .hasFieldOrPropertyWithValue(message, be.message)
-            .hasFieldOrPropertyWithValue(path, uri)
     }
 
     @Test
     fun is_DataIntegrityException() {
         assertThat(geh.handleIntegrity(request, BusinessException("DE")))
             .isNotNull
-            .hasNoNullFieldsOrProperties()
-            .hasFieldOrPropertyWithValue(message, "Data integrity violation")
-            .hasFieldOrPropertyWithValue(path, uri)
+            .hasFieldOrPropertyWithValue(message, "DE")
     }
 }

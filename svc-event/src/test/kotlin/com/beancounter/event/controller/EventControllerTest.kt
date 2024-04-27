@@ -3,7 +3,6 @@ package com.beancounter.event.controller
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.event.CorporateEvent
-import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
@@ -13,6 +12,7 @@ import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import org.assertj.core.api.Assertions.assertThat
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
@@ -79,16 +80,17 @@ internal class EventControllerTest {
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
             )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andReturn()
                 .response
                 .contentAsString
                 .let { responseBody ->
-                    objectMapper.readValue(responseBody, SpringExceptionMessage::class.java)
+                    objectMapper.readValue<ProblemDetail>(responseBody)
                 }
 
         // Assert that the response message object has no null fields or properties
-        assertThat(message).hasNoNullFieldsOrProperties()
+        assertThat(message)
+            .hasNoNullFieldsOrPropertiesExcept("properties")
     }
 
     @Test

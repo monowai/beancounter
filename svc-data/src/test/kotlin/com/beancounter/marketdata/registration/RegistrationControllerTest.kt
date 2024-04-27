@@ -81,7 +81,7 @@ class RegistrationControllerTest {
                     .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
                     .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
                 .andReturn()
         assertThat(performed.response.status).isEqualTo(HttpStatus.FORBIDDEN.value())
     }

@@ -1,5 +1,7 @@
 {
-  "error": "We are unable to process your request.",
-  "message": "Could not find a portfolio with code NOT-FOUND owned by blah@blah.com",
-  "path": "/api/portfolios/code/NOT-FOUND"
+  "detail": "Could not find a portfolio with code NOT-FOUND owned by blah@blah.com",
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "instance": "/api/portfolios/code/NOT-FOUND"
 }

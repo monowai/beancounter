@@ -38,7 +38,6 @@ class PortfolioBase : ContractVerifierBase() {
     internal lateinit var authUtilService: AuthUtilService
 
     companion object {
-        @Throws(IOException::class)
         @JvmStatic
         fun getPortfolio(jsonFile: File): Portfolio {
             val (data) = RegistrationUtils.objectMapper.readValue(jsonFile, PortfolioResponse::class.java)

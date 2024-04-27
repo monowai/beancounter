@@ -54,7 +54,6 @@ class SpringFeignDecoder : ErrorDecoder {
         }
     }
 
-    @Throws(IOException::class)
     private fun getMessage(response: Response): String? {
         if (response.body() == null) {
             return response.reason()

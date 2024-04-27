@@ -8,6 +8,7 @@ import java.util.Date
  * @author mikeh
  * @since 2019-02-04
  */
+@Deprecated("Use ProblemDetail")
 data class SpringExceptionMessage(
     val timestamp: Date = Date(),
     val error: String?,

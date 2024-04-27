@@ -1,5 +1,8 @@
 {
-  "error": "We are unable to process your request.",
-  "message": "Could not find a portfolio with ID NOT-FOUND",
-  "path": "/api/portfolios/NOT-FOUND"
+  "detail": "Could not find a portfolio with ID NOT-FOUND",
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "instance": "/api/portfolios/NOT-FOUND"
+
 }

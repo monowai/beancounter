@@ -60,16 +60,22 @@ internal class DateUtilsTest {
         assertThat(laDates.zoneId.id).isEqualTo("America/Los_Angeles")
     }
 
+    private val requestDate = "2020-11-11"
+
+    @Test
+    fun `valid date processing should not throw exceptions`() {
+        assertThat(dateUtils.getDate()).isNotNull()
+        assertThat(dateUtils.getDate(requestDate)).isNotNull()
+    }
+
     @Test
     fun `dates across different time zones are handled correctly`() {
-        val requestDate = "2020-11-11"
         val offsetDate = nzDateUtils.offsetDateString(requestDate)
         assertThat(nzDateUtils.getFormattedDate(offsetDate)).isEqualTo(requestDate)
     }
 
     @Test
     fun `dates should correctly handle different time zones`() {
-        val requestDate = "2020-11-11"
         val offsetDate = nzDateUtils.offsetDateString(requestDate)
         val testDate = nzDateUtils.getFormattedDate(offsetDate)
 
@@ -82,12 +88,6 @@ internal class DateUtilsTest {
         assertThrows(BusinessException::class.java) {
             dateUtils.getDate("2019-11-07'")
         }
-    }
-
-    @Test
-    fun `valid date processing should not throw exceptions`() {
-        assertThat(dateUtils.getDate()).isNotNull()
-        assertThat(dateUtils.getDate("2020-11-11")).isNotNull()
     }
 
     @Test

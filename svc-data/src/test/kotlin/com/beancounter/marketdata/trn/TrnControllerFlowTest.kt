@@ -166,7 +166,7 @@ class TrnControllerFlowTest(
             MockMvcRequestBuilders.delete(trnById, "illegalId")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token)),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
     }
 
     @Test

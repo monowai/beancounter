@@ -55,23 +55,21 @@ internal class FxMvcTests {
 
     @Test
     fun fxResponseObjectReturned() {
-        mockProviderRates()
+        mockProviderRates() // Assuming this sets up necessary mock responses for rate requests
+
         val fxRequest =
             FxRequest(
                 rateDate = date,
-                pairs =
-                    arrayListOf(
-                        nzdUsd,
-                        usdNzd,
-                        IsoCurrencyPair(usd, usd),
-                        IsoCurrencyPair(nzd, nzd),
-                    ),
+                pairs = arrayListOf(nzdUsd, usdNzd, IsoCurrencyPair(usd, usd), IsoCurrencyPair(nzd, nzd)),
             )
 
         val results = getResults(fxRequest)
         val theRates = results.rates
-        assertThat(theRates)
-            .containsKeys(nzdUsd, usdNzd)
+
+        // Assert that the necessary currency pairs are present in the result
+        assertThat(theRates.keys).containsExactlyInAnyOrder(nzdUsd, usdNzd, IsoCurrencyPair(usd, usd), IsoCurrencyPair(nzd, nzd))
+
+        // Assert that each currency pair has a non-null date associated with its rate
         for (isoCurrencyPair in theRates.keys) {
             assertThat((results.rates[isoCurrencyPair] ?: error("Date Not Set")).date).isNotNull
         }
@@ -138,6 +136,7 @@ internal class FxMvcTests {
     private fun fxPost(
         fxRequest: FxRequest,
         expectedResult: ResultMatcher = status().isOk,
+        mediaType: MediaType = MediaType.APPLICATION_JSON,
     ) = mockMvc.perform(
         MockMvcRequestBuilders.post(FX_ROOT)
             .with(
@@ -150,7 +149,7 @@ internal class FxMvcTests {
                 BcJson().objectMapper.writeValueAsString(fxRequest),
             ),
     ).andExpect(expectedResult)
-        .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.content().contentType(mediaType))
         .andReturn()
 
     @Test
@@ -168,8 +167,7 @@ internal class FxMvcTests {
         val invalid = IsoCurrencyPair(from, to)
         val fxRequest = FxRequest(date)
         fxRequest.add(invalid)
-
-        val mvcResult = fxPost(fxRequest, status().is4xxClientError)
+        val mvcResult = fxPost(fxRequest, status().is4xxClientError, MediaType.APPLICATION_PROBLEM_JSON)
         val someException =
             java.util.Optional.ofNullable(
                 mvcResult.resolvedException as BusinessException,

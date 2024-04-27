@@ -78,7 +78,7 @@ response:
   status: 400
   bodyFromFile: "./not-found-by-code.json"
   headers:
-    Content-Type: application/json
+    Content-Type: application/problem+json
 ---
 name: portfolioNotFoundById
 priority: 1
@@ -89,7 +89,7 @@ response:
   status: 400
   bodyFromFile: "./not-found-by-id.json"
   headers:
-    Content-Type: application/json
+    Content-Type: application/problem+json
 ---
 name: emptyPortfolioId
 priority: 1

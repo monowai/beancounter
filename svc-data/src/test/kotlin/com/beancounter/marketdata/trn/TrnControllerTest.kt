@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType.APPLICATION_JSON
+import org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.web.servlet.MockMvc
@@ -206,7 +207,7 @@ class TrnControllerTest {
                         .jwt(token),
                 ),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
     }
 
@@ -219,7 +220,7 @@ class TrnControllerTest {
                         .jwt(token),
                 ),
         ).andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.content().contentType(APPLICATION_PROBLEM_JSON))
             .andReturn()
     }
 }

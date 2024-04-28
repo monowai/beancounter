@@ -52,9 +52,9 @@ internal class FxUtilsTest {
         positions.add(
             getPosition(getTestAsset(usdMarket, "$USD.code Asset Other"), positions),
         )
-        val (_, pairs) = fxUtils.buildRequest(USD, positions)
-        assertThat(pairs).hasSize(3)
-            .containsOnly(
+        with(fxUtils.buildRequest(USD, positions)) {
+            assertThat(pairs).hasSize(3)
+            assertThat(pairs).containsExactlyInAnyOrder(
                 // TRADE:PF
                 IsoCurrencyPair(USD.code, SGD.code),
                 // PF:TRADE
@@ -62,6 +62,7 @@ internal class FxUtilsTest {
                 // BASE:TRADE
                 IsoCurrencyPair(GBP.code, USD.code),
             )
+        }
     }
 
     private fun getPosition(

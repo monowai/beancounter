@@ -81,10 +81,12 @@ class FxTransactionsTest {
 
     @Test
     fun is_FxContractHonoured() {
-        val isoCurrencyPairs: ArrayList<IsoCurrencyPair> = ArrayList()
-        isoCurrencyPairs.add(IsoCurrencyPair(USD.code, EUR.code))
-        isoCurrencyPairs.add(IsoCurrencyPair(USD.code, GBP.code))
-        isoCurrencyPairs.add(IsoCurrencyPair(USD.code, NZD.code))
+        val isoCurrencyPairs: MutableSet<IsoCurrencyPair> =
+            mutableSetOf(
+                IsoCurrencyPair(USD.code, EUR.code),
+                IsoCurrencyPair(USD.code, GBP.code),
+                IsoCurrencyPair(USD.code, NZD.code),
+            )
         val testDate = "2019-11-12"
         val fxResponse = fxRateService.getRates(FxRequest(testDate, pairs = isoCurrencyPairs))
         assertThat(fxResponse).isNotNull.hasNoNullFieldsOrProperties()
@@ -102,9 +104,12 @@ class FxTransactionsTest {
 
     @Test
     fun is_EarlyDateWorking() {
-        val isoCurrencyPairs: ArrayList<IsoCurrencyPair> = ArrayList()
-        isoCurrencyPairs.add(IsoCurrencyPair(USD.code, SGD.code))
-        isoCurrencyPairs.add(IsoCurrencyPair(GBP.code, NZD.code))
+        val isoCurrencyPairs: MutableSet<IsoCurrencyPair> =
+            mutableSetOf(
+                IsoCurrencyPair(USD.code, SGD.code),
+                IsoCurrencyPair(GBP.code, NZD.code),
+            )
+
         val testDate = "1996-07-27" // Earlier than when ECB started recording rates
         val fxResponse = fxRateService.getRates(FxRequest(testDate, isoCurrencyPairs))
         assertThat(fxResponse)

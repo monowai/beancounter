@@ -88,7 +88,7 @@ class FxTransactions(
         fxRequests: MutableMap<String?, FxRequest>,
         tradeDate: String,
     ): FxRequest {
-        val fxRequest = FxRequest(tradeDate, ArrayList())
+        val fxRequest = FxRequest(tradeDate, mutableSetOf())
         fxRequests[tradeDate] = fxRequest
         return fxRequest
     }

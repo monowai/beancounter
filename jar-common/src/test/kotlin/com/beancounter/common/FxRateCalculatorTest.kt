@@ -8,15 +8,16 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.FxRateCalculator
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
-private const val P_FROM_CODE = "from.code"
+private const val FROM_CODE = "from.code"
 
-private const val P_TO_CODE = "to.code"
+private const val TO_CODE = "to.code"
 
-private const val P_RATE = "rate"
+private const val RATE = "rate"
 
 /**
  * FX Request response tests.
@@ -62,15 +63,14 @@ internal class FxRateCalculatorTest {
     @Test
     fun is_FxRequestPairsIgnoringDuplicates() {
         val pair = IsoCurrencyPair("THIS", "THAT")
-        val fxRequest = FxRequest("")
+        val fxRequest = FxRequest("", mutableSetOf(pair, pair))
         fxRequest.add(pair)
         fxRequest.add(pair)
         assertThat(fxRequest.pairs).hasSize(1)
     }
 
     @Test
-    @Throws(Exception::class)
-    fun is_FxResultSerializing() {
+    fun `Verify FX Response Serialization and Data Integrity`() {
         val nzdUsd = IsoCurrencyPair(NZD.code, USD.code)
         val usdNzd = IsoCurrencyPair(USD.code, NZD.code)
         val usdUsd = IsoCurrencyPair(USD.code, USD.code)
@@ -88,25 +88,26 @@ internal class FxRateCalculatorTest {
                     ),
             )
 
-        val fromJson =
-            objectMapper.readValue(
-                objectMapper.writeValueAsString(FxResponse(fxPairResults)),
-                FxResponse::class.java,
-            )
+        // Verify serialization works without error.
+        val fxResponseJson = objectMapper.writeValueAsString(FxResponse(fxPairResults))
+        val fromJson = objectMapper.readValue<FxResponse>(fxResponseJson)
 
-        assertThat(fromJson.data).isNotNull
-        assertThat(fromJson.data.rates).hasSize(3).containsKeys(nzdUsd, usdUsd, usdNzd)
-        assertThat(fromJson.data.rates[usdUsd])
-            .hasFieldOrPropertyWithValue(P_FROM_CODE, USD.code)
-            .hasFieldOrPropertyWithValue(P_TO_CODE, USD.code)
-            .hasFieldOrPropertyWithValue(P_RATE, BigDecimal.ONE)
-        assertThat(fromJson.data.rates[nzdUsd])
-            .hasFieldOrPropertyWithValue(P_FROM_CODE, NZD.code)
-            .hasFieldOrPropertyWithValue(P_TO_CODE, USD.code)
-            .hasFieldOrPropertyWithValue(P_RATE, BigDecimal(crossRate)) // Inverts the rate as USD is involved
-        assertThat(fromJson.data.rates[usdNzd])
-            .hasFieldOrPropertyWithValue(P_FROM_CODE, USD.code)
-            .hasFieldOrPropertyWithValue(P_TO_CODE, NZD.code)
-            .hasFieldOrPropertyWithValue(P_RATE, BigDecimal(rawRate)) // Raw rate
+        with(fromJson) {
+            assertThat(data).isNotNull
+            assertThat(data.rates)
+                .hasSize(3).containsKeys(nzdUsd, usdUsd, usdNzd)
+            assertThat(data.rates[usdUsd])
+                .hasFieldOrPropertyWithValue(FROM_CODE, USD.code)
+                .hasFieldOrPropertyWithValue(TO_CODE, USD.code)
+                .hasFieldOrPropertyWithValue(RATE, BigDecimal.ONE)
+            assertThat(data.rates[nzdUsd])
+                .hasFieldOrPropertyWithValue(FROM_CODE, NZD.code)
+                .hasFieldOrPropertyWithValue(TO_CODE, USD.code)
+                .hasFieldOrPropertyWithValue(RATE, BigDecimal(crossRate)) // Inverts the rate as USD is involved
+            assertThat(data.rates[usdNzd])
+                .hasFieldOrPropertyWithValue(FROM_CODE, USD.code)
+                .hasFieldOrPropertyWithValue(TO_CODE, NZD.code)
+                .hasFieldOrPropertyWithValue(RATE, BigDecimal(rawRate)) // Raw rate
+        }
     }
 }

@@ -29,9 +29,9 @@ class TrnMigrator(private val fxRateService: FxRateService) {
 
         val rateList =
             if (tradeCash == null) {
-                arrayListOf(tradePortfolio, tradeBase)
+                mutableSetOf(tradePortfolio, tradeBase)
             } else {
-                arrayListOf(tradePortfolio, tradeBase, tradeCash)
+                mutableSetOf(tradePortfolio, tradeBase, tradeCash)
             }
         val rates =
             fxRateService.getRates(

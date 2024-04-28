@@ -9,6 +9,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.position.Constants
+import com.beancounter.position.Constants.Companion.TEST
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +26,7 @@ class AddBehaviourTest {
 
     @Test
     fun isRealEstateAdded() {
-        val portfolio = Portfolio("TEST", Constants.USD, Constants.NZD)
+        val portfolio = Portfolio(TEST, Constants.USD, Constants.NZD)
         val trn =
             Trn(
                 trnType = TrnType.ADD,
@@ -47,16 +48,16 @@ class AddBehaviourTest {
         assertThat(
             position.getMoneyValues(Position.In.PORTFOLIO),
         )
-            .hasFieldOrPropertyWithValue("currency", Constants.USD)
+            .hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, Constants.USD)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, usCost)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, usCost)
-            .hasFieldOrPropertyWithValue("averageCost", usCost)
+            .hasFieldOrPropertyWithValue(Constants.PROP_AVERAGE_COST, usCost)
             .hasFieldOrPropertyWithValue(Constants.PROP_PURCHASES, usCost)
 
         assertThat(
             position.getMoneyValues(Position.In.BASE),
         )
-            .hasFieldOrPropertyWithValue("currency", Constants.NZD)
+            .hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, Constants.NZD)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_PURCHASES, trn.tradeAmount)

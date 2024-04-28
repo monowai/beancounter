@@ -17,6 +17,7 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.MathUtils.Companion.nullSafe
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.hundred
@@ -246,8 +247,8 @@ internal class MarketValueTest {
         if (pair != null) {
             fxRateMap[pair] =
                 FxRate(
-                    Currency("test"),
-                    Currency("TEST"),
+                    Currency(Constants.TEST.lowercase()),
+                    Currency(Constants.TEST),
                     simpleRate,
                 )
         }

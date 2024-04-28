@@ -8,6 +8,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.KMI
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.NZD
@@ -41,7 +42,7 @@ internal class TrnValuationTest {
 
     private val objectMapper: ObjectMapper = BcJson().objectMapper
 
-    private val test = "TEST"
+    private val test = Constants.TEST
 
     var portfolio: Portfolio =
         Portfolio(

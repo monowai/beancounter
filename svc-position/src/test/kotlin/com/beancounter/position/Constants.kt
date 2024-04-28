@@ -14,6 +14,7 @@ private const val BALANCE = "BALANCE"
  */
 class Constants {
     companion object {
+        const val TEST = "TEST"
         val fourK = BigDecimal("4000.00")
 
         val twoK = BigDecimal("2000.00")
@@ -56,7 +57,8 @@ class Constants {
         const val PROP_SALES = "sales"
 
         const val PROP_COST_VALUE = "costValue"
-        const val AVERAGE_COST_PROP = "averageCost"
+        const val PROP_AVERAGE_COST = "averageCost"
+        const val PROP_CURRENCY = "currency"
         const val PROP_SOLD = "sold"
         const val PROP_PURCHASED = "purchased"
         const val PROP_TOTAL = "total"

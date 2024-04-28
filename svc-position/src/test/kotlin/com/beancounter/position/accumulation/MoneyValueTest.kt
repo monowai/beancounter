@@ -7,8 +7,8 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
-import com.beancounter.position.Constants.Companion.AVERAGE_COST_PROP
 import com.beancounter.position.Constants.Companion.NASDAQ
+import com.beancounter.position.Constants.Companion.PROP_AVERAGE_COST
 import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
 import com.beancounter.position.Constants.Companion.PROP_REALIZED_GAIN
 import com.beancounter.position.Constants.Companion.PROP_SALES
@@ -176,7 +176,7 @@ internal class MoneyValueTest {
 
         assertThat(position.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, costBasis)
-            .hasFieldOrPropertyWithValue(AVERAGE_COST_PROP, expectedAverageCost)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedAverageCost)
             .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, BigDecimal.ZERO)
 
         var sell =
@@ -192,7 +192,7 @@ internal class MoneyValueTest {
         // Sell does not affect the cost basis or average cost, but it will create a signed gain
         assertThat(position.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, costBasis)
-            .hasFieldOrPropertyWithValue(AVERAGE_COST_PROP, expectedAverageCost)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedAverageCost)
             .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, gainValue)
 
         sell =
@@ -207,7 +207,7 @@ internal class MoneyValueTest {
         // Sell down to 0; reset cost basis
         assertThat(position.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(AVERAGE_COST_PROP, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, BigDecimal("612.41"))
     }
 
@@ -239,7 +239,7 @@ internal class MoneyValueTest {
         val realisedGain = BigDecimal("-372.18")
         assertThat(intelPosition.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(AVERAGE_COST_PROP, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, realisedGain)
 
         // Re-enter the position
@@ -250,7 +250,7 @@ internal class MoneyValueTest {
             .hasFieldOrPropertyWithValue(PROP_TOTAL, buy.quantity)
         assertThat(intelPosition.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, buy.tradeAmount)
-            .hasFieldOrPropertyWithValue(AVERAGE_COST_PROP, BigDecimal("26.722"))
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal("26.722"))
             .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, realisedGain)
 
         // Second sell taking us back to zero. Verify that the accumulated gains.
@@ -268,7 +268,7 @@ internal class MoneyValueTest {
         )
         assertThat(intelPosition.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, BigDecimal.ZERO)
-            .hasFieldOrPropertyWithValue(AVERAGE_COST_PROP, BigDecimal.ZERO)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue(PROP_REALIZED_GAIN, previousGain.add(BigDecimal("60.99")))
     }
 }

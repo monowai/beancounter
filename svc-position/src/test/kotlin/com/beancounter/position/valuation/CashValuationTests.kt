@@ -10,6 +10,8 @@ import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.NZD
+import com.beancounter.position.Constants.Companion.PROP_AVERAGE_COST
+import com.beancounter.position.Constants.Companion.PROP_CURRENCY
 import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.Constants.Companion.USD
@@ -66,14 +68,14 @@ class CashValuationTests {
         )
         val usdPosition = positions.getOrCreate(usdCash)
         assertThat(usdPosition.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("currency", USD)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(PROP_CURRENCY, USD)
         assertThat(usdPosition.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue("averageCost", rate)
-            .hasFieldOrPropertyWithValue("currency", positions.portfolio.currency)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, rate)
+            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.currency)
         assertThat(usdPosition.moneyValues[Position.In.BASE])
-            .hasFieldOrPropertyWithValue("averageCost", rate)
-            .hasFieldOrPropertyWithValue("currency", positions.portfolio.base)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, rate)
+            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.base)
     }
 
     @Test
@@ -110,14 +112,14 @@ class CashValuationTests {
         )
         val equityPosition = positions.getOrCreate(testAsset)
         assertThat(equityPosition.moneyValues[Position.In.TRADE])
-            .hasFieldOrPropertyWithValue("averageCost", BigDecimal.ONE)
-            .hasFieldOrPropertyWithValue("currency", USD)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, BigDecimal.ONE)
+            .hasFieldOrPropertyWithValue(PROP_CURRENCY, USD)
         assertThat(equityPosition.moneyValues[Position.In.PORTFOLIO])
-            .hasFieldOrPropertyWithValue("averageCost", expectedRate)
-            .hasFieldOrPropertyWithValue("currency", positions.portfolio.currency)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedRate)
+            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.currency)
         assertThat(equityPosition.moneyValues[Position.In.BASE])
-            .hasFieldOrPropertyWithValue("averageCost", expectedRate)
-            .hasFieldOrPropertyWithValue("currency", positions.portfolio.base)
+            .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, expectedRate)
+            .hasFieldOrPropertyWithValue(PROP_CURRENCY, positions.portfolio.base)
     }
 
     @Test

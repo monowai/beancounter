@@ -17,6 +17,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
+import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
@@ -82,7 +83,7 @@ internal class FxValuationMvcTests {
     private fun getPositions(asset: Asset): Positions {
         val trn = Trn(trnType = TrnType.BUY, asset = asset, quantity = hundred)
         trn.tradeAmount = twoK
-        val portfolio = portfolioService.getPortfolioByCode("TEST")
+        val portfolio = portfolioService.getPortfolioByCode(Constants.TEST)
         val positions = Positions(portfolio, asAt = "2019-10-18")
         accumulator.accumulate(trn, positions)
         return positions

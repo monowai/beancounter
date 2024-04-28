@@ -55,7 +55,7 @@ internal class TrnValuationTest {
         )
 
     @Autowired
-    fun setUser() {
+    fun setToken(mockAuthConfig: MockAuthConfig) {
         token = mockAuthConfig.getUserToken(SystemUser("test-user", "test-user@testing.com"))
     }
 

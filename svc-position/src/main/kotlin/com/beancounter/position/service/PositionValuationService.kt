@@ -1,6 +1,8 @@
 package com.beancounter.position.service
 
+import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -11,7 +13,10 @@ import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Obtains necessary prices and fx rates for the requested positions, returning them as valued positions in
@@ -22,6 +27,7 @@ class PositionValuationService internal constructor(
     private val asyncMdService: AsyncMdService,
     private val marketValue: MarketValue,
     private val fxUtils: FxUtils,
+    private val tokenService: TokenService,
 ) {
     val percentUtils = PercentUtils()
 
@@ -50,37 +56,32 @@ class PositionValuationService internal constructor(
         val refTotals = Totals()
         for (marketData in priceResponse.data) {
             val position = marketValue.value(positions, marketData, fxResponse.data.rates)
-            val baseAmount =
-                position.getMoneyValues(
-                    Position.In.BASE,
-                    positions.portfolio.base,
-                ).marketValue
-            baseTotals.total = baseTotals.total.add(baseAmount)
-            val refAmount =
-                position.getMoneyValues(
-                    Position.In.PORTFOLIO,
-                    position.asset.market.currency,
-                ).marketValue
-            refTotals.total = refTotals.total.add(refAmount)
+            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
+            val refMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, position.asset.market.currency)
+
+            // Directly add to the totals, reducing method calls
+            baseTotals.total = baseTotals.total.add(baseMoneyValues.marketValue)
+            refTotals.total = refTotals.total.add(refMoneyValues.marketValue)
         }
+        // Set the accumulated totals once after all computations are done
         positions.setTotal(Position.In.BASE, baseTotals)
         positions.setTotal(Position.In.PORTFOLIO, refTotals)
+
+        // Iterate through each position only once and update weights accordingly
         for (position in positions.positions.values) {
-            var moneyValues =
-                position.getMoneyValues(
-                    Position.In.BASE,
-                    positions.portfolio.base,
-                )
-            moneyValues.weight = percentUtils.percent(moneyValues.marketValue, baseTotals.total)
-            moneyValues =
-                position.getMoneyValues(
-                    Position.In.PORTFOLIO,
-                    positions.portfolio.currency,
-                )
-            moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
-            moneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
-            moneyValues.weight = percentUtils.percent(moneyValues.marketValue, refTotals.total)
+            // Calculate and set the weight for base currency
+            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
+            baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.total)
+
+            // Calculate and set the weight for portfolio currency
+            val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
+            portfolioMoneyValues.weight = percentUtils.percent(portfolioMoneyValues.marketValue, refTotals.total)
+
+            // Calculate and set the weight for trade currency
+            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
+            tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.total)
         }
+
         log.debug(
             "Completed valuation of {} positions.",
             positions.positions.size,
@@ -89,21 +90,34 @@ class PositionValuationService internal constructor(
     }
 
     private fun getValuationData(positions: Positions): ValuationData {
-        val futureFxResponse =
-            asyncMdService.getFxData(
-                fxUtils.buildRequest(
-                    positions.portfolio.base,
-                    positions,
-                ),
-            )
-        val futurePriceResponse =
-            asyncMdService.getMarketData(
-                PriceRequest.of(positions.asAt, positions),
-            )
-        return ValuationData(
-            futurePriceResponse[180, TimeUnit.SECONDS],
-            futureFxResponse[30, TimeUnit.SECONDS],
-        )
+        try {
+            val fxRequest = fxUtils.buildRequest(positions.portfolio.base, positions)
+            val priceRequest = PriceRequest.of(positions.asAt, positions)
+            val token = tokenService.bearerToken
+            // Start both asynchronous operations simultaneously
+            val futurePriceResponse =
+                CompletableFuture.supplyAsync {
+                    asyncMdService.getMarketData(priceRequest, token)
+                }
+
+            val futureFxResponse =
+                CompletableFuture.supplyAsync {
+                    asyncMdService.getFxData(fxRequest, token)
+                }
+
+            // Wait for both futures to complete and then create ValuationData
+            val rates = futureFxResponse.get(30, TimeUnit.SECONDS)
+            val prices = futurePriceResponse.get(180, TimeUnit.SECONDS)
+
+            return ValuationData(prices, rates)
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt() // set the interrupt flag
+            throw IllegalStateException("Thread was interrupted while fetching market data.", e)
+        } catch (e: ExecutionException) {
+            throw SystemException("Error fetching market data")
+        } catch (e: TimeoutException) {
+            throw SystemException("Timed out waiting for market data")
+        }
     }
 
     companion object {

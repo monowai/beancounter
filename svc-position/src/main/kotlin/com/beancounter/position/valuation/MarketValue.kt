@@ -4,7 +4,6 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -13,6 +12,8 @@ import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.util.Objects
+
+private const val CASH = "CASH"
 
 /**
  * Compute the market value and accumulate gains
@@ -25,40 +26,30 @@ class MarketValue(private val gains: Gains) {
         rates: Map<IsoCurrencyPair, FxRate>,
     ): Position {
         val asset = marketData.asset
-        // Wrong
-        if (!positions.contains(asset)) {
-            throw BusinessException("Unable to find $asset in the supplied positions")
-        }
         val position = positions.getOrCreate(asset)
+
         val portfolio = positions.portfolio
-        val isCash = asset.market.code == "CASH"
-        val trade = position.getMoneyValues(Position.In.TRADE).currency
-        value(
-            position,
-            Position.In.TRADE,
-            marketData,
-            FxRate(
-                trade,
-                trade,
-                BigDecimal.ONE,
-                positions.asAt,
-            ),
-            isCash,
-        )
-        value(
-            position,
-            Position.In.BASE,
-            marketData,
-            rate(trade, portfolio.base, rates),
-            isCash,
-        )
-        value(
-            position,
-            Position.In.PORTFOLIO,
-            marketData,
-            rate(trade, portfolio.currency, rates),
-            isCash,
-        )
+        val isCash = asset.market.code == CASH
+        val tradeCurrency = position.getMoneyValues(Position.In.TRADE).currency
+
+        // Loop through each valuation context to apply values
+        val valuationContexts =
+            listOf(
+                Position.In.TRADE to tradeCurrency,
+                Position.In.BASE to portfolio.base,
+                Position.In.PORTFOLIO to portfolio.currency,
+            )
+        valuationContexts.forEach { (context, currency) ->
+            val rate =
+                if (context == Position.In.TRADE) {
+                    FxRate(tradeCurrency, tradeCurrency, BigDecimal.ONE, positions.asAt)
+                } else {
+                    rate(tradeCurrency, currency, positions.asAt, rates)
+                }
+
+            value(position, context, marketData, rate, isCash)
+        }
+
         return position
     }
 
@@ -73,7 +64,7 @@ class MarketValue(private val gains: Gains) {
         val moneyValues = position.getMoneyValues(positionIn)
 
         moneyValues.priceData = of(mktData, rate.rate)
-        if (total.compareTo(BigDecimal.ZERO) == 0) {
+        if (total.signum() == 0) {
             moneyValues.marketValue = BigDecimal.ZERO
         } else {
             val close: BigDecimal
@@ -93,8 +84,6 @@ class MarketValue(private val gains: Gains) {
             moneyValues.realisedGain = BigDecimal.ZERO // Will figure this out later
             moneyValues.unrealisedGain = moneyValues.marketValue.subtract(moneyValues.costBasis)
             moneyValues.totalGain = moneyValues.realisedGain.add(moneyValues.unrealisedGain) // moneyValues.marketValue
-            // moneyValues.costValue = total.multiply(moneyValues.averageCost)
-            // moneyValues.costValue = moneyValues.marketValue
         } else {
             gains.value(total, moneyValues)
         }
@@ -103,17 +92,13 @@ class MarketValue(private val gains: Gains) {
     private fun rate(
         from: Currency,
         to: Currency,
+        asAt: String,
         rates: Map<IsoCurrencyPair, FxRate>,
-    ): FxRate {
-        return if (from.code == to.code) {
-            FxRate(to, from, BigDecimal.ONE)
+    ): FxRate =
+        if (from.code == to.code) {
+            FxRate(from, to, BigDecimal.ONE, asAt)
         } else {
-            rates[toPair(from, to)]
-                ?: throw BusinessException(
-                    String.format(
-                        "No rate for ${from.code}:${to.code}",
-                    ),
-                )
+            rates[IsoCurrencyPair(from.code, to.code)]
+                ?: throw BusinessException("No rate available for ${from.code} to ${to.code}")
         }
-    }
 }

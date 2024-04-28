@@ -17,23 +17,26 @@ class CashCost {
         quantity: BigDecimal,
         rate: BigDecimal,
     ) {
-        val amount = MathUtils.multiply(quantity, rate)
+        val amount = MathUtils.multiply(quantity, rate) ?: return
+
+        // Update purchases or sales based on the sign of the quantity
         if (quantity > BigDecimal.ZERO) {
             moneyValues.purchases = moneyValues.purchases.add(amount)
-        } else {
+        } else if (quantity < BigDecimal.ZERO) {
             moneyValues.sales = moneyValues.sales.add(amount)
         }
-        moneyValues.costBasis =
-            moneyValues.costBasis.add(
-                amount,
-            )
-        if (position.quantityValues.getTotal().compareTo(BigDecimal.ZERO) != 0) {
-            moneyValues.averageCost = averageCost.value(moneyValues.costBasis, position.quantityValues.getTotal())
+
+        // Update cost basis regardless of quantity sign
+        moneyValues.costBasis = moneyValues.costBasis.add(amount)
+
+        val totalQuantity = position.quantityValues.getTotal()
+        if (totalQuantity.signum() != 0) {
+            // Calculate average cost and cost value only if total quantity is not zero
+            moneyValues.averageCost = averageCost.value(moneyValues.costBasis, totalQuantity)
             moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
         } else {
-            moneyValues.averageCost = BigDecimal.ZERO
-            moneyValues.costValue = BigDecimal.ZERO
-            moneyValues.costBasis = BigDecimal.ZERO // Hmm - should we hold this long term?
+            // Reset monetary values if total quantity is zero
+            moneyValues.resetCosts()
         }
     }
 }

@@ -29,18 +29,20 @@ class ValuationService
         private val positionValuationService: PositionValuationService,
         private val trnService: TrnService,
         private val positionService: PositionService,
-        private val dateUtils: DateUtils,
     ) : Valuation {
         override fun build(trnQuery: TrustedTrnQuery): PositionResponse {
-            val trnResponse = trnService.query(trnQuery)
-            return buildPositions(
-                trnQuery.portfolio,
-                trnQuery.tradeDate.toString(),
-                trnResponse,
-            )
+            val trnResponse = trnService.query(trnQuery) // Adhoc query
+            return buildPositions(trnQuery.portfolio, trnQuery.tradeDate.toString(), trnResponse)
         }
 
         override fun build(
+            portfolio: Portfolio,
+            valuationDate: String,
+        ): PositionResponse {
+            return buildInternal(portfolio, valuationDate)
+        }
+
+        private fun buildInternal(
             portfolio: Portfolio,
             valuationDate: String,
         ): PositionResponse {
@@ -67,23 +69,19 @@ class ValuationService
             value: Boolean,
         ): PositionResponse {
             val positions = build(portfolio, valuationDate).data
-            return if (value) {
-                value(positions)
-            } else {
-                PositionResponse(positions)
-            }
+            return if (value) value(positions) else PositionResponse(positions)
         }
 
         override fun value(positions: Positions): PositionResponse {
-            dateUtils.getDate(positions.asAt)
-            val assets: MutableCollection<AssetInput> = ArrayList()
-            if (positions.hasPositions()) {
-                for (position in positions.positions.values) {
-                    assets.add(AssetInput(position.asset.market.code, position.asset.code))
-                }
-                val valuedPositions = positionValuationService.value(positions, assets)
-                return PositionResponse(valuedPositions)
+            if (!positions.hasPositions()) {
+                return PositionResponse(positions)
             }
-            return PositionResponse(positions)
+
+            val assets =
+                positions.positions.values.map {
+                    AssetInput(it.asset.market.code, it.asset.code)
+                }
+            val valuedPositions = positionValuationService.value(positions, assets.toMutableList())
+            return PositionResponse(valuedPositions)
         }
     }

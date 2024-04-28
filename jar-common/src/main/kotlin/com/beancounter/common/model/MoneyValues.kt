@@ -31,4 +31,10 @@ data class MoneyValues(val currency: Currency) {
     var unrealisedGain: BigDecimal = BigDecimal.ZERO
     var totalGain: BigDecimal = BigDecimal.ZERO
     var gainOnDay: BigDecimal = BigDecimal.ZERO
+
+    fun resetCosts() {
+        averageCost = BigDecimal.ZERO
+        costValue = BigDecimal.ZERO
+        costBasis = BigDecimal.ZERO
+    }
 }

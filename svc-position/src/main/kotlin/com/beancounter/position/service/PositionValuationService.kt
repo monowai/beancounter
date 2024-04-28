@@ -1,6 +1,8 @@
 package com.beancounter.position.service
 
 import com.beancounter.auth.TokenService
+import com.beancounter.client.FxService
+import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.AssetInput
@@ -24,9 +26,10 @@ import java.util.concurrent.TimeoutException
  */
 @Service
 class PositionValuationService internal constructor(
-    private val asyncMdService: AsyncMdService,
     private val marketValue: MarketValue,
     private val fxUtils: FxUtils,
+    private val priceService: PriceService,
+    private val fxRateService: FxService,
     private val tokenService: TokenService,
 ) {
     val percentUtils = PercentUtils()
@@ -97,12 +100,12 @@ class PositionValuationService internal constructor(
             // Start both asynchronous operations simultaneously
             val futurePriceResponse =
                 CompletableFuture.supplyAsync {
-                    asyncMdService.getMarketData(priceRequest, token)
+                    priceService.getPrices(priceRequest, token)
                 }
 
             val futureFxResponse =
                 CompletableFuture.supplyAsync {
-                    asyncMdService.getFxData(fxRequest, token)
+                    fxRateService.getRates(fxRequest, token)
                 }
 
             // Wait for both futures to complete and then create ValuationData

@@ -9,6 +9,7 @@ import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.cash.CashServices
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -54,5 +55,6 @@ class ContractVerifierBase {
     @BeforeEach
     fun mock() {
         RestAssured.port = Integer.valueOf(port)
+        Mockito.`when`(tokenService.bearerToken).thenReturn("")
     }
 }

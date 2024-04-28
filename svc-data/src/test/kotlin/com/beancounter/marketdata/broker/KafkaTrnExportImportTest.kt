@@ -3,6 +3,7 @@ package com.beancounter.marketdata.broker
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.AssetService
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
@@ -41,6 +42,7 @@ import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -121,6 +123,9 @@ class KafkaTrnExportImportTest {
     @Autowired
     private lateinit var authUtilService: AuthUtilService
 
+    @MockBean
+    private lateinit var fxTransactions: FxTransactions
+
     @Autowired
     lateinit var kafkaTemplate: KafkaTemplate<Any, TrustedTrnImportRequest>
 
@@ -129,6 +134,7 @@ class KafkaTrnExportImportTest {
     private val tradeDateString = "2020-01-01"
     private val tradeDate = dateUtils.getFormattedDate(tradeDateString)
 
+    @BeforeEach
     fun mockEnv() {
         `when`(cashServices.getCashImpact(any(), any())).thenReturn(ZERO)
         assertThat(currencyService.currencies).isNotEmpty
@@ -139,7 +145,7 @@ class KafkaTrnExportImportTest {
             "/v1/$tradeDateString?base=USD&symbols=AUD%2CEUR%2CGBP%2CNZD%2CSGD%2CUSD&access_key=test",
             rateResponse,
         )
-        `when`(fxService.getRates(any())).thenReturn(
+        `when`(fxService.getRates(any(), any())).thenReturn(
             FxResponse(
                 FxPairResults(
                     mapOf(Pair(IsoCurrencyPair(USD.code, ""), FxRate(USD, USD, date = "2000-01-01"))),
@@ -150,7 +156,6 @@ class KafkaTrnExportImportTest {
 
     @Test
     fun exportFileCanBeImported() {
-        mockEnv()
         val portfolios: Collection<PortfolioInput> =
             arrayListOf(
                 PortfolioInput(

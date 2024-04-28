@@ -49,7 +49,7 @@ class TrnCashFlowTest {
     @MockBean
     private lateinit var fxClientService: FxRateService
 
-    @Autowired
+    @MockBean
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
@@ -80,7 +80,7 @@ class TrnCashFlowTest {
             )
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
-        Mockito.`when`(fxClientService.getRates(any()))
+        Mockito.`when`(fxClientService.getRates(any(), any()))
             .thenReturn(FxResponse(FxPairResults()))
         nzCashAsset = getCashBalance(Constants.NZD)
         usCashAsset = getCashBalance(Constants.USD)

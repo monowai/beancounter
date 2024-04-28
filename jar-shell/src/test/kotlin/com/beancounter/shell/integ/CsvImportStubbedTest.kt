@@ -6,8 +6,10 @@ import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.shell.commands.IngestionCommand
 import com.beancounter.shell.config.IngestionConfig
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -31,6 +33,11 @@ class CsvImportStubbedTest {
 
     @MockBean
     private lateinit var tokenService: TokenService
+
+    @BeforeEach
+    fun stubToken() {
+        Mockito.`when`(tokenService.bearerToken).thenReturn("token")
+    }
 
     @Test
     fun is_CsvCommandFlowWorking() {

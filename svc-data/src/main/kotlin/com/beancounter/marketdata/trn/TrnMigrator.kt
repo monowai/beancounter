@@ -39,6 +39,7 @@ class TrnMigrator(private val fxRateService: FxRateService) {
                     trn.tradeDate.toString(),
                     rateList,
                 ),
+                "token",
             )
         trn.tradeBaseRate = rates.data.rates[tradeBase]!!.rate
         trn.tradePortfolioRate = rates.data.rates[tradePortfolio]!!.rate

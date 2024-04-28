@@ -27,7 +27,9 @@ import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -55,6 +57,11 @@ class FxTransactionsTest {
 
     @MockBean
     lateinit var tokenService: TokenService
+
+    @BeforeEach
+    fun noOpToken() {
+        Mockito.`when`(tokenService.bearerToken).thenReturn("")
+    }
 
     @Test
     fun balanceTransaction() {

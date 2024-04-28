@@ -1,5 +1,6 @@
 package com.beancounter.client.ingest
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxRequest
@@ -18,6 +19,7 @@ import java.math.BigDecimal
 @Service
 class FxTransactions(
     private val fxClientService: FxService,
+    private val tokenService: TokenService,
 ) {
     private val numberUtils = NumberUtils()
 
@@ -107,12 +109,8 @@ class FxTransactions(
     ) {
         if (needsRates(trnInput)) {
             val fxRequest = getFxRequest(portfolio, trnInput)
-            val (data) = fxClientService.getRates(fxRequest)
+            val (data) = fxClientService.getRates(fxRequest, tokenService.bearerToken)
             setRates(data, fxRequest, trnInput)
         }
     }
-
-//    companion object {
-//        private val log = LoggerFactory.getLogger(FxTransactions::class.java)
-//    }
 }

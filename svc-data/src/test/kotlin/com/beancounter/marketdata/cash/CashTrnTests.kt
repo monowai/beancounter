@@ -57,7 +57,7 @@ class CashTrnTests {
     @MockBean
     private lateinit var fxClientService: FxRateService
 
-    @Autowired
+    @MockBean
     private lateinit var fxTransactions: FxTransactions
 
     @Autowired
@@ -85,7 +85,7 @@ class CashTrnTests {
         bcMvcHelper.registerUser()
         assertThat(figiProxy).isNotNull
         enrichmentFactory.register(DefaultEnricher())
-        Mockito.`when`(fxClientService.getRates(any()))
+        Mockito.`when`(fxClientService.getRates(any(), any()))
             .thenReturn(FxResponse(FxPairResults()))
     }
 

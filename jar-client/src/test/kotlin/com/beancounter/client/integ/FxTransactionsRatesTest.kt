@@ -80,6 +80,7 @@ class FxTransactionsRatesTest {
                 ),
             )
 
+        Mockito.`when`(tokenService.bearerToken).thenReturn("")
         fxTransactions.setRates(portfolio, trnInput)
         assertThat(trnInput)
             .hasFieldOrPropertyWithValue("tradeCurrency", USD.code)

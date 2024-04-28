@@ -1,5 +1,6 @@
 package com.contracts.data
 
+import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.fx.EcbMockUtils
@@ -42,6 +43,9 @@ import java.math.BigDecimal
 class FxBase : ContractVerifierBase() {
     @MockBean
     private lateinit var fxGateway: FxGateway
+
+    @MockBean
+    private lateinit var fxTransactions: FxTransactions
 
     @Autowired
     private lateinit var dateUtils: DateUtils

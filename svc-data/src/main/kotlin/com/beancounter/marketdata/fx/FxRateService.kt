@@ -24,7 +24,10 @@ class FxRateService
     @Cacheable("fx.rates")
     @Retryable
     @RateLimiter(name = "fxRates")
-    override fun getRates(fxRequest: FxRequest): FxResponse {
+    override fun getRates(
+        fxRequest: FxRequest,
+        token: String,
+    ): FxResponse {
         for ((from, to) in fxRequest.pairs) {
             currencyService.getCode(from)
             currencyService.getCode(to)

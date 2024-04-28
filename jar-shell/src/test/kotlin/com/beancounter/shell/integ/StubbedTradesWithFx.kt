@@ -17,8 +17,10 @@ import com.beancounter.shell.Constants.Companion.GBP
 import com.beancounter.shell.Constants.Companion.NZD
 import com.beancounter.shell.Constants.Companion.USD
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -54,6 +56,11 @@ internal class StubbedTradesWithFx {
 
     @MockBean
     lateinit var tokenService: TokenService
+
+    @BeforeEach
+    fun stubToken() {
+        Mockito.`when`(tokenService.bearerToken).thenReturn("token")
+    }
 
     @Test
     fun fxRatesSetFromCurrencies() {

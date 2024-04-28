@@ -19,11 +19,14 @@ import org.springframework.web.bind.annotation.RequestHeader
 class FxClientService internal constructor(private val fxGateway: FxGateway, private val tokenService: TokenService) :
     FxService {
         @Cacheable("fx-request")
-        override fun getRates(fxRequest: FxRequest): FxResponse {
+        override fun getRates(
+            fxRequest: FxRequest,
+            token: String,
+        ): FxResponse {
             return if (fxRequest.pairs.isEmpty()) {
                 FxResponse(FxPairResults())
             } else {
-                fxGateway.getRates(tokenService.bearerToken, fxRequest)
+                fxGateway.getRates(token, fxRequest)
             }
         }
 

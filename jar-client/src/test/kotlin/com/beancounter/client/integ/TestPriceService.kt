@@ -10,6 +10,7 @@ import com.beancounter.common.model.MarketData.Companion.isDividend
 import com.beancounter.common.model.MarketData.Companion.isSplit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -41,6 +42,7 @@ class TestPriceService {
     @Test
     fun is_MarketDataFoundOnDate() {
         val priceRequest = PriceRequest("2019-10-18", arrayListOf(PriceAsset("NASDAQ", "EBAY", assetId = "EBAY")))
+        Mockito.`when`(tokenService.bearerToken).thenReturn("")
         val response = priceService.getPrices(priceRequest)
 
         assertThat(response).isNotNull

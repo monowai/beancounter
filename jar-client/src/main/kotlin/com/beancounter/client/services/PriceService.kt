@@ -22,8 +22,11 @@ class PriceService
         private val priceGateway: PriceGateway,
         private val tokenService: TokenService,
     ) {
-        fun getPrices(priceRequest: PriceRequest): PriceResponse {
-            return priceGateway.getPrices(tokenService.bearerToken, priceRequest)
+        fun getPrices(
+            priceRequest: PriceRequest,
+            token: String = tokenService.bearerToken,
+        ): PriceResponse {
+            return priceGateway.getPrices(token, priceRequest)
         }
 
         fun getEvents(assetId: String): PriceResponse = priceGateway.getEvents(tokenService.bearerToken, assetId)

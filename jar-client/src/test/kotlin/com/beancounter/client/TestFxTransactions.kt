@@ -1,5 +1,6 @@
 package com.beancounter.client
 
+import com.beancounter.auth.TokenService
 import com.beancounter.client.Constants.Companion.NZD
 import com.beancounter.client.Constants.Companion.USD
 import com.beancounter.client.ingest.FxTransactions
@@ -41,6 +42,7 @@ class TestFxTransactions {
         val fxTransactions =
             FxTransactions(
                 Mockito.mock(FxService::class.java),
+                Mockito.mock(TokenService::class.java),
             )
         fxTransactions.setRates(pairResults, fxRequest, trnInput)
         assertThat(trnInput)
@@ -51,7 +53,11 @@ class TestFxTransactions {
 
     @Test
     fun is_FxPairsWorking() {
-        val fxTransactions = FxTransactions(Mockito.mock(FxService::class.java))
+        val fxTransactions =
+            FxTransactions(
+                Mockito.mock(FxService::class.java),
+                Mockito.mock(TokenService::class.java),
+            )
 
         assertThat(
             fxTransactions.pair(

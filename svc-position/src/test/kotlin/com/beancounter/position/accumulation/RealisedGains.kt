@@ -49,7 +49,7 @@ class RealisedGains {
         accumulateMultipleBuys(positions)
 
         // Calculate and check the cost basis correctness after all BUY transactions
-        val position = positions[bidu] // Assume a getter for the position by asset
+        val position = positions.getOrCreate(bidu) // Assume a getter for the position by asset
         val tradeMoney = position.getMoneyValues(Position.In.TRADE)
         assertCostBasisCorrectness(position, tradeMoney)
 

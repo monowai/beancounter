@@ -41,7 +41,7 @@ class FxBuyBehaviour(val currencyResolver: CurrencyResolver) : AccumulationStrat
         )
 
         if (trn.cashAsset != null) {
-            handleCash(positions[trn.cashAsset!!, trn.tradeDate], trn)
+            handleCash(positions.getOrCreate(trn.cashAsset!!, trn.tradeDate), trn)
         }
 
         return position

@@ -13,9 +13,7 @@ import java.math.BigDecimal
  * Logic to accumulate a dividend transaction event into a position.
  */
 @Service
-class DividendBehaviour : AccumulationStrategy {
-    private val currencyResolver = CurrencyResolver()
-
+class DividendBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver()) : AccumulationStrategy {
     override fun accumulate(
         trn: Trn,
         positions: Positions,

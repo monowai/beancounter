@@ -8,8 +8,16 @@ import org.springframework.stereotype.Service
 import java.util.EnumMap
 
 /**
- * All supported behaviours are can be accessed via this factory. A behaviour is responsible for accumulating a
- * transaction into a position
+ * A factory class that manages the instantiation and retrieval of transaction accumulation strategies.
+ * Each transaction type is associated with a specific strategy that encapsulates the logic for processing
+ * and accumulating transactions into financial positions.
+ *
+ * This class dynamically handles the association between transaction types and their corresponding behaviors,
+ * allowing for flexible insertion of new behaviors without modifying the client code. It supports a range of
+ * transaction types, including buys, sells, deposits, withdrawals, and more, each managed by a specialized
+ * behavior class.
+ *
+ * @throws BusinessException if an unsupported transaction type is requested.
  */
 @Import(
     BuyBehaviour::class,

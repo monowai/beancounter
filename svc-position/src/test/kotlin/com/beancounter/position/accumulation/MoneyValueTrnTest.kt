@@ -12,7 +12,6 @@ import com.beancounter.position.Constants.Companion.fourK
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.ten
 import com.beancounter.position.Constants.Companion.twoK
-import com.beancounter.position.utils.CurrencyResolver
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -35,13 +34,14 @@ internal class MoneyValueTrnTest {
     private lateinit var accumulator: Accumulator
 
     private val tradePortfolioRate = BigDecimal("1.724")
+
     private val dateUtils = DateUtils()
     private val buyBehaviour = BuyBehaviour()
     private val dividendBehaviour = DividendBehaviour()
     private val pPurchases = "purchases"
     private val pCostBasis = "costBasis"
     private val pDividends = "dividends"
-    private val sellBehaviour = SellBehaviour(CurrencyResolver())
+    private val sellBehaviour = SellBehaviour()
     private val splitBehaviour = SplitBehaviour()
 
     /**
@@ -53,7 +53,7 @@ internal class MoneyValueTrnTest {
     @Test
     fun is_ValuedInTrackedCurrencies() {
         val positions = Positions()
-        val position = positions[microsoft]
+        val position = positions.getOrCreate(microsoft)
         buyBehaviour.accumulate(
             buyTrn(),
             positions,

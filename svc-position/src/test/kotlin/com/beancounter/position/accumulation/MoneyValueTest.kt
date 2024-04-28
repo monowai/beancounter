@@ -168,7 +168,7 @@ internal class MoneyValueTest {
             )
         initialBuys.forEach { buy -> accumulator.accumulate(buy, positions) }
 
-        val position = positions[microsoft]
+        val position = positions.getOrCreate(microsoft)
         assertThat(position.quantityValues)
             .hasFieldOrPropertyWithValue(PROP_TOTAL, BigDecimal.TEN)
 
@@ -214,7 +214,7 @@ internal class MoneyValueTest {
     @Test
     fun `Realized gain after reentering a position is correctly calculated`() {
         val positions = Positions(getPortfolio())
-        val intelPosition = positions[intel]
+        val intelPosition = positions.getOrCreate(intel)
         val quantity = BigDecimal(80)
         accumulator.accumulate(
             Trn(

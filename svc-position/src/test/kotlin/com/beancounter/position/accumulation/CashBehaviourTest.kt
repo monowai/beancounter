@@ -72,7 +72,7 @@ internal class CashBehaviourTest {
         val position = accumulator.accumulate(trn, positions)
         assertThat(position).hasFieldOrPropertyWithValue("asset", asset)
         assertThat(positions.positions).hasSize(2)
-        val cashPosition = positions[usdCashBalance]
+        val cashPosition = positions.getOrCreate(usdCashBalance)
         assertThat(cashPosition.quantityValues)
             .hasFieldOrPropertyWithValue("purchased", cashAmount.abs())
         assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))
@@ -121,7 +121,7 @@ internal class CashBehaviourTest {
         val position = accumulator.accumulate(trn, positions)
         assertThat(position).hasFieldOrPropertyWithValue("asset", asset)
         assertThat(positions.positions).hasSize(2)
-        val cashPosition = positions[usdCashBalance]
+        val cashPosition = positions.getOrCreate(usdCashBalance)
         assertThat(cashPosition.quantityValues)
             .hasFieldOrPropertyWithValue(PROP_SOLD, cashAmount)
         assertThat(cashPosition.getMoneyValues(Position.In.TRADE, Currency(usdCashBalance.priceSymbol!!)))

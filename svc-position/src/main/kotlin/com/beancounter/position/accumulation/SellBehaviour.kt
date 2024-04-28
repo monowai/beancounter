@@ -15,9 +15,11 @@ import java.math.BigDecimal
  * Logic to accumulate a sell transaction into a position.
  */
 @Service
-class SellBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver()) : AccumulationStrategy {
-    private val averageCost = AverageCost()
-
+class SellBehaviour(
+    val currencyResolver: CurrencyResolver = CurrencyResolver(),
+    val averageCost: AverageCost = AverageCost(),
+) :
+    AccumulationStrategy {
     override fun accumulate(
         trn: Trn,
         positions: Positions,

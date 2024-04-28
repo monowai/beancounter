@@ -17,10 +17,10 @@ import java.math.BigDecimal
  * Logic to accumulate a buy transaction into a position.
  */
 @Service
-class BuyBehaviour : AccumulationStrategy {
-    private val currencyResolver = CurrencyResolver()
-    private val averageCost = AverageCost()
-
+class BuyBehaviour(
+    val currencyResolver: CurrencyResolver = CurrencyResolver(),
+    val averageCost: AverageCost = AverageCost(),
+) : AccumulationStrategy {
     override fun accumulate(
         trn: Trn,
         positions: Positions,
@@ -44,7 +44,7 @@ class BuyBehaviour : AccumulationStrategy {
             return defaultRate
         }
         if (positions.contains(cashAsset)) {
-            return positions[cashAsset].moneyValues[valueIn]!!.averageCost
+            return positions.getOrCreate(cashAsset).moneyValues[valueIn]!!.averageCost
         }
         return defaultRate
     }

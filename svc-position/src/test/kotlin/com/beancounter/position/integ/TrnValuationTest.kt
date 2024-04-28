@@ -109,7 +109,7 @@ internal class TrnValuationTest {
             .isNotNull
             .hasFieldOrPropertyWithValue(code, portfolio.code)
         assertThat(positionResponse.data.asAt).isEqualTo(date)
-        assertThat(positionResponse.data[getTestAsset(NASDAQ, "AAPL")])
+        assertThat(positionResponse.data.getOrCreate(getTestAsset(NASDAQ, "AAPL")))
             .isNotNull
     }
 

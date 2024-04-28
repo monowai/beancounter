@@ -166,7 +166,7 @@ internal class FxValuationMvcTests {
 
         // We need to have a Quantity in order to get the price, so create a position
         val positions = getValuedPositions(asset)
-        assertThat(positions[asset].getMoneyValues(Position.In.TRADE, asset.market.currency))
+        assertThat(positions.getOrCreate(asset).getMoneyValues(Position.In.TRADE, asset.market.currency))
             .hasFieldOrPropertyWithValue("unrealisedGain", BigDecimal("8000.00"))
             .hasFieldOrPropertyWithValue("priceData.close", BigDecimal("100.00"))
             .hasFieldOrPropertyWithValue("marketValue", BigDecimal("10000.00"))
@@ -177,7 +177,7 @@ internal class FxValuationMvcTests {
     fun is_AssetAndCurrencyHydratedFromValuationRequest() {
         val asset = ebay
         val positions = getValuedPositions(asset)
-        val position = positions[asset]
+        val position = positions.getOrCreate(asset)
         assertThat(position)
             .hasFieldOrProperty("asset")
         assertThat(position.asset.market)

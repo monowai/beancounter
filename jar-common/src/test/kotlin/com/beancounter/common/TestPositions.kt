@@ -64,9 +64,9 @@ internal class TestPositions {
         val nzdAsset = Asset(code = "NZDAsset", market = Market("NZMarket", NZD.code))
         val positions = Positions(PortfolioUtils.getPortfolio("MixedCurrencyTest"))
         assertThat(positions.isMixedCurrencies).isFalse
-        positions.add(positions[usdAsset])
+        positions.add(positions.getOrCreate(usdAsset))
         assertThat(positions.isMixedCurrencies).isFalse
-        positions.add(positions[nzdAsset])
+        positions.add(positions.getOrCreate(nzdAsset))
         assertThat(positions.isMixedCurrencies).isTrue
     }
 
@@ -77,10 +77,10 @@ internal class TestPositions {
         val firstTradeDate = dateUtils.getFormattedDate(expectedDate)
         val secondTradeDate = dateUtils.getFormattedDate("2018-12-02")
         val positions = Positions(PortfolioUtils.getPortfolio("Twee"))
-        var position = positions[asset, firstTradeDate]
+        var position = positions.getOrCreate(asset, firstTradeDate)
         positions.add(position)
         // Calling this should not set the "first" trade date.
-        position = positions[asset, secondTradeDate]
+        position = positions.getOrCreate(asset, secondTradeDate)
         assertThat(position.dateValues)
             .hasFieldOrPropertyWithValue("opened", dateUtils.getFormattedDate(expectedDate))
     }
@@ -89,7 +89,7 @@ internal class TestPositions {
     fun is_GetPositionNonNull() {
         val positions = Positions(PortfolioUtils.getPortfolio())
         val asset = getTestAsset(NYSE, "AnyCode")
-        val position = positions[asset]
+        val position = positions.getOrCreate(asset)
         assertThat(position).isNotNull.hasFieldOrPropertyWithValue("asset", asset)
     }
 

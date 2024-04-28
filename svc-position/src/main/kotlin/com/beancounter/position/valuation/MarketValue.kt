@@ -29,7 +29,7 @@ class MarketValue(private val gains: Gains) {
         if (!positions.contains(asset)) {
             throw BusinessException("Unable to find $asset in the supplied positions")
         }
-        val position = positions[asset]
+        val position = positions.getOrCreate(asset)
         val portfolio = positions.portfolio
         val isCash = asset.market.code == "CASH"
         val trade = position.getMoneyValues(Position.In.TRADE).currency

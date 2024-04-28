@@ -13,10 +13,10 @@ import java.math.BigDecimal
  * Logic to accumulate a split transaction event into a position.
  */
 @Service
-class SplitBehaviour : AccumulationStrategy {
-    private val averageCost = AverageCost()
-    private val currencyResolver = CurrencyResolver()
-
+class SplitBehaviour(
+    val currencyResolver: CurrencyResolver = CurrencyResolver(),
+    val averageCost: AverageCost = AverageCost(),
+) : AccumulationStrategy {
     override fun accumulate(
         trn: Trn,
         positions: Positions,

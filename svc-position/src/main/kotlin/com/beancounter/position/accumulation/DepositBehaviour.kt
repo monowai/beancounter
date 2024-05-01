@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 class DepositBehaviour(val cashAccumulator: CashAccumulator) : AccumulationStrategy {
+    override val supportedType: TrnType
+        get() = TrnType.DEPOSIT
+
     override fun accumulate(
         trn: Trn,
         positions: Positions,

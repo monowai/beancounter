@@ -3,6 +3,7 @@ package com.beancounter.position.accumulation
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.position.utils.CurrencyResolver
@@ -14,6 +15,9 @@ import java.math.BigDecimal
  */
 @Service
 class DividendBehaviour(val currencyResolver: CurrencyResolver = CurrencyResolver()) : AccumulationStrategy {
+    override val supportedType: TrnType
+        get() = TrnType.DIVI
+
     override fun accumulate(
         trn: Trn,
         positions: Positions,

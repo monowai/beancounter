@@ -8,9 +8,7 @@ import java.math.BigDecimal
 /**
  * Calculate the cost of cash
  */
-class CashCost {
-    private val averageCost = AverageCost()
-
+class CashCost(val averageCost: AverageCost = AverageCost()) {
     fun value(
         moneyValues: MoneyValues,
         position: Position,

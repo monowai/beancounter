@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 class WithdrawalBehaviour(val cashAccumulator: CashAccumulator) : AccumulationStrategy {
+    override val supportedType: TrnType
+        get() = TrnType.WITHDRAWAL
+
     override fun accumulate(
         trn: Trn,
         positions: Positions,

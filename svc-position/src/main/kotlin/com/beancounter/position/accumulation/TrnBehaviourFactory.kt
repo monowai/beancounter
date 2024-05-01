@@ -2,7 +2,6 @@ package com.beancounter.position.accumulation
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.TrnType
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
 import java.util.EnumMap
@@ -31,58 +30,19 @@ import java.util.EnumMap
     BalanceBehaviour::class,
 )
 @Service
-class TrnBehaviourFactory {
+class TrnBehaviourFactory(strategies: List<AccumulationStrategy>) {
     private val trnBehaviours: MutableMap<TrnType, AccumulationStrategy> = EnumMap(TrnType::class.java)
 
-    @Autowired(required = false)
-    fun setBuyBehaviour(behaviour: BuyBehaviour) {
-        trnBehaviours[TrnType.BUY] = behaviour
-    }
-
-    @Autowired
-    fun setWithdrawalBehaviour(behaviour: WithdrawalBehaviour) {
-        trnBehaviours[TrnType.WITHDRAWAL] = behaviour
-    }
-
-    @Autowired
-    fun setDepositBehaviour(behaviour: DepositBehaviour) {
-        trnBehaviours[TrnType.DEPOSIT] = behaviour
-    }
-
-    @Autowired(required = false)
-    fun setSellBehaviour(behaviour: SellBehaviour) {
-        trnBehaviours[TrnType.SELL] = behaviour
-    }
-
-    @Autowired(required = false)
-    fun setFxBuyBehaviour(behaviour: FxBuyBehaviour) {
-        trnBehaviours[TrnType.FX_BUY] = behaviour
-    }
-
-    @Autowired(required = false)
-    fun setSplitBehaviour(behaviour: SplitBehaviour) {
-        trnBehaviours[TrnType.SPLIT] = behaviour
-    }
-
-    @Autowired(required = false)
-    fun setDividendBehaviour(behaviour: DividendBehaviour) {
-        trnBehaviours[TrnType.DIVI] = behaviour
-    }
-
-    @Autowired(required = false)
-    fun setBalanceBehaviour(behaviour: BalanceBehaviour) {
-        trnBehaviours[TrnType.BALANCE] = behaviour
-    }
-
-    @Autowired(required = false)
-    fun setAddBehaviour(behaviour: BuyBehaviour) {
-        trnBehaviours[TrnType.ADD] = behaviour
-    }
-
-    operator fun get(trnType: TrnType): AccumulationStrategy {
-        if (!trnBehaviours.containsKey(trnType)) {
-            throw BusinessException("Unsupported TrnType $trnType")
+    init {
+        strategies.forEach { strategy ->
+            trnBehaviours[strategy.supportedType] = strategy
+            // Specifically assign BuyBehaviour to ADD TrnType
+            if (strategy.supportedType == TrnType.BUY) {
+                trnBehaviours[TrnType.ADD] = strategy
+            }
         }
-        return trnBehaviours[trnType]!!
     }
+
+    operator fun get(trnType: TrnType): AccumulationStrategy =
+        trnBehaviours[trnType] ?: throw BusinessException("Unsupported TrnType $trnType")
 }

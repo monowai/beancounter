@@ -4,6 +4,7 @@ import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.position.utils.CurrencyResolver
 import com.beancounter.position.valuation.AverageCost
 import org.springframework.stereotype.Service
@@ -17,6 +18,9 @@ class SplitBehaviour(
     val currencyResolver: CurrencyResolver = CurrencyResolver(),
     val averageCost: AverageCost = AverageCost(),
 ) : AccumulationStrategy {
+    override val supportedType: TrnType
+        get() = TrnType.SPLIT
+
     override fun accumulate(
         trn: Trn,
         positions: Positions,

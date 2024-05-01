@@ -13,6 +13,7 @@ import com.beancounter.common.utils.PercentUtils
 import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.concurrent.CompletableFuture
@@ -58,7 +59,11 @@ class PositionValuationService internal constructor(
         val baseTotals = Totals()
         val refTotals = Totals()
         for (marketData in priceResponse.data) {
-            val position = marketValue.value(positions, marketData, fxResponse.data.rates)
+            var position: Position
+            runBlocking {
+                position = marketValue.value(positions, marketData, fxResponse.data.rates)
+            }
+
             val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
             val refMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, position.asset.market.currency)
 

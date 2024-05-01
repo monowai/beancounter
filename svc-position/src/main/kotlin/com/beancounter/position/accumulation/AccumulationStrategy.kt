@@ -9,6 +9,8 @@ import com.beancounter.common.model.TrnType
  * Implement this class to accumulate the transaction into the position on behalf of the portfolio.
  */
 interface AccumulationStrategy {
+    val supportedType: TrnType
+
     fun accumulate(
         trn: Trn,
         positions: Positions,

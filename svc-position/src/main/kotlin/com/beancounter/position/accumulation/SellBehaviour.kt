@@ -3,6 +3,7 @@ package com.beancounter.position.accumulation
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.MathUtils.Companion.add
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
 import com.beancounter.common.utils.MathUtils.Companion.multiply
@@ -18,8 +19,10 @@ import java.math.BigDecimal
 class SellBehaviour(
     val currencyResolver: CurrencyResolver = CurrencyResolver(),
     val averageCost: AverageCost = AverageCost(),
-) :
-    AccumulationStrategy {
+) : AccumulationStrategy {
+    override val supportedType: TrnType
+        get() = TrnType.SELL
+
     override fun accumulate(
         trn: Trn,
         positions: Positions,

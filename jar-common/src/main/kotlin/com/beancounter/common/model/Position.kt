@@ -10,7 +10,9 @@ import java.util.EnumMap
  * @author mikeh
  * @since 2019-01-28
  */
-data class Position(val asset: Asset) {
+class Position(val asset: Asset, portfolio: Portfolio?) {
+    constructor(asset: Asset) : this(asset, null)
+
     var quantityValues: QuantityValues = QuantityValues()
     var dateValues = DateValues()
     val moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)
@@ -26,7 +28,11 @@ data class Position(val asset: Asset) {
 
     init {
         // Ensure a trade currency object always exists.
-        moneyValues[In.TRADE] = MoneyValues(asset.market.currency)
+        getMoneyValues(In.TRADE, asset.market.currency)
+        if (portfolio != null) {
+            getMoneyValues(In.PORTFOLIO, portfolio.currency)
+            getMoneyValues(In.BASE, portfolio.base)
+        }
     }
 
     /**
@@ -41,12 +47,7 @@ data class Position(val asset: Asset) {
         reportCurrency: In,
         currency: Currency,
     ): MoneyValues {
-        var result = moneyValues[reportCurrency]
-        if (result == null) {
-            result = MoneyValues(currency)
-            moneyValues[reportCurrency] = result
-        }
-        return result
+        return moneyValues.getOrPut(reportCurrency) { MoneyValues(currency) }
     }
 
     @JsonIgnore

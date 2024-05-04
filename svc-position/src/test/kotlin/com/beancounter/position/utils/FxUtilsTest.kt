@@ -30,7 +30,7 @@ internal class FxUtilsTest {
 
     @Test
     fun is_CurrencyPairResultsAsExpected() {
-        val (asset) = Position(getTestAsset(NASDAQ, "Test"))
+        val asset = Position(getTestAsset(NASDAQ, "Test")).asset
         val validCurrency = asset.market.currency
         assertThat(toPair(NZD, validCurrency))
             .isNotNull // From != To

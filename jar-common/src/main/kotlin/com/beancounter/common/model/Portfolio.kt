@@ -16,7 +16,7 @@ import jakarta.persistence.UniqueConstraint
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["code", "owner_id"])])
 data class Portfolio(
     @Id val id: String,
-    val code: String,
+    val code: String = id,
     val name: String = code,
     @ManyToOne val currency: Currency,
     @ManyToOne val base: Currency,

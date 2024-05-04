@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException
  * various currencies.
  */
 @Service
-class PositionValuationService internal constructor(
+class PositionValuationService(
     private val marketValue: MarketValue,
     private val fxUtils: FxUtils,
     private val priceService: PriceService,

@@ -67,17 +67,14 @@ class MarketValue(private val gains: Gains) {
         if (total.signum() == 0) {
             moneyValues.marketValue = BigDecimal.ZERO
         } else {
-            val close: BigDecimal
-            if (moneyValues.priceData!!.close != null) {
-                close = moneyValues.priceData!!.close!!
-                moneyValues.marketValue =
-                    Objects.requireNonNull(
-                        multiply(close, total),
-                    )!!
+            val close = moneyValues.priceData.close
+            moneyValues.marketValue =
+                Objects.requireNonNull(
+                    multiply(close, total),
+                )!!
 
-                if (moneyValues.priceData!!.previousClose != null && !isCash) {
-                    moneyValues.gainOnDay = (close.subtract(moneyValues.priceData!!.previousClose)).multiply(total)
-                }
+            if (!isCash) {
+                moneyValues.gainOnDay = (close.subtract(moneyValues.priceData.previousClose)).multiply(total)
             }
         }
         if (isCash) {

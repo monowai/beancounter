@@ -30,26 +30,26 @@ data class MarketData(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var priceDate: LocalDate? = null,
+    var priceDate: LocalDate = LocalDate.now(),
     @Column(precision = 15, scale = 6)
     var close: BigDecimal = BigDecimal.ZERO,
     @Column(precision = 15, scale = 6)
-    var open: BigDecimal? = null,
+    var open: BigDecimal = BigDecimal.ZERO,
     @Column(precision = 15, scale = 6)
-    var previousClose: BigDecimal? = null,
+    var previousClose: BigDecimal = BigDecimal.ZERO,
 ) {
     constructor(
         asset: Asset,
         source: String,
-        priceDate: LocalDate?,
-        open: BigDecimal?,
+        priceDate: LocalDate = LocalDate.now(),
+        open: BigDecimal = BigDecimal.ZERO,
         close: BigDecimal = BigDecimal.ZERO,
-        low: BigDecimal?,
-        high: BigDecimal?,
-        previousClose: BigDecimal?,
-        change: BigDecimal?,
-        changePercent: BigDecimal?,
-        volume: Int?,
+        low: BigDecimal = BigDecimal.ZERO,
+        high: BigDecimal = BigDecimal.ZERO,
+        previousClose: BigDecimal = BigDecimal.ZERO,
+        change: BigDecimal = BigDecimal.ZERO,
+        changePercent: BigDecimal = BigDecimal.ZERO,
+        volume: Int = 0,
         dividend: BigDecimal = BigDecimal.ZERO,
         split: BigDecimal = BigDecimal.ONE,
     ) : this(asset, priceDate, close, open) {
@@ -76,17 +76,17 @@ data class MarketData(
     var source: String = "ALPHA"
 
     @Column(precision = 15, scale = 6)
-    var low: BigDecimal? = null
+    var low: BigDecimal = BigDecimal.ZERO
 
     @Column(precision = 15, scale = 6)
-    var high: BigDecimal? = null
+    var high: BigDecimal = BigDecimal.ZERO
 
     @Column(precision = 7, scale = 4)
-    var change: BigDecimal? = null
+    var change: BigDecimal = BigDecimal.ZERO
 
     @Column(precision = 7, scale = 4)
-    var changePercent: BigDecimal? = null
-    var volume: Int? = null
+    var changePercent: BigDecimal = BigDecimal.ZERO
+    var volume: Int = 0
 
     @Column(precision = 7, scale = 4)
     var dividend: BigDecimal = BigDecimal.ZERO

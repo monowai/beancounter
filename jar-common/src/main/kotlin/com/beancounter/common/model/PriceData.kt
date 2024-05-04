@@ -20,15 +20,15 @@ data class PriceData(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     @JsonSerialize(using = LocalDateSerializer::class)
     @JsonDeserialize(using = LocalDateDeserializer::class)
-    var priceDate: LocalDate?,
-    var open: BigDecimal?,
-    var close: BigDecimal?,
-    var low: BigDecimal?,
-    var high: BigDecimal?,
-    var previousClose: BigDecimal?,
-    var change: BigDecimal?,
-    var changePercent: BigDecimal?,
-    var volume: Int?,
+    var priceDate: LocalDate = LocalDate.now(),
+    var open: BigDecimal = BigDecimal.ZERO,
+    var close: BigDecimal = BigDecimal.ZERO,
+    var low: BigDecimal = BigDecimal.ZERO,
+    var high: BigDecimal = BigDecimal.ZERO,
+    var previousClose: BigDecimal = BigDecimal.ZERO,
+    var change: BigDecimal = BigDecimal.ZERO,
+    var changePercent: BigDecimal = BigDecimal.ZERO,
+    var volume: Int = 0,
 ) {
     companion object {
         fun of(marketData: MarketData): PriceData {
@@ -37,7 +37,7 @@ data class PriceData(
 
         fun of(
             mktData: MarketData,
-            rate: BigDecimal?,
+            rate: BigDecimal,
         ): PriceData {
             val result =
                 PriceData(
@@ -61,7 +61,7 @@ data class PriceData(
                     BigDecimal("1.00")
                         .subtract(percentUtils.percent(result.previousClose, result.close, 4))
                 result.changePercent = change
-                result.change = result.close!!.subtract(result.previousClose)
+                result.change = result.close.subtract(result.previousClose)
             }
             return result
         }

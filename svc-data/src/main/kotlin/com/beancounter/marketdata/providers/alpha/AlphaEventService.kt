@@ -31,12 +31,7 @@ class AlphaEventService(val alphaGateway: AlphaGateway, val alphaConfig: AlphaCo
         val priceResponse: PriceResponse =
             alphaConfig.getObjectMapper()
                 .readValue(json, PriceResponse::class.java)
-        val events = ArrayList<MarketData>()
-        for (marketData in priceResponse.data) {
-            if (inFilter(marketData)) {
-                events.add(marketData)
-            }
-        }
+        val events = priceResponse.data.filter(this::inFilter)
         return PriceResponse(events)
     }
 

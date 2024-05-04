@@ -4,6 +4,7 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.position.Constants
+import com.beancounter.position.Constants.Companion.PROP_COST_BASIS
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.StubbedTest
 import com.beancounter.position.service.PositionService
@@ -15,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.web.context.WebApplicationContext
 import java.math.BigDecimal
-
-private const val P_COST_BASIS = "costBasis"
 
 /**
  * Verify assumptions around how Real estate transactions behave.
@@ -57,22 +56,30 @@ class RealEstateTest {
     @Test
     fun runTest() {
         val results = valuationService.build(portfolio, date)
-        assertThat(results.data).isNotNull
-        assertThat(results.data.positions).hasSize(3)
-        for (position in results.data.positions) {
-            when (position.key) {
-                "MORTGAGE 1:CASH" -> {
-                    assertThat(position.value.moneyValues[Position.In.TRADE])
-                        .hasFieldOrPropertyWithValue(P_COST_BASIS, BigDecimal("-10000.00"))
-                }
-                "MORTGAGE 2:CASH" -> {
-                    assertThat(position.value.moneyValues[Position.In.TRADE])
-                        .hasFieldOrPropertyWithValue(P_COST_BASIS, BigDecimal("-10000.00"))
-                }
-                "USD.RE:PRIVATE" -> {
-                    assertThat(position.value.moneyValues[Position.In.TRADE])
-                        .hasFieldOrPropertyWithValue(P_COST_BASIS, BigDecimal("10000.00"))
-                }
+
+        // Assert: Check overall results data integrity
+        assertThat(results.data)
+            .describedAs("Results data should not be null")
+            .isNotNull
+
+        // Assert: Validate the size of the positions
+        assertThat(results.data.positions)
+            .describedAs("Should have exactly 3 positions")
+            .hasSize(3)
+
+        val expectedCost = BigDecimal("-10000.00")
+        val expectedCosts =
+            mapOf(
+                "MORTGAGE 1:CASH" to expectedCost,
+                "MORTGAGE 2:CASH" to expectedCost,
+                "USD.RE:PRIVATE" to expectedCost.abs(),
+            )
+
+        results.data.positions.forEach { position ->
+            expectedCosts[position.key]?.let { expectedCostValue ->
+                assertThat(position.value.moneyValues[Position.In.TRADE])
+                    .describedAs("Cost basis for ${position.key} should be correct")
+                    .hasFieldOrPropertyWithValue(PROP_COST_BASIS, expectedCostValue)
             }
         }
     }

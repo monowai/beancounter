@@ -74,7 +74,7 @@ class TestPriceData {
         val marketData = MarketData(asset)
         val change = "1.01"
         marketData.changePercent = BigDecimal(change)
-        marketData.previousClose = null
+        marketData.previousClose = one
         marketData.change = one
         marketData.open = two
         marketData.close = two

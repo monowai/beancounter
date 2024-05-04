@@ -24,6 +24,11 @@ data class Position(val asset: Asset) {
         BASE,
     }
 
+    init {
+        // Ensure a trade currency object always exists.
+        moneyValues[In.TRADE] = MoneyValues(asset.market.currency)
+    }
+
     /**
      * MoneyValues are tracked in various currencies.
      *

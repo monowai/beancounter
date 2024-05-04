@@ -13,6 +13,7 @@ import com.beancounter.common.utils.PercentUtils
 import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
+import com.beancounter.position.valuation.RoiCalculator
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -34,6 +35,7 @@ class PositionValuationService internal constructor(
     private val tokenService: TokenService,
 ) {
     val percentUtils = PercentUtils()
+    val roiCalculator = RoiCalculator()
 
     fun value(
         positions: Positions,
@@ -77,6 +79,11 @@ class PositionValuationService internal constructor(
 
         // Iterate through each position only once and update weights accordingly
         for (position in positions.positions.values) {
+            // Calculate and set the weight for trade currency
+            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
+            tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.total)
+            tradeMoneyValues.roi = roiCalculator.calculateROI(tradeMoneyValues)
+
             // Calculate and set the weight for base currency
             val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
             baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.total)
@@ -84,10 +91,6 @@ class PositionValuationService internal constructor(
             // Calculate and set the weight for portfolio currency
             val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
             portfolioMoneyValues.weight = percentUtils.percent(portfolioMoneyValues.marketValue, refTotals.total)
-
-            // Calculate and set the weight for trade currency
-            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
-            tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.total)
         }
 
         log.debug(

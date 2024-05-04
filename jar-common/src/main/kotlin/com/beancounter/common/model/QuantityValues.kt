@@ -9,9 +9,10 @@ import java.math.BigDecimal
  * @author mikeh
  * @since 2019-01-28
  */
-class QuantityValues {
-    var sold: BigDecimal = BigDecimal.ZERO
-    var purchased: BigDecimal = BigDecimal.ZERO
+class QuantityValues(
+    var sold: BigDecimal = BigDecimal.ZERO,
+    var purchased: BigDecimal = BigDecimal.ZERO,
+) {
     var adjustment: BigDecimal = BigDecimal.ZERO
     private var precision: Int? = null
 

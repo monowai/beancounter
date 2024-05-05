@@ -82,15 +82,18 @@ class PositionValuationService(
             // Calculate and set the weight for trade currency
             val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
             tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.total)
-            tradeMoneyValues.roi = roiCalculator.calculateROI(tradeMoneyValues)
+            val roi = roiCalculator.calculateROI(tradeMoneyValues)
+            tradeMoneyValues.roi = roi
 
             // Calculate and set the weight for base currency
             val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
             baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.total)
+            baseMoneyValues.roi = roi
 
             // Calculate and set the weight for portfolio currency
             val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
             portfolioMoneyValues.weight = percentUtils.percent(portfolioMoneyValues.marketValue, refTotals.total)
+            portfolioMoneyValues.roi = roi
         }
 
         log.debug(

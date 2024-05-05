@@ -33,6 +33,6 @@ class RoiCalculator {
             return BigDecimal.ZERO
         }
         return moneyValues.marketValue.subtract(moneyValues.costValue).add(moneyValues.dividends)
-            .divide(moneyValues.costValue, 8, RoundingMode.HALF_UP)
+            .divide(moneyValues.costValue, 6, RoundingMode.HALF_UP)
     }
 }

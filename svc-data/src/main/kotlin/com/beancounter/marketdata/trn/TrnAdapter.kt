@@ -31,13 +31,10 @@ class TrnAdapter(
     fun convert(
         portfolio: Portfolio,
         trnRequest: TrnRequest,
-    ): List<Trn> {
-        val trns = ArrayList<Trn>()
-        for (trnInput in trnRequest.data) {
-            trns.add(map(portfolio = portfolio, trnInput = trnInput))
+    ): List<Trn> =
+        trnRequest.data.map { trnInput ->
+            map(portfolio = portfolio, trnInput = trnInput)
         }
-        return trns
-    }
 
     fun map(
         portfolio: Portfolio,

@@ -105,7 +105,7 @@ class FxTransactions(
     ) {
         if (needsRates(trnInput)) {
             val fxRequest = getFxRequest(portfolio, trnInput)
-            val (data) = fxClientService.getRates(fxRequest, tokenService.bearerToken)
+            val (data) = fxClientService.getRates(fxRequest)
             setRates(data, fxRequest, trnInput)
         }
     }

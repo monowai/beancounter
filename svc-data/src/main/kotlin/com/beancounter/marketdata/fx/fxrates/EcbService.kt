@@ -4,6 +4,7 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 /**
@@ -19,6 +20,7 @@ class EcbService
     ) {
         private val ecbDate = EcbDate(dateUtils)
 
+        @Cacheable("fx.rates")
         fun getRates(asAt: String): Collection<FxRate> {
             val ecbRates =
                 fxGateway.getRatesForSymbols(

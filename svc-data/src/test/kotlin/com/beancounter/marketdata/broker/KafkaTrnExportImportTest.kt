@@ -35,7 +35,7 @@ import com.beancounter.marketdata.providers.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceWriter
 import com.beancounter.marketdata.registration.SystemUserService
-import com.beancounter.marketdata.trn.TrnImport
+import com.beancounter.marketdata.trn.TrnImportService
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.trn.cash.CashServices
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -100,7 +100,7 @@ class KafkaTrnExportImportTest {
     lateinit var systemUserService: SystemUserService
 
     @Autowired
-    lateinit var trnImport: TrnImport
+    lateinit var trnImportService: TrnImportService
 
     @Autowired
     lateinit var trnService: TrnService
@@ -293,7 +293,7 @@ class KafkaTrnExportImportTest {
             val received =
                 objectMapper
                     .readValue<TrustedTrnImportRequest>(consumerRecord.value())
-            val trnResponse = trnImport.fromCsvImport(received)
+            val trnResponse = trnImportService.fromCsvImport(received)
             assertThat(trnResponse).isNotNull
             assertThat(trnResponse)
                 .isNotNull

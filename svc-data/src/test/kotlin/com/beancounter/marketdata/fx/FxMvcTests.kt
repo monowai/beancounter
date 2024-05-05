@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NZD
@@ -78,7 +78,7 @@ internal class FxMvcTests {
     private fun getResults(fxRequest: FxRequest): FxPairResults {
         val mvcResult = fxPost(fxRequest)
         val (results) =
-            BcJson().objectMapper
+            objectMapper
                 .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
         assertThat(results.rates)
             .isNotNull
@@ -112,7 +112,7 @@ internal class FxMvcTests {
             )
         val mvcResult = fxPost(fxRequest)
         val (results) =
-            BcJson().objectMapper
+            objectMapper
                 .readValue(mvcResult.response.contentAsString, FxResponse::class.java)
         assertThat(results.rates)
             .isNotNull
@@ -146,7 +146,7 @@ internal class FxMvcTests {
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(
-                BcJson().objectMapper.writeValueAsString(fxRequest),
+                objectMapper.writeValueAsString(fxRequest),
             ),
     ).andExpect(expectedResult)
         .andExpect(MockMvcResultMatchers.content().contentType(mediaType))

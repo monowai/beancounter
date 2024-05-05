@@ -6,7 +6,8 @@ import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -118,9 +119,8 @@ class LoginServiceTest {
         val systemUser = SystemUser()
         val token = authUtilService.authenticate(systemUser)
         val response =
-            BcJson().objectMapper.readValue(
+            objectMapper.readValue<OpenIdResponse>(
                 ClassPathResource("user-token-response.json").file,
-                OpenIdResponse::class.java,
             )
 
         Mockito.`when`(mockAuthConfig.jwtDecoder.decode(systemUser.email))

@@ -4,7 +4,8 @@ import com.beancounter.common.contracts.EventRequest
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -13,10 +14,7 @@ import java.math.BigDecimal
  * Corporate Action Event pojo tests
  */
 class TestEvent {
-    private val objectMapper = BcJson().objectMapper
-
     @Test
-    @Throws(Exception::class)
     fun is_EventSerializingLocalDate() {
         val recordDateString = "2020-05-20"
 
@@ -31,9 +29,8 @@ class TestEvent {
     "recordDate": "$recordDateString"
   }"""
         val (_, _, _, _, recordDate, _, _, payDate) =
-            objectMapper.readValue(
+            objectMapper.readValue<CorporateEvent>(
                 eventJson,
-                CorporateEvent::class.java,
             )
         assertThat(recordDate).isEqualTo(recordDateString)
         assertThat(payDate).isEqualTo(recordDateString)
@@ -51,7 +48,7 @@ class TestEvent {
             )
         val eventRequest = EventRequest(event)
         val json = objectMapper.writeValueAsBytes(eventRequest)
-        val fromJson = objectMapper.readValue(json, EventRequest::class.java)
+        val fromJson = objectMapper.readValue<EventRequest>(json)
         assertThat(fromJson.data)
             .usingRecursiveComparison().ignoringFields("id")
     }

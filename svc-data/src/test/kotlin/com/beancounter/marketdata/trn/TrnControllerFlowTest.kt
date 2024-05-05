@@ -13,6 +13,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.AAPL
@@ -30,7 +31,6 @@ import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRADE_DATE
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.TRNS_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.URI_TRN_FOR_PORTFOLIO
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

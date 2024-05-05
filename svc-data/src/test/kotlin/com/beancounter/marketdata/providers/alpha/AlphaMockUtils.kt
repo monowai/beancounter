@@ -1,8 +1,7 @@
 package com.beancounter.marketdata.providers.alpha
 
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants.Companion.MSFT
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.springframework.core.io.ClassPathResource
@@ -19,7 +18,6 @@ import java.io.IOException
  */
 object AlphaMockUtils {
     const val ALPHA_MOCK = "mock/alpha"
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
     const val URL_ASSETS_MARKET_CODE = "/assets/{market}/{code}"
 
     @JvmStatic

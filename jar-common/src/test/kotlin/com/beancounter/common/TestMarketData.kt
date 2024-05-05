@@ -7,7 +7,9 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.AssertionsForClassTypes
 import org.junit.jupiter.api.Test
@@ -38,8 +40,8 @@ internal class TestMarketData {
         marketDataCollection.add(marketData)
         val priceResponse = PriceResponse(marketDataCollection)
         val (data) =
-            bcJson.objectMapper.readValue(
-                bcJson.objectMapper.writeValueAsString(priceResponse),
+            objectMapper.readValue(
+                objectMapper.writeValueAsString(priceResponse),
                 PriceResponse::class.java,
             )
         assertThat(data).isNotNull
@@ -56,8 +58,8 @@ internal class TestMarketData {
             .hasFieldOrPropertyWithValue("purchased", BigDecimal.ZERO)
             .hasFieldOrPropertyWithValue("adjustment", BigDecimal.ZERO)
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
-        val json = bcJson.objectMapper.writeValueAsString(quantityValues)
-        assertThat(bcJson.objectMapper.readValue(json, QuantityValues::class.java))
+        val json = objectMapper.writeValueAsString(quantityValues)
+        assertThat(objectMapper.readValue<QuantityValues>(json))
             .usingRecursiveComparison().isEqualTo(quantityValues)
     }
 
@@ -70,8 +72,8 @@ internal class TestMarketData {
                     PriceAsset("XYZ", "ABC", assetId = "ABC"),
                 ),
             )
-        val json = bcJson.objectMapper.writeValueAsString(priceRequest)
-        val (_, assets) = bcJson.objectMapper.readValue(json, PriceRequest::class.java)
+        val json = objectMapper.writeValueAsString(priceRequest)
+        val (_, assets) = objectMapper.readValue<PriceRequest>(json)
         assertThat(assets.iterator().next())
             .usingRecursiveComparison().isEqualTo(
                 priceRequest.assets.iterator().next(),

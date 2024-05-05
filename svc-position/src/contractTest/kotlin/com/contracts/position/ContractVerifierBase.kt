@@ -7,12 +7,11 @@ import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants
 import com.beancounter.position.PositionBoot
 import com.beancounter.position.valuation.Valuation
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.`when`
@@ -35,7 +34,6 @@ private const val BEARER_TOKEN = "no-token"
 @AutoConfigureNoAuth
 class ContractVerifierBase {
     private val dateUtils = DateUtils()
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @MockBean
     private lateinit var valuationService: Valuation

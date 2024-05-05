@@ -1,6 +1,6 @@
 package com.beancounter.auth
 
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
@@ -31,8 +31,8 @@ class WiremockAuth {
                         WireMock.aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(
-                                BcJson().objectMapper.writeValueAsString(
-                                    BcJson().objectMapper.readValue(
+                                objectMapper.writeValueAsString(
+                                    objectMapper.readValue(
                                         ClassPathResource(token)
                                             .file,
                                         HashMap::class.java,
@@ -49,7 +49,7 @@ class WiremockAuth {
                         WireMock.aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(
-                                BcJson().objectMapper.writeValueAsString(
+                                objectMapper.writeValueAsString(
                                     remapLocalhostForWiremock(authConfig),
                                 ),
                             )
@@ -62,8 +62,8 @@ class WiremockAuth {
                         WireMock.aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(
-                                BcJson().objectMapper.writeValueAsString(
-                                    BcJson().objectMapper.readValue(
+                                objectMapper.writeValueAsString(
+                                    objectMapper.readValue(
                                         ClassPathResource("./auth0-jwks.json")
                                             .file,
                                         HashMap::class.java,
@@ -83,7 +83,7 @@ class WiremockAuth {
             // This is to support mocking via WireMock.
             val localTemplate = "{localhost}"
             val configuration =
-                BcJson().objectMapper.readValue(
+                objectMapper.readValue(
                     ClassPathResource(file)
                         .file,
                     HashMap::class.java,

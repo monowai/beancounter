@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.utils
 
 import com.beancounter.common.contracts.RegistrationRequest
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -13,8 +13,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
  * Create a user.
  */
 object RegistrationUtils {
-    var objectMapper = BcJson().objectMapper
-
     @JvmStatic
     fun registerUser(
         mockMvc: MockMvc,

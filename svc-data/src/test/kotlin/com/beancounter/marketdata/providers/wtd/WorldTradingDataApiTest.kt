@@ -4,7 +4,7 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.Constants.Companion.AMP
@@ -12,7 +12,6 @@ import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.providers.wtd.WtdConfigTest.Companion.CONTRACTS
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.assertj.core.api.Assertions.assertThat
@@ -175,8 +174,6 @@ internal class WorldTradingDataApiTest {
     }
 
     companion object {
-        private val objectMapper: ObjectMapper = BcJson().objectMapper
-
         @JvmStatic
         operator fun get(
             date: String,

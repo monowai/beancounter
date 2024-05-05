@@ -12,7 +12,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,8 +21,6 @@ import org.junit.jupiter.api.Test
  * Payload serialization tests involving asset contracts
  */
 class AssetSerialization {
-    val objectMapper = BcJson().objectMapper
-
     @Test
     @Throws(Exception::class)
     fun assetUpdateResponseSerializes() {

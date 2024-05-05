@@ -9,7 +9,7 @@ import com.beancounter.client.sharesight.ShareSightFactory
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.MOCK
 import com.beancounter.shell.integ.TrnCsvKafka.Companion.TOPIC
@@ -69,7 +69,6 @@ class TrnCsvKafka {
     @MockBean
     private lateinit var shareSightFactory: ShareSightFactory
     private lateinit var consumer: Consumer<String, String>
-    private val objectMapper = BcJson().objectMapper
 
     @BeforeEach
     fun mockBeans() {

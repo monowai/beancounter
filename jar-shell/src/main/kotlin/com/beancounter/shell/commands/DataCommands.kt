@@ -3,7 +3,7 @@ package com.beancounter.shell.commands
 import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.writer
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
@@ -24,9 +24,9 @@ class DataCommands internal constructor(private val staticService: StaticService
                 )
             val markets: MutableCollection<Market> = ArrayList()
             markets.add(market)
-            return BcJson().objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(MarketResponse(markets))
+            return writer.writeValueAsString(MarketResponse(markets))
         } else {
-            BcJson().objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(staticService.getMarkets())
+            writer.writeValueAsString(staticService.getMarkets())
         }
     }
 }

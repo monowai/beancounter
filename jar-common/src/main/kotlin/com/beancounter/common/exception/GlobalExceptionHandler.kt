@@ -35,7 +35,7 @@ class GlobalExceptionHandler {
         e: Throwable,
     ): ProblemDetail =
         ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.message ?: "Unexpected issue")
-            .also { log.error(e.message) }
+            .also { log.error(e.message, e) }
 
     private val errorMessage = "We are unable to process your request."
 

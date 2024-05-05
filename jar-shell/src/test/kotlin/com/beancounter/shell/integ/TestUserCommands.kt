@@ -12,7 +12,7 @@ import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.shell.commands.UserCommands
 import com.beancounter.shell.config.ShellConfig
 import org.assertj.core.api.Assertions.assertThat
@@ -32,8 +32,6 @@ private const val EMAIL = "blah@blah.com"
  */
 @SpringBootTest(classes = [ShellConfig::class, MockAuthConfig::class])
 class TestUserCommands {
-    private val bcJson = BcJson()
-
     @Autowired
     private lateinit var authConfig: AuthConfig
 
@@ -96,7 +94,7 @@ class TestUserCommands {
         // Is my token in the SecurityContext and am I Me?
         Mockito.`when`(registrationGateway.me(tokenService.bearerToken))
             .thenReturn(RegistrationResponse(systemUser))
-        val me = bcJson.objectMapper.readValue(userCommands.me(), SystemUser::class.java)
+        val me = objectMapper.readValue(userCommands.me(), SystemUser::class.java)
         assertThat(me).isNotNull.hasFieldOrPropertyWithValue("id", systemUser.id)
         assertThat(userCommands.token()).isEqualTo(tokenService.bearerToken)
         Mockito.`when`(
@@ -108,7 +106,7 @@ class TestUserCommands {
 
         val registrationResponse = userCommands.register()
         val registered =
-            bcJson.objectMapper
+            objectMapper
                 .readValue(registrationResponse, SystemUser::class.java)
         assertThat(registered)
             .isNotNull

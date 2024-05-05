@@ -5,7 +5,7 @@ import com.beancounter.common.Constants.Companion.TEST_UR
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.exception.SystemException
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -23,7 +23,6 @@ internal class ExceptionMessagesTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_SpringErrorSerializable() {
         val springExceptionMessage =
             SpringExceptionMessage(
@@ -31,9 +30,8 @@ internal class ExceptionMessagesTest {
                 message = "Message",
                 path = TEST_UR,
             )
-        val mapper = BcJson().objectMapper
-        val json = mapper.writeValueAsString(springExceptionMessage)
-        val fromJson = mapper.readValue(json, SpringExceptionMessage::class.java)
+        val json = objectMapper.writeValueAsString(springExceptionMessage)
+        val fromJson = objectMapper.readValue(json, SpringExceptionMessage::class.java)
         assertThat(fromJson)
             .hasNoNullFieldsOrProperties()
             .usingRecursiveComparison()

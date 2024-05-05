@@ -4,6 +4,7 @@ import com.beancounter.auth.model.LoginRequest
 import com.beancounter.client.services.RegistrationService
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.writer
 import org.jline.reader.LineReader
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -45,12 +46,12 @@ class UserCommands(
 
     @ShellMethod("Who am I?")
     fun me(): String {
-        return bcJson.writer.writeValueAsString(registrationService.me())
+        return writer.writeValueAsString(registrationService.me())
     }
 
     @ShellMethod("Register your Account")
     fun register(): String {
-        return bcJson.writer.writeValueAsString(
+        return writer.writeValueAsString(
             registrationService
                 .register(RegistrationRequest()),
         )

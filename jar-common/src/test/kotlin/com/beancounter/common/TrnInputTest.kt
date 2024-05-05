@@ -17,7 +17,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions.assertThat
@@ -30,8 +30,6 @@ import java.util.Locale
  * Trn Data tests.
  */
 internal class TrnInputTest {
-    private val objectMapper = BcJson().objectMapper
-
     private val abc = "ABC"
 
     @Test

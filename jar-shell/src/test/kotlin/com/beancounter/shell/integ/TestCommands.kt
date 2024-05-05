@@ -6,7 +6,7 @@ import com.beancounter.client.sharesight.ShareSightConfig
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.shell.commands.DataCommands
 import com.beancounter.shell.commands.EnvCommands
 import com.beancounter.shell.commands.PortfolioCommands
@@ -49,7 +49,6 @@ class TestCommands {
 
     @Autowired
     private lateinit var promptProvider: PromptProvider
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @BeforeEach
     fun mockLogin() {

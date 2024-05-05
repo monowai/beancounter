@@ -1,6 +1,6 @@
 package com.beancounter.marketdata.providers.figi
 
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.fasterxml.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions
@@ -12,10 +12,9 @@ import org.springframework.core.io.ClassPathResource
  */
 class FigiSerializationTest {
     @Test
-    @Throws(Exception::class)
     fun figiResponseSerializable() {
         val responses: Collection<FigiResponse> =
-            BcJson().objectMapper.readValue(
+            objectMapper.readValue(
                 ClassPathResource("/mock/figi/multi-asset-response.json").file,
                 object : TypeReference<Collection<FigiResponse>>() {},
             )

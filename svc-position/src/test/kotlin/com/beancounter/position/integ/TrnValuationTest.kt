@@ -6,7 +6,7 @@ import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.KMI
@@ -15,7 +15,6 @@ import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.StubbedTest
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,8 +38,6 @@ internal class TrnValuationTest {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
-
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     private val test = Constants.TEST
 

@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.CurrencyResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.IsoCurrencyPair.Companion.toPair
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -12,11 +12,7 @@ import org.junit.jupiter.api.Test
  * Simple currency behaviour assertions.
  */
 internal class TestCurrency {
-    private val bcJson = BcJson()
-    private val objectMapper = bcJson.objectMapper
-
     @Test
-    @Throws(Exception::class)
     fun is_CurrencySerializing() {
         val currency = Currency("SomeCode", "Some Name", "$")
         assertThat(currency).isNotNull
@@ -26,7 +22,6 @@ internal class TestCurrency {
     }
 
     @Test
-    @Throws(Exception::class)
     fun is_CurrencyResponseSerializing() {
         val currencies: MutableCollection<Currency> = ArrayList()
         val currency = Currency("SomeId", "Some Name", "$")

@@ -12,12 +12,12 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.utils.BcMvcHelper
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

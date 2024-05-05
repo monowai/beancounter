@@ -1,7 +1,7 @@
 package com.beancounter.auth
 
 import com.beancounter.auth.client.LoginService
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -20,7 +20,7 @@ class SerializationTests {
         val clientCredentialsRequest =
             LoginService.ClientCredentialsRequest(client_id = "abc", client_secret = secret, audience = "my-audience")
         assertThat(clientCredentialsRequest.grant_type).isNotNull
-        val json = BcJson().objectMapper.writeValueAsString(clientCredentialsRequest)
+        val json = objectMapper.writeValueAsString(clientCredentialsRequest)
         assertThat(json).contains(
             oidClientId,
             oidSecret,
@@ -29,7 +29,7 @@ class SerializationTests {
             secret,
             "client_credentials",
         )
-        val fromJson: Map<String, String> = BcJson().objectMapper.readValue(json)
+        val fromJson: Map<String, String> = objectMapper.readValue(json)
         assertThat(fromJson)
             .containsKeys(oidClientId, oidSecret, oidGrantType)
     }
@@ -45,7 +45,7 @@ class SerializationTests {
                 client_secret = "the-secret",
             )
         assertThat(passwordRequest.grant_type).isNotNull
-        val json = BcJson().objectMapper.writeValueAsString(passwordRequest)
+        val json = objectMapper.writeValueAsString(passwordRequest)
         assertThat(json).contains(
             oidClientId,
             oidGrantType,
@@ -56,7 +56,7 @@ class SerializationTests {
             "scope",
             secret,
         )
-        val fromJson: Map<String, String> = BcJson().objectMapper.readValue(json)
+        val fromJson: Map<String, String> = objectMapper.readValue(json)
         assertThat(fromJson).isNotEmpty
             .containsKeys(oidClientId, oidGrantType)
     }

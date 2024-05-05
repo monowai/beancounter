@@ -2,7 +2,6 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef.Companion.from
@@ -32,12 +31,12 @@ class TrnAdapter(
     fun convert(
         portfolio: Portfolio,
         trnRequest: TrnRequest,
-    ): TrnResponse {
+    ): List<Trn> {
         val trns = ArrayList<Trn>()
         for (trnInput in trnRequest.data) {
             trns.add(map(portfolio = portfolio, trnInput = trnInput))
         }
-        return TrnResponse(trns)
+        return trns
     }
 
     fun map(

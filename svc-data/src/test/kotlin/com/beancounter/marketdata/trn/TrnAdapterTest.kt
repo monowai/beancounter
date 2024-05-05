@@ -119,8 +119,8 @@ internal class TrnAdapterTest {
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
-        assertThat(trnResponse.data).hasSize(1)
-        assertThat(trnResponse.data.iterator().next())
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue("settleDate", trnInput.settleDate)
@@ -160,8 +160,8 @@ internal class TrnAdapterTest {
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
-        assertThat(trnResponse.data).hasSize(1)
-        assertThat(trnResponse.data.iterator().next())
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
@@ -191,8 +191,8 @@ internal class TrnAdapterTest {
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
-        assertThat(trnResponse.data).hasSize(1)
-        assertThat(trnResponse.data.iterator().next())
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)
@@ -217,8 +217,8 @@ internal class TrnAdapterTest {
         val trnRequest = TrnRequest(portfolioId, arrayOf(trnInput))
         val trnResponse = trnAdapter.convert(portfolioService.find(portfolioId), trnRequest)
         assertThat(trnResponse).isNotNull
-        assertThat(trnResponse.data).hasSize(1)
-        assertThat(trnResponse.data.iterator().next())
+        assertThat(trnResponse).hasSize(1)
+        assertThat(trnResponse.iterator().next())
             .hasFieldOrPropertyWithValue(quantityProp, trnInput.quantity)
             .hasFieldOrPropertyWithValue(tradeDateProp, trnInput.tradeDate)
             .hasFieldOrPropertyWithValue(priceProp, trnInput.price)

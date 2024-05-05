@@ -6,7 +6,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KafkaUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -41,8 +41,6 @@ class KafkaMarketDataTest {
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     lateinit var embeddedKafkaBroker: EmbeddedKafkaBroker
-
-    private val objectMapper = BcJson().objectMapper
 
     @Autowired
     lateinit var dateUtils: DateUtils

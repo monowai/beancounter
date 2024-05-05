@@ -29,7 +29,7 @@ class TrnService internal constructor(
     fun getPortfolioTrn(
         portfolio: Portfolio,
         trnId: String,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId)
         val result = trn.map { transaction: Trn -> postProcess(setOf(transaction)) }
         if (result.isEmpty) {
@@ -41,9 +41,9 @@ class TrnService internal constructor(
     fun save(
         portfolio: Portfolio,
         trnRequest: TrnRequest,
-    ): TrnResponse {
+    ): Collection<Trn> {
         // Figure out
-        val saved = trnRepository.saveAll(trnAdapter.convert(portfolio, trnRequest).data)
+        val saved = trnRepository.saveAll(trnAdapter.convert(portfolio, trnRequest))
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
         if (trnRequest.data.size == 1) {
@@ -55,13 +55,13 @@ class TrnService internal constructor(
                 "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}",
             )
         }
-        return TrnResponse(results)
+        return results
     }
 
     fun findForPortfolio(
         portfolio: Portfolio,
         tradeDate: LocalDate,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val results =
             trnRepository.findByPortfolioId(
                 portfolio.id,
@@ -97,7 +97,7 @@ class TrnService internal constructor(
     internal fun postProcess(
         trns: Iterable<Trn>,
         secure: Boolean = true,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val results: MutableCollection<Trn> = ArrayList()
         for (trn in trns) {
             val add = !secure || portfolioService.canView(trn.portfolio)
@@ -106,9 +106,9 @@ class TrnService internal constructor(
             }
         }
         return if (results.isEmpty()) {
-            TrnResponse() // Empty
+            emptySet()
         } else {
-            TrnResponse(results)
+            results
         }
     }
 
@@ -124,7 +124,7 @@ class TrnService internal constructor(
         )
     }
 
-    fun delete(trnId: String): TrnResponse {
+    fun delete(trnId: String): Collection<Trn> {
         val result = trnRepository.findById(trnId)
         if (result.isEmpty) {
             throw BusinessException(String.format("Transaction not found %s", trnId))
@@ -144,7 +144,7 @@ class TrnService internal constructor(
         trnInput: TrnInput,
     ): TrnResponse {
         val existing = getPortfolioTrn(portfolio, trnId)
-        val trn = trnAdapter.map(portfolio, trnInput, existing.data.iterator().next())
+        val trn = trnAdapter.map(portfolio, trnInput, existing.iterator().next())
         trnRepository.save(trn)
         return TrnResponse(arrayListOf(trn))
     }

@@ -4,13 +4,13 @@ import com.beancounter.common.contracts.AssetSearchResponse
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PreviousClosePriceDate
 import com.beancounter.marketdata.providers.DataProviderConfig
 import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -29,7 +29,7 @@ class AlphaConfig(
     var markets: String? = null
 
     companion object {
-        private val alphaMapper: ObjectMapper = BcJson().objectMapper
+        private val alphaMapper: ObjectMapper = ObjectMapper().registerKotlinModule()
     }
 
     init {

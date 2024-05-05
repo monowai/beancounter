@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.SGD
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -16,7 +17,6 @@ import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioByCode
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioById
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.portfolioCreate
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

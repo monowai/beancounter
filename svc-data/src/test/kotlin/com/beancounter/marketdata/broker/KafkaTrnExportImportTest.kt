@@ -22,7 +22,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType.BUY
 import com.beancounter.common.utils.AssetUtils.Companion.getAssetInput
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CUSTOM
 import com.beancounter.marketdata.Constants.Companion.USD
@@ -38,7 +38,7 @@ import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnImport
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.trn.cash.CashServices
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.kafka.clients.consumer.Consumer
 import org.assertj.core.api.Assertions.assertThat
@@ -190,7 +190,7 @@ class KafkaTrnExportImportTest {
                 trnRequest = trnRequest,
             )
 
-        assertThat(trnResponse.data)
+        assertThat(trnResponse)
             .isNotNull
             .hasSize(trnRequest.data.size)
 
@@ -208,7 +208,7 @@ class KafkaTrnExportImportTest {
             .hasNoNullFieldsOrProperties()
         consumer.close()
         authUtilService.authenticate(systemUser, AuthUtilService.AuthProvider.AUTH0)
-        val imported = trnService.findForPortfolio(portfolio, dateUtils.date).data
+        val imported = trnService.findForPortfolio(portfolio, dateUtils.date)
         assertThat(imported).hasSize(trnRequest.data.size)
     }
 
@@ -218,7 +218,7 @@ class KafkaTrnExportImportTest {
         expectedTrns: Int,
     ) {
         trnService.purge(portfolio)
-        assertThat(trnService.findForPortfolio(portfolio, dateUtils.date).data).isEmpty()
+        assertThat(trnService.findForPortfolio(portfolio, dateUtils.date)).isEmpty()
         val csvRows = File(fileName).useLines { it.toList() }
         assertThat(csvRows).hasSize(expectedTrns)
         var currentLine = 1
@@ -292,13 +292,13 @@ class KafkaTrnExportImportTest {
             assertThat(consumerRecord.value()).isNotNull
             val received =
                 objectMapper
-                    .readValue(consumerRecord.value(), TrustedTrnImportRequest::class.java)
+                    .readValue<TrustedTrnImportRequest>(consumerRecord.value())
             val trnResponse = trnImport.fromCsvImport(received)
             assertThat(trnResponse).isNotNull
-            assertThat(trnResponse.data)
+            assertThat(trnResponse)
                 .isNotNull
                 .hasSize(1)
-            val found = trnResponse.data.iterator().next()
+            val found = trnResponse.iterator().next()
             log.info("found {}", found.callerRef)
             created.add(found)
         }
@@ -320,8 +320,8 @@ class KafkaTrnExportImportTest {
                         WireMock.aResponse()
                             .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .withBody(
-                                BcJson().objectMapper.writeValueAsString(
-                                    BcJson().objectMapper.readValue(
+                                objectMapper.writeValueAsString(
+                                    objectMapper.readValue(
                                         rateResponse,
                                         HashMap::class.java,
                                     ),

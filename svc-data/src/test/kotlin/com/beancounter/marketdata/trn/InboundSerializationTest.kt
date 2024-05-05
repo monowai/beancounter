@@ -2,8 +2,9 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
@@ -28,9 +29,8 @@ class InboundSerializationTest {
             )
         assertThat(message).hasFieldOrProperty("payload")
         val (portfolio, _, _, row, callerRef) =
-            objectMapper.readValue(
+            objectMapper.readValue<TrustedTrnImportRequest>(
                 message["payload"].toString(),
-                TrustedTrnImportRequest::class.java,
             )
         assertThat(portfolio).usingRecursiveComparison().isEqualTo(payload.portfolio)
         for (column in row) {

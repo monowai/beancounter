@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.assets.AssetService
@@ -16,7 +16,6 @@ import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.URL_ASSETS_MARKET_CODE
 import com.beancounter.marketdata.utils.RegistrationUtils
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -50,8 +49,6 @@ import java.math.BigDecimal
 class AlphaVantageEnrichmentTest {
     @MockBean
     private lateinit var dateUtils: DateUtils
-
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var mdFactory: MdFactory

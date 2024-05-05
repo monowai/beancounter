@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.providers.wtd
 
 import com.beancounter.common.contracts.Payload
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.markets.MarketService
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -18,7 +18,6 @@ import java.time.ZonedDateTime
  */
 class WtdConfigTest {
     private val dateUtils = DateUtils()
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     companion object {
         const val CONTRACTS = "/mock/wtd"
@@ -27,7 +26,7 @@ class WtdConfigTest {
     @Test
     fun jsonGoodResponse() {
         val jsonFile = ClassPathResource("$CONTRACTS/AAPL-MSFT.json").file
-        val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
+        val response = objectMapper.readValue<WtdResponse>(jsonFile)
         val compareTo =
             ZonedDateTime.of(
                 LocalDate.parse("2019-03-08").atStartOfDay(),
@@ -45,7 +44,7 @@ class WtdConfigTest {
     @Test
     fun jsonResponseWithMessage() {
         val jsonFile = ClassPathResource("$CONTRACTS/NoData.json").file
-        val response = this.objectMapper.readValue(jsonFile, WtdResponse::class.java)
+        val response = objectMapper.readValue(jsonFile, WtdResponse::class.java)
         assertThat(response)
             .isNotNull
             .hasFieldOrProperty("message")

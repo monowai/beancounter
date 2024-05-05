@@ -5,13 +5,13 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_CODE
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.PORTFOLIO_BY_ID
 import com.beancounter.marketdata.utils.RegistrationUtils
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

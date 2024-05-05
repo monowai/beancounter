@@ -6,4 +6,6 @@ package com.beancounter.common.exception
  * @author mikeh
  * @since 2019-02-03
  */
-class SystemException(reason: String?) : RuntimeException(reason)
+class SystemException(reason: String?, throwable: Throwable? = null) : RuntimeException(reason, throwable) {
+    constructor(reason: String?) : this(reason, null)
+}

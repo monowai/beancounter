@@ -4,7 +4,7 @@ import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.assets.AssetService
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -24,14 +24,14 @@ class AssetsBase : ContractVerifierBase() {
     fun mockAssets() {
         Mockito.`when`(assetService.find("KMI"))
             .thenReturn(
-                BcJson().objectMapper.readValue(
+                objectMapper.readValue(
                     ClassPathResource("contracts/assets/kmi-asset-by-id.json").file,
                     AssetResponse::class.java,
                 ).data,
             )
         Mockito.`when`(assetService.findOrCreate(AssetInput("NASDAQ", "NDAQ")))
             .thenReturn(
-                BcJson().objectMapper.readValue(
+                objectMapper.readValue(
                     ClassPathResource("contracts/assets/ndaq-asset.json").file,
                     AssetResponse::class.java,
                 ).data,
@@ -92,8 +92,8 @@ class AssetsBase : ContractVerifierBase() {
         jsonResponse: File,
         assetService: AssetService,
     ) {
-        val assetRequest = BcJson().objectMapper.readValue(jsonRequest, AssetRequest::class.java)
-        val assetUpdateResponse = BcJson().objectMapper.readValue(jsonResponse, AssetUpdateResponse::class.java)
+        val assetRequest = objectMapper.readValue(jsonRequest, AssetRequest::class.java)
+        val assetUpdateResponse = objectMapper.readValue(jsonResponse, AssetUpdateResponse::class.java)
         Mockito.`when`(assetService.handle(assetRequest))
             .thenReturn(assetUpdateResponse)
 

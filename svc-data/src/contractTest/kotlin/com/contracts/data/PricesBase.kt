@@ -1,6 +1,6 @@
 package com.contracts.data
 
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
@@ -86,7 +86,7 @@ class PricesBase : ContractVerifierBase() {
         Mockito.`when`(
             alphaGateway
                 .getCurrent(marketData.symbol, "demo"),
-        ).thenReturn(BcJson().objectMapper.writeValueAsString(response))
+        ).thenReturn(objectMapper.writeValueAsString(response))
     }
 
     /**

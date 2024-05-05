@@ -28,36 +28,27 @@ class SpringFeignDecoder : ErrorDecoder {
         methodKey: String,
         response: Response,
     ): Exception {
-        val reason: String? =
+        val reason =
             try {
-                getMessage(response)
+                getMessage(response) ?: "No response body"
             } catch (e: IOException) {
-                throw SystemException(e.message)
+                log.error("Error reading response body", e)
+                return SystemException("Failed to read response body")
             }
+
         log.error("$methodKey - [${response.status()}] $reason")
-        if (response.status() == HttpStatus.UNAUTHORIZED.value()) {
-            // Clearly communicate an authentication issue
-            return UnauthorizedException(reason)
-        }
-        if (response.status() == HttpStatus.FORBIDDEN.value()) {
-            // You can't touch this
-            return ForbiddenException(reason)
-        }
-        if (response.status() in 400..499) {
-            // We don't want business logic exceptions to flip circuit breakers
-            return BusinessException(reason)
-        }
-        return if (response.status() in 500..599) {
-            SystemException(reason)
-        } else {
-            FeignException.errorStatus(methodKey, response)
+
+        return when (response.status()) {
+            HttpStatus.UNAUTHORIZED.value() -> UnauthorizedException(reason)
+            HttpStatus.FORBIDDEN.value() -> ForbiddenException(reason)
+            in 400..499 -> BusinessException(reason)
+            in 500..599 -> SystemException(reason)
+            else -> FeignException.errorStatus(methodKey, response)
         }
     }
 
-    private fun getMessage(response: Response): String? {
-        if (response.body() == null) {
-            return response.reason()
-        }
-        return CharStreams.toString(response.body().asReader(StandardCharsets.UTF_8))
-    }
+    private fun getMessage(response: Response): String? =
+        response.body()?.let {
+            CharStreams.toString(it.asReader(StandardCharsets.UTF_8))
+        } ?: response.reason()
 }

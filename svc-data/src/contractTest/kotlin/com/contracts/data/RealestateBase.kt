@@ -6,7 +6,6 @@ import com.beancounter.auth.NoWebAuth
 import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
@@ -14,6 +13,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
@@ -149,14 +149,14 @@ class RealestateBase {
                 OffMarketEnricher.parseCode(systemUser = systemUser, assetCode),
             )
 
-        assertThat(m1Balance.data).isNotNull.hasSize(1)
-        assertThat(m2Balance.data).isNotNull.hasSize(1)
-        assertThat(m1Balance.data.iterator().next())
+        assertThat(m1Balance).isNotNull.hasSize(1)
+        assertThat(m2Balance).isNotNull.hasSize(1)
+        assertThat(m1Balance.iterator().next())
             .extracting("id", pTradeAmount, pCashAmount)
             .containsExactly(m1, tenK.negate(), BigDecimal.ZERO)
     }
 
-    private fun trnCashResponse(trnId: String): TrnResponse {
+    private fun trnCashResponse(trnId: String): Collection<Trn> {
         val assetInput = AssetInput.toCash(NZD, trnId)
         Mockito.`when`(keyGenUtils.id).thenReturn(trnId)
         val asset =
@@ -197,9 +197,9 @@ class RealestateBase {
                     tradePortfolioRate = BigDecimal.ONE,
                 ),
             )
-        assertThat(buy.data).isNotNull.hasSize(1)
+        assertThat(buy).isNotNull.hasSize(1)
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
-        assertThat(buy.data.iterator().next())
+        assertThat(buy.iterator().next())
             .extracting("id", pTradeAmount, pCashAmount)
             .containsExactly("1", tenK, BigDecimal.ZERO)
 
@@ -218,7 +218,7 @@ class RealestateBase {
                     tradePortfolioRate = BigDecimal.ONE,
                 ),
             )
-        assertThat(r.data).isNotNull.hasSize(1)
+        assertThat(r).isNotNull.hasSize(1)
         verifyTrn(r, nOneK, nOneK)
 
         Mockito.`when`(keyGenUtils.id).thenReturn("3")
@@ -236,16 +236,16 @@ class RealestateBase {
                     tradePortfolioRate = BigDecimal.ONE,
                 ),
             )
-        assertThat(i.data).isNotNull.hasSize(1)
+        assertThat(i).isNotNull.hasSize(1)
         verifyTrn(i, oneK, oneK)
     }
 
     private fun verifyTrn(
-        r: TrnResponse,
+        r: Collection<Trn>,
         tradeAmount: BigDecimal,
         quantity: BigDecimal,
     ) {
-        assertThat(r.data.iterator().next())
+        assertThat(r.iterator().next())
             .extracting(pTradeAmount, pQuantity, pCashAmount)
             .containsExactly(tradeAmount, quantity, BigDecimal.ZERO)
     }
@@ -268,7 +268,7 @@ class RealestateBase {
     private fun save(
         portfolio: Portfolio,
         trnInput: TrnInput,
-    ): TrnResponse {
+    ): Collection<Trn> {
         return trnService.save(
             portfolio,
             TrnRequest(

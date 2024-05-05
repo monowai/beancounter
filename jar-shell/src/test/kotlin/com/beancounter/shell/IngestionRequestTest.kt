@@ -1,6 +1,6 @@
 package com.beancounter.shell
 
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.shell.ingest.IngestionRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -9,10 +9,7 @@ import org.junit.jupiter.api.Test
  * IntegrationRequest Pojo tests
  */
 class IngestionRequestTest {
-    private val objectMapper = BcJson().objectMapper
-
     @Test
-    @Throws(Exception::class)
     fun is_SerializationWorking() {
         val ingestionRequest =
             IngestionRequest(

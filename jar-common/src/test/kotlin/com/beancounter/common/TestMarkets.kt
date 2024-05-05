@@ -3,7 +3,7 @@ package com.beancounter.common
 import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
 
 internal class TestMarkets {
-    private var jsonMapper = BcJson().objectMapper
     private var yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule.Builder().build())
 
     @Test
@@ -25,8 +24,8 @@ internal class TestMarkets {
         markets.add(nzx)
         val marketResponse = MarketResponse(markets)
         assertThat(marketResponse.data).hasSize(2)
-        val json = jsonMapper.writeValueAsString(marketResponse)
-        val (data) = jsonMapper.readValue(json, MarketResponse::class.java)
+        val json = objectMapper.writeValueAsString(marketResponse)
+        val (data) = objectMapper.readValue(json, MarketResponse::class.java)
         assertThat(data).containsExactly(nasdaq, nzx)
     }
 

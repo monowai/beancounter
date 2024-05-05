@@ -16,14 +16,13 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.NASDAQ
 import com.beancounter.position.Constants.Companion.hundred
 import com.beancounter.position.Constants.Companion.twoK
 import com.beancounter.position.StubbedTest
 import com.beancounter.position.accumulation.Accumulator
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,8 +43,6 @@ private const val EBAY = "EBAY"
  */
 @StubbedTest
 internal class FxValuationMvcTests {
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
-
     @Autowired
     private lateinit var accumulator: Accumulator
 
@@ -73,7 +70,7 @@ internal class FxValuationMvcTests {
     lateinit var tokenUtils: TokenUtils
 
     @Autowired
-    fun setDefaultUser() {
+    fun setDefaultUser(authConfig: AuthConfig) {
         tokenUtils = TokenUtils(authConfig)
         val user = "user@testing.com"
         token = tokenUtils.getSystemUserToken(SystemUser("user", user))
@@ -132,7 +129,7 @@ internal class FxValuationMvcTests {
         assertThat(position).isNotNull
         val totalKey = jsonPositions.totals.keys.iterator().next()
         val moneyValues = position!!.moneyValues[totalKey]
-        assertThat(moneyValues!!.weight!!.compareTo(BigDecimal.ONE)).isEqualTo(0)
+        assertThat(moneyValues!!.weight.compareTo(BigDecimal.ONE)).isEqualTo(0)
         val moneyTotal = jsonPositions.totals[totalKey]
         assertThat(moneyTotal)
             .hasFieldOrPropertyWithValue("total", moneyValues.marketValue)

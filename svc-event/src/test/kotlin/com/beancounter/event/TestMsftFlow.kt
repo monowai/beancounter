@@ -9,11 +9,10 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.input.TrustedEventInput
 import com.beancounter.common.input.TrustedTrnQuery
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.event.integration.PositionGateway
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -43,8 +42,6 @@ class TestMsftFlow {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
-
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Test
     fun is_DividendRequestIgnoreDueToZeroHolding() {

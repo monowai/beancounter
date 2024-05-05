@@ -10,7 +10,7 @@ import com.beancounter.common.exception.SpringExceptionMessage
 import com.beancounter.common.exception.SpringFeignDecoder
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.exception.UnauthorizedException
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import feign.FeignException
 import feign.Request
 import feign.Request.Body.empty
@@ -150,7 +150,7 @@ class TestFeignExceptions {
                     ),
                 )
                 .body(
-                    BcJson().objectMapper.writeValueAsString(springExceptionMessage),
+                    objectMapper.writeValueAsString(springExceptionMessage),
                     Charset.defaultCharset(),
                 )
                 .build()
@@ -201,8 +201,7 @@ class TestFeignExceptions {
 
     private fun validIntegrationException(e: Exception) {
         val springExceptionMessage: SpringExceptionMessage =
-            BcJson()
-                .objectMapper.readValue(e.message, SpringExceptionMessage::class.java)
+            objectMapper.readValue(e.message, SpringExceptionMessage::class.java)
         assertThat(springExceptionMessage)
             .hasFieldOrPropertyWithValue(MESSAGE, INT_ERROR)
         throw e

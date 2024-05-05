@@ -134,9 +134,9 @@ class RealEstateTrnTests {
                     arrayOf(purchase, reduce, increase),
                 ),
             )
-        assertThat(trns.data).isNotNull.hasSize(3)
+        assertThat(trns).isNotNull.hasSize(3)
         // Source output for `re-response` contract tests. Need to replace the ID with RE-TEST
-        val iterator = trns.data.iterator()
+        val iterator = trns.iterator()
         val b = iterator.next()
         assertThat(b)
             .extracting(pTradeAmount, pCashAmount)

@@ -5,7 +5,7 @@ import com.beancounter.auth.TokenUtils
 import com.beancounter.common.contracts.CurrencyResponse
 import com.beancounter.common.contracts.Payload
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -18,8 +18,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 @SpringMvcDbTest
 internal class CurrencyMvcTests {
-    private val objectMapper = BcJson().objectMapper
-
     @Autowired
     private lateinit var authConfig: AuthConfig
 

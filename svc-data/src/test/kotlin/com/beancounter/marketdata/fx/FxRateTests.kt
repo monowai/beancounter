@@ -3,14 +3,14 @@ package com.beancounter.marketdata.fx
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.FxRateCalculator
 import com.beancounter.marketdata.Constants.Companion.AUD
 import com.beancounter.marketdata.Constants.Companion.NZD
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.fx.FxMvcTests.Companion.FX_MOCK
 import com.beancounter.marketdata.fx.fxrates.ExRatesResponse
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
@@ -20,13 +20,11 @@ import java.math.BigDecimal
  * Unit test FX assumptions.
  */
 internal class FxRateTests {
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
-
     @Test
     @Throws(Exception::class)
     fun is_FxRateResponseSerializing() {
         val jsonFile = ClassPathResource("$FX_MOCK/ecbEarly.json").file
-        val ecbRates = objectMapper.readValue(jsonFile, ExRatesResponse::class.java)
+        val ecbRates = objectMapper.readValue<ExRatesResponse>(jsonFile)
         assertThat(ecbRates)
             .isNotNull
             .hasNoNullFieldsOrProperties()

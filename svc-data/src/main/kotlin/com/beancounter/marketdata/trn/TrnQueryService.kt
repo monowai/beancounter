@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.trn
 
-import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -27,7 +27,7 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
         portfolio: Portfolio,
         assetId: String,
         tradeDate: LocalDate,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val results =
             trnRepository
                 .findByPortfolioIdAndAssetIdUpTo(
@@ -59,7 +59,7 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
     fun findAssetTrades(
         portfolio: Portfolio,
         assetId: String,
-    ): TrnResponse {
+    ): Collection<Trn> {
         return trnResponse(portfolio, assetId, typeFilter)
     }
 
@@ -73,7 +73,7 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
     fun findEvents(
         portfolio: Portfolio,
         assetId: String,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val typeFilter = ArrayList<TrnType>()
         typeFilter.add(TrnType.DIVI)
         typeFilter.add(TrnType.SPLIT)
@@ -84,7 +84,7 @@ class TrnQueryService(val trnService: TrnService, val trnRepository: TrnReposito
         portfolio: Portfolio,
         assetId: String,
         typeFilter: ArrayList<TrnType>,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val results =
             trnRepository
                 .findByPortfolioIdAndAssetIdAndTrnType(

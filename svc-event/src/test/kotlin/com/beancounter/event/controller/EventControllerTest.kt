@@ -4,14 +4,13 @@ import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.Constants.Companion.ALPHA
 import com.beancounter.event.contract.CorporateEventResponse
 import com.beancounter.event.contract.CorporateEventResponses
 import com.beancounter.event.service.EventService
 import com.beancounter.event.service.PositionService
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -63,7 +62,6 @@ internal class EventControllerTest {
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
     lateinit var token: Jwt
 
     @BeforeEach

@@ -3,9 +3,9 @@ package com.beancounter.marketdata.registration
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

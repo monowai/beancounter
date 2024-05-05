@@ -117,8 +117,8 @@ class CashTrnTests {
                 price = ONE,
             )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(cashDeposit)))
-        assertThat(trns.data).isNotNull.hasSize(1)
-        val cashTrn = trns.data.iterator().next()
+        assertThat(trns).isNotNull.hasSize(1)
+        val cashTrn = trns.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(propTradeAmount, cashDeposit.tradeAmount)
             .hasFieldOrPropertyWithValue(propCashAmount, nzdBalance)
@@ -145,8 +145,8 @@ class CashTrnTests {
                 price = ONE,
             )
         val trns = trnService.save(usPortfolio, TrnRequest(usPortfolio.id, arrayOf(buy)))
-        assertThat(trns.data).isNotNull.hasSize(1)
-        val cashTrn = trns.data.iterator().next()
+        assertThat(trns).isNotNull.hasSize(1)
+        val cashTrn = trns.iterator().next()
         assertThat(cashTrn)
             .hasFieldOrPropertyWithValue(propTradeAmount, buy.tradeAmount)
             .hasFieldOrPropertyWithValue(propCashAmount, BigDecimal("-10000.00"))

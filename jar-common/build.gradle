@@ -16,6 +16,9 @@ ext {
 }
 
 dependencies() {
+    api(
+        "com.fasterxml.jackson.module:jackson-module-kotlin"
+    )
     implementation(
             "jakarta.servlet:jakarta.servlet-api:6.0.0",
             "com.fasterxml.jackson.core:jackson-databind",

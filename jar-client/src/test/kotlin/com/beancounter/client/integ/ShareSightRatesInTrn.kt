@@ -12,7 +12,7 @@ import com.beancounter.client.sharesight.ShareSightRowAdapter
 import com.beancounter.common.input.ImportFormat
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.MathUtils.Companion.multiplyAbs
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import org.assertj.core.api.Assertions
@@ -123,7 +123,7 @@ class ShareSightRatesInTrn {
             )
         val trn = shareSightRowProcessor.transform(trustedTrnImportRequest)
 
-        log.info(BcJson().objectMapper.writeValueAsString(trn))
+        log.info(objectMapper.writeValueAsString(trn))
         Assertions.assertThat(trn)
             .hasFieldOrPropertyWithValue("trnType", TrnType.BUY)
             .hasFieldOrPropertyWithValue("quantity", BigDecimal(10))

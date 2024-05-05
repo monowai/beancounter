@@ -3,7 +3,7 @@ package com.beancounter.common
 import com.beancounter.common.contracts.RegistrationRequest
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -12,8 +12,6 @@ import java.util.UUID
  * Serialization of Registration payloads
  */
 class TestRegistration {
-    private val objectMapper = BcJson().objectMapper
-
     @Test
     fun registrationSerializes() {
         val registrationRequest = RegistrationRequest(false)

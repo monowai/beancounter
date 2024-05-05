@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.FxRateCalculator
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
@@ -23,8 +23,6 @@ private const val RATE = "rate"
  * FX Request response tests.
  */
 internal class FxRateCalculatorTest {
-    private val objectMapper = BcJson().objectMapper
-
     @Test
     fun is_DefaultPropertiesSet() {
         assertThat(FxRequest("2020-10-01").pairs).isNotNull
@@ -37,7 +35,7 @@ internal class FxRateCalculatorTest {
         fxRequest.addTradePf(IsoCurrencyPair(USD.code, NZD.code))
         fxRequest.addTradeCash(IsoCurrencyPair(USD.code, NZD.code))
         val json = objectMapper.writeValueAsString(fxRequest)
-        val fromJson = objectMapper.readValue(json, FxRequest::class.java)
+        val fromJson = objectMapper.readValue<FxRequest>(json)
         assertThat(fromJson)
             .hasAllNullFieldsOrPropertiesExcept("rateDate", "pairs")
             .isEqualTo(fxRequest)
@@ -53,7 +51,7 @@ internal class FxRateCalculatorTest {
         fxRequest.addTradePf(pair)
         assertThat(fxRequest.pairs).size().isEqualTo(1)
         val json = objectMapper.writeValueAsString(fxRequest)
-        val fromJson = objectMapper.readValue(json, FxRequest::class.java)
+        val fromJson = objectMapper.readValue<FxRequest>(json)
         assertThat(fromJson.pairs).hasSize(1)
         assertThat(fromJson.tradeBase).isNull()
         assertThat(fromJson.tradePf).isNull()

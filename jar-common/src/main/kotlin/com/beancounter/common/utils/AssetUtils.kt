@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.core.JsonProcessingException
 
 /**
@@ -14,8 +15,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
  */
 class AssetUtils {
     companion object {
-        private val objectMapper = BcJson().objectMapper
-
         /**
          * Asset on a market.
          *

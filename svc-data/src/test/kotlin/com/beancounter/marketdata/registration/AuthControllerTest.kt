@@ -5,7 +5,7 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.LoginRequest
 import com.beancounter.auth.model.OpenIdResponse
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -48,11 +48,11 @@ class AuthControllerTest {
             mockMvc.perform(
                 MockMvcRequestBuilders.post("/auth")
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
-                    .content(BcJson().objectMapper.writeValueAsString(loginRequest))
+                    .content(objectMapper.writeValueAsString(loginRequest))
                     .contentType(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
                 .andReturn()
-        val response = BcJson().objectMapper.readValue(performed.response.contentAsString, OpenIdResponse::class.java)
+        val response = objectMapper.readValue(performed.response.contentAsString, OpenIdResponse::class.java)
         assertThat(response).isNotNull().usingRecursiveComparison().isEqualTo(mockResponse)
     }
 }

@@ -11,8 +11,7 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.BcJson
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions
 import org.springframework.http.MediaType
@@ -126,8 +125,6 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
                 )
     }
 
-    private val objectMapper = BcJson().objectMapper
-
     fun asset(assetRequest: AssetRequest): Asset {
         val mvcResult =
             mockMvc.perform(
@@ -205,7 +202,7 @@ class BcMvcHelper(val mockMvc: MockMvc, val token: Jwt) {
                 )
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(
-                    RegistrationUtils.objectMapper
+                    objectMapper
                         .writeValueAsBytes(RegistrationRequest()),
                 )
                 .contentType(MediaType.APPLICATION_JSON),

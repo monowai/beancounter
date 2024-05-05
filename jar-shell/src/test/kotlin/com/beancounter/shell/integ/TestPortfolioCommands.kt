@@ -12,7 +12,7 @@ import com.beancounter.common.contracts.PortfoliosRequest
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.shell.Constants.Companion.NZD
@@ -52,8 +52,6 @@ class TestPortfolioCommands {
     @Autowired
     private lateinit var tokenService: TokenService
 
-    private val bcJson = BcJson()
-
     @MockBean
     private lateinit var portfolioGw: PortfolioGw
 
@@ -62,7 +60,7 @@ class TestPortfolioCommands {
     private lateinit var portfolioCommands: PortfolioCommands
 
     @Autowired
-    fun initAuth() {
+    fun initAuth(tokenService: TokenService) {
         portfolioCommands = PortfolioCommands(PortfolioServiceClient(portfolioGw, tokenService))
     }
 
@@ -95,7 +93,7 @@ class TestPortfolioCommands {
             portfolioCommands
                 .add(pfCode, pfCode, NZD.code, USD.code)
         assertThat(result).isNotNull
-        val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
+        val portfolio = objectMapper.readValue(result, Portfolio::class.java)
         assertThat(portfolio)
             .usingRecursiveComparison()
             .ignoringFields("owner")
@@ -114,7 +112,7 @@ class TestPortfolioCommands {
             portfolioCommands
                 .add(code, pfCode, NZD.code, USD.code)
         assertThat(result).isNotNull
-        val portfolio = bcJson.objectMapper.readValue(result, Portfolio::class.java)
+        val portfolio = objectMapper.readValue(result, Portfolio::class.java)
         assertThat(portfolio)
             .usingRecursiveComparison()
             .isEqualTo(portfolioResponse.data)

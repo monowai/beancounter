@@ -56,10 +56,6 @@ class FxTransactions(
             }
         }
         if (fxRequest.tradeBase != null && numberUtils.isUnset(trnInput.tradeBaseRate)) {
-//            log.info(fxRequest.toString())
-//            rates.rates.forEach {
-//                log.info("Results - ${it.key}")
-//            }
             trnInput.tradeBaseRate = rates.rates[fxRequest.tradeBase]!!.rate
         } else {
             if (numberUtils.isUnset(trnInput.tradeBaseRate)) {

@@ -13,9 +13,10 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.SpringMvcDbTest
@@ -122,7 +123,7 @@ class TrnCashFlowTest {
                     ),
                 ),
             )
-        assertThat(fxTrn.data.iterator().next())
+        assertThat(fxTrn.iterator().next())
             .hasFieldOrPropertyWithValue(pQuantity, BigDecimal(twoFiveK))
         validateTrnSerialization(fxTrn)
     }
@@ -152,7 +153,7 @@ class TrnCashFlowTest {
                     ),
                 ),
             )
-        assertThat(nzTrn.data.iterator().next())
+        assertThat(nzTrn.iterator().next())
             .hasFieldOrPropertyWithValue(pQuantity, tenK)
         validateTrnSerialization(nzTrn)
     }
@@ -179,7 +180,7 @@ class TrnCashFlowTest {
                     ),
                 ),
             )
-        assertThat(buyTrn.data.iterator().next())
+        assertThat(buyTrn.iterator().next())
             .hasFieldOrPropertyWithValue(propTradeAmount, BigDecimal("1000.00"))
             .hasFieldOrPropertyWithValue("cashAsset.id", nzCashAsset.id)
             .hasFieldOrPropertyWithValue("cashCurrency.code", Constants.NZD.code)
@@ -187,12 +188,12 @@ class TrnCashFlowTest {
         validateTrnSerialization(buyTrn)
     }
 
-    private fun validateTrnSerialization(buyTrn: TrnResponse) {
+    private fun validateTrnSerialization(buyTrn: Collection<Trn>) {
         assertThat(
-            BcJson().objectMapper.writeValueAsString(
+            objectMapper.writeValueAsString(
                 TrnResponse(
                     arrayListOf(
-                        buyTrn.data.iterator().next(),
+                        buyTrn.iterator().next(),
                     ),
                 ),
             ),

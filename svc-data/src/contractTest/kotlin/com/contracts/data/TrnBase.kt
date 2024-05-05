@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
@@ -19,7 +20,7 @@ import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnQueryService
 import com.beancounter.marketdata.trn.TrnService
-import com.beancounter.marketdata.utils.RegistrationUtils
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
@@ -103,10 +104,10 @@ class TrnBase {
         PortfolioBase.portfolios(systemUser, keyGenUtils, portfolioRepository)
 
         mockTrnPostResponse(PortfolioBase.testPortfolio)
-        mockTrnGetResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json")
-        mockTrnGetResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json", "2019-10-18")
-        mockTrnGetResponse(PortfolioBase.emptyPortfolio, "contracts/trn/trns-empty-response.json")
-        mockTrnGetResponse(
+        mockTrnServiceResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json")
+        mockTrnServiceResponse(PortfolioBase.testPortfolio, "contracts/trn/trns-test-response.json", "2019-10-18")
+        mockTrnServiceResponse(PortfolioBase.emptyPortfolio, "contracts/trn/trns-empty-response.json")
+        mockTrnServiceResponse(
             cashPortfolio(),
             "contracts/trn/cash/ladder-response.json",
             AS_AT_DATE,
@@ -120,10 +121,9 @@ class TrnBase {
             ),
         )
             .thenReturn(
-                RegistrationUtils.objectMapper.readValue(
+                objectMapper.readValue<TrnResponse>(
                     ClassPathResource("contracts/trn/trn-for-asset-response.json").file,
-                    TrnResponse::class.java,
-                ),
+                ).data,
             )
     }
 
@@ -149,35 +149,34 @@ class TrnBase {
             .thenReturn(Optional.of(portfolio))
     }
 
-    fun mockTrnGetResponse(
+    fun mockTrnServiceResponse(
         portfolio: Portfolio,
         trnFile: String,
         date: String = "today",
     ) {
         val jsonFile = ClassPathResource(trnFile).file
-        val trnResponse = RegistrationUtils.objectMapper.readValue(jsonFile, TrnResponse::class.java)
+        val trnResponse = objectMapper.readValue(jsonFile, TrnResponse::class.java)
         Mockito.`when`(
             trnService.findForPortfolio(
                 portfolio,
                 dateUtils.getFormattedDate(date),
             ),
-        ).thenReturn(trnResponse)
+        ).thenReturn(trnResponse.data)
     }
 
     fun mockTrnPostResponse(portfolio: Portfolio) {
         Mockito.`when`(
             trnService.save(
                 portfolio,
-                RegistrationUtils.objectMapper.readValue(
+                objectMapper.readValue(
                     ClassPathResource("contracts/trn/client-csv-request.json").file,
                     TrnRequest::class.java,
                 ),
             ),
         ).thenReturn(
-            RegistrationUtils.objectMapper.readValue(
+            objectMapper.readValue<TrnResponse>(
                 ClassPathResource("contracts/trn/client-csv-response.json").file,
-                TrnResponse::class.java,
-            ),
+            ).data,
         )
     }
 }

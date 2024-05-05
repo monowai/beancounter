@@ -5,7 +5,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.get
 import com.beancounter.common.utils.PercentUtils
@@ -119,9 +119,7 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
                 )
             if (asset != null) {
                 val priceData = getPrice(asset, localDateTime, rawData!!)
-                if (priceData != null) {
-                    results.add(priceData)
-                }
+                results.add(priceData)
             }
         }
         return PriceResponse(results)
@@ -179,6 +177,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
     companion object {
         const val GLOBAL_QUOTE = "Global Quote"
         const val TIME_SERIES_DAILY = "Time Series (Daily)"
-        private val mapper = BcJson().objectMapper
+        private val mapper = objectMapper
     }
 }

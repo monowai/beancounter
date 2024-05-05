@@ -125,9 +125,9 @@ class PositionValuationService(
             Thread.currentThread().interrupt() // set the interrupt flag
             throw IllegalStateException("Thread was interrupted while fetching market data.", e)
         } catch (e: ExecutionException) {
-            throw SystemException("Error fetching market data")
+            throw SystemException("Error fetching market data", e)
         } catch (e: TimeoutException) {
-            throw SystemException("Timed out waiting for market data")
+            throw SystemException("Timed out waiting for market data", e)
         }
     }
 

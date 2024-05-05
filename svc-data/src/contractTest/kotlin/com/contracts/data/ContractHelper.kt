@@ -3,7 +3,7 @@ package com.contracts.data
 import com.beancounter.auth.AuthUtilService
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.registration.SystemUserService
 import org.mockito.Mockito
 import org.springframework.core.io.ClassPathResource
@@ -16,7 +16,7 @@ class ContractHelper(private val authUtilService: AuthUtilService) {
         @JvmStatic
         fun getSystemUser(): SystemUser {
             val jsonFile = ClassPathResource("contracts/register/register-response.json").file
-            val response = BcJson().objectMapper.readValue(jsonFile, RegistrationResponse::class.java)
+            val response = objectMapper.readValue(jsonFile, RegistrationResponse::class.java)
             return response.data
         }
     }

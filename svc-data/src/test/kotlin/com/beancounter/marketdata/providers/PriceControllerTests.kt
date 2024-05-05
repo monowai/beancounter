@@ -12,7 +12,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.Constants.Companion.US
@@ -45,7 +45,6 @@ internal class PriceControllerTests
     private constructor(
         private val mockMvc: MockMvc,
         private val mockAuthConfig: MockAuthConfig,
-        private val bcJson: BcJson,
         private val mdFactory: MdFactory,
     ) {
         @MockBean
@@ -106,7 +105,7 @@ internal class PriceControllerTests
                         MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
                     ).andReturn()
                     .response.contentAsString
-            val (data) = bcJson.objectMapper.readValue(json, MarketResponse::class.java)
+            val (data) = objectMapper.readValue(json, MarketResponse::class.java)
             assertThat(data).isNotNull.isNotEmpty
         }
 
@@ -129,7 +128,7 @@ internal class PriceControllerTests
                     ).andExpect(
                         MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE),
                     ).andReturn().response.contentAsString
-            val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
+            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
             assertThat(data).isNotNull.hasSize(1)
             val marketData = data.iterator().next()
             assertThat(marketData)
@@ -156,7 +155,7 @@ internal class PriceControllerTests
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                         .content(
-                            bcJson.objectMapper.writeValueAsString(
+                            objectMapper.writeValueAsString(
                                 PriceRequest(assets = assetInputs),
                             ),
                         ),
@@ -168,7 +167,7 @@ internal class PriceControllerTests
                     ).andReturn()
                     .response
                     .contentAsString
-            val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
+            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
             assertThat(data)
                 .isNotNull
                 .hasSize(assetInputs.size)
@@ -205,7 +204,7 @@ internal class PriceControllerTests
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockAuthConfig.getUserToken()))
                         .content(
-                            bcJson.objectMapper.writeValueAsString(
+                            objectMapper.writeValueAsString(
                                 offMarketPrice,
                             ),
                         ),
@@ -216,7 +215,7 @@ internal class PriceControllerTests
                 ).andReturn()
                     .response
                     .contentAsString
-            val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
+            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
             assertThat(data)
                 .isNotNull
                 .hasSize(1)
@@ -243,7 +242,7 @@ internal class PriceControllerTests
                 ).andReturn()
                     .response
                     .contentAsString
-            val (data) = bcJson.objectMapper.readValue(json, PriceResponse::class.java)
+            val (data) = objectMapper.readValue(json, PriceResponse::class.java)
             assertThat(data).isNotNull.hasSize(1)
             assertThat(data.iterator().next())
                 .hasFieldOrProperty("asset.id")

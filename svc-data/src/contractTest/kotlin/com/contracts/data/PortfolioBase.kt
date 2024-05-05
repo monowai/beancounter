@@ -5,13 +5,13 @@ import com.beancounter.common.contracts.PortfolioResponse
 import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
 import com.beancounter.marketdata.trn.cash.CashBalancesBean
-import com.beancounter.marketdata.utils.RegistrationUtils
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +40,7 @@ class PortfolioBase : ContractVerifierBase() {
     companion object {
         @JvmStatic
         fun getPortfolio(jsonFile: File): Portfolio {
-            val (data) = RegistrationUtils.objectMapper.readValue(jsonFile, PortfolioResponse::class.java)
+            val (data) = objectMapper.readValue(jsonFile, PortfolioResponse::class.java)
             return data
         }
 
@@ -92,7 +92,7 @@ class PortfolioBase : ContractVerifierBase() {
 
             // All Portfolio
             Mockito.`when`(portfolioRepository.findByOwner(systemUser)).thenReturn(
-                RegistrationUtils.objectMapper.readValue(
+                objectMapper.readValue(
                     ClassPathResource("contracts/portfolio/portfolios.json").file,
                     PortfoliosResponse::class.java,
                 ).data,

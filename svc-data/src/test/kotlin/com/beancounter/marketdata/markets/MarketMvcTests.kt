@@ -5,8 +5,8 @@ import com.beancounter.common.contracts.MarketResponse
 import com.beancounter.common.contracts.Payload
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.SystemUser
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.utils.RegistrationUtils.objectMapper
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

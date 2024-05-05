@@ -2,11 +2,11 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.Trn
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
@@ -52,7 +52,7 @@ class TrnImport {
         this.adapterFactory = adapterFactory
     }
 
-    fun fromCsvImport(trustedRequest: TrustedTrnImportRequest): TrnResponse {
+    fun fromCsvImport(trustedRequest: TrustedTrnImportRequest): Collection<Trn> {
         if (trustedRequest.message != "") {
             log.info(
                 "Portfolio {} {}",
@@ -69,10 +69,10 @@ class TrnImport {
                 return writeTrn(trustedRequest.portfolio, trnInput)
             }
         }
-        return TrnResponse()
+        return emptySet()
     }
 
-    fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): TrnResponse {
+    fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
         log.trace("Received Message {}", trustedTrnEvent.toString())
         if (verifyPortfolio(trustedTrnEvent.portfolio.id)) {
             val existing = trnService.existing(trustedTrnEvent)
@@ -90,13 +90,13 @@ class TrnImport {
                 }
             }
         }
-        return TrnResponse()
+        return emptySet()
     }
 
     private fun writeTrn(
         portfolio: Portfolio,
         trnInput: TrnInput,
-    ): TrnResponse {
+    ): Collection<Trn> {
         val trnRequest = TrnRequest(portfolio.id, arrayOf(trnInput))
         return trnService.save(portfolio, trnRequest)
     }

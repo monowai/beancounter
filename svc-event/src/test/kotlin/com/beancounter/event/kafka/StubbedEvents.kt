@@ -11,7 +11,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.Constants.Companion.ALPHA
 import com.beancounter.event.Constants.Companion.KMI
@@ -75,8 +75,6 @@ private const val EMAIL = "blah@blah.com"
 @AutoConfigureMockMvc
 @AutoConfigureMockAuth
 class StubbedEvents {
-    private val om = BcJson().objectMapper
-
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
 
@@ -173,7 +171,7 @@ class StubbedEvents {
             ).andReturn()
 
         val eventsResponse =
-            om.readValue(
+            objectMapper.readValue(
                 mvcResult.response.contentAsString,
                 CorporateEventResponse::class.java,
             )
@@ -207,7 +205,7 @@ class StubbedEvents {
         consumerRecord: ConsumerRecord<String, String>,
     ) {
         assertThat(consumerRecord.value()).isNotNull
-        val received = om.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
+        val received = objectMapper.readValue(consumerRecord.value(), TrustedTrnEvent::class.java)
         val (portfolio1, importFormat, message, trnInput) = trnEvents.iterator().next()
         assertThat(portfolio1)
             .usingRecursiveComparison().isEqualTo(portfolio)

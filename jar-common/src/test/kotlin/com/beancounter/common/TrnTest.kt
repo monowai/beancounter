@@ -5,9 +5,10 @@ import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -107,6 +108,6 @@ class TrnTest {
             "{\"tradePortfolioRate\":1,\"tradeCashRate\":1,\"tradeBaseRate\":0.69662,\"price\":429.265,\"tax\":0," +
                 "\"fees\":1.08,\"cashAmount\":-859.6,\"tradeAmount\":859.6,\"quantity\":2,\"tradeCurrency\":\"USD\"," +
                 "\"trnType\":\"BUY\",\"tradeDate\":\"2021-10-06\"}"
-        assertThat(BcJson().objectMapper.readValue(json, TrnInput::class.java)).isNotNull
+        assertThat(objectMapper.readValue<TrnInput>(json)).isNotNull
     }
 }

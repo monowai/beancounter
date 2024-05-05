@@ -6,7 +6,7 @@ import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolioInput
 import org.assertj.core.api.Assertions.assertThat
@@ -18,10 +18,7 @@ import java.util.Locale
  * Portfolio Pojo Tests.
  */
 class TestPortfolio {
-    private val objectMapper = BcJson().objectMapper
-
     @Test
-    @Throws(Exception::class)
     fun is_PortfolioResultsSerializing() {
         val portfolioInput = getPortfolioInput("Test")
         val portfolioInputs: MutableCollection<PortfolioInput> = ArrayList()

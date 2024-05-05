@@ -9,7 +9,7 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.ASX
@@ -45,7 +45,6 @@ import com.beancounter.marketdata.providers.wtd.WtdService
 import com.beancounter.marketdata.trn.cash.CashServices
 import com.beancounter.marketdata.utils.DateUtilsMocker
 import com.beancounter.marketdata.utils.RegistrationUtils
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -84,8 +83,6 @@ import org.springframework.web.context.WebApplicationContext
 internal class AlphaPriceApiTest {
     @MockBean
     private lateinit var dateUtils: DateUtils
-
-    private val objectMapper: ObjectMapper = BcJson().objectMapper
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig

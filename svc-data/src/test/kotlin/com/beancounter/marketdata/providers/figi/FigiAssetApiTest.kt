@@ -5,7 +5,7 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.input.AssetInput
-import com.beancounter.common.utils.BcJson
+import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
@@ -21,7 +21,6 @@ import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.utils.BcMvcHelper.Companion.ASSET_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import org.assertj.core.api.Assertions.assertThat
@@ -216,8 +215,6 @@ class FigiAssetApiTest {
     }
 
     companion object {
-        private val objectMapper: ObjectMapper = BcJson().objectMapper
-
         @JvmStatic
         fun mock(
             jsonFile: File,

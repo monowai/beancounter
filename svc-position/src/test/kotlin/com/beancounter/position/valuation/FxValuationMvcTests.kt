@@ -132,7 +132,7 @@ internal class FxValuationMvcTests {
         assertThat(moneyValues!!.weight.compareTo(BigDecimal.ONE)).isEqualTo(0)
         val moneyTotal = jsonPositions.totals[totalKey]
         assertThat(moneyTotal)
-            .hasFieldOrPropertyWithValue("total", moneyValues.marketValue)
+            .hasFieldOrPropertyWithValue("marketValue", moneyValues.marketValue)
     }
 
     private val ebay: Asset

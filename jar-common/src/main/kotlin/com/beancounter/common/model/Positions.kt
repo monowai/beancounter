@@ -44,6 +44,11 @@ class Positions(
             position.quantityValues.setPrecision(2)
         }
         positions[toKey(position.asset)] = position
+        updateMixedCurrenciesFlag(position)
+        return position
+    }
+
+    private fun updateMixedCurrenciesFlag(position: Position) {
         if (!isMixedCurrencies) {
             if (!tradeCurrencies.contains(position.asset.market.currency)) {
                 tradeCurrencies.add(position.asset.market.currency)
@@ -52,19 +57,11 @@ class Positions(
                 isMixedCurrencies = true
             }
         }
-        return position
     }
 
-    /**
-     * Locate a position for an asset. Creates if missing.
-     *
-     * @param asset qualified asset
-     * @return Position for the asset.
-     */
     @JsonIgnore
     fun getOrCreate(asset: Asset): Position {
-        val result = positions[toKey(asset)]
-        return result ?: add(Position(asset))
+        return getOrCreate(asset, LocalDate.now())
     }
 
     @JsonIgnore
@@ -76,16 +73,14 @@ class Positions(
         tradeDate: LocalDate,
     ): Position {
         val firstTrade = !positions.containsKey(toKey(asset))
-        val position = getOrCreate(asset)
+        val position = positions[toKey(asset)] ?: add(Position(asset))
         if (firstTrade) {
             position.dateValues.opened = tradeDate
         }
         return position
     }
 
-    fun hasPositions(): Boolean {
-        return positions.isNotEmpty()
-    }
+    fun hasPositions() = positions.isNotEmpty()
 
     fun setTotal(
         valueIn: Position.In,

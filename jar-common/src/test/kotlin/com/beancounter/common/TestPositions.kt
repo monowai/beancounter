@@ -16,7 +16,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getJsonAsset
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils
@@ -27,7 +26,6 @@ import java.math.BigDecimal
 
 internal class TestPositions {
     private val dateUtils = DateUtils()
-    private val bcJson = BcJson()
 
     @Test
     @Throws(Exception::class)
@@ -121,10 +119,11 @@ internal class TestPositions {
     @Test
     @Throws(Exception::class)
     fun is_TotalsSerializing() {
-        val totals = Totals(BigDecimal("200.99"))
+        val totals = Totals(USD, BigDecimal("200.99"))
         val json = objectMapper.writeValueAsString(totals)
         val fromJson = objectMapper.readValue<Totals>(json)
         assertThat(fromJson)
+            .hasNoNullFieldsOrProperties()
             .usingRecursiveComparison().isEqualTo(totals)
     }
 }

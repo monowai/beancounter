@@ -3,9 +3,13 @@ package com.beancounter.position.service
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PriceService
+import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.SystemException
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.Currency
+import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
@@ -14,9 +18,9 @@ import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
 import com.beancounter.position.valuation.MarketValue
 import com.beancounter.position.valuation.RoiCalculator
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -51,56 +55,105 @@ class PositionValuationService(
             positions.asAt,
         )
 
-        // Set market data into the positions
-        // There's an issue here that without a price, gains are not computed
         val (priceResponse, fxResponse) = getValuationData(positions)
         if (priceResponse.data.isEmpty()) {
             log.info("No prices found on date {}", positions.asAt)
             return positions // Prevent NPE
         }
-        val baseTotals = Totals()
-        val refTotals = Totals()
-        for (marketData in priceResponse.data) {
-            var position: Position
-            runBlocking {
-                position = marketValue.value(positions, marketData, fxResponse.data.rates)
-            }
 
-            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
-            val refMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, position.asset.market.currency)
+        val tradeCurrency = getTradeCurrency(positions)
+        val baseTotals = Totals(positions.portfolio.base)
+        val pfTotals = Totals(positions.portfolio.currency)
+        val tradeTotals = Totals(tradeCurrency)
 
-            // Directly add to the totals, reducing method calls
-            baseTotals.total = baseTotals.total.add(baseMoneyValues.marketValue)
-            refTotals.total = refTotals.total.add(refMoneyValues.marketValue)
-        }
+        calculateMarketValues(positions, priceResponse, fxResponse, tradeCurrency, baseTotals, pfTotals, tradeTotals)
+        calculateWeightsAndGains(positions, pfTotals, baseTotals, tradeTotals)
+
         // Set the accumulated totals once after all computations are done
         positions.setTotal(Position.In.BASE, baseTotals)
-        positions.setTotal(Position.In.PORTFOLIO, refTotals)
-
-        // Iterate through each position only once and update weights accordingly
-        for (position in positions.positions.values) {
-            // Calculate and set the weight for trade currency
-            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
-            tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.total)
-            val roi = roiCalculator.calculateROI(tradeMoneyValues)
-            tradeMoneyValues.roi = roi
-
-            // Calculate and set the weight for base currency
-            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
-            baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.total)
-            baseMoneyValues.roi = roi
-
-            // Calculate and set the weight for portfolio currency
-            val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
-            portfolioMoneyValues.weight = percentUtils.percent(portfolioMoneyValues.marketValue, refTotals.total)
-            portfolioMoneyValues.roi = roi
-        }
+        positions.setTotal(Position.In.PORTFOLIO, pfTotals)
+        positions.setTotal(Position.In.TRADE, tradeTotals)
 
         log.debug(
             "Completed valuation of {} positions.",
             positions.positions.size,
         )
         return positions
+    }
+
+    private fun getTradeCurrency(positions: Positions): Currency {
+        return if (positions.isMixedCurrencies) {
+            positions.portfolio.base
+        } else {
+            positions.positions.values.firstOrNull()?.asset?.market?.currency ?: positions.portfolio.base
+        }
+    }
+
+    private fun calculateMarketValues(
+        positions: Positions,
+        priceResponse: PriceResponse,
+        fxResponse: FxResponse,
+        tradeCurrency: Currency,
+        baseTotals: Totals,
+        refTotals: Totals,
+        tradeTotals: Totals,
+    ) {
+        for (marketData in priceResponse.data) {
+            val position = marketValue.value(positions, marketData, fxResponse.data.rates)
+
+            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
+            val refMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, position.asset.market.currency)
+            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, tradeCurrency)
+
+            // Directly add to the totals, reducing method calls
+            baseTotals.marketValue = baseTotals.marketValue.add(baseMoneyValues.marketValue)
+            refTotals.marketValue = refTotals.marketValue.add(refMoneyValues.marketValue)
+            tradeTotals.marketValue = tradeTotals.marketValue.add(tradeMoneyValues.marketValue)
+        }
+    }
+
+    private fun calculateWeightsAndGains(
+        positions: Positions,
+        refTotals: Totals,
+        baseTotals: Totals,
+        tradeTotals: Totals,
+    ) {
+        for (position in positions.positions.values) {
+            val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
+            tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.marketValue)
+
+            val baseMoneyValues = position.getMoneyValues(Position.In.BASE, positions.portfolio.base)
+            baseMoneyValues.weight = percentUtils.percent(baseMoneyValues.marketValue, baseTotals.marketValue)
+
+            val portfolioMoneyValues = position.getMoneyValues(Position.In.PORTFOLIO, positions.portfolio.currency)
+            portfolioMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, tradeTotals.marketValue)
+
+            // Calculate ROI once and use it for all three types
+            val roi = roiCalculator.calculateROI(tradeMoneyValues)
+
+            if (position.asset.market.code != "CASH") {
+                // Calculate the gain for each position
+                setTotals(tradeTotals, tradeMoneyValues, roi)
+                setTotals(baseTotals, baseMoneyValues, roi)
+                setTotals(refTotals, portfolioMoneyValues, roi)
+            } else {
+                tradeTotals.cash = tradeTotals.cash.add(tradeMoneyValues.marketValue)
+                baseTotals.cash = baseTotals.cash.add(baseMoneyValues.marketValue)
+                refTotals.cash = refTotals.cash.add(portfolioMoneyValues.marketValue)
+            }
+        }
+    }
+
+    private fun setTotals(
+        totals: Totals,
+        moneyValues: MoneyValues,
+        roi: BigDecimal,
+    ) {
+        moneyValues.roi = roi
+        totals.purchases = totals.purchases.add(moneyValues.purchases)
+        totals.sales = totals.sales.add(moneyValues.sales)
+        totals.income = totals.income.add(moneyValues.dividends)
+        totals.gain = totals.gain.add(moneyValues.totalGain)
     }
 
     private fun getValuationData(positions: Positions): ValuationData {

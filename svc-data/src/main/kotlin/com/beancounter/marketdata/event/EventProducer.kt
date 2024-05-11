@@ -46,7 +46,7 @@ class EventProducer {
                 id = null,
                 trnType = TrnType.DIVI,
                 source = marketData.source,
-                recordDate = marketData.priceDate!!,
+                recordDate = marketData.priceDate,
                 assetId = marketData.asset.id,
                 rate = marketData.dividend,
                 split = marketData.split,

@@ -69,7 +69,7 @@ internal class AlphaBehaviourTest {
             val resolvedDate = dateUtils.getFormattedDate("2020-05-01")
             assertThat(resolvedDate).isNotNull
             assertThat(marketData.priceDate).isNotNull
-            if (marketData.priceDate!!.compareTo(resolvedDate) == 0) {
+            if (marketData.priceDate.compareTo(resolvedDate) == 0) {
                 // Dividend
                 assertThat(marketData.dividend).isEqualTo(BigDecimal("0.2625"))
             }

@@ -76,7 +76,7 @@ class PriceService internal constructor(
         val createSet: MutableCollection<MarketData> = ArrayList()
         for (marketData in priceResponse.data) {
             if (!cashUtils.isCash(marketData.asset)) {
-                val existing = getMarketData(marketData.asset, marketData.priceDate!!)
+                val existing = getMarketData(marketData.asset, marketData.priceDate)
                 if (existing.isEmpty) {
                     // Create
                     createSet.add(marketData)

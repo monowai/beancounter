@@ -119,12 +119,12 @@ class EventLoader(
             loginService.setAuthContext(authContext)
             val events = priceService.getEvents(position.asset.id)
             for (priceResponse in events.data) {
-                if (date.compareTo(priceResponse.priceDate!!) == 0) {
+                if (date.compareTo(priceResponse.priceDate) == 0) {
                     eventCount++
                     eventService.save(
                         CorporateEvent(
                             trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
-                            recordDate = priceResponse.priceDate!!,
+                            recordDate = priceResponse.priceDate,
                             assetId = position.asset.id,
                             rate = priceResponse.dividend,
                             split = priceResponse.split,

@@ -10,12 +10,21 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
+/**
+ * Service class for importing transaction data.
+ */
 @Service
 class TrnImportService(
     private val adapterFactory: AdapterFactory,
     private val portfolioService: PortfolioService,
     private val trnService: TrnService,
 ) {
+    /**
+     * Imports transaction data from a CSV file from a trusted source.
+     *
+     * @param trustedRequest The request containing the CSV data.
+     * @return A collection of transactions.
+     */
     fun fromCsvImport(trustedRequest: TrustedTrnImportRequest): Collection<Trn> {
         if (trustedRequest.message != "") {
             logger.info(
@@ -35,6 +44,12 @@ class TrnImportService(
         return writeTrn(trustedRequest.portfolio, trnInput)
     }
 
+    /**
+     * Imports corporate actions from a transaction request.
+     *
+     * @param trustedTrnEvent The event containing the transaction data.
+     * @return A collection of transactions.
+     */
     fun fromTrnRequest(trustedTrnEvent: TrustedTrnEvent): Collection<Trn> {
         logger.trace("Message {}", trustedTrnEvent.toString())
         if (!verifyPortfolio(trustedTrnEvent.portfolio.id)) {

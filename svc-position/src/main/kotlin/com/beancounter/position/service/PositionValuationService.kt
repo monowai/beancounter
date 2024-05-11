@@ -66,13 +66,14 @@ class PositionValuationService(
         val pfTotals = Totals(positions.portfolio.currency)
         val tradeTotals = Totals(tradeCurrency)
 
-        calculateMarketValues(positions, priceResponse, fxResponse, tradeCurrency, baseTotals, pfTotals, tradeTotals)
-        calculateWeightsAndGains(positions, pfTotals, baseTotals, tradeTotals)
-
-        // Set the accumulated totals once after all computations are done
         positions.setTotal(Position.In.BASE, baseTotals)
         positions.setTotal(Position.In.PORTFOLIO, pfTotals)
         positions.setTotal(Position.In.TRADE, tradeTotals)
+
+        calculateMarketValues(positions, priceResponse, fxResponse, tradeCurrency)
+        calculateWeightsAndGains(positions)
+
+        // Set the accumulated totals once after all computations are done
 
         log.debug(
             "Completed valuation of {} positions.",
@@ -94,10 +95,10 @@ class PositionValuationService(
         priceResponse: PriceResponse,
         fxResponse: FxResponse,
         tradeCurrency: Currency,
-        baseTotals: Totals,
-        refTotals: Totals,
-        tradeTotals: Totals,
     ) {
+        val baseTotals = positions.totals[Position.In.BASE]!!
+        val refTotals = positions.totals[Position.In.PORTFOLIO]!!
+        val tradeTotals = positions.totals[Position.In.TRADE]!!
         for (marketData in priceResponse.data) {
             val position = marketValue.value(positions, marketData, fxResponse.data.rates)
 
@@ -112,12 +113,11 @@ class PositionValuationService(
         }
     }
 
-    private fun calculateWeightsAndGains(
-        positions: Positions,
-        refTotals: Totals,
-        baseTotals: Totals,
-        tradeTotals: Totals,
-    ) {
+    private fun calculateWeightsAndGains(positions: Positions) {
+        val baseTotals = positions.totals[Position.In.BASE]!!
+        val refTotals = positions.totals[Position.In.PORTFOLIO]!!
+        val tradeTotals = positions.totals[Position.In.TRADE]!!
+
         for (position in positions.positions.values) {
             val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
             tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.marketValue)

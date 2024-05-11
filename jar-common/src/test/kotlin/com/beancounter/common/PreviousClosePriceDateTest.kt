@@ -12,6 +12,8 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
+private const val EXPECTED_DATE = "2023-07-10"
+
 /**
  * BC values on the previous days close. These facts are asserted in this class
  */
@@ -27,7 +29,7 @@ internal class PreviousClosePriceDateTest {
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, true))
-            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
     @Test
@@ -37,7 +39,7 @@ internal class PreviousClosePriceDateTest {
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, true))
-            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
     @Test
@@ -49,10 +51,10 @@ internal class PreviousClosePriceDateTest {
         // Need to assess if this is legit - suggests caller date is always a literal date, not the
         //  market datetime
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, false))
-            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
 
         assertThat(previousClose.getPriceDate(morningOf, nasdaq))
-            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
     @Test
@@ -62,7 +64,7 @@ internal class PreviousClosePriceDateTest {
         val morningOf = sgtWednesday.atZone(dateUtils.zoneId)
         // Should resolve to Tuesday as previous days close
         assertThat(previousClose.getPriceDate(morningOf, nasdaq, true))
-            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
     @Test
@@ -76,7 +78,7 @@ internal class PreviousClosePriceDateTest {
 
         // Prices Now available.
         assertThat(previousClose.getPriceDate(asAtDate, nasdaq, true))
-            .isEqualTo(dateUtils.getFormattedDate("2023-07-10")) // Nasdaq last close
+            .isEqualTo(dateUtils.getFormattedDate(EXPECTED_DATE)) // Nasdaq last close
     }
 
     @Test

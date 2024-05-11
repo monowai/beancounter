@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
-import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.CashUtils
 import org.slf4j.LoggerFactory
@@ -51,47 +50,32 @@ class MarketDataService
             val cachedDates: MutableMap<String, LocalDate> = mutableMapOf()
 
             for (marketDataProvider in byProviders.keys) {
-                // Find existing price for date
                 val assets = (byProviders[marketDataProvider] ?: error("")).iterator()
                 while (assets.hasNext()) {
                     val asset = assets.next()
                     val market = asset.market
                     if (!cachedDates.containsKey(market.timezone.id)) {
-                        val marketDate =
-                            getMarketDate(
-                                marketDataProvider,
-                                asset,
-                                priceRequest,
-                            )
+                        val marketDate = getMarketDate(marketDataProvider, asset, priceRequest)
                         cachedDates[market.timezone.id] = marketDate
                     }
 
-                    val response =
-                        getMarketData(
-                            asset,
-                            priceRequest,
-                            cachedDates[market.timezone.id]!!,
-                        )
-
-                    if (response.marketData.isPresent) {
-                        val mdValue = response.marketData.get()
+                    val marketData = getMarketData(asset, priceRequest, cachedDates[market.timezone.id]!!)
+                    if (marketData.isPresent) {
+                        val mdValue = marketData.get()
                         mdValue.asset = asset
                         foundInDb.add(mdValue)
-                        assets.remove() // One less external query to make
+                        assets.remove()
                     }
                 }
 
-                // Pull the balance over external API integration
-                foundOverApi.addAll(
-                    getFromProvider(byProviders[marketDataProvider], cachedDates, marketDataProvider),
-                )
+                foundOverApi.addAll(getFromProvider(byProviders[marketDataProvider], cachedDates, marketDataProvider))
             }
-            // Merge results into a response
+
             if (foundInDb.size + foundOverApi.size > 1) {
                 log.debug("From DB: ${foundInDb.size}, from API: ${foundOverApi.size}")
             }
             if (foundOverApi.isNotEmpty()) {
-                priceService.write(PriceResponse(foundOverApi)) // Async write
+                priceService.write(PriceResponse(foundOverApi))
             }
             foundInDb.addAll(foundOverApi)
             return PriceResponse(foundInDb)
@@ -101,15 +85,9 @@ class MarketDataService
             asset: Asset,
             priceRequest: PriceRequest,
             marketDate: LocalDate,
-        ): MarketDataParameters {
-            val md = priceService.getMarketData(asset, marketDate, priceRequest.closePrice)
-            return MarketDataParameters(md, asset.market)
+        ): Optional<MarketData> {
+            return priceService.getMarketData(asset, marketDate, priceRequest.closePrice)
         }
-
-        class MarketDataParameters(
-            val marketData: Optional<MarketData>,
-            val market: Market,
-        )
 
         private fun getFromProvider(
             providerAssets: MutableCollection<Asset>?,
@@ -159,8 +137,8 @@ class MarketDataService
                     priceRequest = priceRequest,
                     marketDate = marketDate,
                 )
-            if (response.marketData.isPresent) {
-                priceService.purge(response.marketData.get())
+            if (response.isPresent) {
+                priceService.purge(response.get())
             }
         }
 

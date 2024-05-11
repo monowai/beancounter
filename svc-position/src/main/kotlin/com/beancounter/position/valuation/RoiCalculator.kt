@@ -29,10 +29,21 @@ import java.math.RoundingMode
  */
 class RoiCalculator {
     fun calculateROI(moneyValues: MoneyValues): BigDecimal {
-        if (moneyValues.costValue.compareTo(BigDecimal.ZERO) == 0) {
+        val costBasis = costBasis(moneyValues)
+
+        if (costBasis.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO
         }
-        return moneyValues.marketValue.subtract(moneyValues.costValue).add(moneyValues.dividends)
-            .divide(moneyValues.costValue, 6, RoundingMode.HALF_UP)
+        val returns = moneyValues.totalGain
+        return returns
+            .divide(costBasis, 6, RoundingMode.HALF_UP)
+    }
+
+    private fun costBasis(moneyValues: MoneyValues): BigDecimal {
+        return if (moneyValues.costValue.compareTo(BigDecimal.ZERO) == 0) {
+            moneyValues.purchases
+        } else {
+            moneyValues.costValue
+        }
     }
 }

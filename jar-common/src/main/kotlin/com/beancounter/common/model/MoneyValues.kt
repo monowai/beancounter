@@ -21,6 +21,7 @@ data class MoneyValues(val currency: Currency) {
     var sales: BigDecimal = BigDecimal.ZERO
     var marketValue: BigDecimal = BigDecimal.ZERO
     var weight: BigDecimal = BigDecimal.ZERO
+    var irr: BigDecimal = BigDecimal.ZERO
     var roi: BigDecimal = BigDecimal.ZERO
     var priceData: PriceData = PriceData()
     var averageCost: BigDecimal = BigDecimal.ZERO

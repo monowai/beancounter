@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
 
@@ -20,6 +21,9 @@ class QuantityValues(
     fun getTotal(): BigDecimal {
         return purchased.add(sold).add(adjustment)
     }
+
+    @JsonIgnore
+    fun hasPosition() = getTotal().compareTo(BigDecimal.ZERO) != 0
 
     fun getPrecision(): Int {
         // This is a bit hacky. Should be derived from the asset and set not computed

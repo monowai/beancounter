@@ -1,5 +1,6 @@
 package com.beancounter.position.accumulation
 
+import IrrCalculator
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service
     DateUtils::class,
     TrnBehaviourFactory::class,
     CurrencyResolver::class,
+    IrrCalculator::class,
 )
 class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
     private val cashSet = setOf(BALANCE, FX_BUY, DEPOSIT, WITHDRAWAL)
@@ -49,9 +51,10 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         trnBehaviourFactory[trn.trnType].accumulate(trn, positions)
         position.dateValues.last = trn.tradeDate
 
-        if (shouldAccumulateCash(trn)) {
+        if (isCash(trn)) {
             accumulateCash(trn, positions)
         }
+        position.periodicCashFlows.add(trn)
 
         return position
     }
@@ -62,7 +65,7 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
      * @param trn The transaction to evaluate.
      * @return True if cash should be accumulated, false otherwise.
      */
-    private fun shouldAccumulateCash(trn: Trn): Boolean =
+    private fun isCash(trn: Trn): Boolean =
         trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType) &&
             trn.trnType !in cashSet
 

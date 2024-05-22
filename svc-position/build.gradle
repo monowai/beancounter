@@ -48,7 +48,8 @@ dependencies {
             "io.github.resilience4j:resilience4j-annotations",
             "io.github.resilience4j:resilience4j-circuitbreaker",
             "io.github.resilience4j:resilience4j-timelimiter",
-            "io.github.resilience4j:resilience4j-reactor"
+            "io.github.resilience4j:resilience4j-reactor",
+            "org.apache.commons:commons-math3:3.6.1"
     )
 
     compileOnly(

@@ -39,7 +39,7 @@ class GlobalExceptionHandler {
 
     private val errorMessage = "We are unable to process your request."
 
-    @ExceptionHandler(BusinessException::class)
+    @ExceptionHandler(BusinessException::class, IllegalArgumentException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     fun handleBusinessException(

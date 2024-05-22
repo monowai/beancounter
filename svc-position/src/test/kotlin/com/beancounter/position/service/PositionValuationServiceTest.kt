@@ -1,5 +1,6 @@
 package com.beancounter.position.service
 
+import IrrCalculator
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PriceService
@@ -12,6 +13,7 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.utils.FxUtils
@@ -64,6 +66,9 @@ class PositionValuationServiceTest {
     @Mock
     private lateinit var tokenService: TokenService
 
+    @Mock
+    private lateinit var irrCalculator: IrrCalculator
+
     private lateinit var valuationService: PositionValuationService
 
     val portfolio: Portfolio =
@@ -83,6 +88,8 @@ class PositionValuationServiceTest {
                 priceService,
                 fxRateService,
                 tokenService,
+                DateUtils(),
+                irrCalculator,
             )
     }
 

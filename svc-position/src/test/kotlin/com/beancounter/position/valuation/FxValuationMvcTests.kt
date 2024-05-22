@@ -1,5 +1,6 @@
 package com.beancounter.position.valuation
 
+import IrrCalculator
 import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.TokenUtils
@@ -26,6 +27,7 @@ import com.beancounter.position.accumulation.Accumulator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.oauth2.jwt.Jwt
@@ -45,6 +47,9 @@ private const val EBAY = "EBAY"
 internal class FxValuationMvcTests {
     @Autowired
     private lateinit var accumulator: Accumulator
+
+    @MockBean
+    private lateinit var irrCalculator: IrrCalculator
 
     @Autowired
     private lateinit var mockMvc: MockMvc

@@ -13,6 +13,8 @@ import java.util.EnumMap
 class Position(val asset: Asset, portfolio: Portfolio?) {
     constructor(asset: Asset) : this(asset, null)
 
+    @JsonIgnore
+    val periodicCashFlows = PeriodicCashFlows()
     var quantityValues: QuantityValues = QuantityValues()
     var dateValues = DateValues()
     val moneyValues: MutableMap<In, MoneyValues> = EnumMap(In::class.java)

@@ -31,6 +31,10 @@ class Positions(
     val positions: MutableMap<String, Position> = TreeMap(),
     val totals: MutableMap<Position.In, Totals> = EnumMap(Position.In::class.java),
 ) {
+    @JsonIgnore
+    val periodicCashFlows = PeriodicCashFlows()
+
+    var irr = 0.0
     var isMixedCurrencies = false
 
     @JsonIgnore

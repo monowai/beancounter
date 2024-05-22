@@ -1,5 +1,6 @@
 package com.beancounter.position.service
 
+import IrrCalculator
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PriceService
@@ -13,6 +14,7 @@ import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Totals
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PercentUtils
 import com.beancounter.position.model.ValuationData
 import com.beancounter.position.utils.FxUtils
@@ -37,6 +39,8 @@ class PositionValuationService(
     private val priceService: PriceService,
     private val fxRateService: FxService,
     private val tokenService: TokenService,
+    private val dateUtils: DateUtils,
+    private val irrCalculator: IrrCalculator,
 ) {
     val percentUtils = PercentUtils()
     val roiCalculator = RoiCalculator()
@@ -72,6 +76,10 @@ class PositionValuationService(
 
         calculateMarketValues(positions, priceResponse, fxResponse, tradeCurrency)
         calculateWeightsAndGains(positions)
+        val irr = BigDecimal(irrCalculator.calculate(positions.periodicCashFlows))
+        baseTotals.irr = irr
+        pfTotals.irr = irr
+        tradeTotals.irr = irr
 
         // Set the accumulated totals once after all computations are done
 
@@ -117,7 +125,7 @@ class PositionValuationService(
         val baseTotals = positions.totals[Position.In.BASE]!!
         val refTotals = positions.totals[Position.In.PORTFOLIO]!!
         val tradeTotals = positions.totals[Position.In.TRADE]!!
-
+        val theDate = dateUtils.getDate(positions.asAt)
         for (position in positions.positions.values) {
             val tradeMoneyValues = position.getMoneyValues(Position.In.TRADE, position.asset.market.currency)
             tradeMoneyValues.weight = percentUtils.percent(tradeMoneyValues.marketValue, refTotals.marketValue)
@@ -132,10 +140,20 @@ class PositionValuationService(
             val roi = roiCalculator.calculateROI(tradeMoneyValues)
 
             if (position.asset.market.code != "CASH") {
+//                log.trace(
+//                    "Position: {}, MarketValue: {}, Weight: {}, ROI: {}",
+//                    position.asset.code,
+//                    tradeMoneyValues.marketValue,
+//                    tradeMoneyValues.weight,
+//                    roi,
+//                )
+                position.periodicCashFlows.add(position, theDate)
+                positions.periodicCashFlows.addAll(position.periodicCashFlows.cashFlows)
+                val irr = BigDecimal(irrCalculator.calculate(position.periodicCashFlows))
                 // Calculate the gain for each position
-                setTotals(tradeTotals, tradeMoneyValues, roi)
-                setTotals(baseTotals, baseMoneyValues, roi)
-                setTotals(refTotals, portfolioMoneyValues, roi)
+                setTotals(tradeTotals, tradeMoneyValues, roi, irr)
+                setTotals(baseTotals, baseMoneyValues, roi, irr)
+                setTotals(refTotals, portfolioMoneyValues, roi, irr)
             } else {
                 tradeTotals.cash = tradeTotals.cash.add(tradeMoneyValues.marketValue)
                 baseTotals.cash = baseTotals.cash.add(baseMoneyValues.marketValue)
@@ -148,8 +166,10 @@ class PositionValuationService(
         totals: Totals,
         moneyValues: MoneyValues,
         roi: BigDecimal,
+        irr: BigDecimal,
     ) {
         moneyValues.roi = roi
+        moneyValues.irr = irr
         totals.purchases = totals.purchases.add(moneyValues.purchases)
         totals.sales = totals.sales.add(moneyValues.sales)
         totals.income = totals.income.add(moneyValues.dividends)

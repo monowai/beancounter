@@ -10,290 +10,57 @@ executors:
 
     docker:
       - image: cimg/openjdk:21.0
+
+common_steps: &common_steps
+  steps:
+    - add_ssh_keys:
+        fingerprints:
+          - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
+    - checkout
+    - restore_cache:
+        keys:
+          - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+    - save_cache:
+        paths:
+          - ~/.gradle
+        key: v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
+    - save_cache:
+        paths:
+          - ~/.m2
+          - ~/.gradle
+          - ~/project
+        key: v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
+    - persist_to_workspace:
+        root: ~/project
+        paths:
+          - ./jar-common/build/reports/jacoco/test/*.xml
+          - ./codecov.yml
+
 jobs:
-  build-common:
+  build:
     executor: java-build
     resource_class: large
     environment:
-      IMAGE_NAME: bc-data
-
+      IMAGE_NAME: bc-<< matrix.name >>
+    parameters:
+      name:
+        type: string
+    <<: *common_steps
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-      - checkout
-      - restore_cache:
-          keys:
-            - v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
-      - run: './gradlew jar-common:build jar-auth:build'
-      - run: './gradlew svc-data:publishToMavenLocal'
-      - run: './gradlew svc-position:publishToMavenLocal'
+      - run: './gradlew << parameters.name >>:build'
       - codecov/upload:
-          file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
-
-      - codecov/upload:
-          file: ./jar-auth/build/reports/jacoco/test/jacocoTestReport.xml
-
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v2-build-cache-{{ checksum "~/project/jar-common/build.gradle" }}-{{ checksum "~/project/svc-data/build.gradle" }}-{{ checksum "~/project/jar-shell/build.gradle" }}-{{ checksum "~/project/svc-position/build.gradle" }}
-
-      - save_cache:
-          paths:
-            - ~/.m2
-            - ~/.gradle
-            - ~/project
-
-          key: v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-
+          file: ./<< parameters.name >>/build/reports/jacoco/test/jacocoTestReport.xml
       - store_artifacts:
-          path: ~/project/svc-data/build/libs
-      - store_artifacts:
-          path: ~/project/jar-common/build/libs
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./jar-common/build/reports/jacoco/test/*.xml
-            - ./codecov.yml
-
-  build-client:
-    executor: java-build
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-      - restore_cache:
-          keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-
-      - run: './gradlew jar-client:build'
-      - codecov/upload:
-          file: ./jar-client/build/reports/jacoco/test/jacocoTestReport.xml
-
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./jar-client/build/reports/jacoco/test/*.xml
-
-      - store_test_results:
-          path: ~/project/jar-client/build/test-results/test
-
-      - store_artifacts:
-          path: ~/project/jar-client/build/libs
-
-  build-shell:
-    executor: java-build
-    environment:
-      IMAGE_NAME: bc-shell
-
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-      - restore_cache:
-          keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-
-      - run: './gradlew jar-shell:build'
-      - codecov/upload:
-          file: ./jar-shell/build/reports/jacoco/test/jacocoTestReport.xml
-
-      - setup_remote_docker
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: Package BC-SHELL
-                command: |
-                  docker buildx create --use
-                  docker buildx inspect
-                  docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-                  docker buildx build --push \
-                                      --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-shell:latest" \
-                                      -t "monowai/bc-shell:${STACK_VER}" \
-                                       ~/project/jar-shell/.
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - ./bc-shell.tar
-            - ./jar-shell/build/reports/jacoco/test/*.xml
-
-      - store_test_results:
-          path: ~/project/jar-shell/build/test-results/test
-
-      - store_artifacts:
-          path: ~/project/jar-shell/build/libs
-
-  build-data:
-    executor: java-build
-    resource_class: large
-    environment:
-      IMAGE_NAME: bc-data
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-
-      - restore_cache:
-          keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - run: './gradlew svc-data:build'
-      - store_test_results:
-          path: ./svc-data/build/test-results/test
-      - codecov/upload:
-          file: ./svc-data/build/reports/jacoco/test/jacocoTestReport.xml
-
-      - store_artifacts:
-          path: ~/project/svc-data/build/libs
-      - setup_remote_docker
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: Package BC-DATA
-                command: |
-                  docker buildx create --use
-                  docker buildx inspect
-                  docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-                  docker buildx build --push \
-                                      --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-data:latest" \
-                                      -t "monowai/bc-data:${STACK_VER}" \
-                                       ~/project/svc-data/.
-            - persist_to_workspace:
-                root: ~/project
-                paths:
-                  - ./svc-data/build/reports/jacoco/test/*.xml
-
-
-  build-position:
-    executor: java-build
-    resource_class: large
-    environment:
-      IMAGE_NAME: bc-position
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-
-      - restore_cache:
-          keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - run: './gradlew svc-position:build'
-      - codecov/upload:
-          file: ./svc-position/build/reports/jacoco/test/jacocoTestReport.xml
-      - store_test_results:
-          path: ~/project/svc-position/build/test-results/test
-      - store_artifacts:
-          path: ~/project/svc-position/build/libs
-      - setup_remote_docker
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: Package BC-EVENT
-                command: |
-                  docker buildx create --use
-                  docker buildx inspect
-                  docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-                  docker buildx build --push \
-                                      --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-position:latest" \
-                                      -t "monowai/bc-position:${STACK_VER}" \
-                                       ~/project/svc-position/.
-            - persist_to_workspace:
-                root: ~/project
-                paths:
-                  - ./svc-position/build/reports/jacoco/test/*.xml
-
-  build-event:
-    executor: java-build
-    environment:
-      IMAGE_NAME: bc-event
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-
-      - restore_cache:
-          keys:
-            - v1-sha-cache-{{ .Environment.CIRCLE_SHA1 }}
-      - run: './gradlew svc-event:build'
-      - codecov/upload:
-          file: ./svc-event/build/reports/jacoco/test/jacocoTestReport.xml
-
-      - store_test_results:
-          path: ~/project/svc-event/build/test-results/test
-      - store_artifacts:
-          path: ~/project/svc-event/build/libs
-      - setup_remote_docker
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: Package BC-EVENT
-                command: |
-                  docker buildx create --use
-                  docker buildx inspect
-                  docker run --rm --privileged tonistiigi/binfmt --install arm64
-                  echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-                  docker buildx build --push \
-                                      --platform linux/arm64/v8,linux/amd64 \
-                                      -t "monowai/bc-event:latest" \
-                                      -t "monowai/bc-event:${STACK_VER}" \
-                                       ~/project/svc-event/.
-
-            - persist_to_workspace:
-                root: ~/project
-                paths:
-                  - ./svc-event/build/reports/jacoco/test/*.xml
-
-  publish-coverage:
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "7e:93:fb:39:b3:21:f7:b6:48:bd:f7:0e:56:5c:ad:87"
-      - attach_workspace:
-          at: ~/workspace
-      - run:
-          name: Codacy Coverage
-          command: |
-            cd ~/workspace
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Kotlin $(find -name 'jacoco*.xml' -printf '-r %p ')
-
-
+          path: ~/project/<< parameters.name >>/build/libs
 
 workflows:
   version: 2
   build_and_stage:
     jobs:
-      - build-common
-      - build-client:
-          requires:
-            - build-common
-      - build-shell:
-          requires:
-            - build-client
-      - build-data:
-          requires:
-            - build-client
-      - build-position:
-          requires:
-            - build-client
-      - build-event:
-          requires:
-            - build-client
+      - build:
+          matrix:
+            parameters:
+              name: ["common", "client", "shell", "data", "position", "event"]
       - publish-coverage:
           filters:
             branches:
@@ -301,7 +68,4 @@ workflows:
                 - master
                 - /^codacy.*/
           requires:
-            - build-shell
-            - build-position
-            - build-data
-            - build-event
+            - build

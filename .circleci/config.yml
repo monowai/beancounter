@@ -37,30 +37,41 @@ common_steps: &common_steps
           - ./codecov.yml
 
 jobs:
-  build:
+  build-common:
     executor: java-build
     resource_class: large
     environment:
-      IMAGE_NAME: bc-<< matrix.name >>
-    parameters:
-      name:
-        type: string
+      IMAGE_NAME: bc-common
     <<: *common_steps
     steps:
-      - run: './gradlew << parameters.name >>:build'
+      - run: './gradlew jar-common:build'
       - codecov/upload:
-          file: ./<< parameters.name >>/build/reports/jacoco/test/jacocoTestReport.xml
+          file: ./jar-common/build/reports/jacoco/test/jacocoTestReport.xml
       - store_artifacts:
-          path: ~/project/<< parameters.name >>/build/libs
+          path: ~/project/jar-common/build/libs
+
+  build-client:
+    executor: java-build
+    resource_class: large
+    environment:
+      IMAGE_NAME: bc-client
+    <<: *common_steps
+    steps:
+      - run: './gradlew jar-client:build'
+      - codecov/upload:
+          file: ./jar-client/build/reports/jacoco/test/jacocoTestReport.xml
+      - store_artifacts:
+          path: ~/project/jar-client/build/libs
+
+  # Add more jobs as needed...
 
 workflows:
   version: 2
   build_and_stage:
     jobs:
-      - build:
-          matrix:
-            parameters:
-              name: ["common", "client", "shell", "data", "position", "event"]
+      - build-common
+      - build-client
+      # Add more jobs as needed...
       - publish-coverage:
           filters:
             branches:
@@ -68,4 +79,6 @@ workflows:
                 - master
                 - /^codacy.*/
           requires:
-            - build
+            - build-common
+            - build-client
+            # Add more jobs as needed...

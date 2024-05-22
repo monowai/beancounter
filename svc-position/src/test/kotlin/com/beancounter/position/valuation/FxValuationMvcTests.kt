@@ -45,11 +45,11 @@ private const val EBAY = "EBAY"
  */
 @StubbedTest
 internal class FxValuationMvcTests {
-    @Autowired
-    private lateinit var accumulator: Accumulator
-
     @MockBean
     private lateinit var irrCalculator: IrrCalculator
+
+    @Autowired
+    private lateinit var accumulator: Accumulator
 
     @Autowired
     private lateinit var mockMvc: MockMvc

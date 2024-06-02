@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -14,7 +15,13 @@ class PeriodicCashFlows {
             if (firstTransactionDate == null) {
                 firstTransactionDate = it.tradeDate
             }
-            cashFlows.add(CashFlow(it.cashAmount.toDouble(), it.tradeDate))
+            val amount =
+                if (it.cashAmount.compareTo(BigDecimal.ZERO) != 0) {
+                    it.cashAmount.toDouble()
+                } else {
+                    BigDecimal.ZERO.minus(it.tradeAmount)
+                }
+            cashFlows.add(CashFlow(amount.toDouble(), it.tradeDate))
         }
     }
 

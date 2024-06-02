@@ -44,7 +44,8 @@ class Accumulator(private val trnBehaviourFactory: TrnBehaviourFactory) {
         trn: Trn,
         positions: Positions,
     ): Position {
-        val position = positions.getOrCreate(trn.asset, trn.tradeDate)
+        val position = positions.getOrCreate(trn)
+        position.getMoneyValues(Position.In.TRADE, trn.tradeCurrency)
         if (trn.trnType !== DIVI) {
             ensureDateSequential(trn, position)
         }

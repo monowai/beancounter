@@ -34,7 +34,6 @@ class Positions(
     @JsonIgnore
     val periodicCashFlows = PeriodicCashFlows()
 
-    var irr = 0.0
     var isMixedCurrencies = false
 
     @JsonIgnore
@@ -75,9 +74,10 @@ class Positions(
     fun getOrCreate(
         asset: Asset,
         tradeDate: LocalDate,
+        tradeCurrency: Currency = asset.market.currency,
     ): Position {
         val firstTrade = !positions.containsKey(toKey(asset))
-        val position = positions[toKey(asset)] ?: add(Position(asset))
+        val position = positions[toKey(asset)] ?: add(Position(asset, portfolio, tradeCurrency))
         if (firstTrade) {
             position.dateValues.opened = tradeDate
         }
@@ -91,5 +91,13 @@ class Positions(
         totals: Totals,
     ) {
         this.totals[valueIn] = totals
+    }
+
+    /**
+     * This is the preferred way to getOrCreate a Position.
+     */
+    @JsonIgnore
+    fun getOrCreate(trn: Trn): Position {
+        return getOrCreate(trn.asset, trn.tradeDate, trn.tradeCurrency)
     }
 }

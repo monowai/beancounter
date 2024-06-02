@@ -31,6 +31,10 @@ class IrrCalculator(
         periodicCashFlows: PeriodicCashFlows,
         guess: Double = 0.1,
     ): Double {
+        if (periodicCashFlows.cashFlows.isEmpty()) {
+            log.warn("No cash flows to calculate IRR")
+            return 0.0
+        }
         val firstDate = periodicCashFlows.cashFlows.minByOrNull { it.date }?.date ?: LocalDate.now()
         val lastDate = periodicCashFlows.cashFlows.maxByOrNull { it.date }?.date ?: LocalDate.now()
 
@@ -66,7 +70,15 @@ class IrrCalculator(
         private val startDate: LocalDate,
     ) : UnivariateFunction {
         override fun value(rate: Double): Double {
-            return periodicCashFlows.cashFlows.sumOf { it.amount / (1 + rate).pow(ChronoUnit.DAYS.between(startDate, it.date) / 365.0) }
+            return periodicCashFlows.cashFlows.sumOf {
+                it.amount /
+                    (1 + rate).pow(
+                        ChronoUnit.DAYS.between(
+                            startDate,
+                            it.date,
+                        ) / 365.0,
+                    )
+            }
         }
     }
 

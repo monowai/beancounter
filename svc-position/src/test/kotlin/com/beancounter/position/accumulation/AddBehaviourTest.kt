@@ -11,6 +11,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.TEST
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -23,6 +24,7 @@ import java.math.BigDecimal
 class AddBehaviourTest {
     @Autowired
     private lateinit var accumulator: Accumulator
+    private val oneMillion = BigDecimal("1000000.00")
 
     @Test
     fun isRealEstateAdded() {
@@ -32,8 +34,8 @@ class AddBehaviourTest {
                 trnType = TrnType.ADD,
                 asset = Asset.of(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House", "test-user"), market = Market("RE")),
                 quantity = BigDecimal.ONE,
-                price = BigDecimal("1000000.00"),
-                tradeAmount = BigDecimal("1000000.00"),
+                price = oneMillion,
+                tradeAmount = oneMillion,
                 tradeCurrency = Constants.NZD,
                 cashCurrency = Constants.NZD,
                 tradeCashRate = BigDecimal.ONE,
@@ -61,5 +63,17 @@ class AddBehaviourTest {
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_PURCHASES, trn.tradeAmount)
+
+        val tradePosition = position.getMoneyValues(Position.In.TRADE)
+        assertThat(
+            tradePosition,
+        )
+            .hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, Constants.NZD)
+            .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, trn.tradeAmount)
+            .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, trn.tradeAmount)
+            .hasFieldOrPropertyWithValue(Constants.PROP_PURCHASES, trn.tradeAmount)
+
+        assertThat(position.periodicCashFlows.cashFlows).hasSize(1)
+        assertEquals(oneMillion.negate().toDouble(), position.periodicCashFlows.cashFlows[0].amount, 0.001)
     }
 }

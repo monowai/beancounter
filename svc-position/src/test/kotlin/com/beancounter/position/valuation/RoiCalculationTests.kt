@@ -36,7 +36,7 @@ class RoiCalculationTests {
     private fun getCurrentlyHeldValues(): MoneyValues {
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(asset)
-        val moneyValues = position.moneyValues[Position.In.TRADE]!!
+        val moneyValues = position.moneyValues[Position.In.BASE]!!
         moneyValues.costValue = initialInvestment
         moneyValues.dividends = dividends
         moneyValues.marketValue = finalValue
@@ -58,7 +58,7 @@ class RoiCalculationTests {
     private fun getSoldOut(): MoneyValues {
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(asset)
-        val moneyValues = position.moneyValues[Position.In.TRADE]!!
+        val moneyValues = position.moneyValues[Position.In.BASE]!!
         moneyValues.costValue = BigDecimal.ZERO
         moneyValues.dividends = dividends
         moneyValues.marketValue = BigDecimal.ZERO

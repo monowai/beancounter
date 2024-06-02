@@ -10,7 +10,7 @@ import java.util.EnumMap
  * @author mikeh
  * @since 2019-01-28
  */
-class Position(val asset: Asset, portfolio: Portfolio?) {
+class Position(val asset: Asset, portfolio: Portfolio?, tradeCurrency: Currency = asset.market.currency) {
     constructor(asset: Asset) : this(asset, null)
 
     @JsonIgnore
@@ -29,8 +29,7 @@ class Position(val asset: Asset, portfolio: Portfolio?) {
     }
 
     init {
-        // Ensure a trade currency object always exists.
-        getMoneyValues(In.TRADE, asset.market.currency)
+        getMoneyValues(In.TRADE, tradeCurrency)
         if (portfolio != null) {
             getMoneyValues(In.PORTFOLIO, portfolio.currency)
             getMoneyValues(In.BASE, portfolio.base)

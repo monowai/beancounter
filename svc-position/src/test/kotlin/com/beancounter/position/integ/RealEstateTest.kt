@@ -54,7 +54,7 @@ class RealEstateTest {
     }
 
     @Test
-    fun runTest() {
+    fun `values real estate with no market value`() {
         val results = valuationService.build(portfolio, date)
 
         // Assert: Check overall results data integrity

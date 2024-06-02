@@ -22,6 +22,14 @@ class IrrCalculatorTests {
     private val dateUtils = DateUtils()
 
     @Test
+    fun `noCash-flows_don't fail`() {
+        testCalculateIRR(
+            listOf(),
+            0.0,
+        )
+    }
+
+    @Test
     fun testCalculateIRR_Annual() {
         testCalculateIRR(
             listOf(

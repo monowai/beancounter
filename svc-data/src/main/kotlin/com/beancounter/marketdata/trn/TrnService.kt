@@ -66,7 +66,8 @@ class TrnService internal constructor(
             trnRepository.findByPortfolioId(
                 portfolio.id,
                 tradeDate,
-                Sort.by("tradeDate")
+                Sort
+                    .by("tradeDate")
                     .and(Sort.by("asset.code")),
             )
         log.trace("trns: ${results.size}, portfolio: ${portfolio.code}, asAt: $tradeDate")

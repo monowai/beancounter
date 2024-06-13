@@ -14,20 +14,27 @@ import org.springframework.stereotype.Controller
  */
 @Controller
 @ConditionalOnProperty(value = ["kafka.enabled"], matchIfMissing = true)
-class TrnKafkaConsumer(val trnImportService: TrnImportService) {
+class TrnKafkaConsumer(
+    val trnImportService: TrnImportService,
+) {
     @KafkaListener(topics = ["#{@trnCsvTopic}"], errorHandler = "bcErrorHandler")
-    fun fromCsvImport(payload: String): TrnResponse {
-        return TrnResponse(
+    fun fromCsvImport(payload: String): TrnResponse =
+        TrnResponse(
             trnImportService.fromCsvImport(
                 objectMapper.readValue<TrustedTrnImportRequest>(
                     payload,
                 ),
             ),
         )
-    }
 
     @KafkaListener(topics = ["#{@trnEventTopic}"], errorHandler = "bcErrorHandler")
-    fun fromTrnRequest(payload: String?): TrnResponse {
-        return TrnResponse(trnImportService.fromTrnRequest(objectMapper.readValue(payload, TrustedTrnEvent::class.java)))
-    }
+    fun fromTrnRequest(payload: String?): TrnResponse =
+        TrnResponse(
+            trnImportService.fromTrnRequest(
+                objectMapper.readValue(
+                    payload,
+                    TrustedTrnEvent::class.java,
+                ),
+            ),
+        )
 }

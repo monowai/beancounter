@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service
  * Support to answer various questions around JWT tokens.
  */
 @Service
-class TokenService(val authConfig: AuthConfig) {
+class TokenService(
+    val authConfig: AuthConfig,
+) {
     val jwt: JwtAuthenticationToken
         get() {
             val authentication = SecurityContextHolder.getContext().authentication
@@ -22,26 +24,19 @@ class TokenService(val authConfig: AuthConfig) {
             }
         }
 
-    fun isGoogle(): Boolean {
-        return (subject.startsWith("goog"))
-    }
+    fun isGoogle(): Boolean = (subject.startsWith("goog"))
 
-    fun isAuth0(): Boolean {
-        return (subject.startsWith("auth0"))
-    }
+    fun isAuth0(): Boolean = (subject.startsWith("auth0"))
 
     // M2M token
-    val m2mToken: String
+    private val m2mToken: String
         get() {
-            val jwt = jwt
             return jwt.token.tokenValue
         }
     val bearerToken: String
         get() = getBearerToken(m2mToken)
 
-    fun getBearerToken(token: String): String {
-        return "$BEARER $token"
-    }
+    fun getBearerToken(token: String): String = "$BEARER $token"
 
     val subject: String
         get() {
@@ -49,9 +44,7 @@ class TokenService(val authConfig: AuthConfig) {
             return token.token.subject
         }
 
-    fun getEmail(): String {
-        return jwt.token?.getClaim(authConfig.claimEmail)!!
-    }
+    fun getEmail(): String = jwt.token?.getClaim(authConfig.claimEmail)!!
 
     fun hasEmail(): Boolean {
         if (jwt.token?.claims?.containsKey(authConfig.claimEmail)!!) {
@@ -72,8 +65,7 @@ class TokenService(val authConfig: AuthConfig) {
     companion object {
         const val BEARER = "Bearer"
 
-        private fun isTokenBased(authentication: Authentication): Boolean {
-            return authentication.javaClass.isAssignableFrom(JwtAuthenticationToken::class.java)
-        }
+        private fun isTokenBased(authentication: Authentication): Boolean =
+            authentication.javaClass.isAssignableFrom(JwtAuthenticationToken::class.java)
     }
 }

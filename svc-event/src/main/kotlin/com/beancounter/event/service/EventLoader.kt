@@ -65,14 +65,16 @@ class EventLoader(
         }
     }
 
-    fun loadEvents(
+    private fun loadEvents(
         portfolio: Portfolio,
         date: LocalDate,
         authContext: OpenIdResponse,
     ): Int {
         loginService.setAuthContext(authContext)
         val positionResponse = positionService.getPositions(portfolio, date.toString())
-        if (positionResponse.data.positions.values.isEmpty()) {
+        if (positionResponse.data.positions.values
+                .isEmpty()
+        ) {
             return 0
         }
 

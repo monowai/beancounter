@@ -7,7 +7,6 @@ import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.exception.UnauthorizedException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
@@ -23,7 +22,11 @@ import org.springframework.web.bind.annotation.RequestBody
  */
 @Service
 @ConditionalOnProperty(value = ["auth.enabled"], havingValue = "true", matchIfMissing = true)
-class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDecoder, val authConfig: AuthConfig) {
+class LoginService(
+    private val authGateway: AuthGateway,
+    val jwtDecoder: JwtDecoder,
+    val authConfig: AuthConfig,
+) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun login(
@@ -54,7 +57,6 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
      *
      * @return token
      */
-    @Cacheable("auth.m2m")
     fun loginM2m(secretIn: String = authConfig.clientSecret): OpenIdResponse {
         if ("not-set" == secretIn) {
             throw UnauthorizedException("Client Secret is not set")
@@ -74,7 +76,7 @@ class LoginService(private val authGateway: AuthGateway, val jwtDecoder: JwtDeco
         return response
     }
 
-    fun authenticationToken(response: OpenIdResponse) =
+    private fun authenticationToken(response: OpenIdResponse) =
         JwtAuthenticationToken(
             jwtDecoder.decode(
                 response.token,

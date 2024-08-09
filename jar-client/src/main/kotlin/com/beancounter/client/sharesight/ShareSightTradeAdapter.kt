@@ -89,7 +89,7 @@ class ShareSightTradeAdapter(
                     tradeDate =
                         dateUtils.getFormattedDate(
                             row[DATE],
-                            shareSightConfig.dateFormat,
+                            listOf(shareSightConfig.dateFormat),
                         ),
                     fees = fees,
                     price = MathUtils.nullSafe(parse(row[PRICE], shareSightConfig.numberFormat)),
@@ -118,13 +118,12 @@ class ShareSightTradeAdapter(
         }
     }
 
-    private fun getTradeCashRate(tradeRate: BigDecimal): BigDecimal {
-        return if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
+    private fun getTradeCashRate(tradeRate: BigDecimal): BigDecimal =
+        if (shareSightConfig.isCalculateRates || numberUtils.isUnset(tradeRate)) {
             BigDecimal.ZERO
         } else {
             tradeRate
         }
-    }
 
     @Throws(ParseException::class)
     private fun calcTradeAmount(
@@ -146,13 +145,12 @@ class ShareSightTradeAdapter(
         return result
     }
 
-    private fun nullSafe(o: Any?): String? {
-        return if (o?.toString() == "null") {
+    private fun nullSafe(o: Any?): String? =
+        if (o?.toString() == "null") {
             null
         } else {
             o?.toString()
         }
-    }
 
     override fun isValid(row: List<String>): Boolean {
         val ttype = row[TYPE]

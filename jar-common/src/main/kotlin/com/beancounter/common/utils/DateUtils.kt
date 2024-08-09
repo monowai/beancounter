@@ -57,7 +57,7 @@ class DateUtils(
     fun today(): String = LocalDate.now(zoneId).toString()
 
     val date: LocalDate
-        get() = getFormattedDate(TODAY, FORMAT)
+        get() = getFormattedDate(TODAY, listOf(FORMAT))
 
     /**
      * Creates an OffsetDateTime object from the specified date and time, using UTC as the time zone.
@@ -69,18 +69,14 @@ class DateUtils(
     fun offset(
         date: String = TODAY,
         time: LocalTime = LocalTime.now(zoneId),
-    ): OffsetDateTime {
-        return OffsetDateTime.of(getFormattedDate(date), time, UTC)
-    }
+    ): OffsetDateTime = OffsetDateTime.of(getFormattedDate(date), time, UTC)
 
     /**
      * Converts the specified date string to an ISO local date string using the offset method.
      * @param date the date as a string, defaulting to "today"
      * @return the local date part of the OffsetDateTime as a string
      */
-    fun offsetDateString(date: String = TODAY): String {
-        return offset(date).toLocalDate().toString()
-    }
+    fun offsetDateString(date: String = TODAY): String = offset(date).toLocalDate().toString()
 
     /**
      * Parses the given date string into a LocalDate, using the provided date format or default if not specified.
@@ -90,13 +86,21 @@ class DateUtils(
      */
     fun getFormattedDate(
         inDate: String = TODAY,
-        dateFormat: String = "yyyy-MM-dd",
+        dateFormats: List<String> = listOf("yyyy-MM-dd", "yyyy-MM-d", "yyyy-M-d"),
     ): LocalDate {
-        return if (inDate.lowercase(Locale.getDefault()) == TODAY) {
-            LocalDate.now(zoneId)
-        } else {
-            LocalDate.parse(inDate, DateTimeFormatter.ofPattern(dateFormat))
+        if (inDate.lowercase(Locale.getDefault()) == TODAY) {
+            return LocalDate.now(zoneId)
         }
+
+        for (format in dateFormats) {
+            try {
+                return LocalDate.parse(inDate, DateTimeFormatter.ofPattern(format))
+            } catch (e: DateTimeParseException) {
+                // Continue to the next format
+            }
+        }
+
+        throw BusinessException("Unable to parse the date $inDate")
     }
 
     /**
@@ -118,24 +122,22 @@ class DateUtils(
      * @param inDate the date as a string, defaulting to "today"
      * @return true if the date is today, false otherwise
      */
-    fun isToday(inDate: String = TODAY): Boolean {
-        return if (inDate.isBlank() || TODAY == inDate.lowercase(Locale.getDefault())) {
+    fun isToday(inDate: String = TODAY): Boolean =
+        if (inDate.isBlank() || TODAY == inDate.lowercase(Locale.getDefault())) {
             true // Null date is "today"
         } else {
             getFormattedDate(inDate).isEqual(LocalDate.now(zoneId))
         }
-    }
 
     /**
      * Returns an OffsetDateTime for now or for a specified date.
      * @param date the date as a string
      * @return OffsetDateTime representing now or the specified date at the current time
      */
-    fun offsetNow(date: String): OffsetDateTime {
-        return if (isToday(date)) {
+    fun offsetNow(date: String): OffsetDateTime =
+        if (isToday(date)) {
             OffsetDateTime.now(UTC)
         } else {
             OffsetDateTime.of(getFormattedDate(date).atTime(LocalTime.now()), UTC)
         }
-    }
 }

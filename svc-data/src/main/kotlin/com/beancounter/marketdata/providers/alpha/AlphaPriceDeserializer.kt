@@ -115,7 +115,6 @@ class AlphaPriceDeserializer : JsonDeserializer<PriceResponse>() {
             val localDateTime =
                 dateUtils.getFormattedDate(
                     key.toString(),
-                    "yyyy-M-dd",
                 )
             if (asset != null) {
                 val priceData = getPrice(asset, localDateTime, rawData!!)

@@ -80,4 +80,13 @@ internal class DateUtilsTest {
             dateUtils.getDate("ABC-MM-11")
         }
     }
+
+    @Test
+    fun parseMiscFormats() {
+        val dateUtils = DateUtils()
+        assertThat(dateUtils.getDate("2021-01-01")).isNotNull()
+        assertThat(dateUtils.getDate("2021-08-8")).isNotNull()
+        assertThat(dateUtils.getDate("2021-8-08")).isNotNull()
+        assertThat(dateUtils.getDate("2021-8-8")).isNotNull()
+    }
 }

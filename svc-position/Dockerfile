@@ -1,4 +1,4 @@
-FROM amazoncorretto:21-al2023-jdk
+FROM amazoncorretto:21-al2023
 
 ARG JAR_FILE=build/libs/svc-position-0.1.1.jar
 ARG GIT_COMMIT

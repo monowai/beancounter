@@ -92,14 +92,17 @@ internal class PortfolioControllerTests {
         assertThat(
             objectMapper
                 .readValue(
-                    mockMvc.perform(
-                        MockMvcRequestBuilders.get(PORTFOLIO_ROOT)
-                            .with(csrf())
-                            .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                            .contentType(MediaType.APPLICATION_JSON),
-                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    mockMvc
+                        .perform(
+                            MockMvcRequestBuilders
+                                .get(PORTFOLIO_ROOT)
+                                .with(csrf())
+                                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                                .contentType(MediaType.APPLICATION_JSON),
+                        ).andExpect(MockMvcResultMatchers.status().isOk)
                         .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                        .andReturn().response.contentAsString,
+                        .andReturn()
+                        .response.contentAsString,
                     PortfoliosResponse::class.java,
                 ).data,
         ).isNotEmpty
@@ -133,10 +136,11 @@ internal class PortfolioControllerTests {
                         .hasFieldOrPropertyWithValue(
                             P_NAME,
                             portfolios.iterator().next().name,
-                        )
-                        .hasFieldOrPropertyWithValue(P_CCY_CODE, portfolios.iterator().next().currency)
+                        ).hasFieldOrPropertyWithValue(P_CCY_CODE, portfolios.iterator().next().currency)
                         .hasFieldOrProperty("owner")
                         .hasFieldOrProperty("base")
+                        .hasFieldOrPropertyWithValue("marketValue", java.math.BigDecimal.ZERO)
+                        .hasFieldOrPropertyWithValue("irr", java.math.BigDecimal.ZERO)
                 },
             )
     }
@@ -156,12 +160,14 @@ internal class PortfolioControllerTests {
             .hasSize(1)
         val id = created.iterator().next().id
         val mvcResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.delete(PORTFOLIO_BY_ID, id)
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .delete(PORTFOLIO_BY_ID, id)
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
         assertThat(mvcResult.response.contentAsString).isEqualTo("deleted $id")
     }
@@ -180,7 +186,7 @@ internal class PortfolioControllerTests {
                 token,
             ).data
 
-        val (id, _, _, _, _, owner) = portfolioResponse.iterator().next()
+        val (id, _, _, _, _, _, _, owner) = portfolioResponse.iterator().next()
         val updateTo =
             PortfolioInput(
                 "UPDATE_TO_THIS",
@@ -189,13 +195,15 @@ internal class PortfolioControllerTests {
                 SGD.code,
             )
         val patchResult =
-            mockMvc.perform(
-                MockMvcRequestBuilders.patch(PORTFOLIO_BY_ID, id)
-                    .with(csrf())
-                    .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
-                    .content(objectMapper.writeValueAsBytes(updateTo))
-                    .contentType(MediaType.APPLICATION_JSON),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .patch(PORTFOLIO_BY_ID, id)
+                        .with(csrf())
+                        .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(token))
+                        .content(objectMapper.writeValueAsBytes(updateTo))
+                        .contentType(MediaType.APPLICATION_JSON),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn()
         val (data) =

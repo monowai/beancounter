@@ -52,7 +52,7 @@ class CashValuationTests {
         val sgdBalance = BigDecimal("20000.00")
         val rate = usdBalance.divide(sgdBalance)
 
-        val positions = Positions(portfolio = Portfolio(code = "CostOfCash", currency = SGD, base = SGD))
+        val positions = Positions(portfolio = Portfolio(id = "CostOfCash", currency = SGD))
 
         accumulator.accumulate(
             convert(
@@ -83,7 +83,7 @@ class CashValuationTests {
         val usdBalance = BigDecimal("1000.00")
         val expectedRate = BigDecimal("0.5")
 
-        val positions = Positions(portfolio = Portfolio(code = "AssetCost", currency = SGD, base = SGD))
+        val positions = Positions(portfolio = Portfolio(id = "AssetCost", currency = SGD))
 
         accumulator.accumulate(
             deposit(
@@ -124,7 +124,7 @@ class CashValuationTests {
 
     @Test
     fun cashLadderBalancesWithFx() {
-        val positions = Positions(portfolio = Portfolio(code = "FxCashFlows", currency = USD, base = NZD))
+        val positions = Positions(portfolio = Portfolio(id = "FxCashFlows", currency = USD, base = NZD))
         // Initial Deposit
         val nzdBalance = BigDecimal("12000.00")
         accumulator.accumulate(
@@ -146,9 +146,21 @@ class CashValuationTests {
         )
         assertThat(positions.positions).containsKeys(toKey(nzdCash), toKey(sgdCash))
         // NZD Balance has been Sold
-        assertThat(positions.getOrCreate(nzdCash).quantityValues.getTotal().compareTo(BigDecimal.ZERO)).isEqualTo(0)
+        assertThat(
+            positions
+                .getOrCreate(nzdCash)
+                .quantityValues
+                .getTotal()
+                .compareTo(BigDecimal.ZERO),
+        ).isEqualTo(0)
         // SGD Balance has been purchased
-        assertThat(positions.getOrCreate(sgdCash).quantityValues.getTotal().compareTo(sgdBalance)).isEqualTo(0)
+        assertThat(
+            positions
+                .getOrCreate(sgdCash)
+                .quantityValues
+                .getTotal()
+                .compareTo(sgdBalance),
+        ).isEqualTo(0)
         // Swap SGD for USD
         val usdBalance = BigDecimal("8359.43")
         accumulator.accumulate(
@@ -162,9 +174,27 @@ class CashValuationTests {
             positions,
         )
         // Verify cash balance buckets.
-        assertThat(positions.getOrCreate(nzdCash).quantityValues.getTotal().compareTo(BigDecimal.ZERO)).isEqualTo(0)
-        assertThat(positions.getOrCreate(sgdCash).quantityValues.getTotal().compareTo(BigDecimal.ZERO)).isEqualTo(0)
-        assertThat(positions.getOrCreate(usdCash).quantityValues.getTotal().compareTo(usdBalance)).isEqualTo(0)
+        assertThat(
+            positions
+                .getOrCreate(nzdCash)
+                .quantityValues
+                .getTotal()
+                .compareTo(BigDecimal.ZERO),
+        ).isEqualTo(0)
+        assertThat(
+            positions
+                .getOrCreate(sgdCash)
+                .quantityValues
+                .getTotal()
+                .compareTo(BigDecimal.ZERO),
+        ).isEqualTo(0)
+        assertThat(
+            positions
+                .getOrCreate(usdCash)
+                .quantityValues
+                .getTotal()
+                .compareTo(usdBalance),
+        ).isEqualTo(0)
         // Withdraw the entire balance and check that cost is 0
         accumulator.accumulate(
             Trn(

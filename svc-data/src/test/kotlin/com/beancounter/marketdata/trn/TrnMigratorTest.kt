@@ -35,7 +35,8 @@ internal class TrnMigratorTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(assetService.findOrCreate(AssetInput("CASH", NZD.code)))
+        Mockito
+            .`when`(assetService.findOrCreate(AssetInput("CASH", NZD.code)))
             .thenReturn(Constants.nzdCashBalance)
         Mockito.`when`(currencyService.getCode(NZD.code)).thenReturn(NZD)
         Mockito.`when`(currencyService.getCode(USD.code)).thenReturn(USD)
@@ -61,7 +62,7 @@ internal class TrnMigratorTest {
                 tradeCurrency = USD,
                 cashAsset = Constants.nzdCashBalance,
                 cashCurrency = NZD,
-                portfolio = Portfolio("test", NZD, USD),
+                portfolio = Portfolio("test", currency = NZD, base = USD),
                 version = "2",
             )
         trnV1.callerRef = CallerRef("ABC", "DEF", "GHI")

@@ -38,7 +38,7 @@ internal class FxUtilsTest {
 
     @Test
     fun is_FxRequestCorrect() {
-        val portfolio = Portfolio("ABC", SGD)
+        val portfolio = Portfolio("ABC", currency = SGD)
         val positions = Positions(portfolio)
         val gbpMarket = Market(GBP.code, GBP.code)
         val usdMarket = Market(USD.code)

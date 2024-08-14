@@ -5,6 +5,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
+import java.math.BigDecimal
 
 /**
  * Portfolio that owns transactions on behalf of a systemUser
@@ -18,22 +20,9 @@ data class Portfolio(
     @Id val id: String,
     val code: String = id,
     val name: String = code,
-    @ManyToOne val currency: Currency,
-    @ManyToOne val base: Currency,
+    val marketValue: BigDecimal = BigDecimal.ZERO,
+    val irr: BigDecimal = BigDecimal.ZERO,
+    @ManyToOne val currency: Currency = Currency("USD"),
+    @ManyToOne val base: Currency = currency,
     @ManyToOne var owner: SystemUser = SystemUser(id),
-) {
-    constructor(code: String) : this(code, code, code, Currency("USD"), Currency("USD"))
-
-    constructor(code: String, currency: Currency) : this(code, code, code, currency, currency)
-
-    constructor(code: String, currency: Currency, base: Currency) : this(code, code, code, currency, base)
-
-    constructor(code: String, currency: Currency, base: Currency, systemUser: SystemUser?) : this(
-        code,
-        code,
-        code,
-        currency,
-        base,
-        systemUser!!,
-    )
-}
+)

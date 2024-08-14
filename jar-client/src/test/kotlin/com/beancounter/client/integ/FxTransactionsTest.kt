@@ -77,7 +77,7 @@ class FxTransactionsTest {
                 tradeDate = DateUtils().getFormattedDate("2019-10-18"),
                 price = BigDecimal.ONE,
             )
-        val portfolio = Portfolio("tst", NZD, NZD)
+        val portfolio = Portfolio("tst", currency = NZD, base = NZD)
         fxTransactions.setRates(portfolio, trnInput)
         assertThat(trnInput)
             .isNotNull

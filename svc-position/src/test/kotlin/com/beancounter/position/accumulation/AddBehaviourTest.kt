@@ -9,7 +9,9 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.position.Constants
+import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.TEST
+import com.beancounter.position.Constants.Companion.USD
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -28,16 +30,16 @@ class AddBehaviourTest {
 
     @Test
     fun isRealEstateAdded() {
-        val portfolio = Portfolio(TEST, Constants.USD, Constants.NZD)
+        val portfolio = Portfolio(TEST, currency = USD, base = NZD)
         val trn =
             Trn(
                 trnType = TrnType.ADD,
-                asset = Asset.of(AssetInput.toRealEstate(Constants.NZD, "HZH", "My House", "test-user"), market = Market("RE")),
+                asset = Asset.of(AssetInput.toRealEstate(NZD, "HZH", "My House", "test-user"), market = Market("RE")),
                 quantity = BigDecimal.ONE,
                 price = oneMillion,
                 tradeAmount = oneMillion,
-                tradeCurrency = Constants.NZD,
-                cashCurrency = Constants.NZD,
+                tradeCurrency = NZD,
+                cashCurrency = NZD,
                 tradeCashRate = BigDecimal.ONE,
                 tradeBaseRate = BigDecimal.ONE,
                 tradePortfolioRate = BigDecimal("0.665051"),
@@ -49,8 +51,7 @@ class AddBehaviourTest {
         val usCost = BigDecimal("665051.00")
         assertThat(
             position.getMoneyValues(Position.In.PORTFOLIO),
-        )
-            .hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, Constants.USD)
+        ).hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, USD)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, usCost)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, usCost)
             .hasFieldOrPropertyWithValue(Constants.PROP_AVERAGE_COST, usCost)
@@ -58,8 +59,7 @@ class AddBehaviourTest {
 
         assertThat(
             position.getMoneyValues(Position.In.BASE),
-        )
-            .hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, Constants.NZD)
+        ).hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, NZD)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_PURCHASES, trn.tradeAmount)
@@ -67,8 +67,7 @@ class AddBehaviourTest {
         val tradePosition = position.getMoneyValues(Position.In.TRADE)
         assertThat(
             tradePosition,
-        )
-            .hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, Constants.NZD)
+        ).hasFieldOrPropertyWithValue(Constants.PROP_CURRENCY, NZD)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_VALUE, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_COST_BASIS, trn.tradeAmount)
             .hasFieldOrPropertyWithValue(Constants.PROP_PURCHASES, trn.tradeAmount)

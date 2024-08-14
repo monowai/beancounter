@@ -29,7 +29,7 @@ class BalanceBehaviourTest {
 
     @Test
     fun is_CashAccumulated() {
-        val portfolio = Portfolio(Constants.TEST, USD, NZD)
+        val portfolio = Portfolio(Constants.TEST, currency = USD, base = NZD)
         val trn =
             Trn(
                 trnType = TrnType.BALANCE,
@@ -46,8 +46,7 @@ class BalanceBehaviourTest {
         val usCost = BigDecimal("-5600.00")
         assertThat(
             position.getMoneyValues(Position.In.PORTFOLIO),
-        )
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, USD)
+        ).hasFieldOrPropertyWithValue(PROP_CURRENCY, USD)
             .hasFieldOrPropertyWithValue(PROP_COST_VALUE, usCost)
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, usCost)
             .hasFieldOrPropertyWithValue(PROP_AVERAGE_COST, trn.tradePortfolioRate)
@@ -55,8 +54,7 @@ class BalanceBehaviourTest {
 
         assertThat(
             position.getMoneyValues(Position.In.BASE),
-        )
-            .hasFieldOrPropertyWithValue(PROP_CURRENCY, NZD)
+        ).hasFieldOrPropertyWithValue(PROP_CURRENCY, NZD)
             .hasFieldOrPropertyWithValue(PROP_COST_VALUE, trn.quantity)
             .hasFieldOrPropertyWithValue(PROP_COST_BASIS, trn.quantity)
             .hasFieldOrPropertyWithValue(PROP_SALES, trn.quantity)

@@ -37,25 +37,24 @@ class PortfolioInputAdapter internal constructor(
             keyGenUtils.id,
             portfolioInput.code.uppercase(Locale.getDefault()),
             portfolioInput.name,
-            currencyService.getCode(portfolioInput.currency),
-            currencyService.getCode(portfolioInput.base),
-            owner,
+            currency = currencyService.getCode(portfolioInput.currency),
+            base = currencyService.getCode(portfolioInput.base),
+            owner = owner,
         )
     }
 
     fun fromInput(
         data: PortfolioInput,
         existing: Portfolio,
-    ): Portfolio {
-        return Portfolio(
+    ): Portfolio =
+        Portfolio(
             existing.id,
             data.code.uppercase(Locale.getDefault()),
             data.name,
-            currencyService.getCode(data.currency),
-            currencyService.getCode(data.base),
-            existing.owner,
+            currency = currencyService.getCode(data.currency),
+            base = currencyService.getCode(data.base),
+            owner = existing.owner,
         )
-    }
 
     companion object {
         private val log = LoggerFactory.getLogger(PortfolioInputAdapter::class.java)

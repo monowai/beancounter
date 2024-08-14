@@ -91,28 +91,23 @@ class WtdService
             }
         }
 
-        override fun getId(): String {
-            return ID
-        }
+        override fun getId(): String = ID
 
-        override fun isMarketSupported(market: Market): Boolean {
-            return if (wtdConfig.markets!!.isBlank()) {
+        override fun isMarketSupported(market: Market): Boolean =
+            if (wtdConfig.markets!!.isBlank()) {
                 false
             } else {
                 wtdConfig.markets!!.contains(market.code)
             }
-        }
 
         override fun getDate(
             market: Market,
             priceRequest: PriceRequest,
-        ): LocalDate {
-            return wtdConfig.getMarketDate(market, priceRequest.date)
-        }
+        ): LocalDate = wtdConfig.getMarketDate(market, priceRequest.date)
 
-        override fun backFill(asset: Asset): PriceResponse {
-            return PriceResponse()
-        }
+        override fun backFill(asset: Asset): PriceResponse = PriceResponse()
+
+        override fun isApiSupported(): Boolean = true
 
         companion object {
             const val ID = "WTD"

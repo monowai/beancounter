@@ -28,8 +28,9 @@ import kotlin.collections.set
  * @since 2019-03-03
  */
 @Service
-class AlphaPriceService(private val alphaConfig: AlphaConfig) :
-    MarketDataPriceProvider {
+class AlphaPriceService(
+    private val alphaConfig: AlphaConfig,
+) : MarketDataPriceProvider {
     @Value("\${beancounter.market.providers.ALPHA.key:demo}")
     private lateinit var apiKey: String
     private lateinit var alphaProxy: AlphaProxy
@@ -94,9 +95,7 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) :
         return results
     }
 
-    override fun getId(): String {
-        return ID
-    }
+    override fun getId(): String = ID
 
     override fun isMarketSupported(market: Market) =
         if (alphaConfig.markets == null) {
@@ -113,7 +112,8 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) :
     override fun backFill(asset: Asset): PriceResponse {
         val json = alphaProxy.getAdjusted(asset.code, apiKey)
         val priceResponse: PriceResponse =
-            alphaConfig.getObjectMapper()
+            alphaConfig
+                .getObjectMapper()
                 .readValue(json, PriceResponse::class.java)
         for (marketData in priceResponse.data) {
             marketData.source = ID
@@ -121,6 +121,8 @@ class AlphaPriceService(private val alphaConfig: AlphaConfig) :
         }
         return priceResponse
     }
+
+    override fun isApiSupported(): Boolean = true
 
     companion object {
         const val ID = "ALPHA"

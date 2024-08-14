@@ -31,9 +31,7 @@ class OffMarketDataProvider(
     fun getMarketData(
         asset: Asset,
         from: MarketData,
-    ): MarketData {
-        return MarketData(asset, close = from.close, priceDate = priceDate)
-    }
+    ): MarketData = MarketData(asset, close = from.close, priceDate = priceDate)
 
     override fun getMarketData(priceRequest: PriceRequest): Collection<MarketData> {
         val results: MutableCollection<MarketData> = ArrayList(priceRequest.assets.size)
@@ -45,13 +43,9 @@ class OffMarketDataProvider(
         return results
     }
 
-    override fun getId(): String {
-        return ID
-    }
+    override fun getId(): String = ID
 
-    override fun isMarketSupported(market: Market): Boolean {
-        return getId().equals(market.code, ignoreCase = true)
-    }
+    override fun isMarketSupported(market: Market): Boolean = getId().equals(market.code, ignoreCase = true)
 
     val priceDate: LocalDate
         get() = dateUtils.getDate()
@@ -59,13 +53,12 @@ class OffMarketDataProvider(
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest,
-    ): LocalDate {
-        return dateUtils.getFormattedDate(priceRequest.date)
-    }
+    ): LocalDate = dateUtils.getFormattedDate(priceRequest.date)
 
-    override fun backFill(asset: Asset): PriceResponse {
+    override fun backFill(asset: Asset): PriceResponse =
         throw UnsupportedOperationException("Custom assets do not support backfill requests")
-    }
+
+    override fun isApiSupported(): Boolean = false
 
     companion object {
         const val ID = "OFFM"

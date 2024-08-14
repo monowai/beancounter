@@ -18,7 +18,9 @@ import java.time.LocalDate
  * @since 2021-12-01
  */
 @Service
-class CashProviderService(val dateUtils: DateUtils = DateUtils()) : MarketDataPriceProvider {
+class CashProviderService(
+    val dateUtils: DateUtils = DateUtils(),
+) : MarketDataPriceProvider {
     private fun getMarketData(asset: Asset): MarketData {
         val result = MarketData(asset, priceDate!!)
         result.close = BigDecimal.ONE
@@ -35,13 +37,11 @@ class CashProviderService(val dateUtils: DateUtils = DateUtils()) : MarketDataPr
         return results
     }
 
-    override fun getId(): String {
-        return ID
-    }
+    override fun getId(): String = ID
 
-    override fun isMarketSupported(market: Market): Boolean {
-        return ID.equals(market.code, ignoreCase = true)
-    }
+    override fun isMarketSupported(market: Market): Boolean = ID.equals(market.code, ignoreCase = true)
+
+    override fun isApiSupported(): Boolean = false
 
     val priceDate: LocalDate?
         get() = dateUtils.getDate()
@@ -49,13 +49,9 @@ class CashProviderService(val dateUtils: DateUtils = DateUtils()) : MarketDataPr
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest,
-    ): LocalDate {
-        return priceDate!!
-    }
+    ): LocalDate = priceDate!!
 
-    override fun backFill(asset: Asset): PriceResponse {
-        throw UnsupportedOperationException("Cash does not support backfill requests")
-    }
+    override fun backFill(asset: Asset): PriceResponse = throw UnsupportedOperationException("Cash does not support backfill requests")
 
     companion object {
         const val ID = "CASH"

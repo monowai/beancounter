@@ -47,6 +47,7 @@ class MarketDataService
             val byProviders = providerUtils.splitProviders(priceRequest.assets)
             val foundInDb: MutableCollection<MarketData> = mutableListOf()
             val foundOverApi: MutableCollection<MarketData> = mutableListOf()
+            val customPrice: MutableCollection<MarketData> = mutableListOf()
             val cachedDates: MutableMap<String, LocalDate> = mutableMapOf()
 
             for (marketDataProvider in byProviders.keys) {
@@ -67,17 +68,22 @@ class MarketDataService
                         assets.remove()
                     }
                 }
-
-                foundOverApi.addAll(getFromProvider(byProviders[marketDataProvider], cachedDates, marketDataProvider))
+                val results = getFromProvider(byProviders[marketDataProvider], cachedDates, marketDataProvider)
+                if (marketDataProvider.isApiSupported()) {
+                    foundOverApi.addAll(results)
+                } else {
+                    customPrice.addAll(results)
+                }
             }
 
             if (foundInDb.size + foundOverApi.size > 1) {
-                log.debug("From DB: ${foundInDb.size}, from API: ${foundOverApi.size}")
+                log.debug("From DB: ${foundInDb.size}, from API: ${foundOverApi.size}, custom prices: ${customPrice.size}")
             }
             if (foundOverApi.isNotEmpty()) {
                 priceService.write(PriceResponse(foundOverApi))
             }
             foundInDb.addAll(foundOverApi)
+            foundInDb.addAll(customPrice)
             return PriceResponse(foundInDb)
         }
 
@@ -85,9 +91,7 @@ class MarketDataService
             asset: Asset,
             priceRequest: PriceRequest,
             marketDate: LocalDate,
-        ): Optional<MarketData> {
-            return priceService.getMarketData(asset, marketDate, priceRequest.closePrice)
-        }
+        ): Optional<MarketData> = priceService.getMarketData(asset, marketDate, priceRequest.closePrice)
 
         private fun getFromProvider(
             providerAssets: MutableCollection<Asset>?,
@@ -96,7 +100,13 @@ class MarketDataService
         ): Collection<MarketData> {
             if (!providerAssets!!.isEmpty()) {
                 val assetInputs = providerUtils.getInputs(providerAssets)
-                val priceDate = timezonePriceDates[providerAssets.iterator().next().market.timezone.id]
+                val priceDate =
+                    timezonePriceDates[
+                        providerAssets
+                            .iterator()
+                            .next()
+                            .market.timezone.id,
+                    ]
                 val priceRequest = PriceRequest(priceDate.toString(), assetInputs)
                 return marketDataPriceProvider.getMarketData(priceRequest)
             }

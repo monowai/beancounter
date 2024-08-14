@@ -31,4 +31,7 @@ interface MarketDataPriceProvider {
     ): LocalDate
 
     fun backFill(asset: Asset): PriceResponse
+
+    // Return true if an external API calls is required
+    fun isApiSupported(): Boolean
 }
